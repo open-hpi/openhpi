@@ -161,17 +161,9 @@ TESTS = tevent \
 	thotswap006   \
 	thotswap007   \
 	thotswap008   \
-	thotswap009
-#	thotswap_state_err \
-#	thotswap_reset \
-#	thotswap_reset_err \
-#	thotswap_reset_set \
-#	thotswap_reset_set_err \
-#	thotswap_power \
-#	thotswap_power_err \
-#	thotswap_power_set \
-#	thotswap_power_set_err \
-#	thotswap_unsupported \
+	thotswap009   \
+	tsptime001    \
+	tsptime002
 #	testxml
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
@@ -630,39 +622,19 @@ thotswap009_SOURCES = thotswap009.c
 thotswap009_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsptime001_SOURCES = tsptime001.c 
+tsptime001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsptime002_SOURCES = tsptime002.c 
+tsptime002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
 # Unit tests with IF and snmp calls stubbed out
 #testxml_SOURCES = testxml.c
 #testxml_LDADD   = com_xml2event.c
-
-#thotswap_state_SOURCES = thotswap_state.c
-#thotswap_state_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_state_err_SOURCES = thotswap_state_err.c
-#thotswap_state_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_reset_SOURCES = thotswap_reset.c
-#thotswap_reset_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_reset_err_SOURCES = thotswap_reset_err.c
-#thotswap_reset_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_reset_set_SOURCES = thotswap_reset_set.c
-#thotswap_reset_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_reset_set_err_SOURCES = thotswap_reset_set_err.c
-#thotswap_reset_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_power_SOURCES = thotswap_power.c
-#thotswap_power_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_power_err_SOURCES = thotswap_power_err.c
-#thotswap_power_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_power_set_SOURCES = thotswap_power_set.c
-#thotswap_power_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_power_set_err_SOURCES = thotswap_power_set_err.c
-#thotswap_power_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
-
-#thotswap_unsupported_SOURCES = thotswap_unsupported.c
-#thotswap_unsupported_LDADD = snmp_bc_hotswap.o @SNMPLIBS@
