@@ -22,7 +22,7 @@
 
 
 // text buffer
-static cMarshalType SaHpiTextBufferDataArray = dVarArray( SaHpiUint8Type, SAHPI_MAX_TEXT_BUFFER_LENGTH );
+static cMarshalType SaHpiTextBufferDataArray = dVarArray( SaHpiUint8Type, 2 );
 
 
 static cMarshalType SaHpiTextBufferElements[] =
