@@ -35,14 +35,13 @@ int fasset = 0;
 int fdebug = 0;
 int fxdebug = 0;
 int i,j,k = 0;
-SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
 char progname[] = "hpifru";
 char bmctag[] = "Basbrd Mgmt Ctlr";
 char *asset_tag;
-char inbuff[10240];
 char outbuff[256];
 SaHpiInventoryDataT *inv;
+const SaHpiUint32T   invsize = 16384;
 SaHpiInventChassisTypeT chasstype;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
@@ -254,7 +253,7 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
-  inv = (SaHpiInventoryDataT *)&inbuff[0];
+  inv = (SaHpiInventoryDataT *)malloc(invsize);
   rv = saHpiInitialize(&hpiVer);
   if (rv != SA_OK) {
     printf("saHpiInitialize error %d\n",rv);
@@ -300,14 +299,12 @@ main(int argc, char **argv)
 	    rdr.IdString.Data[rdr.IdString.DataLength] = 0;	    
 	    if (fdebug) printf( "RDR[%d]: type=%d num=%d %s\n", rdr.RecordId,
 		    rdr.RdrType, eirid, rdr.IdString.Data);
-	    buffersize = sizeof(inbuff);
-	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%zd\n",
-		    buffersize, sizeof(inbuff));
+	    if (fdebug) printf("BufferSize=%d\n", invsize);
 
 
 	    {
 	      rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-		  eirid, buffersize, inv, &actualsize);
+		  eirid, invsize, inv, &actualsize);
   	      if (fxdebug) printf(
 		    "saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
 	      if (fdebug) printf("ActualSize=%d\n", actualsize);
@@ -375,7 +372,7 @@ main(int argc, char **argv)
 		    {
 		      printf ("Good write - re-reading!\n");
 	              rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-		          eirid, buffersize, inv, &actualsize);
+		          eirid, invsize, inv, &actualsize);
   	              if (fxdebug) printf(
 		      "saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
 	              if (fdebug) printf("ActualSize=%d\n", actualsize);
@@ -430,6 +427,7 @@ main(int argc, char **argv)
   }
   rv = saHpiSessionClose(sessionid);
   rv = saHpiFinalize();
+  free(inv);
   exit(0);
 }
  /* end hpifru.c */

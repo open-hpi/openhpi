@@ -31,11 +31,8 @@ char s_name[] = "80mm Sys Fan (R)";
 char sm_name[] = "Baseboard Fan 2";
 char progname[] = "hpievent";
 char progver[] = "0.5";
-char inbuff[1024];
 char outbuff[256];
-SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
-SaHpiInventoryDataT *inv;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
 SaHpiSensorEvtEnablesT enables1;
@@ -333,7 +330,6 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
-  inv = (SaHpiInventoryDataT *)&inbuff[0];
 
   rv = saHpiInitialize(&hpiVer);
 
