@@ -62,7 +62,7 @@ INCLUDES = \
 
 AM_CFLAGS = -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
 
-EXTRA_DIST = sim_resources.h openhpi.conf tsetup.h
+EXTRA_DIST = sim_resources.h openhpi.conf tsetup.h sim_test_file
 
 noinst_LTLIBRARIES = libsnmp_bc.la
 
@@ -102,6 +102,7 @@ EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf
+TESTS_ENVIRONMENT += OPENHPI_SIMTEST_FILE=$(srcdir)/sim_test_file
 #TESTS_ENVIRONMENT += OPENHPI_DEBUG=YES
 #TESTS_ENVIRONMENT += OPENHPI_DEBUG_TRACE=YES
 TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/utils/.libs
