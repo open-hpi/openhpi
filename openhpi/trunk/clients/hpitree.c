@@ -340,8 +340,7 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 
 	numAreas = idrInfo->NumAreas;
 	areaType = SAHPI_IDR_AREATYPE_UNSPECIFIED;
-	/* areaId = SAHPI_FIRST_ENTRY; */
-	areaId = 1;
+	areaId = SAHPI_FIRST_ENTRY;
 
 	do {
 		rv = saHpiIdrAreaHeaderGet(sessionid,
@@ -363,7 +362,7 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 							sessionid,	
 							resourceid,
 							idrInfo->IdrId,
-							areaId, 
+							areaHeader.AreaId, 
 							fieldType,
 							fieldId,
 							&nextFieldId,
@@ -448,7 +447,7 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
 								 	"\nSensor for %s, ResourceId: %d\n",
 										rptentry.ResourceTag.Data,l_resourceid);
 							oh_print_text(&working);
-							oh_print_sensorrec(&rdr.RdrTypeUnion.SensorRec, 0);
+							oh_print_sensorrec(&rdr.RdrTypeUnion.SensorRec, 4);
 						} 
 					}
 					entryid = nextentryid;
