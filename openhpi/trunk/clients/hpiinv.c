@@ -55,14 +55,6 @@ void walkInventory(	SaHpiSessionIdT sessionid,
 			SaHpiResourceIdT resourceid,
 			SaHpiIdrInfoT	*idrInfo);
 
-void prt_idrField(SaHpiIdrFieldT *thisField);
-void prt_areaHeader(SaHpiIdrAreaHeaderT *areaHeader);
-
-void prt_idrInfo(SaHpiSessionIdT sessionid,
-		 SaHpiResourceIdT resourceid,
-		 SaHpiIdrInfoT *idrInfo);
-
-
 /* 
  * Function prototypes
 **/
@@ -161,9 +153,9 @@ main(int argc, char **argv)
 										&idrInfo);		
 
 							if (rvInvent !=SA_OK) {
-								printf("saHpiIdrInfoGet error %s\n", oh_lookup_error(rvInvent));
+								printf("saHpiIdrInfoGet IdrId %d,  error %s\n", idrid, oh_lookup_error(rvInvent));
 							} else {
-								prt_idrInfo(sessionid, resourceid, &idrInfo);
+								oh_print_idrinfo(&idrInfo, 4);
 								walkInventory(sessionid, resourceid, &idrInfo);
 							}
 													} 
@@ -234,7 +226,7 @@ void walkInventory(	SaHpiSessionIdT sessionid,
 					   &areaHeader);
 		if (rv == SA_OK) {
 			countAreas++;
-			prt_areaHeader(&areaHeader);
+			oh_print_idrareaheader(&areaHeader, 8);
 
 			fieldType = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
 			fieldId = SAHPI_FIRST_ENTRY;
@@ -251,7 +243,7 @@ void walkInventory(	SaHpiSessionIdT sessionid,
 							&thisField);
 				if (rvField == SA_OK) {
 					countFields++; 
-					prt_idrField(&thisField);
+					oh_print_idrfield(&thisField, 12);
 				}
  
 				if (fdebug) printf("saHpiIdrFieldGet  error %s\n",oh_lookup_error(rvField));
@@ -272,45 +264,6 @@ void walkInventory(	SaHpiSessionIdT sessionid,
 		printf("idrInfo error! idrInfo.NumAreas = %d; countAreas = %d\n", 
 				numAreas, countAreas);
  	
-}
-
-void prt_idrField(SaHpiIdrFieldT *thisField) 
-{
-	printf("\t\tField Id:\t%d\n", thisField->FieldId);
-
-	printf("\t\tField Type:\t%s\n", oh_lookup_idrfieldtype(thisField->Type)); 
-	printf("\t\tReadOnly:\t%d\n", thisField->ReadOnly); 
-	printf("\t\tDataType:\t%s\n", oh_lookup_texttype(thisField->Field.DataType));
-	printf("\t\tLanguage:\t%s\n", oh_lookup_language(thisField->Field.Language));;
-	oh_print_textbuffer((SaHpiTextBufferT *)&thisField->Field);
-	
-	return;
-}
-
-
-
-void prt_areaHeader(SaHpiIdrAreaHeaderT *areaHeader)
-{
-	printf("\tAreaId %d\n", areaHeader->AreaId);
-	printf("\tAreaType: %s\n", oh_lookup_idrareatype(areaHeader->Type));
-	printf("\tReadOnly %d\n",  areaHeader->ReadOnly);
-	printf("\tNumFields %d\n",areaHeader->NumFields);
-	return;
-}
-
-void prt_idrInfo( SaHpiSessionIdT sessionid,
-                  SaHpiResourceIdT resourceid,
-                  SaHpiIdrInfoT   *idrInfo)
-{
-
-	printf("Inventory Data Record\n");
-	printf("    SessionId   %d\n", sessionid);
-	printf("    ResourceId  %d\n", resourceid);
-	printf("    IdrId       %d\n", idrInfo->IdrId);
-	printf("    UpdateCount %d\n", idrInfo->UpdateCount);
-	printf("    ReadOnly    %d\n",idrInfo->ReadOnly); 
-	printf("    NumAreas    %d\n", idrInfo->NumAreas);
-	return;
 }
 
 
