@@ -322,8 +322,14 @@ SaErrorT oh_get_rpt_info(RPTable *table,
  * If an RPT entry with the same resource id exists int the RPT, it will be
  * overlayed with the new RPT entry. Also, this function will assign the
  * resource id as its entry id since it is expected to be unique for the table.
- *
- * Returns: SA_OK on success Or minus SA_OK on error.
+ * The update count and timestamp will not be updated if the entry being added 
+ * already existed in the table and was the same.
+ * 
+ * Returns: SA_OK on success Or minus SA_OK on error. SA_ERR_HPI_INVALID_PARAMS will
+ * be returned if @table is NULL, @entry is NULL, ResourceId in @entry equals
+ * SAHPI_FIRST_ENTRY, ResourceId in @entry equals SAHPI_UNSPECIFIED_RESOURCE_ID,
+ * or ResourceEntity in @entry has a malformed entity path (look at the
+ * entity path utils documentation).
  **/
 SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata)
 {
@@ -602,7 +608,11 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * All rdr interface funtions, except oh_add_rdr() will act in the context of
  * the first RPT entry in the table, if @rid is %SAHPI_FIRST_ENTRY.
  *
- * Returns: SA_OK on success Or minus SA_OK on error.
+ * Returns: SA_OK on success Or minus SA_OK on error. Will return
+ * SA_ERR_HPI_INVALID_PARAMS if instrument id is invalid. An invalid
+ * intrument id for a sensor is in the range of 0x100-0x1FF. An aggregate type
+ * of sensor can have its instrument id in the range of 0x100-0x10F, but
+ * the resource must have the aggregate sensor capabilitiy bit set.
  **/
 SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data, int owndata)
 {
