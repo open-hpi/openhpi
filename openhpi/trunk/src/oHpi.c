@@ -88,8 +88,8 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
         p = oh_lookup_plugin(name);
         if (!p) {
                 dbg("Plugin %s not found.", name);
-                return SA_ERR_HPI_NOT_PRESENT;
         	data_access_unlock();
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         info->refcount = p->refcount;
