@@ -141,11 +141,10 @@ int main(int arc, const char *argv[])
 	/* analysis of pthread_event_get run */
 	printf("***************************************\n");
 	printf("saHpiEventGet Event Mis-Compares:%d\n", event_get_error_count);
-#ifdef _TEST_THREADS_
+
 	/* Total Data Access Mutex Collisions */
 	printf("***************************************\n");
-	printf("Total Data Access Mutex Collisions: %d\n", collision);
-#endif
+	printf("Total Data Access Mutex Collisions: %d\n", data_access_block_times());
 
 	return 0;
 }
