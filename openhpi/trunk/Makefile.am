@@ -57,7 +57,7 @@ DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
 ALLSOURCES = \
 	find $(top_srcdir) \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print
+	-name '*.[chS]' -print | grep -v '/t/'
 
 includedir=$(base_includedir)/openhpi
 
