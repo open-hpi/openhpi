@@ -201,11 +201,11 @@ public:
   // handle a single event
   void HandleEvent( cIpmiEvent *event );
 
-  cIpmiResource *VerifyResource( cIpmiResource *res );
-  cIpmiMc       *VerifyMc( cIpmiMc *mc );
-  cIpmiSensor   *VerifySensor( cIpmiSensor *s );
-  cIpmiControl  *VerifyControl( cIpmiControl *c );
-  cIpmiFru      *VerifyFru( cIpmiFru *f );
+  cIpmiResource  *VerifyResource( cIpmiResource *res );
+  cIpmiMc        *VerifyMc( cIpmiMc *mc );
+  cIpmiSensor    *VerifySensor( cIpmiSensor *s );
+  cIpmiControl   *VerifyControl( cIpmiControl *c );
+  cIpmiInventory *VerifyInventory( cIpmiInventory *i );
 
   virtual void AddHpiEvent( oh_event *event ) = 0;
   virtual GSList *GetHpiEventList() = 0;

@@ -66,6 +66,8 @@ public:
     return m_buffer;
   }
 
+  SaHpiUint8T DataLength() const { return m_buffer.DataLength; }
+  
   const unsigned char *SetIpmi( const unsigned char *data,
 				SaHpiLanguageT l = SAHPI_LANG_ENGLISH );
 

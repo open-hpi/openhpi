@@ -125,9 +125,9 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
 }
 
 
-static cIpmiFru *
-VerifyFruAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiEirIdT num,
-		   cIpmi *&ipmi )
+static cIpmiInventory *
+VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiEirIdT num,
+                         cIpmi *&ipmi )
 {
   ipmi = VerifyIpmi( hnd );
 
@@ -147,18 +147,19 @@ VerifyFruAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiEirIdT num,
        return 0;
      }
 
-  cIpmiFru *fru = (cIpmiFru *)oh_get_rdr_data( ipmi->GetHandler()->rptcache, 
-                                               rid, rdr->RecordId );
-  assert( fru );
+  cIpmiInventory *inv = (cIpmiInventory *)oh_get_rdr_data( ipmi->GetHandler()->rptcache, 
+                                                           rid, rdr->RecordId );
+  assert( inv );
 
-  if ( !ipmi->VerifyFru( fru ) )
+  if ( !ipmi->VerifyInventory( inv ) )
      {
        ipmi->IfLeave();
        return 0;
      }
 
-  return fru;
+  return inv;
 }
+
 
 static cIpmiResource *
 VerifyResourceAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
@@ -285,6 +286,9 @@ IpmiOpen( GHashTable *handler_config )
        dbg("cannot allocate handler");
 
        delete ipmi;
+
+       stdlog.Close();
+
        return 0;
      }
 
@@ -306,6 +310,8 @@ IpmiOpen( GHashTable *handler_config )
        oh_flush_rpt( handler->rptcache );
        g_free( handler->rptcache );
        g_free( handler );
+
+       stdlog.Close();
 
        return 0;
      }
@@ -543,12 +549,12 @@ IpmiGetInventorySize( void *hnd, SaHpiResourceIdT id,
                       SaHpiUint32T *size )
 {
   cIpmi *ipmi = 0;
-  cIpmiFru *fru = VerifyFruAndEnter( hnd, id, num, ipmi );
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, num, ipmi );
 
-  if ( !fru )
+  if ( !inv )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  *size = (SaHpiUint32T)fru->GetInventorySize();
+  *size = (SaHpiUint32T)inv->HpiSize();
 
   ipmi->IfLeave();
 
@@ -562,16 +568,16 @@ IpmiGetInventoryInfo( void *hnd, SaHpiResourceIdT id,
                       SaHpiInventoryDataT *data )
 {
   cIpmi *ipmi = 0;
-  cIpmiFru *fru = VerifyFruAndEnter( hnd, id, num, ipmi );
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, num, ipmi );
 
-  if ( !fru )
+  if ( !inv )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  fru->GetInventoryInfo( *data ) ;
+  SaErrorT rv = inv->HpiRead( *data );
 
   ipmi->IfLeave();
 
-  return SA_OK;
+  return rv;
 }
 
 
@@ -1329,8 +1335,6 @@ cIpmi::IfOpen( GHashTable *handler_config )
        dbg( "cannot decode entity path string" );
        return false;
      }
-
-  m_entity_root.AppendRoot();
 
   cIpmiCon *con = AllocConnection( handler_config );
 

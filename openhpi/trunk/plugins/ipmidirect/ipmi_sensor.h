@@ -186,6 +186,8 @@ protected:
   const char *m_base_unit_string;
   const char *m_modifier_unit_string;
 
+  cIpmiSdr *m_sdr; // full sensor record or 0
+
 public:
   cIpmiSensor( cIpmiMc *mc );
   virtual ~cIpmiSensor();
@@ -193,6 +195,9 @@ public:
   cIpmiMc *&SourceMc() { return m_source_mc; }
 
   virtual unsigned int Num() const { return m_num; }
+
+  cIpmiSdr *GetSdr() { return m_sdr; }
+  void SetSdr( cIpmiSdr *sdr ) { m_sdr = sdr; }
 
   SaHpiEventStateT &EventState() { return m_event_state; }
 

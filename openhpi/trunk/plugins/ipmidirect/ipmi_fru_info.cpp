@@ -66,9 +66,9 @@ cIpmiFruInfo::CreateEntityPath( const cIpmiEntityPath &top,
 {
   cIpmiEntityPath middle;
 
-  middle.SetEntry( 0, SAHPI_ENT_GROUP, m_fru_id + dEntityInstanceDummy );
+  middle.SetEntry( 0, SAHPI_ENT_GROUP, m_fru_id /*+ dEntityInstanceDummy */ );
   middle.SetEntry( 1, m_entity, m_slot );
-  middle.AppendRoot();
+  middle.AppendRoot( 2 );
 
   cIpmiEntityPath ep = bottom;
   ep += middle;
@@ -175,7 +175,7 @@ cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id,
 unsigned int
 cIpmiFruInfoContainer::GetFreeSlotForOther( unsigned int addr )
 {
-  unsigned int slot = dEntityInstanceDummy;
+  unsigned int slot = 0; //dEntityInstanceDummy;
 
   for( GList *list = m_fru_info; list; list = g_list_next( list ) )
      {

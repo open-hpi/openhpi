@@ -117,7 +117,7 @@ public:
   bool operator==( const cIpmiEntityPath &epath ) const;
   bool operator!=( const cIpmiEntityPath &epath ) const;
   
-  bool AppendRoot();
+  bool AppendRoot( int idx );
 
   bool FromString( const char *str );
 };
