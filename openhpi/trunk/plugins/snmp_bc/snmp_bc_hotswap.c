@@ -22,7 +22,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
         struct snmp_value get_value;
 	SaErrorT status;
 
-	if (!hnd){
+	if (!hnd || !state){
 		dbg("Missing handle\n");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -83,7 +83,7 @@ SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiResetActionT *act)
 {
 
-	if (!hnd){
+	if (!hnd || !act){
 		dbg("Missing handle\n");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -106,6 +106,11 @@ SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiResetActionT act)
 {
+	if (!hnd){
+		dbg("Missing handle\n");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
 	gchar *oid;
 	SaErrorT status;
         struct snmp_value set_value;
@@ -161,6 +166,11 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiPowerStateT *state)
 {
+	if (!hnd || !state){
+		dbg("Missing handle\n");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
 	gchar *oid;
 	int rtn_code = SA_OK;
         struct snmp_value get_value;
@@ -213,6 +223,11 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiPowerStateT state)
 {
+	if (!hnd){
+		dbg("Missing handle\n");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
 	gchar *oid;
 	int rtn_code = SA_OK;
 	SaErrorT status;
