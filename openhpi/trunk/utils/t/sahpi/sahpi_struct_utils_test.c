@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 
 		memset(&encode_reading, 0, sizeof(SaHpiSensorReadingT));
 		err = oh_encode_sensorreading(&buffer, format_test.ReadingType, &encode_reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_OVER_MODIFIER;
 		
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -227,7 +227,7 @@ int main(int argc, char **argv)
                 }
 
 		err = oh_encode_sensorreading(&buffer, format_test.ReadingType, &encode_reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -262,7 +262,7 @@ int main(int argc, char **argv)
                 }
 
 		err = oh_encode_sensorreading(&buffer, format_test.ReadingType, &encode_reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -307,7 +307,7 @@ int main(int argc, char **argv)
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64;
 		
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
                 }
 
 		err = oh_encode_sensorreading(&buffer, format_test.ReadingType, &encode_reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -343,7 +343,7 @@ int main(int argc, char **argv)
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -365,7 +365,7 @@ int main(int argc, char **argv)
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -379,7 +379,7 @@ int main(int argc, char **argv)
                 }
 
 		err = oh_encode_sensorreading(&buffer, format_test.ReadingType, &encode_reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -419,7 +419,7 @@ int main(int argc, char **argv)
 		oh_init_textbuffer(&buffer);
 		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -438,7 +438,7 @@ int main(int argc, char **argv)
 		oh_init_textbuffer(&buffer);
 		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -473,7 +473,7 @@ int main(int argc, char **argv)
 		oh_init_textbuffer(&buffer);
 		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_FLOAT64, &reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -516,7 +516,7 @@ int main(int argc, char **argv)
 		oh_init_textbuffer(&buffer);
 		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_FLOAT64, &reading);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -658,13 +658,13 @@ int main(int argc, char **argv)
 		big_bad_buffer = big_buffer;
 
 		err = oh_init_textbuffer(&buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		err = oh_append_textbuffer(&buffer, str);	
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -672,14 +672,14 @@ int main(int argc, char **argv)
 
 		/* oh_fprint_text: oh_print_text MACRO testcase */
 		err = oh_print_text(&buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
 		}
 
 		err = oh_print_bigtext(&big_buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -688,7 +688,7 @@ int main(int argc, char **argv)
                 /* Bad data type testcase */
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		err = oh_copy_textbuffer(&bad_buffer, &buffer);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -743,7 +743,7 @@ int main(int argc, char **argv)
 				return -1;
 			}
 			err = oh_fprint_text(fp, &buffer);
-			if (err != SA_OK) {
+			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
 				return -1;
@@ -755,7 +755,7 @@ int main(int argc, char **argv)
 				return -1;
 			}
 			err = oh_fprint_bigtext(big_fp, &big_buffer);
-			if (err != SA_OK) {
+			if (err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d\n", err);
 				return -1;
@@ -823,7 +823,7 @@ int main(int argc, char **argv)
 		/* oh_print_sensorrec: Default sensor testcase */
 		memset(&default_sensor, 0, sizeof(SaHpiSensorRecT));
 		err = oh_print_sensorrec(&default_sensor, 0);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -831,7 +831,7 @@ int main(int argc, char **argv)
 
 		/* oh_print_sensorrec: Normal sensor testcase */
 		err = oh_print_sensorrec(&sensor, 0);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -862,7 +862,7 @@ int main(int argc, char **argv)
 		/* oh_print_textbuffer: Default textbuffer testcase */
 		printf("Default TextBuffer\n");
 		err = oh_print_textbuffer(&default_textbuffer, 1);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -871,7 +871,7 @@ int main(int argc, char **argv)
 		/* oh_print_textbuffer: Normal textbuffer testcase */
 		printf("Normal TextBuffer\n");
 		err = oh_print_textbuffer(&textbuffer, 1);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -892,13 +892,14 @@ int main(int argc, char **argv)
 		sensor_event.EventDataUnion.SensorEvent.EventCategory = SAHPI_EC_THRESHOLD;
 		sensor_event.EventDataUnion.SensorEvent.Assertion = SAHPI_TRUE;
 		sensor_event.EventDataUnion.SensorEvent.EventState = SAHPI_ES_LOWER_MINOR;
-		sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent = sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent
-			| SAHPI_SOD_TRIGGER_READING
-			| SAHPI_SOD_TRIGGER_THRESHOLD
-			| SAHPI_SOD_PREVIOUS_STATE
-			| SAHPI_SOD_CURRENT_STATE
-			| SAHPI_SOD_OEM
-			| SAHPI_SOD_SENSOR_SPECIFIC;
+		sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent = 
+			sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent |
+			SAHPI_SOD_TRIGGER_READING |
+			SAHPI_SOD_TRIGGER_THRESHOLD |
+			SAHPI_SOD_PREVIOUS_STATE |
+			SAHPI_SOD_CURRENT_STATE |
+			SAHPI_SOD_OEM |
+			SAHPI_SOD_SENSOR_SPECIFIC;
 		sensor_event.EventDataUnion.SensorEvent.TriggerReading.IsSupported = SAHPI_TRUE;
 		sensor_event.EventDataUnion.SensorEvent.TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_INT64;
 		sensor_event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorInt64 = 100;
@@ -923,7 +924,7 @@ int main(int argc, char **argv)
 		/* oh_print_event: Default event testcase */
 		printf("Default Event\n");
 		err = oh_print_event(&default_event, 1);
-		if (err != SA_OK) {
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
@@ -932,13 +933,22 @@ int main(int argc, char **argv)
 		/* oh_print_event: Normal sensor event testcase */
 		printf("Normal Sensor Event\n");
 		err = oh_print_event(&sensor_event, 1);
-		if (err != SA_OK) {
+		if (err) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_print_event: Normal sensor event - no optional sensor data testcase */
+		printf("Normal Sensor Event - no optional sensor data\n");
+		sensor_event.EventDataUnion.SensorEvent.OptionalDataPresent = 0;
+		err = oh_print_event(&sensor_event, 1);
+		if (err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
 		}
 	}
-
 
 	/*******************************
 	 * oh_valid_textbuffer testcases

@@ -62,6 +62,10 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				 SaHpiSensorReadingT *reading);
 SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
 		               SaHpiTextBufferT *buffer);
+
+SaErrorT oh_decode_sensoroptionaldata(SaHpiSensorOptionalDataT sensor_opt_data,
+				      SaHpiTextBufferT *buffer);
+
 #if 0
 /* FIXME:: Add this one */
 SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
