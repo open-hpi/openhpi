@@ -727,8 +727,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				/* Default HDW thresholds: 
 				   Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */	
                          },
@@ -835,8 +837,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				/* Default HDW thresholds: 
 				   Warning 2.25<>2.63; Warning Reset 2.58<>2.42 */
                         },
@@ -943,8 +947,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				/* Default HDW thresholds: 
 				   Warning 3.00<>3.47; Warning Reset 3.40<>3.20 */
 			},
@@ -1051,8 +1057,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				/* Default HDW thresholds: 
 				   Warning 4.50<>5.25; Warning Reset 5.15<>4.85 */
                          },
@@ -1157,8 +1165,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				/* Default HDW thresholds: 
 				   Warning -5.50<>-4.75; Warning Reset -4.85<>-5.15 */
                          },
@@ -1265,8 +1275,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
 				/* Default HDW thresholds: 
 				   Warning 10.80<>12.60; Warning Reset 12.34<>11.64 */
                         },
