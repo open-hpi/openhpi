@@ -41,6 +41,7 @@ EXTRA_DIST		=	bc_errorlog.h \
 
 libsnmp_bc_la_SOURCES	=	bc_resources.c \
 				bc_str2event.c \
+				sim_init.c \
 				snmp_bc.c \
 				snmp_bc_control.c \
 				snmp_bc_event.c \
