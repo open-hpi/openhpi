@@ -24,6 +24,28 @@
 #include "hpi_cmd.h"
 
 typedef struct {
+	SaHpiResourceIdT	rptid;
+	SaHpiInstrumentIdT	rdrnum;
+} inv_block_env_t;
+
+static inv_block_env_t		inv_block_env;
+
+typedef struct {
+	SaHpiResourceIdT	rptid;
+	SaHpiInstrumentIdT	rdrnum;
+} ctrl_block_env_t;
+
+static ctrl_block_env_t		ctrl_block_env;
+
+typedef struct {
+	SaHpiResourceIdT	rptid;
+	SaHpiInstrumentIdT	rdrnum;
+	SaHpiRdrT		rdr_entry;
+} ann_block_env_t;
+
+static ann_block_env_t		ann_block_env;
+
+typedef struct {
 	char			*name;
 	SaHpiIdrAreaTypeT	val;
 } Area_type_t;
@@ -54,7 +76,8 @@ static Field_type_t Field_types[] = {
 	{ "custom",	SAHPI_IDR_FIELDTYPE_CUSTOM },
 	{ NULL,		SAHPI_IDR_FIELDTYPE_UNSPECIFIED } };
 
-static int add_inventory_area(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+static ret_code_t add_inventory_area(SaHpiSessionIdT sessionId,
+	SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaHpiEntryIdT	entry;
 	SaErrorT	rv;
@@ -62,22 +85,23 @@ static int add_inventory_area(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid,
 	int		i;
 
 	i = get_string_param("Area type (inter,chass,board,prod,oem): ", buf, 9);
-	if (i != 0) return(-1);
+	if (i != 0) return(HPI_SHELL_PARM_ERROR);
 	for (i = 0; Area_types[i].name != (char *)NULL; i++)
 		if (strcmp(Area_types[i].name, buf) == 0) break;
 	if (Area_types[i].name == (char *)NULL) {
 		printf("Error!!! Unknown Area type: %s\n", buf);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	rv = saHpiIdrAreaAdd(sessionId, rptid, rdrnum, Area_types[i].val, &entry);
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiIdrAreaAdd: %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
-static int add_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+static ret_code_t add_inventory_field(SaHpiSessionIdT sessionId,
+	SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaErrorT	rv;
 	SaHpiIdrFieldT	field;
@@ -87,7 +111,7 @@ static int add_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 	i = get_int_param("Area Id: ", &res);
 	if (i != 1) {
 		printf("Error!!! Invalid Area Id\n");
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	field.AreaId = res;
 
@@ -95,20 +119,20 @@ static int add_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 		"snum,pnum,file,tag,custom): ", buf, 9);
 	if (i != 0) {
 		printf("Error!!! Invalid Field type: %s\n", buf);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	for (i = 0; Field_types[i].name != (char *)NULL; i++)
 		if (strcmp(Field_types[i].name, buf) == 0) break;
 	if (Field_types[i].name == (char *)NULL) {
 		printf("Error!!! Unknown Field type: %s\n", buf);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	field.Type = Field_types[i].val;
 	field.ReadOnly = SAHPI_FALSE;
 	i = get_string_param("Field value: ", buf, 256);
 	if (i != 0) {
 		printf("Error!!! Invalid Field value: %s\n", buf);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	i = strlen(buf);
 	field.Field.DataType = SAHPI_TL_TYPE_TEXT;
@@ -119,12 +143,13 @@ static int add_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 	rv = saHpiIdrFieldAdd(sessionId, rptid, rdrnum, &field);
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiIdrFieldAdd: %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
-static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+static ret_code_t set_inventory_field(SaHpiSessionIdT sessionId,
+	SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaErrorT	rv;
 	SaHpiIdrFieldT	field;
@@ -135,14 +160,14 @@ static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 	i = get_int_param("Area Id: ", &res);
 	if (i != 1) {
 		printf("Error!!! Invalid Area Id\n");
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	field.AreaId = res;
 
 	i = get_int_param("Field Id: ", &res);
 	if (i != 1) {
 		printf("Error!!! Invalid Field Id\n");
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	field.FieldId = res;
 
@@ -153,24 +178,25 @@ static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 			if (strcmp(Field_types[i].name, buf) == 0) break;
 		if (Field_types[i].name == (char *)NULL) {
 			printf("Error!!! Unknown Field type: %s\n", buf);
-			return(-1);
+			return(HPI_SHELL_PARM_ERROR);
 		};
 		field.Type = Field_types[i].val;
 	};
 	i = set_text_buffer(&(field.Field));
 	if (i != 0) {
 		printf("Invalid text\n");
-		return(HPI_SHELL_CMD_ERROR);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	rv = saHpiIdrFieldSet(sessionId, rptid, rdrnum, &field);
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiIdrFieldSet: %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
-static int del_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+static ret_code_t del_inventory_field(SaHpiSessionIdT sessionId,
+	SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaErrorT	rv;
 	SaHpiEntryIdT	areaId, fieldId;
@@ -179,26 +205,27 @@ static int del_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 	i = get_int_param("Area Id: ", &res);
 	if (i != 1) {
 		printf("Error!!! Invalid Area Id\n");
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	areaId = res;
 
 	i = get_int_param("Field Id: ", &res);
 	if (i != 1) {
 		printf("Error!!! Invalid Field Id\n");
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	fieldId = res;
 
 	rv = saHpiIdrFieldDelete(sessionId, rptid, rdrnum, areaId, fieldId);
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiIdrFieldDelete: %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
-static int delete_inventory_area(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
+static ret_code_t delete_inventory_area(SaHpiSessionIdT sessionId,
+	SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaErrorT	rv;
 	int		res, i;
@@ -206,17 +233,17 @@ static int delete_inventory_area(SaHpiSessionIdT sessionId, SaHpiResourceIdT rpt
 	i = get_int_param("Area Id: ", &res);
 	if (i != 1) {
 		printf("Error!!! Invalid Area Id\n");
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	rv = saHpiIdrAreaDelete(sessionId, rptid, rdrnum, res);
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiIdrAreaDelete: %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
-static int sa_show_inv(SaHpiResourceIdT resourceid)
+static ret_code_t sa_show_inv(SaHpiResourceIdT resourceid)
 {
 	SaErrorT		rv = SA_OK, rva, rvf;
 	SaHpiEntryIdT		rdrentryid;
@@ -240,7 +267,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 			&nextrdrentryid, &rdr);
 		if (rv != SA_OK) {
 			printf("saHpiRdrGet error %s\n", oh_lookup_error(rv));
-			return -1;
+			return HPI_SHELL_CMD_ERROR;
 		}
 
 		if (rdr.RdrType != SAHPI_INVENTORY_RDR) {
@@ -252,7 +279,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 		rv = saHpiIdrInfoGet(Domain->sessionId, resourceid, idrid, &idrInfo);
 		if (rv != SA_OK) {
 			printf("saHpiIdrInfoGet error %s\n", oh_lookup_error(rv));
-			return -1;
+			return HPI_SHELL_CMD_ERROR;
 		}
 		
 		numAreas = idrInfo.NumAreas;
@@ -288,7 +315,43 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 		}
 		rdrentryid = nextrdrentryid;
 	}
-	return SA_OK;
+	return HPI_SHELL_OK;
+}
+
+ret_code_t inv_block_show(void)
+{
+	return(show_inventory(Domain->sessionId, inv_block_env.rptid,
+		inv_block_env.rdrnum, ui_print));
+}
+
+ret_code_t inv_block_addarea(void)
+{
+	return(add_inventory_area(Domain->sessionId, inv_block_env.rptid,
+		inv_block_env.rdrnum));
+}
+
+ret_code_t inv_block_delarea(void)
+{
+	return(delete_inventory_area(Domain->sessionId, inv_block_env.rptid,
+		inv_block_env.rdrnum));
+}
+
+ret_code_t inv_block_addfield(void)
+{
+	return(add_inventory_field(Domain->sessionId, inv_block_env.rptid,
+		inv_block_env.rdrnum));
+}
+
+ret_code_t inv_block_setfield(void)
+{
+	return(set_inventory_field(Domain->sessionId, inv_block_env.rptid,
+		inv_block_env.rdrnum));
+}
+
+ret_code_t inv_block_delfield(void)
+{
+	return(del_inventory_field(Domain->sessionId, inv_block_env.rptid,
+		inv_block_env.rdrnum));
 }
 
 ret_code_t inv_block(void)
@@ -308,6 +371,8 @@ ret_code_t inv_block(void)
 	type = SAHPI_INVENTORY_RDR;
 	ret = ask_rdr(rptid, type, &rdrnum);
 	if (ret != HPI_SHELL_OK) return(ret);
+	inv_block_env.rptid = rptid;
+	inv_block_env.rdrnum = rdrnum;
 	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
 		&rdr_entry);
 	if (rv != SA_OK) {
@@ -328,33 +393,9 @@ ret_code_t inv_block(void)
 		if (term == NULL) continue;
 		snprintf(buf, 256, "%s", term->term);
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
-		if (strcmp(buf, "show") == 0) {
-			show_inventory(Domain->sessionId, rptid, rdrnum, ui_print);
-			continue;
-		};
-		if (strcmp(buf, "addarea") == 0) {
-			add_inventory_area(Domain->sessionId, rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "delarea") == 0) {
-			delete_inventory_area(Domain->sessionId, rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "addfield") == 0) {
-			add_inventory_field(Domain->sessionId, rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "setfield") == 0) {
-			set_inventory_field(Domain->sessionId, rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "delfield") == 0) {
-			del_inventory_field(Domain->sessionId, rptid, rdrnum);
-			continue;
-		}
 	};
 	block_type = MAIN_COM;
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 ret_code_t show_inv(void)
@@ -368,11 +409,11 @@ ret_code_t show_inv(void)
 		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
 		if (i == 0) {
 			printf("NO rpt!\n");
-			return(SA_OK);
+			return(HPI_SHELL_OK);
 		};
 		i = get_int_param("RPT ID ==> ", &res);
 		if (i == 1) resid = (SaHpiResourceIdT)res;
-		else return SA_OK;
+		else return HPI_SHELL_OK;
 	} else {
 		resid = (SaHpiResourceIdT)atoi(term->term);
 	};
@@ -380,8 +421,8 @@ ret_code_t show_inv(void)
 	return sa_show_inv(resid);
 }
 
-static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
-	SaHpiCtrlNumT num)
+static ret_code_t set_control_state(SaHpiSessionIdT sessionid,
+	SaHpiResourceIdT resourceid, SaHpiCtrlNumT num)
 {
         SaErrorT		rv;
 	SaHpiRdrT		rdr;
@@ -494,7 +535,27 @@ static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 			oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
-	return(SA_OK);
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t ctrl_block_state(void)
+{
+	show_control_state(Domain->sessionId, ctrl_block_env.rptid,
+		ctrl_block_env.rdrnum, ui_print);
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t ctrl_block_setst(void)
+{
+	return(set_control_state(Domain->sessionId, ctrl_block_env.rptid,
+		ctrl_block_env.rdrnum));
+}
+
+ret_code_t ctrl_block_show(void)
+{
+	show_control(Domain->sessionId, ctrl_block_env.rptid,
+		ctrl_block_env.rdrnum, ui_print);
+	return(HPI_SHELL_OK);
 }
 
 ret_code_t ctrl_block(void)
@@ -514,6 +575,8 @@ ret_code_t ctrl_block(void)
 	type = SAHPI_CTRL_RDR;
 	ret = ask_rdr(rptid, type, &rdrnum);
 	if (ret != HPI_SHELL_OK) return(ret);
+	ctrl_block_env.rptid = rptid;
+	ctrl_block_env.rdrnum = rdrnum;
 	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
 		&rdr_entry);
 	if (rv != SA_OK) {
@@ -534,21 +597,9 @@ ret_code_t ctrl_block(void)
 		if (term == NULL) continue;
 		snprintf(buf, 256, "%s", term->term);
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
-		if (strcmp(buf, "state") == 0) {
-			show_control_state(Domain->sessionId, rptid, rdrnum, ui_print);
-			continue;
-		};
-		if (strcmp(buf, "setstate") == 0) {
-			set_control_state(Domain->sessionId, rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "show") == 0) {
-			show_control(Domain->sessionId, rptid, rdrnum, ui_print);
-			continue;
-		}
 	};
 	block_type = MAIN_COM;
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static int stringtoascii6(char *str, char *ascii)
@@ -665,7 +716,7 @@ static void show_rdr_attrs(SaHpiRdrT *rdr_entry)
 	free_attrs(&(tmp_rdr.Attrutes));
 }
 
-static int list_cond(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+static ret_code_t list_cond(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 {
 	SaErrorT		rv;
 	SaHpiAnnouncementT	annon;
@@ -686,10 +737,10 @@ static int list_cond(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 			annon.EntryId, annon.AddedByUser, annon.Acknowledged,
 			buffer.Data, annon.Severity);
 	};
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
-static int set_acknowledge(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+static ret_code_t set_acknowledge(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 {
 	SaErrorT		rv;
 	char			str[32];
@@ -698,13 +749,13 @@ static int set_acknowledge(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 	SaHpiEntryIdT		entryId = 0;
 
 	i = get_string_param("EntryId(<Id> | all): ", str, 32);
-	if (i != 0) return(-1);
+	if (i != 0) return(HPI_SHELL_PARM_ERROR);
 	if (strcmp(str, "all") == 0) all = 1;
 	else entryId = atoi(str);
 	if (all) {
 		i = get_string_param("Severity(crit|maj|min|info|ok): ",
 			str, 10);
-		if (i != 0) return(-1);
+		if (i != 0) return(HPI_SHELL_PARM_ERROR);
 		if (strcmp(str, "crit") == 0) sev = SAHPI_CRITICAL;
 		else if (strcmp(str, "maj") == 0) sev = SAHPI_MAJOR;
 		else if (strcmp(str, "min") == 0) sev = SAHPI_MINOR;
@@ -712,7 +763,7 @@ static int set_acknowledge(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 		else if (strcmp(str, "ok") == 0) sev = SAHPI_OK;
 		else {
 			printf("Invalid severity %s\n", str);
-			return(HPI_SHELL_CMD_ERROR);
+			return(HPI_SHELL_PARM_ERROR);
 		};
 		entryId = SAHPI_ENTRY_UNSPECIFIED;
 	};
@@ -723,10 +774,10 @@ static int set_acknowledge(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 		printf("saHpiAnnunciatorAcknowledge error %s\n", oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
-static int delete_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+static ret_code_t delete_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 {
 	SaErrorT		rv;
 	char			str[32];
@@ -735,7 +786,7 @@ static int delete_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 	SaHpiEntryIdT		entryId = 0;
 
 	i = get_string_param("EntryId(<Id> | any): ", str, 32);
-	if (i != 0) return(-1);
+	if (i != 0) return(HPI_SHELL_PARM_ERROR);
 	if (strcmp(str, "any") == 0) any = 1;
 	else entryId = atoi(str);
 	if (any) {
@@ -750,7 +801,7 @@ static int delete_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 		else if (strcmp(str, "all") == 0) sev = SAHPI_ALL_SEVERITIES;
 		else {
 			printf("Invalid severity %s\n", str);
-			return(HPI_SHELL_CMD_ERROR);
+			return(HPI_SHELL_PARM_ERROR);
 		};
 		entryId = SAHPI_ENTRY_UNSPECIFIED;
 	};
@@ -761,10 +812,10 @@ static int delete_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 		printf("saHpiAnnunciatorDelete error %s\n", oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
-static int add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+static ret_code_t add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 {
 	SaErrorT		rv;
 	char			str[32];
@@ -779,7 +830,7 @@ static int add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 	memset(&announ, 0, sizeof(SaHpiAnnouncementT));
 	i = get_string_param("Severity(crit|maj|min|info|ok): ",
 		str, 10);
-	if (i != 0) return(-1);
+	if (i != 0) return(HPI_SHELL_PARM_ERROR);
 	if (strcmp(str, "crit") == 0) sev = SAHPI_CRITICAL;
 	else if (strcmp(str, "maj") == 0) sev = SAHPI_MAJOR;
 	else if (strcmp(str, "min") == 0) sev = SAHPI_MINOR;
@@ -787,7 +838,7 @@ static int add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 	else if (strcmp(str, "ok") == 0) sev = SAHPI_OK;
 	else {
 		printf("Invalid severity %s\n", str);
-		return(HPI_SHELL_CMD_ERROR);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	announ.Severity = sev;
 
@@ -801,7 +852,7 @@ static int add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 	else if (strcmp(str, "user") == 0) type = SAHPI_STATUS_COND_TYPE_USER;
 	else {
 		printf("Invalid Condition Type %s\n", str);
-		return(HPI_SHELL_CMD_ERROR);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	announ.StatusCond.Type = type;
 	// EntityPath:  is needed ???
@@ -823,7 +874,7 @@ static int add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 		printf("saHpiAnnunciatorAdd error %s\n", oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static void show_cond(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum, int num)
@@ -860,19 +911,111 @@ static void show_cond(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum, int num
 	printf("                 Name = %s  Data = %s\n", cond->Name.Value, cond->Data.Data);
 }
 
+ret_code_t ann_block_acknow(void)
+{
+	return(set_acknowledge(ann_block_env.rptid, ann_block_env.rdrnum));
+}
+
+ret_code_t ann_block_list(void)
+{
+	return(list_cond(ann_block_env.rptid, ann_block_env.rdrnum));
+}
+
+ret_code_t ann_block_add(void)
+{
+	return(add_announ(ann_block_env.rptid, ann_block_env.rdrnum));
+}
+
+ret_code_t ann_block_delete(void)
+{
+	return(delete_announ(ann_block_env.rptid, ann_block_env.rdrnum));
+}
+
+ret_code_t ann_block_modeget(void)
+{
+	SaErrorT		rv;
+	SaHpiAnnunciatorModeT	mode;
+	char			*str;
+
+	rv = saHpiAnnunciatorModeGet(Domain->sessionId, ann_block_env.rptid,
+		ann_block_env.rdrnum, &mode);
+	if (rv != SA_OK) {
+		printf("saHpiAnnunciatorModeGet error %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	switch (mode) {
+		case SAHPI_ANNUNCIATOR_MODE_AUTO:
+			str = "AUTO"; break;
+		case SAHPI_ANNUNCIATOR_MODE_USER:
+			str = "USER"; break;
+		case SAHPI_ANNUNCIATOR_MODE_SHARED:
+			str = "SHARED"; break;
+		default: str = "Unknown"; break;
+	};
+	printf("Annunciator Mode: %s\n", str);
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t ann_block_modeset(void)
+{
+	SaErrorT		rv;
+	SaHpiAnnunciatorModeT	mode;
+	char			buf[256];
+	int			res;
+
+	res = get_string_param("Mode(auto|user|shared): ", buf, 10);
+	if (res != 0) {
+		printf("Invalid mode: %s\n", buf);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(buf, "auto") == 0)
+		mode = SAHPI_ANNUNCIATOR_MODE_AUTO;
+	else if (strcmp(buf, "user") == 0)
+		mode = SAHPI_ANNUNCIATOR_MODE_USER;
+	else if (strcmp(buf, "shared") == 0)
+		mode = SAHPI_ANNUNCIATOR_MODE_SHARED;
+	else {
+		printf("Invalid mode: %s\n", buf);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	rv = saHpiAnnunciatorModeSet(Domain->sessionId, ann_block_env.rptid,
+		ann_block_env.rdrnum, mode);
+	if (rv != SA_OK) {
+		printf("saHpiAnnunciatorModeSet error %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t ann_block_show(void)
+{
+	term_def_t		*term;
+	int			res, val;
+
+	term = get_next_term();
+	if (term == NULL) {
+		show_rdr_attrs(&(ann_block_env.rdr_entry));
+		return(HPI_SHELL_OK);
+	};
+	unget_term();
+	res = get_int_param(" ", &val);
+	if (res != 1) unget_term();
+	else show_cond(ann_block_env.rptid, ann_block_env.rdrnum, val);
+	return(HPI_SHELL_OK);
+}
+
 ret_code_t ann_block(void)
 {
-	SaHpiRdrT		rdr_entry;
 	SaHpiResourceIdT	rptid;
 	SaHpiInstrumentIdT	rdrnum;
-	SaHpiAnnunciatorModeT	mode;
 	SaHpiRdrTypeT		type;
 	SaErrorT		rv;
 	char			buf[256];
-	char			*str;
 	ret_code_t		ret;
 	term_def_t		*term;
-	int			res, val;
+	int			res;
 
 	ret = ask_rpt(&rptid);
 	if (ret != HPI_SHELL_OK) return(ret);
@@ -880,14 +1023,16 @@ ret_code_t ann_block(void)
 	ret = ask_rdr(rptid, type, &rdrnum);
 	if (ret != HPI_SHELL_OK) return(ret);
 	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
-		&rdr_entry);
+		&(ann_block_env.rdr_entry));
 	if (rv != SA_OK) {
 		printf("saHpiRdrGetByInstrumentId error %s\n", oh_lookup_error(rv));
 		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
 			rptid, type, rdrnum);
 		return(HPI_SHELL_CMD_ERROR);
 	};
-	show_rdr_attrs(&rdr_entry);
+	ann_block_env.rptid = rptid;
+	ann_block_env.rdrnum = rdrnum;
+	show_rdr_attrs(&(ann_block_env.rdr_entry));
 	for (;;) {
 		block_type = ANN_COM;
 		res = get_new_command("annunciator block ==> ");
@@ -900,80 +1045,7 @@ ret_code_t ann_block(void)
 		if (term == NULL) continue;
 		snprintf(buf, 256, "%s", term->term);
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
-		if (strcmp(buf, "acknow") == 0) {
-			set_acknowledge(rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "list") == 0) {
-			list_cond(rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "add") == 0) {
-			add_announ(rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "delete") == 0) {
-			delete_announ(rptid, rdrnum);
-			continue;
-		};
-		if (strcmp(buf, "modeget") == 0) {
-			rv = saHpiAnnunciatorModeGet(Domain->sessionId, rptid,
-				rdrnum, &mode);
-			if (rv != SA_OK) {
-				printf("saHpiAnnunciatorModeGet error %s\n",
-					oh_lookup_error(rv));
-				continue;
-			};
-			switch (mode) {
-				case SAHPI_ANNUNCIATOR_MODE_AUTO:
-					str = "AUTO"; break;
-				case SAHPI_ANNUNCIATOR_MODE_USER:
-					str = "USER"; break;
-				case SAHPI_ANNUNCIATOR_MODE_SHARED:
-					str = "SHARED"; break;
-				default: str = "Unknown"; break;
-			};
-			printf("Annunciator Mode: %s\n", str);
-			continue;
-		};
-		if (strcmp(buf, "modeset") == 0) {
-			res = get_string_param("Mode(auto|user|shared): ",
-				buf, 10);
-			if (res != 0) {
-				printf("Invalid mode: %s\n", buf);
-				continue;
-			};
-			if (strcmp(buf, "auto") == 0)
-				mode = SAHPI_ANNUNCIATOR_MODE_AUTO;
-			else if (strcmp(buf, "user") == 0)
-				mode = SAHPI_ANNUNCIATOR_MODE_USER;
-			else if (strcmp(buf, "shared") == 0)
-				mode = SAHPI_ANNUNCIATOR_MODE_SHARED;
-			else {
-				printf("Invalid mode: %s\n", buf);
-				continue;
-			};
-			rv = saHpiAnnunciatorModeSet(Domain->sessionId, rptid,
-				rdrnum, mode);
-			if (rv != SA_OK) {
-				printf("saHpiAnnunciatorModeSet error %s\n",
-					oh_lookup_error(rv));
-			};
-			continue;
-		};
-		if (strcmp(buf, "show") == 0) {
-			term = get_next_term();
-			if (term == NULL) {
-				show_rdr_attrs(&rdr_entry);
-				continue;
-			};
-			unget_term();
-			res = get_int_param(" ", &val);
-			if (res != 1) unget_term();
-			else show_cond(rptid, rdrnum, val);
-			continue;
-		}
 	};
 	block_type = MAIN_COM;
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
