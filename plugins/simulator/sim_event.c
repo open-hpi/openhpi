@@ -61,13 +61,11 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         char  *path, *root_path;
         int len;
         struct oh_event *event;
-        SaHpiResourceIdT  res_id;   
+        SaHpiResourceIdT  rid;
+        SaHpiRptEntryT *rpt;
+        
  
-#ifndef UNIT_TEST
         root_path = g_hash_table_lookup(feh->ohh->config, "root_path");
-#else
-        root_path = "/home/guorj/HPI/openhpi/src/plugins/simulator/test/resources";
-#endif
         len = strlen(root_path) + strlen(fe->filename) + 30;
         path = g_malloc(len);
 
@@ -79,45 +77,43 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
             return -1;
         }
 
-#if 1
         event = g_malloc0(sizeof(*event));
         event->type = OH_ET_RESOURCE;
+        rpt = &event->u.res_event.entry;
         sprintf(path, "%s/%s/rpt", root_path, fe->filename);
-        sim_parser_get_rpt(path, &event->u.res_event.entry);
-        res_id = oh_uid_from_entity_path(&event->u.res_event.entry.ResourceEntity);
-        event->u.res_event.entry.ResourceId = res_id;
-        oh_add_resource(feh->ohh->rptcache, &event->u.res_event.entry,
-                        g_strdup(fe->filename),1);
-        sim_util_insert_event(&feh->ohh->eventq, event);
-#endif
+        sim_parser_get_rpt(path, rpt);
+        rid = oh_uid_from_entity_path(&rpt->ResourceEntity);
+        rpt->ResourceId = rid;
 
-        feh->ids = sim_util_add_res_id(feh->ids, fe->filename,
-                                       event->u.res_event.entry.ResourceId, 
-                                       &event->u.res_event.entry.ResourceEntity);
+        sim_util_add_resource(feh->ohh->rptcache, rpt, g_strdup(fe->filename));
+        sim_util_insert_event(&feh->ohh->eventq, event);
+
         for (pd = readdir(pdir); pd; pd = readdir(pdir)) {
                 DIR *tmp;
                 unsigned int index;
+                sim_rdr_id_t  *sid = NULL;
+                SaHpiRdrT *rdr;
 
                 if (str2uint32(pd->d_name, &index)) continue;
-#if 1
+
                 event = g_malloc0(sizeof(*event));
                 event->type = OH_ET_RDR;
-                sprintf(path, "%s/%s/%s/rdr", root_path, fe->filename, pd->d_name);
-                sim_parser_get_rdr(path, &event->u.rdr_event.rdr);
-                event->u.rdr_event.rdr.RecordId = index;
-                oh_add_rdr(feh->ohh->rptcache, res_id, &event->u.rdr_event.rdr, 
-                           g_strdup(pd->d_name), 1);
+                rdr = &event->u.rdr_event.rdr;
+                sprintf(path, "%s/%s/%s/rdr", root_path, fe->filename,pd->d_name);
+                sim_parser_get_rdr(path, rdr);
                 sim_util_insert_event(&feh->ohh->eventq, event);
-                printf("add rdr:%s\n", pd->d_name);
-#endif
                 sprintf(path, "%s/%s/%s/sensor", root_path, res, pd->d_name); 
                 tmp = opendir(path);
                 if (tmp) {
-                        FAMMonitorDirectory(fe->fc, path, &fr, REQ_RDR);
-                        sim_util_add_rdr_id(feh->ids, fe->filename, fr.reqnum, index);
-                        printf("monitor sensor:%s\n", pd->d_name);
                         closedir(tmp);
+                        FAMMonitorDirectory(fe->fc, path, &fr, REQ_RDR);
+                        sid = g_malloc0(sizeof(*sid));
+                        sid->rid = rid;
+                        sid->index = index;
+                        sid->reqnum = fe->fr.reqnum;
+                        printf("monitor sensor:%s\n", pd->d_name);
                 }
+                sim_util_add_rdr(feh->ohh->rptcache, rid, rdr, sid);
         }
         closedir(pdir);
         g_free(path);
@@ -125,43 +121,33 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
 }
 static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
 {
-        struct sim_rdr_id   *rdr_id;
-        int index;
-        struct oh_event *event;
-        struct sim_res_id *id;
-#if 1
+        struct oh_event    *event;
+        SaHpiResourceIdT  rid;
+        int retval;
+        
         event = g_malloc0(sizeof(*event));
-        event->type = OH_ET_RESOURCE_DEL;
-        id = sim_util_get_res_id_by_reqnum(feh->ids, fe->fr.reqnum);
-        event->u.res_del_event.resource_id = id->res_id;
-        sim_util_insert_event(&feh->ohh->eventq, event);
-#endif
-        index = 0;
-        rdr_id = sim_util_get_rdr_id(feh->ids, fe->filename, index);
+     
+        if (event == NULL)
+                return;
+        retval = sim_util_get_res_id(feh->ohh->rptcache, fe->filename, &rid);
+        if (retval)
+                return;
 
-        while (rdr_id) {
-             FAMRequest fr;
-             fr.reqnum = rdr_id->reqnum;
-             FAMCancelMonitor(fe->fc, &fr);  
-             index++;
-             rdr_id = sim_util_get_rdr_id(feh->ids, fe->filename, index);
-        }
-        feh->ids = sim_util_free_res_id(feh->ids, fe->filename);
-        printf("remove resource and sensor:%s, code:%d\n", fe->filename, fe->code);
+        event->type = OH_ET_RESOURCE_DEL;
+        event->u.res_del_event.resource_id = rid;
+
+        sim_util_insert_event(&feh->ohh->eventq, event);
+        sim_util_remove_resource(feh->ohh->rptcache, rid, fe->fc);
+
         return;
 }
 
 static void fhs_event_sensor_update(struct fe_handler *feh, FAMEvent *fe)
 {
-        struct sim_res_id  *res_id;
-#if 0
-        insert event into event queue if threshold event happens
-#else
-        res_id = sim_util_get_res_id_by_reqnum(feh->ids, fe->fr.reqnum);
-        if (res_id == NULL) 
-                return;
-        printf("update sensor:%s, code:%d\n", fe->filename, fe->code);
-#endif
+        sim_rdr_id_t  *sid;
+        
+        sid = sim_util_get_rdr_id(feh->ohh->rptcache, fe->fr.reqnum);
+
         return;
 }
 
@@ -175,11 +161,7 @@ static void* fhs_event_process(void *data)
         FAMConnection fc;
         char*  root_path;
 
-#ifndef UNIT_TEST 
         root_path = g_hash_table_lookup(feh->ohh->config, "root_path");
-#else
-        root_path = "/home/guorj/HPI/openhpi/src/plugins/simulator/test/resources";
-#endif
 
         FAMOpen(&fc);
         FAMMonitorDirectory(&fc, root_path, &fr, REQ_RES);
@@ -221,9 +203,7 @@ static void* fhs_event_process(void *data)
                 }
         } 
         FAMClose(&fc);
-#if 1
-        feh->ids = sim_util_free_all_res_id(feh->ids);   
-#endif
+
         return 0;
 }
 

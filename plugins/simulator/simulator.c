@@ -113,24 +113,16 @@ static int sim_discover_resources(void *hnd)
 static int sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
 {
         int retval = 0;
-        char *path, *file;
+        char *file;
 
-        path = sim_util_get_res_dir((struct oh_handler_state *)hnd, id);
-        if (path == NULL) {
+        file = sim_util_get_rpt_file((struct oh_handler_state *)hnd, id);
+        if (file == NULL) {
                 retval = -1;
                 goto out;
         }
 
-        file = g_malloc(strlen(path) + 10);
-        if (file == NULL) {
-                retval = -1;
-                goto out1;
-        }
-        sprintf(file, "%s/rpt", path);
         retval = sim_parser_rpt_set_tag(file, tag);
         g_free(file);
-out1:
-        g_free(path);
 out:
         return retval;
 
@@ -186,24 +178,16 @@ static int sim_get_sensor_data(void *hnd, SaHpiResourceIdT id,
                            SaHpiSensorReadingT *data)
 {      
         int retval = 0;
-        char *path, *file;
+        char *file;
        
-        path = sim_util_get_sensor_dir((struct oh_handler_state *)hnd, id, num);
-        if (path == NULL) {
+        file = sim_util_get_sensor_reading_file((struct oh_handler_state *)hnd, id, num);
+        if (file == NULL) {
                 retval = -1;
                 goto out;
         }
 
-        file = g_malloc(strlen(path) + 10);
-        if (file == NULL) {
-                retval = -1;
-                goto out1;
-        }
-        sprintf(file, "%s/reading", path);
         retval = sim_parser_get_sensor_reading(file, data);
         g_free(file);
-out1:
-        g_free(path);
 out:
         return retval;
 }
@@ -213,24 +197,15 @@ static int sim_get_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 				       SaHpiSensorThresholdsT *thres)
 {
         int retval = 0;
-        char *path, *file;
+        char *file;
 
-        path = sim_util_get_sensor_dir((struct oh_handler_state *)hnd, id, num);
-        if (path == NULL) {
+        file = sim_util_get_sensor_thres_file((struct oh_handler_state *)hnd, id, num);
+        if (file == NULL) {
                 retval = -1;
                 goto out;
         }
-
-        file = g_malloc(strlen(path) + 10);
-        if (file == NULL) {
-                retval = -1;
-                goto out1;
-        }
-        sprintf(file, "%s/thres", path);
         retval = sim_parser_get_sensor_thres(file, thres);
         g_free(file);
-out1:
-        g_free(path);
 out:
         return retval;
 }
@@ -240,24 +215,15 @@ static int sim_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 				       const SaHpiSensorThresholdsT *thres)
 {
         int retval = 0;
-        char *path, *file;
+        char *file;
 
-        path = sim_util_get_sensor_dir((struct oh_handler_state *)hnd, id, num);
-        if (path == NULL) {
+        file = sim_util_get_sensor_thres_file((struct oh_handler_state *)hnd, id, num);
+        if (file == NULL) {
                 retval = -1;
                 goto out;
         }
-
-        file = g_malloc(strlen(path) + 10);
-        if (file == NULL) {
-                retval = -1;
-                goto out1;
-        }
-        sprintf(file, "%s/thres", path);
         retval = sim_parser_set_sensor_thres(file, thres);
         g_free(file);
-out1:
-        g_free(path);
 out:
         return retval;
 }
@@ -266,54 +232,34 @@ static int sim_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
 					  SaHpiSensorEvtEnablesT *enables)
 {
-
         int retval = 0;
-        char *path, *file;
+        char *file;
 
-        path = sim_util_get_sensor_dir((struct oh_handler_state *)hnd, id, num);
-        if (path == NULL) {
+        file = sim_util_get_sensor_enables_file((struct oh_handler_state *)hnd, id, num);
+        if (file == NULL) {
                 retval = -1;
                 goto out;
         }
-
-        file = g_malloc(strlen(path) + 10);
-        if (file == NULL) {
-                retval = -1;
-                goto out1;
-        }
-        sprintf(file, "%s/enables", path);
         retval = sim_parser_get_sensor_enables(file, enables);
         g_free(file);
-out1:
-        g_free(path);
 out:
         return retval;
-
 }
 
 static int sim_set_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
 					  const SaHpiSensorEvtEnablesT *enables)
-{			   
+{	
         int retval = 0;
-        char *path, *file;
+        char *file;
 
-        path = sim_util_get_sensor_dir((struct oh_handler_state *)hnd, id, num);
-        if (path == NULL) {
+        file = sim_util_get_sensor_enables_file((struct oh_handler_state *)hnd, id, num);
+        if (file == NULL) {
                 retval = -1;
                 goto out;
         }
-
-        file = g_malloc(strlen(path) + 10);
-        if (file == NULL) {
-                retval = -1;
-                goto out1;
-        }
-        sprintf(file, "%s/enables", path);
         retval =  sim_parser_set_sensor_enables(file, enables);
         g_free(file);
-out1:
-        g_free(path);
 out:
         return retval;
 }
