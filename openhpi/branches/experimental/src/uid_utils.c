@@ -158,7 +158,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         }
 
         /* allocate storage for EP cross reference data structure*/
-        ep_xref = (EP_XREF *)malloc(sizeof(EP_XREF));
+        ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) { 
                 dbg("malloc fialed");
                 return(-1);
@@ -439,7 +439,7 @@ static int build_uid_map_data(int file)
         while ( (rval != EOF) && (rval == sizeof(EP_XREF)) ) {  
 
                 /* copy read record from ep_xref1 to malloc'd ep_xref */
-                ep_xref = (EP_XREF *)malloc(sizeof(EP_XREF));
+                ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
                 if (!ep_xref) 
                         return(-1);
                 memcpy(ep_xref, &ep_xref1, sizeof(EP_XREF));
