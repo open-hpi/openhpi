@@ -934,5 +934,67 @@ int main(int argc, char **argv)
 		}
 	}
 
+
+	/*******************************
+	 * oh_valid_textbuffer testcases
+         *******************************/
+	{
+		SaHpiTextBufferT buffer;
+		SaHpiBoolT result, expected_result;
+
+		/* oh_valid_textbuffer: NULL buffer testcase */
+		expected_result = SAHPI_FALSE;
+		result = oh_valid_textbuffer(0);
+		if (result != expected_result) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
+		}
+
+		/* oh_valid_textbuffer: Bad text type testcase */
+		expected_result = SAHPI_FALSE;
+		oh_init_textbuffer(&buffer);
+		buffer.DataType = BAD_TYPE;
+		
+		result = oh_valid_textbuffer(&buffer);
+		if (result != expected_result) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
+		}
+
+		/* oh_valid_textbuffer: Bad language type testcase */
+		expected_result = SAHPI_FALSE;
+		oh_init_textbuffer(&buffer);
+		buffer.Language = BAD_TYPE;
+		
+		result = oh_valid_textbuffer(&buffer);
+		if (result != expected_result) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
+		}
+		
+		/* oh_valid_textbuffer: Bad Unicode length testcase */
+		expected_result = SAHPI_FALSE;
+		oh_init_textbuffer(&buffer);
+		buffer.DataType = SAHPI_TL_TYPE_UNICODE;
+		strcpy(buffer.Data, "123");
+		buffer.DataLength = strlen("123");
+
+		result = oh_valid_textbuffer(&buffer);
+		if (result != expected_result) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
+		}
+		
+		/* oh_valid_textbuffer: Good buffer testcase */
+		expected_result = SAHPI_TRUE;
+		oh_init_textbuffer(&buffer);
+
+		result = oh_valid_textbuffer(&buffer);
+		if (result != expected_result) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
+		}
+	}
+
 	return(0);
 }
