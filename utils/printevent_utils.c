@@ -603,7 +603,6 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                 tt1 = sel->Event.Timestamp / 1000000000;
                 strftime(timestr,sizeof(timestr),"%F %T", localtime(&tt1));
         } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-				printf("timestamp: %llx\n", sel->Event.Timestamp);
                 strcpy(timestr,"invalid time     ");
         } else {   /*relative time*/
                 tt1 = sel->Event.Timestamp / 1000000000;
