@@ -158,17 +158,20 @@ extern cMarshalType SaHpiWatchdogRecType;
   
 // Annunciators
 #define SaHpiAnnunciatorNumType SaHpiUint32Type 
+#define SaHpiStatusCondTypeType SaHpiUint32Type 
 extern cMarshalType SaHpiNameType;
 extern cMarshalType SaHpiConditionType;
 extern cMarshalType SaHpiAnnouncementType;
 #define SaHpiAnnunciatorModeType SaHpiUint32Type 
 
 // annunciator resource data records
+#define SaHpiAnnunciatorTypeType SaHpiUint32Type 
 extern cMarshalType SaHpiAnnunciatorRecType;
 
 
 // resource data record
 #define SaHpiRdrTypeType SaHpiUint32Type
+#define SaHpiRdrTypeUnionType SaHpiUint32Type
 extern cMarshalType SaHpiRdrType;
 
 // hot swap
