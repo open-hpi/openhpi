@@ -241,6 +241,10 @@ main(int argc, char **argv)
 	SaHpiRdrT rdr;
 	SaHpiEirIdT eirid;
 
+	int inv_discovered = 0;
+	
+	//SaHpiRptInfoT rpt_info_before;
+
 	printf("%s ver %s\n",argv[0],progver);
 
 	while ( (c = getopt( argc, argv,"a:xz?")) != EOF ) {
@@ -280,13 +284,14 @@ main(int argc, char **argv)
 		printf("saHpiSessionOpen error %d\n",rv);
 		exit(-1);
 	}
- 
+
 	rv = saHpiResourcesDiscover(sessionid);
 	if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
 
+restart: 
 	rv = saHpiRptInfoGet(sessionid,&rptinfo);
 	if (fxdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-	if (fdebug) printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+	printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
 			rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
 	/* walk the RPT list */
@@ -302,7 +307,7 @@ main(int argc, char **argv)
 		{
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;
-			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+			//rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 			resourceid = rptentry.ResourceId;
 
 			if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
@@ -316,7 +321,8 @@ main(int argc, char **argv)
 				if (rvxx == SA_OK)
 				{
 					if (rdr.RdrType == SAHPI_INVENTORY_RDR)
-					{ 
+					{
+							inv_discovered = 1;
 						/*type 3 includes inventory records*/
 						eirid = rdr.RdrTypeUnion.InventoryRec.EirId;
 						rdr.IdString.Data[rdr.IdString.DataLength] = 0;	    
@@ -379,9 +385,26 @@ main(int argc, char **argv)
 		}
 		rptentryid = nextrptentryid;
 	}
+        
+
+	/* 
+	   because INVENTORY RDR will be added after some time, 
+	   we need to monitor RptInfo here 
+	 */
+						/* Try again */
+	if (!inv_discovered) {
+			rv = saHpiResourcesDiscover(sessionid);
+			if (fxdebug) {
+					printf("saHpiResourcesDiscover rv = %d\n",rv);
+			}
+			goto restart;
+	} 
+
 	rv = saHpiSessionClose(sessionid);
 	rv = saHpiFinalize();
-        free(inv);
+	free(inv);
+	
 	exit(0);
 }
+
  /* end hpi_invent.c */
