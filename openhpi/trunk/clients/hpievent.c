@@ -13,60 +13,14 @@
  *     Racing Guo <racing.guo@intel.com>
  * Changes:
  *     11/03/2004  kouzmich   change timeout type
+ *     11/22/2004  kouzmich   calling oh_print_event instead of PrintEvent function
+ *                            remove PrintEvent function.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <SaHpi.h>
-
-static char progname[] = "hpievent";
-
-static const char* st_map[] = {
-	"INACTIVE",
-	"INSERTION_PENDING",
-	"ACTIVE_HEALTHY",
-	"ACTIVE_UNHEALTHY",
-	"EXTRACTION_PENDING",
-	"NOT_PRESENT",
-};
-
-
-
-static
-void PrintEvent(SaHpiEventT *event)
-{
-	printf("\n------Event------\n");
-	printf("Event Source:%d\n", event->Source);
-	printf("Event Timestamp:\n");
-	printf("Event Severity:%d\n", event->Severity);
-	switch (event->EventType) {
-		case SAHPI_ET_SENSOR:
-			printf("Event Type: Sensor\n");
-			break;
-			
-		case SAHPI_ET_HOTSWAP:
-			printf("Event Type: HotSwap\n");
-			printf("Hotswap State:%s\n",
-				st_map[event->EventDataUnion.HotSwapEvent.HotSwapState]);
-			printf("Hotswap Prev State:%s\n",
-				st_map[event->EventDataUnion.HotSwapEvent.PreviousHotSwapState]); 
-			break;
-			
-		case SAHPI_ET_WATCHDOG:
-			printf("Event Type: Watchdog\n");
-			break;
-			
-		case SAHPI_ET_OEM:
-			printf("Event Type: Oem\n");
-			break;
-			
-		case SAHPI_ET_USER:
-			printf("Event Type: User\n");
-			break;
-		default:
-			printf("Event Type: Error\n");
-	}
-}
+#include <oh_utils.h>
 
 static
 void DoEvent(SaHpiSessionIdT sessionid)
@@ -91,7 +45,7 @@ void DoEvent(SaHpiSessionIdT sessionid)
 					break;
 			}
 		}
-		PrintEvent(&event);
+		oh_print_event(&event, 1);
 	};
 	printf( "Unsubscribe\n");
 	rv = saHpiUnsubscribe( sessionid );
@@ -106,9 +60,9 @@ main(int argc, char **argv)
 	SaErrorT    rv;
 
 	hpiver = saHpiVersionGet();
-	printf("OpenHPI client %s, HPI Version %d\n", progname, hpiver);
+	printf("OpenHPI client %s, HPI Version %d\n", argv[0], hpiver);
 
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
+	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
 	if (rv != SA_OK) {
 		printf("saHpiSessionOpen error %d\n",rv);
 		exit(-1);
