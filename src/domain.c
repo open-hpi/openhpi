@@ -51,8 +51,8 @@ struct oh_domain *domain_add()
 	d->did = dcounter++;
 
 	list_add(&d->node, &dlist);
-	list_init(&d->res_list);
 	list_init(&d->session_list);
+	list_init(&d->zone_list);
 
 	d->res_counter = 0;
 
@@ -68,25 +68,27 @@ void domain_del(struct oh_domain *domain)
 }
 #endif
 
-int domain_process_event(struct oh_domain *d, struct oh_event *e)
+void domain_process_event(struct oh_zone *z, struct oh_event *e)
 {
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
 	switch (e->type) {
 	case OH_ET_RESOURCE:
-		res = insert_resource(d, e->u.res_event.id);
+		res = insert_resource(z, e->u.res_event.id);
 		memcpy(&res->entry, &e->u.res_event.entry, sizeof(res->entry));
-		res->entry.ResourceId = d->res_counter++;
+		res->entry.ResourceId = z->domain->res_counter++;
 
 		/* resource with domain cap needs openhpi to call abi->open_domain
 		 * to extend the domain into global domain table.
 		 */
 		if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN) {
 			struct oh_domain *nd;
+			struct oh_zone *nz;
+			void *hnd;
 			nd 	= domain_add();
-			nd->abi = d->abi;
-			nd->hnd = d->abi->open_domain(d->hnd, &e->u.res_event.id);
+			hnd	= z->abi->open_domain(z->hnd, &e->u.res_event.id);
+			nz	= domain_add_zone(nd, z->abi, hnd);
 			res->entry.DomainId = nd->did;
 			dbg("Find a new domain!");
 		}
@@ -94,7 +96,7 @@ int domain_process_event(struct oh_domain *d, struct oh_event *e)
 		break;
 
 	case OH_ET_RDR:
-		res = get_res_by_oid(d, e->u.rdr_event.parent);
+		res = get_res_by_oid(z->domain, e->u.rdr_event.parent);
 		if (!res) {
 			dbg("Cannot find corresponding resource");
 			break;
@@ -114,6 +116,27 @@ int domain_process_event(struct oh_domain *d, struct oh_event *e)
 		dbg("Error! Should not touch here!");
 		break;
 	}
+}
 
-	return 0;
+struct oh_zone *domain_add_zone(struct oh_domain *domain,
+		struct oh_abi_v1 *abi, void *hnd)
+{
+	struct oh_zone  *z;
+
+	z = malloc(sizeof(*z));
+	if (!z) {
+		dbg("Cannot get memory!");
+		return NULL;
+	}
+	
+	memset(z, 0, sizeof(*z));
+	
+	list_add(&z->node, &domain->zone_list);
+	list_init(&z->res_list);
+	
+	z->domain = domain;
+	z->abi = abi;
+	z->hnd = hnd;
+	
+	return z;
 }

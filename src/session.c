@@ -108,39 +108,44 @@ int session_pop_event(struct oh_session *s, struct oh_event *e)
 
 int session_get_events(struct oh_session *s)
 {
-	struct oh_domain *d 	= s->domain;
-	struct oh_abi_v1 *abi 	= d->abi;
-	void		 *hnd	= d->hnd;
-	struct oh_event	 event;
-	int 		 rv;
-	struct timeval	to;	
-	
+	struct oh_domain 	*d 	= s->domain;
+	struct oh_event	 	event;
+	int 		 	rv;
+	int			has_event;
 	do {
-		to.tv_sec = 0;
-		to.tv_usec= 0;
-		rv = abi->get_event(hnd, &event, &to);
-		if (rv<=0) break;
-		
-		
-		if (event.type == OH_ET_HPI) {
-			/* add the event to session event list */
-			session_push_event(s, &event);
-		} else {
-			domain_process_event(d, &event);
-		}
-	} while (1);
+		has_event = 0 ;
+		struct list_head *i;
 
-	return rv;
+		list_for_each(i, &d->zone_list) { 
+			struct timeval to = {0, 0};
+			struct oh_zone *z 
+				= list_container(i, struct oh_zone, node); 
+			rv = z->abi->get_event(z->hnd, &event, &to);
+			if (rv>0) {
+				if (event.type == OH_ET_HPI) {
+					/* add the event to session event list */
+					session_push_event(s, &event);
+				} else {
+					domain_process_event(z, &event);
+				}
+				has_event = 1;
+			} else if (rv <0)
+				return -1;
+		}
+	} while (has_event);
+
+	return 0;
 }
 
 int session_discover_resources(struct oh_session *s)
 {
-	if (!s || !s->domain || !s->domain->abi || 
-	    !s->domain->abi->discover_resources)
-		return -1;
-
-	if (!(s->domain->abi->discover_resources(s->domain->hnd)))
-		return session_get_events(s);
-
-	return -1;
+	struct oh_domain *d = s->domain;
+	struct list_head *i;
+	
+	list_for_each(i, &d->zone_list) {
+		struct oh_zone *z
+			= list_container(i, struct oh_zone, node);
+		z->abi->discover_resources(z->hnd);
+	}
+	return session_get_events(s);
 }
