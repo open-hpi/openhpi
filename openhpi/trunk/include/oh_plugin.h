@@ -39,7 +39,16 @@ struct oh_resource_id {
 struct oh_rdr_id {
 	void *ptr;
 };
-	
+
+/*
+ * struct oh_sel_id is filled by plugin.
+ * Open HPI use it to identy different resource SEL by the id.
+ */
+struct oh_sel_id {
+	void *ptr;
+};
+
+
 /*
  * The event is used for plugin to report its resources
  * (Domain, SEL and RDR etc.).
@@ -170,12 +179,12 @@ struct oh_abi_v1 {
 	/**
 	 * add entry to system event log
 	 */
-	int (*add_sel_entry)(void *hnd, struct oh_resource_id id, SaHpiEventT *Event);
+	int (*add_sel_entry)(void *hnd, struct oh_resource_id id, SaHpiSelEntryT *Event);
 
 	/**
 	 * del entry in system event log
 	 */
-	int (*del_sel_entry)(void *hnd, struct oh_rdr_id id);
+	int (*del_sel_entry)(void *hnd, struct oh_sel_id id);
 	
 	/**
 	 * get sensor data
