@@ -42,6 +42,7 @@ GENERATED_SRC_FILES = \
 GENERATED_FILES = $(GENERATED_HEADER_FILES) $(GENERATED_SRC_FILES)
 
 EXTRA_DIST = \
+		$(GENERATED_HEADER_FILES) \
 		el_utils.h \
 		epath_utils.h \
 		event_utils.h \
