@@ -1,0 +1,6 @@
+#!/bin/sh -x
+#
+
+./bootstrap
+./configure
+make all
