@@ -111,7 +111,7 @@ static void* get_event(void *unused)
 		}
 		if (prt_flag == 1) {
 			if (show_event_short)
-				show_short_event(&event);
+				show_short_event(&event, ui_print);
 			else
 				oh_print_event(&event, 1);
 		}
@@ -135,12 +135,17 @@ int open_session(int eflag)
      		printf("saHpiSessionOpen error %s\n", oh_lookup_error(rv));
 		return -1;
 	};
+	Domain = init_resources(sessionid);
+	if (Domain == (Domain_t *)NULL) {
+     		printf("init_resources error\n");
+		return -1;
+	}
 	if (eflag) {
 		show_event_short = 1;
 		prt_flag = 1;
 		pthread_create(&ge_thread, NULL, get_event, NULL);
 	};
-	rv = saHpiDiscover(sessionid);
+	rv = saHpiDiscover(Domain->sessionId);
 	if (rv != SA_OK) {
 		delete_progress();
 		printf("saHpiDiscover rv = %s\n", oh_lookup_error(rv));
@@ -150,11 +155,6 @@ int open_session(int eflag)
 
 	printf("Initial discovery done\n");
 
-	Domain = init_resources(sessionid);
-	if (Domain == (Domain_t *)NULL) {
-     		printf("init_resources error\n");
-		return -1;
-	}
 	printf("\tEnter a command or \"help\" for list of commands\n");
 
 	if (! eflag)
