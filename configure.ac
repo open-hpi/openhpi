@@ -119,6 +119,7 @@ AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     OH_CHECK_FAIL(libuuid,e2fsprogs-devel)
     ])
 
+dnl ssl is used for md2/md5 authentification in ipmidirect
 AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
 AC_SUBST(SSL_LIB)
 AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h])
@@ -267,6 +268,13 @@ AC_ARG_ENABLE([ipmidirect],
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
      fi],
     [AC_SUBST(IPMIDIRECT,ipmidirect)])
+
+dnl ipmidirect needs posix threads
+if test "x$IPMIDIRECT" = "xipmidirect"; then
+        if test "x$THREAD_SAFE" != "xyes" ; then
+                AC_MSG_ERROR("ipmidirect plugin needs thread support (--enable-thread) !") 
+        fi
+fi
 
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator       build simulator plugin [default=yes]],
