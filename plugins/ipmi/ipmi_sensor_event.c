@@ -409,7 +409,15 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 					 SaHpiSensorRecT	*rec)
 {
+#define FILL_READING(reading, val)                                         \
+	do {                                                               \
+		(reading).IsSupported = SAHPI_TRUE;                        \
+		(reading).Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;        \
+		(reading).Value.SensorFloat64 = (SaHpiFloat64T)val;        \
+	} while (0)
+	int rv;	
 	double accur = 0;
+	double fval = 0;
 	
 	rec->DataFormat.IsSupported = SAHPI_TRUE;
 	
@@ -428,38 +436,42 @@ static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 	rec->DataFormat.Percentage = (SaHpiBoolT)
 		ipmi_sensor_get_percentage(sensor);
 
-#if 0
-	/* Fix Me: Range */
-	rec->DataFormat.Range.Max.ValuesPresent = SAHPI_SRF_RAW;
-	rec->DataFormat.Range.Max.Raw = (SaHpiUint32T)
-		ipmi_sensor_get_raw_sensor_max(sensor);
-	
-	rec->DataFormat.Range.Min.ValuesPresent = SAHPI_SRF_RAW;
-	rec->DataFormat.Range.Max.Raw = (SaHpiUint32T)
-		ipmi_sensor_get_raw_sensor_min(sensor);
-		
-	if (ipmi_sensor_get_nominal_reading_specified(sensor)) {
-		rec->DataFormat.Range.Nominal.ValuesPresent = SAHPI_SRF_RAW;
-		rec->DataFormat.Range.Nominal.Raw = (SaHpiUint32T)
-			ipmi_sensor_get_raw_nominal_reading(sensor);
-		temp |= SAHPI_SRF_NOMINAL;
+	rec->DataFormat.Range.Flags = 0;
+
+	rv = ipmi_sensor_get_sensor_max(sensor, &fval);
+	if (!rv) {
+		FILL_READING(rec->DataFormat.Range.Max, fval);
+		rec->DataFormat.Range.Flags |= SAHPI_SRF_MAX;
 	}
 
+	rv = ipmi_sensor_get_sensor_min(sensor, &fval);
+	if (!rv) {
+		FILL_READING(rec->DataFormat.Range.Min, fval);
+		rec->DataFormat.Range.Flags |= SAHPI_SRF_MIN;
+	}	
+
+	if (ipmi_sensor_get_nominal_reading_specified(sensor)) {
+		rv = ipmi_sensor_get_nominal_reading(sensor, &fval);
+		if (!rv) {
+			FILL_READING(rec->DataFormat.Range.Nominal, fval);
+			rec->DataFormat.Range.Flags |= SAHPI_SRF_NOMINAL;
+		}
+	}
 	if (ipmi_sensor_get_normal_max_specified(sensor)) {
-		rec->DataFormat.Range.NormalMax.ValuesPresent = SAHPI_SRF_RAW;
-		rec->DataFormat.Range.NormalMax.Raw = (SaHpiUint32T)
-			ipmi_sensor_get_raw_normal_max(sensor);
-		temp |= SAHPI_SRF_NORMAL_MAX;
+		rv = ipmi_sensor_get_normal_max(sensor, &fval);
+		if (!rv) {
+			FILL_READING(rec->DataFormat.Range.NormalMax, fval);
+			rec->DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MAX;
+		}
 	}
 	
 	if (ipmi_sensor_get_normal_min_specified(sensor)) {
-		rec->DataFormat.Range.NormalMin.ValuesPresent = SAHPI_SRF_RAW;
-		rec->DataFormat.Range.NormalMin.Raw = (SaHpiUint32T)
-			ipmi_sensor_get_raw_normal_min(sensor);
-		temp |= SAHPI_SRF_NORMAL_MIN;
+		rv = ipmi_sensor_get_normal_min(sensor, &fval);
+		if (!rv) {
+			FILL_READING(rec->DataFormat.Range.NormalMin, fval);
+			rec->DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MIN;
+		}
 	}	
-	rec->DataFormat.Range.Flags = temp;
-#endif
 }
 
 static SaHpiEventCategoryT ohoi_sensor_get_event_reading_type(ipmi_sensor_t   *sensor)
