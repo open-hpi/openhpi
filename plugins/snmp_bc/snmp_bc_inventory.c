@@ -99,10 +99,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                                working->MfgDateTime =  (SaHpiTimeT) SAHPI_TIME_UNSPECIFIED;
                                dbg("NULL SNMP OID returned for MfgDateTime\n");
                        } else {
-                               rc = snmp_get(custom_handle->ss, oid, &get_value);
+                               rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                                if( (rc != 0) |
                                          !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                        dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				       return rc;
                                } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                        working->MfgDateTime =
                                                g_strtod((char *)get_value.string, NULL);
@@ -128,10 +129,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for Manufacturer\n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->Manufacturer->DataLength = str_len;
@@ -157,10 +159,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for ProductName\n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->ProductName->DataLength = str_len;
@@ -186,11 +189,12 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for ProductVersion \n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-                        } else if((rc == 0) && (get_value.type == ASN_INTEGER )) {
+				return rc;                    
+			    } else if((rc == 0) && (get_value.type == ASN_INTEGER )) {
                                 int i = 0;
                                 do {
                                         conv_string[i++] = get_value.integer % 10 + '0';
@@ -220,10 +224,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for ModelNumber \n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->ModelNumber->DataLength = str_len;
@@ -249,10 +254,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for OidSerialNumber \n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				return rc;				
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->SerialNumber->DataLength = str_len;
@@ -278,10 +284,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for OidPartNumber \n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				return rc;				
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->PartNumber->DataLength = str_len;
@@ -307,10 +314,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for OidFileId \n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				return rc;				
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->FileId->DataLength = str_len;
@@ -336,10 +344,11 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                 if(oid == NULL) {
                         dbg("NULL SNMP OID returned for OidAssetTag \n");
                 } else {
-                        rc = snmp_get(custom_handle->ss, oid, &get_value);
+                        rc = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
+				return rc;				
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->AssetTag->DataLength = str_len;

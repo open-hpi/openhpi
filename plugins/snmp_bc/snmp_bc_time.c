@@ -294,14 +294,14 @@ int set_bc_dst(struct oh_handler_state *handle, struct tm *time) {
 
 int get_bc_sp_time(struct oh_handler_state *handle, struct tm *time)
 {
+	SaErrorT status;
         struct snmp_value get_value;
         struct tm tmptime;
-
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
         
-	snmp_get(ss,BC_DATETIME_OID,&get_value);
-        if(get_value.type == ASN_OCTET_STR) {
+	status = snmp_bc_snmp_get(custom_handle,ss,BC_DATETIME_OID,&get_value);
+        if((status == SA_OK) && (get_value.type == ASN_OCTET_STR)) {
                 if(sscanf(get_value.string,"%2d/%2d/%4d,%2d:%2d:%2d",
                           &tmptime.tm_mon, &tmptime.tm_mday, &tmptime.tm_year, 
                           &tmptime.tm_hour, &tmptime.tm_min, &tmptime.tm_sec)) {
@@ -314,10 +314,10 @@ int get_bc_sp_time(struct oh_handler_state *handle, struct tm *time)
                 }
         } else {
                 dbg("Couldn't fetch Blade Center SP Date/Time Entry");
-                return -1;
+                return status;
         }
         *time = tmptime;
-        return 0;
+        return SA_OK;
 }
 
 int set_bc_sp_time(struct snmp_session *ss, struct tm *time) {

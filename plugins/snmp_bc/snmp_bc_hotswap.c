@@ -32,6 +32,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
         struct snmp_value get_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	SaErrorT status;
 
         SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
 	if(res == NULL) {
@@ -52,7 +53,8 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 		return -1;
 	}
 
-	if((snmp_get(custom_handle->ss,oid,&get_value) == 0) && (get_value.type == ASN_INTEGER)) {
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
+	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
 		if(get_value.integer == s->mib.HealthyValue) { 
 			*state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
 		}
@@ -62,7 +64,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
         } else {
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
 		g_free(oid);
-		return -1;
+		return status;
 	}
 
 	g_free(oid);
@@ -157,6 +159,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 	gchar *oid;
 	int rtn_code = SA_OK;
         struct snmp_value get_value;
+	SaErrorT status;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
@@ -179,7 +182,9 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 		return -1;
 	}
 
-	if((snmp_get(custom_handle->ss,oid,&get_value) == 0) && (get_value.type == ASN_INTEGER)) {
+
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
+	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
 		switch (get_value.integer) {
 		case 0:
 			*state = SAHPI_HS_POWER_OFF;
@@ -193,7 +198,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 		}
         } else {
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
-		rtn_code = -1;
+		rtn_code = status;
 	}
 
 	g_free(oid);
