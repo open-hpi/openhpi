@@ -30,6 +30,7 @@
 #include <sim_resources.h>
 
 #define SNMP_BC_ERROR_LOG_MSG_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.1"
+#define SNMP_BC_ERROR_LOG_MSG_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2.1"
 #define SNMP_BC_CHASSIS_VOLT_3_3_OID  ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0"
 #define SNMP_BC_CHASSIS_TEMP_OID      ".1.3.6.1.4.1.2.3.51.2.2.1.5.1.0"
 
@@ -85,6 +86,16 @@ int main(int argc, char **argv)
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Cannot find Chassis RID\n");
 		return -1;
+	}
+
+	/* Determine platform */
+	SnmpMibInfoT * hash_data = (SnmpMibInfoT *)g_hash_table_lookup(sim_hash, SNMP_BC_PLATFORM_OID_RSA);
+	if (hash_data->value.integer == 255) {
+		printf("Executing RSA event tests\n");
+		goto RSA_TESTS;
+	}
+	else {
+		printf("Executing BladeCenter event tests\n");
 	}
 
 	/* If test OID not already in sim hash table; create it */
@@ -799,6 +810,79 @@ int main(int argc, char **argv)
 		return -1;
         }
 
+	goto COMMON_TESTS;
+
+ RSA_TESTS:
+
+	/* If test OID not already in sim hash table; create it */
+	if (!g_hash_table_lookup_extended(sim_hash, 
+					  SNMP_BC_ERROR_LOG_MSG_OID_RSA,
+					  (gpointer)&hash_key, 
+					  (gpointer)&hash_value)) {
+
+		hash_key = g_strdup(SNMP_BC_ERROR_LOG_MSG_OID_RSA);
+		if (!hash_key) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Cannot allocate memory for OID key=%s.\n", SNMP_BC_ERROR_LOG_MSG_OID_RSA);
+			return -1;
+		}
+		
+		hash_value = g_malloc0(sizeof(SnmpMibInfoT));
+		if (!hash_value) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Cannot allocate memory for hash value for OID=%s.\n", SNMP_BC_ERROR_LOG_MSG_OID_RSA);
+			return -1;
+		}
+	}
+
+	err = saHpiEventLogClear(sessionid, chassis_rid);
+	if (err) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+
+	/************************************************************
+	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
+	 ************************************************************/
+	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN08032480  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage.";
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((logentry.Event.Source == chassis_rid) &&
+	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+	      (logentry.Event.Severity == SAHPI_CRITICAL) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_VOLTAGE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.CurrentState == SAHPI_ES_UNSPECIFIED) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (double)0) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (double)0) )) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		oh_print_event(&(logentry.Event), 1);
+		return -1;
+	}
+
+	err = saHpiEventLogClear(sessionid, chassis_rid);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+        }
+
+ COMMON_TESTS:
 	/************************************
 	 * Drive some error paths in the code
          ************************************/ 
