@@ -1,8 +1,9 @@
 dnl
 dnl autoconf and automake for openhpi
 dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
-dnl
+dnl   various hacks by Sean Dague <sean@dague.net> 4/23/03
 
+AC_PREREQ(2.50)
 AC_INIT(openhpi.spec.in)
 AM_INIT_AUTOMAKE(openhpi, 0.1)
 
@@ -15,6 +16,38 @@ AM_PROG_LIBTOOL
 HPI_PKG=openhpi
 AC_SUBST(HPI_PKG)
 AC_SUBST(ac_configure_args)
+
+dnl Checks for programs
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
+dnl Check fo libraries
+AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con])
+AC_CHECK_LIB([ltdl], [lt_dlopen])
+AC_CHECK_LIB([uuid], [uuid_generate], [], [
+    echo "************************************************************"
+    echo "* libuuid not found!"
+    echo "* Please install e2fsprogs-devel to get the required files" 
+    echo "************************************************************"
+    exit 1
+    ])
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/time.h unistd.h])
+
+dnl Checks for library functions.
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_MALLOC
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([gettimeofday memset])
+
+dnl Checks for other helper programs
+
 AC_PATH_PROGS(RPM, rpmbuild)
 
 dnl 
@@ -74,7 +107,6 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Werror"
 
 CFLAGS="$CFLAGS $CC_WARNINGS"
-
 
 AC_OUTPUT(openhpi.spec 		         \
 	Makefile 	 	         \
