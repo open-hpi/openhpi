@@ -23,6 +23,8 @@
 extern "C" {
 #endif 
 
+#define OH_SEL_MAX_SIZE 0
+
 /* this struct encapsulates all the data for a system event log */
 /* the log records themselves are stored in the sel GList */
 typedef struct {
@@ -31,12 +33,13 @@ typedef struct {
         SaHpiBoolT       deletesupported; // delete operation supported?
         SaHpiTimeT       lastUpdate; // last entry's timestamp
         SaHpiTimeT       offset; // offset to be added when generating a timestamp
+        SaHpiUint32T     maxsize; //max number of entries supported
         SaHpiSelEntryIdT nextId; // next generated Id i.e. number of entries
         GList            *selentries; // list of SaHpiSelEntryT structs
 } oh_sel;
 
 /* General SEL utility calls */
-oh_sel *oh_sel_create(void);
+oh_sel *oh_sel_create(SaHpiUint32T size);
 SaErrorT oh_sel_close(oh_sel *sel);
 SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry);
 SaErrorT oh_sel_delete(oh_sel *sel, SaHpiEntryIdT *entryid);
