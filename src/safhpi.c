@@ -1,187 +1,269 @@
-
-
-/*
- * Copyright (c) 2003, Intel Corporation
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or 
- * without modification, are permitted provided that the following 
- * conditions are met:
- *
- * Redistributions of source code must retain the above copyright 
- * notice, this list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright 
- * notice, this list of conditions and the following disclaimer in
- * the documentation and/or other materials provided with the distribution.
- *
- * Neither the name of Intel Corporation nor the names 
- * of its contributors may be used to endorse or promote products 
- * derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
- * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
- * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
- * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+/* BSD License
+ * Copyright (C) by Intel Crop.
+ * Author: Louis Zhuang <louis.zhuang@linux.intel.com>
  */
 
+#include <string.h>
 
+#include <openhpi.h>
+#include <oh_plugin.h>
 #include <SaHpi.h>
 
-/**
- * This function allows the management service an opportunity to 
- * perform platform-specific initialization. It must be 
- * called before any other functions are used 
- *
- * SA_OK returned on successful completion
- * SA_ERR_HPI_DUPLICATE if HPI was already initialized
- */
+static enum {
+	OH_STAT_UNINIT,
+	OH_STAT_READY,
+	OH_STAT_FINAL
+} oh_hpi_state = OH_STAT_UNINIT;
+static const int entry_id_offset = 1000;
+
+#define OH_STATE_READY_CHECK 					\
+	do {							\
+		if (OH_STAT_READY!=oh_hpi_state) {		\
+			dbg("Uninitialized HPI");		\
+			return SA_ERR_HPI_UNINITIALIZED;	\
+		}						\
+	}while(0)						
+
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_abi_v1 *abi = NULL;;
+	void *hnd = NULL;
+	
+	struct oh_domain *domain;
+	
+	if (OH_STAT_UNINIT!=oh_hpi_state) {
+		dbg("Cannot initialize twice");
+		return SA_ERR_HPI_DUPLICATE;
+	}
+	
+	abi = oh_plugins[0];
+	if (!abi) {
+		dbg("No plugin!");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if (!abi->open) {
+		dbg("No open method?!");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	hnd = abi->open("smi", "0");
+	if (!hnd) {
+		dbg("Can not open SMI interface 0");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	
+	init_session();
+	init_domain();
+
+	domain_add(&domain); //The first domain is SAHPI_DEFAULT_DOMAIN_ID
+	domain->abi = abi;
+	domain->hnd = hnd;
+	
+	oh_hpi_state= OH_STAT_READY;
+	return SA_OK;
 }
 
-/**
- * This function allows the management service an opportunity
- * to perform platform-specific cleanup. All sessions should
- * be closed before this function is called.
- *
- * SA_OK returned if successful
- */
 SaErrorT SAHPI_API saHpiFinalize(void)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_domain *d;
+	
+	OH_STATE_READY_CHECK;	
+
+	d = domain_get(SAHPI_DEFAULT_DOMAIN_ID);
+	if (!d) {
+		dbg("No DEFAULT DOMAIN");
+		return SA_ERR_HPI_UNKNOWN;
+	}
+
+	d->abi->close(d->hnd);
+	
+	uninit_domain();
+	uninit_session();
+
+	oh_hpi_state = OH_STAT_FINAL;
+	return SA_OK;
 }
 
-/**
- * This function opens a HPI connection for a given domain.
- *
- * DomainId - SAHPI_DEFAULT_DOMAIN_ID indicates the default domain
- * SessionId - A pointer to a location to store a handle to the
- * 	newly opened session.
- * SecurityParams - Reserved for future use. Set to NULL.
- *
- * SA_OK returned on successful completion
- * SA_ERR_HPI_INVALID_DOMAIN returned if no domain matching the 
- * 	specified domain ID exists.
- */
 SaErrorT SAHPI_API saHpiSessionOpen(
 		SAHPI_IN SaHpiDomainIdT DomainId,
 		SAHPI_OUT SaHpiSessionIdT *SessionId,
 		SAHPI_IN void *SecurityParams)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_domain  *d;
+	struct oh_session *s;
+	int rv;
+	
+	OH_STATE_READY_CHECK;
+	
+	d = domain_get(DomainId);
+	if (!d) {
+		dbg("Invalid domain");
+		return SA_ERR_HPI_INVALID_DOMAIN;
+	}
+
+	rv = session_add(d, &s);
+	if (rv<0) {
+		dbg("Out of space");
+		return SA_ERR_HPI_OUT_OF_SPACE;
+	}	
+	*SessionId = s->sid;
+	
+	return SA_OK;
 }
 
 
-/**
- * This function closes a HPI session.
- *
- * SessionId - The session handle previously obtained using 
- * 	saHpiSessionOpen()
- *
- * SA_OK returned on successful completion
- */
 SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	
+	OH_STATE_READY_CHECK;
+	
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+
+	session_del(s);	
+	return SA_OK;
 }
 
 
-/**
- * This function requests the underlying management service to
- * discover information about the resources it controls
- * for the domain associated with the open session.  This 
- * function may be called during operation to regenerate the
- * RPT table.
- *
- * SessionId - handle to session context
- *
- * SA_OK returned upon successful completion
- */
 SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	int rv =0;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	rv = session_get_events(s);
+	if (rv<0) {
+		dbg("Error when polling");
+		return SA_ERR_HPI_UNKNOWN;
+	}
+
+	return SA_OK;
 }
 
-/**
- * This function is used for requesting information about the
- * resource presence table (RPT) such as an
- * update counter and timestamp.
- *
- * SessionId - Handle to session context
- * RptInfo - Pointer to the information describing the RPT
- *
- * SA_OK returned on successful completion
- */
 SaErrorT SAHPI_API saHpiRptInfoGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiRptInfoT *RptInfo)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	struct oh_domain  *d;
+	struct timeval 	*upt;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	d   = s->domain;
+	upt = &d->update_time; 
+	RptInfo->UpdateCount 	= d->update_counter;
+	RptInfo->UpdateTimestamp= (SaHpiTimeT)upt->tv_sec*1000000000 + upt->tv_usec*1000;
+	return SA_OK;
 }
 
-/**
- * This function retrieves resource information for the specified
- * entry of the resource presence table. It allows the
- * caller to read the RPT entry-by-entry.
- *
- * SessionId - Handle to session context
- * EntryId - Handle of the entry to retrieve from the RPT.
- * NextEntryId - Pointer to location to store the record ID of next entry
- * 	in RPT
- * RptEntry - pointer to the structure to hold the returned RPT entry
- *
- * SA_OK returned on successful completion
- */
 SaErrorT SAHPI_API saHpiRptEntryGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiEntryIdT EntryId,
 		SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+
+	int n;
+	int i;
+	struct list_head  *tmp;
+	struct oh_resource *r;
+	struct oh_session *s;
+	struct oh_domain  *d;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	d   = s->domain;
+	
+	switch (EntryId) {
+	case SAHPI_FIRST_ENTRY:
+		n = 0;
+		break;
+	default:
+		n = EntryId - entry_id_offset;
+		break;
+	}
+	
+	i = 0;
+	r = NULL;
+	list_for_each(tmp, &d->res_list) {
+		if (i==n) {
+			r = list_container(tmp, struct oh_resource, node);
+			break;
+		}
+		i++;
+	}
+	
+	if (!r) {
+		dbg("Invalid EntryId");
+		return SA_ERR_HPI_INVALID;
+	}
+	
+	memcpy(RptEntry, &r->rpt_entry, sizeof(*RptEntry));
+
+	if (r->node.next == &d->res_list) { //last entry
+		*NextEntryId = SAHPI_LAST_ENTRY;
+	} else {
+		*NextEntryId = n+1+entry_id_offset;
+	}
+	return SA_OK;
 }
 
-/**
- * This function retrieves resource information from the RPT
- * for the specified resource using its resource ID.
- *
- * SessionId - handle to session context
- * ResourceId - Resource ID of the resource whose RPT entry should
- * 	be returned
- * RptEntry - Pointer to structure to hold the returned RPT entry.
- *
- * SA_OK returned on successful completion
- */
 SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct list_head  *tmp;
+	struct oh_session *s;
+	struct oh_domain  *d;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	d   = s->domain;
+
+	list_for_each(tmp, &d->res_list) {
+		struct oh_resource *r;
+		r = list_container(tmp, struct oh_resource, node);
+		if (r->rid == ResourceId) {
+			memcpy(RptEntry, &r->rpt_entry, sizeof(*RptEntry));
+			return SA_OK;
+		}
+	}
+	
+	dbg("Cannot find resource");
+	return SA_ERR_HPI_INVALID_RESOURCE;
 }
 
-/**
- * This function allows the caller to set the severity level
- * applied to an event issued if a resouce unexpectedly
- * becomes unavailable to the HPI.
- *
- * SessionId - Handle to session context
- * ResourceId - Resource ID of the resource for which the severity level 
- * 	will be read.
- * Severity - Severity level of event issued when the resource 
- * 	unexpectedly becomes unavailable to the HPI.
- *
- * SA_OK returned on successful completion.
- */
 SaErrorT SAHPI_API saHpiResourceSeveritySet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -190,17 +272,6 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-/**
- * This function allows the caller to set the resource tag
- * for a particular resource.
- *
- * SessionId - Handle to session context
- * ResourceId - Resource ID of the resource for which the
- *  	resouce tag should be set.
- * ResourceTag - Pointer to string representing the resource tag.
- *
- * SA_OK returned on successful completion.
- */
 SaErrorT SAHPI_API saHpiResourceTagSet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -209,21 +280,6 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-
-/**
- * This function returns the resource ID of the resource associated
- * with the entity upon which the caller is running.
- *
- * SessionId - The handle to session context
- * ResourceId - Pointer to location to hold the returned resource ID
- *
- * SA_OK returned upon successful completion
- * SA_ERR_HPI_NOT_PRESENT returned if the entity the caller is running 
- * 	on is not manageable in the addressed domain.
- * SA_ERR_HPI_UNKNOWN returned if the domain controller cannot
- * 	determine an appropriate response.
- */
-
 SaErrorT SAHPI_API saHpiResourceIdGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiResourceIdT *ResourceId)
@@ -231,16 +287,6 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-/**
- * This function returns the identifier of the Entity Schema for the
- * HPI implementation
- *
- * SessionId - handle to session context
- * SchemaId - Pointer to the ID of teh schma in use; zero 
- * 	indicates that a custom schema is in use.
- *
- * SA_OK returned on successful completion.
- */
 SaErrorT SAHPI_API saHpiEntitySchemaGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiUint32T *SchemaId)
@@ -349,7 +395,6 @@ SaErrorT SAHPI_API saHpiEventGet (
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-/*****************************/
 SaErrorT SAHPI_API saHpiRdrGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -472,8 +517,6 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-/***************************************/
-
 SaErrorT SAHPI_API saHpiWatchdogTimerGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -499,8 +542,6 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
 {
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
-
-/**********************/
 
 SaErrorT SAHPI_API saHpiHotSwapControlRequest (
 		SAHPI_IN SaHpiSessionIdT SessionId,
@@ -601,8 +642,6 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-/**********************************/
-
 SaErrorT SAHPI_API saHpiParmControl (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -626,32 +665,3 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
 {
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
