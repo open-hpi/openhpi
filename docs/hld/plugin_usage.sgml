@@ -162,6 +162,7 @@ plugin libsnmp_bc
 handler libsnmp_bc {
           community = "myc0m"
           host = "192.168.64.52"
+	  entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
 }
           </literallayout>
         </literal>
