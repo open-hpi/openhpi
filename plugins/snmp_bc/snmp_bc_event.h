@@ -22,12 +22,12 @@ SaErrorT event2hpi_hash_free(struct oh_handler_state *handle);
 
 SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 				     SaHpiEntityPathT *ep,
-				     const struct ResourceInfo *res_info_ptr);
+				     const struct ResourceInfo *resinfo);
 
 SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 					SaHpiEntityPathT *ep,
 					SaHpiSensorNumT sid,
-					const struct snmp_bc_sensor *rpt_sensor);
+					const struct snmp_bc_sensor *sinfo);
 
 SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   gchar *logstr,

@@ -123,6 +123,8 @@ struct ResourceMibInfo {
                                        /* Includes an ending NULL entry */
 struct res_event_map {
         char *event;
+	SaHpiBoolT event_res_failure;
+	SaHpiBoolT event_res_failure_unexpected;
         SaHpiHsStateT event_state;
         SaHpiHsStateT recovery_state;
 };
@@ -185,9 +187,13 @@ struct SensorMibInfo {
 #define SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE  (SNMP_BC_MAX_EVENTS_PER_SENSOR + 1)
 #define SNMP_BC_MAX_SENSOR_READING_MAP_ARRAY_SIZE (SNMP_BC_MAX_READING_MAPS_PER_SENSOR + 1)
 
+/* If you add to this structure, you may also have to change EventMapInfoT 
+   and event discovery in snmp_bc_event.c */
 struct sensor_event_map {
         char *event;
 	SaHpiBoolT event_assertion;
+	SaHpiBoolT event_res_failure;
+	SaHpiBoolT event_res_failure_unexpected;
         SaHpiEventStateT event_state;
         SaHpiEventStateT recovery_state;
 };
@@ -200,8 +206,9 @@ struct sensor_reading_map {
 
 struct SensorInfo {
         struct SensorMibInfo mib;
+        SaHpiEventStateT cur_state; /* This really records the last state read from the SEL */
+	                            /* Which probably isn't the current state of the sensor */
 	SaHpiBoolT sensor_enabled;
-        SaHpiEventStateT cur_state;
 	SaHpiBoolT events_enabled;
         SaHpiEventStateT assert_mask;
 	SaHpiEventStateT deassert_mask;

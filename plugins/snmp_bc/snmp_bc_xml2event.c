@@ -19,8 +19,8 @@
 
 #include <snmp_bc_plugin.h>
 
-GHashTable *bc_xml2event_hash = NULL;
-unsigned int bc_xml2event_hash_use_count = 0;
+GHashTable *errlog2event_hash = NULL;
+unsigned int errlog2event_hash_use_count = 0;
 
 GHashTable *rsa_xml2event_hash = NULL;
 unsigned int rsa_xml2event_hash_use_count = 0;
@@ -35,7 +35,7 @@ static void event_start_element(GMarkupParseContext *context,
                                 GError             **error);
 
 /**********************************************************************
- * xml2event_hash_init: Read in the XML with the GLib markup APIs
+ * errlog2event_hash_init: Read in the XML with the GLib markup APIs
  * and create the BC or RSA hash table.
  *
  * @hashtable: The hash table to use to store events
@@ -46,7 +46,7 @@ static void event_start_element(GMarkupParseContext *context,
  *                    the caller should attempt to free the hash table
  **********************************************************************/
 
-int xml2event_hash_init(GHashTable **hashtable, const char *xmlstr) {
+int errlog2event_hash_init(GHashTable **hashtable, const char *xmlstr) {
         GMarkupParser parser;
         GMarkupParseContext *pcontext;
         gboolean rc;
@@ -65,7 +65,7 @@ int xml2event_hash_init(GHashTable **hashtable, const char *xmlstr) {
 	*hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	if (*hashtable == NULL) {
                 g_markup_parse_context_free(pcontext);
-		dbg("Cannot allocate xml2event_hash table");
+		dbg("Cannot allocate hash table.");
 		return -1;
 	}
 
@@ -96,16 +96,15 @@ int xml2event_hash_init(GHashTable **hashtable, const char *xmlstr) {
 	return 0;
 }
 
-
 /**********************************************************************
- * xml2event_hash_free: free the hash table and the internal
+ * errlog2event_hash_free: free the hash table and the internal
  * memory used by the hash value
  *
  * return value: 0 = hash table freed successfully
  *               -1 = An error occured, see the debug messages
  **********************************************************************/
 
-int xml2event_hash_free(GHashTable **hashtable)
+int errlog2event_hash_free(GHashTable **hashtable)
 {
         if (*hashtable == NULL) {
                 return 0;
@@ -117,13 +116,12 @@ int xml2event_hash_free(GHashTable **hashtable)
 	return 0;
 }
 
-
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
 {
-	Xml2EventInfoT *xmlinfo;
+	ErrLog2EventInfoT *xmlinfo;
 
         g_free(key);
-        xmlinfo = (Xml2EventInfoT *)value;
+        xmlinfo = (ErrLog2EventInfoT *)value;
         g_free(xmlinfo->event);
         g_free(value);
 }
@@ -137,7 +135,7 @@ static void event_start_element(GMarkupParseContext *context,
                                 GError             **error)
 {
 	gchar *key = NULL;
-	Xml2EventInfoT *xmlinfo;
+	ErrLog2EventInfoT *xmlinfo;
         GHashTable **hashtable = (GHashTable **)user_data;
         int i = 0;
         gint line, pos;
@@ -153,7 +151,7 @@ static void event_start_element(GMarkupParseContext *context,
         }
 
         /* malloc memory for hash value */
-        xmlinfo = g_malloc0(sizeof(Xml2EventInfoT));
+        xmlinfo = g_malloc0(sizeof(ErrLog2EventInfoT));
         if (!xmlinfo) {
                 g_set_error(error, G_MARKUP_ERROR,G_MARKUP_ERROR_PARSE,
                             "Cannot allocate memory for hash value");

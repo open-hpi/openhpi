@@ -295,16 +295,16 @@ EN_DASD|0x00000069|ALL|SAHPI_CRITICAL|OVR_SEV|"DASD backplane Failure"
 EN_FAULT_POWER_GOOD|0x00028000|ALL|SAHPI_CRITICAL|OVR_SEV|"Power Good Fault"
 
 
-########################
-# Daughter Card Resource
-########################
+#########################
+# Expansion Card Resource
+#########################
 # None
 
-#######################
-# Daughter Card Sensors
-#######################
+########################
+# Expansion Card Sensors
+########################
 
-# Blade Daughter Card (DASD 1) thermal sensor
+# Blade Expansion Card (DASD 1) thermal sensor
 EN_CUTOFF_HI_OVER_TEMP_DASD1|0x0681C481|ALL|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to BSE Option temperature."
 EN_PFA_HI_OVER_TEMP_DASD1|0x0681D481|ALL|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE Option over recommended temperature."
 

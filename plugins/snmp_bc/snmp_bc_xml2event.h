@@ -29,19 +29,19 @@ typedef struct {
 	SaHpiSeverityT event_sev;
 	unsigned short event_ovr;
         short          event_dup;
-} Xml2EventInfoT;
+} ErrLog2EventInfoT;
 
 /* Global String to Event Hash Table */
-extern GHashTable *bc_xml2event_hash;
+extern GHashTable *errlog2event_hash;
+extern unsigned int errlog2event_hash_use_count;
 extern GHashTable *rsa_xml2event_hash;
-extern unsigned int bc_xml2event_hash_use_count;
 extern unsigned int rsa_xml2event_hash_use_count;
 
 /* XML code for rsa and bc events */
 extern char *bc_eventxml;
 extern char *rsa_eventxml;
 
-int xml2event_hash_init(GHashTable **hashtable, const char *xmlstr);
-int xml2event_hash_free(GHashTable ** hashtable);
+int errlog2event_hash_init(GHashTable **hashtable, const char *xmlstr);
+int errlog2event_hash_free(GHashTable ** hashtable);
 
 #endif
