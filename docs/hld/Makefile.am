@@ -64,7 +64,7 @@ openhpi-manual/book1.html: $(SGML_FILES)
 	-cp $(DIAGRAMS) openhpi-manual/images
 
 publish: openhpi-manual/book1.html
-	-htmlfilter.pl $(shell ls openhpi-manual/*html)
+	-./htmlfilter.pl $(shell ls openhpi-manual/*html)
 	-chmod a+x $(shell ls openhpi-manual/*html)
 	if test ! -e openhpi-manual/book1.html; then \
 		ln openhpi-manual/index.html openhpi-manual/book1.html; \
