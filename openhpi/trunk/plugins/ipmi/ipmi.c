@@ -610,11 +610,11 @@ static SaErrorT ipmi_clear_sel(void *hnd, SaHpiResourceIdT id)
 		return SA_OK;
 }
 
-static SaErrorT get_rdr_data(const struct oh_handler_state *handler,
-                             SaHpiResourceIdT              id,
-                             SaHpiRdrTypeT                 type,
-                             SaHpiUint8T                   num,
-                             void                          **pdata)
+SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
+                           SaHpiResourceIdT              id,
+                           SaHpiRdrTypeT                 type,
+                           SaHpiUint8T                   num,
+                           void                          **pdata)
 {
         SaHpiRdrT * rdr;
         rdr = oh_get_rdr_by_type(handler->rptcache,
@@ -654,7 +654,7 @@ static int ipmi_get_sensor_data(void 			*hnd,
 		SaErrorT         rv;
 		ipmi_sensor_id_t *sensor;
         
-        rv = get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
         if (rv!=SA_OK)
                 return rv;
 
@@ -684,7 +684,7 @@ static int ipmi_get_sensor_thresholds(void			*hnd,
 		SaErrorT         rv;
 		ipmi_sensor_id_t *sensor;
         
-        rv = get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
         if (rv!=SA_OK)
 				return rv;
 
@@ -704,7 +704,7 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 		SaErrorT         rv;
 		ipmi_sensor_id_t *sensor;
         
-        rv = get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 		
         if (rv!=SA_OK)
 				return rv;
@@ -723,7 +723,7 @@ static int ipmi_get_sensor_event_enables(void			*hnd,
         SaErrorT         rv;
 		ipmi_sensor_id_t *sensor;
         
-        rv = get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
         if (rv!=SA_OK)
 				return rv;
 
