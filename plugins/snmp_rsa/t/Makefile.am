@@ -63,7 +63,8 @@ TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
 TESTS = tutils_conv \
-	tutils_oid
+	tutils_oid \
+	tevent
 
 # XFAIL_TESTS = thotswap_reset
 
@@ -79,3 +80,6 @@ tutils_conv_LDADD   = snmp_rsa_utils.o
 
 tutils_oid_SOURCES = tutils_oid.c
 tutils_oid_LDADD   = snmp_rsa_utils.o
+
+tevent_SOURCES = tevent.c
+tevent_LDADD   = snmp_rsa_utils.o

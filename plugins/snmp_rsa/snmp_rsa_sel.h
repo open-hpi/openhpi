@@ -23,7 +23,7 @@
 #define RSA_SEL_ENTRY_STRING 256
 #define RSA_SEL_INDEX_OID ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.1"
 #define RSA_SEL_ENTRY_OID ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2"
-#define RSA_CLEAR_SEL_OID ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.3"
+#define RSA_CLEAR_SEL_OID ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
 
 typedef struct {
         struct tm time;
