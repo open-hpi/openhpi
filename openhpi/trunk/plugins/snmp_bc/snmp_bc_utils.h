@@ -20,7 +20,7 @@
 #define  UUID_SUBSTRINGS_CNT2  5
 
 SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
-                          const char *oid,
-                          SaHpiGuidT *guid);
+			  struct oh_event *e,
+			  struct ResourceInfo *res_info_ptr);
 
 #endif

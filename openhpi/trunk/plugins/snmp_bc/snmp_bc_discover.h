@@ -41,7 +41,8 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer,
 				    SaHpiEntityLocationT location);
 
 SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
-		      const char *oid,
-		      unsigned int na,
-		      SaHpiBoolT write_only);
+			SaHpiEntityPathT *ep,
+			const gchar *oidstr,
+		      	unsigned int na,
+		      	SaHpiBoolT write_only);
 #endif

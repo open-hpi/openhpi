@@ -16,33 +16,10 @@
 
 #include <snmp_bc_plugin.h>
 
-#define GET_GUID()                                                             \
-        oid_ptr = oh_derive_string(&(e->u.res_event.entry.ResourceEntity),     \
-                                   res_info_ptr->mib.OidUuid);                 \
-        if (oid_ptr == NULL) {                                                 \
-                dbg("Cannot derive oid %s, set GUID to zero", oid_ptr);        \
-                memset(&guid, 0, sizeof(SaHpiGuidT));  /*default to zero*/     \
-        }                                                                      \
-        else {                                                                 \
-                err = snmp_bc_get_guid(custom_handle, oid_ptr, &guid);         \
-                if ( err == SA_ERR_HPI_BUSY ) {                                \
-                        dbg("%d snmp busy, retry get_guid\n", err);            \
-                        err = snmp_bc_get_guid(custom_handle, oid_ptr, &guid); \
-                }                                                              \
-                if (err) {                                                     \
-                        dbg("Failed to get GUID, Error=%d\n", err);            \
-                        memset(&guid,0,sizeof(SaHpiGuidT)); /*default to zero*/\
-                }                                                              \
-        }                                                                      \
-        memmove(e->u.res_event.entry.ResourceInfo.Guid, guid, sizeof(SaHpiGuidT));\
-        g_free(oid_ptr);
-
 SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			      SaHpiEntityPathT *ep_root)
 {
 	int i;
-        char *oid_ptr;
-        SaHpiGuidT guid;
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value;
@@ -62,7 +39,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
         /******************
 	 * Discover chassis
          ******************/
- 	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value);
+ 	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value, SAHPI_TRUE);
         if (err || get_value.type != ASN_INTEGER) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		     SNMP_BC_PLATFORM_OID_RSA, get_value.type, oh_lookup_error(err));
@@ -95,7 +72,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
         /* Get UUID and convert to GUID */
-        GET_GUID();
+        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 	/* Add resource to temporary event cache/queue */
 	err = oh_add_resource(custom_handle->tmpcache, 
@@ -120,7 +97,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
         for (i=0; i<RSA_MAX_CPU; i++) {
 		err = snmp_bc_snmp_get(custom_handle, 
 				       snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.oid,
-				       &get_value);
+				       &get_value, 
+				       SAHPI_TRUE);
 		if (err || get_value.type != ASN_OCTET_STR) {
 			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 			    snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.oid,
@@ -129,8 +107,13 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
 		}
 
+		/* FIXME FIXME: he just did a snmp_get above,         */
+		/* why use rdr_exist here? Just check returncode from */
+		/* snmp_bc_snmp_get() above                           */ 
+		/* Roll this code into err check above                */ 
 		/* See if CPU exists */
 		if (!rdr_exists(custom_handle,
+				0,
 				snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.oid,
 				snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.not_avail_indicator_num,
 				snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.write_only)) continue;
@@ -162,7 +145,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 		
 		/* Get UUID and convert to GUID */
-		GET_GUID();
+                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
 		/* Add resource to temporary event cache/queue */
 		err = oh_add_resource(custom_handle->tmpcache,
@@ -188,7 +171,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
         for (i=0; i<RSA_MAX_DASD; i++) {
 		err = snmp_bc_snmp_get(custom_handle, 
 				       snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.oid,
-				       &get_value);
+				       &get_value, 
+				       SAHPI_TRUE);
 		if (err || get_value.type != ASN_OCTET_STR) {
 			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 			    snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.oid,
@@ -197,8 +181,13 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
 		}
 
+		/* FIXME FIXME: he just did a snmp_get above,         */
+		/* why use rdr_exist here? Just check returncode from */
+		/* snmp_bc_snmp_get() above                           */
+		/* Roll this code into err check above                */ 		 
 		/* See if DASD exists */
 		if (!rdr_exists(custom_handle,
+				0,
 				snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.oid,
 				snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.not_avail_indicator_num,
 				snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.write_only)) continue;
@@ -230,7 +219,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 		
 		/* Get UUID and convert to GUID */
-		GET_GUID();
+                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
 		/* Add resource to temporary event cache/queue */
 		err = oh_add_resource(custom_handle->tmpcache,
@@ -256,7 +245,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
         for (i=0; i<RSA_MAX_FAN; i++) {
 		err = snmp_bc_snmp_get(custom_handle, 
 				       snmp_bc_fan_sensors_rsa[i].sensor_info.mib.oid,
-				       &get_value);
+				       &get_value, 
+				       SAHPI_TRUE);
 		if (err || get_value.type != ASN_OCTET_STR) {
 			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 			    snmp_bc_fan_sensors_rsa[i].sensor_info.mib.oid,
@@ -265,8 +255,13 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
 		}
 
+		/* FIXME FIXME: he just did a snmp_get above,         */
+		/* why use rdr_exist here? Just check returncode from */
+		/* snmp_bc_snmp_get() above.                          */
+		/* Roll this code into err check above */ 
 		/* See if fan exists */
 		if (!rdr_exists(custom_handle,
+				0,
 				snmp_bc_fan_sensors_rsa[i].sensor_info.mib.oid,
 				snmp_bc_fan_sensors_rsa[i].sensor_info.mib.not_avail_indicator_num,
 				snmp_bc_fan_sensors_rsa[i].sensor_info.mib.write_only)) continue;
@@ -298,7 +293,7 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 		
 		/* Get UUID and convert to GUID */
-		GET_GUID();
+                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
 		/* Add resource to temporary event cache/queue */
 		err = oh_add_resource(custom_handle->tmpcache,

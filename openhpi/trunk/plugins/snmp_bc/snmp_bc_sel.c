@@ -73,7 +73,7 @@ static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID, i);
 		}
                 i++;
-        } while(snmp_bc_snmp_get(custom_handle, oid, &run_value) == 0);
+        } while(snmp_bc_snmp_get(custom_handle, oid, &run_value, SAHPI_TRUE) == 0);
         
         /* Think about it, and it makes sense */
         i -= 2;
@@ -131,7 +131,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 		snprintf(oid, SNMP_BC_MAX_OID_LENGTH,"%s.%d", SNMP_BC_SEL_ENTRY_OID, 1);
 	}
 
-        err = snmp_bc_snmp_get(custom_handle, oid, &first_value);
+        err = snmp_bc_snmp_get(custom_handle, oid, &first_value, SAHPI_TRUE);
 	if (err == SA_OK) {
         	if (first_value.type == ASN_OCTET_STR) {
 			err = snmp_bc_parse_sel_entry(handle, first_value.string, &sel_entry);
@@ -345,7 +345,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
 	}
 
-       	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+       	err = snmp_bc_snmp_get(custom_handle, oid, &get_value, SAHPI_TRUE);
        	if (err) {
 		dbg("SNMP log is empty.");
 		err = oh_el_clear(handle->elcache);
@@ -374,7 +374,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 				snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
 					 SNMP_BC_SEL_ENTRY_OID, current);
 			}
-			err = snmp_bc_snmp_get(custom_handle,oid,&get_value);
+			err = snmp_bc_snmp_get(custom_handle,oid,&get_value, SAHPI_TRUE);
 			if (err == 0) {
 				if (snmp_bc_parse_sel_entry(handle, get_value.string, &sel_entry) < 0) {
 					dbg("Cannot parse SEL entry.");
@@ -508,7 +508,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 			 SNMP_BC_SEL_ENTRY_OID, current);
 	}
 
-	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, oid, &get_value, SAHPI_TRUE);
 	if (err != SA_OK)
 		 return(err); 
 	else if ((err == SA_OK) && (get_value.type != ASN_OCTET_STR)) {
