@@ -75,6 +75,7 @@ libsnmp_bc_la_SOURCES = \
 		$(REMOTE_SIM_SOURCES) \
 		sim_init.c \
 		sim_resources.c \
+		sim_file.c \
 		snmp_utils.c \
 		tsetup.c
 # FIXME:: May have to add $(GENERATED_EVENT_CODE) if auto generate files
@@ -108,6 +109,7 @@ TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
 TESTS = \
+	tsim_file \
 	tevent \
 	tcontrol_parms \
 	tset_resource_tag \
@@ -186,6 +188,12 @@ TESTS = \
 # XFAIL_TESTS = thotswap_reset
 
 check_PROGRAMS = $(TESTS)
+
+# Unit test using normal IF calls and simulation library
+tsim_file_SOURCES = tsim_file.c
+tsim_file_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit test using normal IF calls and simulation library
 tevent_SOURCES = tevent.c
