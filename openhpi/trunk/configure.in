@@ -39,17 +39,6 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
 
 AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
 
-dnl  old test case for no OpenIPMI
-dnl ,[
-dnl    echo "************************************************************"
-dnl    echo "* OpenIPMI not found!"
-dnl    echo "* currently OpenIPMI is required for build of openhpi"
-dnl    echo "* please download and install the latest version of the software"
-dnl    echo "* from http://openipmi.sf.net"
-dnl    echo "************************************************************"
-dnl    exit 1
-dnl    ])
-    
 AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     echo "************************************************************"
     echo "* libuuid not found!"
@@ -94,7 +83,17 @@ dnl
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
-        PLUGINS="$PLUGINS ipmi"
+        if test "x$have_openipmi" = "xyes"; then
+            PLUGINS="$PLUGINS ipmi"
+        else
+            echo "************************************************************"
+            echo "* OpenIPMI not found!"
+            echo "* Can't build IPMI support without OpenIPMI!"
+            echo "* please download and install the latest version of the software"
+            echo "* from http://openipmi.sf.net"
+            echo "************************************************************"
+            exit 1
+        fi
     fi])
 
 
