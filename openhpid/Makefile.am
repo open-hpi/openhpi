@@ -34,8 +34,14 @@ openhpid_SOURCES        = \
 	openhpid.h \
 	openhpid.cpp
 
-openhpid_LDADD          = $(top_builddir)/marshal/libmarshal.la $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
-#openhpid_LDFLAGS        = -static
+# this is defined with ./configure --enable-daemon=static 
+if OPENHPID_STATIC
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libmarshal.a $(top_builddir)/utils/libopenhpiutils.la
+openhpid_LDFLAGS        = -static
+else
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libmarshal.a
+openhpid_LDFLAGS        =
+endif
 
 # client library
 # please do not use any external libraries
