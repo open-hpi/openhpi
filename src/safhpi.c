@@ -46,13 +46,11 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 {
         struct oh_session *s;
         int rv;
+        SaHpiUint8T oh_ready_state;
 
-        /* SLD 6/8/2004
-          This is the worst of all possible solutions, however
-          it should make us work for now.  We need a much better
-          mechanism for making this actually init on first session open.
-        */
-        if(OH_STAT_READY != oh_hpi_state) {
+        oh_ready_state = oh_get_ready_state();
+        
+        if(oh_ready_state == OH_NOT_READY) {
                 oh_initialize();
         }
 
@@ -62,8 +60,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         }
 
         OH_STATE_READY_CHECK;
-
-        oh_event_init();
+        
         data_access_lock();
 
         if(!is_in_domain_list(DomainId)) {

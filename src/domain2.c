@@ -46,6 +46,10 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         
         domain->info.DomainCapabilities = capabilities;
         domain->info.IsPeer = isPeer;
+        domain->info.DatUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+        domain->info.DrtUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+        domain->info.RptUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+        
         if (tag)
                 memcpy(&(domain->info.DomainTag),tag,sizeof(SaHpiTextBufferT));
         domain->del = oh_el_create(OH_EL_MAX_SIZE);

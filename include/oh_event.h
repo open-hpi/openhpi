@@ -91,6 +91,8 @@ struct oh_event {
         oh_event_union u;
 };
 
+extern GAsyncQueue *oh_process_q;
+
 /* function definitions */
 int oh_event_init(void);
 int oh_event_final(void);
