@@ -199,7 +199,7 @@ handler libsnmp_bc {
       <para>
         After the watchdog is compiled, it needs to be inserted using <literal>
         insmod softdog [soft_noboot=1]</literal> as root.  The <literal>
-        soft_noboot=1<literal> option can be used during testing so that the
+        soft_noboot=1</literal> option can be used during testing so that the
         meachine does not reboot.
       </para>
       <para>
@@ -239,7 +239,8 @@ handler libwatchdog {
       files.
     </para>
     <para>
-      The sysfs plugin code can be tested using <literal>examples/list_resources.c.
+      The sysfs plugin code can be tested using <literal>examples/list_resources.c
+      </literal>.
     </para>
     <sect2>
       <title>Prerequisites</title>
