@@ -2185,39 +2185,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
  *  Hotswap Functions
  *
  ******************************************************************************/
-
-#if 0 // this is not in HPI B, will come out later
-SaErrorT SAHPI_API saHpiHotSwapControlRequest (
-        SAHPI_IN SaHpiSessionIdT SessionId,
-        SAHPI_IN SaHpiResourceIdT ResourceId)
-{
-        SaHpiRptEntryT *res;
-        struct oh_resource_data *rd;
-        SaHpiDomainIdT did;
-        struct oh_domain *d = NULL;
-
-        OH_CHECK_INIT_STATE(SessionId);
-        OH_GET_DID(SessionId, did);
-        OH_GET_DOMAIN(did, d); /* Lock domain */
-        OH_RESOURCE_GET(d, ResourceId, res);
-
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                return SA_ERR_HPI_CAPABILITY;
-        }
-
-        rd = oh_get_resource_data(&(d->rpt), ResourceId);
-        if (!rd) {
-                dbg("Cannot find resource data for Resource %d", ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        rd->controlled = 1;
-
-        return SA_OK;
-}
-
-#endif
-
+ 
 SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         SAHPI_IN SaHpiSessionIdT      SessionId,
         SAHPI_IN SaHpiResourceIdT     ResourceId)
