@@ -15,8 +15,12 @@ plugin	libdummy
 #Only arguments starting with numbers, should be enclosed in quotes " "
 
 handler	libdummy {
-	name = "0"
-	value =	"0"
+	addr =	"0"
+}
+
+# Dummy allows you open second virtual by addr 1
+handler	libdummy {
+	addr =	"1"
 }
 
 #section for ipmi plugin using SMI -- local interface
