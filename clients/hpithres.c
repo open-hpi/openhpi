@@ -35,7 +35,7 @@ char *sensor_name;
 char s_name[] = "80mm Sys Fan (R)";  /*TSRLT2, default*/
 char sm_name[] = "Baseboard Fan 2";  /*TSRMT2, Mullins*/
 char s_pattn[] = "Temp";  /* else use the first temperature SDR found */
-char progname[] = "hpievent";
+char progname[] = "hpithres";
 char progver[] = "1.0";
 char inbuff[1024];
 char outbuff[256];
