@@ -224,7 +224,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
  * CPU Sensors
  ***************/
 
-struct snmp_rsa_sensor snmp_rsa_cpu_sensors[] = {
+struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
         /* CPU 1 area thermal sensor */
         {
                 .sensor = {
@@ -833,7 +833,7 @@ struct snmp_rsa_sensor snmp_rsa_cpu_sensors[] = {
  * DASD Sensors
  ***************/
 
-struct snmp_rsa_sensor snmp_rsa_dasd_sensors[] = {
+struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
         /* DASD 1 area thermal sensor */
         {
                 .sensor = {
