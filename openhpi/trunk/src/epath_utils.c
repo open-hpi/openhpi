@@ -10,8 +10,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Author:
- *     Steve Sherman <stevees@us.ibm.com>
+ * Authors:
+ *      Steve Sherman <stevees@us.ibm.com>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 /******************************************************************************
@@ -28,6 +29,7 @@
  * FUNCTIONS:
  * string2entitypath - Coverts canonical entity path string to HPI entity path
  * entitypath2string - Coverts HPI entity path to canonical entity path string
+ * ep_concat         - Concatenates two SaHpiEntityPathT together.
  *
  * NOTES:
  *   - Don't have a good way to identify last real value in SaHpiEntityPath
@@ -46,6 +48,9 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 #include <epath_utils.h>
+
+static unsigned int index2entitytype(unsigned int i);
+static unsigned int entitytype2index(unsigned int i);
 
 static gchar *eshort_names[] = {
 	"UNSPECIFIED",
@@ -89,10 +94,10 @@ static gchar *eshort_names[] = {
 	"REMOTE",
 	"EXTERNAL_ENVIRONMENT",
 	"BATTERY",
-	"CHASSIS_SPECIFIC",
-	"BOARD_SET_SPECIFIC",
-	"OEM_SYSINT_SPECIFIC",
-	"ROOT",
+	"CHASSIS_SPECIFIC",     /* Jumps to 144 */
+	"BOARD_SET_SPECIFIC",   /* Jumps to 176 */
+	"OEM_SYSINT_SPECIFIC",  /* Jumps to 208 */
+	"ROOT",                 /* Jumps to 65535 and continues from there... */
 	"RACK",
 	"SUBRACK",
 	"COMPACTPCI_CHASSIS",
@@ -118,6 +123,11 @@ static gchar *eshort_names[] = {
 #define EPATHSTRING_START_DELIMITER "{"
 #define EPATHSTRING_END_DELIMITER "}"
 #define EPATHSTRING_VALUE_DELIMITER ","
+#define ESHORTNAMES_BEFORE_JUMP 40
+#define ESHORTNAMES_FIRST_JUMP 41
+#define ESHORTNAMES_SECOND_JUMP 42
+#define ESHORTNAMES_THIRD_JUMP 43
+#define ESHORTNAMES_LAST_JUMP 44
 
 /***********************************************************************
  * string2entitypath
@@ -135,8 +145,9 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 
 	gchar  **epathdefs = NULL, **epathvalues = NULL;
 	gchar  *gstr = NULL, *etype = NULL, *einstance = NULL, *endptr;
-	gint   i, j, match, instance, num_valid_entities = 0, rtncode = 0;
-	GSList *epath_list = NULL, *lst = NULL;
+        gint rtncode = 0;
+	guint   i, j, match, instance, num_valid_entities = 0;
+        GSList *epath_list = NULL, *lst = NULL;
 
 	SaHpiEntityT  *entityptr = NULL;
 
@@ -186,7 +197,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 				rtncode = -1; goto CLEANUP;
 			}
 
-			entityptr->EntityType = j;
+			entityptr->EntityType = index2entitytype(j);
 			entityptr->EntityInstance = instance;
 			epath_list = g_slist_prepend(epath_list, (gpointer)entityptr);
 		}
@@ -244,6 +255,11 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		dbg("Null string or invalid string size"); return(-1);
 	}
 
+        if (epathptr == NULL) {
+                epathstr = "";
+                return 0;
+        }
+
 	instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
 	tmpstr = (gchar *)g_malloc0(strsize);
 	if (instance_str == NULL) { 
@@ -262,21 +278,21 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		if (epathptr->Entry[i].EntityType == 0 && epathptr->Entry[i].EntityInstance == 0) { continue; }
   
 		/* Validate and convert data */
-		if (epathptr->Entry[i].EntityType > ESHORTNAMES_ARRAY_SIZE) {
+		/*if (epathptr->Entry[i].EntityType > ESHORTNAMES_ARRAY_SIZE) {
 			dbg("Invalid entity type"); 
 			rtncode = -1; goto CLEANUP;
-		}
+		} */
 		memset(instance_str, 0, MAX_INSTANCE_DIGITS);
 		err = sprintf(instance_str, "%d", epathptr->Entry[i].EntityInstance);
 		if (err > MAX_INSTANCE_DIGITS) { 
-			g_free(instance_str); 
-			dbg("Instance value too big"); 
-			return(-1);
+                        g_free(instance_str); 
+			dbg("Instance value too big");
+                        rtncode = -1; goto CLEANUP;
 		}
 
 		strcount = strcount + 
 			strlen(EPATHSTRING_START_DELIMITER) + 
-			strlen(eshort_names[epathptr->Entry[i].EntityType]) + 
+			strlen(eshort_names[entitytype2index(epathptr->Entry[i].EntityType)]) + 
 			strlen(EPATHSTRING_VALUE_DELIMITER) + 
 			strlen(instance_str) + 
 			strlen(EPATHSTRING_END_DELIMITER);
@@ -287,7 +303,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		}
 
 		catstr = g_strconcat(EPATHSTRING_START_DELIMITER,
-				     eshort_names[epathptr->Entry[i].EntityType],
+				     eshort_names[entitytype2index(epathptr->Entry[i].EntityType)],
 				     EPATHSTRING_VALUE_DELIMITER,
 				     instance_str, 
 				     EPATHSTRING_END_DELIMITER, 
@@ -296,7 +312,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		strcat(tmpstr, catstr);
 		g_free(catstr); 
 	}
-
+        rtncode = strcount;
 	/* Write string */
 	memset(epathstr, 0 , strsize);
 	strcpy(epathstr, tmpstr);
@@ -305,7 +321,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	g_free(instance_str);
 	g_free(tmpstr);
 
-	return(strcount);
+	return(rtncode);
 } /* End entitypath2string */
 
 
@@ -339,4 +355,49 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
         }
 
         return 0;
+}
+
+int set_epath_instance(struct oh_event *e, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
+{
+        int i;
+        int retval = -1;
+
+        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if(e->u.res_event.entry.ResourceEntity.Entry[i].EntityType == et) {
+                        e->u.res_event.entry.ResourceEntity.Entry[i].EntityInstance = ei;
+                        retval = 0;
+                        break;
+                }
+        }
+        return retval;
+}
+
+static unsigned int index2entitytype(unsigned int i)
+{
+        if(i <= ESHORTNAMES_BEFORE_JUMP) {
+                return i;
+        } else if(i == ESHORTNAMES_FIRST_JUMP) {
+                return (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC;
+        } else if(i == ESHORTNAMES_SECOND_JUMP) {
+                return (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC;
+        } else if(i == ESHORTNAMES_THIRD_JUMP) {
+                return (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC;
+        } else {
+                return (i - ESHORTNAMES_LAST_JUMP + (unsigned int)SAHPI_ENT_ROOT);
+        }
+}
+
+static unsigned int entitytype2index(unsigned int i)
+{
+        if(i <= ESHORTNAMES_BEFORE_JUMP) {
+                return i;
+        } else if (i == (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC) {
+                return ESHORTNAMES_FIRST_JUMP;
+        } else if (i == (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC) {
+                return ESHORTNAMES_SECOND_JUMP;
+        } else if (i == (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC) {
+                return ESHORTNAMES_THIRD_JUMP;
+        } else {
+                return (i - (unsigned int)SAHPI_ENT_ROOT + ESHORTNAMES_LAST_JUMP);
+        }
 }
