@@ -201,7 +201,7 @@ static void print_thres_value(SaHpiSensorReadingT *item, char *mes)
 			printf("%s %10.3f\n", mes, item->Value.SensorFloat64);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			val = item->Value.SensorBuffer;
+			val = (char *)(item->Value.SensorBuffer);
 			if (val != NULL)
 				printf("%s %s\n", mes, val);
 			return;
@@ -495,7 +495,7 @@ static int sa_set_tag(int argc, char *argv[])
 	if (resourcetag.DataLength == 0)
 		return HPI_SHELL_PARM_ERROR;
 	else
-		strcpy(resourcetag.Data, argv[2]);
+		strcpy((char *)resourcetag.Data, argv[2]);
 
 
 	rv = saHpiResourceTagSet(sessionid,resourceid,&resourcetag);

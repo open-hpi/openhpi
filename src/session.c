@@ -44,10 +44,10 @@ static struct oh_event *oh_generate_hpi_event(void)
                 SAHPI_TL_TYPE_TEXT;
         event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Language =
                 SAHPI_TL_TYPE_TEXT;        
-        strcpy(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data,
+        strcpy((char *)(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data),
                 "This session is being destroyed now!");
         event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataLength =
-                strlen(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data);
+                strlen((char *)(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data));
 
         return event;
 }

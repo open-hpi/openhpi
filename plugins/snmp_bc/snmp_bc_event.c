@@ -1020,7 +1020,7 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 
 	/* Language set to ENGLISH, default  */
 	oh_init_textbuffer(&(event->EventDataUnion.OemEvent.OemEventData));
-	strncpy(event->EventDataUnion.OemEvent.OemEventData.Data,
+	strncpy((char *)(event->EventDataUnion.OemEvent.OemEventData.Data),
 		sel_entry->text, SAHPI_MAX_TEXT_BUFFER_LENGTH - 1);
 	event->EventDataUnion.OemEvent.OemEventData.Data[SAHPI_MAX_TEXT_BUFFER_LENGTH - 1] = '\0';
 	event->EventDataUnion.OemEvent.OemEventData.DataLength = strlen(sel_entry->text);

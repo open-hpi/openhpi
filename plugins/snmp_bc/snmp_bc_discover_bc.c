@@ -420,7 +420,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			}
 		}
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-					   build_name.Data,
+					   (char *)build_name.Data,
 					   ep_root->Entry[0].EntityLocation);
 	}
 

@@ -26,6 +26,8 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
+static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpiUint8T *from, SaHpiUint8T len);
+
 static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorRecT *sensor, int offsets);
 static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer, const SaHpiSensorDataFormatT *format, int offsets);
 static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer, const SaHpiSensorThdDefnT *tdef, int offsets);
@@ -128,7 +130,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
         char text[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaErrorT err;
 	SaHpiTextBufferT working;
-	SaHpiUint8T str[SAHPI_SENSOR_BUFFER_LENGTH + 1];
+	char str[SAHPI_SENSOR_BUFFER_LENGTH + 1];
 
 	if (!buffer) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -165,7 +167,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
         case SAHPI_SENSOR_READING_TYPE_BUFFER:
 		/* In case Sensor Buffer contains no end of string deliminter */
 		memset(str, 0, SAHPI_SENSOR_BUFFER_LENGTH + 1);
-		strncpy(str, reading.Value.SensorBuffer, SAHPI_SENSOR_BUFFER_LENGTH);
+		strncpy(str, (char *)reading.Value.SensorBuffer, SAHPI_SENSOR_BUFFER_LENGTH);
 		err = oh_append_textbuffer(&working, str);
 		if (err) { return(err); }
                 break;
@@ -180,7 +182,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 	else {
 		/* Add units */
 		if (format.BaseUnits != SAHPI_SU_UNSPECIFIED) {
-			SaHpiUint8T *str;
+			char *str;
 
 			err = oh_append_textbuffer(&working, " ");
 			if (err) { return(err); }
@@ -193,7 +195,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 		/* Add modifier units, if appropriate */
 		if (format.BaseUnits != SAHPI_SU_UNSPECIFIED && 
 		    format.ModifierUse != SAHPI_SMUU_NONE) {
-			SaHpiUint8T *str;
+			char *str;
 
 			switch(format.ModifierUse) {
 			case SAHPI_SMUU_BASIC_OVER_MODIFIER:
@@ -257,12 +259,12 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				 SaHpiSensorReadingT *reading)
 {
 	char *endptr;
+        char  numstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         int   i, j, skip;
 	int   found_sign, found_number, found_float, in_number;
 	int   is_percent = 0;
         SaHpiFloat64T num_float64 = 0.0;
         SaHpiInt64T   num_int64 = 0;
-        SaHpiUint8T   numstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         SaHpiUint64T  num_uint64 = 0;
 	SaHpiSensorReadingT working;
 
@@ -275,7 +277,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
         if (type == SAHPI_SENSOR_READING_TYPE_BUFFER) {
 		reading->IsSupported = SAHPI_TRUE;
 		reading->Type = type;
-		strncpy(reading->Value.SensorBuffer, buffer->Data, SAHPI_SENSOR_BUFFER_LENGTH);
+		strncpy((char *)reading->Value.SensorBuffer, (char *)buffer->Data, SAHPI_SENSOR_BUFFER_LENGTH);
 		return(SA_OK);
         }
 
@@ -291,7 +293,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 	 */
 	
 	/* Skip any characters before an '=' sign */
-	SaHpiUint8T *skipstr = strchr(buffer->Data, '=');
+	char *skipstr = strchr((char *)buffer->Data, '=');
 	if (skipstr) skip = (long int)skipstr - (long int)(buffer->Data) + 1;
 	else skip = 0;
 
@@ -573,7 +575,7 @@ SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from)
  **/
 SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 {
-        SaHpiUint8T *p;
+        char *p;
 	uint size;
 
 	if (!buffer || !from) {
@@ -587,7 +589,7 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
         }
 
         /* Can't trust NULLs to be right, so use a targeted strncpy instead */
-        p = buffer->Data;
+        p = (char *)buffer->Data;
         p += buffer->DataLength;
         strncpy(p, from, size);
         buffer->DataLength += size;
@@ -597,7 +599,7 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 
 SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
 {
-        SaHpiUint8T *p;
+        char *p;
 	uint size;
 
 	if (!big_buffer || !from) {
@@ -612,7 +614,7 @@ SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
         }
         
         /* Can't trust NULLs to be right, so use a targeted strncpy instead */
-        p = big_buffer->Data;
+        p = (char *)big_buffer->Data;
         p += big_buffer->DataLength;
         strncpy(p, from, size);
         big_buffer->DataLength += size;
@@ -620,8 +622,7 @@ SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
         return(SA_OK);
 }
 
-static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpiUint8T *from,
-				      SaHpiUint8T len)
+static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpiUint8T *from, SaHpiUint8T len)
 {
 	SaHpiUint8T i;
 
@@ -630,8 +631,8 @@ static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpi
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	for (i = 0; i < len; i++) {
-        	SaHpiUint8T *p;
+	for (i=0; i<len; i++) {
+        	char *p;
 		char buff[10];
 		int slen;
 		
@@ -642,11 +643,11 @@ static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpi
 
         	if ((slen + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
 			dbg("Cannot append to buffer. Bufsize=%d, len=%d",
-					big_buffer->DataLength, len);
+			    big_buffer->DataLength, len);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
-        	p = big_buffer->Data;
+        	p = (char *)big_buffer->Data;
         	p += big_buffer->DataLength;
         	strncpy(p, buff, slen);
         	big_buffer->DataLength += slen;
@@ -804,7 +805,7 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 	oh_append_bigtext(buffer, "Events: ");
 	err = oh_decode_eventstate(sensor->Events, sensor->Category, &tmpbuffer);
 	if (err) {oh_append_bigtext(buffer, "\n"); return(err); }
-	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 	oh_append_bigtext(buffer, "\n");
 	
 	/* Sensor Data Format */
@@ -888,7 +889,7 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, (char *)reading_buffer.Data);
 				oh_append_bigtext(buffer, "\n");
 			}
 
@@ -902,7 +903,7 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, (char *)reading_buffer.Data);
 				oh_append_bigtext(buffer, "\n");
 			}
 
@@ -916,7 +917,7 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, (char *)reading_buffer.Data);
 				oh_append_bigtext(buffer, "\n");
 			}
 
@@ -930,7 +931,7 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, (char *)reading_buffer.Data);
 				oh_append_bigtext(buffer, "\n");
 			}
 
@@ -944,7 +945,7 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, (char *)reading_buffer.Data);
 				oh_append_bigtext(buffer, "\n");
 			}
 
@@ -1110,7 +1111,7 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int o
 		if (thisfield->Field.DataType == SAHPI_TL_TYPE_BINARY)
 			oh_append_data(&mybuf, thisfield->Field.Data, thisfield->Field.DataLength);
 		else
-			oh_append_bigtext(&mybuf, thisfield->Field.Data);
+			oh_append_bigtext(&mybuf, (const char *)thisfield->Field.Data);
 	}
 							
 	err = oh_fprint_bigtext(stream, &mybuf);
@@ -1252,7 +1253,7 @@ static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBu
 		if (textbuffer->DataType == SAHPI_TL_TYPE_BINARY)
 			oh_append_data(buffer, textbuffer->Data, textbuffer->DataLength);
 		else
-			oh_append_bigtext(buffer, textbuffer->Data);
+			oh_append_bigtext(buffer, (const char *)textbuffer->Data);
 		oh_append_bigtext(buffer, "\n");
 	}
 
@@ -1447,7 +1448,7 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int of
 	SaErrorT err = SA_OK;
 	oh_big_textbuffer mybuf;
 	SaHpiTextBufferT tmpbuffer; 
-	char* str = tmpbuffer.Data;
+	char* str = (char *)tmpbuffer.Data;
 
 	if (!stream || !rptentry) return(SA_ERR_HPI_INVALID_PARAMS);
 	
@@ -1470,7 +1471,7 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int of
 		
 		oh_init_bigtext(&tmpbuf);
 		oh_decode_entitypath(&rptentry->ResourceEntity, &tmpbuf);
-		oh_append_bigtext(&mybuf, tmpbuf.Data);
+		oh_append_bigtext(&mybuf, (char *)tmpbuf.Data);
 	}
 	oh_append_bigtext(&mybuf, "\n");
 
@@ -1479,14 +1480,14 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int of
 	oh_append_bigtext(&mybuf, str);
 	oh_append_offset(&mybuf, offsets + 1);
 	oh_decode_capabilities(rptentry->ResourceCapabilities, &tmpbuffer);
-	oh_append_bigtext(&mybuf, tmpbuffer.Data);
+	oh_append_bigtext(&mybuf, (char *)tmpbuffer.Data);
 	oh_append_bigtext(&mybuf, "\n");	
 
 	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "HotSwap Capabilities: ");
 	oh_append_bigtext(&mybuf, str);
 	oh_decode_hscapabilities(rptentry->HotSwapCapabilities, &tmpbuffer);
-	oh_append_bigtext(&mybuf, tmpbuffer.Data);
+	oh_append_bigtext(&mybuf, (char *)tmpbuffer.Data);
 	oh_append_bigtext(&mybuf, "\n");
 
 	oh_append_offset(&mybuf, offsets);
@@ -1542,7 +1543,7 @@ SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int offsets)
 		
 		oh_init_bigtext(&tmpbuf);
 		oh_decode_entitypath(&thisrdr->Entity, &tmpbuf);
-		oh_append_bigtext(&mybuf, tmpbuf.Data);
+		oh_append_bigtext(&mybuf, (char *)tmpbuf.Data);
 	}
 	oh_append_bigtext(&mybuf, "\n");
 	
@@ -1556,7 +1557,7 @@ SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int offsets)
 	{
 		case SAHPI_CTRL_RDR:
 			err = oh_build_ctrlrec(&mybuf1,
-				(const SaHpiCtrlRecT*) &thisrdr->RdrTypeUnion.CtrlRec, offsets);
+			  	(const SaHpiCtrlRecT*) &thisrdr->RdrTypeUnion.CtrlRec, offsets);
 			break;
 		case SAHPI_SENSOR_RDR:
 			err = oh_build_sensorrec(&mybuf1,
@@ -1576,14 +1577,14 @@ SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int offsets)
 			break;
 		case SAHPI_NO_RECORD:
 			oh_append_offset(&mybuf1, offsets);
-			oh_append_bigtext(&mybuf1,oh_lookup_rdrtype(thisrdr->RdrType));
+			oh_append_bigtext(&mybuf1, oh_lookup_rdrtype(thisrdr->RdrType));
 			break;
 		default:
-			oh_append_bigtext(&mybuf1,"Invalid/Unknown RDR Type\n");
+			oh_append_bigtext(&mybuf1, "Invalid/Unknown RDR Type\n");
 
 	}
 
-	oh_append_bigtext(&mybuf, mybuf1.Data);
+	oh_append_bigtext(&mybuf, (char *)mybuf1.Data);
 
 	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdString:\n");
@@ -1991,7 +1992,7 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 	
 	oh_init_bigtext(&mybufX);
 	err = oh_build_event(&mybufX, &thiseventlog->Event, offsets);
-	oh_append_bigtext(&mybuf, mybufX.Data);	
+	oh_append_bigtext(&mybuf, (char *)mybufX.Data);	
 	
 	err = oh_fprint_bigtext(stream, &mybuf);
 	return(err);
@@ -2180,7 +2181,7 @@ static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEven
 
 typedef struct {
     SaHpiSensorOptionalDataT datadef;
-    unsigned char *str;
+    char *str;
 } oh_sensor_opt_data_map;
 
 oh_sensor_opt_data_map sensor_event_optdata_strings[] = {
@@ -2251,7 +2252,7 @@ SaErrorT oh_decode_sensoroptionaldata(SaHpiSensorOptionalDataT sensor_opt_data,
 
 typedef struct {
     SaHpiSensorEnableOptDataT datadef;
-    unsigned char *str;
+    char *str;
 } oh_sensor_enable_opt_data_map;
 
 oh_sensor_enable_opt_data_map sensor_enable_optdata_strings[] = {
@@ -2366,7 +2367,7 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 				   event->EventDataUnion.SensorEvent.EventCategory,
 				   &tmpbuffer);
 	if (err) { return(err); }
-	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 	oh_append_bigtext(buffer, "\n");
 
 	/* Sensor Event - Sensor Optional Data */
@@ -2376,7 +2377,7 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 	err = oh_decode_sensoroptionaldata(event->EventDataUnion.SensorEvent.OptionalDataPresent,
 					   &tmpbuffer);
 	if (err) { return(err); }
-	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 	oh_append_bigtext(buffer, "\n");
 
         /* Sensor Event - Sensor Optional Trigger Reading Data */
@@ -2395,7 +2396,7 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 					      format, &tmpbuffer);
 		if (err) { return(err); }
 
-		oh_append_bigtext(buffer, tmpbuffer.Data);
+		oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 		oh_append_bigtext(buffer, "\n");
 	}
 
@@ -2415,7 +2416,7 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 					      format, &tmpbuffer);
 		if (err) { return(err); }
 
-		oh_append_bigtext(buffer, tmpbuffer.Data);
+		oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 		oh_append_bigtext(buffer, "\n");
 	}
 
@@ -2427,7 +2428,7 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 					   event->EventDataUnion.SensorEvent.EventCategory,
 					   &tmpbuffer);
 		if (err) { return(err); }
-		oh_append_bigtext(buffer, tmpbuffer.Data);
+		oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 		oh_append_bigtext(buffer, "\n");
 	}
 
@@ -2439,7 +2440,7 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 					   event->EventDataUnion.SensorEvent.EventCategory,
 					   &tmpbuffer);
 		if (err) { return(err); }
-		oh_append_bigtext(buffer, tmpbuffer.Data);
+		oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 		oh_append_bigtext(buffer, "\n");
 	}
         /* Sensor Event - Sensor Optional OEM Data */
@@ -2523,7 +2524,7 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
 				   event->EventDataUnion.SensorEnableChangeEvent.EventCategory,
 				   &tmpbuffer);
 	if (err) { return(err); }
-	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 	oh_append_bigtext(buffer, "\n");
 
 	/* Sensor Enable Change Event - Event Deassert Mask */
@@ -2533,7 +2534,7 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
 				   event->EventDataUnion.SensorEnableChangeEvent.EventCategory,
 				   &tmpbuffer);
 	if (err) { return(err); }
-	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 	oh_append_bigtext(buffer, "\n");
 
 	/* Sensor Enable Change Event - Optional Data */
@@ -2542,7 +2543,7 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
 	err = oh_decode_sensorenableoptdata(event->EventDataUnion.SensorEnableChangeEvent.OptionalDataPresent,
 					    &tmpbuffer);
 	if (err) { return(err); }
-	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 	oh_append_bigtext(buffer, "\n");
 
 	/* Sensor Enable Change Event - Optional Data - Current State */
@@ -2553,7 +2554,7 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
 					   event->EventDataUnion.SensorEnableChangeEvent.EventCategory,
 					   &tmpbuffer);
 		if (err) { return(err); }
-		oh_append_bigtext(buffer, tmpbuffer.Data);
+		oh_append_bigtext(buffer, (char *)tmpbuffer.Data);
 		oh_append_bigtext(buffer, "\n");
 	}
 

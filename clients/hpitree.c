@@ -572,7 +572,7 @@ SaErrorT list_rdr(SaHpiSessionIdT sessionid,
 	if (!f_overview) {
 		rv = oh_print_rdr(rdrptr, 4);
 	} else {
-		snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+		snprintf((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
 			"    Found %s, RecordId %d",
 			oh_lookup_rdrtype(rdrptr->RdrType), rdrptr->RecordId);
 		rv = oh_print_text(&working);

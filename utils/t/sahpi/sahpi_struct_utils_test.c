@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
 		err = oh_decode_manufacturerid(mid, &buffer); 
 		
-                if (strcmp(expected_str, buffer.Data) || err) {
+                if (strcmp(expected_str, (char *)buffer.Data) || err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s; Error=%d\n", 
 			       buffer.Data, expected_str, err);
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 
 		err = oh_decode_manufacturerid(mid, &buffer); 
 		
-                if (strcmp(expected_str, buffer.Data) || err) {
+                if (strcmp(expected_str, (char *)buffer.Data) || err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s; Error=%d\n", 
 			       buffer.Data, expected_str, err);
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
 		err = oh_decode_manufacturerid(mid, &buffer);
 		
-                if (strcmp(expected_str, buffer.Data) || err) {
+                if (strcmp(expected_str, (char *)buffer.Data) || err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s; Error=%d\n", 
 			       buffer.Data, expected_str, err);
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s\n", 
 			       buffer.Data, expected_str);
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
  			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s\n", 
 			       buffer.Data, expected_str);
@@ -255,7 +255,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
   			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s\n", 
 			       buffer.Data, expected_str);
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
    			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s\n", 
 			       buffer.Data, expected_str);
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
     			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s\n", 
 			       buffer.Data, expected_str);
@@ -350,7 +350,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
     			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s\n", 
 			       buffer.Data, expected_str);
@@ -372,7 +372,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
     			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received string=%s; Expected string=%s\n", 
 			       buffer.Data, expected_str);
@@ -868,8 +868,8 @@ int main(int argc, char **argv)
 		
 		textbuffer.DataType = SAHPI_TL_TYPE_TEXT;
 		textbuffer.Language = SAHPI_LANG_ZULU;
-		strcpy(textbuffer.Data, "Test Data");
-		textbuffer.DataLength = strlen(textbuffer.Data);
+		strcpy((char *)textbuffer.Data, "Test Data");
+		textbuffer.DataLength = strlen((char *)textbuffer.Data);
 
 		/* oh_print_textbuffer: Bad parameter testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
@@ -1172,7 +1172,8 @@ int main(int argc, char **argv)
 			default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.DataType = SAHPI_TL_TYPE_TEXT;
 			default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.Language = SAHPI_LANG_URDU;
 			default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.DataLength = sizeof("HPI software event");
-			strncpy(default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.Data, "HPI software event",
+			strncpy((char *)(default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.Data),
+				"HPI software event",
 				strlen("HPI software event"));
 
 			printf("Normal HPI Sotware Event\n");
@@ -1209,7 +1210,8 @@ int main(int argc, char **argv)
 			default_oem_event.EventDataUnion.OemEvent.OemEventData.DataType = SAHPI_TL_TYPE_TEXT;
 			default_oem_event.EventDataUnion.OemEvent.OemEventData.Language = SAHPI_LANG_URDU;
 			default_oem_event.EventDataUnion.OemEvent.OemEventData.DataLength = sizeof("OEM Event");
-			strncpy(default_oem_event.EventDataUnion.OemEvent.OemEventData.Data, "OEM Event",
+			strncpy((char *)(default_oem_event.EventDataUnion.OemEvent.OemEventData.Data),
+				"OEM Event",
 				strlen("OEM Event"));
 
 			printf("Normal OEM Event\n");
@@ -1245,7 +1247,8 @@ int main(int argc, char **argv)
 			default_user_event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_TEXT;
 			default_user_event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_URDU;
 			default_user_event.EventDataUnion.UserEvent.UserEventData.DataLength = sizeof("User Event");
-			strncpy(default_user_event.EventDataUnion.UserEvent.UserEventData.Data, "User Event",
+			strncpy((char *)(default_user_event.EventDataUnion.UserEvent.UserEventData.Data),
+				"User Event",
 				strlen("User Event"));
 
 			printf("Normal User Event\n");
@@ -1323,7 +1326,7 @@ int main(int argc, char **argv)
 	control.TypeUnion.Stream.Default.Repeat = SAHPI_TRUE;
 	control.TypeUnion.Stream.Default.StreamLength = strlen("Stream Data");
 	memset(&control.TypeUnion.Stream.Default.Stream, 0, sizeof(SAHPI_CTRL_MAX_STREAM_LENGTH));
-        strncpy(control.TypeUnion.Stream.Default.Stream, "Stream Data" , strlen("Stream Data"));
+        strncpy((char *)control.TypeUnion.Stream.Default.Stream, "Stream Data" , strlen("Stream Data"));
 	
 	printf("Print control - normal stream case\n");
 	err = oh_print_ctrlrec(&control, 1);
@@ -1344,7 +1347,7 @@ int main(int argc, char **argv)
 	control.TypeUnion.Text.Default.Text.Language = SAHPI_LANG_ENGLISH;
 	memset(&control.TypeUnion.Text.Default.Text.Data, 0, sizeof(SAHPI_MAX_TEXT_BUFFER_LENGTH));
 	control.TypeUnion.Text.Default.Text.DataLength = strlen("Text Data");
-        strncpy(control.TypeUnion.Text.Default.Text.Data, "Text Data" , strlen("Text Data"));
+        strncpy((char *)(control.TypeUnion.Text.Default.Text.Data), "Text Data" , strlen("Text Data"));
 	
 	printf("Print control - normal text case\n");
 	err = oh_print_ctrlrec(&control, 1);
@@ -1358,11 +1361,11 @@ int main(int argc, char **argv)
 	control.Type = SAHPI_CTRL_TYPE_OEM;
 	control.TypeUnion.Oem.MId = 1;
 	memset(&control.TypeUnion.Oem.ConfigData, 0, SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
-	strncpy(control.TypeUnion.Oem.ConfigData, "Config Data", strlen("Config Data"));
+	strncpy((char *)control.TypeUnion.Oem.ConfigData, "Config Data", strlen("Config Data"));
 	control.TypeUnion.Oem.Default.MId = 1;
 	control.TypeUnion.Oem.Default.BodyLength = strlen("Config Default");
 	memset(&control.TypeUnion.Oem.Default.Body, 0, SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
-	strncpy(control.TypeUnion.Oem.Default.Body, "Config Default", strlen("Config Default")); 
+	strncpy((char *)control.TypeUnion.Oem.Default.Body, "Config Default", strlen("Config Default")); 
 	
 	printf("Print control - normal OEM case\n");
 	err = oh_print_ctrlrec(&control, 1);
@@ -1413,7 +1416,7 @@ int main(int argc, char **argv)
 		expected_result = SAHPI_FALSE;
 		oh_init_textbuffer(&buffer);
 		buffer.DataType = SAHPI_TL_TYPE_UNICODE;
-		strcpy(buffer.Data, "123");
+		strcpy((char *)buffer.Data, "123");
 		buffer.DataLength = strlen("123");
 
 		result = oh_valid_textbuffer(&buffer);
@@ -1426,7 +1429,7 @@ int main(int argc, char **argv)
                 expected_result = SAHPI_FALSE;
 		oh_init_textbuffer(&buffer);
 		buffer.DataType = SAHPI_TL_TYPE_BCDPLUS;
-		strcpy(buffer.Data, "123");
+		strcpy((char *)buffer.Data, "123");
                 buffer.Data[1] = ';';
 		buffer.DataLength = strlen("123");
 
@@ -1839,8 +1842,8 @@ int main(int argc, char **argv)
 
 		reading1.Type = reading2.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		/* oh_compare_sensorreading - reading1 < reading2 uint64 */
-		strncpy(reading1.Value.SensorBuffer, "AAA", SAHPI_SENSOR_BUFFER_LENGTH);
-		strncpy(reading2.Value.SensorBuffer, "BBB", SAHPI_SENSOR_BUFFER_LENGTH);
+		strncpy((char *)reading1.Value.SensorBuffer, "AAA", SAHPI_SENSOR_BUFFER_LENGTH);
+		strncpy((char *)reading2.Value.SensorBuffer, "BBB", SAHPI_SENSOR_BUFFER_LENGTH);
 		expected_rtn = -1;
 		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
 		if (rtn != expected_rtn) {	

@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	thisIdrField.Field.DataType = SAHPI_TL_TYPE_TEXT;
 	thisIdrField.Field.Language = SAHPI_LANG_IRISH;
 	thisIdrField.Field.DataLength = sizeof("This is a test!");
-	snprintf(thisIdrField.Field.Data, thisIdrField.Field.DataLength, "This is a test!");
+	snprintf((char *)thisIdrField.Field.Data, thisIdrField.Field.DataLength, "This is a test!");
 	
 	err = oh_fprint_idrfield(fp, &thisIdrField, 3);
 	if (err != SA_OK) {

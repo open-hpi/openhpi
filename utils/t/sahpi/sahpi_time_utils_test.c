@@ -91,7 +91,7 @@ int main(int argc, char **argv)
                         return -1;
                 }
 		
-		if (strncmp(buffer.Data, "SAHPI_TIME_UNSPECIFIED", (sizeof("SAHPI_TIME_UNSPECIFIED")-1)) != 0) {
+		if (strncmp((char *)buffer.Data, "SAHPI_TIME_UNSPECIFIED", (sizeof("SAHPI_TIME_UNSPECIFIED")-1)) != 0) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Not receiving expected string SAHPI_TIME_UNSPECIFIED\n");
 			return -1;

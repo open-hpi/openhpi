@@ -54,18 +54,18 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
 
         if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
                 tt = time / 1000000000;
-                count = strftime(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%F %T", localtime(&tt));
+                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%F %T", localtime(&tt));
         } else if (time ==  SAHPI_TIME_UNSPECIFIED) {
-                strcpy(working.Data,"SAHPI_TIME_UNSPECIFIED     ");
+                strcpy((char *)working.Data,"SAHPI_TIME_UNSPECIFIED     ");
 		count = sizeof("SAHPI_TIME_UNSPECIFIED     ");
         } else if (time > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-                strcpy(working.Data,"invalid time     ");
+                strcpy((char *)working.Data,"invalid time     ");
 		count = sizeof("Invalid time     ");
         } else {   /*relative time*/
                 tt = time / 1000000000;
                 localtime_r(&tt, &t);
                 /* count = strftime(str, size, "%b %d, %Y - %H:%M:%S", &t); */
-                count = strftime(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%c", &t);
+                count = strftime((char *)working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%c", &t);
         }
 
         if (count == 0) { return(SA_ERR_HPI_INTERNAL_ERROR); }

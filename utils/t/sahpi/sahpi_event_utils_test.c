@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s; Expected string=%s\n", buffer.Data, expected_str);
                         return -1;             
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-                if (strcmp(expected_str, buffer.Data)) {
+                if (strcmp(expected_str, (char *)buffer.Data)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s; Expected string=%s\n", buffer.Data, expected_str);
 			return -1;             
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 
         /* oh_encode_eventstate testcases - handle blanks testcase */
         {
-		strcpy(buffer.Data, "  LOWER_MINOR  |  LOWER_MAJOR|LOWER_CRIT ");
+		strcpy((char *)buffer.Data, "  LOWER_MINOR  |  LOWER_MAJOR|LOWER_CRIT ");
                 expected_cat = SAHPI_EC_THRESHOLD;
                 expected_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT;
   
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
 	/* oh_encode_eventstate testcases - valid states but different categories testcase */
         {
-		strcpy(buffer.Data, "LOWER_MINOR | STATE_13 | IDLE");
+		strcpy((char *)buffer.Data, "LOWER_MINOR | STATE_13 | IDLE");
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
   
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 
 	/* oh_encode_eventstate testcases - garbage state testcase */	
         {
-		strcpy(buffer.Data, "GARBAGE_STATE");
+		strcpy((char *)buffer.Data, "GARBAGE_STATE");
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
   
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
@@ -345,7 +345,7 @@ int main(int argc, char **argv)
 		default_event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_TEXT;
 		default_event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_ENGLISH;
 		default_event.EventDataUnion.UserEvent.UserEventData.DataLength = strlen("Test");
-		strncpy(default_event.EventDataUnion.UserEvent.UserEventData.Data, "Test",
+		strncpy((char *)(default_event.EventDataUnion.UserEvent.UserEventData.Data), "Test",
 			strlen("Test"));
 
 		/* oh_valid_add_event: Normal testcase */
