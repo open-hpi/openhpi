@@ -646,141 +646,82 @@ static struct dummy_inventories {
                         .ReadOnly = SAHPI_TRUE,
                         .NumFields = 10,
                 },
-
+                
                 .idrfields[0] =
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 1,
-                                .Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 12,
-                                        .Data = "Main Chassis"
-                                },
-
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 2,
-                                .Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 10,
-                                        .Data = "10/01/2004",
-                                },
-
-                        },
-                        {
-                                .AreaId = 1,
-                                .FieldId = 3,
-                                .Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 12,
-                                        .Data = "openHPI Inc."
-                                },
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 4,
-                                .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 21,
-                                        .Data = "Imaginary HPI Machine"
-                                },
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 5,
-                                .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION, /* Model number? */
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 2,
-                                        .Data = "17"
-                                },
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 6,
-                                .Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 8,
-                                        .Data = "12HPI345"
-                                },
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 7,
-                                .Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 5,
-                                        .Data = "78758"
-                                },
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 8,
-                                .Type = SAHPI_IDR_FIELDTYPE_FILE_ID,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 1,
-                                        .Data = "3"
-                                },
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 9,
-                                .Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 11,
-                                        .Data = "My Precious"
-                                },
-                        },
-
-                        {
-                                .AreaId = 1,
-                                .FieldId = 10,
-                                .Type = SAHPI_IDR_FIELDTYPE_CUSTOM,
-                                .ReadOnly = SAHPI_TRUE,
-                                .Field = {
-                                        .DataType = SAHPI_TL_TYPE_ASCII6,
-                                        .Language = SAHPI_LANG_ENGLISH,
-                                        .DataLength = 3,
-                                        .Data = "Hot"
-                                },
-                        },
-
-                        {}
+                {
+                        .AreaId = 1,
+                        .FieldId = 1,
+                        .Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("Main Chassis")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 2,
+                        .Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("10/01/2004")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 3,
+                        .Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("openHPI Inc.")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 4,
+                        .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("Imaginary HPI Machine")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 5,
+                        .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION, /* Model number? */
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("17")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 6,
+                        .Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("12HPI345")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 7,
+                        .Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("78758")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 8,
+                        .Type = SAHPI_IDR_FIELDTYPE_FILE_ID,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("3")
+                },
+                
+                {
+                        .AreaId = 1,
+                        .FieldId = 9,
+                        .Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("My Precious")
+                },
+                
+                {
+                        .AreaId = 1,
+                        .FieldId = 10,
+                        .Type = SAHPI_IDR_FIELDTYPE_CUSTOM,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("Hot")
+                },
+                
+                {}
         },
         {}
 },
