@@ -61,15 +61,6 @@ static enum {
         } while (0)
 
 /*
- * OH_RPT_GET gets the rpt table for the session.  We currently only have
- * one rpt, so it is nearly a noop at this point
- */
-#define OH_RPT_GET(s,rpt)                       \
-        do {                                    \
-                rpt = default_rpt;              \
-        } while(0)
-
-/*
  * OH_HANDLER_GET gets the hander for the rpt and resource id.  It
  * returns INVALID PARAMS if the handler isn't there
  */
@@ -429,54 +420,22 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
         
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
-        struct oh_session *s;
         
         OH_STATE_READY_CHECK;
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        /*
-          TODO: Domain SELS
-          
-          Waiting for the right way to do DSELS 
-          
-          if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-          if(dsel_get_info(s->domain_id, Info)<0)
-          return SA_ERR_HPI_UNKNOWN;
-          return SA_OK;
-          }
-        */
-        
-        h = oh_get_resource_data(rpt, ResourceId);
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_RESOURCE;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
         
-        res = oh_get_resource_by_id(rpt, ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
-        
-        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
-                dbg("Can't use SEL functions on this resource");
-                return SA_ERR_HPI_INVALID_REQUEST;
-        }
-
-        h = oh_get_resource_data(rpt, ResourceId);
-        
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        OH_HANDLER_GET(rpt, ResourceId, h);
 
         get_func = h->abi->get_sel_info;
 
@@ -490,7 +449,6 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         return SA_OK;
 }
 
-#if 0
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -503,34 +461,36 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 {
         int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
                              SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
+        
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
+        struct oh_handler *h;
 
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        /*
-          TODO: Domain SEL
-        */
-        
-        res = oh_get_resource_by_id(rpt, ResourceId);
-
-        if(res == NULL) {
-                dbg("Resource %d doesn't exist", ResourceId);
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }
         if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 return SA_ERR_HPI_INVALID_CMD;
         }
         
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
+        get_sel_entry = h->abi->get_sel_entry;
+        
+        if (!get_sel_entry)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
+                          NextEntryId, EventLogEntry) < 0) {
+                dbg("SEL info get failed");
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* TODO: pull RDR and RPTEntry from EventLogEntry for return */
+        return SAHPI_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (
@@ -538,29 +498,36 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSelEntryT *EvtEntry)
 {
+        int (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, 
+                             const SaHpiSelEntryT *Event);
+        
         struct oh_session *s;
-        
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_add(s->domain_id, EvtEntry)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else 
-                        return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
         
-        /* rsel_add will make plug-in send a RSEL event 
-         * for the entry */
-        if (rsel_add(ResourceId, EvtEntry)<0)
-                return SA_ERR_HPI_UNKNOWN;
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
-        /* to get RSEL evtry into infrastructure */
+        add_sel_entry = h->abi->add_sel_entry;
+        
+        if (!add_sel_entry)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (add_sel_entry(h->hnd, ResourceId, EvtEntry) < 0) {
+                dbg("SEL add entry failed");
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* to get RSEL entry into infrastructure */
         get_events();
         return SA_OK;
 }
@@ -570,53 +537,70 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSelEntryIdT EntryId)
 {
+        int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, 
+                             SaHpiSelEntryIdT sid);
+        
         struct oh_session *s;
-        
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_del(s->domain_id, EntryId)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else
-                        return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
-
-        if (rsel_del(ResourceId, EntryId)<0)
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        del_sel_entry = h->abi->del_sel_entry;
+        
+        if (!del_sel_entry)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (del_sel_entry(h->hnd, ResourceId, EntryId) < 0) {
+                dbg("SEL delete entry failed");
                 return SA_ERR_HPI_UNKNOWN;
-        else
-                return SA_OK;
+        }
+        
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogClear (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId)
 {
+        int (*clear_sel)(void *hnd, SaHpiResourceIdT id);
+        
         struct oh_session *s;
-        
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_clr(s->domain_id)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else
-                        return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
-
-        if (rsel_clr(ResourceId)<0)
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        clear_sel = h->abi->clear_sel;
+        if (!clear_sel)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (clear_sel(h->hnd, ResourceId) < 0) {
+                dbg("SEL delete entry failed");
                 return SA_ERR_HPI_UNKNOWN;
-        return SA_OK;
+        }
+        
+        return SA_OK; 
 }
 
 SaErrorT SAHPI_API saHpiEventLogTimeGet (
@@ -624,35 +608,41 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiTimeT *Time)
 {
+        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
+        
         struct oh_session *s;
-        struct oh_resource *res;
-        SaHpiSelInfoT info;
-        
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+        SaHpiSelInfoT info;        
+
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                *Time = dsel_get_time(s->domain_id);
-                return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+
+        get_func = h->abi->get_sel_info;
+
+        if (!get_func)
+                return SA_ERR_HPI_UNSUPPORTED_API;
         
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
-        
-        if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, &info)<0)
+        if (get_func(h->hnd, ResourceId, &info) < 0) {
+                dbg("SEL info get failed");
                 return SA_ERR_HPI_UNKNOWN;
+        }
+
         *Time = info.CurrentTime;
+        
         return SA_OK;
 }
 
+#if 0
 SaErrorT SAHPI_API saHpiEventLogTimeSet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -807,7 +797,7 @@ SaErrorT SAHPI_API saHpiEventGet (
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
         struct oh_session *s;
-        RPTable *rpt;
+        RPTable *rpt = default_rpt;
         
         SaHpiTimeT now, end;
         int value;
@@ -815,7 +805,6 @@ SaErrorT SAHPI_API saHpiEventGet (
         OH_STATE_READY_CHECK;
         
         OH_SESSION_SETUP(SessionId, s);
-        OH_RPT_GET(s, rpt);
         
         gettimeofday1(&now);
         if (Timeout== SAHPI_TIMEOUT_BLOCK) {
@@ -898,13 +887,12 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 SAHPI_OUT SaHpiRdrT *Rdr)
 {
         struct oh_session *s;
-        RPTable *rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRdrT *rdr_cur;
         SaHpiRdrT *rdr_next;
 
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
-        OH_RPT_GET(s, rpt);
 
         data_access_lock();
         
@@ -945,13 +933,12 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
         
         struct oh_session *s;
-        RPTable *rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         SaHpiRptEntryT *res;
         
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
-        OH_RPT_GET(s, rpt);
         OH_HANDLER_GET(rpt, ResourceId, h);
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
