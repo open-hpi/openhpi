@@ -106,7 +106,7 @@ int load_plugin(struct oh_plugin_config *config)
 
         config->dl_handle = lt_dlopenext(config->name);
         if (config->dl_handle == NULL) {
-                dbg("Can not find %s plugin", config->name);
+                dbg("Can not open %s plugin: %s", config->name, lt_dlerror());
                 goto err1;
         }
 
