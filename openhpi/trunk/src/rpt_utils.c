@@ -18,8 +18,6 @@
 #include <string.h>
 #include <rpt_utils.h>
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
 
 /* declare Rptable object */		     
 RPTable *default_rpt = NULL; 
@@ -498,8 +496,7 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * 0 - Successful addition of RDR.
  * -2 - Failure. RPT entry for that rid was not found.
  * -3 - Failure. RDR entity path is different from parent RPT entry.
- * -4* - Failure. RDR type number has not been assigned. *COMMENTED OUT
- * -5 - Failure. Could not allocate enough memory to position the new RDR in the RDR
+ * -4 - Failure. Could not allocate enough memory to position the new RDR in the RDR
  * repository.
  **/ 
 int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
@@ -507,31 +504,18 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
         RPTEntry *rptentry;
         RDRecord *rdrecord;
         SaHpiUint8T type_num;
-        const guint EP_STR_SIZE = 255;
-        char parent_ep[EP_STR_SIZE];
-        char child_ep[EP_STR_SIZE];
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry){
-                
                 dbg("Failed to add RDR. Parent RPT entry was not found in table.");
-                entitypath2string(&(rdr->Entity), child_ep, EP_STR_SIZE);
-                dbg("RID: %d, Child EP: %s", rid, child_ep);
                 return -2;
         }
 
         if (memcmp(&(rptentry->rpt_entry.ResourceEntity), &(rdr->Entity), sizeof(SaHpiEntityPathT))) {
-                entitypath2string(&(rptentry->rpt_entry.ResourceEntity), parent_ep, EP_STR_SIZE);
-                entitypath2string(&(rdr->Entity), child_ep, EP_STR_SIZE);
                 dbg("Failed to add RDR. Entity path is different from parent RPT entry.");
-                dbg("Parent EP: %s, Child EP: %s", parent_ep, child_ep);
                 return -3;
         }
 
-        /*if (!(type_num = get_rdr_type_num(rdr))) {
-                dbg("Failed to add RDR. Type's id number (num) has not been assigned.");
-                return -4;
-        }*/
         type_num = get_rdr_type_num(rdr);
 
         /* Form correct RecordId. */
@@ -543,7 +527,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
                 rdrecord = (RDRecord *)g_malloc0(sizeof(RDRecord));
                 if (!rdrecord) {
                         dbg("Not enough memory to add RDR.");
-                        return -5;
+                        return -4;
                 }
                 /* Put new rdrecord in rdr repository */
                 rptentry->rdrtable = g_slist_append(rptentry->rdrtable, (gpointer)rdrecord);                        
