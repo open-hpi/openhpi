@@ -685,8 +685,10 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 					strcat(buf, "ASSERTED");
 				else
 					strcat(buf, "DEASSERTED");
-				proc(buf);
+			} else {
+				snprintf(buf, SHOW_BUF_SZ, "evtstate:%d", sen->EventState);
 			};
+			proc(buf);
 			break;
 		case SAHPI_ET_RESOURCE:
 			snprintf(buf, SHOW_BUF_SZ, "%d %s %s",
