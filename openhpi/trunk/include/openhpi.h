@@ -135,10 +135,10 @@ struct oh_domain {
         RPTable rptable;
 
         /* Domain Alarm Table */
-        void alarm_table;
+        void * alarm_table;
 
         /* Domain Reference Table */
-        void reference_table
+        void * reference_table;
 
         /* Domain Information */
         SaHpiDomainInfoT domain_info;
