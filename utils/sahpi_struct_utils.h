@@ -84,8 +84,7 @@ SaErrorT oh_decode_sensorenableoptdata(SaHpiSensorEnableOptDataT sensor_enable_o
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
 
 SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
-			     SaHpiSensorDataFormatT *format,
-			     SaHpiSensorThdMaskT writable_thds);
+			     SaHpiRdrT *rdr);
 
 SaErrorT oh_valid_ctrl_state_mode(SaHpiCtrlRecT *ctrl_rdr,
 				  SaHpiCtrlModeT mode,
