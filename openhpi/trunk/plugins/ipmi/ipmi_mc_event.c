@@ -25,6 +25,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	uint8_t	vals[4];
 	SaHpiEntityPathT mc_ep;
 	char mc_name[128];
+	int sel_support;
         
 	memset(&mc_ep, 0, sizeof(SaHpiEntityPathT));
 	dbg("entity_root: %s", entity_root);
@@ -55,7 +56,8 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	/*we get MC number on IPMB for unique identifier */
 	entry->ResourceEntity.Entry[0].EntityInstance = ipmi_mc_get_address(mc);
 	dbg ("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityInstance);
-	if (ipmi_mc_sel_device_support(mc)) {
+	sel_support = ipmi_mc_sel_device_support(mc);
+	if (sel_support == 1) {
 		dbg("MC supports SEL");
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_SEL;
 	}
@@ -72,7 +74,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 
 	ep_concat(&entry->ResourceEntity, &mc_ep);
         
-	entry->ResourceId = oh_uid_from_entity_path(&mc_ep);
+	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
 	dbg("MC ResourceId: %d", (int)entry->ResourceId);
 }
 
@@ -116,20 +118,35 @@ ohoi_mc_event(enum ipmi_update_e op,
 
         switch (op) {
                 case IPMI_ADDED:
-                        mc_add(mc, handler);
-                        dbg("MC added: (%d %x)\n", 
-                            ipmi_mc_get_address(mc), 
-                            ipmi_mc_get_channel(mc));
-                        break;
+			if(!ipmi_mc_is_active(mc)) {
+				dbg("MC added but inactive...we ignore (%d %x)\n",
+						ipmi_mc_get_address(mc),
+						ipmi_mc_get_channel(mc));
+				break;
+			} else {
+				mc_add(mc, handler);
+				dbg("MC added and is active: (%d %x)\n", 
+						ipmi_mc_get_address(mc), 
+						ipmi_mc_get_channel(mc));
+				break;
+			}
                 case IPMI_DELETED:
                         dbg("MC deleted: (%d %x)\n",
                             ipmi_mc_get_address(mc), 
                             ipmi_mc_get_channel(mc));
                         break;
                 case IPMI_CHANGED:
-                        dbg("MC changed: (%d %x)\n",
-                            ipmi_mc_get_address(mc), 
-                            ipmi_mc_get_channel(mc));
+			if(!ipmi_mc_is_active(mc)) {
+				dbg("MC changed and is inactive: (%d %x)\n",
+					ipmi_mc_get_address(mc), 
+		                        ipmi_mc_get_channel(mc));
+				/* we need to remove it from RPT */
+			} else {
+				mc_add(mc, handler);
+				dbg("MC changed and is active: (%d %x)\n",
+						ipmi_mc_get_address(mc),
+						ipmi_mc_get_channel(mc));
+			}
                         break;
         }
 }
