@@ -34,7 +34,7 @@
 MAINTAINERCLEANFILES 	= Makefile.in plugin_static.c 
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
-EXTRA_DIST              = plugin_static.c.in
+EXTRA_DIST              = plugin_static.c.in hpi.sym
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 

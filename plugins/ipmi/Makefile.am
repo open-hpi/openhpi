@@ -31,12 +31,13 @@
  
 MAINTAINERCLEANFILES 	= Makefile.in
 
+EXTRA_DIST 		= ipmi.sym
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
 AM_CFLAGS		= -g @CFLAGS@
 
-pkglib_LTLIBRARIES		= libipmi.la
+pkglib_LTLIBRARIES	= libipmi.la
 
 libipmi_la_SOURCES	= ipmi.c 		\
 			  ipmi_event.c 		\
