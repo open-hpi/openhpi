@@ -56,6 +56,19 @@ SNMP v3 Remoting
 * Hot Swap
 * Watchdog
 
+IPMI direct Plugin
+-------------------------
+* Power State Get/Set
+* Indicator State Get/Set
+* more Hot Swap (remove resource)
+* FRU inventory
+* SEL
+* HPI event mask
+* rearm on saHpiSubscribe
+* HPI 1.1 ?
+* RMCP MD2, MD3, straight
+* IPMI 1.5 only
+
 Simulator Plugin
 -------------------------
 * Simulator file hierarchy structure spec

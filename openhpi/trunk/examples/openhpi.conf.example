@@ -17,6 +17,8 @@ plugin	libdummy
 #"configure --enable-dummy=static":
 #plugin dummy
 
+#plugin libipmidirect
+
 #############################################################################
 ##**WARNING** System administrators have to make sure that entity paths are
 ## unique in a domain. If entity paths are conflicting among handlers, make
@@ -76,4 +78,24 @@ handler	libdummy {
 #        entity_root = "{SYSTEM_CHASSIS,5}"
 #        name = "test"
 #        addr = 2
+#}
+
+
+#Section for ipmidirect plugin:
+#handler libipmidirect {
+#        entity_root = "{SYSTEM_CHASSIS,6}"
+#        name = "lan"       # RMCP
+#        addr = "localhost" # ipaddress
+#        port = "623"      # RMCP port
+#        auth_type = "none" # MD2, MD3, straight are not supported
+#	 auth_level = "admin"
+#	 username = "arthur"
+#        password = "pieman"
+#        logflags = ""      # logging off
+#        # logflags = "file stdout"
+#        # infos goes to logfile and stdout
+#        # the logfile are log00.log, log01.log ...
+#        # if #logfile_max reached replace the oldest one
+#        logfile = "log"
+#        logfile_max = 10
 #}
