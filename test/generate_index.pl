@@ -69,6 +69,7 @@ sub make_html_body {
     my $html;
     foreach my $file (sort @files) {
         if($file =~ /\.c\.summary\.html$/) {
+            next if(-z "$dir/$file");
             my $name = $file;
             $name =~ s/.summary.html//;
             $html .= slurp_summary_table($name, "$dir/$file");
@@ -86,9 +87,9 @@ sub slurp_summary_table {
     my $content = <IN>;
     close(IN);
 
-    my $snip = "<h2 class='file'>$name</h2>\n";
-    if($content =~ m{<h1 class='file'>.*?</h1>\s*(<table.*?</table>)}igs) {
-        $snip .= $1;
+    my $snip = "";
+    if($content =~ m{(<h2 class='file'>.*?</h2>\s*<table.*?</table>)}igs) {
+        $snip = $1;
     }
     return $snip;
 }

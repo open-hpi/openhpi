@@ -83,8 +83,12 @@ sub make_html_body {
     my $html;
     foreach my $line (@$lines) {
         my $status = set_status($line->{exec});
-        my $exec = $line->{exec} + 0;
-        my $data = encode_entities($line->{data});
+        my $exec = ($status eq "na") ? " " : $line->{exec} + 0;
+	
+        my $data = $line->{data};
+	$data =~ s{<(\S+)\@(.*?)\.(net|com)>}{< address removed >}ig; 
+	$data = encode_entities($data);
+
         $html .= "<tr class='$status'><td align='right'>$exec</td><td>&nbsp;</td><td><pre>$data</pre></td></tr>\n";
     }
     return $html;
