@@ -492,8 +492,8 @@ void display_id_string(SaHpiTextBufferT string)
 char * rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
 {
         /* I'm lazy, lets just make sure we have more than enough space */
-        char *answer = malloc(512);
-        strcat(answer,"\n");
+        char *answer = calloc(1,512);
+        strcpy(answer,"\n");
                 
         if(ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN)
                 strcat(answer, "\tSAHPI_CAPABILITY_DOMAIN\n");
