@@ -24,6 +24,9 @@ LIBS			=
 
 EXTRA_DIST              = README openhpiclient.conf
 
+pkgconfigdir            = $(libdir)/pkgconfig
+pkgconfig_DATA          = openhpiclient.pc
+
 # daemon
 bin_PROGRAMS            = openhpid
 
@@ -49,7 +52,7 @@ libopenhpiclient_la_SOURCES = \
 libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libmarshal.a
 
-noinst_PROGRAMS         = event_get
+noinst_PROGRAMS       = event_get
 
 # check saHpiEventGet function of the daemon
 event_get_SOURCES     = event_get.c

@@ -711,11 +711,10 @@ cOpenHpiDaemon::HandleData( cConnection *c )
   if ( data )
        free( data );
 
-  if ( r == eResultError )
-       return false;
-
   if ( r == eResultReply )
        rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
+  else if ( r == eResultError )
+       rv = 1;
 
   if ( rd )
        free( rd );
@@ -746,7 +745,7 @@ cOpenHpiDaemon::HandlePong( cConnection *c, const cMessageHeader &header )
 
 
 cOpenHpiDaemon::tResult
-cOpenHpiDaemon::HandleMsg( cConnection *c, 
+cOpenHpiDaemon::HandleMsg( cConnection *c,
 			   const cMessageHeader &header, const void *data,
 			   cMessageHeader &rh, void *&rd )
 {
@@ -769,7 +768,10 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
   MessageHeaderInit( &rh, eMhReply, header.m_seq, header.m_id, hm->m_reply_len );
 
   // alloc reply buffer
-  rd = calloc( 1, hm->m_reply_len );
+  rd = malloc( hm->m_reply_len );
+  assert( rd );
+
+  memset( rd, 0, hm->m_reply_len );
 
   SaErrorT ret;
 
