@@ -110,6 +110,32 @@ static int sim_discover_resources(void *hnd)
         return 0;
 }
 
+static int sim_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
+{
+        int retval = 0;
+        char *path, *file;
+
+        path = sim_util_get_res_dir((struct oh_handler_state *)hnd, id);
+        if (path == NULL) {
+                retval = -1;
+                goto out;
+        }
+
+        file = g_malloc(strlen(path) + 10);
+        if (file == NULL) {
+                retval = -1;
+                goto out1;
+        }
+        sprintf(file, "%s/rpt", path);
+        retval = sim_parser_rpt_set_tag(file, tag);
+        g_free(file);
+out1:
+        g_free(path);
+out:
+        return retval;
+
+}
+
 static int sim_set_resource_severity(void *hnd, SaHpiResourceIdT id, 
                                      SaHpiSeverityT sev)
 {
@@ -433,6 +459,7 @@ static struct oh_abi_v2 oh_sim_plugin = {
 	.close				= sim_close,
 	.get_event			= sim_get_event,
 	.discover_resources     	= sim_discover_resources,
+        .set_resource_tag               = sim_set_resource_tag,
         .set_resource_severity          = sim_set_resource_severity,
 	.get_self_id			= sim_get_self_id,
 	.get_sel_info			= sim_get_sel_info,
