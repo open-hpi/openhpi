@@ -163,11 +163,8 @@ AC_DEFUN(OH_CHECK_OPENIPMI,
         	} \
     	}'` \
 
-	  if test "$OPENIPMI_VERSION" == "OK"; then
-        AC_MSG_RESULT(yes)
+	if test "$OPENIPMI_VERSION" == "OK"; then
 		have_openipmi=yes
-    else
-        AC_MSG_RESULT(openipmi >= $1.$2.$3 is required to build OpenHPI)
-    fi
+    	fi
 ])
 
