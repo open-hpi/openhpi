@@ -32,8 +32,8 @@ extern "C" {
 #endif 
 
 typedef struct {
-        SaHpiDomainInfoT *info;
-        SaHpiDomainInfoT local_info;
+        SaHpiUint32T update_count;
+        SaHpiTimeT update_timestamp;
         /* The structure to hold this is subject to change. */
         /* No one should touch this. */
         GSList *rptlist; /* Contains RPTEntrys for sequence lookups */
@@ -56,7 +56,7 @@ typedef struct {
 
 
 /* General RPT calls */
-SaErrorT oh_init_rpt(RPTable *table, SaHpiDomainInfoT *info);
+SaErrorT oh_init_rpt(RPTable *table);
 SaErrorT oh_flush_rpt(RPTable *table);
 void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
               GSList **res_new, GSList **rdr_new,

@@ -29,7 +29,7 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(rptable, NULL);
+        oh_init_rpt(rptable);
         guint i = 0;
         struct timeval start, end;
         SaHpiRptEntryT *tmpentry = NULL;

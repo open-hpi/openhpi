@@ -134,7 +134,13 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         OH_GET_DID(SessionId, did);
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        *DomainInfo = d->info;
+        DomainInfo->DomainId = d->id;
+        DomainInfo->DomainCapabilities = d->capabilities;
+        DomainInfo->IsPeer = d->is_peer;
+        DomainInfo->RptUpdateCount = d->rpt.update_count;
+        DomainInfo->RptUpdateTimestamp = d->rpt.update_timestamp;
+        memcpy(DomainInfo->Guid, d->guid, sizeof(SaHpiGuidT));
+        DomainInfo->DomainTag = d->tag;        
         oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
@@ -162,7 +168,7 @@ SaErrorT SAHPI_API saHpiDomainTagSet (
         OH_GET_DID(SessionId, did);
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        d->info.DomainTag = *DomainTag;
+        d->tag = *DomainTag;
         oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
