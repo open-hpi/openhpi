@@ -17,6 +17,8 @@ list_resources_LDFLAGS	=
 pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
 pkgsysconf_DATA = openhpi.conf.example
 
+EXTRA_DIST = openhpi.conf.example
+
 clean:
 	rm -f *~
 

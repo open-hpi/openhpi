@@ -17,6 +17,7 @@ const char * type2string(SaHpiEntityTypeT type);
 const char * rdrtype2str(SaHpiRdrTypeT type);
 const char * rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
 const char * get_sensor_type(SaHpiSensorTypeT type);
+const char * get_sensor_category(SaHpiEventCategoryT category);
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
 void display_id_string(SaHpiTextBufferT string);
 
@@ -426,11 +427,12 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			val = saHpiSensorTypeGet(session_id, resource_id, num, &type, &category);
 			
 			printf("\tSensor num: %i\n\tType: %s\n", num, get_sensor_type(type)); 
+			printf("\tCategory: %s\n", get_sensor_category(category)); 
 
 			err = saHpiSensorReadingGet(session_id, resource_id, num, &reading);
 			if (err != SA_OK) {
 				printf("Error reading sensor data {sensor, %d}", num);
-				continue;
+				break;
 			} else {
 				if (reading.ValuesPresent & SAHPI_SRF_RAW) {
 					printf("\tValues Present: RAW\n");
@@ -609,4 +611,44 @@ const char * get_sensor_type(SaHpiSensorTypeT type)
 
 return "\0";
 
+}
+
+const char * get_sensor_category (SaHpiEventCategoryT category)
+{
+	switch (category)
+	{
+		case SAHPI_EC_UNSPECIFIED:
+			return "SAHPI_EC_UNSPECIFIED";
+		case SAHPI_EC_THRESHOLD:
+			return "SAHPI_EC_THRESHOLD"; 
+		case SAHPI_EC_USAGE:
+			return "SAHPI_EC_USAGE"; 
+		case SAHPI_EC_STATE:
+			return "SAHPI_EC_STATE"; 
+		case SAHPI_EC_PRED_FAIL:
+			return "SAHPI_EC_PRED_FAIL"; 
+		case SAHPI_EC_LIMIT:
+			return "SAHPI_EC_LIMIT";
+		case SAHPI_EC_PERFORMANCE:
+			return "SAHPI_EC_PERFORMANCE"; 
+		case SAHPI_EC_SEVERITY:
+		   	return "SAHPI_EC_SEVERITY"; 
+		case SAHPI_EC_PRESENCE:
+			return "SAHPI_EC_PRESENSE";
+		case SAHPI_EC_ENABLE:
+			return "SAHPI_EC_ENABLE";
+		case SAHPI_EC_AVAILABILITY:
+			return "SAHPI_EC_AVAILABILITY";
+		case SAHPI_EC_REDUNDANCY:
+			return "SAHPI_EC_REDUNDANCY";
+		case SAHPI_EC_USER:
+			return "SAHPI_EC_USER";
+		case SAHPI_EC_GENERIC:
+			return "SAHPI_EC_GENERIC";
+			
+                default:
+			return "Unknown Category";
+			
+	}
+	return("\0");
 }

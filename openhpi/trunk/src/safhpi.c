@@ -1083,8 +1083,6 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorReadingT *Reading)
 {
-        dbg("saHpiSensorReadingGet() called");
-
         struct oh_resource *res;
         struct oh_rdr *rdr;
 

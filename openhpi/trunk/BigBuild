@@ -3,4 +3,12 @@
 ./nukem.sh
 ./bootstrap
 ./configure	--sysconfdir=/etc
-make all
+
+#Quick hack to speed up build on SMP machines
+uname -anr | grep SMP > /dev/null
+
+if [ $? -eq 0 ]
+then
+	echo "We have us an SMP system!"
+	make -j 2 all
+fi
