@@ -1,0 +1,43 @@
+<!-- ...................................................................... -->
+<!-- $Id$ ........................................ -->
+<!-- 
+        (C) Copyright Intel Corporation. 2003
+ 
+        Authors:
+            Tariq Shureih <tariq.shureih@intel.com>
+
+        This material may be distributed only subject to the terms and 
+        conditions set forth in the Open Publication License, v1.0 or later 
+        (the latest version is currently available at 
+        http://www.opencontent.org/openpub/).  Distribution of substantively 
+        modified version of this document is prohibited without the explicit 
+        permission of the copyright holder.
+
+        Other company, product, or service names may be trademarks or service 
+        marks of others.
+-->
+
+  <chapter>
+  <title>OpenHPI Plugin Development Guide</title>
+  <para>
+	This chapter is a developer's guide to writing an openhpi plug-in.
+	The hope is that by providing this documentation in addition to
+	the source code in CVS, developers will have all the tools needed
+	to enable support for a given platform under openhpi.
+  </para>
+  <sect1>
+    <title>General plug-in concepts</title>
+    <para>
+	As explained earlier in this manual, plug-ins are at the heart of openhpi.
+	They serve as the proxy to hardware management interfaces and protocols.
+	A plug-in has two main roles.
+	First, to interface with the hardware management interface and gather data.
+	Second, format that data into HPI data structures and send them up to the
+	main openHpi library.
+	
+	Further, as openHpi based application need to communicate commands to the
+	hardware, the infrastructure library uses the 'abi' interface functions
+	to communicate with a plug-in and send commands and/or data to the hardware.
+    </para>
+  </sect1>
+</chapter>
