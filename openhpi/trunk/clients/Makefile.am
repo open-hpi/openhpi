@@ -23,6 +23,7 @@ bin_PROGRAMS = \
 	hpievent \
 	hpithres \
 	hpievent \
+	hpitop   \
 	hpisettime
 	
 
@@ -42,9 +43,9 @@ hpifan_SOURCES          = hpifan.c
 hpifan_LDADD            = $(COMMONLIBS)
 hpifan_LDFLAGS          =
 
-#hpifru_SOURCES          = hpifru.c
-#hpifru_LDADD            = $(COMMONLIBS)
-#hpifru_LDFLAGS          =
+hpitop_SOURCES          = hpitop.c
+hpitop_LDADD            = $(COMMONLIBS)
+hpitop_LDFLAGS          =
 
 hpireset_SOURCES        = hpireset.c
 hpireset_LDADD          = $(COMMONLIBS)
