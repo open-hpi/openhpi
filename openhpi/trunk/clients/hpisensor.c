@@ -259,14 +259,16 @@ int main(int argc, char **argv)
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
                 if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
-
-                if (rv == SA_OK && ep_string && ep_cmp(&ep_target,&(rptentry.ResourceEntity))) {
-                        rptentryid = nextrptentryid;
-                        continue;                        
-                }
-                
+                                                
                 if (rv == SA_OK) {
-                        /* walk the RDR list for this RPT entry */
+                        /* Walk the RDR list for this RPT entry */
+
+                        /* Filter by entity path if specified */
+                        if (ep_string && ep_cmp(&ep_target,&(rptentry.ResourceEntity))) {
+                                rptentryid = nextrptentryid;
+                                continue;
+                        }
+                        
                         entryid = SAHPI_FIRST_ENTRY;
                         resourceid = rptentry.ResourceId;
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
