@@ -122,7 +122,13 @@ void sim_close(void *hnd)
 SaErrorT build_rptcache(RPTable *rptcache) 
 {
 	int i;
+	SaHpiRptEntryT res;
+	SaHpiEntityPathT root_ep;
+	
 	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+		oh_concat_ep(&res.ResourceEntity, &root_ep);
+		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
+		
 		dbg("Adding resource number %d",i);
 		oh_add_resource(rptcache, &dummy_rpt_array[i].rpt, NULL, FREE_RPT_DATA);
 		i++;
