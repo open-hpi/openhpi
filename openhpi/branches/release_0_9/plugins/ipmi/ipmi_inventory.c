@@ -18,31 +18,33 @@
 #include <uid_utils.h>
 #include <string.h>
 
-#define OHOI_FULFILL_BUFFER(hpi_name, ipmi_name, part_name)     \
-        do {                                                    \
-                int rv;                                         \
-                gen->hpi_name = (void *)off;                    \
-                gen->hpi_name->DataType = SAHPI_TL_TYPE_ASCII6; \
-                gen->hpi_name->Language = SAHPI_LANG_ENGLISH;   \
-                rv = ipmi_entity_get_ ## part_name ## _info_  ## ipmi_name ## _len(ent, &len);  \
-                if (rv) {                                       \
-                        dbg("%s is not supported", #part_name #hpi_name);                       \
-                        break;                                  \
-                }                                               \
-                if (len>255) {                                  \
-                        dbg("%s is too long to HPI: %d", #part_name #hpi_name, len);            \
-                        break;                                  \
-                }                                               \
-                gen->hpi_name->DataLength = len;                \
-                len++; /*nil will be put but OpenIPMI*/         \
-                ipmi_entity_get_ ## part_name ## _info_ ## ipmi_name(  \
-                                ent,                            \
-                                &gen->hpi_name->Data[0],        \
-                                &len);                          \
-                off+= sizeof(SaHpiTextBufferT)                  \
-                        + gen->hpi_name->DataLength;            \
-        }while(0)
 
+#define OHOI_FULFILL_BUFFER(hpi_name, ipmi_name)                            \
+        do {                                                                \
+                int rv;   		                                    \
+		ipmi_fru_t *fru = ipmi_entity_get_fru(ent);	            \
+                gen->hpi_name = (void *)off;                                \
+                gen->hpi_name->DataType = SAHPI_TL_TYPE_ASCII6;             \
+                gen->hpi_name->Language = SAHPI_LANG_ENGLISH;               \
+		if (!fru) {                                                 \
+			gen->hpi_name->DataLength = 0;                      \
+			dbg("No fru");                                      \
+			break;                                              \
+		}                                                           \
+                len = 255;                                                  \
+		rv = ipmi_fru_get_##ipmi_name(                              \
+                                fru,                                        \
+                                &gen->hpi_name->Data[0],                    \
+                                &len);                                      \
+		if (rv) {                                                   \
+			dbg("%s is not supported rv:%d",                    \
+                             #ipmi_name #hpi_name, rv);                     \
+			break;                                              \
+		}                                                           \
+		gen->hpi_name->DataLength = len;                            \
+                off+= sizeof(SaHpiTextBufferT)                              \
+                        + gen->hpi_name->DataLength;                        \
+        }while(0)
 
 static void _get_inventroy_internal_use(ipmi_entity_t *ent,
                                         void          *cb_data)
@@ -116,9 +118,8 @@ static void _get_inventroy_chassis_info(ipmi_entity_t *ent,
         off = cb_data;
         off+= sizeof(SaHpiInventDataRecordT);
 
-        OHOI_FULFILL_BUFFER(SerialNumber, serial_number, chassis);
-        OHOI_FULFILL_BUFFER(PartNumber, part_number, chassis);
-
+        OHOI_FULFILL_BUFFER(SerialNumber, chassis_info_serial_number);
+        OHOI_FULFILL_BUFFER(PartNumber, chassis_info_part_number);
         rec->DataLength = off - (unsigned char *)&rec->RecordData;
 }
 
@@ -161,11 +162,11 @@ static void _get_inventroy_board_info(ipmi_entity_t *ent,
         off = cb_data;
         off+= sizeof(SaHpiInventDataRecordT);
 
-        OHOI_FULFILL_BUFFER(Manufacturer, board_manufacturer, board);
-        OHOI_FULFILL_BUFFER(ProductName, board_product_name, board);
-        OHOI_FULFILL_BUFFER(SerialNumber, board_serial_number, board);
-        OHOI_FULFILL_BUFFER(PartNumber, board_part_number, board);
-        OHOI_FULFILL_BUFFER(FileId, fru_file_id, board);
+        OHOI_FULFILL_BUFFER(Manufacturer, board_info_board_manufacturer);
+        OHOI_FULFILL_BUFFER(ProductName, board_info_board_product_name);
+        OHOI_FULFILL_BUFFER(SerialNumber, board_info_board_serial_number);
+        OHOI_FULFILL_BUFFER(PartNumber, board_info_board_part_number);
+        OHOI_FULFILL_BUFFER(FileId, board_info_fru_file_id);
         
         rec->DataLength = off - (unsigned char *)&rec->RecordData;        
 }
@@ -204,15 +205,14 @@ static void _get_inventroy_product_info(ipmi_entity_t *ent,
 
         off = cb_data;
         off+= sizeof(SaHpiInventDataRecordT);
-
-        OHOI_FULFILL_BUFFER(Manufacturer, manufacturer_name, product);
-        OHOI_FULFILL_BUFFER(ProductName, product_name, product);
-        OHOI_FULFILL_BUFFER(ProductVersion, product_version, product);
-        OHOI_FULFILL_BUFFER(SerialNumber, product_serial_number, product);
-        OHOI_FULFILL_BUFFER(PartNumber, product_part_model_number, product);
-        OHOI_FULFILL_BUFFER(FileId, fru_file_id, product);
-        OHOI_FULFILL_BUFFER(AssetTag, asset_tag, product);
         
+        OHOI_FULFILL_BUFFER(Manufacturer, product_info_manufacturer_name);
+        OHOI_FULFILL_BUFFER(ProductName, product_info_product_name);
+        OHOI_FULFILL_BUFFER(ProductVersion, product_info_product_version);
+        OHOI_FULFILL_BUFFER(SerialNumber, product_info_product_serial_number);
+        OHOI_FULFILL_BUFFER(PartNumber, product_info_product_part_model_number);
+        OHOI_FULFILL_BUFFER(FileId, product_info_fru_file_id);
+        OHOI_FULFILL_BUFFER(AssetTag, product_info_asset_tag);
         rec->DataLength = off - (unsigned char *)&rec->RecordData;        
 }
 
@@ -341,4 +341,3 @@ SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
 
         return get_inventory_info(ohoi_res_info->u.entity_id, data);;
 }
-
