@@ -209,7 +209,7 @@ static int sa_show_hs_ind(SaHpiResourceIdT resourceid)
 
 	rv = saHpiHotSwapIndicatorStateGet(sessionid, resourceid, &state);
 	if (rv != SA_OK) { 
-		printf("saHpiHotSwapStateGet error %d\n",rv);
+		printf("saHpiHotSwapStateGet error %s\n",  oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -234,7 +234,7 @@ static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
 
 	rv = saHpiHotSwapStateGet(sessionid, resourceid, &state);
 	if (rv != SA_OK) { 
-		printf("saHpiHotSwapStateGet error %d\n",rv);
+		printf("saHpiHotSwapStateGet error %s\n",  oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -281,14 +281,14 @@ static int sa_power(int argc, char *argv[])
 
         rv = saHpiResourcePowerStateSet(sessionid, resourceid, state);
         if (rv != SA_OK) {
-                printf("saHpiResourcePowerStateSet error %d\n",rv);
+                printf("saHpiResourcePowerStateSet error %s\n",  oh_lookup_error(rv));
 		return -1;
 	}
 
 L1:
         rv = saHpiResourcePowerStateGet(sessionid, resourceid, &state);
         if (rv != SA_OK) {
-                printf("saHpiResourcePowerStateGet error %d\n",rv);
+                printf("saHpiResourcePowerStateGet error %s\n",  oh_lookup_error(rv));
 		return -1;
 	}
 	if (state == SAHPI_POWER_ON) {
@@ -321,14 +321,14 @@ static int sa_reset(int argc, char *argv[])
 
         rv = saHpiResourceResetStateSet(sessionid, resourceid, state);
         if (rv != SA_OK) {
-                printf("saHpiResourceResetStateSet error %d\n",rv);
+                printf("saHpiResourceResetStateSet error %s\n",oh_lookup_error(rv));
 		return -1;
 	}
 
 L1:
 	rv = saHpiResourceResetStateGet(sessionid, resourceid, &state);
 	if (rv != SA_OK) {
-		printf("saHpiResourceResetStateGet error %d\n",rv);
+		printf("saHpiResourceResetStateGet error %s\n",oh_lookup_error(rv));
 		return -1;
 	}
 	if (state == SAHPI_RESET_ASSERT) {
@@ -361,7 +361,7 @@ static int sa_set_tag(int argc, char *argv[])
 
 	rv = saHpiResourceTagSet(sessionid,resourceid,&resourcetag);
 	if (rv != SA_OK) {
-		printf("saHpiResourceTagSet error = %d\n",rv);
+		printf("saHpiResourceTagSet error = %s\n",oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -374,7 +374,7 @@ static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
 
 	rv = saHpiEventLogClear(sessionid,resourceid);
 	if (rv != SA_OK) {
-		printf("EventLog clear, error = %d\n",rv);
+		printf("EventLog clear, error = %s\n",oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -597,7 +597,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 	while (rdrentryid != SAHPI_LAST_ENTRY) {
 		rv = saHpiRdrGet(sessionid, resourceid, rdrentryid, &nextrdrentryid, &rdr);
 		if (rv != SA_OK) {
-			printf("saHpiRdrGet error %d\n",rv);
+			printf("saHpiRdrGet error %s\n", oh_lookup_error(rv));
 			return -1;
 		}
 
@@ -609,7 +609,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 		idrid = rdr.RdrTypeUnion.InventoryRec.IdrId;
 		rv = saHpiIdrInfoGet(sessionid, resourceid, idrid, &idrInfo);
 		if (rv != SA_OK) {
-			printf("saHpiIdrInfoGet error %d\n",rv);
+			printf("saHpiIdrInfoGet error %s\n", oh_lookup_error(rv));
 			return -1;
 		}
 		
@@ -620,7 +620,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 			rva = saHpiIdrAreaHeaderGet(sessionid, resourceid, idrInfo.IdrId,
 				areaType, areaId, &nextareaId, &areaHeader);
 			if (rva != SA_OK) {
-				printf("saHpiIdrAreaHeaderGet error %d\n",rva);
+				printf("saHpiIdrAreaHeaderGet error %s\n",oh_lookup_error(rva));
 				break;
 			}
 			oh_print_idrareaheader(&areaHeader, 2);
@@ -633,7 +633,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 						fieldType, fieldId, &nextFieldId,
 						&thisField);
 				if (rvf != SA_OK) {
-					printf("saHpiIdrFieldGet error %d\n",rvf);
+					printf("saHpiIdrFieldGet error %s\n", oh_lookup_error(rvf));
 					break;
 				}
 				oh_print_idrfield(&thisField, 4);

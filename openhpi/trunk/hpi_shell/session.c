@@ -133,12 +133,12 @@ int open_session()
 	do_progress("Discover");
 	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
 	if (rv != SA_OK) {
-     		printf("saHpiSessionOpen error %d\n", rv);
+     		printf("saHpiSessionOpen error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) 
-		printf("saHpiDiscover rv = %d\n", rv);
+		printf("saHpiDiscover rv = %s\n", oh_lookup_error(rv));
 	delete_progress();
 
 	printf("Initial discovery done\n");
@@ -162,7 +162,7 @@ int close_session()
 	
 	rv = saHpiSessionClose(sessionid);
 	if (rv != SA_OK) {
-                printf("saHpiSessionClose error %d\n", rv);
+                printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
                 return -1;
         }
 	return 0;
