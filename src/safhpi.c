@@ -199,8 +199,13 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         OH_GET_DID(SessionId, did);
 
         /* Test pointer parameters for invalid pointers */
-        if ((NextEntryId == NULL) || (RptEntry == NULL))
-        {
+        if ((NextEntryId == NULL) || (RptEntry == NULL)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        /* I believe this is the only current reserved value
+           here, though others may come in the future. */
+        if (EntryId == SAHPI_LAST_ENTRY) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -216,7 +221,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         if (req_entry == NULL) {
                 dbg("Invalid EntryId %d in Domain %d", EntryId, did);
                 oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         memcpy(RptEntry, req_entry, sizeof(*RptEntry));
