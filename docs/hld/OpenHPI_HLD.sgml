@@ -1,0 +1,411 @@
+<!doctype book PUBLIC "-//Davenport//DTD DocBook V3.0//EN" [
+
+  <!ENTITY openhpi-copyright "<YEAR>2003</YEAR><HOLDER>Intel Corporation</HOLDER>">
+  <!ENTITY openhpi-code-copyright "
+
+ Copyright (c) 2003, Intel Corporation
+ All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or
+ without modification, are permitted provided that the following
+ conditions are met:
+ 
+ Redistributions of source code must retain the above copyright
+ notice, this list of conditions and the following disclaimer.
+ Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in
+ the documentation and/or other materials provided with the distribution.
+ 
+ Neither the name of Intel Corporation nor the names
+ of its contributors may be used to endorse or promote products
+ derived from this software without specific prior written permission.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+">
+ <!ENTITY openhpi-legal-notice "
+This document may be freely redistributed according to the terms
+of the BSD License.
+">
+
+]>
+
+<book>
+  <bookinfo>
+    <date>March 18, 2003</date>
+    <title>OpenHPI High-Level Design</title>
+    <subtitle>An Implementation of SAForum's Hardware Platform Interface</subtitle>
+    <authorgroup>
+       <author>
+          <firstname>Andrea</firstname>
+          <surname>Brugger</surname>
+       </author>
+       <author>
+          <firstname>Kevin</firstname>
+          <surname>Gao</surname>
+       </author>
+       <author>
+          <firstname>Rusty</firstname>
+          <surname>Lynch</surname>
+       </author>
+       <author>
+          <firstname>Louis</firstname>
+          <surname>Zhuang</surname>
+       </author>
+     </authorgroup>
+
+     <copyright>&openhpi-copyright;</copyright>
+     <legalnotice><para>&openhpi-legal-notice;</para></legalnotice>
+     <revhistory>
+      <revision>
+	<revnumber>0.1</revnumber>
+	<date>2003-3-18</date>
+	<authorinitials>Andrea Brugger</authorinitials>
+	<revremark>Initial outline revision</revremark>
+      </revision>
+     </revhistory>
+
+  </bookinfo>
+  <toc></toc>
+  
+  <chapter>
+    <title>Introduction</title>
+    <para>OpenHPI is an open source project created with the intent of providing
+an implementation of the Service Availability Forum's Hardware Platform Interface (HPI).
+HPI provides a universal interface for creating resource system models, typically for chassis
+and rack based servers, but extendable for other problem domains such as clustering,
+virtualization and simulation.
+    </para>
+    <sect1>
+      <title>Purpose of this Document</title>
+      <para>This document is intended to combine collaborated design effort into a single
+location.  This HLD should specify the implementation, including inter-component
+dependencies, providing sufficient design detail to correctly implement the SA Forum's HPI 
+for multiple platforms.</para>
+    </sect1>
+    <sect1>
+      <title>Document Scope</title>
+      <para>This high-level design covers all levels of design and may evolve into a low-level design
+as the document matures. Anyone interested in understanding the OpenHPI internal design should read this
+document.</para>
+    </sect1>
+    <sect1>
+      <title>Terminology</title>
+      <para>
+      <informaltable frame="all">
+         <tgroup cols="2">
+            <thead>
+               <row>
+                  <entry>Acronym</entry>
+                  <entry>Description</entry>
+               </row>
+            </thead>
+            <tbody>
+               <row>
+                  <entry>HPI</entry>
+                  <entry>Hardware Platform Interface</entry>
+               </row>
+               <row>
+                  <entry>SA Forum</entry>
+                  <entry>Service Availability Forum</entry>
+               </row>
+            </tbody>
+         </tgroup>
+      </informaltable>
+      </para>
+    </sect1>
+  </chapter>
+
+  <chapter>
+    <title>Methodologies and Notations</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <chapter>
+    <title>Assumptions and Dependencies</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <chapter>
+    <title>Design Decomposition</title>
+    <para>
+     There are a few guiding principals behind 
+the design and implementation of the OpenHPI project. To succeed, 
+the project must be: 
+    </para>
+<itemizedlist mark='opencircle'>
+      <listitem>
+      <para>
+<emphasis>Simple</emphasis> - the easier the code is to follow, the easier it is to find and fix bugs.
+      </param
+      </listitem>
+      <listitem>
+      <para>
+<emphasis>Lightweight</emphasis> - targets for the project range from large servers with 
+lots of resources to embedded devices with minimal footprints. To that end, 
+the implementation must not be reliant on a lot of external libraries. 
+      </param
+      </listitem>
+      <listitem>
+      <para>
+<emphasis>Efficient</emphasis> - this is both in terms of performance as well as code re-use. 
+For performance, the reasons are obvious; you don't want your management layers 
+to bring down the performance of your system. In regard to code re-use--the more 
+that pieces of code can be re-used the faster that others can develop hardware 
+specific components to sit within the OpenHPI domain. 
+      </param
+      </listitem>
+      </itemizedlist>
+    <para>
+    To meet the above requirements the design is broken down into four major areas. 
+Each of these areas will eventually be defined in detail on subsequent pages. Brief 
+descriptions are provided below.
+    </para>
+    <para>
+      <imagedata fileref="hld_diagram.gif" />
+    </para>
+    <sect2>
+        <title>Application Interface Stubs</title>
+        <para>This portion deals with the code that provides the entry points into 
+the libhpi.so. Initially this will literally just contain stubs that provide 
+API compliance without any features. Stub APIs will output to the stderr a 
+TODO: Implement _api_ message. As the api is implemented, these output messages 
+will be removed.
+        </para>
+    </sect2>
+    <sect2>
+        <title>Utility Functions</title>
+        <para>The utility functions provide a lot of the reusable coding 
+components such as lists, events, hash tables, etc. In addition, it provides 
+general management and organizational functions for sessions, domains, entities,
+ and resources. 
+        </para>
+    </sect2>
+    <sect2>
+        <title>Hardware Abstractions</title>
+        <para>In order to be portable to various different hardware platforms 
+there needs to be a standard set of calls to and from the hardware to the 
+utility and application interface stub modules described above. This module 
+represents that abstraction. An example of capability that this piece would 
+enable is interfacing between the hardware enumneration and discovery to the 
+above components. 
+        </para>
+    </sect2>
+    <sect2>
+        <title>Hardware Specific Components</title>
+        <para>This is the meat of what enables an HPI implementation. This 
+is the component that is custom built for each targetted hardware platform. 
+At a minimum, the OpenHPI project will provide specific components for 
+AdvancedTCA, CompactPCI, and a sample module for managing a traditional 
+development machine. 
+        </para>
+    </sect2>
+  </chapter>
+
+  <chapter>
+    <title>Internal Components</title>
+    <para>(TBD)</para>
+  </chapter>
+    
+  <chapter>
+    <title>Internal Data Structure Map</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <chapter>
+    <title>Internal Methods</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <chapter>
+    <title>System Dependencies and File Structures</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <chapter>
+    <title>External Data Structures</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <chapter>
+    <title>External APIs</title>
+    <para>(TBD)</para>
+    <sect1>
+      <title>Hardware Abstraction Interface (HAI)</title>
+      <para>(TBD)</para>
+    </sect1>
+    <sect1>
+      <title>Plugin Mechanism</title>
+      <para>An OpenHPI plugin shall implement HAI. A plugin shall 
+export <emphasis>get_interface</emphasis>, symbols by a dynamic linking mechanism which the infrastructure supports. 
+The symbol should refer to a function, which shall return a proper pointer to an interface by
+a unique interface ID (UUID). The interface is a structure containing a bundle of function 
+pointers. The plugin may implement one or more versions of interface according to different UUIDs. 
+Each UUID identifies a specific version the HAI. A newer OpenHPI implementation shall recognize 
+older plugins and provide backwards compatibility. 
+      </para>
+      <example>
+      <title>Sample Code For Using a Plugin in Linux</title>
+      <programlisting role="C">
+typedef (*get_interface_t) (void **ppinterface, UUID uuid);
+
+static get_interface_t get_interface;
+struct hpi_hai_v1 *hai;
+int err;
+...
+
+h = dlopen("myplugin.so");
+if (!h) {
+	...
+}
+
+get_interface = (get_interface_t)dlsym(h, "get_interface");
+if (!get_interface) {
+	...
+}
+
+err = get_interface(<literal role="entity">&amp;</literal>hai, HPI_HARDWARE_ABSTRACT_V1);
+if (err) {
+	...
+}
+...
+
+err->func1();
+...
+      </programlisting>
+      </example>
+
+      <example>
+      <title>Sample Plugin Code in Linux</title>
+      <programlisting role="C">
+static my_func1() 
+{
+...
+}
+...
+static struct hpi_hai_v1 self_hai = {
+       .func1 = my_func1,
+...
+}
+
+int get_interface(void **ppinterface, UUID uuid) 
+{
+       struct hpi_hai_v1 **pphai = (struct hpi_hai_v1 **)ppinterface;
+       if (uuid != HPI_HARDWARE_ABSTRACT_V1)
+              return -1;
+       *pphai = <literal role="entity">&amp;</literal>self_hai;
+       return 0;
+}
+      </programlisting>
+      </example>
+    </sect1>
+  </chapter>
+
+  <chapter>
+    <title>Design Strategies</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <chapter>
+    <title>Key Design Decisions and Alternatives</title>
+    <para>(TBD)</para>
+  </chapter>
+
+  <appendix>
+    <title>Appendix A: Design Description Techniques</title>
+    <para>(TBD)</para>
+    <sect1>
+      <title>Usage Scenarios</title>
+      <para>
+The scope of the SA-Forum's HPI Specification could be interpreted as 
+dealing with only local resources to a platform (where platforms are traditional 
+rack mounted servers or chassis containing many bladed computer systems on a 
+common management bus), or as a network of computer systems. The following usage 
+scenario represents the view of a an OpenHPI implementation that spans across 
+multiple computer systems. 
+      </para>
+      <para>
+The following scenario is presented to spawn design discussions for OpenHPI 
+and help flush out some of the more vague portions of the HPI specification 
+(like remoting capabilities.) 
+      </para>
+      <para>
+For this scenario, a rack of computers is closely coupled together to provide a 
+single service in the same way that a single telecommunication application would 
+span across multiple platforms all configured for that one application. 
+      </para>
+      <para>
+The rack consists of:  
+       </para>
+      <itemizedlist mark='opencircle'>
+      <listitem>
+      <para>shelf manager: platform hosting middle-ware that uses OpenHPI to 
+get a platform view of the entire rack of computers 
+      </para>
+      </listitem>
+      <listitem>
+      <para>terminal server: common terminal server to aid advanced trouble shooting 
+of a given node 
+      </para>
+      </listitem>
+      <listitem>
+      <para>ATCA Chassis: Bladed server chassis full of single board computers 
+and other FRU's all connected together via a common IPMI management bus 
+      </para>
+      </listitem>
+      <listitem>
+      <para>DB Server: Traditional database server as is seen in data centers 
+      </para>
+      </listitem>
+      <listitem>
+      <para>UPS: A couple of UPS units providing redundant power
+      </para>
+      </listitem>
+      </itemizedlist>
+      <para>
+      <imagedata fileref="physical_view.png" />
+      </para>
+      <para>
+As mentioned before, the full rack of computers is tightly coupled together 
+to perform a single service, so from the services view this entire setup is a 
+single platform. Assuming OpenHPI contains the ability to remotely plug physically 
+separate computer systems into a single tree as described in the HPI specification, 
+our scenario is configured to see the following HPI view: 
+      </para>
+      <para>
+      <imagedata fileref="domain_view.png" />
+      </para>
+      <para>
+One possible high level design for enabling such a remotely pluggable capabilities could be done like: 
+      </para>
+      <para>
+      <imagedata fileref="implementation_view.png" />
+      </para>
+      <para>
+In the above diagram, the software components that understands specific hardware 
+management components (like IPMI) would be isolated into "domain servers". In 
+addition to this a remote and local mechanism would be provided for domain servers 
+to be plugged into each other, resulting in the HPI tree needed for the specific solution. 
+      </para>
+    </sect1>
+    <sect1>
+      <title>Execution Scenarios</title>
+      <para>(TBD)</para>
+    </sect1>
+    <sect1>
+      <title>Entity-Relationship Diagrams</title>
+      <para>(TBD)</para>
+    </sect1>
+  </appendix>
+</book>
+      
+
