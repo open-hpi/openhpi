@@ -678,6 +678,7 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 	struct oh_event         *e;
         struct ohoi_resource_info *info;
 	int lun, num;
+	int rv;
 
 	sensor_info = malloc(sizeof(*sensor_info));
 
@@ -708,8 +709,13 @@ static void add_sensor_event(ipmi_entity_t	*ent,
                 dbg("No info in resource(%d)\n", rid);
                 return;
         }
-	ipmi_sensor_get_num(sensor, &lun, &num);
-        e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num;
+	
+	rv = ipmi_sensor_get_num(sensor, &lun, &num);
+	if(rv) {
+	      	dbg("Erro getting sensor number");
+        	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = SA_ERR_HPI_INVALID_DATA;
+	} else 
+	      	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num;
 
 	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 
