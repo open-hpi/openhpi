@@ -100,13 +100,14 @@ SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor);
 #define oh_print_textbuffer(buf_ptr)  oh_fprint_textbuffer(stdout, buf_ptr)
 SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *textbuffer);
 
-/* FIXME:: */
-#if 0
 #define oh_print_ctrlrec(ctrl_ptr) oh_fprint_ctrlrec(stdout, ctrl_ptr)
 SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control);
 
 #define oh_print_watchdogrec(watchdog_ptr) oh_fprint_watchdogrec(stdout, watchdog_ptr)
 SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog);
+
+/* FIXME:: */
+#if 0
 
 Need ?????
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);

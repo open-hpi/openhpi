@@ -608,6 +608,70 @@ static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
 }
 
 /**
+ * oh_fprint_ctrlrec:
+ * @stream: File handle.
+ * @control: Pointer to SaHpiCtrlRecT to be printed.
+ * 
+ * Prints a sensor's SaHpiCtrlRecT data to a file. 
+ * The MACRO oh_print_ctrlrec(), uses this function to print to STDOUT. 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @control or @stream is NULL
+ **/
+
+SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control)
+{
+	int err;
+	oh_big_textbuffer buffer;
+	
+	if (!stream || !control) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_bigtext(&buffer);
+	err = oh_build_ctrlrec(&buffer, control, 4);
+	if (err) { return(err); }
+
+	err = oh_fprint_bigtext(stream, &buffer);
+	if (err) { return(err); }
+	
+	return(SA_OK);
+}
+
+/**
+ * oh_fprint_watchdogrec:
+ * @stream: File handle.
+ * @watchdog: Pointer to SaHpiWatchdogRecT to be printed.
+ * 
+ * Prints a sensor's SaHpiWatchdogRecT data to a file. 
+ * The MACRO oh_print_watchdogrec(), uses this function to print to STDOUT. 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @sensor or @stream is NULL
+ **/
+SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog)
+{
+	int err;
+	oh_big_textbuffer buffer;
+	
+	if (!stream || !watchdog) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_bigtext(&buffer);
+	err = oh_build_wdogrec(&buffer, watchdog, 4);
+	if (err) { return(err); }
+
+	err = oh_fprint_bigtext(stream, &buffer);
+	if (err) { return(err); }
+	
+	return(SA_OK);
+
+}
+
+/**
  * oh_fprint_sensorrec:
  * @stream: File handle.
  * @sensor: Pointer to SaHpiSensorRecT to be printed.
