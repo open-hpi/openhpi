@@ -711,10 +711,8 @@ int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 	char *root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
 
 	/* Find top-level chassis entity path */
-	memset(&ep, 0, sizeof(SaHpiEntityPathT));
-	append_root(&ep);
-        string2entitypath(root_tuple, &ep_root);
-        append_root(&ep_root);
+	ep_init(&ep);
+        string2entitypath(root_tuple, &ep_root);        
 
         /* Chassis instance/type in root; other resources override these below */
 	instance = ep_root.Entry[0].EntityInstance;
@@ -738,13 +736,12 @@ int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 		dbg("ep_concat failed for ep init");
 		return -1;
 	}
-	append_root(&ep);
 	if (ep_concat(&ep, &ep_root)) {
 		dbg("ep_concat failed to append root");
 		return -1;
 	}
-	if (set_epath_instance(&ep, entity_type, instance)) {
-		dbg("set_epath_instance failed. type=%d; instance=%d\n", entity_type, instance);
+	if (set_ep_instance(&ep, entity_type, instance)) {
+		dbg("set_ep_instance failed. type=%d; instance=%d\n", entity_type, instance);
 		return -1;
 	}
 

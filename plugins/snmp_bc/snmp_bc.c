@@ -120,10 +120,8 @@ static int snmp_bc_discover_resources(void *hnd)
         GSList *tmpqueue = NULL;
         char *root_tuple = (char *)g_hash_table_lookup(handle->config,"entity_root");        
                 
-        memset(&entity_root, 0, sizeof(SaHpiEntityPathT));
         string2entitypath(root_tuple, &entity_root);
-        append_root(&entity_root);
-
+        
 	/* Blade vector gives us info for chassis, blades, and blade daughter (add in) cards */
         if((snmp_get(custom_handle->ss,SNMP_BC_BLADE_VECTOR,&get_value)) == 0 &&
 	   (get_value.type == ASN_OCTET_STR)) {

@@ -48,17 +48,17 @@ int entitypath2string(const SaHpiEntityPathT *epathptr,
 		      gchar *epathstr,
 		      gint strsize);
 
+void ep_init(SaHpiEntityPathT *ep);
+
 int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append);
 
-int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
+int validate_ep(const SaHpiEntityPathT *ep);
 
-int append_root(SaHpiEntityPathT *ep);
-
-int prt_ep(const SaHpiEntityPathT *ep);
+int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
 
 int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2);
 
-int validate_ep(const SaHpiEntityPathT *ep);
+int print_ep(const SaHpiEntityPathT *ep);
 
 #ifdef __cplusplus
 }

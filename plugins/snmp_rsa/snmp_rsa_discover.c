@@ -122,7 +122,7 @@ struct oh_event * snmp_rsa_discover_cpu(struct oh_handler_state *handle, SaHpiEn
 
         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-        set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+        set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                            SAHPI_ENT_PROCESSOR, num+RSA_HPI_INSTANCE_BASE);
         working.u.res_event.entry.ResourceId =
                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -160,7 +160,7 @@ struct oh_event * snmp_rsa_discover_dasd(struct oh_handler_state *handle, SaHpiE
 
         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-        set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+        set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                            SAHPI_ENT_DISK_BAY, num+RSA_HPI_INSTANCE_BASE);
         working.u.res_event.entry.ResourceId =
                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -255,7 +255,7 @@ struct oh_event * snmp_rsa_discover_fan(struct oh_handler_state *handle, SaHpiEn
 
         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-        set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+        set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                            SAHPI_ENT_FAN,fannum+RSA_HPI_INSTANCE_BASE);
         working.u.res_event.entry.ResourceId =
                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));

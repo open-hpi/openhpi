@@ -525,7 +525,6 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 
 	/* append ep */
 	//string2entitypath(entity_root, &rdr_ep);
-	//append_root(&rdr_ep);
 
 	//ep_concat (&rdr->Entity, &rdr_ep);
 

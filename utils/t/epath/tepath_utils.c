@@ -176,7 +176,7 @@ int main (int argc, char **argv) {
 	/*************************************** 
          * string2entitypath - Max size TestCase
          ***************************************/
-	test_string = "{SYSTEM_CHASSIS,11}{CHASSIS_BACK_PANEL_BOARD,32}{OTHER_CHASSIS_BOARD,15}{SBC_BLADE,2}{COMPACTPCI_CHASSIS,15}{ADVANCEDTCA_CHASSIS,30}{SYSTEM_SLOT,14}{IO_BLADE,3}{DISK_BLADE,1}{DISK_DRIVE,22}{FAN,44}{POWER_DISTRIBUTION_UNIT,45}{SPEC_PROC_BLADE,1}{IO_SUBBOARD,13}{SBC_SUBBOARD,10}{ALARM_MANAGER,3}";
+	test_string = "{SYSTEM_CHASSIS,11}{CHASSIS_BACK_PANEL_BOARD,32}{OTHER_CHASSIS_BOARD,15}{SBC_BLADE,2}{COMPACTPCI_CHASSIS,15}{ADVANCEDTCA_CHASSIS,30}{SYSTEM_SLOT,14}{IO_BLADE,3}{DISK_BLADE,0}{DISK_DRIVE,22}{FAN,44}{POWER_DISTRIBUTION_UNIT,45}{SPEC_PROC_BLADE,1}{IO_SUBBOARD,13}{SBC_SUBBOARD,10}{ALARM_MANAGER,3}";
 
 	err = string2entitypath(test_string, &ep);
 	if (err) {
@@ -229,18 +229,14 @@ int main (int argc, char **argv) {
          *****************************/
 	{
 
-		SaHpiEntityPathT  test_ep = {
-			.Entry[0] = {
-				.EntityType = SAHPI_ENT_SUB_CHASSIS,
-				.EntityInstance = 109
-			},
-			{
-				.EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-				.EntityInstance = 112
-			}
-		};
+                SaHpiEntityPathT  test_ep;
+                gchar *returned_string;
 
-		gchar *returned_string;
+                ep_init(&test_ep);
+                test_ep.Entry[0].EntityType = SAHPI_ENT_SUB_CHASSIS;
+                test_ep.Entry[0].EntityInstance = 109;
+                test_ep.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+                test_ep.Entry[1].EntityInstance = 112;
 
 		if (NULL == (returned_string = (g_malloc0(MAX_STRING_SIZE)))) { 
 			printf("ERROR! Test Case program cannot allocate memory\n");

@@ -84,7 +84,6 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	/* let's append entity_root from config */
 
 	string2entitypath(entity_root, &entity_ep);
-	append_root(&entity_ep);
 
 	ep_concat(&entry->ResourceEntity, &entity_ep);
 

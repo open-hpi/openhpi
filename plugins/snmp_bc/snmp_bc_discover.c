@@ -130,7 +130,7 @@ struct oh_event * snmp_bc_discover_mgmnt(struct oh_handler_state *handle, char *
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
 		/* ???? Should we also set to index of active MM ???? */
-                set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_SYS_MGMNT_MODULE, mmnum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -168,7 +168,7 @@ struct oh_event * snmp_bc_discover_mediatray(struct oh_handler_state *handle, lo
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-                set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_PERIPHERAL_BAY, mtnum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -207,7 +207,7 @@ struct oh_event * snmp_bc_discover_blade(struct oh_handler_state *handle, char *
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-                set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_SBC_BLADE,bladenum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -277,7 +277,7 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
 
                         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-			set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+			set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                            SAHPI_ENT_SBC_BLADE,bladenum+BC_HPI_INSTANCE_BASE);
                         /* Add-in cards have same number as parent blade
 			 * This will be a problem if one can have multiple addins/blade.
@@ -285,7 +285,7 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
 			 * blade based DASD1 temp vector will not normalize properly
                          * if addin card numbers don't agree with parent blade number.
 			 */
-                        set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                        set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                            SAHPI_ENT_ADD_IN_CARD,bladenum+BC_HPI_INSTANCE_BASE);
                         working.u.res_event.entry.ResourceId =
                                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -328,7 +328,7 @@ struct oh_event * snmp_bc_discover_fan(struct oh_handler_state *handle,char *fan
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-                set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_FAN,fannum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -366,7 +366,7 @@ struct oh_event * snmp_bc_discover_power(struct oh_handler_state *handle,char *p
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-                set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_POWER_SUPPLY,powernum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
@@ -404,7 +404,7 @@ struct oh_event * snmp_bc_discover_switch(struct oh_handler_state *handle,char *
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-                set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_INTERCONNECT,switchnum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));

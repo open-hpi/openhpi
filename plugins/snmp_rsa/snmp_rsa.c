@@ -123,9 +123,7 @@ static int snmp_rsa_discover_resources(void *hnd)
         GSList *tmpqueue = NULL;
         char *root_tuple = (char *)g_hash_table_lookup(handle->config,"entity_root");        
                 
-        memset(&entity_root, 0, sizeof(SaHpiEntityPathT));
         string2entitypath(root_tuple, &entity_root);
-        append_root(&entity_root);
 
         /* see if the chassis exists by querying system health */
         if(snmp_get(custom_handle->ss,".1.3.6.1.4.1.2.3.51.1.2.7.1.0",&get_value) != 0) {

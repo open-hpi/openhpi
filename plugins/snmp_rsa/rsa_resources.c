@@ -40,7 +40,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .ManufacturerId = 2,
                         },
                         .ResourceEntity = {
-                                .Entry = {}
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityInstance = 0
+                                }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_RDR |
@@ -74,6 +78,10 @@ struct snmp_rpt snmp_rpt_array[] = {
                                         .EntityType = SAHPI_ENT_PROCESSOR,
                                         .EntityInstance = RSA_HPI_INSTANCE_BASE
                                 },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityInstance = 0
+                                }
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_RESOURCE |
@@ -105,6 +113,10 @@ struct snmp_rpt snmp_rpt_array[] = {
                                         .EntityType = SAHPI_ENT_DISK_BAY,
                                         .EntityInstance = RSA_HPI_INSTANCE_BASE
                                 },
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityInstance = 0
+                                }
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_RESOURCE |

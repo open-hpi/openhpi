@@ -27,10 +27,8 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	char mc_name[128];
 	int sel_support;
         
-	memset(&mc_ep, 0, sizeof(SaHpiEntityPathT));
 	dbg("entity_root: %s", entity_root);
 	string2entitypath(entity_root, &mc_ep);
-	append_root(&mc_ep);
 
         snprintf(mc_name, sizeof(mc_name),
                  "Management Controller(%x, %x)",
