@@ -163,10 +163,8 @@ struct snmp_rsa_sensor {
 };
 
 extern struct snmp_rsa_sensor snmp_rsa_chassis_sensors[];
-extern struct snmp_rsa_sensor snmp_rsa_power_sensors[];
 extern struct snmp_rsa_sensor snmp_rsa_cpu_sensors[];
 extern struct snmp_rsa_sensor snmp_rsa_dasd_sensors[];
-extern struct snmp_rsa_sensor snmp_rsa_fan_sensors[];
 
 /*************************************************************************
  *                   Control Definitions

@@ -83,18 +83,15 @@ do { \
 		e = snmp_rsa_discover_sensors(custom_handle->ss, \
                                               parent_ep, \
                                               &rdr_array[j]); \
-                /* the commented code below goes here */ \
+                        if(e != NULL) { \
+                                struct RSA_SensorInfo *rsa_data = g_memdup(&(rdr_array[j].rsa_sensor_info), \
+                                                                           sizeof(struct RSA_SensorInfo)); \
+                                oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0); \
+                                tmpqueue = g_slist_append(tmpqueue, e); \
+                        } \
         } \
 } while(0)
 
-/*
-                if(e != NULL) { \
-                        struct RSA_SensorInfo *rsa_data = g_memdup(&(rdr_array[j].rsa_sensor_info), \
-                                                                   sizeof(struct RSA_SensorInfo)); \
-                        oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0); \
-                        tmpqueue = g_slist_append(tmpqueue, e); \
-                } \
-*/
 
 #define find_controls(rdr_array) \
 do { \
@@ -163,7 +160,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                                  sizeof(struct snmp_rpt));
                 oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                 tmpqueue = g_slist_append(tmpqueue, e);
-//              SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+                SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
                 SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
 		find_sensors(snmp_rsa_chassis_sensors);                        
 //		find_controls(snmp_rsa_chassis_controls);
@@ -188,9 +185,9 @@ static int snmp_rsa_discover_resources(void *hnd)
                                          sizeof(struct snmp_rpt));
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                         tmpqueue = g_slist_append(tmpqueue, e);
-//                      SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-//                      SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
-//		        find_sensors(snmp_rsa_cpu_sensors);                        
+                        SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+                        SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+  		        find_sensors(snmp_rsa_cpu_sensors);                        
 //		        find_inventories(snmp_rsa_cpu_inventories);
                 }
         }
@@ -213,9 +210,9 @@ static int snmp_rsa_discover_resources(void *hnd)
                                          sizeof(struct snmp_rpt));
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                         tmpqueue = g_slist_append(tmpqueue, e);
-//                      SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-//                      SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
-//		        find_sensors(snmp_rsa_dasd_sensors);                        
+                        SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+                        SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+  		        find_sensors(snmp_rsa_dasd_sensors);                        
 //		        find_inventories(snmp_rsa_dasd_inventories);
                 }
         }
