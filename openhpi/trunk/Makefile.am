@@ -65,7 +65,7 @@ documentation:
 
 hpi_examples: all
 	$(MAKE) -C examples
-hpi_utils: al
+hpi_utils: all
 	$(MAKE) -c utils
 
 clean: am_config_clean
