@@ -110,7 +110,6 @@ static SaErrorT saHpiInitialize(void)
 
         int rval;
 
-	oh_will_block = 0;
         data_access_lock();
 
         if (OH_STAT_UNINIT != oh_hpi_state) {
