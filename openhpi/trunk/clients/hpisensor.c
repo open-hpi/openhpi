@@ -14,6 +14,9 @@
  * Author(s):
  *     Andy Cress <arcress@users.sourceforge.net>
  *     Renier Morales <renierm@users.sf.net>
+ *	
+ * ChangeLog:
+ *	09/08/04 pdphan@users.sf.net Add sensor number to the display.
  */
 
 #include <stdio.h>
@@ -48,14 +51,14 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
         }
         
         if (!reading.IsSupported ) {
-                printf("Reading Not Supported for this sensor!");
+                printf("\nReading Not Supported for this sensor!");
                 return;
         }
         
         if((rv = oh_decode_sensorreading(reading, sensorrec->DataFormat, &text)) == SA_OK) {
-                printf(" = %s\n", text.Data);
+                printf("\n\tSensor %d reading = %s\n", sensornum, text.Data);
         } else {
-                printf(" FAILED %s\n", oh_lookup_error(rv));
+                printf("\n\tSensor %d Reading FAILED, %s\n", sensornum, oh_lookup_error(rv));
         }
                 
         if (fshowrange) { // show ranges
@@ -104,7 +107,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
         if(fshowthr) { // show thresholds
                 rv = saHpiSensorThresholdsGet(sessionid,resourceid, sensornum, &thresh);
                  if (rv != SA_OK)  {
-                         printf("\nThresholdsGet ret=%s\n", oh_lookup_error(rv));
+                         printf("\t    ThresholdsGet ret=%s\n", oh_lookup_error(rv));
                          return;
                  }
                  printf( "\t    Thresholds::\n" );
@@ -252,7 +255,7 @@ int main(int argc, char **argv)
                         entryid = SAHPI_FIRST_ENTRY;
                         resourceid = rptentry.ResourceId;
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
-                        printf("RPTEntry[%d] tag: %s\n",
+                        printf("\n\nRPTEntry[%d] tag: %s\n",
                                resourceid,rptentry.ResourceTag.Data);
                         print_ep(&rptentry.ResourceEntity);
                         while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
@@ -268,18 +271,20 @@ int main(int argc, char **argv)
                                         } else {
                                                 eol = "\n";
                                         }
-                                        printf("    RDR[%6d]: %s %s %s",
+				
+                                        printf("\n    RDR[%6d]: %s %s %s",
                                                rdr.RecordId,
                                                oh_lookup_rdrtype(rdr.RdrType),
                                                rdr.IdString.Data,
                                                eol);
                                         
                                         if (rdr.RdrType == SAHPI_SENSOR_RDR) {
-                                                if(rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported) {
+                                                if(rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported) {	
                                                         ShowSensor(sessionid,resourceid,
                                                                    &rdr.RdrTypeUnion.SensorRec);
                                                 } else {
-                                                        printf("Sensor reading isn't supported\n");
+                                                        printf("\n\tSensorRec: Sensor %d reading isn't supported\n", 
+											rdr.RdrTypeUnion.SensorRec.Num);
                                                 }
                                         }
 
