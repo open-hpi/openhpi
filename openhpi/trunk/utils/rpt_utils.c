@@ -64,19 +64,33 @@ static RDRecord *get_rdrecord_by_id(RPTEntry *rptentry, SaHpiEntryIdT id)
         return rdrecord;
 }
 
-/*static int check_instrument_id(SaHpiRdrT *rdr)
+static int check_instrument_id(SaHpiRptEntryT *rptentry, SaHpiRdrT *rdr)
 {
+        int result = 0;
+        static const SaHpiInstrumentIdT SENSOR_AGGREGATE_MAX = 0x0000010F;
+        
         switch (rdr->RdrType) {
                 case SAHPI_SENSOR_RDR:
-                        if (rdr->RdrTypeUnion.SensorRec.Num < SAHPI_STANDARD_SENSOR_MIN ||
-                            rdr->RdrTypeUnion.SensorRec.Num > SAHPI_STANDARD_SENSOR_MAX) {
-                                return -1;
-                        } else return 0;
+                        if (rdr->RdrTypeUnion.SensorRec.Num >= SAHPI_STANDARD_SENSOR_MIN &&
+                            rdr->RdrTypeUnion.SensorRec.Num <= SAHPI_STANDARD_SENSOR_MAX) {
+                                if (rdr->RdrTypeUnion.SensorRec.Num > SENSOR_AGGREGATE_MAX) {
+                                        result = -1;
+                                } else if (rptentry->ResourceCapabilities &
+                                           SAHPI_CAPABILITY_AGGREGATE_STATUS) {
+                                        result = 0;                                        
+                                } else {
+                                        result = -1;
+                                }
+                        } else {
+                                result = 0;
+                        }
                         break;
                 default:
-                        return 0;
+                        result = 0;
         }
-}*/
+        
+        return result;
+}
 
 static SaHpiInstrumentIdT get_rdr_type_num(SaHpiRdrT *rdr)
 {
@@ -596,15 +610,17 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
         } else if (!rdr) {
                 dbg("Failed to add. RDR is NULL.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }/* else if (check_instrument_id(rdr)) {
-                dbg("Invalid instrument id found in RDR.");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }*/
+        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry){
                 dbg("Failed to add RDR. Parent RPT entry was not found in table.");
                 return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        if (check_instrument_id(&(rptentry->rpt_entry), rdr)) {
+                dbg("Invalid instrument id found in RDR.");
+                return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         type_num = get_rdr_type_num(rdr);
