@@ -370,7 +370,7 @@ InitClient(void)
         if (host == NULL) {
                 host = "localhost";
         }
-        portstr = getenv("OPENHPI_DAEMON_HOST");
+        portstr = getenv("OPENHPI_DAEMON_PORT");
         if (portstr == NULL) {
                 port =  4743;
         }
