@@ -20,8 +20,17 @@
   <revremark>Initial outline revision</revremark>
 </revision>
 ">
+<!ENTITY openhpi-rev-0_2 "
+<revision>
+  <revnumber>0.2</revnumber>
+  <date>2004-2-18</date>
+  <authorinitials>tk</authorinitials>
+  <revremark>Added IPMI Direct section</revremark>
+</revision>
+">
 <!ENTITY openhpi-revisions "
 <revhistory>
   &openhpi-rev-0_1;
+  &openhpi-rev-0_2;
 </revhistory>
 ">

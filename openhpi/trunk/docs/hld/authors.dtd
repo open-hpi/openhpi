@@ -48,6 +48,12 @@
   <surname>Shureih</surname>
 </author>
 ">
+<!ENTITY thomas-kanngieser "
+<author>
+  <firstname>Thomas</firstname>
+  <surname>Kanngieser</surname>
+</author>
+">
 <!ENTITY openhpi-authors "
 <authorgroup>
   &sean-dague;
@@ -56,5 +62,6 @@
   &rusty-lynch;
   &louis-zhuang;
   &tariq-shureih;
+  &thomas-kanngieser;
 </authorgroup>
 ">

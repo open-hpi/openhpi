@@ -2,9 +2,11 @@
 <!-- $Id$ ........................................ -->
 <!-- 
         (C) Copyright IBM Corp. 2003
+        (C) Copyright FORCE Computers 2004
  
         Authors:
             Sean Dague
+            Thomas Kanngieser
 
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
@@ -387,5 +389,130 @@ handler libipmi {
 	</para>
     </sect2>
 
+  </sect1>
+  <sect1>
+    <title>IPMI Direct Plugin</title>
+    <para>
+      The IPMI Direct plugin provides OpenHPI access to ATCA and
+      IPMI 1.5 systems. The plugin uses multiple threads to
+      communicate to the IPMI hardware. RMCP as well as SMI 
+      (access to IPMI divice driver) are supported for IPMI access.
+      The following features are supported:
+    </para>
+    <itemizedlist mark='opencircle'>
+      <listitem>
+        <para>
+          <emphasis>Sensors</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>FRU inventory data reading</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>ATCA hotswapping</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>System event log</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>Power and reset states for ATCA</emphasis>
+        </para>
+      </listitem>
+    </itemizedlist>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+	The IPMI Direct plugin can be enabled using the <literal>--enable-ipmidirect</literal> flage 
+	to the <literal>./configure</literal> script. It is build by default.
+        A statical linked version of OpenHPI and IPMI Direct can be build with
+        <literal>--enable-ipmidirect=static</literal>.
+      </para>
+      <para>
+        For RMCP password cryption MD2 or MD5 OpenSSL is required.
+        OpenSSL is available at	<ulink url="http://www.openssl.org" </ulink>.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+	The IPMI Direct plugin supports <literal>"SMI"</literal>
+	and <literal>"LAN"</literal> access methods to IPMI or ATCA hardware.
+        Below is an example "SMI" configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libipmidirect
+
+handler libipmidirect {
+	entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+	name="smi"
+	addr="0"
+}
+        </programlisting>
+      </para>
+      <para>
+	The parameter addr is the device number of the IPMI device.
+        For the above example the plugin checks /dev/ipmidev0,
+        /dev/ipmi/0 and /dev/ipmi0 for an IPMI device.
+      </para>
+      <para>
+	And this is an example "LAN" or RMCP configuration stanza:
+      </para>
+      <para>
+		<programlisting role="config">
+plugin libipmidirect
+
+handler libipmidirect {
+	entity_root = "{SYSTEM_CHASSIS,0}"
+	name = lan
+	addr = "IP.ADDRESS.HERE"
+	port = "IPMI LAN PORT NUMBER"
+	auth_type = "NONE STRAIGHT, MD2 or MD5"
+	auth_level= "USER, OPERATOR or ADMIN"
+	username = "YOUR_USER_NAME"
+	password = "YOUR_PASSWORD"
+	IpmiConnectionTimeout = "5000"
+	AtcaConnectionTimeout = "1000"
+	MaxOutstanding = "3"
+	MCC8= "initial_discover poll_alive poll_dead"
+	MCCA= "initial_discover poll_alive poll_dead"
+}
+		</programlisting>
+      </para>
+      <para>
+	ATCA systems are autodetected. The plugin uses different timeouts
+        for IPMI 1.5 and ATCA systems. IpmiConnectionTimeout and AtcaConnectionTimeout
+        are timouts in miliseconds.
+      </para>
+      <para>
+        The plugin uses one thread per Managment Controller (MC). The
+        maximum outstanding IPMI commands can be given by
+        MaxOutstanding. When the plugin has send MaxOutstanding IPMI commands
+        it will block until it receives a reply for an outstanding command
+        or a timeout happens. Then the next command is send.
+      </para>
+      <para>
+        The MCs in ATCA systems are automatic detected.
+        For IPMI 1.5 the plugin needs help by the configuration
+        file. Given the line MCCA="initial_discover poll_alive poll_dead"
+        the plugin checks for an MC at address CA (hexadecimal) at startup.
+        When an MC is found it is alive. poll_alive means that the MC is polled
+        once a second to check if the MC is already there. This is to
+        check for removal of a FRUs. poll_dead is to check insertion of
+        FRUs on IPMI 1.5 systems.
+      </para>
+      <para>
+        More than one handler sections for IPMI Direct plugin are
+        supported. The plugin is known to work on i386 and PPC platforms
+        under linux.
+      </para>
+    </sect2>
   </sect1>
 </chapter>
