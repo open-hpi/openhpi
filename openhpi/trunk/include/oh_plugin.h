@@ -104,6 +104,11 @@ struct oh_abi_v1 {
 			 struct timeval *timeout);
 	
 	/**
+	 * prompt plug-in to search for new resources
+	 */
+	int (*discover_resources)(void *hnd);
+
+	/**
 	 * get the id which the caller is running
 	 */
 	int (*get_sel_id)(void *hnd, struct oh_id *id);

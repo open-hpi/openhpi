@@ -132,3 +132,15 @@ int session_get_events(struct oh_session *s)
 
 	return rv;
 }
+
+int session_discover_resources(struct oh_session *s)
+{
+	if (!s || !s->domain || !s->domain->abi || 
+	    !s->domain->abi->discover_resources)
+		return -1;
+
+	if (!(s->domain->abi->discover_resources(s->domain->hnd)))
+		return session_get_events(s);
+
+	return -1;
+}

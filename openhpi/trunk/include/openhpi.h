@@ -82,6 +82,7 @@ struct oh_session *session_get(SaHpiSessionIdT sid);
 int session_add(struct oh_domain *d, struct oh_session **s);
 int session_del(struct oh_session *s);
 int session_get_events(struct oh_session *s);
+int session_discover_resources(struct oh_session *s);
 /* malloc/copy/add event into the tail of event_list */
 int session_push_event(struct oh_session *s, struct oh_event *e);
 /* del/copy/free event from the head of event_list */

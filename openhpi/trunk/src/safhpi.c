@@ -121,9 +121,9 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 		return SA_ERR_HPI_INVALID_SESSION;
 	}
 	
-	rv = session_get_events(s);
+	rv = session_discover_resources(s);
 	if (rv<0) {
-		dbg("Error when polling");
+		dbg("Error attempting to discover resources");
 		return SA_ERR_HPI_UNKNOWN;
 	}
 
