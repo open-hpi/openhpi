@@ -34,7 +34,8 @@ int main(int argc, char **argv)
 		err = oh_decode_time(0, &buffer);
 
 		if (err != SA_OK) {
-                        printf("Error! oh_decode_time: test initial time testcase failed. Error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
                         return -1;
                 }
 		/* printf("Time=%s\n", buffer.Data); */
@@ -45,7 +46,8 @@ int main(int argc, char **argv)
 		err = oh_decode_time(0, 0);
 		
                 if (expected_err != err) {
-                        printf("Error! oh_decode_time: Null buffer testcase failed. Error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d, Expected error=%d\n", err, expected_err);
                         return -1;
                 }
 	}
@@ -56,13 +58,15 @@ int main(int argc, char **argv)
 		/* oh_gettimeofday normal time textcase */
 		err = oh_gettimeofday(&time);
 		if (err != SA_OK) {
-                        printf("Error! oh_gettimeofday: normal testcase failed. Error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
                         return -1;
                 }
 		
 		err = oh_decode_time(time, &buffer);
 		if (err != SA_OK) {
-                        printf("Error! oh_gettimeofday: normal testcase failed. oh_decode_time error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
                         return -1;
                 }
 		/* printf("TOD Time=%s\n", buffer.Data); */
@@ -72,8 +76,8 @@ int main(int argc, char **argv)
 
 		err = oh_gettimeofday(0);
 		if (err != expected_err) {
-                        printf("Error! oh_gettimeofday: NULL time testcase failed\n");
-			printf("Received Error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d, Expected error=%d\n", err, expected_err);
                         return -1;
                 }
 	}

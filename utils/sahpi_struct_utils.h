@@ -80,11 +80,11 @@ do { \
 } while(0)
 
   
-#define oh_print_textbuffer(buf_ptr)  oh_fprint_textbuffer(stdout, buf_ptr)
-SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *buffer);
+#define oh_print_text(buf_ptr)  oh_fprint_text(stdout, buf_ptr)
+SaErrorT oh_fprint_text(FILE *stream, const SaHpiTextBufferT *buffer);
 
-#define oh_print_big_textbuffer(bigbuf_ptr) oh_fprint_big_textbuffer(stdout, bigbuf_ptr)
-SaErrorT oh_fprint_big_textbuffer(FILE *stream, const oh_big_textbuffer *big_buffer);
+#define oh_print_bigtext(bigbuf_ptr) oh_fprint_bigtext(stdout, bigbuf_ptr)
+SaErrorT oh_fprint_bigtext(FILE *stream, const oh_big_textbuffer *big_buffer);
 
 #define oh_print_sensorrec(sensor_ptr) oh_fprint_sensorrec(stdout, sensor_ptr)
 SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor);
@@ -100,14 +100,14 @@ SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHe
 
 /* FIXME:: */
 #if 0
+#define oh_print_textbuffer(buf_ptr)  oh_fprint_textbuffer(stdout, buf_ptr)
+SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *buffer);
+
 #define oh_print_ctrlrec(ctrl_ptr) oh_fprint_ctrlrec(stdout, ctrl_ptr)
 SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control);
 
 #define oh_print_watchdogrec(watchdog_ptr) oh_fprint_watchdogrec(stdout, watchdog_ptr)
 SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog);
-
-
-
 
 Need ?????
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
