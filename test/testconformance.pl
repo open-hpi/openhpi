@@ -40,46 +40,51 @@ chdir("../hpitest");
 
 system("./hpitest --clean --hpiversion B.1.01 openhpi");
 
-chdir($start . "/src");
 
-my $report = "";
+foreach my $dir (qw(src utils)) {
+    chdir($start);
 
-my @files = ();
-
-# We are only testing files in openhpi/src for conformance coverage
-opendir(IN,".");
-while(my $file = readdir(IN)) {
-    if($file =~ /\.c$/) {
-        push @files, $file;
-    }
-}
-close(IN);
-
-foreach my $file (@files) {
-    print STDERR "Cwd is now" . cwd() . "\n";
-    my $cmd = "gcov -blf -o .libs $file";
+    my $report = "";
     
-    my $report = "Coverage Report for $file\n\n";
-    my $body = "";
-    my $header = "";
-    open(GCOV,"$cmd |");
-    while(<GCOV>) {
-        if(m{^(File.*)($file)}) { # {$1$dir/$file}) {
-            $header .= $_; # File
-            $header .= <GCOV>; # Lines
-            $header .= <GCOV>; # Branches
-            $header .= <GCOV>; # Taken
-            $header .= <GCOV>; # Calls
-            $header .= "\n";
-            last; # and now we are *done*
-        } else {
-            $body .= $_;
+    chdir($dir);
+    my @files = ();
+    
+    # We are only testing files in openhpi/src for conformance coverage
+    opendir(IN,".");
+    while(my $file = readdir(IN)) {
+        if($file =~ /\.c$/) {
+            push @files, "$file";
         }
     }
-    close(GCOV);
-    
-    open(OUT,">$file.summary");
-    print OUT $report, $header, $body;
-    close(OUT);
+    close(IN);
+
+    foreach my $file (@files) {
+        
+        print STDERR "Cwd is now" . cwd() . "\n";
+        my $cmd = "gcov -blf -o .libs $file";
+        
+        my $report = "Coverage Report for $dir/$file\n\n";
+        my $body = "";
+        my $header = "";
+        open(GCOV,"$cmd |");
+        while(<GCOV>) {
+            if(s{^(File.*)($file)}{$1$dir/$file}) {
+                $header .= $_; # File
+                $header .= <GCOV>; # Lines
+                $header .= <GCOV>; # Branches
+                $header .= <GCOV>; # Taken
+                $header .= <GCOV>; # Calls
+                $header .= "\n";
+                last; # and now we are *done*
+            } else {
+                $body .= $_;
+            }
+        }
+        close(GCOV);
+        
+        open(OUT,">$file.summary");
+        print OUT $report, $header, $body;
+        close(OUT);
+    }
 }
 
