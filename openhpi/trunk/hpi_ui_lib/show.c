@@ -278,23 +278,53 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 
 SaErrorT show_rpt_list(Domain_t *D, hpi_ui_print_cb_t proc)
 {
-	Rpt_t		*Rpt;
-	int		i, ind = 0;
-	char		buf[1024];
-	char		A[256];
-	SaErrorT	rv;
+	Rpt_t			*Rpt;
+	int			i, ind = 0;
+	char			buf[1024];
+//	char			A[256];
+	SaErrorT		rv;
+	oh_big_textbuffer	tmpbuf;
+	SaHpiCapabilitiesT	cap;
+	SaHpiHsCapabilitiesT	hscap;
 
 	Rpt = D->rpts;
 	for (i = 0; i < D->n_rpts; i++, Rpt++) {
-		rv = get_rpt_attr_as_string(Rpt, "ResourceId", A, 256);
+		snprintf(buf, 1024, "Id: %3.3d", Rpt->Rpt->ResourceId);
+		ind = strlen(buf);
+		strcat(buf, "  Cflags={");
+		cap = Rpt->Rpt->ResourceCapabilities;
+		if (cap & SAHPI_CAPABILITY_SENSOR) strcat(buf, "S|");
+		if (cap & SAHPI_CAPABILITY_RDR) strcat(buf, "RDR|");
+		if (cap & SAHPI_CAPABILITY_EVENT_LOG) strcat(buf, "ELOG|");
+		if (cap & SAHPI_CAPABILITY_INVENTORY_DATA) strcat(buf, "INV|");
+		if (cap & SAHPI_CAPABILITY_RESET) strcat(buf, "RST|");
+		if (cap & SAHPI_CAPABILITY_POWER) strcat(buf, "PWR|");
+		if (cap & SAHPI_CAPABILITY_ANNUNCIATOR) strcat(buf, "AN|");
+		if (cap & SAHPI_CAPABILITY_FRU) strcat(buf, "FRU|");
+		if (cap & SAHPI_CAPABILITY_CONTROL) strcat(buf, "CNT|");
+		if (cap & SAHPI_CAPABILITY_WATCHDOG) strcat(buf, "WTD|");
+		if (cap & SAHPI_CAPABILITY_MANAGED_HOTSWAP) strcat(buf, "HS|");
+		if (cap & SAHPI_CAPABILITY_CONFIGURATION) strcat(buf, "CF |");
+		if (cap & SAHPI_CAPABILITY_AGGREGATE_STATUS) strcat(buf, "AG|");
+		if (cap & SAHPI_CAPABILITY_EVT_DEASSERTS) strcat(buf, "DS|");
+		if (cap & SAHPI_CAPABILITY_RESOURCE) strcat(buf, "RES|");
+		ind  = strlen(buf);
+		if (buf[ind - 1] == '|')
+			buf[ind - 1] = 0;
+		strcat(buf, "}");
+		hscap = Rpt->Rpt->HotSwapCapabilities;
+		strcat(buf, "  HS={");
+		if (hscap & SAHPI_HS_CAPABILITY_AUTOEXTRACT_READ_ONLY) strcat(buf, "RD|");
+		if (hscap & SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED) strcat(buf, "SUP|");
+		ind  = strlen(buf);
+		if (buf[ind - 1] == '|')
+			buf[ind - 1] = 0;
+		strcat(buf, "}");
+		ind = strlen(buf);
+		oh_init_bigtext(&tmpbuf);
+		rv = oh_decode_entitypath(&(Rpt->Rpt->ResourceEntity), &tmpbuf);
 		if (rv == SA_OK) {
-			snprintf(buf, 1024, "ResourceId: %s", A);
-			ind = strlen(buf);
-		};
-		rv = get_rpt_attr_as_string(Rpt, "ResourceTag", A, 256);
-		if (rv == SA_OK) {
-			snprintf(buf + ind, 1024 - ind, "  ResourceTag: %s", A);
-			ind = strlen(buf);
+			snprintf(buf + ind, 1024 - ind, "  EPath: %s", tmpbuf.Data);
 		};
 		strcat(buf, "\n");
 		if (proc(buf) != 0)
@@ -303,26 +333,99 @@ SaErrorT show_rpt_list(Domain_t *D, hpi_ui_print_cb_t proc)
 	return(SA_OK);
 }
 
-SaErrorT show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc)
+static int show_attrs(Attributes_t *Attrs, int del, hpi_ui_print_cb_t proc)
 {
-	int		i = 0;
-	Attributes_t	*Attrs;
-	union_type_t	val;
-	char		buf[1024];
+	int		i, type, len;
 	char		A[256], *name;
-	SaHpiTextBufferT	tbuf;
+	char		buf[1024];
+	union_type_t	val;
 	SaErrorT	rv;
 
-	Attrs = &(Rpt->Attrutes);
-	for (;; i++) {
+	memset(buf, ' ', 1024);
+	del <<= 1;
+	len = 1024 - del;
+	for (i = 0; i < Attrs->n_attrs; i++) {
 		name = get_attr_name(Attrs, i);
 		if (name == (char *)NULL)
 			break;
-		if (strcmp(name, "ResCapabilities") == 0) {
+		type = get_attr_type(Attrs, i);
+		if (type == STRUCT_TYPE) {
+			snprintf(buf+ del, len, "%s:\n", name);
+			if (proc(buf) != 0)
+				return(-1);
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK) continue;
+			show_attrs((Attributes_t *)(val.a), 1, proc);
+		};
+		rv = get_value_as_string(Attrs, i, A, 256);
+		if (rv != SA_OK)
+			continue;
+		snprintf(buf + del, len, "%s: %s\n", name, A);
+		if (proc(buf) != 0)
+			return(-1);
+	};
+	return(SA_OK);
+}
+	
+SaErrorT show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc)
+{
+	int			i = 0, type;
+	Attributes_t		*Attrs;
+	union_type_t		val;
+	char			buf[1024];
+	char			A[256], *name;
+	SaHpiTextBufferT	tbuf;
+	SaErrorT		rv;
+
+	Attrs = &(Rpt->Attrutes);
+	for (i = 0; i < Attrs->n_attrs; i++) {
+		name = get_attr_name(Attrs, i);
+		if (name == (char *)NULL)
+			break;
+		type = get_attr_type(Attrs, i);
+		if (type == STRUCT_TYPE) {
+			snprintf(buf, 1024, "%s:\n", name);
+			if (proc(buf) != 0)
+				return(-1);
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK) continue;
+			if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
+				return(-1);
+		};
+		if (strcmp(name, "TagLanguage") == 0) {
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK)
+				continue;
+			strncpy(A, oh_lookup_language(val.i), 256);
+		} else if (strcmp(name, "TagType") == 0) {
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK)
+				continue;
+			strncpy(A, oh_lookup_texttype(val.i), 256);
+		} else if (strcmp(name, "ResourceEntity") == 0) {
+			oh_big_textbuffer tmpbuf;
+
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK)
+				continue;
+			oh_init_bigtext(&tmpbuf);
+			rv = oh_decode_entitypath((SaHpiEntityPathT *)(val.a), &tmpbuf);
+			if (rv != SA_OK)
+				continue;
+			strncpy(A, tmpbuf.Data, 256);
+		} else if (strcmp(name, "Capabilities") == 0) {
 			rv = get_value(Attrs, i, &val);
 			if (rv != SA_OK)
 				continue;
 			rv = oh_decode_capabilities(val.i, &tbuf);
+			if (rv != SA_OK)
+				continue;
+			strncpy(A, tbuf.Data, 256);
+		} else if (strcmp(name, "HotSwapCapabilities") == 0) {
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK)
+				continue;
+			rv = oh_decode_hscapabilities(val.i, &tbuf);
 			if (rv != SA_OK)
 				continue;
 			strncpy(A, tbuf.Data, 256);
@@ -340,20 +443,39 @@ SaErrorT show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc)
 
 SaErrorT show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc)
 {
-	int		i = 0;
+	int		i = 0, type;
 	Attributes_t	*Attrs;
 	char		buf[1024];
 	char		A[256], *name;
 	SaErrorT	rv;
+	union_type_t	val;
 
 	Attrs = &(Rdr->Attrutes);
-	for (;; i++) {
+	for (i = 0; i < Attrs->n_attrs; i++) {
 		name = get_attr_name(Attrs, i);
 		if (name == (char *)NULL)
 			break;
-		rv = get_value_as_string(Attrs, i, A, 256);
-		if (rv != SA_OK)
+		type = get_attr_type(Attrs, i);
+		if (type == STRUCT_TYPE) {
+			snprintf(buf, 1024, "%s:\n", name);
+			if (proc(buf) != 0)
+				return(-1);
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK) continue;
+			if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
+				return(-1);
 			continue;
+		};
+		if (strcmp(name, "RdrType") == 0) {
+			rv = get_value(Attrs, i, &val);
+			if (rv != SA_OK)
+				continue;
+			strncpy(A, oh_lookup_rdrtype(val.i), 256);
+		} else {
+			rv = get_value_as_string(Attrs, i, A, 256);
+			if (rv != SA_OK)
+				continue;
+		};
 		snprintf(buf, 1024, "%s: %s\n", name, A);
 		if (proc(buf) != 0)
 			return(-1);
