@@ -31,7 +31,7 @@ oh_sel *oh_sel_create(SaHpiUint32T size)
 {
         oh_sel *sel;
 
-        sel = (oh_sel *) malloc(sizeof(oh_sel));
+        sel = (oh_sel *) g_malloc0(sizeof(oh_sel));
         if (sel != NULL) {
                 sel->enabled = TRUE;
                 sel->overflow = FALSE;
@@ -77,7 +77,7 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
         }
 
         /* alloc the new entry */
-        myentry = (SaHpiSelEntryT *) malloc(sizeof(SaHpiSelEntryT));
+        myentry = (SaHpiSelEntryT *) g_malloc0(sizeof(SaHpiSelEntryT));
         if (myentry == NULL) {
                 sel->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -85,8 +85,11 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
 
         /* if necessary, wrap the sel entries */
         if (sel->maxsize != OH_SEL_MAX_SIZE && g_list_length(sel->selentries) == sel->maxsize) {
+                gpointer tempdata;
                 temp = g_list_first(sel->selentries);
+                tempdata = temp->data;
                 sel->selentries = g_list_remove(sel->selentries, temp->data);
+                g_free(tempdata);
         }
 
         /* add the new entry */
@@ -115,14 +118,22 @@ SaErrorT oh_sel_delete(oh_sel *sel, SaHpiEntryIdT *entryid)
 /* clear all SEL entries */
 SaErrorT oh_sel_clear(oh_sel *sel)
 {
+        GList *temp;
 
         if (sel == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         if (sel->enabled) {
+                /* free the list data elements */
+                temp = g_list_first(sel->selentries);
+                while (temp != NULL) {
+                        g_free(temp->data);
+                        temp = g_list_next(temp);
+                }
+                /* free the list nodes */
                 g_list_free(sel->selentries);
-                sel->enabled = TRUE;
+                /* reset the control structure */
                 sel->overflow = FALSE;
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
                 sel->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
