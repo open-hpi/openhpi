@@ -1245,13 +1245,33 @@ static int dummy_get_sel_entry(void *hnd,
                                SaHpiEventLogEntryIdT current,
                                SaHpiEventLogEntryIdT *prev,
                                SaHpiEventLogEntryIdT *next,
-                               SaHpiEventLogEntryT *entry)
+                               SaHpiEventLogEntryT *entry,
+			       SaHpiRdrT *rdr,
+                               SaHpiRptEntryT  *rptentry)
+
 {
         dbg("dummy_get_sel_entry(): This is a very bad implementation");
         *prev = SAHPI_NO_MORE_ENTRIES;
         *next = SAHPI_NO_MORE_ENTRIES;
         memcpy(entry, &rel_entries.entry, sizeof(SaHpiEventLogEntryT));
 
+	if (rdr) { 
+		SaHpiRdrT l_rdr;
+		memset(&l_rdr, 0, sizeof(SaHpiRdrT));
+		l_rdr.RdrType = SAHPI_NO_RECORD;  /* Redundant because we have set the  */
+						  /* whole structure to zero, do it for */
+						  /* clarity.                           */
+		*rdr = l_rdr;
+	}
+	
+	if (rptentry) {
+		SaHpiRptEntryT l_rptentry;
+		/* l_rptentry.ResourceCapabilities = 0 */
+		memset(&l_rptentry, 0, sizeof(SaHpiRptEntryT));
+		
+		*rptentry = l_rptentry;
+	}
+		
         return 0;
 }
 

@@ -212,13 +212,14 @@ struct oh_abi_v2 {
 
         /**
          * get entry in EL
-         *
-         * although it looks like we need Resource and RDR passed back up, we don't
-         * because EventLogEntryT has that info stored in it.  We'll just unwind
-         * that in infrastructure.
          */
-        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
-                             SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT *entry);
+        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id,
+					    SaHpiEventLogEntryIdT current,
+                             		    SaHpiEventLogEntryIdT *prev,
+			     		    SaHpiEventLogEntryIdT *next,
+			     		    SaHpiEventLogEntryT *entry,
+					    SaHpiRdrT  *rdr,
+					    SaHpiRptEntryT  *rptentry);
 
         /**
          * clear EL
