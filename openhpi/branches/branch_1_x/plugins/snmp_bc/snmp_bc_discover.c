@@ -89,9 +89,6 @@ struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
-		print_ep(ep);
-		printf("Instance = %d\n", ep->Entry[0].EntityInstance);
-
 		/* Find instance for entity root - defined in config */
 		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
 		if (instance_str == NULL) {
