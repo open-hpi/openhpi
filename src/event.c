@@ -45,19 +45,23 @@ static gpointer oh_event_thread_loop(gpointer data)
         GTimeVal time;
 
         while(oh_run_threaded()) {
-                dbg("About to run through the event loop");
+                if (oh_initialized() != SA_OK) {
+                        trace("In event loop, but library not initialized yet. Doing nothing.");
+                } else {                
+                        dbg("About to run through the event loop");
 
-                oh_get_events();
+                        oh_get_events();
 
-                g_get_current_time(&time);
-                g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
+                        g_get_current_time(&time);
+                        g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
 
-                dbg("Going to sleep");
+                        dbg("Going to sleep");
 
-                if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-                        dbg("SIGNALED: Got signal from plugin");
-                else
-                        dbg("TIMEDOUT: Woke up, am looping again");
+                        if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
+                                dbg("SIGNALED: Got signal from plugin");
+                        else
+                                dbg("TIMEDOUT: Woke up, am looping again");
+                }
         }
         g_thread_exit(0);
         return 0;
