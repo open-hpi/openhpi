@@ -605,6 +605,7 @@ cIpmiMcVendor::FindMcBySdr( cIpmiDomain *domain, cIpmiSdr *sdr )
 {
   switch( sdr->m_type )
      {
+       case eSdrTypeCompactSensorRecord:
        case eSdrTypeFullSensorRecord:
        case eSdrTypeMcDeviceLocatorRecord:
        case eSdrTypeFruDeviceLocatorRecord:
