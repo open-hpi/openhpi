@@ -122,17 +122,16 @@ static gchar *eshort_names[] = {
 static unsigned int eshort_num_names = sizeof( eshort_names ) / sizeof( gchar * );
 
 
-/***********************************************************************
+/**
  * string2entitypath
- * 
- * Parameters:
- *   epathstr  IN   Pointer to canonical entity path string
- *   epathptr  OUT  Pointer to HPI's entity path structure
+ * @epathstr: IN. Pointer to canonical entity path string
+ * @epathptr: OUT. Pointer to HPI's entity path structure
  *
- * Returns:
- *    0  Successful return
- *   -1  Error return
- ***********************************************************************/
+ * Converts an entity path canonical string into a
+ * SaHpiEntityPathT structure.
+ * 
+ * Returns: 0 Successful return, -1 Error return
+ */
 int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 {
 
@@ -264,18 +263,18 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 	return(rtncode);
 } /* End string2entitypath */
 
-/***********************************************************************
+/**
  * entitypath2string
- *  
- * Parameters:
- *   epathptr IN   Pointer to HPI's entity path structure
- *   epathstr OUT  Pointer to canonical entity path string
- *   strsize  IN   Canonical string length
+ * @epathptr: IN. Pointer to HPI's entity path structure
+ * @epathstr: OUT. Pointer to canonical entity path string
+ * @strsize: IN. Canonical string length
  *
- * Returns:
- *   >0  Number of characters written to canonical entity path string
- *   -1  Error return
- ***********************************************************************/
+ * Converts an entity path structure into its
+ * canonical string version. 
+ *
+ * Returns: >0 Number of characters written to canonical entity path string, 
+ * -1 Error return
+ */
 int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const gint strsize)
 {
      
@@ -373,15 +372,16 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 
 
 /**
- * ep_concat: Concatenate two entity path structures (SaHpiEntityPathT).
- * @dest: IN,OUT Left-hand entity path. Gets appended with 'append'.
+ * ep_concat
+ * @dest: IN,OUT Left-hand entity path. Gets appended with @append.
  * @append: IN Right-hand entity path. Pointer entity path to be appended.
  *
- * 'dest' is assumed to be the least significant entity path in the operation.
- * append will be truncated into dest, if it doesn't fit completely in the space
- * that dest has available relative to SAHPI_MAX_ENTITY_PATH.
+ * Concatenate two entity path structures (SaHpiEntityPathT).
+ * @dest is assumed to be the least significant entity path in the operation.
+ * append will be truncated into @dest, if it doesn't fit completely in the space
+ * that @dest has available relative to SAHPI_MAX_ENTITY_PATH.
  *
- * Return value: 0 on Success, -1 if dest is NULL.
+ * Returns: 0 on Success, -1 if dest is NULL.
  **/
 int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
 {
@@ -407,13 +407,15 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
 }
 
 /**
- * set_epath_instance: Set an instance number in the entity path given at the first
- * position (from least significant to most) the specified entity type is found.
+ * set_epath_instance
  * @ep: Pointer to entity path to work on
  * @et: entity type to look for
  * @ei: entity instance to set when entity type is found
  *
- * Return value: 0 on Success, -1 if the entity type was not found.
+ * Set an instance number in the entity path given at the first
+ * position (from least significant to most) the specified entity type is found.
+ *
+ * Returns: 0 on Success, -1 if the entity type was not found.
  **/
 int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
 {
@@ -433,13 +435,14 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
 }
 
 /**
- * append_root: Append the SAHPI_ENT_ROOT element to an entity path structure.
+ * append_root
  * @ep: IN,OUT Pointer to entity path. SAHPI_ENT_ROOT will be appended to it.
  *
+ * Append the SAHPI_ENT_ROOT element to an entity path structure.
  * If an entity path already has a root element, the function returns without
  * making any changes and reporting success.
  *
- * Returns value: 0 on Success, -1 if ep is NULL.
+ * Returns: 0 on Success, -1 if ep is NULL.
  **/
 int append_root(SaHpiEntityPathT *ep)
 {
