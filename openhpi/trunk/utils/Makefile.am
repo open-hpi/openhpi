@@ -31,15 +31,17 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-GENERATED_FILES = \
-		sahpi_enum_utils.c \
-		sahpi_enum_utils.h \
-		sahpi_event_encode.c \
-		sahpi_event_encode.h
+GENERATED_HEADER_FILES = \
+			sahpi_enum_utils.h \
+			sahpi_event_encode.h
+
+GENERATED_SRC_FILES = \
+			sahpi_enum_utils.c \
+			sahpi_event_encode.c
+
+GENERATED_FILES = $(GENERATED_HEADER_FILES) $(GENERATED_SRC_FILES)
 
 EXTRA_DIST = \
-		sahpi_enum_utils.h \
-		sahpi_event_encode.h \
 		el_utils.h \
 		epath_utils.h \
 		event_utils.h \
@@ -66,8 +68,7 @@ lib_LTLIBRARIES = libopenhpiutils.la
 
 # Generated files (e.g.sahpi_enum_utils.c) must be listed first
 libopenhpiutils_la_SOURCES = \
-			sahpi_enum_utils.c \
-			sahpi_event_encode.c \
+			$(GENERATED_SRC_FILES) \
 			el_utils.c \
 			epath_utils.c \
 			rpt_utils.c \

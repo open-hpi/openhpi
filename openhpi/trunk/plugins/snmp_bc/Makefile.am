@@ -35,8 +35,6 @@ AM_CFLAGS	= @CFLAGS@ @SNMPFLAGS@
 pkglib_LTLIBRARIES = libsnmp_bc.la
 
 EXTRA_DIST = \
-		$(GENERATED_EVENT_HEADER_FILES) \
-		$(GENERATED_EVENT_XML_MAP) \
 		eventmap2code.pl \
 		snmp_bc_event.map \
 		snmp_bc.h \
