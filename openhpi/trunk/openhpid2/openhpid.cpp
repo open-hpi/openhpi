@@ -191,7 +191,6 @@ static void service_thread(gpointer data, gpointer user_data)
                 else {
                         switch( thrdinst->reqheader.m_type ) {
                         case eMhMsg:
-                                printf("Calling HandleMsg.\n");
                                 result = HandleMsg(thrdinst, buf);
                                 // marshal error ?
                                 if (result == eResultError) {
@@ -206,7 +205,7 @@ static void service_thread(gpointer data, gpointer user_data)
                                 HandleInvalidRequest(thrdinst, buf);
                                 break;
                         }
-                        free(buf); // this was malloced in ServerReadMsg
+                        free(buf); // this was malloced in ReadMsg
                 }
 	}
 
@@ -245,8 +244,6 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
   tResult result = eResultReply;
   char *pReq = (char *)data + sizeof(cMessageHeader);
 
-  printf("Processing message.\n");
-
 
   hm = HpiMarshalFind(thrdinst->reqheader.m_id);
   // check for function and data length
@@ -265,20 +262,35 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
   memset( rd, 0, hm->m_reply_len );
 
   switch( thrdinst->reqheader.m_id ) {
-       case eFsaHpiSessionOpen: {
-	      SaHpiDomainIdT  domain_id;
-	      SaHpiSessionIdT session_id = 0;
+       case eFsaHpiVersionGet: {
+	      SaHpiVersionT ver;
+	      void *dummy;
 
-              printf("Processing saHpiSessionOpen.\n");
+              printf("Processing saHpiVersionGet.\n");
 	      if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
-                                         hm, pReq, (void *)&domain_id ) < 0 )
+                                         hm, pReq, &dummy ) < 0 )
 		   return eResultError;
 
-	      ret = saHpiSessionOpen( domain_id, &session_id, 0 );
+	      ver = saHpiVersionGet( );
 
-	      thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
+	      thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ver );
        }
        break;
+
+  case eFsaHpiSessionOpen: {
+         SaHpiDomainIdT  domain_id;
+         SaHpiSessionIdT session_id = 0;
+
+         printf("Processing saHpiSessionOpen.\n");
+         if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+                                    hm, pReq, (void *)&domain_id ) < 0 )
+              return eResultError;
+
+         ret = saHpiSessionOpen( domain_id, &session_id, 0 );
+
+         thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
+  }
+  break;
 
        case eFsaHpiSessionClose: {
 	      SaHpiSessionIdT session_id;
