@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -123,7 +123,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	/* If there ever is a Add-in vector added to SNMP, have to add these below to DASD 1 temperature */
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 1 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.1",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -133,7 +133,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 2 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.2",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -143,7 +143,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 3 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.3",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -153,7 +153,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 4 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.4",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -163,7 +163,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 5 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.5",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -173,7 +173,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 6 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.6",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -183,7 +183,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 7 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.7",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -193,7 +193,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 8 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.8",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -203,7 +203,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 9 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.9",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -213,7 +213,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 10 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.10",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -223,7 +223,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 11 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.11",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -233,7 +233,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 12 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.12",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -243,7 +243,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 13 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.13",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -253,7 +253,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* SNMP_BC_BLADE_ADDIN_VECTOR Blade 14 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.14",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -1065,7 +1065,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 1.8 Volt - Low Minor */
+		/* Chassis Plus 1.8 Volt - Low Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1075,7 +1075,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 1.8 Volt - Up Minor */
+		/* Chassis Plus 1.8 Volt - Up Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1115,7 +1115,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 2.5 Volt - Low Minor */
+		/* Chassis Plus 2.5 Volt - Low Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1125,7 +1125,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 2.5 Volt - Up Minor */
+		/* Chassis Plus 2.5 Volt - Up Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1165,7 +1165,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 3.3 Volt - Low Minor */
+		/* Chassis Plus 3.3 Volt - Low Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1175,7 +1175,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 3.3 Volt - Up Minor */
+		/* Chassis Plus 3.3 Volt - Up Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1215,7 +1215,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 5 Volt - Low Minor */
+		/* Chassis Plus 5 Volt - Low Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1225,7 +1225,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 5 Volt - Up Minor */
+		/* Chassis Plus 5 Volt - Up Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1265,7 +1265,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Negative 5 Volt - Low Minor */
+		/* Chassis Negative 5 Volt - Low Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1275,7 +1275,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Negative 5 Volt - Up Minor */
+		/* Chassis Negative 5 Volt - Up Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1315,7 +1315,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 12 Volt - Low Minor */
+		/* Chassis Plus 12 Volt - Low Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -1325,7 +1325,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Chassis Plus 12 Volt - Up Minor */
+		/* Chassis Plus 12 Volt - Up Major */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2065,7 +2065,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 1 */
+		/* Blade CPU 1 Up Major temperature - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2075,7 +2075,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 2 */
+		/* Blade CPU 1 Up Major temperature - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2085,7 +2085,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 3 */
+		/* Blade CPU 1 Up Major temperature - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2095,7 +2095,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 1 Up Minor temperature - Blade 4 */
+		/* Blade CPU 1 Up Major temperature - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2105,7 +2105,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 1 Up Minor temperature - Blade 5 */
+		/* Blade CPU 1 Up Major temperature - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2115,7 +2115,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 1 Up Minor temperature - Blade 6 */
+		/* Blade CPU 1 Up Major temperature - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2125,7 +2125,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 1 Up Minor temperature - Blade 7 */
+		/* Blade CPU 1 Up Major temperature - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2135,7 +2135,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 1 Up Minor temperature - Blade 8 */
+		/* Blade CPU 1 Up Major temperature - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2145,7 +2145,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 9 */
+		/* Blade CPU 1 Up Major temperature - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2155,7 +2155,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 10 */
+		/* Blade CPU 1 Up Major temperature - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2165,7 +2165,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 11 */
+		/* Blade CPU 1 Up Major temperature - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2175,7 +2175,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Blade CPU 1 Up Minor temperature - Blade 12 */
+		/* Blade CPU 1 Up Major temperature - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2185,7 +2185,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 13 */
+		/* Blade CPU 1 Up Major temperature - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2195,152 +2195,12 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 1 Up Minor temperature - Blade 14 */
+		/* Blade CPU 1 Up Major temperature - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
 				.string = "  85.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 1 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.1",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 2 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.2",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 3 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.3",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 4 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.4",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 5 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.5",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 6 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.6",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 7 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.7",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 8 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.8",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 9 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.9",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 10 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.10",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 11 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.11",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 12 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.12",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 13 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.13",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
-			},
-		},
-	},
-        {
-		/* Blade CPU 1 Up Hysteresis temperature - Blade 14 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.8.14",
-		.mib = {
-			.type = ASN_OCTET_STR,
-			.value = {
-				.string = "  78.00 Centigrade",
 			},
 		},
 	},
@@ -2625,7 +2485,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 1 */
+		/* Blade CPU 2 Up Major temperature - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2635,7 +2495,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 2 */
+		/* Blade CPU 2 Up Major temperature - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2645,7 +2505,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 3 */
+		/* Blade CPU 2 Up Major temperature - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2655,7 +2515,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 2 Up Minor temperature - Blade 4 */
+		/* Blade CPU 2 Up Major temperature - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2665,7 +2525,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 2 Up Minor temperature - Blade 5 */
+		/* Blade CPU 2 Up Major temperature - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2675,7 +2535,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 2 Up Minor temperature - Blade 6 */
+		/* Blade CPU 2 Up Major temperature - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2685,7 +2545,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 2 Up Minor temperature - Blade 7 */
+		/* Blade CPU 2 Up Major temperature - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2695,7 +2555,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade CPU 2 Up Minor temperature - Blade 8 */
+		/* Blade CPU 2 Up Major temperature - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2705,7 +2565,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 9 */
+		/* Blade CPU 2 Up Major temperature - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2715,7 +2575,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 10 */
+		/* Blade CPU 2 Up Major temperature - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2725,7 +2585,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 11 */
+		/* Blade CPU 2 Up Major temperature - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2735,7 +2595,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Blade CPU 2 Up Minor temperature - Blade 12 */
+		/* Blade CPU 2 Up Major temperature - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2745,7 +2605,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 13 */
+		/* Blade CPU 2 Up Major temperature - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2755,7 +2615,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Minor temperature - Blade 14 */
+		/* Blade CPU 2 Up Major temperature - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2765,148 +2625,147 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 1 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.1",
+		/* Blade CPU 3 temperature - Blade 1 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 2 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.2",
+		/* Blade CPU 3 temperature - Blade 2 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 3 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.3",
+		/* Blade CPU 3 temperature - Blade 3 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 4 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.4",
+		/* Blade CPU 3 temperature - Blade 4 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 5 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.5",
+		/* Blade CPU 3 temperature - Blade 5 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 6 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.6",
+		/* Blade CPU 3 temperature - Blade 6 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 7 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.7",
+		/* Blade CPU 3 temperature - Blade 7 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 8 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.8",
+		/* Blade CPU 3 temperature - Blade 8 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 9 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.9",
+		/* Blade CPU 3 temperature - Blade 9 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 10 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.10",
+		/* Blade CPU 3 temperature - Blade 10 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 11 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.11",
+		/* Blade CPU 3 temperature - Blade 11 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 12 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.12",
+		/* Blade CPU 3 temperature - Blade 12 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 13 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.13",
+		/* Blade CPU 3 temperature - Blade 13 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade CPU 2 Up Hysteresis temperature - Blade 14 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.11.14",
+		/* Blade CPU 3 temperature - Blade 14 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
-	/* Blade DASD 1 temperature - already defined above for Add-in card vector */
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 1 */
+		/* Blade CPU 3 Up Critical temperature - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2916,7 +2775,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 2 */
+		/* Blade CPU 3 Up Critical temperature - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2926,7 +2785,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 3 */
+		/* Blade CPU 3 Up Critical temperature - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2936,7 +2795,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 4 */
+		/* Blade CPU 3 Up Critical temperature - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2946,7 +2805,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 5 */
+		/* Blade CPU 3 Up Critical temperature - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2956,7 +2815,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 6 */
+		/* Blade CPU 3 Up Critical temperature - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2966,7 +2825,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 7 */
+		/* Blade CPU 3 Up Critical temperature - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2976,7 +2835,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 8 */
+		/* Blade CPU 3 Up Critical temperature - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2986,7 +2845,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 9 */
+		/* Blade CPU 3 Up Critical temperature - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -2996,7 +2855,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 10 */
+		/* Blade CPU 3 Up Critical temperature - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3006,7 +2865,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 11 */
+		/* Blade CPU 3 Up Critical temperature - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3016,7 +2875,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 12 */
+		/* Blade CPU 3 Up Critical temperature - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3026,7 +2885,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 13 */
+		/* Blade CPU 3 Up Critical temperature - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3036,7 +2895,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Critical temperature - Blade 14 */
+		/* Blade CPU 3 Up Critical temperature - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3046,7 +2905,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 1 */
+		/* Blade CPU 3 Up Major temperature - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3056,7 +2915,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 2 */
+		/* Blade CPU 3 Up Major temperature - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3066,7 +2925,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 3 */
+		/* Blade CPU 3 Up Major temperature - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3076,7 +2935,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade DASD 1 Up Minor temperature - Blade 4 */
+		/* Blade CPU 3 Up Major temperature - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3086,7 +2945,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade DASD 1 Up Minor temperature - Blade 5 */
+		/* Blade CPU 3 Up Major temperature - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3096,7 +2955,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade DASD 1 Up Minor temperature - Blade 6 */
+		/* Blade CPU 3 Up Major temperature - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3106,7 +2965,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade DASD 1 Up Minor temperature - Blade 7 */
+		/* Blade CPU 3 Up Major temperature - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3116,7 +2975,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {	
-		/* Blade DASD 1 Up Minor temperature - Blade 8 */
+		/* Blade CPU 3 Up Major temperature - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3126,7 +2985,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 9 */
+		/* Blade CPU 3 Up Major temperature - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3136,7 +2995,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 10 */
+		/* Blade CPU 3 Up Major temperature - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3146,7 +3005,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 11 */
+		/* Blade CPU 3 Up Major temperature - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3156,7 +3015,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 	{
-		/* Blade DASD 1 Up Minor temperature - Blade 12 */
+		/* Blade CPU 3 Up Major temperature - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3166,7 +3025,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 13 */
+		/* Blade CPU 3 Up Major temperature - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3176,7 +3035,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Minor temperature - Blade 14 */
+		/* Blade CPU 3 Up Major temperature - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3186,142 +3045,703 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 1 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.1",
+		/* Blade CPU 4 temperature - Blade 1 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 2 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.2",
+		/* Blade CPU 4 temperature - Blade 2 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 3 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.3",
+		/* Blade CPU 4 temperature - Blade 3 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 4 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.4",
+		/* Blade CPU 4 temperature - Blade 4 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 5 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.5",
+		/* Blade CPU 4 temperature - Blade 5 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 6 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.6",
+		/* Blade CPU 4 temperature - Blade 6 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 7 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.7",
+		/* Blade CPU 4 temperature - Blade 7 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 8 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.8",
+		/* Blade CPU 4 temperature - Blade 8 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 9 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.9",
+		/* Blade CPU 4 temperature - Blade 9 */	
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 10 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.10",
+		/* Blade CPU 4 temperature - Blade 10 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 11 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.11",
+		/* Blade CPU 4 temperature - Blade 11 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 12 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.12",
+		/* Blade CPU 4 temperature - Blade 12 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 13 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.13",
+		/* Blade CPU 4 temperature - Blade 13 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
 			},
 		},
 	},
         {
-		/* Blade DASD 1 Up Hysteresis temperature - Blade 14 */
-		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.14.14",
+		/* Blade CPU 4 temperature - Blade 14 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "  78.00 Centigrade",
+				.string = "  50.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 1 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.1",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 2 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.2",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 3 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.3",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 4 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.4",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 5 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.5",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 6 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.6",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 7 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.7",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 8 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.8",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 9 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.9",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 10 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.10",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 11 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.11",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 12 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.12",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 13 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.13",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Critical temperature - Blade 14 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.14",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 1 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.1",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 2 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.2",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 3 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.3",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade CPU 4 Up Major temperature - Blade 4 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.4",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade CPU 4 Up Major temperature - Blade 5 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.5",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade CPU 4 Up Major temperature - Blade 6 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.6",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade CPU 4 Up Major temperature - Blade 7 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.7",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade CPU 4 Up Major temperature - Blade 8 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.8",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 9 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.9",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 10 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.10",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 11 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.11",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+	{
+		/* Blade CPU 4 Up Major temperature - Blade 12 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.12",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 13 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.13",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade CPU 4 Up Major temperature - Blade 14 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.14",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+	/* Daughter Card  DASD 1 temperature - already defined above for Add-in card vector */
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 1 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.1",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 2 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.2",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 3 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.3",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 4 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.4",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 5 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.5",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 6 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.6",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 7 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.7",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 8 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.8",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 9 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.9",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 10 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.10",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 11 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.11",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 12 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.12",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 13 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.13",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Critical temperature - Blade 14 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.14",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  95.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 1 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.1",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 2 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.2",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 3 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.3",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade DASD 1 Up Major temperature - Blade 4 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.4",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade DASD 1 Up Major temperature - Blade 5 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.5",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade DASD 1 Up Major temperature - Blade 6 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.6",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade DASD 1 Up Major temperature - Blade 7 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.7",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {	
+		/* Blade DASD 1 Up Major temperature - Blade 8 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.8",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 9 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.9",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 10 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.10",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 11 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.11",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+	{
+		/* Blade DASD 1 Up Major temperature - Blade 12 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.12",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 13 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.13",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
+			},
+		},
+	},
+        {
+		/* Blade DASD 1 Up Major temperature - Blade 14 */
+		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.14",
+		.mib = {
+			.type = ASN_OCTET_STR,
+			.value = {
+				.string = "  85.00 Centigrade",
 			},
 		},
 	},
@@ -3466,7 +3886,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 1 */
+		/* Blade 5V Low Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3476,7 +3896,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 2 */
+		/* Blade 5V Low Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3486,7 +3906,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 3 */
+		/* Blade 5V Low Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3496,7 +3916,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 4 */
+		/* Blade 5V Low Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3506,7 +3926,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 5 */
+		/* Blade 5V Low Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3516,7 +3936,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 6 */
+		/* Blade 5V Low Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3526,7 +3946,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 7 */
+		/* Blade 5V Low Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3536,7 +3956,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 8 */
+		/* Blade 5V Low Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3546,7 +3966,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 9 */
+		/* Blade 5V Low Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3556,7 +3976,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 10 */
+		/* Blade 5V Low Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3566,7 +3986,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 11 */
+		/* Blade 5V Low Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3576,7 +3996,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 12 */
+		/* Blade 5V Low Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3586,7 +4006,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 13 */
+		/* Blade 5V Low Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3596,7 +4016,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Low Minor - Blade 14 */
+		/* Blade 5V Low Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3606,7 +4026,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 1 */
+		/* Blade 5V Up Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3616,7 +4036,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 2 */
+		/* Blade 5V Up Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3626,7 +4046,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 3 */
+		/* Blade 5V Up Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3636,7 +4056,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 4 */
+		/* Blade 5V Up Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3646,7 +4066,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 5 */
+		/* Blade 5V Up Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3656,7 +4076,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 6 */
+		/* Blade 5V Up Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3666,7 +4086,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 7 */
+		/* Blade 5V Up Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3676,7 +4096,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 8 */
+		/* Blade 5V Up Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3686,7 +4106,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 9 */
+		/* Blade 5V Up Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3696,7 +4116,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 10 */
+		/* Blade 5V Up Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3706,7 +4126,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 11 */
+		/* Blade 5V Up Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3716,7 +4136,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 12 */
+		/* Blade 5V Up Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3726,7 +4146,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 13 */
+		/* Blade 5V Up Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3736,7 +4156,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 5V Up Minor - Blade 14 */
+		/* Blade 5V Up Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3886,7 +4306,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 1 */
+		/* Blade 3.3 Volts Low Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3896,7 +4316,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 2 */
+		/* Blade 3.3 Volts Low Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3906,7 +4326,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 3 */
+		/* Blade 3.3 Volts Low Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3916,7 +4336,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 4 */
+		/* Blade 3.3 Volts Low Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3926,7 +4346,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 5 */
+		/* Blade 3.3 Volts Low Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3936,7 +4356,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 6 */
+		/* Blade 3.3 Volts Low Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3946,7 +4366,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 7 */
+		/* Blade 3.3 Volts Low Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3956,7 +4376,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 8 */
+		/* Blade 3.3 Volts Low Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3966,7 +4386,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 9 */
+		/* Blade 3.3 Volts Low Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3976,7 +4396,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 10 */
+		/* Blade 3.3 Volts Low Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3986,7 +4406,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 11 */
+		/* Blade 3.3 Volts Low Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -3996,7 +4416,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 12 */
+		/* Blade 3.3 Volts Low Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4006,7 +4426,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 13 */
+		/* Blade 3.3 Volts Low Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4016,7 +4436,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Low Minor - Blade 14 */
+		/* Blade 3.3 Volts Low Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4026,7 +4446,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 1 */
+		/* Blade 3.3 Volts Up Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4036,7 +4456,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 2 */
+		/* Blade 3.3 Volts Up Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4046,7 +4466,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 3 */
+		/* Blade 3.3 Volts Up Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4056,7 +4476,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 4 */
+		/* Blade 3.3 Volts Up Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4066,7 +4486,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 5 */
+		/* Blade 3.3 Volts Up Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4076,7 +4496,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 6 */
+		/* Blade 3.3 Volts Up Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4086,7 +4506,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 7 */
+		/* Blade 3.3 Volts Up Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4096,7 +4516,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 8 */
+		/* Blade 3.3 Volts Up Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4106,7 +4526,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 9 */
+		/* Blade 3.3 Volts Up Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4116,7 +4536,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 10 */
+		/* Blade 3.3 Volts Up Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4126,7 +4546,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 11 */
+		/* Blade 3.3 Volts Up Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4136,7 +4556,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 12 */
+		/* Blade 3.3 Volts Up Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4146,7 +4566,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 13 */
+		/* Blade 3.3 Volts Up Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4156,7 +4576,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 3.3 Volts Up Minor - Blade 14 */
+		/* Blade 3.3 Volts Up Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4306,7 +4726,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 1 */
+		/* Blade 12 Volts Low Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4316,7 +4736,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 2 */
+		/* Blade 12 Volts Low Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4326,7 +4746,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 3 */
+		/* Blade 12 Volts Low Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4336,7 +4756,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 4 */
+		/* Blade 12 Volts Low Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4346,7 +4766,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 5 */
+		/* Blade 12 Volts Low Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4356,7 +4776,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 6 */
+		/* Blade 12 Volts Low Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4366,7 +4786,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 7 */
+		/* Blade 12 Volts Low Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4376,7 +4796,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 8 */
+		/* Blade 12 Volts Low Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4386,7 +4806,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 9 */
+		/* Blade 12 Volts Low Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4396,7 +4816,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 10 */
+		/* Blade 12 Volts Low Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4406,7 +4826,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 11 */
+		/* Blade 12 Volts Low Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4416,7 +4836,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 12 */
+		/* Blade 12 Volts Low Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4426,7 +4846,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 13 */
+		/* Blade 12 Volts Low Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4436,7 +4856,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Low Minor - Blade 14 */
+		/* Blade 12 Volts Low Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4446,7 +4866,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 1 */
+		/* Blade 12 Volts Up Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4456,7 +4876,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 2 */
+		/* Blade 12 Volts Up Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4466,7 +4886,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 3 */
+		/* Blade 12 Volts Up Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4476,7 +4896,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 4 */
+		/* Blade 12 Volts Up Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4486,7 +4906,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 5 */
+		/* Blade 12 Volts Up Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4496,7 +4916,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 6 */
+		/* Blade 12 Volts Up Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4506,7 +4926,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 7 */
+		/* Blade 12 Volts Up Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4516,7 +4936,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 8 */
+		/* Blade 12 Volts Up Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4526,7 +4946,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 9 */
+		/* Blade 12 Volts Up Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4536,7 +4956,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 10 */
+		/* Blade 12 Volts Up Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4546,7 +4966,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 11 */
+		/* Blade 12 Volts Up Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4556,7 +4976,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 12 */
+		/* Blade 12 Volts Up Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4566,7 +4986,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 13 */
+		/* Blade 12 Volts Up Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4576,7 +4996,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 12 Volts Up Minor - Blade 14 */
+		/* Blade 12 Volts Up Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4726,7 +5146,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 1 */
+		/* Blade 2.5 Volts Low Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4736,7 +5156,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 2 */
+		/* Blade 2.5 Volts Low Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4746,7 +5166,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 3 */
+		/* Blade 2.5 Volts Low Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4756,7 +5176,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 4 */
+		/* Blade 2.5 Volts Low Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4766,7 +5186,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 5 */
+		/* Blade 2.5 Volts Low Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4776,7 +5196,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 6 */
+		/* Blade 2.5 Volts Low Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4786,7 +5206,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 7 */
+		/* Blade 2.5 Volts Low Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4796,7 +5216,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 8 */
+		/* Blade 2.5 Volts Low Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4806,7 +5226,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 9 */
+		/* Blade 2.5 Volts Low Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4816,7 +5236,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 10 */
+		/* Blade 2.5 Volts Low Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4826,7 +5246,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 11 */
+		/* Blade 2.5 Volts Low Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4836,7 +5256,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 12 */
+		/* Blade 2.5 Volts Low Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4846,7 +5266,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 13 */
+		/* Blade 2.5 Volts Low Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4856,7 +5276,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Low Minor - Blade 14 */
+		/* Blade 2.5 Volts Low Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4866,7 +5286,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 1 */
+		/* Blade 2.5 Volts Up Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4876,7 +5296,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 2 */
+		/* Blade 2.5 Volts Up Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4886,7 +5306,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 3 */
+		/* Blade 2.5 Volts Up Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4896,7 +5316,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 4 */
+		/* Blade 2.5 Volts Up Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4906,7 +5326,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 5 */
+		/* Blade 2.5 Volts Up Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4916,7 +5336,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 6 */
+		/* Blade 2.5 Volts Up Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4926,7 +5346,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 7 */
+		/* Blade 2.5 Volts Up Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4936,7 +5356,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 8 */
+		/* Blade 2.5 Volts Up Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4946,7 +5366,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 9 */
+		/* Blade 2.5 Volts Up Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4956,7 +5376,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 10 */
+		/* Blade 2.5 Volts Up Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4966,7 +5386,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 11 */
+		/* Blade 2.5 Volts Up Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4976,7 +5396,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 12 */
+		/* Blade 2.5 Volts Up Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4986,7 +5406,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 13 */
+		/* Blade 2.5 Volts Up Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -4996,7 +5416,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 2.5 Volts Up Minor - Blade 14 */
+		/* Blade 2.5 Volts Up Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5146,7 +5566,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 1 */
+		/* Blade 1.5 Volts Low Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5156,7 +5576,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 2 */
+		/* Blade 1.5 Volts Low Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5166,7 +5586,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 3 */
+		/* Blade 1.5 Volts Low Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5176,7 +5596,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 4 */
+		/* Blade 1.5 Volts Low Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5186,7 +5606,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 5 */
+		/* Blade 1.5 Volts Low Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5196,7 +5616,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 6 */
+		/* Blade 1.5 Volts Low Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5206,7 +5626,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 7 */
+		/* Blade 1.5 Volts Low Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5216,7 +5636,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 8 */
+		/* Blade 1.5 Volts Low Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5226,7 +5646,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 9 */
+		/* Blade 1.5 Volts Low Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5236,7 +5656,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 10 */
+		/* Blade 1.5 Volts Low Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5246,7 +5666,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 11 */
+		/* Blade 1.5 Volts Low Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5256,7 +5676,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 12 */
+		/* Blade 1.5 Volts Low Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5266,7 +5686,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 13 */
+		/* Blade 1.5 Volts Low Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5276,7 +5696,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Low Minor - Blade 14 */
+		/* Blade 1.5 Volts Low Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5286,7 +5706,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 1 */
+		/* Blade 1.5 Volts Up Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5296,7 +5716,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 2 */
+		/* Blade 1.5 Volts Up Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5306,7 +5726,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 3 */
+		/* Blade 1.5 Volts Up Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5316,7 +5736,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 4 */
+		/* Blade 1.5 Volts Up Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5326,7 +5746,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 5 */
+		/* Blade 1.5 Volts Up Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5336,7 +5756,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 6 */
+		/* Blade 1.5 Volts Up Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5346,7 +5766,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 7 */
+		/* Blade 1.5 Volts Up Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5356,7 +5776,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 8 */
+		/* Blade 1.5 Volts Up Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5366,7 +5786,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 9 */
+		/* Blade 1.5 Volts Up Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5376,7 +5796,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 10 */
+		/* Blade 1.5 Volts Up Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5386,7 +5806,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 11 */
+		/* Blade 1.5 Volts Up Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5396,7 +5816,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 12 */
+		/* Blade 1.5 Volts Up Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5406,7 +5826,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 13 */
+		/* Blade 1.5 Volts Up Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5416,7 +5836,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.5 Volts Up Minor - Blade 14 */
+		/* Blade 1.5 Volts Up Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5566,7 +5986,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 1 */
+		/* Blade 1.25 Volts Low Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5576,7 +5996,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 2 */
+		/* Blade 1.25 Volts Low Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5586,7 +6006,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 3 */
+		/* Blade 1.25 Volts Low Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5596,7 +6016,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 4 */
+		/* Blade 1.25 Volts Low Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5606,7 +6026,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 5 */
+		/* Blade 1.25 Volts Low Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5616,7 +6036,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 6 */
+		/* Blade 1.25 Volts Low Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5626,7 +6046,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 7 */
+		/* Blade 1.25 Volts Low Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5636,7 +6056,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 8 */
+		/* Blade 1.25 Volts Low Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5646,7 +6066,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 9 */
+		/* Blade 1.25 Volts Low Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5656,7 +6076,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 10 */
+		/* Blade 1.25 Volts Low Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5666,7 +6086,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 11 */
+		/* Blade 1.25 Volts Low Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5676,7 +6096,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 12 */
+		/* Blade 1.25 Volts Low Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5686,7 +6106,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 13 */
+		/* Blade 1.25 Volts Low Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5696,7 +6116,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Low Minor - Blade 14 */
+		/* Blade 1.25 Volts Low Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5706,7 +6126,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 1 */
+		/* Blade 1.25 Volts Up Major - Blade 1 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5716,7 +6136,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 2 */
+		/* Blade 1.25 Volts Up Major - Blade 2 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5726,7 +6146,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 3 */
+		/* Blade 1.25 Volts Up Major - Blade 3 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5736,7 +6156,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 4 */
+		/* Blade 1.25 Volts Up Major - Blade 4 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5746,7 +6166,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 5 */
+		/* Blade 1.25 Volts Up Major - Blade 5 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5756,7 +6176,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 6 */
+		/* Blade 1.25 Volts Up Major - Blade 6 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5766,7 +6186,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 7 */
+		/* Blade 1.25 Volts Up Major - Blade 7 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5776,7 +6196,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 8 */
+		/* Blade 1.25 Volts Up Major - Blade 8 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5786,7 +6206,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 9 */
+		/* Blade 1.25 Volts Up Major - Blade 9 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5796,7 +6216,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 10 */
+		/* Blade 1.25 Volts Up Major - Blade 10 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5806,7 +6226,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 11 */
+		/* Blade 1.25 Volts Up Major - Blade 11 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5816,7 +6236,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 12 */
+		/* Blade 1.25 Volts Up Major - Blade 12 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5826,7 +6246,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 13 */
+		/* Blade 1.25 Volts Up Major - Blade 13 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
@@ -5836,7 +6256,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
         {
-		/* Blade 1.25 Volts Up Minor - Blade 14 */
+		/* Blade 1.25 Volts Up Major - Blade 14 */
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
