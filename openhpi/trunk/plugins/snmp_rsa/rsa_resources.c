@@ -1150,15 +1150,6 @@ struct snmp_rsa_control snmp_rsa_chassis_controls[] = {
 
         {} /* Terminate array with a null element */
 };
-
-/****************
- * Power Controls
- ****************/
-
-struct snmp_rsa_control snmp_rsa_power_controls[] = {
-
-        {} /* Terminate array with a null element */
-};
  
 /*************************************************************************
  *                   Inventory Definitions
@@ -1174,34 +1165,28 @@ struct snmp_rsa_inventory snmp_rsa_chassis_inventories[] = {
 			.EirId = 1,
                         .Oem = 0,
                 },
-                .mib = {
-                        .not_avail_indicator_num = 0,
-                        .write_only = 0,
-                	.inventory_type = SAHPI_INVENT_RECTYPE_CHASSIS_INFO,
-                	.chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
-			.oid = {
-                        	.OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
-                        	.OidManufacturer = '\0',
-                        	.OidProductName = '\0',
-                        	.OidProductVersion = ".1.3.6.1.4.1.2.3.51.1.2.21.1.1.1.0",
-                        	.OidModelNumber = '\0',
-                        	.OidSerialNumber = '\0',
-                        	.OidPartNumber = '\0',
-                        	.OidFileId = '\0',
-                        	.OidAssetTag = '\0',
-                	}
+		.rsa_inventory_info = {		
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.inventory_type = SAHPI_INVENT_RECTYPE_CHASSIS_INFO,
+				.chassis_type = SAHPI_INVENT_CTYP_TOWER,
+				.oid = {
+                                        .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
+                                        .OidManufacturer = '\0',
+                                        .OidProductName = '\0',
+                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.1.2.21.1.1.1.0",
+                                        .OidModelNumber = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.2.0",
+                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.3.0",
+                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.1.2.21.2.1.1.0",
+                                        .OidFileId = '\0',
+                                        .OidAssetTag = '\0',
+					/* UUID .1.3.6.1.4.1.2.3.51.1.2.21.2.1.4.0  */
+				}
+			},
 		},
                 .comment = "Chassis VPD",
         },
-
-        {} /* Terminate array with a null element */
-};
-
-/*********
- * Fan VPD             
- **********/
-
-struct snmp_rsa_inventory snmp_rsa_fan_inventories[] = {
 
         {} /* Terminate array with a null element */
 };

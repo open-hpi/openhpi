@@ -143,8 +143,8 @@ static int snmp_rsa_discover_resources(void *hnd)
                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
                 SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
 		find_sensors(snmp_rsa_chassis_sensors);                        
-//		find_controls(snmp_rsa_chassis_controls);
-//		find_inventories(snmp_rsa_chassis_inventories);
+		find_controls(snmp_rsa_chassis_controls);
+		find_inventories(snmp_rsa_chassis_inventories);
         }
 
         /* discover all cpus */
@@ -299,9 +299,9 @@ static int snmp_rsa_discover_resources(void *hnd)
                 /* Need to figure out the size of the data associated with the rdr */
                 if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct RSA_SensorMibInfo);
                 else if (rdr->RdrType == SAHPI_CTRL_RDR)
-                        rdr_data_size = sizeof(struct ControlMibInfo);
+                        rdr_data_size = sizeof(struct RSA_ControlMibInfo);
                 else if (rdr->RdrType == SAHPI_INVENTORY_RDR)
-                        rdr_data_size = sizeof(struct InventoryMibInfo);
+                        rdr_data_size = sizeof(struct RSA_InventoryMibInfo);
                 oh_add_rdr(handle->rptcache, res->ResourceId, rdr, g_memdup(data, rdr_data_size),0);
                 /* Add new/changed rdrs to the event queue */
                 for (tmpnode = tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
