@@ -14,8 +14,7 @@
  */
 
 #include "ipmi.h"
-#include <epath_utils.h>
-#include <uid_utils.h>
+#include <oh_utils.h>
 #include <string.h>
 
 static inline int domain_id_is_equal(const ipmi_domain_id_t id1,

@@ -17,8 +17,7 @@
  */
 
 #include "ipmi.h"
-#include <epath_utils.h>
-#include <uid_utils.h>
+#include <oh_utils.h>
 #include <string.h>
 
 

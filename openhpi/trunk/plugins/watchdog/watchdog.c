@@ -49,8 +49,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <uid_utils.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /* These two IOCTL's were not added to watchdog.h in older kernels */
 #define WDIOC_SETTIMEOUT        _IOWR(WATCHDOG_IOCTL_BASE, 6, int)
