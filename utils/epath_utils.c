@@ -505,6 +505,7 @@ int prt_ep(SaHpiEntityPathT *ep)
 	int len;
 
 	len = entitypath2string(ep, epstr, sizeof(epstr));
+
 	if (len < 0) {
 		dbg("Cannot translate Entity Path to string");
 		return -1;
@@ -513,3 +514,40 @@ int prt_ep(SaHpiEntityPathT *ep)
 	printf("Entity Path=\"%s\"\n", epstr);
 	return 0;
 } 
+
+int ep_cmp(SaHpiEntityPathT *ep1, SaHpiEntityPathT *ep2)
+{
+        unsigned int i, j;
+        int mydebug = 0;
+
+        if ((!ep1) || (!ep2)) {
+                if (mydebug) printf ("ep_cmp error - null pointer\n");
+                return 1;
+        }
+        for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
+                if (ep1->Entry[i].EntityType == 0 )  break;
+        }
+        if (mydebug) printf ("ep1 has %d elements    ", i);
+        for ( j=0; j<SAHPI_MAX_ENTITY_PATH; j++ ) {
+                if (ep2->Entry[j].EntityType == 0 )  break;
+        }
+        if (mydebug) printf ("ep2 has %d elements\n", j);
+        if ( i != j ) {
+                if (mydebug) printf ("ep1 element count %d != ep2 %d\n", i, j);
+                return 1;
+        }
+        for ( i=0; i<j; i++ ) {
+                if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType) {
+                        if (mydebug) printf ("ep1 element%d EntityType %d != ep2 %d\n", i, 
+                                ep1->Entry[i].EntityType, ep2->Entry[i].EntityType); 
+                        return 1;
+                }
+                if (ep1->Entry[i].EntityInstance != ep2->Entry[i].EntityInstance) {
+                        if (mydebug) printf ("ep1 element %d EntityInstance %d != ep2 %d\n", i,
+                                ep1->Entry[i].EntityInstance, ep2->Entry[i].EntityInstance); 
+                        return 1;
+                }
+        }
+        if (mydebug) printf ("ep1 = ep2\n");
+        return 0;
+}
