@@ -36,7 +36,7 @@
 int main (int argc, char *argv [])
 {
 	pcstrmsock clientinst;
-	char *host;
+	const char *host;
 
 	clientinst = new cstrmsock;
 
@@ -61,8 +61,8 @@ int main (int argc, char *argv [])
 			delete clientinst;
 			return 0;
 		} else {
-			clientinst->MessageHeaderInit(eMhMsg, 0, 0, eFsaHpiDiscover, 16);
-			clientinst ->ClientWriteMsg("Client message.");
+//			clientinst->MessageHeaderInit(eMhMsg, 0, 0, eFsaHpiDiscover, 16);
+//			clientinst ->ClientWriteMsg("Client message.");
 			printf("Message sent to server.\n");
 		}
 	}

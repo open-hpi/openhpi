@@ -39,6 +39,9 @@ extern "C"
 
 static bool morph2daemon(bool runasdaemon);
 static void service_thread(gpointer data, gpointer user_data);
+static void HandleOpen(psstrmsock thrdinst);
+static void HandlePing(psstrmsock thrdinst);
+static void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et);
 
 }
 
@@ -47,7 +50,7 @@ static bool stop_server = FALSE;
 
 
 /*--------------------------------------------------------------------*/
-/* Function: main                                                         */
+/* Function: main                                                     */
 /*--------------------------------------------------------------------*/
 
 int main (int argc, char *argv[])
@@ -99,7 +102,7 @@ int main (int argc, char *argv[])
 
 
 /*--------------------------------------------------------------------*/
-/* Function: morph2daemon                                       */
+/* Function: morph2daemon                                             */
 /*--------------------------------------------------------------------*/
 
 static bool morph2daemon(bool runasdaemon)
@@ -143,38 +146,81 @@ static bool morph2daemon(bool runasdaemon)
 
 
 /*--------------------------------------------------------------------*/
-/* Function: service_thread                                        */
+/* Function: service_thread                                           */
 /*--------------------------------------------------------------------*/
 
 static void service_thread(gpointer data, gpointer user_data)
 {
 	psstrmsock thrdinst = (psstrmsock) data;
-
+        bool stop = false;
 	char *buf;
 
 	printf("Servicing connection.\n");
-
-	while (TRUE) {
-		(void *)buf = thrdinst->ServerReadMsg();
-		if (buf == NULL) {
-			if (thrdinst->GetErrcode() == 0) {
-				printf("Conection has been aborted!\n");
-				delete thrdinst;
-				break;
-			} else {
-				printf("Error reading message from client.\n");
-				thrdinst->Close();
-				delete thrdinst;
-				g_thread_exit(NULL);
-			}
-		}
-
-	cMessageHeader *header =  thrdinst->GetHeader();
-	printf("Message from client read. The message (len=%d) is \"%s\" --- type=%d\n",
-						header->m_len, buf, header->m_id);
+	while (stop == false) {
+                buf = (char *)thrdinst->ServerReadMsg();
+                switch( thrdinst->header.m_type ) {
+                case eMhOpen:
+                        HandleOpen(thrdinst);
+                        break;
+                case eMhClose:
+                        stop = true;
+                        break;
+                case eMhPing:
+                        HandlePing(thrdinst);
+                        break;
+                case eMhMsg:
+                        // this is where we will process openhpi functions
+                        break;
+                default:
+                        HandleInvalidRequest(thrdinst, thrdinst->header.m_type);
+                        break;
+                }
 	}
 
-// stop_server = TRUE;
+        delete thrdinst; // cleanup thread instance data
+
 	return; // do NOT use g_thread_exit here!
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: HandleOpen                                               */
+/*--------------------------------------------------------------------*/
+
+void HandleOpen(psstrmsock thrdinst) {
+
+  /* create and deliver a pong message */
+  thrdinst->MessageHeaderInit(eMhOpen, 0, dMhReply, 0 );
+  thrdinst->ServerWriteMsg(NULL);
+
+  return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: HandlePing                                               */
+/*--------------------------------------------------------------------*/
+
+void HandlePing(psstrmsock thrdinst) {
+
+  /* create and deliver a pong message */
+  thrdinst->MessageHeaderInit(eMhPing, 0, dMhReply, 0 );
+  thrdinst->ServerWriteMsg(NULL);
+
+  return;
+}
+
+
+/*--------------------------------------------------------------------*/
+/* Function: HandleInvalidRequest                                     */
+/*--------------------------------------------------------------------*/
+
+void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et) {
+
+  /* create and deliver a pong message */
+  thrdinst->MessageHeaderInit((tMessageType)et, 0, dMhError, 0 );
+  thrdinst->ServerWriteMsg(NULL);
+
+  return;
 }
 

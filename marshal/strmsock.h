@@ -38,14 +38,20 @@
 // message flags
 #define dMhEndianBit	1
 
+#define dMhRequest   0
+#define dMhReply     1
+#define dMhError     2  // only valid on server replies
+
 // max message length including header
 #define dMaxMessageLength 0xffff
 
 // cMessageHeader::m_type
 typedef enum
 {
-	eMhPing    = 1,
-	eMhMsg     = 2,
+	eMhPing = 1,
+	eMhOpen,
+	eMhClose,
+	eMhMsg,
 } tMessageType;
 
 typedef struct
@@ -63,7 +69,6 @@ class strmsock
 	int			s;		 // the client socket handle
 	unsigned long		ulBufSize;	// the read buffer size
 	void			*pBuf;		// the read buffer
-	cMessageHeader		header;		// the message header
 	int			domain;		// the socket domain
 	int			type;		// the socket type
 	int			protocol;		// the socket protocol
@@ -71,6 +76,7 @@ class strmsock
 	bool			fOpen;		// open connection indicator
 
 	public:
+        cMessageHeader	header;		// the message header
 	virtual		~strmsock		() { };
 	virtual void	Close			(void);
 	virtual int	GetErrcode		(void);
@@ -79,7 +85,7 @@ class strmsock
 	virtual void	SetProtocol		(int);
 	virtual void	SetType			(int);
 	virtual void	MessageHeaderInit	(tMessageType, unsigned char,
-		   				 unsigned char, unsigned int, unsigned int);
+		   				 unsigned int, unsigned int);
 	virtual cMessageHeader	*GetHeader	(void);
 	virtual void	ConWriteMsg		(const void *);
 	virtual void	*ConReadMsg		(void);
