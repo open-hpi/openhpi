@@ -119,7 +119,7 @@ struct BC_ResourceMibInfo {
 	const char *OidPowerOnOff;
 };
 
-#define MAX_EVENTS_PER_RESOURCE 6
+#define MAX_EVENTS_PER_RESOURCE 10
 #define MAX_RESOURCE_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_RESOURCE + 1) 
                                        /* Includes an ending NULL entry */
 struct res_event_map {
@@ -181,7 +181,7 @@ struct BC_SensorMibInfo {
         struct SnmpSensorThresholdOids threshold_oids;
 };
 
-#define MAX_EVENTS_PER_SENSOR 6
+#define MAX_EVENTS_PER_SENSOR 30
 #define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1) 
                                      /* Includes an ending NULL entry */
 
