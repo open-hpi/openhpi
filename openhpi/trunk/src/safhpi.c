@@ -317,6 +317,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         SaHpiDomainIdT did;
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
+        SaErrorT error = SA_OK;
 
         OH_CHECK_INIT_STATE(SessionId);
 
@@ -329,9 +330,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         OH_GET_DID(SessionId, did);
-
         OH_GET_DOMAIN(did, d); /* Lock domain */
-
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -341,16 +340,21 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        if (set_res_sev(h->hnd, ResourceId, Severity) < 0) {
+        if ((error = set_res_sev(h->hnd, ResourceId, Severity)) != SA_OK) {
                 dbg("Setting severity failed for ResourceId %d in Domain %d",
                     ResourceId, did);
-                return SA_ERR_HPI_UNKNOWN;
+                return error;
+        }
+        
+        /* Alarm Handling */
+        if (error == SA_OK) {                
+                oh_detect_res_sev_alarm(did, ResourceId, Severity);                
         }
 
         /* to get rpt entry into infrastructure */
-        oh_get_events();
+        oh_get_events();        
 
-        return SA_OK;
+        return error;
 }
 
 SaErrorT SAHPI_API saHpiResourceTagSet(
@@ -1215,7 +1219,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
                         if (a->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER) {
                                 error = SA_ERR_HPI_READ_ONLY;
                         } else {
-                                d->dat.list = g_list_remove(d->dat.list, a);
+                                d->dat.list = g_slist_remove(d->dat.list, a);
                                 g_free(a);
                                 error = SA_OK;
                         }
@@ -1617,6 +1621,10 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
         }
 
         rv = set_sensor_enable(h->hnd, ResourceId, SensorNum, SensorEnabled);
+        if (rv == SA_OK) {                
+                oh_detect_sensor_enable_alarm(did, ResourceId,
+                                              SensorNum, SensorEnabled);                
+        }
 
         return rv;
 }
@@ -1699,7 +1707,12 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = set_sensor_event_enables(h->hnd, ResourceId, SensorNum, SensorEventsEnabled);
+        rv = set_sensor_event_enables(h->hnd, ResourceId,
+                                      SensorNum, SensorEventsEnabled);
+        if (rv == SA_OK) {                
+                oh_detect_sensor_enable_alarm(did, ResourceId,
+                                              SensorNum, SensorEventsEnabled);
+        }
 
         return rv;
 }
@@ -1793,6 +1806,12 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
 				    Action,
                                     AssertEventMask,
                                     DeassertEventMask);
+        if (rv == SA_OK) {                
+                oh_detect_sensor_mask_alarm(did, ResourceId,
+                                            SensorNum,
+                                            Action, DeassertEventMask);
+        }
+        
         return rv;
 }
 

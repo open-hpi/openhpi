@@ -44,15 +44,15 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
                          int multi);                           
 
 /* Alarm Triggers */
-SaErrorT oh_detect_event_alarm(struct oh_domain *d, struct oh_event *e);
-SaErrorT oh_detect_res_sev_alarm(struct oh_domain *d,
-                                 SaHpiRptEntryT *res,
-                                 SaHpiSeverityT sev);
-SaErrorT oh_detect_sensor_enable_alarm(struct oh_domain *d,
+SaErrorT oh_detect_event_alarm(struct oh_event *e);
+SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
+                                 SaHpiResourceIdT rid,
+                                 SaHpiSeverityT new_sev);
+SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
                                        SaHpiResourceIdT rid,
                                        SaHpiSensorNumT num,
                                        SaHpiBoolT enable);
-SaErrorT oh_detect_sensor_mask_alarm(struct oh_domain *d,
+SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
                                      SaHpiResourceIdT rid,
                                      SaHpiSensorNumT num,
                                      SaHpiSensorEventMaskActionT action,

@@ -21,7 +21,7 @@
 #include <oh_utils.h>
 
 
-static GList *__get_alarm_node(struct oh_domain *d,
+static GSList *__get_alarm_node(struct oh_domain *d,
                                SaHpiAlarmIdT *aid,
                                SaHpiSeverityT *severity,
                                SaHpiStatusCondTypeT *type,
@@ -32,7 +32,7 @@ static GList *__get_alarm_node(struct oh_domain *d,
                                SaHpiBoolT unacknowledged,                          
                                int get_next)
 {
-        GList *alarms = NULL;
+        GSList *alarms = NULL;
         
         if (!d) return NULL;
                 
@@ -42,7 +42,7 @@ static GList *__get_alarm_node(struct oh_domain *d,
                 else if (*aid == SAHPI_LAST_ENTRY) {
                         /* Just return the last node.
                            Other search options don't apply. */                        
-                        return g_list_last(d->dat.list);
+                        return g_slist_last(d->dat.list);
                 }
         }
         
@@ -89,7 +89,7 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
         gettimeofday(&tv1, NULL);
         a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
         a->AlarmCond.DomainId = d->id;
-        d->dat.list = g_list_append(d->dat.list, a);
+        d->dat.list = g_slist_append(d->dat.list, a);
         
         return a;
 }
@@ -120,7 +120,7 @@ SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
                           SaHpiBoolT unacknowledged,                          
                           int get_next)
 {
-        GList *alarm_node = NULL;
+        GSList *alarm_node = NULL;
         
         if (!d) return NULL;
         
@@ -155,7 +155,7 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
                          SaHpiEventStateT *deassert_mask,
                          int multi)
 {
-        GList *alarm_node = NULL;
+        GSList *alarm_node = NULL;
         SaHpiAlarmT *alarm = NULL;
         
         if (!d) return SA_ERR_HPI_INVALID_PARAMS;
@@ -168,7 +168,7 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
                 
                 if (alarm &&
                     (deassert_mask ? *deassert_mask & alarm->AlarmCond.EventState : 1)) {
-                        d->dat.list = g_list_delete_link(d->dat.list, alarm_node);
+                        d->dat.list = g_slist_delete_link(d->dat.list, alarm_node);
                         g_free(alarm);
                 }
                 
@@ -341,9 +341,14 @@ done:
  *
  * Return value:
  **/
-SaErrorT oh_detect_event_alarm(struct oh_domain *d, struct oh_event *e)
+SaErrorT oh_detect_event_alarm(struct oh_event *e)
 {
-        if (!d || !e) return SA_ERR_HPI_INVALID_PARAMS;
+        struct oh_domain *d = NULL;
+        
+        if (!e || !e->did) return SA_ERR_HPI_INVALID_PARAMS;
+        
+        d = oh_get_domain(e->did);
+        if (!d) return SA_ERR_HPI_INVALID_DOMAIN;
         
         switch (e->type) {                
                 case OH_ET_HPI:
@@ -357,7 +362,7 @@ SaErrorT oh_detect_event_alarm(struct oh_domain *d, struct oh_event *e)
                         break;
                 default:;
         }
-        
+        oh_release_domain(d);
         return SA_OK;
 }
 
@@ -369,15 +374,28 @@ SaErrorT oh_detect_event_alarm(struct oh_domain *d, struct oh_event *e)
  *
  * Return value:
  **/
-SaErrorT oh_detect_res_sev_alarm(struct oh_domain *d,
-                                 SaHpiRptEntryT *res,
+SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
+                                 SaHpiResourceIdT rid,
                                  SaHpiSeverityT new_sev)
 {
-        if (!d || !res) return SA_ERR_HPI_INVALID_PARAMS;
+        struct oh_domain *d = NULL;
+        SaHpiRptEntryT *res = NULL;
+        
+        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        
+        d = oh_get_domain(did);
+        if (!d) return SA_ERR_HPI_INVALID_DOMAIN;
+        
+        res = oh_get_resource_by_id(&d->rpt, rid);
+        if (!res) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_RESOURCE;
+        }
         
         if (res->ResourceSeverity <= SAHPI_MINOR && new_sev > SAHPI_MINOR)
                 oh_remove_resource_alarms(d, res->ResourceId, 0);
         
+        oh_release_domain(d);                
         return SA_OK;
 }
  
@@ -391,23 +409,28 @@ SaErrorT oh_detect_res_sev_alarm(struct oh_domain *d,
  *
  * Return value:
  **/
-SaErrorT oh_detect_sensor_enable_alarm(struct oh_domain *d,
+SaErrorT oh_detect_sensor_enable_alarm(SaHpiDomainIdT did,
                                        SaHpiResourceIdT rid,
                                        SaHpiSensorNumT num,
                                        SaHpiBoolT enable)
 {
+        struct oh_domain *d = NULL;
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
         SaErrorT error = SA_OK;
         
-        if (!d || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;        
         
         /* Only need to scan alarm table if enable is false */
         if (enable) return SA_OK;
+        
+        d = oh_get_domain(did);
+        if (!d) return SA_ERR_HPI_INVALID_DOMAIN;
         
         /* Enable is false, so scan alarm table and remove any matching sensor alarms */       
         error = oh_remove_alarm(d, NULL, &type, &rid, NULL,
                                 &num, NULL, NULL, 1);
         
+        oh_release_domain(d);
         return error;
 }
 
@@ -422,22 +445,26 @@ SaErrorT oh_detect_sensor_enable_alarm(struct oh_domain *d,
  *
  * Return value:
  **/
-SaErrorT oh_detect_sensor_mask_alarm(struct oh_domain *d,
+SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
                                      SaHpiResourceIdT rid,
                                      SaHpiSensorNumT num,
                                      SaHpiSensorEventMaskActionT action,
                                      SaHpiEventStateT deassert_mask)
 {
+        struct oh_domain *d = NULL;
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_SENSOR;
         SaErrorT error = SA_OK;
                 
-        if (!d || !rid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!did || !rid) return SA_ERR_HPI_INVALID_PARAMS;
         
         if (action == SAHPI_SENS_ADD_EVENTS_TO_MASKS)
                 return SA_OK;
         
         if (action != SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS)
-                return SA_ERR_HPI_INVALID_PARAMS;        
+                return SA_ERR_HPI_INVALID_PARAMS;
+                
+        d = oh_get_domain(did);
+        if (!d) return SA_ERR_HPI_INVALID_DOMAIN;
         
         /* Find matching sensor alarms and compare alarm's state with
            the deassert mask. If deassert for that state is being disabled
@@ -446,5 +473,6 @@ SaErrorT oh_detect_sensor_mask_alarm(struct oh_domain *d,
         error = oh_remove_alarm(d, NULL, &type, &rid, NULL,
                                 &num, NULL, &deassert_mask, 1);
         
+        oh_release_domain(d);
         return error;
 }

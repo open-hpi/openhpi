@@ -376,6 +376,7 @@ SaErrorT oh_process_events()
                         trace("Event Type = Unknown Event");
                 }
         }
+        oh_detect_event_alarm(e);
         g_free(e);
         return SA_OK;
 }
