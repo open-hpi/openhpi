@@ -45,7 +45,7 @@ SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
 char progname[] = "hpi_invent";
 char *asset_tag;
-char inbuff[1024];
+char inbuff[10240];
 char outbuff[256];
 SaHpiInventoryDataT *inv;
 SaHpiInventChassisTypeT chasstype;
@@ -333,11 +333,13 @@ main(int argc, char **argv)
 	 						/* Walk thru the list of inventory data */
 		 					 if (inv->Validity == SAHPI_INVENT_DATA_VALID) 
 		  					{
-		    						if (fdebug) printf( "Index = %d type=%x len=%d\n", i, 
-											inv->DataRecords[0]->RecordType, 
-											inv->DataRecords[0]->DataLength);
-								switch (inv->DataRecords[0]->RecordType)
-								{
+                                                                for( i = 0; inv->DataRecords[i]; i++ )
+                                                                {
+                                                                        if (fdebug) printf( "Record = %d Index = %d type=%x len=%d\n", i, 
+                                                                                            i, inv->DataRecords[i]->RecordType, 
+                                                                                            inv->DataRecords[i]->DataLength);
+                                                                        switch (inv->DataRecords[i]->RecordType)
+                                                                        {
 									case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
 										if (fdebug) printf( "Internal Use\n");
 										break;
@@ -359,10 +361,11 @@ main(int argc, char **argv)
 										break;
 									default:
 										printf(" Invalid Invent Rec Type =%x\n",  
-												inv->DataRecords[i]->RecordType);
+                                                                                       inv->DataRecords[i]->RecordType);
 										break;
-								}
-							}
+                                                                        }
+                                                                }
+                                                        }
 						} else { printf(" InventoryDataRead returns HPI Error: rv=%d\n", rv); }
 					} 
 				} /* Inventory Data Records - Type 3 */
