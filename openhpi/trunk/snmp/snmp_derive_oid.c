@@ -30,7 +30,7 @@
 
 /**********************************************************************
  * snmp_derive_objid:
- * @ep - Enitity's HPI SaHpiEntityPathT.
+ * @ep - Pointer to entity's HPI SaHpiEntityPathT.
  * @oid - Un-normalized SNMP OID command character string.
  *
  * This function "normalizes" OID command strings based on entity path.
@@ -41,7 +41,7 @@
  * @oid = ".1.3.6.1.4.1.2.3.x.2.22.1.5.1.1.5.x"
  * @ep = {SAHPI_ENT_CHASSIS, 51}{SAHPI_ENT_SBC_BLADE, 3}
  *
- * returns a normalized string of ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.3".
+ * Returns a normalized string of ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.3".
  *
  * If @oid does not contain any 'x' characters, this routine still 
  * allocates memory and returns a "normalized" string. In this case,
@@ -55,27 +55,26 @@
  * Pointer to normalized OID string - normal case.
  * NULL - on error.
  **********************************************************************/
-
-/* FIXME:: this should take a pointer to an ep and not the structure itself */
-
-gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
+gchar * snmp_derive_objid(SaHpiEntityPathT *ep, const gchar *oid)
 {
         gchar *new_oid = NULL, *oid_walker = NULL;
         gchar **fragments = NULL, **oid_nodes = NULL;
         guint num_epe, num_blanks, oid_strlen = 0;
         guint total_num_digits, i, work_instance_num, num_digits;
 
+	if (!ep || !oid) return(NULL);
+
         for (num_epe = 0;
-             ep.Entry[num_epe].EntityType != SAHPI_ENT_ROOT && num_epe < SAHPI_MAX_ENTITY_PATH;
+             ep->Entry[num_epe].EntityType != SAHPI_ENT_ROOT && num_epe < SAHPI_MAX_ENTITY_PATH;
              num_epe++);
         /* trace("Number of elements in entity path: %d", num_epe); */
 
         if (num_epe == 0) {
                 dbg("Entity Path is null.");
-                return NULL;
+                return(NULL);
         }
-        if ((oid_strlen = strlen(oid)) == 0) return NULL; /* Oid is zero length. */
-        if (!strrchr(oid, OID_BLANK_CHAR)) return g_strdup(oid); /* Nothing to replace. */
+        if ((oid_strlen = strlen(oid)) == 0) return(NULL); /* Oid is zero length */
+        if (!strrchr(oid, OID_BLANK_CHAR)) return(g_strdup(oid)); /* Nothing to replace */
 
         for (num_blanks = 0, i = 0; i < oid_strlen; i++) {
                 if (oid[i] == OID_BLANK_CHAR) num_blanks++;
@@ -83,7 +82,7 @@ gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
         /* trace("Number of blanks in oid: %d, %s", num_blanks, oid); */
         if (num_blanks > num_epe) {
                 dbg("Number of replacments=%d > entity path elements=%d\n", num_blanks, num_epe);
-                return NULL;
+                return(NULL);
         }
 
         fragments = g_strsplit(oid, OID_BLANK_STR, -1);
@@ -92,13 +91,13 @@ gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
         if (!oid_nodes) {dbg("Out of memory."); goto CLEANUP;}
         total_num_digits = 0;
         for (i = 0; i < num_blanks; i++) {
-                work_instance_num = ep.Entry[num_blanks-1-i].EntityLocation;
+                work_instance_num = ep->Entry[num_blanks-1-i].EntityLocation;
                 for (num_digits = 1;
                      (work_instance_num = work_instance_num/10) > 0; num_digits++);
                 oid_nodes[i] = g_malloc0((num_digits+1)*sizeof(gchar));
                 if (!oid_nodes[i]) {dbg("Out of memory."); goto CLEANUP;}
                 snprintf(oid_nodes[i], (num_digits+1)*sizeof(gchar), "%d", 
-			 ep.Entry[num_blanks-1-i].EntityLocation);
+			 ep->Entry[num_blanks-1-i].EntityLocation);
                 /* trace("Instance number: %s", oid_nodes[i]); */
                 total_num_digits = total_num_digits + num_digits;
         }
@@ -121,5 +120,5 @@ CLEANUP:
         g_strfreev(fragments);
         g_strfreev(oid_nodes);
 
-        return new_oid;
+        return(new_oid);
 }
