@@ -17,12 +17,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <snmp_bc_session.h>
+#include <snmp_bc.h>
 
 #include <bc_resources.h>
 #include <sim_resources.h>
 
 int is_simulator(void);
-int sim_banner(void);
+int sim_banner(struct snmp_bc_hnd *);
 int sim_init(void);
 int sim_close(void);
 
@@ -33,16 +34,16 @@ int is_simulator(void)
   return 1;
 }
 
-int sim_banner(void)
+int sim_banner(struct snmp_bc_hnd *custom_handle)
 {
 
 	printf("************************************\n");
 	printf("****** BladeCenter Simulator  ******\n");
 
-	if (!strcmp(bc_type, SNMP_BC_PLATFORM_BC)) {
+	if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BC)) {
 		printf("****** BladeCenter Integrated ******\n");
 	}
-	if (!strcmp(bc_type, SNMP_BC_PLATFORM_BCT)) {
+	if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT)) {
 		printf("****** BladeCenter Telco      ******\n");
 	}
 

@@ -74,7 +74,9 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
 				returncode = (SaErrorT) (SA_SNMP_ERR_BASE - vars->type);
 				dbg("snmp exception %d \n",vars->type);
 
-                	} else if ( (vars->type == ASN_INTEGER) || (vars->type == ASN_COUNTER) ) {
+                    	} else if ( (vars->type == ASN_INTEGER) || 
+				    (vars->type == ASN_COUNTER) || 
+			    	    (vars->type == ASN_UNSIGNED) ) {
                         	value->integer = *(vars->val.integer);
 
                 	} else { 
@@ -130,7 +132,6 @@ SaErrorT snmp_set(
 
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
-        char datatype = 's';
         void *dataptr = NULL;
         int status = 0;
 	SaErrorT rtncode = 0;
@@ -146,13 +147,12 @@ SaErrorT snmp_set(
         switch (value.type)
         {
                 case ASN_INTEGER:
+		case ASN_UNSIGNED:
                 case ASN_COUNTER:
-                        datatype = 'i';
-			dataptr = (long *)&value.integer;
+			dataptr = &value.integer;
                         break;
                 case ASN_OCTET_STR:
-                        datatype = 's';
-			dataptr = (u_char *)&value.string;
+			dataptr = value.string;
                         break;
                 default:
                         rtncode = -1;
@@ -165,8 +165,12 @@ SaErrorT snmp_set(
 		/*
 		 * Set the data to send out
 		 */
+                /* Old code - int rc = snmp_add_var(pdu, objid, objid_len, datatype, dataptr)      */
+		/*            was missing checking for rc, so there was no OID and no data was     */
+		/*            included in the package.                                             */
+		/*            Since snmp_add_var() converts input data to string then call         */
+		/*            snmp_pdu_add_variable(), we stick with add_variable() for efficiency */
 		snmp_pdu_add_variable(pdu, anOID, anOID_len, value.type, dataptr, value.str_len);
-                /* old code --> send out blank oid. why? snmp_add_var(pdu, anOID, anOID_len, datatype, dataptr);*/
 
         	/*
          	* Send the Request out.

@@ -65,7 +65,6 @@
 #define SNMP_BC_BCT_MODEL_DC "8720"
 #define SNMP_BC_PLATFORM_BCT "BCT"
 #define SNMP_BC_PLATFORM_BC  "BC"
-char    bc_type[4];
 
 /* Resource indexes to snmp_rpt array below */
 typedef enum {
@@ -104,6 +103,9 @@ typedef enum {
 #define BC_SEL_INDEX_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
 #define BC_SEL_ENTRY_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
 #define BC_CLEAR_SEL_OID ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
+
+/* OID definitions for System Health and Summary */
+#define BC_TELCO_SYSTEM_HEALTH_STAT_OID ".1.3.6.1.4.1.2.3.51.2.2.9.1.0"
 
 /*************************************************************************
  *                   Resource Definitions
