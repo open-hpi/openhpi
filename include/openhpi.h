@@ -224,7 +224,6 @@ struct oh_resource {
          * The two fields are valid when resource is 
          * CAPABILITY_SYSTEM_EVENT_LOG
          */
-        enum oh_sel_state sel_state;
         int sel_counter;
         GSList *sel_list;
 
