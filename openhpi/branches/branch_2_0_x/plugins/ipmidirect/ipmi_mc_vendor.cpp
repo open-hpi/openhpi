@@ -118,7 +118,7 @@ bool
 cIpmiMcVendorFactory::Unregister( unsigned int manufacturer_id,
                                   unsigned int product_id )
 {
-  cIpmiMcVendor *mv = Find( mv->m_manufacturer_id, mv->m_product_id );
+  cIpmiMcVendor *mv = Find( manufacturer_id, product_id );
 
   if ( !mv )
        return false;
