@@ -153,7 +153,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                         return SA_ERR_HPI_OUT_OF_SPACE;
                 } else {
                         trace("Found event for handler %p", h);
-                        e2 = oh_dup_oh_event(&event);
+                        e2 = g_memdup(&event, sizeof(struct oh_event));
                         e2->hid = h->id;
                         g_async_queue_push(oh_process_q, e2);
                 }
