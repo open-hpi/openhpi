@@ -14,9 +14,10 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
-#include <openhpid.h>
-#include <openhpi.h>
-#include <oh_utils.h>
+#include "openhpid.h"
+#include "openhpi.h"
+#include "ecode_utils.h"
+#include "printevent_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -28,12 +29,18 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <signal.h>
+#include "utils.h"
 
+
+////////////////////////////////////////////////////////////
+//                  cConnection
+////////////////////////////////////////////////////////////
 
 cConnection::cConnection( cServerConnection *con )
-  : m_con( con ), m_sessions( 0 ), m_outstanding_pings( 0 )
+  : m_con( con ), m_outstanding_pings( 0 )
 {
-  oh_gettimeofday( &m_ping_timer );
+  gettimeofday1( &m_ping_timer );
   m_ping_timer += dPingTimeout;
 }
 
@@ -41,31 +48,68 @@ cConnection::cConnection( cServerConnection *con )
 cConnection::~cConnection()
 {
   if ( m_con )
-       ServerConnectionClose( m_con );
+       ServerConnectionRem( m_con );
 
-  while( m_sessions )
+  while( Num() )
      {
-       cSession *s = (cSession *)m_sessions->data;
+       cSession *s = operator[]( Num() - 1 );
        saHpiSessionClose( s->SessionId() );
 
-       m_sessions = g_list_remove( m_sessions, s );
-       delete s;
+       delete Rem( Num() - 1 );
      }
+}
+
+
+void
+cConnection::Reinit()
+{
+  gettimeofday1( &m_ping_timer );
+  m_ping_timer += dPingTimeout;
+  m_outstanding_pings = 0;
+
+  // close all sessions
+  while( Num() )
+     {
+       cSession *s = operator[]( Num() - 1 );
+       saHpiSessionClose( s->SessionId() );
+
+       delete Rem( Num() - 1 );
+     }
+}
+
+
+void
+cConnection::GetIp( char *str )
+{
+  unsigned int ip = m_con->m_resend.m_ip_addr.sin_addr.s_addr;
+
+  sprintf( str, "%d.%d.%d.%d",
+           (ip & 0xff),
+           ((ip >> 8 ) & 0xff),
+           ((ip >> 16) & 0xff),
+           ((ip >> 24) & 0xff) );
+}
+
+
+unsigned short
+cConnection::GetPort()
+{
+  return m_con->m_resend.m_ip_addr.sin_port;
 }
 
 
 cSession *
 cConnection::FindSession( SaHpiSessionIdT sid )
 {
-  for( GList *e = m_sessions; e; e = g_list_next( e ) )
-       {
-	 cSession *s = (cSession *)m_sessions->data;
+  for( int i = 0; i < Num(); i++ )
+     {
+       cSession *s = operator[]( i );
 
-	 if ( s->SessionId() == sid )
-	      return s;
+       if ( s->SessionId() == sid )
+            return s;
       }
 
-    return 0;
+  return 0;
 }
 
 
@@ -76,7 +120,7 @@ cConnection::AddSession( SaHpiSessionIdT sid )
        return false;
 
   cSession *s = new cSession( this, sid );
-  m_sessions = g_list_append( m_sessions, s );
+  cArray<cSession>::Add( s );
 
   return true;
 }
@@ -85,26 +129,40 @@ cConnection::AddSession( SaHpiSessionIdT sid )
 bool
 cConnection::RemSession( SaHpiSessionIdT sid )
 {
-  cSession *s = FindSession( sid );
+  for( int i = 0; i < Num(); i++ )
+     {
+       cSession *s = cArray<cSession>::operator[]( i );
 
-  if ( s == 0 )
-       return false;
+       if ( s->SessionId() == sid )
+          {
+            delete cArray<cSession>::Rem( i );
+            return true;
+          }
+     }
 
-  m_sessions = g_list_remove( m_sessions, s );
-
-  delete s;
-
-  return true;
+  return false;
 }
 
 
+int
+cConnection::WriteMsg( cMessageHeader &header, void *data )
+{
+  return ServerWriteMsg( m_con, &header, data );
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cOpenHpiDaemon
+////////////////////////////////////////////////////////////
+
+
 cOpenHpiDaemon::cOpenHpiDaemon()
-  : m_progname( 0 ), m_daemon( false ), m_debug( 0 ),
-    m_config( 0 ), m_interactive( true ), m_daemon_port( dDefaultDaemonPort ),
-    m_main_socket( 0 ), m_connections( 0 ),
-    m_num_connections( 0 ), m_pollfd( 0 ),
+  : m_progname( 0 ), m_daemon( true ), m_debug( 0 ),
+    m_interactive( false ), m_daemon_port( dDefaultDaemonPort ),
+    m_server_socket( 0 ), m_pollfd( 0 ),
     m_version( 0 ), m_session( 0 )
 {
+  m_config[0] = 0;
 }
 
 
@@ -199,12 +257,18 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
   if ( argc > 0 )
        m_progname = argv[0];
 
+  // set the current working directory for relative path
+  char cwd[PATH_MAX];
+  getcwd( cwd, PATH_MAX);
+  setenv( "OPENHPI_CWD", cwd, 1 );
+
   static struct option long_options[] =
   {
     { "help"       , 0, 0, 'h' },
     { "debug"      , 1, 0, 'd' },
-    { "config"     , 1, 0, 'c' },
     { "nodaemon"   , 0, 0, 'n' },
+    { "port"       , 1, 0, 'p' },
+    { "config"     , 1, 0, 'c' },
     { "interactive", 0, 0, 'i' },
     { 0, 0, 0, 0 }
   };
@@ -216,7 +280,7 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
        int option_index = 0;
        int c;
 
-       c = getopt_long( argc, argv, "hd:c:np:",
+       c = getopt_long( argc, argv, "hd:c:nip:",
                         long_options, &option_index );
 
        if ( c == -1 )
@@ -233,7 +297,16 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
 		 break;
 
 	    case 'c':
-		 m_config = optarg;
+                 // need an absolute filename
+                 if ( optarg[0] == '/' )
+                      strcpy( m_config, optarg );
+                 else
+                    {
+                      getcwd( m_config, PATH_MAX);
+                      strcat( m_config, "/" );
+                      strcat( m_config, optarg );
+                    }
+
 		 break;
 
 	    case 'p':
@@ -279,6 +352,12 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
 bool
 cOpenHpiDaemon::Initialize()
 {
+  if ( signal( SIGPIPE, SIG_IGN ) == SIG_ERR )
+     {
+       DbgInit( "cannot ignore SIG_IGN !\n" );
+       return false;
+     }
+
   if ( m_daemon )
      {
        DbgInit( "become a daemon.\n" );
@@ -316,11 +395,19 @@ cOpenHpiDaemon::Initialize()
        chdir( "/" );
 
        umask( 0 );
+
+       for( int i = 0; i < 1024; i++ )
+            close( i );
+
+       m_interactive = false;
      }
 
   // use config file given by the command line
-  if ( m_config )
+  if ( m_config[0] )
+     {
+       DbgInit( "using configuration file: %s.\n", m_config );
        setenv( "OPENHPI_CONF", m_config, 1 );
+     }
 
   // initialize openhpi
   DbgInit( "initialize openhpi.\n" );
@@ -328,8 +415,8 @@ cOpenHpiDaemon::Initialize()
 
   if ( rv != SA_OK )
      {
-       fprintf( stderr, "cannot initialize openhpi: %s !\n",
-		oh_lookup_error( rv ) );
+       DbgInit( "cannot initialize openhpi: %s !\n",
+		decode_error( rv ) );
        return false;
      }
 
@@ -338,8 +425,19 @@ cOpenHpiDaemon::Initialize()
 
   if ( rv != SA_OK )
      {
-       fprintf( stderr, "cannot create session: %s !\n", 
-		oh_lookup_error( rv ) );
+       DbgInit( "cannot create session: %s !\n", 
+		decode_error( rv ) );
+
+       saHpiFinalize();
+       return false;
+     }
+
+  rv = saHpiResourcesDiscover( m_session );
+
+  if ( rv != SA_OK )
+     {
+       DbgInit( "cannot discover resources: %s !\n", 
+		decode_error( rv ) );
 
        saHpiFinalize();
        return false;
@@ -350,8 +448,8 @@ cOpenHpiDaemon::Initialize()
 
   if ( rv != SA_OK )
      {
-       fprintf( stderr, "cannot subscribe: %s !\n", 
-		oh_lookup_error( rv ) );
+       DbgInit( "cannot subscribe: %s !\n", 
+		decode_error( rv ) );
 
        saHpiSessionClose( m_session );
        saHpiFinalize();
@@ -361,9 +459,9 @@ cOpenHpiDaemon::Initialize()
   // open daemon socket
   DbgInit( "create daemon connection port %d.\n", m_daemon_port );
 
-  m_main_socket = ServerConnectionMainOpen( m_daemon_port );
+  m_server_socket = ServerOpen( m_daemon_port );
 
-  if ( !m_main_socket )
+  if ( !m_server_socket )
      {
        fprintf( stderr, "cannot create daemon socket: %d, %s !\n",
                 errno, strerror( errno ) );
@@ -385,17 +483,17 @@ cOpenHpiDaemon::Initialize()
 
 void
 cOpenHpiDaemon::Finalize()
-{  
-  while( m_num_connections )
-       CloseConnection( 0 );
+{
+  while( Num() )
+       CloseConnection( operator[]( Num() - 1 ) );
 
   if ( m_pollfd )
        delete [] m_pollfd;
 
-  if ( m_main_socket )
+  if ( m_server_socket )
      {
-       ServerConnectionMainClose(  m_main_socket );
-       m_main_socket = 0;
+       ServerClose(  m_server_socket );
+       m_server_socket = 0;
      }
 
   saHpiUnsubscribe( m_session );
@@ -424,13 +522,26 @@ cOpenHpiDaemon::MainLoop()
   else
        m_pollfd = new pollfd[1];
 
-  m_pollfd[0].fd     = m_main_socket->m_fd;
+  m_pollfd[0].fd     = m_server_socket->m_fd;
   m_pollfd[0].events = POLLIN;
   m_pollfd[0].revents = 0;
 
+  cHpiTime next_idle = cHpiTime::Now();
+  next_idle += 250;
+
   while( true )
      {
-       int rv = poll( m_pollfd, m_num_connections + num_add, 250 );
+       cHpiTime now = cHpiTime::Now();
+
+       if ( now >= next_idle )
+          {
+            Idle();
+
+            next_idle = cHpiTime::Now();
+            next_idle += 250;
+          }
+
+       int rv = poll( m_pollfd, num_add, 250 );
 
        if ( rv < 0 )
 	  {
@@ -446,36 +557,47 @@ cOpenHpiDaemon::MainLoop()
 	  }
 
        if ( rv == 0 )
-	  {
-	    Idle();
 	    continue;
-	  }
 
-       for( int i = m_num_connections - 1; i >= 0; i-- )
-	    if ( m_pollfd[i].revents )
-		 if ( !HandleData( m_connections[i] ) )
-		    {
-		      CloseConnection( i );
-
-		      // m_pollfd has changed
-		      continue;
-		    }
-
-       if ( m_pollfd[m_num_connections].revents )
-	  {
-	    // create new connection
-	    cServerConnection *c = ServerConnectionMainAccept( m_main_socket );
-
-	    if ( c )
-	       {
-		 NewConnection( c );
-		 continue;
-	       }
-	  }
-
-       if ( m_interactive && m_pollfd[m_num_connections+1].revents )
+       if ( m_interactive && m_pollfd[1].revents )
+          {
 	    if ( HandleInteractive() == false )
 		 break;
+
+            continue;
+          }
+
+       //DbgCon( "read meg.\n" );
+
+       cServerConnection *c = 0;
+       cMessageHeader header;
+       unsigned char data[dMaxMessageLength];
+
+       tConnectionError r = ServerReadMsg( m_server_socket,
+                                           &c, &header, data );
+       cConnection *con = 0;
+
+       switch( r )
+          {
+            case eConnectionNew:
+                 NewConnection( c );
+
+            case eConnectionOk:
+                 con = (cConnection *)c->m_user_data;
+
+                 if ( !HandleData( con, header, data ) )
+                      CloseConnection( con );
+
+                 break;
+
+            case eConnectionDuplicate:
+                 break;
+
+            default:
+                 DbgCon( "reading broken message %d.\n", r );
+
+                 break;
+          }
      }
 
   return 0;
@@ -487,74 +609,26 @@ cOpenHpiDaemon::NewConnection( cServerConnection *c )
 {
   DbgCon( "creating new connection.\n" );
 
-  pollfd *pfd = new pollfd[m_num_connections + 2 + (m_interactive ? 1 : 0)];
-  cConnection **ca = new cConnection *[m_num_connections + 1];
-
-  memcpy( pfd, m_pollfd, sizeof( pollfd ) * m_num_connections );
-  memcpy( ca, m_connections, sizeof( cConnection * ) * m_num_connections );
-
-  delete [] m_pollfd;
-  delete [] m_connections;
-
-  pfd[m_num_connections].fd       = c->m_fd;
-  pfd[m_num_connections].events   = POLLIN;
-  pfd[m_num_connections+1].fd     = m_main_socket->m_fd;
-  pfd[m_num_connections+1].events = POLLIN;
-
-  if ( m_interactive )
-     {
-       pfd[m_num_connections+2].fd     = 0;
-       pfd[m_num_connections+2].events = POLLIN;
-     }
-
-  ca[m_num_connections] = new cConnection( c );
-
-  m_pollfd = pfd;
-  m_connections = ca;
-
-  m_num_connections++;
+  cConnection *con = new cConnection( c );
+  c->m_user_data = con;
+  Add( con );
 }
 
 
 void
-cOpenHpiDaemon::CloseConnection( int id )
+cOpenHpiDaemon::CloseConnection( cConnection *con )
 {
   DbgCon( "closing connection.\n" );
 
-  // close connection
-  delete m_connections[id];
+  int idx = Find( con );
 
-  pollfd *pfd = new pollfd[m_num_connections + (m_interactive ? 1 : 0)];
-  cConnection **ca = 0;
-
-  if ( m_num_connections > 1 )
-       ca = new cConnection *[m_num_connections - 1];
-
-  int i;
-
-  for( i = 0; i < id; i++ )
+  if ( idx == - 1 )
      {
-       pfd[i] = m_pollfd[i];
-       ca[i] = m_connections[i];
+       assert( 0 );
+       return;
      }
 
-  for( i = id + 1; i < m_num_connections; i++ )
-     {
-       pfd[i-1] = m_pollfd[i];
-       ca[i-1] = m_connections[i];
-     }
-
-  pfd[m_num_connections-1] = m_pollfd[m_num_connections];
-
-  if ( m_interactive )
-       pfd[m_num_connections] = m_pollfd[m_num_connections+1];
-
-  delete [] m_pollfd;
-  m_pollfd = pfd;
-
-  delete [] m_connections;
-  m_connections = ca;
-  m_num_connections--;
+  delete Rem( idx );
 }
 
 
@@ -578,58 +652,61 @@ cOpenHpiDaemon::Idle()
   else if ( ret == SA_ERR_HPI_TIMEOUT )
        DbgEvent( "idle: saHpiEventGet timeout.\n", ret );
   else
-       DbgEvent( "idle: saHpiEventGet %s.\n", oh_lookup_error( ret ) );
+       DbgEvent( "idle: saHpiEventGet %s.\n", decode_error( ret ) );
 
   SaHpiTimeT now;
-  oh_gettimeofday( &now );
+  gettimeofday1( &now );
 
   // check for pending event get
-  for( int i = m_num_connections - 1; i >= 0; i-- )
+  for( int i = Num() - 1; i >= 0; i-- )
      {
-       cConnection *c = m_connections[i];
+       cConnection *c = operator[]( i );
 
        // ping
        if ( now > c->PingTimer() )
 	  {
-	    if ( c->OutstandingPings() )
+	    if ( c->OutstandingPings() > dMaxLostPings )
 	       {
 		 // ping timeout
 		 DbgPing( "ping timeout !\n" );
-		 CloseConnection( i );
+		 CloseConnection( c );
 		 continue;
 	       }
 	    else if ( now > c->PingTimer() )
 	       {
 		 // send ping
-		 cMessageHeader header;
-		 MessageHeaderInit( &header, eMhPing, 1, 0, 0 );
+                 SaHpiTimeT pt = dPingTimeout;
+                 pt /= 1000000LL;
 
-		 int rv = ConnectionWriteHeader( c->Fd(), &header );
+		 cMessageHeader header;
+		 MessageHeaderInit( &header, eMhPing, dMhRequest, 0, (unsigned int)pt, 0 );
+
+		 int rv = c->WriteMsg( header, 0 );
 
 		 if ( rv )
 		    {
 		      DbgPing( "cannot send ping !\n" );
-		      CloseConnection( i );
+		      CloseConnection( c );
 		      continue;
 		    }
 
-		 DbgPing( "send ping.\n" );
+		 c->OutstandingPings() = c->OutstandingPings() + 1;
 
-		 c->OutstandingPings() = 1;
+		 DbgPing( "send ping %d.\n", c->OutstandingPings() );
 
 		 // set ping timer
 		 SaHpiTimeT ti;
 
-		 oh_gettimeofday( &ti );
+		 gettimeofday1( &ti );
 		 ti += dPingTimeout;
 
 		 c->PingTimer() = ti;
 	       }
 	  }
 
-       for( GList *e = c->Sessions(); e; e = g_list_next( e ) )
+       for( int j = 0; j < c->Num(); j++ )
 	  {
-	    cSession *s = (cSession *)e->data;
+	    cSession *s = c->operator[]( j );
 
 	    if ( !s->IsEventGet() )
 		 continue;
@@ -656,7 +733,7 @@ cOpenHpiDaemon::Idle()
 	    assert( hm );
 
 	    cMessageHeader rh;
-	    MessageHeaderInit( &rh, eMhReply, s->Seq(), eFsaHpiEventGet,
+	    MessageHeaderInit( &rh, eMhMsg, dMhReply, s->EventGetSeq(), eFsaHpiEventGet,
 			       hm->m_reply_len );
 
 	    // alloc reply buffer
@@ -669,67 +746,127 @@ cOpenHpiDaemon::Idle()
 	    int rv = 0;
 
 	    if ( rh.m_len >= 0 )
-		 rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
-
-	    if ( rd )
+		 rv = c->WriteMsg( rh, rd );
+            else if ( rd )
 		 free( rd );
 
 	    // cannot send message => close connection
 	    if ( rv || rh.m_len < 0 )
-		 CloseConnection( i );
+		 CloseConnection( c );
 	  }
      }
 }
 
 
 bool
-cOpenHpiDaemon::HandleData( cConnection *c )
+cOpenHpiDaemon::HandleData( cConnection *c, const cMessageHeader &header,
+                            const void *data )
 {
-  cMessageHeader header;
-  void *data = 0;
-
-  int rv = ConnectionReadMsg( c->Fd(), &header, &data, 0 );
-
-  if ( rv )
+  if ( IsRequestMsg( &header ) )
      {
-       if ( data )
-	    free( data );
+       switch( header.m_type )
+          {
+            case eMhPing:
+                 return HandlePing( c, header );
 
-       fprintf( stderr, "cannot read message !\n" );
+            case eMhReset:
+                 return HandleOpen( c, header );
+
+            case eMhMsg:
+                 {
+                   if ( header.m_id == eFClose )
+                        return HandleClose( c, header );
+
+                   cMessageHeader rh;
+                   void *rd = 0;
+
+                   tResult r = HandleMsg( c, header, data, rh, rd );
+                   int rv = 0;
+
+                   // marshal error ?
+                   if ( rh.m_len < 0 )
+                        rv = 1;
+                   if ( r == eResultReply )
+                      {
+                        assert( rh.m_len >= 0 && rh.m_len <= dMaxMessageLength );
+                        rv = c->WriteMsg( rh, rd );
+                      }
+                   else if ( r == eResultError )
+                        rv = 1;
+
+                   if ( rd )
+                        free( rd );
+
+                   return !rv;
+                 }
+
+            default:
+                 return false;
+          }
 
        return false;
      }
 
-  if ( header.m_type == eMhPong )
+  // reply
+  switch( header.m_type )
      {
-       HandlePong( c, header );
-       return true;
+       case eMhPing:
+            return HandlePong( c, header );
+
+       default:
+            return false;
      }
 
-  cMessageHeader rh;
-  void *rd = 0;
-
-  tResult r = HandleMsg( c, header, data, rh, rd );
-
-  if ( data )
-       free( data );
-
-  // marshal error ?
-  if ( rh.m_len < 0 )
-       rv = 1;
-  if ( r == eResultReply )
-       rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
-  else if ( r == eResultError )
-       rv = 1;
-
-  if ( rd )
-       free( rd );
-
-  return !rv;
+  return false;
 }
 
 
-void
+bool
+cOpenHpiDaemon::HandleOpen( cConnection *c, const cMessageHeader &header )
+{
+  char str[100];
+  c->GetIp( str );
+  DbgInit( "connection open: %s,%d.\n", str, c->GetPort() );
+  c->Reinit();
+
+  cMessageHeader rh;
+  MessageHeaderInit( &rh, (tMessageType)header.m_type, dMhReply, header.m_seq, header.m_id, 0 );
+
+  if ( c->WriteMsg( rh, 0 ) )
+       return false;
+
+  return true;
+}
+
+
+bool 
+cOpenHpiDaemon::HandleClose( cConnection *c, const cMessageHeader &header )
+{   
+  char str[100];
+  c->GetIp( str );
+  DbgInit( "connection close: %s,%d\n", str, c->GetPort() );
+
+  return false;
+}
+
+
+bool
+cOpenHpiDaemon::HandlePing( cConnection *c, const cMessageHeader &header )
+{
+  DbgPing( "read ping.\n" );
+
+  cMessageHeader rh;
+  MessageHeaderInit( &rh, (tMessageType)header.m_type, dMhReply,
+                     header.m_seq, header.m_id, 0 );
+
+  if ( c->WriteMsg( rh, 0 ) )
+       return false;
+
+  return true;
+}
+
+
+bool
 cOpenHpiDaemon::HandlePong( cConnection *c, const cMessageHeader &header )
 {
   if ( c->OutstandingPings() )
@@ -738,15 +875,16 @@ cOpenHpiDaemon::HandlePong( cConnection *c, const cMessageHeader &header )
        c->OutstandingPings() = 0;
 
        SaHpiTimeT now;
-       oh_gettimeofday( &now );
+       gettimeofday1( &now );
 
        now += dPingTimeout;
        c->PingTimer() = now;
 
-       return;
+       return true;
      }
 
   DbgPing( "read pong without ping !\n" );
+  return true;
 }
 
 
@@ -760,9 +898,6 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
   // check for function and data length
   if ( !hm || hm->m_request_len < header.m_len )
      {
-       //MessageHeaderInit( &rh, eMhError, header.m_seq, 0, 0 );
-       //rd = 0;
-
        fprintf( stderr, "wrong message length: id %d !\n", header.m_id );
 
        return eResultError;
@@ -771,7 +906,8 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
   assert( hm->m_reply_len );
 
   // init reply header
-  MessageHeaderInit( &rh, eMhReply, header.m_seq, header.m_id, hm->m_reply_len );
+  MessageHeaderInit( &rh, (tMessageType) header.m_type, dMhReply,
+                     header.m_seq, header.m_id, hm->m_reply_len );
 
   // alloc reply buffer
   rd = malloc( hm->m_reply_len );
@@ -939,6 +1075,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 
 	    break;
 
+/*
        case eFsaHpiResourceIdGet:
 	    {
 	      SaHpiSessionIdT session_id;
@@ -957,6 +1094,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	    }
 
 	    break;
+*/
 
        case eFsaHpiEntitySchemaGet:
 	    {
@@ -1023,7 +1161,17 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
                        session_id, resource_id, entry_id, ret );
 
 	      rh.m_len = HpiMarshalReply5( hm, rd, &ret, &prev_entry_id, &next_entry_id,
-				&event_log_entry, &rdr, &rpt_entry );
+                                           &event_log_entry, &rdr, &rpt_entry );
+
+/*
+              if ( rh.m_len < 0 )
+                 {
+                   rh.m_len = HpiMarshalReply5( hm, rd, &ret, &prev_entry_id, &next_entry_id,
+                                                &event_log_entry, &rdr, &rpt_entry );
+
+                   assert( 0 );
+                 }
+*/
 	    }
 
 	    break;
@@ -1236,7 +1384,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 			s->EventGet( true );
 
 			SaHpiTimeT end;
-			oh_gettimeofday( &end );
+			gettimeofday1( &end );
 
 			if ( timeout == SAHPI_TIMEOUT_BLOCK )
 			     end += (SaHpiTimeT)10000*1000000000; //set a long time
@@ -1245,7 +1393,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 
 			s->Timeout() = end;
 
-			s->Seq() = header.m_seq;
+			s->EventGetSeq() = header.m_seq;
 
 			DbgEvent( "saHpiEventGet( %x ): add to event listener.\n",
 				  s->SessionId() );
@@ -2001,12 +2149,12 @@ bool
 cOpenHpiDaemon::HandleInteractive()
 {
   unsigned char ch;
-  
+
   int rv = read( 0, &ch, 1 );
-  
+
   if ( rv != 1 )
        return true;
-  
+
   switch( ch )
      {
        case 'p': // ping

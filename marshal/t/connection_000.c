@@ -20,59 +20,85 @@
 #define dTestPort 4718
 
 
+static int
+cmp_header( cMessageHeader *h1, cMessageHeader *h2 )
+{
+  if ( h1->m_type != h2->m_type )
+       return 1;
+
+  if ( h1->m_flags != h2->m_flags )
+       return 1;
+
+  if ( h1->m_seq != h2->m_seq )
+       return 1;
+
+  if ( h1->m_seq_in != h2->m_seq_in )
+       return 1;
+
+  if ( h1-> m_id != h2-> m_id )
+       return 1;
+
+  if ( h1->m_len != h2->m_len )
+       return 1;
+
+  return 0;
+}
+
+
 int
 main( int argc, char *argv[] )
 {
   int rt = 1;
 
-  cServerConnectionMain *mc = ServerConnectionMainOpen( dTestPort );
+  cServerSocket *mc = ServerOpen( dTestPort );
 
   if ( mc == 0 )
        goto fail1;
 
-  cClientConnection *cc = ClientConnectionOpen( "localhost", dTestPort );
+  cClientConnection *cc = ClientOpen( "localhost", dTestPort );
 
   if ( cc == 0 )
        goto fail2;
 
-  int rv = ConnectionWait( mc->m_fd, 1000 );
+  // send a ping
+  cMessageHeader request;
+  MessageHeaderInit( &request, eMhPing, dMhRequest, 0, 0, 0 );
 
-  if ( rv )
-       goto fail2;
-
-  cServerConnection *sc = ServerConnectionMainAccept( mc );
-
-  if ( sc == 0 )
+  if ( ClientWriteMsg( cc, &request, 0 ) )
        goto fail3;
 
-  char data[256] = "bla";
-  int len = strlen( data ) + 1;
+  // read ping
+  cMessageHeader req;
+  unsigned char  req_data[256];
+  cServerConnection *sc = 0;
+  tConnectionError mr = ServerReadMsg( mc, &sc, &req, req_data );
 
-  rv = write( cc->m_fd, data, len );
+  if ( mr != eConnectionNew )
+       goto fail3;
 
-  if ( rv != len )
-       goto fail4;
+  if ( cmp_header( &request, &req ) )
+       goto fail3;
 
-  char buffer[256];
+  // send pong back
+  MessageHeaderInit( &request, eMhPing, dMhReply, request.m_seq, 0, 0 );
 
-  rv = read( sc->m_fd, buffer, len );
+  if ( ServerWriteMsg( sc, &request, 0 ) )
+       goto fail3;
 
-  if ( rv != len )
-       goto fail4;
+  // read pong
+  if ( ClientReadMsg( cc, &req, req_data ) != eConnectionOk )
+       goto fail3;
 
-  if ( memcmp( data, buffer, len ) )
-       goto fail4;
+  if ( cmp_header( &request, &req ) )
+       goto fail3;
 
   rt = 0;
 
-fail4:
-  ServerConnectionClose( sc );
-
 fail3:
-  ClientConnectionClose( cc );
+  ClientClose( cc );
 
 fail2:
-  ServerConnectionMainClose( mc );
+  ServerClose( mc );
 
 fail1:
   return rt;
