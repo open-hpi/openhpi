@@ -96,6 +96,16 @@ struct oh_hpi_event {
 	SaHpiEventT		event;
 };
 
+/*
+ * The session event contains rpt entry and rdr.
+ * The same as oh_hpi_event but with full data.
+ */
+struct oh_session_event {
+	SaHpiEventT		event;
+        SaHpiRdrT               rdr;
+        SaHpiRptEntryT          rpt_entry;
+};
+
 /* The structure is used to storage RSEL entry*/
 struct oh_rsel {
 	/* this is the entry's id */
