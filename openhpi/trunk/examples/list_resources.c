@@ -313,8 +313,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 	SaHpiCtrlStateT 	state;
 	SaHpiCtrlTypeT  	ctrl_type;
 
-        char                    l_buffer[1024];
         SaHpiEirIdT             l_eirid;
+        SaHpiInventoryDataT     ll_inventdata;
         SaHpiInventoryDataT     *l_inventdata;
         SaHpiUint32T            l_actualsize;
         SaHpiUint32T            l_buffersize;
@@ -478,8 +478,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			}
                 }
 
-                l_inventdata = (SaHpiInventoryDataT *)&l_buffer[0];
-                l_buffersize = sizeof(l_buffer);
+                l_inventdata = (SaHpiInventoryDataT *)&ll_inventdata;
+                l_buffersize = 8 * (sizeof(SaHpiTextBufferT));
                 l_inventorydata.RecordData.ProductInfo.Manufacturer = &l_manufacturer;
                 l_inventorydata.RecordData.ProductInfo.ProductName =  &l_productname;
                 l_inventorydata.RecordData.ProductInfo.ProductVersion = &l_productversion;
@@ -500,29 +500,30 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			if (err != SA_OK) {
 				printf("Error=%d reading inventory type {EirId, %d}\n", err, l_eirid);
 				continue;
+			} else if (l_inventdata->Validity ==  SAHPI_INVENT_DATA_VALID) {
+                        	printf("\tFound Inventory RDR with EirId: %x\n", l_eirid);
+                        	printf("\tManufacturer: \t%s\n",
+                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.Manufacturer->Data);
+                        	printf("\tProductName: \t%s\n",
+                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductName->Data);
+				if (l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->DataType == ASN_INTEGER) {
+                       	 		printf("\tProductVersion: \t%d\n",
+                                		l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data[0]);
+				} else {
+                        		printf("\tProductVersion: \t%s\n",
+                                		l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data);
+				}
+                        	printf("\tModelNumber: \t%s\n",
+                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ModelNumber->Data);
+                        	printf("\tSerialNumber: \t%s\n",
+                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.SerialNumber->Data);
+                        	printf("\tPartNumber: \t%s\n",
+                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.PartNumber->Data);
+                        	printf("\tFileId: \t%s\n",
+                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.FileId->Data);
+                        	printf("\tAssetTag: \t%s\n",
+                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.AssetTag->Data);
 			}
-                        printf("\tFound Inventory RDR with EirId: %x\n", l_eirid);
-                        printf("\tManufacturer: \t%s\n",
-                                l_inventdata->DataRecords[0]->RecordData.ProductInfo.Manufacturer->Data);
-                        printf("\tProductName: \t%s\n",
-                                l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductName->Data);
-			if (l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->DataType == ASN_INTEGER) {
-                       	 	printf("\tProductVersion: \t%d\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data[0]);
-			} else {
-                        	printf("\tProductVersion: \t%s\n",
-                                	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data);
-			}
-                        printf("\tModelNumber: \t%s\n",
-                                l_inventdata->DataRecords[0]->RecordData.ProductInfo.ModelNumber->Data);
-                        printf("\tSerialNumber: \t%s\n",
-                                l_inventdata->DataRecords[0]->RecordData.ProductInfo.SerialNumber->Data);
-                        printf("\tPartNumber: \t%s\n",
-                                l_inventdata->DataRecords[0]->RecordData.ProductInfo.PartNumber->Data);
-                        printf("\tFileId: \t%s\n",
-                                l_inventdata->DataRecords[0]->RecordData.ProductInfo.FileId->Data);
-                        printf("\tAssetTag: \t%s\n",
-                                l_inventdata->DataRecords[0]->RecordData.ProductInfo.AssetTag->Data);
                 }
 
                 printf("\tEntity: \n");
