@@ -120,7 +120,23 @@ TESTS = \
 	tel004        \
 	tel005        \
 	tel006        \
-	tel007
+	tel007        \
+	thotswap001   \
+	thotswap002   \
+	thotswap003   \
+	thotswap004   \
+	thotswap005   \
+	thotswap006   \
+	thotswap007   \
+	thotswap008   \
+	thotswap009   \
+	tinv001       \
+	tinv002       \
+	tinv003       \
+	tinv004       \
+	tinv005       \
+	tinv006       \
+	tinv007
 #	tsensorget031 \
 #	tsensorget033 \
 #	tsensorget034 \
@@ -152,22 +168,6 @@ TESTS = \
 #	tsensorset022 \
 #	tsensorset023 \
 #	tsensorset024 \
-#	tinv001       \
-#	tinv002       \
-#	tinv003       \
-#	tinv004       \
-#	tinv005       \
-#	tinv006       \
-#	tinv007       \
-#	thotswap001   \
-#	thotswap002   \
-#	thotswap003   \
-#	thotswap004   \
-#	thotswap005   \
-#	thotswap006   \
-#	thotswap007   \
-#	thotswap008   \
-#	thotswap009   \
 #	tsptime001    \
 #	tsptime002    \
 #	tdiscover002
@@ -498,100 +498,100 @@ tel007_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tinv001_SOURCES = tinv001.c
-#tinv001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tinv001_SOURCES = tinv001.c
+tinv001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tinv002_SOURCES = tinv002.c
-#tinv002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tinv002_SOURCES = tinv002.c
+tinv002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tinv003_SOURCES = tinv003.c
-#tinv003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tinv003_SOURCES = tinv003.c
+tinv003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tinv004_SOURCES = tinv004.c
-#tinv004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tinv004_SOURCES = tinv004.c
+tinv004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tinv005_SOURCES = tinv005.c
-#tinv005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tinv005_SOURCES = tinv005.c
+tinv005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tinv006_SOURCES = tinv006.c
-#tinv006_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tinv006_SOURCES = tinv006.c
+tinv006_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tinv007_SOURCES = tinv007.c
-#tinv007_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tinv007_SOURCES = tinv007.c
+tinv007_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap001_SOURCES = thotswap001.c
-#thotswap001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap001_SOURCES = thotswap001.c
+thotswap001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap002_SOURCES = thotswap002.c
-#thotswap002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap002_SOURCES = thotswap002.c
+thotswap002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap003_SOURCES = thotswap003.c
-#thotswap003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap003_SOURCES = thotswap003.c
+thotswap003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap004_SOURCES = thotswap004.c
-#thotswap004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap004_SOURCES = thotswap004.c
+thotswap004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap005_SOURCES = thotswap005.c
-#thotswap005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap005_SOURCES = thotswap005.c
+thotswap005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap006_SOURCES = thotswap006.c
-#thotswap006_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap006_SOURCES = thotswap006.c
+thotswap006_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap007_SOURCES = thotswap007.c
-#thotswap007_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap007_SOURCES = thotswap007.c
+thotswap007_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap008_SOURCES = thotswap008.c
-#thotswap008_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap008_SOURCES = thotswap008.c
+thotswap008_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#thotswap009_SOURCES = thotswap009.c
-#thotswap009_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+thotswap009_SOURCES = thotswap009.c
+thotswap009_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
 #tsptime001_SOURCES = tsptime001.c 

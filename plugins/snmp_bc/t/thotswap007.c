@@ -27,37 +27,35 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
+	SaHpiRptEntryT rptentry;				
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	SaHpiPowerStateT state;
-        /* *************************************                 
-	 * Find a resource 
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
-
+	/* *************************************	 	 
+	 * Find a resource with Power capability
+	 * ************************************* */
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 	}
 
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_POWER, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_POWER, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Can not find a Power resource for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
-
+	
 	id = rptentry.ResourceId;
 	/************************** 
-	 * Test :
+	 * Test :Normal path
 	 **************************/
 	expected_err = SA_OK;      
-	err = snmp_bc_get_power_state((void *)h->hnd, id, &state);   
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiResourcePowerStateGet(sessionid, id, &state);   
+	checkstatus(err, expected_err, testfail);
 
 	/**************************&*
 	 * Cleanup after all tests

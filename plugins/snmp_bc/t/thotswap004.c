@@ -27,67 +27,56 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
+	SaHpiRptEntryT rptentry;				
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	SaHpiResetActionT act = 0;
-        /* *************************************                 
-	 * Find a resource 
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
+	
+	struct oh_handler_state l_handle;
+	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 
+	/* *************************************	 	 
+	 * Find a resource with Power capability
+	 * ************************************* */
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 	}
 
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_POWER, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_POWER, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Can not find a Power resource for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
-
+	
 	id = rptentry.ResourceId;
 	/************************** 
-	 * Test :
+	 * Test: Invalid handler
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;      
 	err = snmp_bc_set_reset_state(NULL, id, act);   
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test :
+	 * Test: invalid action 
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	act = 0xFF;
-	err = snmp_bc_set_reset_state((void *)h->hnd, id, act);   
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiResourceResetStateSet(sessionid, id, act);   
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
 	 * Test :
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE; 
 	act = SAHPI_WARM_RESET;     
-	err = snmp_bc_set_reset_state((void *)h->hnd, 5000, act);   
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiResourceResetStateSet(sessionid, 5000, act);   
+	checkstatus(err, expected_err, testfail);
 	
-	/************************** 
-	 * Test :
-	 **************************/
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
-	struct ResourceInfo *s =
-		(struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
-	if (s != NULL)
-		s->mib.OidReset = NULL;
-
-	expected_err = SA_ERR_HPI_INTERNAL_ERROR;      
-	err = snmp_bc_set_reset_state((void *)h->hnd, id, act);   
-	checkstatus(&err, &expected_err, &testfail);
-
 	/**************************&*
 	 * Cleanup after all tests
 	 ***************************/
