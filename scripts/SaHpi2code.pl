@@ -313,7 +313,7 @@ foreach my $gc (keys %global_category) {
 print FILE_X "};\n\n";
 
 print FILE_XH "\#define OH_MAX_STATE_GLOBAL_STRINGS $max_global_events\n";
-print FILE_XH "oh_categorystate_map state_global_strings[OH_MAX_STATE_GLOBAL_STRINGS];\n\n";
+print FILE_XH "extern oh_categorystate_map state_global_strings[OH_MAX_STATE_GLOBAL_STRINGS];\n\n";
 
 print FILE_X "oh_categorystate_map state_strings[] = {\n";
 foreach my $c (keys %category) {
@@ -331,7 +331,7 @@ foreach my $c (keys %category) {
 print FILE_X "};\n\n";
 
 print FILE_XH "\#define OH_MAX_STATE_STRINGS $max_events\n";
-print FILE_XH "oh_categorystate_map state_strings[OH_MAX_STATE_STRINGS];\n\n";
+print FILE_XH "extern oh_categorystate_map state_strings[OH_MAX_STATE_STRINGS];\n\n";
 
 print_hfile_ending *FILE_H;
 print_hfile_ending *FILE_XH;
@@ -692,7 +692,7 @@ sub print_hfile_func($$) {
 
     print FILE_H <<EOF;
 #define $max_name $max 
-struct $map_name {
+extern struct $map_name {
   $type  entity_type;
   char *str;
 } $array_name;
