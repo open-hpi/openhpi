@@ -155,7 +155,6 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wmissing-declarations \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
-	-Wwrite-strings \
 	-Wcast-qual -Wcast-align \
 	-Werror"
 

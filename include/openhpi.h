@@ -108,13 +108,11 @@
  */
 
 
-#if 0
 /*
  *  Global listing of plugins (oh_plugin).  This list is populated
  *  by the configuration subsystem, and used by the plugin loader.
  */
-GSList *global_plugin_list = NULL;
-#endif
+extern GSList *global_plugin_list;
 
 /*
  *  Global listing of handlers (oh_handler).  This list is populated
