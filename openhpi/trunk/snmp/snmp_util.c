@@ -71,7 +71,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
 				    (vars->type == SNMP_NOSUCHINSTANCE)	||
 				    (vars->type == SNMP_ENDOFMIBVIEW)) {
 				/* This is one of the exception condition */
-				returncode = (SaErrorT) (SA_SNMP_ERR_BASE - vars->type);
+				returncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
 				dbg("snmp exception %d \n",vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
@@ -93,7 +93,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
                                	 objid, snmp_errstring(response->errstat));
 			if (response->errstat == SNMP_ERR_NOSUCHNAME)
 				response->errstat = SNMP_NOSUCHOBJECT;
-			returncode = (SaErrorT) (SA_SNMP_ERR_BASE - response->errstat);
+			returncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
 		}
 
         } else {
@@ -102,7 +102,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
 		/* Leave it in until examine all users of this func  */
                 value->type = (u_char)0x00; 
                 snmp_sess_perror("snmpget", ss);
-		returncode = (SaErrorT) (SA_SNMP_ERR_BASE - status);
+		returncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
         }
 
         /* Clean up: free the response */
@@ -256,7 +256,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
                                     (vars->type == SNMP_NOSUCHINSTANCE) ||
                                     (vars->type == SNMP_ENDOFMIBVIEW)) {
                                 /* This is one of the exception condition */
-                                returncode = (SaErrorT) (SA_SNMP_ERR_BASE - vars->type);
+                                returncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
                                 dbg("snmp exception %d \n",vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
@@ -304,11 +304,11 @@ SaErrorT snmp_get2(struct snmp_session *ss,
 			fprintf(stderr, "\n");
 			if (response->errstat == SNMP_ERR_NOSUCHNAME)
 				response->errstat = SNMP_NOSUCHOBJECT;
-			returncode = (SaErrorT) (SA_SNMP_ERR_BASE - response->errstat);
+			returncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
 		}
         } else {
 		snmp_sess_perror("snmpget", ss);
-		returncode = (SaErrorT) (SA_SNMP_ERR_BASE - status);
+		returncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
         }
 
         /* Clean up: free the response */
@@ -402,7 +402,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
                                     (vars->type == SNMP_NOSUCHINSTANCE) ||
                                     (vars->type == SNMP_ENDOFMIBVIEW)) {
                                 	/* This is one of the exception condition */
-                                	rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - vars->type);
+                                	rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
                                 	dbg("snmp exception %d \n",vars->type);
 				}
 			} else {
@@ -410,11 +410,11 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 						snmp_errstring(response->errstat));
                         	if (response->errstat == SNMP_ERR_NOSUCHNAME)
                                 		response->errstat = SNMP_NOSUCHOBJECT;
-                        	rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - response->errstat);
+                        	rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
 			}                
         	} else {
                        	snmp_sess_perror("snmpset", ss);
-                       	rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - status);
+                       	rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
         	}
 
         	/* Clean up: free the response */
@@ -459,7 +459,7 @@ SaErrorT snmp_getn_bulk( struct snmp_session *ss,
 			    (vars->type == SNMP_NOSUCHINSTANCE) ||
 			    (vars->type == SNMP_ENDOFMIBVIEW)) {
 				/* This is one of the exception condition */
-				rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - vars->type);
+				rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
 				dbg("snmp exception %d \n",vars->type);
 			}
 		} else {
@@ -467,11 +467,11 @@ SaErrorT snmp_getn_bulk( struct snmp_session *ss,
 					(char *)bulk_objid, snmp_errstring((*bulk_response)->errstat));
 			if ((*bulk_response)->errstat == SNMP_ERR_NOSUCHNAME)
 					(*bulk_response)->errstat = SNMP_NOSUCHOBJECT;
-			rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - (*bulk_response)->errstat);
+			rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - (*bulk_response)->errstat);
 		}
 	} else {
 		snmp_sess_perror("snmpset", ss);
-		rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - status);
+		rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
 	}
 #endif
 	return(rtncode);
