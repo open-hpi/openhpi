@@ -53,7 +53,9 @@ EXTRA_DIST = \
 		sahpi_time_utils.h \
 		uid_utils.h 
 
-MOSTLYCLEANFILES = @TEST_CLEAN@ $(GENERATED_FILES)
+MOSTLYCLEANFILES = @TEST_CLEAN@
+# FIXME:: Add when we can auto-generate files for SMP systems
+# MOSTLYCLEANFILES += $(GENERATED_FILES)
 
 INCLUDES = @OPENHPI_INCLUDES@
 
@@ -80,5 +82,6 @@ libopenhpiutils_la_SOURCES = \
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 
-$(GENERATED_FILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
-	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h
+# FIXME:: Add when we can auto-generate files for SMP systems
+#$(GENERATED_FILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
+#	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h

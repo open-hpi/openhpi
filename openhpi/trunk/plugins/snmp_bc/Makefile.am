@@ -8,7 +8,7 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-MAINTAINERCLEANFILES 	= Makefile.in
+MAINTAINERCLEANFILES = Makefile.in
 
 # Note same rule and files are generated in the t sub-directory - Make sure
 # you change the t/Makefile.am, if you change these
@@ -21,16 +21,18 @@ GENERATED_EVENT_CODE = el2event.c
 
 GENERATED_CODE = $(GENERATED_EVENT_HEADER_FILES) $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
 
-MOSTLYCLEANFILES = @TEST_CLEAN@ $(GENERATED_CODE)
+MOSTLYCLEANFILES = @TEST_CLEAN@
+# FIXME:: Add when we can auto-generate code for SMP systems
+# MOSTLYCLEANFILES += $(GENERATED_CODE)
 
-SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
-SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
+SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
+SNMPUTILBDIR = $(top_builddir)/$(SNMPDIR)
 
-SUBDIRS		= t
+SUBDIRS	= t
 
-INCLUDES	= @OPENHPI_INCLUDES@ -I$(top_srcdir)/snmp -I$(SNMPUTILSDIR)
+INCLUDES = @OPENHPI_INCLUDES@ -I$(top_srcdir)/snmp -I$(SNMPUTILSDIR)
 
-AM_CFLAGS	= @CFLAGS@ @SNMPFLAGS@
+AM_CFLAGS = @CFLAGS@ @SNMPFLAGS@
 
 pkglib_LTLIBRARIES = libsnmp_bc.la
 
@@ -80,8 +82,8 @@ libsnmp_bc_la_SOURCES = \
 			snmp_bc_watchdog.c \
 			snmp_bc_xml2event.c
 
-libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la
-libsnmp_bc_la_LDFLAGS	= -avoid-version
+libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la
+libsnmp_bc_la_LDFLAGS = -avoid-version
 
 # Note same rules and files are generated in the t sub-directory - Make sure
 # you change the t/Makefile.am, if you change these
@@ -89,8 +91,9 @@ EVENT_MAP_FILE = $(top_srcdir)/plugins/snmp_bc/snmp_bc_event.map
 EVENT_MAP_SCRIPT = $(top_srcdir)/plugins/snmp_bc/eventmap2code.pl
 EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
-$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
-	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
-
-$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
-	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
+# FIXME:: Add when we can auto-generate code for SMP systems
+#$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
+#	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
+#
+#$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
+#	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
