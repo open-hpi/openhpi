@@ -3429,7 +3429,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
 
         if (!rd->controlled) {
                 oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
 
         /* this was done in the old code, so we do it here */
@@ -3496,7 +3496,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
 
         if (!rd->controlled) {
                 oh_release_domain(d); /* Unlock domain */
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
 
         rd->controlled = 0;
@@ -3679,6 +3679,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
+        SaHpiHsStateT currentstate;
         struct oh_domain *d = NULL;
 
         if (!oh_lookup_hsaction(Action)) {
@@ -3693,6 +3694,24 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rv = saHpiHotSwapStateGet(SessionId, ResourceId, &currentstate);
+        if(rv != SA_OK) {
+                dbg("Failed to determine current HS state of Resource %d", ResourceId);
+                oh_release_domain(d); /* Unlock domain */
+                return rv;
+        }
+        /* Action already validated, let's check HS state */
+        if(   ((Action == SAHPI_HS_ACTION_INSERTION) &&
+               (currentstate != SAHPI_HS_STATE_INACTIVE))
+           || ((Action == SAHPI_HS_ACTION_EXTRACTION) &&
+               (currentstate != SAHPI_HS_STATE_ACTIVE))) {
+                dbg("Invalid actionrequest %s from state %s",
+                    oh_lookup_hsaction(Action),
+                    oh_lookup_hsstate(currentstate));
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
