@@ -150,10 +150,5 @@ SaErrorT snmp_bc_del_idr_field( void *hnd,
 		SaHpiIdrIdT              IdrId,
 		SaHpiEntryIdT            AreaId,
 		SaHpiEntryIdT            FieldId);
-
-SaErrorT snmp_bc_build_idr( void *hnd,
-               SaHpiResourceIdT         ResourceId,
-               SaHpiIdrIdT              IdrId,
-               struct bc_inventory_record 	*i_record);
 	
 #endif
