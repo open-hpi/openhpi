@@ -35,10 +35,21 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer, const SaHpiSen
 static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer, const SaHpiSensorThdMaskT tmask, int offsets);
 static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBufferT *textbuffer, int offsets);
 
-static SaErrorT oh_build_ctrlrec(oh_big_textbuffer *textbuf, const SaHpiCtrlRecT *ctrlrec, int space);
-static SaErrorT oh_build_invrec(oh_big_textbuffer *textbuff, const SaHpiInventoryRecT *invrec, int space);
-static SaErrorT oh_build_wdogrec(oh_big_textbuffer *textbuff, const SaHpiWatchdogRecT *wdogrec, int space);
-static SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff, const SaHpiAnnunciatorRecT *annrec, int space);
+static SaErrorT oh_build_ctrlrec(oh_big_textbuffer *textbuf, const SaHpiCtrlRecT *ctrlrec, int offsets);
+static SaErrorT oh_build_invrec(oh_big_textbuffer *textbuff, const SaHpiInventoryRecT *invrec, int offsets);
+static SaErrorT oh_build_wdogrec(oh_big_textbuffer *textbuff, const SaHpiWatchdogRecT *wdogrec, int offsets);
+static SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff, const SaHpiAnnunciatorRecT *annrec, int offsets);
+
+static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_hotswap(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_watchdog(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
+static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets);
 
 /************************************************************************
  * NOTES!
@@ -90,7 +101,6 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *
 	default:
 		err = oh_append_textbuffer(&working,  "Unknown Manufacturer");
 		if (err) { return(err); }
-		break;
 	}
 
  	oh_copy_textbuffer(buffer, &working);
@@ -465,7 +475,7 @@ SaErrorT oh_fprint_bigtext(FILE *stream, const oh_big_textbuffer *big_buffer)
  * oh_init_textbuffer:
  * @buffer: Pointer to an SaHpiTextBufferT.
  * 
- * Initializes an SaHpiTextBufferT. Assumes an english language set.
+ * Initializes an SaHpiTextBufferT. Assumes an English language set.
  * 
  * Returns:
  * SA_OK - normal operation.
@@ -611,8 +621,9 @@ static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
  * oh_fprint_ctrlrec:
  * @stream: File handle.
  * @control: Pointer to SaHpiCtrlRecT to be printed.
+ * @offsets: Number of offsets to start printing structure.
  * 
- * Prints a sensor's SaHpiCtrlRecT data to a file. 
+ * Prints a control's SaHpiCtrlRecT data to a file. 
  * The MACRO oh_print_ctrlrec(), uses this function to print to STDOUT. 
  *
  * Returns:
@@ -620,9 +631,9 @@ static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
  * SA_ERR_HPI_INVALID_PARAMS - @control or @stream is NULL
  **/
 
-SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control)
+SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control, int offsets)
 {
-	int err;
+	SaErrorT err;
 	oh_big_textbuffer buffer;
 	
 	if (!stream || !control) {
@@ -630,7 +641,7 @@ SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control)
 	}
 	
 	oh_init_bigtext(&buffer);
-	err = oh_build_ctrlrec(&buffer, control, 4);
+	err = oh_build_ctrlrec(&buffer, control, offsets);
 	if (err) { return(err); }
 
 	err = oh_fprint_bigtext(stream, &buffer);
@@ -643,17 +654,18 @@ SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control)
  * oh_fprint_watchdogrec:
  * @stream: File handle.
  * @watchdog: Pointer to SaHpiWatchdogRecT to be printed.
+ * @offsets: Number of offsets to start printing structure.
  * 
- * Prints a sensor's SaHpiWatchdogRecT data to a file. 
+ * Prints a watchdog's SaHpiWatchdogRecT data to a file. 
  * The MACRO oh_print_watchdogrec(), uses this function to print to STDOUT. 
  *
  * Returns:
  * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - @sensor or @stream is NULL
+ * SA_ERR_HPI_INVALID_PARAMS - @watchdog or @stream is NULL
  **/
-SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog)
+SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog, int offsets)
 {
-	int err;
+	SaErrorT err;
 	oh_big_textbuffer buffer;
 	
 	if (!stream || !watchdog) {
@@ -661,20 +673,20 @@ SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog)
 	}
 	
 	oh_init_bigtext(&buffer);
-	err = oh_build_wdogrec(&buffer, watchdog, 4);
+	err = oh_build_wdogrec(&buffer, watchdog, offsets);
 	if (err) { return(err); }
 
 	err = oh_fprint_bigtext(stream, &buffer);
 	if (err) { return(err); }
 	
 	return(SA_OK);
-
 }
 
 /**
  * oh_fprint_sensorrec:
  * @stream: File handle.
  * @sensor: Pointer to SaHpiSensorRecT to be printed.
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Prints a sensor's SaHpiSensorRecT data to a file. 
  * The MACRO oh_print_sensorrec(), uses this function to print to STDOUT. 
@@ -683,7 +695,7 @@ SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog)
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - @sensor or @stream is NULL
  **/
-SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor)
+SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor, int offsets)
 {
 	int err;
 	oh_big_textbuffer buffer;
@@ -693,7 +705,7 @@ SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor)
 	}
 	
 	oh_init_bigtext(&buffer);
-	err = oh_build_sensorrec(&buffer, sensor, 0);
+	err = oh_build_sensorrec(&buffer, sensor, offsets);
 	if (err) { return(err); }
 
 	err = oh_fprint_bigtext(stream, &buffer);
@@ -706,6 +718,7 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaErrorT err;
+	SaHpiTextBufferT tmpbuffer;
 
 	/* Sensor Num */
 	oh_append_offset(buffer, offsets);
@@ -738,16 +751,12 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 	oh_append_bigtext(buffer, str);
 
 	/* Sensor Supported Events */
-	{
-		SaHpiTextBufferT evt_buffer;
-
-		oh_append_offset(buffer, offsets);
-	        oh_append_bigtext(buffer, "Events: ");
-		err = oh_decode_eventstate(sensor->Events, sensor->Category, &evt_buffer);
-		if (err != SA_OK) {oh_append_bigtext(buffer, "\n"); return(err); }
-		oh_append_bigtext(buffer, evt_buffer.Data);
-		oh_append_bigtext(buffer, "\n");
-	}
+	oh_append_offset(buffer, offsets);
+	oh_append_bigtext(buffer, "Events: ");
+	err = oh_decode_eventstate(sensor->Events, sensor->Category, &tmpbuffer);
+	if (err != SA_OK) {oh_append_bigtext(buffer, "\n"); return(err); }
+	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, "\n");
 	
 	/* Sensor Data Format */
 	err = oh_build_sensordataformat(buffer, &(sensor->DataFormat), offsets);
@@ -1004,7 +1013,7 @@ static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
  * oh_fprint_idrfield:
  * @stream: File handle.
  * @thisfield: Pointer to SaHpiIdrFieldT to be printed.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Prints the member data contained in SaHpiIdrFieldT struct to a file.
  * The MACRO oh_print_idrfield(), uses this function to print to STDOUT. 
@@ -1012,54 +1021,54 @@ static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
  * Returns:
  * SA_OK - normal operation.
  **/
-SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int space)
+SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int offsets)
 {
-	SaErrorT rv = SA_OK;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf;
+	SaErrorT err;
 
-	if (!stream || !thisfield) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if (!stream || !thisfield) return(SA_ERR_HPI_INVALID_PARAMS);
 					
 	oh_init_bigtext(&mybuf);
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Id:\t%d\n",thisfield->FieldId);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Id: %d\n", thisfield->FieldId);
 	oh_append_bigtext(&mybuf, str);
 						
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Type:\t%s\n",
-						oh_lookup_idrfieldtype(thisfield->Type));
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Type: %s\n",
+		 oh_lookup_idrfieldtype(thisfield->Type));
 	oh_append_bigtext(&mybuf, str);
 						
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
-				(thisfield->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly: %s\n",
+		 (thisfield->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE");
 	oh_append_bigtext(&mybuf, str);
 						
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType:\t%s\n",
-					oh_lookup_texttype(thisfield->Field.DataType));
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType: %s\n",
+		 oh_lookup_texttype(thisfield->Field.DataType));
 	oh_append_bigtext(&mybuf, str);
 						
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language:\t%s\n",
-					oh_lookup_language(thisfield->Field.Language));
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language: %s\n",
+		 oh_lookup_language(thisfield->Field.Language));
 	oh_append_bigtext(&mybuf, str);
 						
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content:\t%s\n",
-						thisfield->Field.Data);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content: %s\n",
+		 thisfield->Field.Data);
 	oh_append_bigtext(&mybuf, str);
 							
-	rv = oh_fprint_bigtext(stream, &mybuf); 		
-	return(rv);
+	err = oh_fprint_bigtext(stream, &mybuf);
+
+	return(err);
 }
 
 /**
  * oh_fprint_idrareaheader:
  * @stream: File handle.
  * @areaheader: Pointer to SaHpiIdrAreaHeaderT to be printed.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Prints the member data contained in SaHpiIdrAreaHeaderT struct to a file.
  * The MACRO oh_print_idrareaheader(), uses this function to print to STDOUT. 
@@ -1067,86 +1076,83 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int s
  * Returns:       
  * SA_OK - normal operation.
  **/
-SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaheader, int space)
+SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaheader, int offsets)
 {
-	SaErrorT rv = SA_OK;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf;
+	SaErrorT err;
 
-	if (!stream || !areaheader) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
-			
+	if (!stream || !areaheader) return(SA_ERR_HPI_INVALID_PARAMS);
 	
 	oh_init_bigtext(&mybuf);
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaId:  \t%d\n", areaheader->AreaId);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaId: %d\n", areaheader->AreaId);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaType:\t%s\n",
-						oh_lookup_idrareatype(areaheader->Type));
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaType: %s\n",
+		 oh_lookup_idrareatype(areaheader->Type));
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
-				(areaheader->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly: %s\n",
+		 (areaheader->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumFields:\t%d\n",areaheader->NumFields);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumFields: %d\n", areaheader->NumFields);
 	oh_append_bigtext(&mybuf, str);
 
-	rv = oh_fprint_bigtext(stream, &mybuf); 					
-	return(rv);
+	err = oh_fprint_bigtext(stream, &mybuf); 					
+	return(err);
 }
 
 /**
  * oh_fprint_idrinfo:
  * @stream: File handle.
  * @idrinfo: Pointer to SaHpiIdrInfoT to be printed.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Prints the member data contained in SaHpiIdrInfoT struct to a file.
  * The MACRO oh_print_idrinfo(), uses this function to print to STDOUT. 
  *
  * Returns:       
  * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - If NULL pointers
+ * SA_ERR_HPI_INVALID_PARAMS - If NULL pointers.
  **/
-SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo, int space)
+SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo, int offsets)
 {
-	SaErrorT rv = SA_OK;
+	SaErrorT err;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf;
 	
-	if (!stream || !idrinfo) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if (!stream || !idrinfo) return(SA_ERR_HPI_INVALID_PARAMS);
 			
 	oh_init_bigtext(&mybuf);
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdrId:   \t%d\n", idrinfo->IdrId);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdrId: %d\n", idrinfo->IdrId);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UpdateCount:\t%d\n", idrinfo->UpdateCount);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UpdateCount: %d\n", idrinfo->UpdateCount);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly: %s\n",
 				(idrinfo->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumAreas:\t%d\n", idrinfo->NumAreas);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumAreas: %d\n", idrinfo->NumAreas);
 	oh_append_bigtext(&mybuf, str);
 
-	rv = oh_fprint_bigtext(stream, &mybuf); 					
-	return(rv);
+	err = oh_fprint_bigtext(stream, &mybuf); 					
+	return(err);
 }
 
-SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *textbuffer) {
+SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *textbuffer, int offsets) {
 
-	int err;
+	SaErrorT err;
 	oh_big_textbuffer buffer;
 	
 	if (!stream || !textbuffer) {
@@ -1154,23 +1160,18 @@ SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *textbuffer) 
 	}
 	
 	oh_init_bigtext(&buffer);
-	err = oh_build_textbuffer(&buffer, textbuffer, 0);
+	err = oh_build_textbuffer(&buffer, textbuffer, offsets);
 	if (err) { return(err); }
 
 	err = oh_fprint_bigtext(stream, &buffer);
-	if (err) { return(err); }
 
-	return(SA_OK);
+	return(err);
 }
 
 static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBufferT *textbuffer, int offsets)
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
-	oh_append_offset(buffer, offsets);
-	oh_append_bigtext(buffer, "Text Buffer:\n");
-	offsets++;
-	
 	/* Text Buffer Data Type */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Data Type: %s\n", 
@@ -1203,23 +1204,23 @@ static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBu
 
 /**
  * oh_decode_capability:
- * @value: enum value of type SaHpiCapabilitiesT.
+ * @ResourceCapabilities: enum value of type SaHpiCapabilitiesT.
  * @buffer:  Location to store the string.
  *
- * Converts @value into a string based on @value's enum definition
- * in http://www.iana.org/assignments/enterprise-numbers.
- * String is stored in an SaHpiTextBufferT data structure.
- * 
+ * Converts @ResourceCapabilities type into a string based on 
+ * @ResourceCapabilities HPI definition. For example:
+ * @ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE | SAHPI_CAPABILITY_EVENT_LOG
+ * returns a string "RESOURCE | EVENT_LOG".
  * 
  * Returns:
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL
  **/
-SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities, 
-					 	SaHpiTextBufferT *buffer)
+SaErrorT oh_decode_capability(SaHpiCapabilitiesT ResourceCapabilities,
+			      SaHpiTextBufferT *buffer)
 {
-
-	SaErrorT err = SA_OK;
+	int found, i;
+	SaErrorT err;
 	SaHpiTextBufferT working;
 
 	if (!buffer) {
@@ -1229,80 +1230,88 @@ SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
 	err = oh_init_textbuffer(&working);
 	if (err) { return(err); }
 
-        if(ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_RESOURCE\n");
+	found = 0;
+        if (ResourceCapabilities & SAHPI_CAPABILITY_AGGREGATE_STATUS) {
+		found++;
+		err = oh_append_textbuffer(&working, "AGGREGATE_STATUS | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR) {
+		found++;
+		err = oh_append_textbuffer(&working, "ANNUNCIATOR | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
+		found++;
+		err = oh_append_textbuffer(&working, "CONFIGURATION | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_CONTROL) {
+		found++;
+		err = oh_append_textbuffer(&working, "CONTROL | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG) {
+		found++;
+		err = oh_append_textbuffer(&working, "EVENT_LOG | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
+		found++;
+		err = oh_append_textbuffer(&working, "EVT_DEASSERTS | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
+		found++;
+		err = oh_append_textbuffer(&working, "FRU | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA) {
+		found++;
+		err = oh_append_textbuffer(&working, "INVENTORY_DATA | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+		found++;
+		err = oh_append_textbuffer(&working, "MANAGED_HOTSWAP | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
+		found++;
+		err = oh_append_textbuffer(&working, "POWER | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_RDR) {
+		found++;
+		err = oh_append_textbuffer(&working, "RDR | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
+		found++;
+		err = oh_append_textbuffer(&working, "RESET | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE) {
+		found++;
+		err = oh_append_textbuffer(&working, "RESOURCE | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_SENSOR) {
+		found++;
+		err = oh_append_textbuffer(&working, "SENSOR | ");
+		if (err) { return(err); }
+	}
+        if (ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG) {
+		found++;
+		err = oh_append_textbuffer(&working, "WATCHDOG | ");
 		if (err) { return(err); }
 	}
 
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_EVENT_LOG\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_EVT_DEASSERTS\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_AGGREGATE_STATUS) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_CONFIGURATION\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_WATCHDOG\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_CONTROL) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_CONTROL\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_FRU\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_INVENTORY_DATA\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_RDR) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_RDR\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_SENSOR) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_SENSOR\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_ANNUNCIATOR\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_POWER\n");
-		if (err) { return(err); }
-	}
-
-        if(ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
-		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_RESET\n");
-		if (err) { return(err); }
+	if (found) {
+		for (i=0; i<OH_ENCODE_DELIMITER_LENGTH + 1; i++) {
+			working.Data[working.DataLength - i] = 0x00;
+		}
+		working.DataLength = working.DataLength - (i+1);
 	}
 				
  	oh_copy_textbuffer(buffer, &working);
@@ -1314,7 +1323,7 @@ SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
  * oh_fprint_rptentry:
  * @stream: File handle.
  * @rptentry: Pointer to SaHpiRptEntryT to be printed.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets:  Number of offsets to start printing structure.
  * 
  * Prints the member data contained in SaHpiRptEntryT struct to a file.
  * The MACRO oh_print_rptentry(), uses this function to print to STDOUT. 
@@ -1322,72 +1331,56 @@ SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
  * Returns:       
  * SA_OK - normal operation.
  **/
-SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int space)
+SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int offsets)
 {
 	SaErrorT err = SA_OK;
 	oh_big_textbuffer mybuf;
-	SaHpiTextBufferT buffer; 
-	char* str = buffer.Data;
+	SaHpiTextBufferT tmpbuffer; 
+	char* str = tmpbuffer.Data;
 
-	if (!stream || !rptentry) {
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
+	if (!stream || !rptentry) return(SA_ERR_HPI_INVALID_PARAMS);
 	
 	oh_init_bigtext(&mybuf);
-	oh_append_bigtext(&mybuf, "\nRPT Entry:\n");
+	oh_append_bigtext(&mybuf, "RPT Entry:\n");
+	offsets++;
 	
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EntryId:  \t%d\n",
-		 rptentry->EntryId);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EntryId: %d\n", rptentry->EntryId);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, (space));
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceId: %d\n",
-		 rptentry->ResourceId);
+	oh_append_offset(&mybuf, (offsets));
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceId: %d\n", rptentry->ResourceId);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path:\n\t");
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path: ");
 	oh_append_bigtext(&mybuf, str);
         entitypath2string(&rptentry->ResourceEntity, str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	oh_append_bigtext(&mybuf, str);
-
 	oh_append_bigtext(&mybuf, "\n");
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Capability:\n");
-	oh_append_bigtext(&mybuf, str);
-	oh_decode_capability(rptentry->ResourceCapabilities, &buffer);
-	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "HotSwap Capability:\t%d\n",
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Capability: ");
+	oh_append_bigtext(&mybuf, str);
+	oh_decode_capability(rptentry->ResourceCapabilities, &tmpbuffer);
+	oh_append_bigtext(&mybuf, str);
+	oh_append_bigtext(&mybuf, "\n");	
+
+	oh_append_offset(&mybuf, offsets);
+	/* FIXME:: Need a oh_decode_hscapability() that does the pretty OR strings */
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "HotSwap Capability: %d\n",
 		 rptentry->HotSwapCapabilities);
 	oh_append_bigtext(&mybuf, str);
 
-				
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceFailed:\t%s\n",
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceFailed: %s\n",
 		 (rptentry->ResourceFailed == SAHPI_TRUE) ? "TRUE" : "FALSE" );
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
+	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceTag:\n");
 	oh_append_bigtext(&mybuf, str);
-			
-	oh_append_offset(&mybuf, 4+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType:\t%s\n",
-		 oh_lookup_texttype(rptentry->ResourceTag.DataType));
-	oh_append_bigtext(&mybuf, str);
-						
-	oh_append_offset(&mybuf, 4+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language:\t%s\n",
-		 oh_lookup_language(rptentry->ResourceTag.Language));
-	oh_append_bigtext(&mybuf, str);
-						
-	oh_append_offset(&mybuf, 4+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content:\t%s\n",
-		 rptentry->ResourceTag.Data);
-	oh_append_bigtext(&mybuf, str);
+	oh_build_textbuffer(&mybuf, &(rptentry->ResourceTag), offsets + 1);
 
 	err = oh_fprint_bigtext(stream, &mybuf); 					
 	return(err);
@@ -1397,7 +1390,7 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int sp
  * oh_fprint_rdr:
  * @stream: File handle.
  * @thisrdr: Pointer to SaHpiRdrT to be printed.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Prints the member data contained in SaHpiRdrT struct to a file.
  * The MACRO oh_print_rdr(), uses this function to print to STDOUT. 
@@ -1406,34 +1399,33 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int sp
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
  **/
-SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int space)
+SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int offsets)
 {
-	SaErrorT rv = SA_OK;
+	SaErrorT err;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf, mybuf1;
 
-	if (!stream || !thisrdr) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if (!stream || !thisrdr) return(SA_ERR_HPI_INVALID_PARAMS);
 					
 	oh_init_bigtext(&mybuf);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "RecordId:\t%d\n",thisrdr->RecordId);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "RecordId: %d\n", thisrdr->RecordId);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "RdrType:\t%s\n",oh_lookup_rdrtype(thisrdr->RdrType));
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "RdrType: %s\n", oh_lookup_rdrtype(thisrdr->RdrType));
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path:\n\t");
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path: ");
 	oh_append_bigtext(&mybuf, str);
         entitypath2string(&thisrdr->Entity, str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	oh_append_bigtext(&mybuf, str);
 	oh_append_bigtext(&mybuf, "\n");
 	
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IsFru:\t%s\n",
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IsFru: %s\n",
 		 (thisrdr->IsFru == SAHPI_TRUE) ? "TRUE" : "FALSE" );
 	oh_append_bigtext(&mybuf, str);
 
@@ -1441,27 +1433,27 @@ SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int space)
 	switch(thisrdr->RdrType) 
 	{
 		case SAHPI_CTRL_RDR:
-			rv = oh_build_ctrlrec(&mybuf1,
-				(const SaHpiCtrlRecT*) &thisrdr->RdrTypeUnion.CtrlRec, space);
+			err = oh_build_ctrlrec(&mybuf1,
+				(const SaHpiCtrlRecT*) &thisrdr->RdrTypeUnion.CtrlRec, offsets);
 			break;
 		case SAHPI_SENSOR_RDR:
-			rv = oh_build_sensorrec(&mybuf1,
-				(const SaHpiSensorRecT*) &thisrdr->RdrTypeUnion.SensorRec, space);
+			err = oh_build_sensorrec(&mybuf1,
+				(const SaHpiSensorRecT*) &thisrdr->RdrTypeUnion.SensorRec, offsets);
 			break;
 		case SAHPI_INVENTORY_RDR:
-			rv = oh_build_invrec(&mybuf1,
-				(const SaHpiInventoryRecT*) &thisrdr->RdrTypeUnion.InventoryRec, space);
+			err = oh_build_invrec(&mybuf1,
+				(const SaHpiInventoryRecT*) &thisrdr->RdrTypeUnion.InventoryRec, offsets);
 			break;
 		case SAHPI_WATCHDOG_RDR:
-			rv = oh_build_wdogrec(&mybuf1,
-				(const SaHpiWatchdogRecT*) &thisrdr->RdrTypeUnion.WatchdogRec, space); 
+			err = oh_build_wdogrec(&mybuf1,
+				(const SaHpiWatchdogRecT*) &thisrdr->RdrTypeUnion.WatchdogRec, offsets); 
 			break;
 		case SAHPI_ANNUNCIATOR_RDR:
-			rv = oh_build_annrec(&mybuf1,
-				(const SaHpiAnnunciatorRecT*) &thisrdr->RdrTypeUnion.AnnunciatorRec, space);
+			err = oh_build_annrec(&mybuf1,
+				(const SaHpiAnnunciatorRecT*) &thisrdr->RdrTypeUnion.AnnunciatorRec, offsets);
 			break;
 		case SAHPI_NO_RECORD:
-			oh_append_offset(&mybuf1, space);
+			oh_append_offset(&mybuf1, offsets);
 			oh_append_bigtext(&mybuf1,oh_lookup_rdrtype(thisrdr->RdrType));
 			break;
 		default:
@@ -1471,35 +1463,20 @@ SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int space)
 
 	oh_append_bigtext(&mybuf, mybuf1.Data);
 
-	oh_append_offset(&mybuf, space);
+	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdString:\n");
 	oh_append_bigtext(&mybuf, str);
-			
-	oh_append_offset(&mybuf, 4+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType:\t%s\n",
-		 oh_lookup_texttype(thisrdr->IdString.DataType));
-	oh_append_bigtext(&mybuf, str);
-						
-	oh_append_offset(&mybuf, 4+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language:\t%s\n",
-		 oh_lookup_language(thisrdr->IdString.Language));
-	oh_append_bigtext(&mybuf, str);
-						
-	oh_append_offset(&mybuf, 4+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content:\t%s\n",
-		 thisrdr->IdString.Data);
-	oh_append_bigtext(&mybuf, str);
+	oh_build_textbuffer(&mybuf, &(thisrdr->IdString), offsets + 1);
 
-	rv = oh_fprint_bigtext(stream, &mybuf); 					
-	return(rv);
-
+	err = oh_fprint_bigtext(stream, &mybuf); 					
+	return(err);
 }
 
 /**
  * oh_build_ctrlrec:
  * @textbuff: Buffer into which to store flattened ctrl rec structure.
  * @thisrdrunion: Pointer to SaHpiRdrTypeUnionT to be flattened.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Flatten member data contained in SaHpiCtrlRecT struct to a text buffer.
  *
@@ -1507,140 +1484,139 @@ SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int space)
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
  **/
-static 
-SaErrorT oh_build_ctrlrec(oh_big_textbuffer *textbuf,const SaHpiCtrlRecT *ctrlrec, int space)
+static SaErrorT oh_build_ctrlrec(oh_big_textbuffer *textbuf, const SaHpiCtrlRecT *ctrlrec, int offsets)
 {
-
-
-	SaErrorT rv = SA_OK;
+	SaErrorT err;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf;
 	SaHpiTextBufferT  smallbuf;
 
-	if (!textbuf || !ctrlrec) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if (!textbuf || !ctrlrec) return(SA_ERR_HPI_INVALID_PARAMS);
 
 	oh_init_bigtext(&mybuf);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Number/Index:\t%d\n",ctrlrec->Num);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Number: %d\n",ctrlrec->Num);
+	oh_append_bigtext(&mybuf, str);
+	
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Output Type: %s\n",
+		 oh_lookup_ctrloutputtype(ctrlrec->OutputType));
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OutputType:\t%s\n",oh_lookup_ctrloutputtype(ctrlrec->OutputType));
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Control Type: %s\n",
+		 oh_lookup_ctrltype(ctrlrec->Type));
 	oh_append_bigtext(&mybuf, str);
+	offsets++;
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type:\t%s\n",oh_lookup_ctrltype(ctrlrec->Type));
-	oh_append_bigtext(&mybuf, str);
+	oh_append_offset(&mybuf, offsets);
 
-	oh_append_offset(&mybuf, space);
-	switch(ctrlrec->Type) 
-	{
-		case SAHPI_CTRL_TYPE_DIGITAL:
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Digital Default:\t%s\n",
-				oh_lookup_ctrlstatedigital(ctrlrec->TypeUnion.Digital.Default));
-			break;
-		case SAHPI_CTRL_TYPE_DISCRETE:
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Discrete Default:\t%d\n",
-						ctrlrec->TypeUnion.Discrete.Default);
-			break;
-		case SAHPI_CTRL_TYPE_ANALOG:
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Analog Min:\t%d\n",
-						ctrlrec->TypeUnion.Analog.Min);
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Analog Max:\t%d\n",
-						ctrlrec->TypeUnion.Analog.Max);
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Analog Default:\t%d\n",
-						ctrlrec->TypeUnion.Analog.Default);
-			break;
-		case SAHPI_CTRL_TYPE_STREAM:
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Stream Default:\n");
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 2+space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Repeat:\t%s\n",
-						&(ctrlrec->TypeUnion.Stream.Default.Repeat));
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 2+space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "StreamLength:\t%d\n",
-						ctrlrec->TypeUnion.Stream.Default.StreamLength);
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 2+space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Stream Default:\t%s\n",
-						ctrlrec->TypeUnion.Stream.Default.Stream);
-			break;
-		case SAHPI_CTRL_TYPE_TEXT:
-			break;
-		case SAHPI_CTRL_TYPE_OEM:
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem:\n");
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 2+space);
-			rv = oh_decode_manufacturerid(ctrlrec->TypeUnion.Oem.MId, &smallbuf);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId:\t%s\n",
-										smallbuf.Data);
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 2+space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ConfigData:\t%s\n",
-							ctrlrec->TypeUnion.Oem.ConfigData);
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 2+space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Default:\n");
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 4+space);
-			rv = oh_decode_manufacturerid(ctrlrec->TypeUnion.Oem.Default.MId, &smallbuf);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId:\t%s\n",
-										smallbuf.Data);
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 4+space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "BodyLength:\t%d\n",
-						ctrlrec->TypeUnion.Oem.Default.BodyLength);
-			oh_append_bigtext(&mybuf, str);
-			oh_append_offset(&mybuf, 4+space);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Body:\t%s\n",
-						ctrlrec->TypeUnion.Oem.Default.Body);
-			break;
-		default:
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Invalid ControlType Detected\n");
+	switch(ctrlrec->Type) {
+	case SAHPI_CTRL_TYPE_DIGITAL:
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Digital Default: %s\n",
+			 oh_lookup_ctrlstatedigital(ctrlrec->TypeUnion.Digital.Default));
+		break;
+	case SAHPI_CTRL_TYPE_DISCRETE:
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Discrete Default: %d\n",
+			 ctrlrec->TypeUnion.Discrete.Default);
+		break;
+	case SAHPI_CTRL_TYPE_ANALOG:
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Analog Min: %d\n",
+			 ctrlrec->TypeUnion.Analog.Min);
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Analog Max: %d\n",
+			 ctrlrec->TypeUnion.Analog.Max);
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Analog Default: %d\n",
+			 ctrlrec->TypeUnion.Analog.Default);
+		break;
+	case SAHPI_CTRL_TYPE_STREAM:
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Stream Default:\n");
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 1+offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Repeat: %s\n",
+			 &(ctrlrec->TypeUnion.Stream.Default.Repeat));
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 1+offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "StreamLength: %d\n",
+			 ctrlrec->TypeUnion.Stream.Default.StreamLength);
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 1+offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Stream Default: %s\n",
+			 ctrlrec->TypeUnion.Stream.Default.Stream);
+		break;
+	case SAHPI_CTRL_TYPE_TEXT:
+		break;
+	case SAHPI_CTRL_TYPE_OEM:
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem:\n");
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 1+offsets);
+		err = oh_decode_manufacturerid(ctrlrec->TypeUnion.Oem.MId, &smallbuf);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId: %s\n",
+			 smallbuf.Data);
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 1+offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ConfigData: %s\n",
+			 ctrlrec->TypeUnion.Oem.ConfigData);
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 1+offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Default:\n");
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 2+offsets);
+		err = oh_decode_manufacturerid(ctrlrec->TypeUnion.Oem.Default.MId, &smallbuf);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId: %s\n",
+			 smallbuf.Data);
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 2+offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "BodyLength: %d\n",
+			 ctrlrec->TypeUnion.Oem.Default.BodyLength);
+		oh_append_bigtext(&mybuf, str);
+		oh_append_offset(&mybuf, 2+offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Body: %s\n",
+			 ctrlrec->TypeUnion.Oem.Default.Body);
+		break;
+	default:
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Invalid ControlType Detected\n");
 	}
 
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
+	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DefaultMode:\n");
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, 2+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Mode:\t%s\n", oh_lookup_ctrlmode(ctrlrec->DefaultMode.Mode));
+	oh_append_offset(&mybuf, 1+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Mode: %s\n", 
+		 oh_lookup_ctrlmode(ctrlrec->DefaultMode.Mode));
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, 2+space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n", 
+	oh_append_offset(&mybuf, 1+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly: %s\n", 
 			(ctrlrec->DefaultMode.ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE");
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WriteOnly:\t%s\n", 
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WriteOnly: %s\n", 
 			(ctrlrec->WriteOnly == SAHPI_TRUE) ? "TRUE" : "FALSE");
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem:\t%d\n",ctrlrec->Oem);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem: %d\n",ctrlrec->Oem);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_copy_bigtext(textbuf, &mybuf);
-	return(rv);
+	err = oh_copy_bigtext(textbuf, &mybuf);
 
+	return(err);
 }
-
 
 /**
  * oh_build_invrec:
  * @textbuff: Buffer into which to store flattened ctrl rdr structure.
  * @invrec: Pointer to SaHpiInventoryRecT to be flattened.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Flatten member data contained in SaHpiInventoryRecT struct to a text buffer.
  *
@@ -1648,40 +1624,38 @@ SaErrorT oh_build_ctrlrec(oh_big_textbuffer *textbuf,const SaHpiCtrlRecT *ctrlre
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
  **/
-static 
-SaErrorT oh_build_invrec(oh_big_textbuffer *textbuff,const SaHpiInventoryRecT *invrec, int space)
+static SaErrorT oh_build_invrec(oh_big_textbuffer *textbuff,const SaHpiInventoryRecT *invrec, int offsets)
 {
-	SaErrorT rv = SA_OK;
+	SaErrorT err;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf;
 
-	if (!textbuff || !invrec) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if (!textbuff || !invrec) return(SA_ERR_HPI_INVALID_PARAMS);
 
 	oh_init_bigtext(&mybuf);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdrId:\t%d\n",invrec->IdrId);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdrId: %d\n",invrec->IdrId);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Persistent:\t%s\n",
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Persistent: %s\n",
 		 (invrec->Persistent == SAHPI_TRUE) ? "TRUE" : "FALSE" );
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem:\t%d\n",invrec->Oem);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem: %d\n",invrec->Oem);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_copy_bigtext(textbuff, &mybuf);
-	return(rv);
-
+	err = oh_copy_bigtext(textbuff, &mybuf);
+	return(err);
 }
+
 /**
  * oh_build_wdogrec:
  * @textbuff: Buffer into which to store flattened watchdog rec structure.
  * @wdogrec: Pointer to SaHpiWatchdogRecT to be flattened.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets: Number of offsets to start printing structure.
  * 
  * Flatten member data contained in SaHpiWatchdogRecT struct to a text buffer.
  *
@@ -1689,35 +1663,33 @@ SaErrorT oh_build_invrec(oh_big_textbuffer *textbuff,const SaHpiInventoryRecT *i
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
  **/
-static  
-SaErrorT oh_build_wdogrec(oh_big_textbuffer *textbuff,const SaHpiWatchdogRecT *wdogrec, int space)
+static SaErrorT oh_build_wdogrec(oh_big_textbuffer *textbuff,const SaHpiWatchdogRecT *wdogrec, int offsets)
 {
 
-	SaErrorT rv = SA_OK;
+	SaErrorT err;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf;
 
-	if (!textbuff || !wdogrec) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if (!textbuff || !wdogrec) return(SA_ERR_HPI_INVALID_PARAMS);
 
 	oh_init_bigtext(&mybuf);
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogNum:\t%d\n",wdogrec->WatchdogNum);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogNum: %d\n",wdogrec->WatchdogNum);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem:\t%d\n",wdogrec->Oem);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem: %d\n",wdogrec->Oem);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_copy_bigtext(textbuff, &mybuf);
-	return(rv);
-
+	err = oh_copy_bigtext(textbuff, &mybuf);
+	return(err);
 }
+
 /**
  * oh_build_annrec:
- * @textbuff: Buffer into which to store flattened ctrl rdr structure.
+ * @textbuff: Buffer into which to store flattened structure.
  * @annrec: Pointer to SaHpiAnnunciatorRecT to be flattened.
- * @space:  Number of blank space to skip (from column 1) before printing
+ * @offsets:  Number of offsets to start printing structure.
  * 
  * Flatten member data contained in SaHpiAnnunciatorRecT struct to a text buffer.
  *
@@ -1725,50 +1697,43 @@ SaErrorT oh_build_wdogrec(oh_big_textbuffer *textbuff,const SaHpiWatchdogRecT *w
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
  **/
-static  
-SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff,const SaHpiAnnunciatorRecT *annrec, int space)
+static SaErrorT oh_build_annrec(oh_big_textbuffer *textbuff,const SaHpiAnnunciatorRecT *annrec, int offsets)
 {
-
-	SaErrorT rv = SA_OK;
+	SaErrorT err;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	oh_big_textbuffer mybuf;
 
-	if (!textbuff || !annrec) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
+	if (!textbuff || !annrec) return(SA_ERR_HPI_INVALID_PARAMS);
+
 	oh_init_bigtext(&mybuf);
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AnnunciatorNum:\t%d\n",annrec->AnnunciatorNum);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AnnunciatorNum: %d\n", annrec->AnnunciatorNum);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AnnunciatorType:\t%s\n",
-				oh_lookup_annunciatortype(annrec->AnnunciatorType));
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AnnunciatorType: %s\n",
+		 oh_lookup_annunciatortype(annrec->AnnunciatorType));
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ModeReadOnly:\t%s\n",
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ModeReadOnly: %s\n",
 		 (annrec->ModeReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "MaxCondition:\t%d\n",annrec->MaxConditions);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "MaxCondition: %d\n", annrec->MaxConditions);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_append_offset(&mybuf, space);
-	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem:\t%d\n",annrec->Oem);
+	oh_append_offset(&mybuf, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem: %d\n", annrec->Oem);
 	oh_append_bigtext(&mybuf, str);
 
-	oh_copy_bigtext(textbuff, &mybuf);
-	return(rv);
-
+	err = oh_copy_bigtext(textbuff, &mybuf);
+	return(err);
 }
 
-/* FIXME:: Add support for this - its just a link stub now */
-SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event) 
+SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets) 
 {
-	
-	printf("Need to implment oh_fprint_event\n");
-#if 0
 	int err;
 	oh_big_textbuffer buffer;
 	
@@ -1777,18 +1742,266 @@ SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event)
 	}
 	
 	oh_init_bigtext(&buffer);
-	
-	/* Add switch statement and oh_build_xxxevent routines */
-	err = oh_build_xxxxevent(&buffer, textbuffer, 0);
+
+	err = oh_build_event(&buffer, event, offsets);
 	if (err) { return(err); }
 
 	err = oh_fprint_bigtext(stream, &buffer);
 	if (err) { return(err); }
-#endif
 
 	return(SA_OK);
 }
 
+static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaErrorT err;
+	SaHpiTextBufferT tmpbuffer;
+
+	/* Event Type */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Type: %s\n", 
+		 oh_lookup_eventtype(event->EventType));
+	oh_append_bigtext(buffer, str);
+	offsets++;
+	
+	/* Event Source */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Resource: %d\n", event->Source);
+	oh_append_bigtext(buffer, str);
+
+	/* Event Time */
+	oh_append_offset(buffer, offsets);
+	oh_decode_time(event->Timestamp, &tmpbuffer);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Timestamp: %s\n", tmpbuffer.Data);
+	oh_append_bigtext(buffer, str);
+
+	/* Event Severity */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Severity: %s\n",
+		 oh_lookup_severity(event->Severity));
+	oh_append_bigtext(buffer, str);
+
+	switch (event->EventType) {
+	case SAHPI_ET_RESOURCE:
+		err = oh_build_event_resource(buffer, event, offsets);
+		break;
+	case SAHPI_ET_DOMAIN:
+		err = oh_build_event_domain(buffer, event, offsets);
+		break;
+	case SAHPI_ET_SENSOR:
+		err = oh_build_event_sensor(buffer, event, offsets);
+		break;
+	case SAHPI_ET_SENSOR_ENABLE_CHANGE:
+		err = oh_build_event_sensor_enable_change(buffer, event, offsets);
+		break;
+	case SAHPI_ET_HOTSWAP:
+		err = oh_build_event_hotswap(buffer, event, offsets);
+		break;
+	case SAHPI_ET_WATCHDOG:
+		err = oh_build_event_watchdog(buffer, event, offsets);
+		break;
+	case SAHPI_ET_HPI_SW:
+		err = oh_build_event_hpi_sw(buffer, event, offsets);
+		break;
+	case SAHPI_ET_OEM:
+		err = oh_build_event_oem(buffer, event, offsets);
+		break;
+	case SAHPI_ET_USER:
+		err = oh_build_event_user(buffer, event, offsets);
+		break;
+	default:
+		dbg("Unrecognized Event Type=%d.", event->EventType);
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	if (err) { return(err); }
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_resource\n");
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_domain\n");
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaErrorT err;
+	SaHpiTextBufferT tmpbuffer;
+
+	/* Event Sensor Num */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Sensor Num: %d\n", 
+		 event->EventDataUnion.SensorEvent.SensorNum);
+	oh_append_bigtext(buffer, str);
+
+	/* Event Sensor Type */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Sensor Type: %s\n",
+		 oh_lookup_sensortype(event->EventDataUnion.SensorEvent.SensorType));
+	oh_append_bigtext(buffer, str);
+
+	/* Event Sensor Category */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Sensor Category: %s\n", 
+		 oh_lookup_eventcategory(event->EventDataUnion.SensorEvent.EventCategory));
+	oh_append_bigtext(buffer, str);
+
+	/* Event Sensor Assertion */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Sensor Assertion: %s\n",
+		(event->EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_bigtext(buffer, str);
+
+	/* Event Sensor State */
+	oh_append_offset(buffer, offsets);
+	oh_append_bigtext(buffer, "Event Sensor State: ");
+	err = oh_decode_eventstate(event->EventDataUnion.SensorEvent.EventState,
+				   event->EventDataUnion.SensorEvent.EventCategory,
+				   &tmpbuffer);
+	if (err != SA_OK) { return(err); }
+	oh_append_bigtext(buffer, tmpbuffer.Data);
+	oh_append_bigtext(buffer, "\n");
+
+	/* Sensor Event - Sensor Optional Data */
+	/* FIXME:: Add pretty decode function (like event states to print ORed values of Optional Data) */
+
+        /* Sensor Event - Sensor Optional Trigger Reading Data */
+	if (event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_TRIGGER_READING) {
+		oh_append_offset(buffer, offsets);
+		oh_append_bigtext(buffer, "Optional Trigger Reading: TBD");
+		
+		/* FIXME:: Don't have access to format. Change oh_decode_sensorreading so that if
+		   format == NULL just print out number. Could use RPT utils to find sensor
+		   number but that means we need to stub it out in the utils unit tests ??? */
+#if 0
+		err = oh_decode_sensorreading(event->EventDataUnion.SensorEvent.TriggerReading,
+					      0, &tmpbuffer);
+		if (err) { return(err); }
+		oh_append_bigtext(buffer, tmpbuffer.Data);
+#endif
+		oh_append_bigtext(buffer, "\n");
+	}
+
+        /* Sensor Event - Sensor Optional Trigger Threshold Data */
+	if (event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_TRIGGER_THRESHOLD) {
+		oh_append_offset(buffer, offsets);
+		oh_append_bigtext(buffer, "Optional Trigger Threshold: TBD");
+		
+		/* FIXME:: Don't have access to format. Change oh_decode_sensorreading so that if
+		   format == NULL just print out number  Could use RPT utils to find sensor
+		   number but that means we need to stub it out in the utils unit tests ??? */
+#if 0
+		err = oh_decode_sensorreading(event->EventDataUnion.SensorEvent.TriggerThreshold,
+					      0, &tmpbuffer);
+		if (err) { return(err); }
+		oh_append_bigtext(buffer, tmpbuffer.Data);
+#endif
+		oh_append_bigtext(buffer, "\n");
+	}
+
+        /* Sensor Event - Sensor Optional Previous State Data */
+	if (event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_PREVIOUS_STATE) {
+		oh_append_offset(buffer, offsets);
+		oh_append_bigtext(buffer, "Optional Previous Sensor State: ");
+		err = oh_decode_eventstate(event->EventDataUnion.SensorEvent.PreviousState,
+					   event->EventDataUnion.SensorEvent.EventCategory,
+					   &tmpbuffer);
+		if (err != SA_OK) { return(err); }
+		oh_append_bigtext(buffer, tmpbuffer.Data);
+		oh_append_bigtext(buffer, "\n");
+	}
+
+        /* Sensor Event - Sensor Optional Current State Data */
+	if (event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_CURRENT_STATE) {
+		oh_append_offset(buffer, offsets);
+		oh_append_bigtext(buffer, "Optional Current Sensor State: ");
+		err = oh_decode_eventstate(event->EventDataUnion.SensorEvent.CurrentState,
+					   event->EventDataUnion.SensorEvent.EventCategory,
+					   &tmpbuffer);
+		if (err) { return(err); }
+		oh_append_bigtext(buffer, tmpbuffer.Data);
+		oh_append_bigtext(buffer, "\n");
+	}
+        /* Sensor Event - Sensor Optional OEM Data */
+	if (event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_OEM) {
+		oh_append_offset(buffer, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Optional OEM Data: %x\n", 
+			 event->EventDataUnion.SensorEvent.Oem);
+		oh_append_bigtext(buffer, str);
+	}
+
+        /* Sensor Event - Sensor Optional Sensor Specific Data */
+	if (event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_SENSOR_SPECIFIC) {
+		oh_append_offset(buffer, offsets);
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Optional Sensor Specific Data: %x\n",
+			 event->EventDataUnion.SensorEvent.SensorSpecific );
+		oh_append_bigtext(buffer, str);
+	}
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_sensor_enable_change\n");
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_hotswap(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_hotswap\n");
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_watchdog(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_watchdog\n");
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_hpi_sw\n");
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_oem\n");
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
+{
+	/* FIXME:: Need to implement */
+	printf("Need to implement oh_build_event_user\n");
+
+	return(SA_OK);
+}
 
 #if 0
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT text_buffer) {
@@ -1825,39 +2038,4 @@ SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT text_buffer) {
 
 	return(SAHPI_TRUE);
 }
-
-SaErrorT oh_print_text(SaHpiTextBufferT text_buffer) {
-
-	/* Check for valid */
-        /* Support arbitrary tab/indents offsets??*/
-
-	SaHpiUint8T Data[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-	
-	memset(Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-        memcpy(Data, text_buffer.Data, text_buffer.DataLength);
-
-	printf("TextBuffer:\n");
-	printf("\tDataType: %s\n", SaHpiTextTypeT2str(text_buffer.DataType));
-	printf("\tLanguage: %s\n", SaHpiLanguageT2str(text_buffer.Language));
-	printf("\tDataLength: %d\n", text_buffer.DataLength);
-
-	switch (text_buffer.DataType) {	
-	case SAHPI_TL_TYPE_UNICODE:
-		/* FIXME:: print unicode */
-		break;
-	case SAHPI_TL_TYPE_BCDPLUS:
-	case SAHPI_TL_TYPE_ASCII6:
-	case SAHPI_TL_TYPE_TEXT:
-		printf("\tData: %s\n", Data);
-		break;
-	case SAHPI_TL_TYPE_BINARY:
-		printf("\tData: %x\n", Data);
-		break;
-	default:
-		printf("\tData: ERROR! Invalid HPI SaHpiTextTypeT type\n");
-	}
-
-	return SA_OK;
-}
-
 #endif
