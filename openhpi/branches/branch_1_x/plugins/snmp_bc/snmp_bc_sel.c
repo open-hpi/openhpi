@@ -97,6 +97,7 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
         struct tm curtime;
         char oid[50];
         int i = 1;
+	SaErrorT status;
         
         SaHpiSelInfoT sel = {
                 .Size = 512, /* this is clearly a guess but looks about right 
@@ -109,11 +110,11 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
         
         sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, i);
         /* we need first value to figure out what our update time is */
-        snmp_get(custom_handle->ss,oid,&first_value);
+        status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&first_value);
         
-        if(first_value.type == ASN_OCTET_STR) {
+        if((status == SA_OK) && (first_value.type == ASN_OCTET_STR)) {
                 if(snmp_bc_parse_sel_entry(handle,first_value.string, &sel_entry) < 0) {
-                        dbg("Couldn't get first date");
+                        dbg("Couldn't parse date and time of first entry");
                 } else {
 			if (sel_entry.time.tm_year > 138) 
                         	sel.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
@@ -121,7 +122,10 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
                         	sel.UpdateTimestamp = 
                                 	(SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
                 }
-        }
+        } else {
+		dbg("SNMP timeout on OID %s\n", oid);
+		return status;	
+	}
         
         if(get_bc_sp_time(handle,&curtime) == 0) {
 		if (curtime.tm_year > 138)
@@ -134,7 +138,7 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
         sel.Entries = get_bc_sel_size(hnd, id);
         *info = sel;
         
-        return 0;
+        return SA_OK;
 }
 
 /**
@@ -254,7 +258,7 @@ int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entry
         SaHpiTimeT new_timestamp;
 	char oid[50];
 	SaErrorT rv;
-	int rc, cacheupdate = 0;
+	int cacheupdate = 0;
 
 	rv = oh_sel_get(handle->selcache, SAHPI_NEWEST_ENTRY, &prev, &next, &fetchentry);
 	if (rv != SA_OK)
@@ -262,17 +266,20 @@ int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entry
 		
 	current = 1;
 	sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-       	rc = snmp_get(custom_handle->ss,oid,&get_value);
-       	if (rc != 0) 
+       	rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
+       	if (rv != SA_OK) 
 	{
 		/* 
 		 * snmp_get() returns -1 if snmp agent does not respond *or*
 		 * snmp log entry does not exist. 
-		 *
-		 * For now, assuming the best i.e. snmp log is empty. 
 		 */
-		dbg("snmp log is empty.\n");
-		rv = oh_sel_clear(handle->selcache);
+		 if ( (rv == SA_ERR_HPI_NO_RESPONSE) || (rv == SA_ERR_HPI_BUSY) ) {
+			dbg("bc snmp client is not responding\n");
+		 	return rv;
+		} else {
+			dbg("snmp log is empty.\n");
+			rv = oh_sel_clear(handle->selcache);
+		}
 	
 	} else {
 		if (fetchentry == NULL) {
@@ -291,7 +298,7 @@ int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entry
 			while (1) {
 				current++;
                			sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-               			rv = snmp_get(custom_handle->ss,oid,&get_value);
+               			rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
 				if (rv == 0) {
                				if(snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
                					dbg("Couldn't parse SEL Entry");
@@ -409,9 +416,9 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 	int isdst = 0;
 
 	sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-	snmp_get(custom_handle->ss,oid,&get_value);
+	rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
 
-	if(get_value.type == ASN_OCTET_STR) {
+	if ( (rv == SA_OK) && (get_value.type == ASN_OCTET_STR)) {
 		int event_enabled;
 
                 log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
@@ -442,10 +449,9 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 		}
 	} else {
 		dbg("Couldn't fetch SEL Entry from BladeCenter snmp");
-		return -1;
 	}
 
-        return SA_OK;
+        return rv;
 }
 
 /**

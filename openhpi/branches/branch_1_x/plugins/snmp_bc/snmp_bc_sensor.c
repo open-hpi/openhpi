@@ -33,6 +33,7 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
         gchar *oid=NULL;
 	SaHpiSensorReadingT working;
         struct snmp_value get_value;
+	SaErrorT status;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
@@ -61,10 +62,11 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 		}
 
 		/* Read the sensor value */
-		if(snmp_get(custom_handle->ss, oid, &get_value) != 0){
+		status = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
+		if( status != 0){
 			dbg("SNMP could not read sensor %s. Type = %d",oid,get_value.type);
 			g_free(oid);
-			return SA_ERR_HPI_NO_RESPONSE;
+			return status;
 		}
 		g_free(oid);
 
@@ -168,11 +170,15 @@ do { \
                                  dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.RawThresholds.thdoid); \
                                  return -1; \
                         } \
-	                if((snmp_get(custom_handle->ss, oid, &get_value) != 0) | \
+			status =  snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value); \
+	                if(( status != 0) | \
 	                   (get_value.type != ASN_INTEGER)) { \
 		                dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type); \
 		                g_free(oid); \
-		                return SA_ERR_HPI_NO_RESPONSE; \
+				if  (status == SA_ERR_HPI_BUSY) \
+					return SA_ERR_HPI_BUSY; \
+		                else \
+					return SA_ERR_HPI_NO_RESPONSE; \
 	                } \
 	                g_free(oid); \
 	                found_raw = found_raw | thdmask; \
@@ -193,11 +199,15 @@ do { \
                                 dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.InterpretedThresholds.thdoid); \
                                 return -1; \
                         } \
-	         	if((snmp_get(custom_handle->ss, oid, &get_value) != 0) | \
+			status = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value); \
+	         	if(( status != 0) | \
 	                   !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) { \
 			        dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type); \
 			        g_free(oid); \
-			        return SA_ERR_HPI_NO_RESPONSE; \
+				if  (status == SA_ERR_HPI_BUSY) \
+					return SA_ERR_HPI_BUSY; \
+		                else \
+					return SA_ERR_HPI_NO_RESPONSE; \
 		        } \
                         found_interpreted = found_interpreted | thdmask; \
 		        /* Means we always need to define this field in bc_resources.h */ \
@@ -256,6 +266,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 	SaHpiSensorThresholdsT working;
 	SaHpiSensorInterpretedUnionT value;
         struct snmp_value get_value;
+	SaErrorT status;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
