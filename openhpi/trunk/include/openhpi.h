@@ -370,7 +370,7 @@ int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e);
 int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
 int dsel_clr(SaHpiDomainIdT domain_id);
 int rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry);
-int rsel_add2(struct oh_resource *d, struct oh_rsel_event *e);
+/*int rsel_add2(struct oh_resource *d, struct oh_rsel_event *e);*/
 int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id);
 int rsel_clr(SaHpiResourceIdT res_id); 
 

@@ -84,13 +84,20 @@ struct oh_resource_event {
 };
 
 /*
+ *
+ */
+struct oh_resource_del_event {
+        SaHpiResourceIdT resource_id;        
+};
+
+/*
  * The event is used for plugin to report that a given resource
  * is a member of a specific domain.
  */
-struct oh_domain_event {
+/*struct oh_domain_event {
 	struct oh_resource_id	res_id;
 	struct oh_domain_id	domain_id;
-};
+};*/
 
 /* 
  * The event is used for plugin to report its RDRs in resource.
@@ -102,6 +109,14 @@ struct oh_rdr_event {
 	struct oh_rdr_id	id;
 	
 	SaHpiRdrT		rdr;
+};
+
+/*
+ * This event is used for requesting an rdr deletion.
+ */
+struct oh_rdr_del_event {
+        SaHpiEntityPathT parent_entity; /* Identifies the resource parent */
+        SaHpiEntryIdT record_id; /* Identifies the rdr to be deleted */
 };
 
 /*
@@ -139,9 +154,9 @@ struct oh_rsel {
 /*
  * The event is used for plugin to notify SEL events
  */
-struct oh_rsel_event {
+/*struct oh_rsel_event {
 	struct oh_rsel rsel;
-};
+};*/
 
 /* 
  * This is the main event structure. It is used for plugin report
@@ -157,10 +172,10 @@ struct oh_event {
 	}type;
 	union {
 		struct oh_resource_event res_event;
-		struct oh_domain_event   domain_event;
+                struct oh_resource_del_event res_del_event;
 		struct oh_rdr_event	 rdr_event;
+                struct oh_rdr_del_event  rdr_del_event;
 		struct oh_hpi_event	 hpi_event;
-		struct oh_rsel_event	 rsel_event;
 	} u;		    
 };
 
