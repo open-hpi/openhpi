@@ -76,12 +76,17 @@ static int process_session_event(RPTable *rpt, struct oh_hpi_event *e)
         return 0;
 }
 
-static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_resource_event *e) 
+static int process_resource_event(struct oh_handler *h, RPTable *rpt,
+                                  struct oh_resource_event *e, int delete) 
 {
         int rv;
         data_access_lock();
 
-        rv = oh_add_resource(rpt,&(e->entry),h);
+        if (delete) {
+                rv = oh_remove_resource(rpt,e->entry.ResourceId);
+        } else {
+                rv = oh_add_resource(rpt,&(e->entry),h);
+        }        
         
         data_access_unlock();
         
@@ -115,7 +120,8 @@ static void process_domain_event(struct oh_handler *h, struct oh_domain_event *e
 }
 */
 
-static int process_rdr_event(struct oh_handler *h, RPTable *rpt, struct oh_rdr_event *e)
+static int process_rdr_event(struct oh_handler *h, RPTable *rpt,
+                             struct oh_rdr_event *e, int delete)
 {
         int rv;
         SaHpiResourceIdT rid;
@@ -125,9 +131,13 @@ static int process_rdr_event(struct oh_handler *h, RPTable *rpt, struct oh_rdr_e
                 dbg("Trying to use an unknown resource id for rdr");
                 return -1;
         }
-        
-        rv = oh_add_rdr(rpt,rid,&(e->rdr),NULL);
-        
+
+        if (delete) {
+                rv = oh_remove_rdr(rpt,rid,e->rdr.RecordId);
+        } else {
+                rv = oh_add_rdr(rpt,rid,&(e->rdr),NULL);
+        }
+                
         return rv;
 }
 /*
@@ -171,9 +181,12 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         case OH_ET_HPI:
                 /* add the event to session event list */
                 process_session_event(rpt, &event.u.hpi_event);
-                break;
+                break;        
         case OH_ET_RESOURCE:
-                process_resource_event(h, rpt, &event.u.res_event);
+                process_resource_event(h, rpt, &event.u.res_event, SAHPI_FALSE);
+                break;
+        case OH_ET_RESOURCE_DEL:
+                process_resource_event(h, rpt, &event.u.res_event, SAHPI_TRUE);
                 break;
 /* Domain events are not supported, pull them out for now */
 /*                        case OH_ET_DOMAIN:
@@ -181,7 +194,10 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
                           break;
 */
         case OH_ET_RDR:
-                process_rdr_event(h, rpt, &event.u.rdr_event);
+                process_rdr_event(h, rpt, &event.u.rdr_event, SAHPI_FALSE);
+                break;
+        case OH_ET_RDR_DEL:
+                process_rdr_event(h, rpt, &event.u.rdr_event, SAHPI_TRUE);
                 break;
 /* Resource System event logs will be handled by the plugins and
  * will not be bubbled up.
