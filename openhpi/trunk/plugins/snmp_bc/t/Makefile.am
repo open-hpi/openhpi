@@ -91,7 +91,8 @@ TESTS = tevent \
 	tcontrol_parms \
 	tset_resource_tag \
 	tset_resource_sev \
-	tsnmp_bc_getset
+	tsnmp_bc_getset \
+	tsensor
 #	thotswap_state \
 #	thotswap_state_err \
 #	thotswap_reset \
@@ -103,7 +104,6 @@ TESTS = tevent \
 #	thotswap_power_set \
 #	thotswap_power_set_err \
 #	thotswap_unsupported \
-#	tsensor \
 #	testxml
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
@@ -141,13 +141,16 @@ tsnmp_bc_getset_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
+# Unit test using normal IF calls and simulation library
+tsensor_SOURCES = tsensor.c
+tsensor_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
 
 # Unit tests with IF and snmp calls stubbed out
 #testxml_SOURCES = testxml.c
 #testxml_LDADD   = com_xml2event.c
-
-#tsensor_SOURCES = tsensor.c
-#tsensor_LDADD   = snmp_bc_sensor.o 
 
 #thotswap_state_SOURCES = thotswap_state.c
 #thotswap_state_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
