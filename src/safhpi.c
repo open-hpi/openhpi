@@ -911,7 +911,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 
-	int (*set_func)(void *, struct oh_rdr_id, SaHpiInventoryDataT *);
+	int (*set_func)(void *, struct oh_rdr_id, const SaHpiInventoryDataT *);
 
 	OH_GET_RESOURCE;
 
