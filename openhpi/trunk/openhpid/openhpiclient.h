@@ -21,6 +21,8 @@
 #include <SaHpi.h>
 #include "simple_config.h"
 #include "connection.h"
+#include <sys/time.h>
+#include <pthread.h>
 
 
 #ifndef OH_CLIENT_DEFAULT_CONF
@@ -28,15 +30,63 @@
 #endif
 
 
+struct sOpenHpiClientRequest;
+typedef struct sOpenHpiClientRequest cOpenHpiClientRequest;
+
+
+struct sOpenHpiClientRequest
+{
+  cOpenHpiClientRequest *m_next;
+  unsigned char   m_seq;
+  SaErrorT        m_error;
+
+  cMessageHeader *m_request_header;
+  void           *m_request;
+
+  cMessageHeader *m_reply_header;
+  void          **m_reply;
+
+  struct timeval  m_timeout;
+
+  pthread_mutex_t *m_lock;
+  pthread_cond_t  *m_cond;
+};
+
+
+typedef enum
+{
+  eOpenHpiClientThreadStateUnknown,
+  eOpenHpiClientThreadStateSuspend,
+  eOpenHpiClientThreadStateRun,
+  eOpenHpiClientThreadStateExit
+} tOpenHpiClientThreadState;
+
+
 typedef struct
 {
-  char m_server[dConfigStringMaxLength];
-  int  m_port;
-  int  m_debug;
+  char                   m_server[dConfigStringMaxLength];
+  int                    m_port;
+  int                    m_debug;
 
-  int  m_num_sessions;
-  cClientConnection *m_client_connection;
-  int m_initialize;
+  // maximum outstanding requests
+  int                    m_max_outstanding; // must be <= 256
+  unsigned               m_timeout;
+
+  int                    m_num_sessions;
+  cClientConnection     *m_client_connection;
+  int                    m_initialize;
+
+  pthread_mutex_t        m_lock;
+  cOpenHpiClientRequest *m_queue;
+  cOpenHpiClientRequest *m_outstanding[256];
+  int                    m_num_outstanding;
+
+  int                    m_current_seq;
+
+  pthread_t              m_thread;
+  tOpenHpiClientThreadState m_thread_state;
+  int                    m_thread_exit;
+
 } cOpenHpiClientConf;
 
 

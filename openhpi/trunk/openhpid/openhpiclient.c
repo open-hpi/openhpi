@@ -20,14 +20,30 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/poll.h>
+#include <errno.h>
+#include <stdio.h>
+
+
+static void *ReaderThread( void *param );
+static void  Reader( cOpenHpiClientConf *c );
+static void  ReadResponse( cOpenHpiClientConf *c );
+
+static pthread_mutex_t lock_tmpl = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 
 #ifdef dOpenHpiClientWithConfig
 static cOpenHpiClientConf config_data = 
 {
-  .m_num_sessions = 0,
+  .m_num_sessions      = 0,
   .m_client_connection = 0,
-  .m_initialize = 0
+  .m_initialize        = 0,
+
+  .m_lock              = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
+  .m_queue             = 0,
+  .m_num_outstanding   = 0,
+  .m_current_seq       = 0
 };
 
 static cOpenHpiClientConf *config = &config_data;
@@ -53,6 +69,20 @@ static cConfigEntry config_table[] =
     .m_default.m_int = 0xffff
   },
   {
+    // max outstanding messages
+    .m_name = "max_outstanding",
+    .m_type = eConfigTypeInt,
+    .m_offset = dConfigOffset( cOpenHpiClientConf, m_max_outstanding ),
+    .m_default.m_int = 255
+  },
+  {
+    // timeout in ms
+    .m_name = "timeout",
+    .m_type = eConfigTypeInt,
+    .m_offset = dConfigOffset( cOpenHpiClientConf, m_timeout ),
+    .m_default.m_int = 30000 // 30s
+  },
+  {
     .m_type = eConfigTypeUnknown
   }
 };
@@ -60,9 +90,12 @@ static cConfigEntry config_table[] =
 
 
 static int
-OpenConnection( cOpenHpiClientConf *c )
+InitClient( cOpenHpiClientConf *c )
 {
   assert( c->m_client_connection == 0 );
+
+  memset( c, 0, sizeof( cOpenHpiClientConf ) );
+  c->m_lock = lock_tmpl;
 
 #ifdef dOpenHpiClientWithConfig
   char *openhpi_client_conf = getenv( "OPENHPICLIENT_CONF" );
@@ -78,16 +111,369 @@ OpenConnection( cOpenHpiClientConf *c )
   if ( !c->m_client_connection )
        return 0;
 
+  // start reader thread
+  c->m_thread_state = eOpenHpiClientThreadStateSuspend;
+
+  int rv = pthread_create( &c->m_thread, 0, ReaderThread, c );
+
+  if ( rv )
+       return 0;
+
+  // wait till real thread start
+  while( c->m_thread_state == eOpenHpiClientThreadStateSuspend )
+       // wait 100 ms
+       usleep( 10000 );
+
   return 1;
 }
 
 
 static void
-CloseConnection( cOpenHpiClientConf *c )
+CleanupClient( cOpenHpiClientConf *c )
 {
+  c->m_thread_exit = 1;
+
+  while( c->m_thread_state == eOpenHpiClientThreadStateRun )
+       usleep( 100000 );
+
   assert( c->m_client_connection );
   ClientConnectionClose( c->m_client_connection );
   c->m_client_connection = 0;
+
+  assert( c->m_num_outstanding == 0 );
+}
+
+
+static void 
+Lock( cOpenHpiClientConf *c )
+{
+  pthread_mutex_lock( &c->m_lock );
+}
+
+
+static void 
+Unlock( cOpenHpiClientConf *c )
+{
+  pthread_mutex_unlock( &c->m_lock );
+}
+
+
+static int
+AddOutstanding( cOpenHpiClientConf *c, cOpenHpiClientRequest *r )
+{
+  assert( c->m_num_outstanding < c->m_max_outstanding );
+
+  // find next free seq
+  while( 1 )
+     {
+       if ( c->m_outstanding[c->m_current_seq] == 0 )
+            break;
+
+       c->m_current_seq += 1;
+       c->m_current_seq %= 256;
+     }
+
+  r->m_seq = c->m_current_seq;
+  r->m_request_header->m_seq = c->m_current_seq;
+
+  assert( c->m_outstanding[c->m_current_seq] == 0 );
+  c->m_outstanding[c->m_current_seq] = r;
+  c->m_num_outstanding += 1;
+
+  c->m_current_seq += 1;
+  c->m_current_seq %= 256;
+
+  return r->m_seq;
+}
+
+
+static void
+RemOutstanding( cOpenHpiClientConf *c, int seq )
+{
+  assert( seq >= 0 && seq < 256 );
+
+  if ( c->m_outstanding[seq] == 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  c->m_outstanding[seq] = 0;
+  c->m_num_outstanding -= 1;
+
+  assert( c->m_num_outstanding >= 0 );
+}
+
+
+static void
+HandleMsgError( cOpenHpiClientConf *c, cOpenHpiClientRequest *r, SaErrorT err )
+{
+  r->m_error = err;
+  pthread_mutex_lock( r->m_lock );
+  pthread_cond_signal( r->m_cond );
+  pthread_mutex_unlock( r->m_lock );
+}
+
+
+static SaErrorT
+SendCmd( cOpenHpiClientConf *c, cOpenHpiClientRequest *r )
+{
+  assert( c->m_num_outstanding < c->m_max_outstanding );
+
+  int seq = AddOutstanding( c, r );
+
+  // message timeout
+  gettimeofday( &r->m_timeout, 0 );
+
+  // add timeout
+  if ( r->m_request_header->m_id == eFsaHpiEventGet )
+     {
+       // TODO: set timeout to timeout of saHpiEventGet
+       r->m_timeout.tv_sec += 1000000;
+     }
+  else
+     {
+       r->m_timeout.tv_sec += c->m_timeout / 1000;
+       r->m_timeout.tv_usec += (c->m_timeout % 1000) * 1000;
+
+       while( r->m_timeout.tv_usec > 1000000 )
+	  {
+	    r->m_timeout.tv_sec += 1;
+	    r->m_timeout.tv_usec -= 1000000;
+	  }
+     }
+
+  // send message
+  int rv = ConnectionWriteMsg( c->m_client_connection->m_fd, r->m_request_header,
+			       r->m_request );
+
+  if ( rv )
+     {
+       RemOutstanding( c, seq );
+       return SA_ERR_HPI_BUSY;
+     }
+
+  return SA_OK;
+}
+
+
+static void
+SendCmds( cOpenHpiClientConf *c )
+{
+  while( c->m_queue && c->m_num_outstanding < c->m_max_outstanding )
+     {
+       cOpenHpiClientRequest *r = c->m_queue;
+       c->m_queue = c->m_queue->m_next;
+
+       SaErrorT rv = SendCmd( c, r );
+
+       if ( rv )
+            HandleMsgError( c, r, rv );
+     }
+}
+
+
+static SaErrorT
+SendMsg( cOpenHpiClientConf *c, cMessageHeader *request_header,
+	 void *request, cMessageHeader *reply_header, void **reply )
+{
+  *reply = 0;
+
+  pthread_cond_t  cond = PTHREAD_COND_INITIALIZER;
+  pthread_mutex_t lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+
+  cOpenHpiClientRequest *r = (cOpenHpiClientRequest *)malloc( sizeof( cOpenHpiClientRequest ) );
+  memset( r, 0, sizeof( cOpenHpiClientRequest ) );
+
+  r->m_request_header = request_header;
+  r->m_request        = request;
+  r->m_reply_header   = reply_header;
+  r->m_reply          = reply;
+  r->m_lock           = &lock;
+  r->m_cond           = &cond;
+  r->m_error          = SA_ERR_HPI_TIMEOUT;
+
+  assert( c->m_thread_state == eOpenHpiClientThreadStateRun );
+
+  pthread_mutex_lock( r->m_lock );
+  Lock( c );
+
+  SaErrorT rv;
+
+  if ( c->m_num_outstanding < c->m_max_outstanding )
+     {
+       // send the command within this thread context.
+       rv = SendCmd( c, r );
+
+       if ( rv )
+	  {
+	    // error
+	    free( r );
+
+	    Unlock( c );
+	    pthread_mutex_unlock( r->m_lock );
+	    return rv;
+	  }
+     }
+  else
+     {
+       // send queue full
+       r->m_next = c->m_queue;
+       c->m_queue = r;
+     }
+
+  Unlock( c );
+
+  // wait for response
+  pthread_cond_wait( &cond, &lock );
+  pthread_mutex_unlock( &lock );
+
+  rv = r->m_error;
+
+  free( r );
+
+  return rv;
+}
+
+
+static void *
+ReaderThread( void *param )
+{
+  cOpenHpiClientConf *c = (cOpenHpiClientConf *)param;
+
+  c->m_thread_state = eOpenHpiClientThreadStateRun;
+
+  Reader( c );
+
+  c->m_thread_state = eOpenHpiClientThreadStateExit;
+
+  return 0;
+}
+
+
+static void
+Reader( cOpenHpiClientConf *c )
+{
+  // create pollfd
+  struct pollfd pfd;
+
+  pfd.events = POLLIN;
+
+  // reader loop
+  while( !c->m_thread_exit )
+     {
+       assert( c->m_client_connection->m_fd >= 0 );
+       pfd.fd = c->m_client_connection->m_fd;
+
+       int rv = poll( &pfd, 1, 100 );
+
+       if ( rv == 1 )
+            // read response
+            ReadResponse( c );
+       else if ( rv != 0 )
+          {
+            if ( errno != EINTR )
+               {
+                 // error
+                 assert( 0 );
+                 abort();
+               }
+          }
+
+       // check for expiered ipmi commands
+       struct timeval now;
+       gettimeofday( &now, 0 );
+
+       Lock( c );
+
+       int i;
+       for( i = 0; i < 256; i++ )
+          {
+            if ( c->m_outstanding[i] == 0 )
+                 continue;
+
+            cOpenHpiClientRequest *r = c->m_outstanding[i];
+
+            if (    r->m_timeout.tv_sec > now.tv_sec 
+		 || (    r->m_timeout.tv_sec == now.tv_sec
+		      && r->m_timeout.tv_usec > now.tv_usec ) )
+                 continue;
+
+            // timeout expired
+            RemOutstanding( c, r->m_seq );
+
+            HandleMsgError( c, r, SA_ERR_HPI_TIMEOUT );
+          }
+
+       // send new comands
+       SendCmds( c );
+
+       Unlock( c );
+     }
+}
+
+
+static void
+HandlePing(cOpenHpiClientConf *c, cMessageHeader *request_header )
+{
+  printf( "read ping: send pong.\n" );
+  
+  // send pong
+  cMessageHeader header;
+  MessageHeaderInit( &header, eMhPong, request_header->m_seq, request_header->m_id, 0 );
+  ConnectionWriteHeader( c->m_client_connection->m_fd, &header );
+}
+
+
+static void
+ReadResponse( cOpenHpiClientConf *c )
+{
+  cMessageHeader header;
+  void *reply = 0;
+
+  int rv = ConnectionReadMsg( c->m_client_connection->m_fd, &header, &reply, 0 );
+
+  if ( rv )
+     {
+       // error
+       return;
+     }
+
+  if ( header.m_type == eMhPing )
+     {
+       HandlePing( c, &header );
+
+       if ( reply )
+	    free( reply );
+
+       return;
+     }
+
+  Lock( c );
+
+  if ( c->m_outstanding[header.m_seq] == 0 )
+     {
+       // reply without response
+       Unlock( c );
+
+       return;
+     }
+
+  cOpenHpiClientRequest *r = c->m_outstanding[header.m_seq];
+  assert( r->m_seq == header.m_seq );
+
+  RemOutstanding( c, header.m_seq );
+
+  // reply
+  *r->m_reply_header = header;
+  *r->m_reply        = reply;
+  r->m_error         = SA_OK;
+
+  pthread_mutex_lock( r->m_lock );
+  pthread_cond_signal( r->m_cond );
+  pthread_mutex_unlock( r->m_lock );
+
+  Unlock( c );
 }
 
 
@@ -118,8 +504,8 @@ CloseConnection( cOpenHpiClientConf *c )
 #define Send()       \
   do                 \
      {               \
-       int r = ClientConnectionWriteMsg( config->m_client_connection, &request_header, \
-                                         request, &reply_header, &reply ); \
+       SaErrorT r = SendMsg( config, &request_header, \
+                             request, &reply_header, &reply ); \
                      \
        free( request ); \
                      \
@@ -132,8 +518,6 @@ CloseConnection( cOpenHpiClientConf *c )
 #define PostMarshal() \
   if ( reply )        \
        free( reply )
-
-
 
 
 SaErrorT SAHPI_API
@@ -169,7 +553,7 @@ dOpenHpiClientFunction(SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT
 {
   if ( config->m_num_sessions == 0 )
      {
-       if ( !OpenConnection( config ) )
+       if ( !InitClient( config ) )
 	    return SA_ERR_HPI_INITIALIZING;
      }
 
@@ -188,14 +572,14 @@ dOpenHpiClientFunction(SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT
   if ( err != SA_OK )
      {
        config->m_num_sessions--;
-   
+
        assert( config->m_num_sessions >= 0 );
 
        if ( config->m_num_sessions < 0 )
 	    config->m_num_sessions = 0;
   
        if ( config->m_num_sessions == 0 )
-	    CloseConnection( config );
+	    CleanupClient( config );
      }
 
   return err;
@@ -224,7 +608,7 @@ dOpenHpiClientFunction(SessionClose)dOpenHpiClientParam( SAHPI_IN SaHpiSessionId
        config->m_num_sessions = 0;
 
   if ( config->m_num_sessions == 0 )
-       CloseConnection( config );
+       CleanupClient( config );
 
   return err;
 }
@@ -934,7 +1318,19 @@ dOpenHpiClientFunction(EntityInventoryDataRead)dOpenHpiClientParam( SAHPI_IN    
 			      SAHPI_OUT   SaHpiInventoryDataT     *InventData,
 			      SAHPI_OUT   SaHpiUint32T            *ActualSize )
 {
-  return SA_ERR_HPI_UNSUPPORTED_API;
+  CheckSession();
+
+  PreMarshal( eFsaHpiEntityInventoryDataRead );
+
+  HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &EirId, &BufferSize );
+  
+  Send();
+
+  HpiDemarshalReply2( reply_header.m_flags & dMhEndianBit, hm, reply, &err, InventData, ActualSize );
+
+  PostMarshal();
+
+  return err;
 }
 
 
@@ -944,7 +1340,19 @@ dOpenHpiClientFunction(EntityInventoryDataWrite)dOpenHpiClientParam( SAHPI_IN Sa
 			       SAHPI_IN SaHpiEirIdT              EirId,
 			       SAHPI_IN SaHpiInventoryDataT      *InventData )
 {
-  return SA_ERR_HPI_UNSUPPORTED_API;
+  CheckSession();
+
+  PreMarshal( eFsaHpiEntityInventoryDataWrite );
+
+  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, InventData );
+
+  Send();
+
+  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+
+  PostMarshal();
+
+  return err;
 }
 
 

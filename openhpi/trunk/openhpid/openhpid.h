@@ -29,23 +29,56 @@
 #include "connection.h"
 #endif
 
+#include <glib.h>
+
+// check the connection in 2 minute interval
+#define dPingTimeout 120000000000LL // saHpiTimeT
+
+
+class cConnection;
+
+class cSession
+{
+  cConnection    *m_connection;
+  SaHpiSessionIdT m_session_id;
+  bool            m_event_get; // saHpiEventGet is currently running
+  SaHpiTimeT      m_timeout;
+  unsigned int    m_seq;
+
+public:
+  cSession( cConnection *con, SaHpiSessionIdT sid )
+    : m_connection( con ), m_session_id( sid ), m_event_get( false )
+  {
+  }
+
+  cConnection *Connection() { return m_connection; }
+  SaHpiSessionIdT SessionId() { return m_session_id; }
+  bool IsEventGet()        { return m_event_get; }
+  void EventGet( bool v = true ) { m_event_get = v; }
+  SaHpiTimeT &Timeout() { return m_timeout; }
+  unsigned int &Seq() { return m_seq; }
+};
+
 
 class cConnection
 {
   cServerConnection *m_con;
+  GList             *m_sessions; // sessions running over this connection
+  SaHpiTimeT         m_ping_timer;
+  int                m_outstanding_pings;
 
 public:
-  cConnection( cServerConnection *con )
-    : m_con( con )
-  {}
+  cConnection( cServerConnection *con );
+  ~cConnection();
 
-  ~cConnection()
-  {
-    if ( m_con )
-	 ServerConnectionClose( m_con );
-  }
-
+  cSession *FindSession( SaHpiSessionIdT sid );
+  bool AddSession( SaHpiSessionIdT sid );
+  bool RemSession( SaHpiSessionIdT sid );
+  GList *Sessions() { return m_sessions; }
   int Fd() { return m_con->m_fd; }
+
+  SaHpiTimeT &PingTimer() { return m_ping_timer; }
+  int        &OutstandingPings() { return m_outstanding_pings; }
 };
 
 
@@ -53,6 +86,8 @@ public:
 #define dDebugInit       1
 #define dDebugConnection 2
 #define dDebugFunction   4
+#define dDebugEvent      8
+#define dDebugPing      16
 
 
 class cOpenHpiDaemon
@@ -79,8 +114,17 @@ public:
   void CloseConnection( int id );
 
   bool HandleData( cConnection *c );
-  bool HandleMsg( const cMessageHeader &header, const void *data,
-		  cMessageHeader &rh, void *&rd );
+  void HandlePong( cConnection *c, const cMessageHeader &header );
+
+  enum tResult
+  {
+    eResultOk,
+    eResultError,
+    eResultReply
+  };
+
+  tResult HandleMsg( cConnection *c, const cMessageHeader &header, const void *data,
+		     cMessageHeader &rh, void *&rd );
 
   void Idle();
 
@@ -97,6 +141,8 @@ public:
   void DbgInit( const char *fmt, ... );
   void DbgCon ( const char *fmt, ... );
   void DbgFunc( const char *fmt, ... );
+  void DbgEvent( const char *fmt, ... );
+  void DbgPing( const char *fmt, ... );
 };
 
 
