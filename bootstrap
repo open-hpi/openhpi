@@ -33,10 +33,10 @@
  
 
 
-libtoolize -c --force --ltdl --automake
+libtoolize --copy --force --automake
 aclocal
 autoheader
-automake -a -c --foreign
+automake --add-missing --copy --foreign
 autoconf
 
 
