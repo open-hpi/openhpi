@@ -377,8 +377,10 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
      {
        GList *new_events = m_mc->Sel()->GetEvents();
 
-       if ( new_events )
-	    m_domain->HandleEvents( new_events );
+       // We only care for events from the BMC SEL
+       if (( m_addr == dIpmiBmcSlaveAddr )
+           && ( new_events ))
+           	    m_domain->HandleEvents( new_events );
      }
 
   if ( m_mc->SelDeviceSupport() )
@@ -671,6 +673,8 @@ cIpmiMcThread::ReadSel( void *userdata )
   AddMcTask( &cIpmiMcThread::ReadSel, m_domain->m_sel_rescan_interval,
                    userdata );
 
-  if ( new_events )
-       m_domain->HandleEvents( new_events );
+  // We only care for events from the BMC SEL
+  if (( m_addr == dIpmiBmcSlaveAddr )
+      && ( new_events ))
+        m_domain->HandleEvents( new_events );
 }
