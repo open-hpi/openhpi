@@ -232,7 +232,7 @@ int process_plugin_token (GScanner *oh_scanner)
         if(refcount < 0) {
                 global_plugin_list = g_slist_append(
                         global_plugin_list,
-                        (gpointer *) new_plugin_config(oh_scanner->value.v_string)
+                        (gpointer) new_plugin_config(oh_scanner->value.v_string)
                         );
         } else {
                 dbg("WARNING: Attempt to load a plugin more than once");
