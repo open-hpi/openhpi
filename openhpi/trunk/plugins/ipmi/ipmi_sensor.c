@@ -19,10 +19,11 @@
 #include "ipmi.h"
 
 /* 
- * Use for getting sensor data functions
+ * Use for getting sensor reading
  */
 struct ohoi_sensor_reading {
-	SaHpiSensorReadingT	*sensor_reading;
+	SaHpiSensorReadingT	*reading;
+        SaHpiEventStateT        *ev_state;
 	int			done;
 };
 
@@ -59,75 +60,37 @@ static int ignore_sensor(ipmi_sensor_t *sensor)
         return 1;
 }
 
-#if 0
-static void sensor_read_states(ipmi_sensor_t *sensor,
-                               int           err,
-                               ipmi_states_t *states,
-                               void          *cb_data)
+static void sensor_reading(ipmi_sensor_t		*sensor,
+		  	   int 				err,
+			   enum ipmi_value_present_e	value_present,
+			   unsigned int 		raw_val,
+			   double 			val,
+			   ipmi_states_t 		*states,
+			   void 			*cb_data)
 {
 	struct ohoi_sensor_reading *p = cb_data;
-
-        p->sensor_reading->ValuesPresent = SAHPI_SRF_EVENT_STATE;
-
-	if (ipmi_is_event_messages_enabled(states))
-		p->sensor_reading->EventStatus.SensorStatus |=
-			SAHPI_SENSTAT_EVENTS_ENABLED;
-
-	if (ipmi_is_sensor_scanning_enabled(states))
-		p->sensor_reading->EventStatus.SensorStatus |= 
-			SAHPI_SENSTAT_EVENTS_ENABLED;
-
-	if (ipmi_is_initial_update_in_progress(states))
-		p->sensor_reading->EventStatus.SensorStatus |=
-			SAHPI_SENSTAT_BUSY;
-
-	p->sensor_reading->EventStatus.EventStatus = states->__states;
-	
+ 
 	p->done = 1;
-}
-#endif
 
-static void sensor_read(ipmi_sensor_t			*sensor,
-			int 				err,
-			enum ipmi_value_present_e	value_present,
-			unsigned int 			raw_val,
-			double 				val,
-			ipmi_states_t 			*states,
-			void 				*cb_data)
-{
-	struct ohoi_sensor_reading *p = cb_data;
-        
 	if (err) {
 		dbg("sensor reading error");
-		p->done = 1;
 		return;
-	}	
-#if 0
-	if (value_present == IPMI_BOTH_VALUES_PRESENT) {
-		p->sensor_reading->ValuesPresent = SAHPI_SRF_RAW |
-						   SAHPI_SRF_INTERPRETED;
-		p->sensor_reading->Raw = (SaHpiUint32T)raw_val;
-		p->sensor_reading->Interpreted.Type =
-			SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32;
-		p->sensor_reading->Interpreted.Value.SensorFloat32 = 
-			(SaHpiFloat32T)val;
 	}
-	else if (value_present == IPMI_RAW_VALUE_PRESENT) {
-		p->sensor_reading->ValuesPresent = SAHPI_SRF_RAW;
-		p->sensor_reading->Raw = (SaHpiUint32T)raw_val;
+
+	if (value_present == IPMI_RAW_VALUE_PRESENT) {
+		p->reading->IsSupported = SAHPI_TRUE;
+		p->reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		p->reading->Value.SensorFloat64 = raw_val;
+	}else if(value_present == IPMI_BOTH_VALUES_PRESENT) {
+		p->reading->IsSupported = SAHPI_TRUE;
+		p->reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		p->reading->Value.SensorFloat64 = val;
 	}
-	else
-		p->sensor_reading->ValuesPresent = 0;
-#else
-	p->sensor_reading->IsSupported = SAHPI_TRUE;
-	p->sensor_reading->Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-	p->sensor_reading->Value.SensorFloat64 = val;
-#endif 
-	
-	p->done = 1;
+
+	*p->ev_state = states->__states;
 }
 
-static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
+static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 {
 	struct ohoi_sensor_reading *reading_data;	
 	int rv;	
@@ -135,59 +98,45 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
         reading_data = cb_data;
         
 	if (ignore_sensor(sensor)) {
+		reading_data->done =1;
 		dbg("Sensor is not present, ignored");
 		return;
 	}	
 
-	if (ipmi_sensor_get_event_reading_type(sensor) ==
-			IPMI_EVENT_READING_TYPE_THRESHOLD) {
-		rv = ipmi_reading_get(sensor, sensor_read, reading_data);
-		if (rv) {
-			reading_data->done = 1;
-			dbg("Unable to get sensor reading: %s\n",
-                            strerror( rv ) );
-			return;
-		}
-        } else {
-		reading_data->done = 1 ;
-#if 0
-                rv = ipmi_states_get(sensor, sensor_read_states, reading_data);
-		if (rv) {
-			dbg("Unable to get sensor reading states: %s\n",
-                            strerror( rv ) );
-			return;
-                }
-#endif
-        }
-
+	rv = ipmi_reading_get(sensor, sensor_reading, reading_data);
+	if (rv) {
+		reading_data->done = 1;
+		dbg("Unable to get sensor reading: %s\n", strerror( rv ) );
+		return;
+	}
 }
 
-int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, 
-                         SaHpiSensorReadingT *data,
-						 void *cb_data)
+int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id, 
+                            SaHpiSensorReadingT *reading,
+			    SaHpiEventStateT * ev_state,
+			    void *cb_data)
 {
-		struct ohoi_handler *ipmi_handler = cb_data;
-		
-		struct ohoi_sensor_reading reading_data;	
+	struct ohoi_handler *ipmi_handler = cb_data;
+	struct ohoi_sensor_reading reading_data;	
         int rv;
-        
-        memset(data, 0, sizeof(*data));
-        reading_data.sensor_reading     = data;
-        reading_data.done               = 0;
+
+        reading_data.reading     = reading;
+	reading_data.ev_state    = ev_state;
+        reading_data.done        = 0;
+
+
+	reading->IsSupported = SAHPI_FALSE;
+	*ev_state = 0x0000;
 
         rv = ipmi_sensor_pointer_cb(sensor_id, 
-						get_sensor_data,
-                        &reading_data);
-        if (rv) {
-                dbg("Unable to convert sensor_id to pointer");
-#if 0
-		return SA_ERR_HPI_INVALID;
-#else
-                return SA_ERR_HPI_INVALID_CMD;
-#endif
-        }
-        
-        return ohoi_loop(&reading_data.done, ipmi_handler);
+				    get_sensor_reading,
+				    &reading_data);
+	if (rv) {
+		dbg("Unable to convert sensor_id to pointer");
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+
+	return ohoi_loop(&reading_data.done, ipmi_handler);
 }
 
 static void thres_get(ipmi_sensor_t		*sensor,
