@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 AC_PREREQ(2.57)
 AC_INIT(openhpi.spec.in)
-AM_INIT_AUTOMAKE(openhpi, 0.5.0)
+AM_INIT_AUTOMAKE(openhpi, 0.6.0)
 
 AM_CONFIG_HEADER(config.h)
 
