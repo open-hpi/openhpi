@@ -654,21 +654,21 @@ static int ipmi_get_sensor_data(void 			*hnd,
 	SaErrorT         rv;
 	ipmi_sensor_id_t *sensor;
 
-SaHpiRdrT *rdr;
+        SaHpiRdrT *rdr;
 
-rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-if (!rdr) {
-dbg("no rdr");
-return SA_ERR_HPI_NOT_PRESENT;
-}
-if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
-dbg("sensor is not present");
-return SA_ERR_HPI_NOT_PRESENT;
-}
+        rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+        if (!rdr) {
+                dbg("no rdr");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+                dbg("sensor is not present");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
-rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
-if (rv!=SA_OK)
-return rv;
+        rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+        if (rv!=SA_OK)
+                return rv;
 
 	memset(data, 0, sizeof(*data));
 	return ohoi_get_sensor_data(*sensor, data, ipmi_handler);
