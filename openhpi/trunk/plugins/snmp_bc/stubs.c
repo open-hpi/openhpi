@@ -1,10 +1,28 @@
 /* Temp file to contains until we port them over or develop them */
 
-#include <openhpi.h>
-#include <snmp_util.h>
 #include <snmp_bc_plugin.h>
 
- SaErrorT snmp_bc_get_sel_info(void *hnd, 
+
+SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
+				     SaHpiEntityPathT *ep,
+				     const struct BC_ResourceInfo *bc_res_info)
+{
+  printf("Need to implement snmp_bc_discover_res_events\n");
+
+  return(SA_OK);
+}
+
+SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
+					SaHpiEntityPathT *ep, 
+					SaHpiSensorNumT sid, 
+					const struct snmp_bc_sensor *rpt_sensor)
+{
+  printf("Need to implement snmp_bc_discover_sensor_events\n");
+
+  return(SA_OK);
+}
+
+SaErrorT snmp_bc_get_sel_info(void *hnd, 
 			       SaHpiResourceIdT id, 
 			       SaHpiEventLogInfoT *info)
 {

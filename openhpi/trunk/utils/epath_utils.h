@@ -26,7 +26,7 @@
 #include <SaHpi.h>
 
 /* Max number of digits an enitity instance has */
-#define MAX_INSTANCE_DIGITS 6
+#define OH_MAX_LOCATION_DIGITS 6
 
 /* Defines to manipulate eshort_names, which is a mirrors SaHpiEntityTypeT */
 #define ELEMENTS_IN_SaHpiEntityT 2
