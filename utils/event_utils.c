@@ -27,6 +27,7 @@
 struct oh_event* oh_new_oh_event(oh_event_type t) 
 {
         struct oh_event * new = NULL;
+        new->type = t
         new = g_new0(sizeof(*new));
         if(new == NULL) {
                 dbg("Couldn't allocate new oh_event!");

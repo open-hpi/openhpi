@@ -45,31 +45,19 @@ struct oh_rdr_event {
  * The event is used for plugin to notify HPI events
  */
 struct oh_hpi_event {
-        /*This is resource id which the event belongs to */
-        SaHpiResourceIdT parent;
-	/*This is rdr id which the event relates*/
-        SaHpiEntryIdT id;
-	
-	/* XXX: upper layer will fill some fields which does not
-	 * owned by plugins (ResourceId etc.). */
-	SaHpiEventT event;
-};
-
-/*
- * The session event contains rpt entry and rdr.
- * The same as oh_hpi_event but with full data.
- */
-struct oh_session_event {
-        SaHpiEventT event;
+        /* Resource Associated with event */
+        SaHpiRptEntryT res;
+	/* RDR Associated with event */
         SaHpiRdrT rdr;
-        SaHpiRptEntryT rpt_entry;
+        /* the real event */
+        SaHpiEventT event;
 };
 
 /* 
  * This is the main event structure. It is used for plugin report
  * its discovery about new resource/rdr or what happend on resource
  */
-        
+
 typedef enum {
         OH_ET_NONE = 0, /* if this is set the event is invalid */
         OH_ET_RESOURCE, 
@@ -86,7 +74,8 @@ typedef union {
 } oh_event_union;
 
 struct oh_event {
-        struct oh_handler* from;
+        SaHpiDomainIdT did; /* domain id for the event */
+        struct oh_handler* from; /* handler for the event */
         oh_event_type type;
         oh_event_union u;
 };

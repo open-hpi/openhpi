@@ -23,7 +23,6 @@
 
 #include <sys/time.h>
 #include <SaHpi.h>
-#include <oh_event.h>
 #include <oh_utils.h>
 
 #ifdef __cplusplus

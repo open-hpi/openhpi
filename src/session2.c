@@ -30,8 +30,8 @@ static struct oh_event *oh_generate_hpi_event(void)
 
         event = g_new0(struct oh_event, 1);        
         event->type = OH_ET_HPI;
-        event->u.hpi_event.parent = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        event->u.hpi_event.id = SAHPI_ENTRY_UNSPECIFIED;
+        event->u.hpi_event.res.ResourceId= SAHPI_UNSPECIFIED_RESOURCE_ID;
+        event->u.hpi_event.rdr.RecordId = SAHPI_ENTRY_UNSPECIFIED;
         event->u.hpi_event.event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
         event->u.hpi_event.event.EventType = SAHPI_ET_HPI_SW;
         event->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;

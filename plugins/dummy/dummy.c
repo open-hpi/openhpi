@@ -157,8 +157,8 @@ static struct oh_event hotswap_event[] = {
                 .type = OH_ET_HPI,
                 .u = {
                         .hpi_event = {
-                                .parent = 0, /* this needs to be the resourceId */
-                                .id = 1, /* ????, unquie amoung the hotswap events */
+                                .res.ResourceId = 0, /* this needs to be the resourceId */
+                                .rdr.RecordId = 1, /* ????, unquie amoung the hotswap events */
                                 .event = {
                                         .Source = 0,
                                         .EventType = SAHPI_ET_HOTSWAP,
@@ -179,8 +179,8 @@ static struct oh_event hotswap_event[] = {
                 .type = OH_ET_HPI,
                 .u = {
                         .hpi_event = {
-                                .parent = 0,  /* this needs to be the resourceId */
-                                .id = 2,      /* ????, unquie amoung the hotswap events */
+                                .res.ResourceId = 0,  /* this needs to be the resourceId */
+                                .rdr.RecordId = 2,      /* ????, unquie amoung the hotswap events */
                                 .event = {
                                         .Source = 0,
                                         .EventType = SAHPI_ET_HOTSWAP,
@@ -1124,8 +1124,8 @@ static struct oh_event dummy_user_event = {
                 .type = OH_ET_HPI,
                 .u = {
                         .hpi_event = {
-                                .parent = 0,
-                                .id = 0,
+                                .res.ResourceId = 0,
+                                .rdr.RecordId = 0,
                                 .event = {
                                         .Source = 0,
                                         .EventType = SAHPI_ET_USER,
@@ -1142,7 +1142,7 @@ static struct oh_event dummy_user_event = {
                 .type = OH_ET_RESOURCE_DEL,
                 .u = {
                         .res_event = {
-                                .parent = 0,
+                                .res.ResourceId = 0,
                                 .domain = 0,
                                 .entry = {
                                         .Source = 0,
@@ -1254,8 +1254,8 @@ static void *dummy_open(GHashTable *handler_config)
         /* fill in the local rpt cache */
         __build_the_rpt_cache(i);
         /* associate the static hotswap_event data with a resource */
-        hotswap_event[0].u.hpi_event.parent = dummy_resources[1].ResourceId;
-        hotswap_event[1].u.hpi_event.parent = dummy_resources[1].ResourceId;
+        hotswap_event[0].u.hpi_event.res.ResourceId = dummy_resources[1].ResourceId;
+        hotswap_event[1].u.hpi_event.res.ResourceId = dummy_resources[1].ResourceId;
 
         return( (void *)i );
 }
@@ -1372,7 +1372,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                 }
 
                 *event = dummy_user_event;
-                event->u.hpi_event.parent = rpt_entry->ResourceId;
+                memcpy(&(event->u.hpi_event.res),&rpt_entry,sizeof(rpt_entry));
 
                 return(1);
 
@@ -2001,7 +2001,7 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
         if (!rval && act == SAHPI_HS_ACTION_INSERTION) {
                 if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_INACTIVE) {
                         dummy_resource_status[1].hotswap = SAHPI_HS_STATE_INSERTION_PENDING;
-                        hotswap_event[0].u.hpi_event.parent = id;
+                        hotswap_event[0].u.hpi_event.res.ResourceId = id;
                         inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[0]));
                 } else {
                         dbg("Fail insertion, HotSwap");
@@ -2011,7 +2011,7 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
         } else if (!rval && act == SAHPI_HS_ACTION_EXTRACTION) {
                 if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_ACTIVE) {
                         dummy_resource_status[1].hotswap = SAHPI_HS_STATE_EXTRACTION_PENDING;
-                        hotswap_event[1].u.hpi_event.parent = id;
+                        hotswap_event[1].u.hpi_event.res.ResourceId = id;
                         inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[1]));
                 } else {
                         dbg("Cannot extraction");
