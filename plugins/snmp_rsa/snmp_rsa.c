@@ -10,6 +10,8 @@
  * full licensing terms.
  *
  * Author(s):
+ *      Renier Morales <renierm@users.sf.net>
+ *      Steve Sherman <stevees@us.ibm.com>
  *      W. David Ashley<dashley@us.ibm.com>
  */
 
@@ -31,7 +33,7 @@
 #include <snmp_rsa_hotswap.h>
 #include <snmp_rsa_watchdog.h>
 #include <snmp_rsa_inventory.h>
-
+#include <snmp_rsa_utils.h>
 #include <snmp_rsa.h>
 
 /**
@@ -57,20 +59,20 @@ static int snmp_rsa_get_event(void *hnd, struct oh_event *event, struct timeval 
 	}
 }
 
-
+/* Search for sensor.Num, since some sensors may not have an OID */
 #define find_sensors(rdr_array) \
 do { \
         int j; \
-	for(j=0; rdr_array[j].rsa_sensor_info.mib.oid != NULL; j++) { \
-		e = snmp_rsa_discover_sensors(custom_handle->ss, \
+	for(j=0; rdr_array[j].sensor.Num != 0; j++) { \
+		e = snmp_rsa_discover_sensors(handle, \
                                               parent_ep, \
                                               &rdr_array[j]); \
-                        if(e != NULL) { \
-                                struct RSA_SensorInfo *rsa_data = g_memdup(&(rdr_array[j].rsa_sensor_info), \
+                if(e != NULL) { \
+                        struct RSA_SensorInfo *rsa_data = g_memdup(&(rdr_array[j].rsa_sensor_info), \
                                                                            sizeof(struct RSA_SensorInfo)); \
-                                oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0); \
-                                tmpqueue = g_slist_append(tmpqueue, e); \
-                        } \
+                        oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0); \
+                        tmpqueue = g_slist_append(tmpqueue, e); \
+                } \
         } \
 } while(0)
 
@@ -79,7 +81,7 @@ do { \
 do { \
         int j; \
         for(j=0; rdr_array[j].rsa_control_info.mib.oid != NULL; j++) { \
-	        e = snmp_rsa_discover_controls(custom_handle->ss, \
+	        e = snmp_rsa_discover_controls(handle, \
                                                parent_ep, \
                                                &rdr_array[j]); \
                 if(e != NULL) { \
@@ -95,7 +97,7 @@ do { \
 do { \
         int j; \
         for (j=0; rdr_array[j].rsa_inventory_info.mib.oid.OidManufacturer != NULL; j++) { \
-                e = snmp_rsa_discover_inventories(custom_handle->ss, \
+                e = snmp_rsa_discover_inventories(handle, \
                                                   parent_ep, \
                                                   &rdr_array[j]); \
                 if(e != NULL) { \
@@ -135,7 +137,7 @@ static int snmp_rsa_discover_resources(void *hnd)
         }
 
         /* discover the chassis */
-        e = snmp_rsa_discover_chassis(&entity_root);
+        e = snmp_rsa_discover_chassis(handle, &entity_root);
         if(e != NULL) {
                 struct ResourceMibInfo *res_mib =
                         g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].rsa_res_info.mib),
@@ -162,7 +164,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                         continue;
                 }
 
-                e = snmp_rsa_discover_cpu(&entity_root, i);
+                e = snmp_rsa_discover_cpu(handle, &entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =
                                 g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info.mib),
@@ -172,7 +174,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
                         SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
                         /* add the CPU thermal sensor */
-                        e = snmp_rsa_discover_sensors(custom_handle->ss,
+                        e = snmp_rsa_discover_sensors(handle,
                                                       parent_ep,
                                                       &snmp_rsa_cpu_thermal_sensors[i]);
                         if(e != NULL) {
@@ -197,7 +199,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                         continue;
                 }
 
-                e = snmp_rsa_discover_dasd(&entity_root, i);
+                e = snmp_rsa_discover_dasd(handle, &entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =
                                 g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info.mib),
@@ -207,7 +209,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
                         SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
                         /* add the DASD thermal sensor */
-                        e = snmp_rsa_discover_sensors(custom_handle->ss,
+                        e = snmp_rsa_discover_sensors(handle,
                                                       parent_ep,
                                                       &snmp_rsa_dasd_thermal_sensors[i]);
                         if(e != NULL) {
@@ -232,7 +234,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                         continue;
                 }
 
-                e = snmp_rsa_discover_fan(&entity_root, i);
+                e = snmp_rsa_discover_fan(handle, &entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =
                                 g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info.mib),
@@ -242,7 +244,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
                         SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
                         /* add the fan sensor */
-                        e = snmp_rsa_discover_sensors(custom_handle->ss,
+                        e = snmp_rsa_discover_sensors(handle,
                                                       parent_ep,
                                                       &snmp_rsa_fan_sensors[i]);
                         if(e != NULL) {

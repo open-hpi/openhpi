@@ -10,6 +10,8 @@
  * full licensing terms.
  *
  * Author(s):
+ *      Sean Dague <sdague@users.sf.net>
+ *      Steve Sherman <stevees@us.ibm.com>
  *      W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -17,21 +19,21 @@
 #define SNMP_RSA_DISCOVER_H
 
 /* Resource discovery prototypes */
-struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep);
-struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int num);
-struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num);
-struct oh_event * snmp_rsa_discover_fan(SaHpiEntityPathT *ep, int num);
+struct oh_event * snmp_rsa_discover_chassis(struct oh_handler_state *handle, SaHpiEntityPathT *ep);
+struct oh_event * snmp_rsa_discover_cpu(struct oh_handler_state *handle, SaHpiEntityPathT *ep, int num);
+struct oh_event * snmp_rsa_discover_dasd(struct oh_handler_state *handle, SaHpiEntityPathT *ep, int num);
+struct oh_event * snmp_rsa_discover_fan(struct oh_handler_state *handle, SaHpiEntityPathT *ep, int num);
 
 /* RDR discovery prototypes */
-struct oh_event * snmp_rsa_discover_controls(struct snmp_session *ss,
+struct oh_event * snmp_rsa_discover_controls(struct oh_handler_state *handle,
 				             SaHpiEntityPathT parent_ep,
 				             const struct snmp_rsa_control *control);
 
-struct oh_event * snmp_rsa_discover_sensors(struct snmp_session *ss,
+struct oh_event * snmp_rsa_discover_sensors(struct oh_handler_state *handle,
                                             SaHpiEntityPathT parent_ep,
                                             const struct snmp_rsa_sensor *sensor);
 
-struct oh_event * snmp_rsa_discover_inventories(struct snmp_session *ss,
+struct oh_event * snmp_rsa_discover_inventories(struct oh_handler_state *handle,
                                                 SaHpiEntityPathT parent_ep,
                                                 const struct snmp_rsa_inventory *inventory);
 
