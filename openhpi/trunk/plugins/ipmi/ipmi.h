@@ -143,6 +143,7 @@ void ohoi_get_sel_count(ipmi_mcid_t mc_id, int *count);
 void ohoi_get_sel_overflow(ipmi_mcid_t mc_id, char *overflow);
 void ohoi_get_sel_support_del(ipmi_mcid_t mc_id, char *support_del);
 SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id, void *cb_data);
+SaErrorT ohoi_set_sel_state(struct ohoi_handler *ipmi_handler, ipmi_mcid_t mc_id, int enable);
 void ohoi_get_sel_first_entry(ipmi_mcid_t mc_id, ipmi_event_t **event);
 void ohoi_get_sel_last_entry(ipmi_mcid_t mc_id, ipmi_event_t **event);
 void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id, 

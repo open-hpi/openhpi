@@ -515,6 +515,35 @@ static int ipmi_set_el_time(void               *hnd,
         return 0;
 }
 
+
+/**
+ * ipmi_set_sel_state: set ipmi sel state (enabled)
+ * @hnd: pointer to handler
+ * @id: resource id of resource with SEL capability
+ * @enable: int value for enable
+ *
+ *
+ *
+ * Return value: SA_OK for success, SA_ERR_HPI_....  for error
+ **/
+static SaErrorT ipmi_set_sel_state(void      *hnd, 
+                SaHpiResourceIdT   id, 
+                SaHpiBoolT                    enable)
+{
+	struct ohoi_resource_info *ohoi_res_info;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	
+	ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
+                dbg("BUG: try to set sel state in unsupported resource");
+                return SA_ERR_HPI_CAPABILITY;
+        }	
+	return ohoi_set_sel_state(ipmi_handler, ohoi_res_info->u.mc_id, enable);
+}
+
+
+
 #if 0
 /**
  * ipmi_set_sel_state: set ipmi sel state (enabled)
@@ -1441,7 +1470,8 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	//.add_sel_entry                  = ipmi_add_sel_entry,
 	//.del_sel_entry                  = ipmi_del_sel_entry,
 	.get_el_entry                   = ipmi_get_el_entry,
-	.clear_el                       = ipmi_clear_el, 
+	.clear_el                       = ipmi_clear_el,
+	.set_el_state                 =  ipmi_set_sel_state,
 
 	/* Sensor support */
 	.get_sensor_reading		= ipmi_get_sensor_reading,
@@ -1496,7 +1526,7 @@ int ipmi_get_interface(void **pp, const uuid_t uuid)
 		*pp = &oh_ipmi_plugin;
 		return 0;
 	}
-
+printf("uuid_compare false\n");
 	*pp = NULL;
 	return -1;
 }
