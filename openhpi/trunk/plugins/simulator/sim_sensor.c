@@ -19,7 +19,9 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
+#include "sim_util.h"
 #include "sim_sensor.h"
+
 
 static int get_sensor_event_state(SaHpiSensorThdDefnT *def,
                                   SaHpiSensorSignFormatT sign,
@@ -101,13 +103,13 @@ do {                                                   \
         }
         return -1;
 }
-int generate_sensor_event(SaHpiRptEntryT *rpt,
-                          SaHpiRdrT *rdr,
-                          SaHpiSensorReadingT *reading,
-                          SaHpiSensorThresholdsT *thres,
-                          SaHpiSensorEvtEnablesT *enables,
-                          SaHpiEventT *old_ev,
-                          SaHpiEventT *new_ev)
+static int generate_sensor_event(SaHpiRptEntryT *rpt,
+                                 SaHpiRdrT *rdr,
+                                 SaHpiSensorReadingT *reading,
+                                 SaHpiSensorThresholdsT *thres,
+                                 SaHpiSensorEvtEnablesT *enables,
+                                 SaHpiEventT *old_ev,
+                                 SaHpiEventT *new_ev)
 {
        SaHpiSensorRecT * rec;
        SaHpiSensorEventT *ns_ev;
@@ -174,3 +176,33 @@ int generate_sensor_event(SaHpiRptEntryT *rpt,
        return 0;
 }
 
+int sim_sensor_update(struct oh_handler_state *inst,
+                      SaHpiResourceIdT rid,
+                      SaHpiSensorNumT num)
+{
+        SaHpiRptEntryT  rpt;
+        SaHpiRdrT  rdr;
+        SaHpiSensorReadingT  reading;
+        SaHpiSensorThresholdsT  thres;
+        SaHpiSensorEvtEnablesT  enables;
+    
+        struct oh_event *ev;
+        int retval;
+
+        ev = g_malloc0(sizeof(*ev));
+
+        if (!ev)
+                return -1;
+
+        ev->type = OH_ET_HPI;
+        ev->u.hpi_event.parent = rpt.ResourceId;
+        ev->u.hpi_event.id = get_rdr_uid(SAHPI_SENSOR_RDR, num);
+        
+        retval = generate_sensor_event(&rpt, &rdr, &reading, &thres, 
+                                       &enables, NULL, &ev->u.hpi_event.event);
+        if (retval)
+                return -1;
+
+        sim_util_insert_event(&inst->eventq, ev);
+        return 0;
+}
