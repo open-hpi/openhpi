@@ -378,13 +378,13 @@ struct oh_abi_v2 {
 	 * get power state
 	 */
 	SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id, 
-			       SaHpiHsPowerStateT *state);
+			       SaHpiPowerStateT *state);
 
 	/**
 	 * set power state
 	 */
 	SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id, 
-			       SaHpiHsPowerStateT state);
+			       SaHpiPowerStateT state);
 	
 	/**
 	 * get indicator state
