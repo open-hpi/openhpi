@@ -140,7 +140,7 @@ struct RSA_SensorMibInfo {
         struct SnmpSensorThresholdOids threshold_oids;
 };
 
-#define MAX_EVENTS_PER_SENSOR 3 
+#define MAX_EVENTS_PER_SENSOR 6 
 #define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1) 
                                      /* Includes an ending NULL entry */
 
