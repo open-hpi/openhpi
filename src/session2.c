@@ -18,7 +18,10 @@
 #include <oh_domain.h>
 #include <string.h>
 
-struct sessions sessions = {NULL, NULL};
+struct sessions sessions = {        
+        .table = NULL,
+        .lock = NULL
+};
 
 /**
  * oh_create_session
@@ -30,26 +33,30 @@ struct sessions sessions = {NULL, NULL};
  **/
 SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
 {
-        static guint id = 0; /* Session ids will start at 1 */
         struct oh_session *session = NULL;
         struct oh_domain *domain = NULL;
+        static SaHpiSessionIdT id = 1; /* Session ids will start at 1 */
 
         if (did < 1) return 0;
-
-        domain = oh_get_domain(did);
-        if (!domain) return 0;
 
         session = g_new0(struct oh_session, 1);
         if (!session) return 0;
 
-        g_mutex_lock(sessions.lock); /* Locked session table */
-        session->id = ++id;
         session->did = did;
         session->eventq2 = g_async_queue_new();
+
+        domain = oh_get_domain(did);
+        if (!domain) {
+                g_async_queue_unref(session->eventq2);
+                g_free(session);
+                return 0;
+        }
+        g_mutex_lock(sessions.lock); /* Locked session table */
+        session->id = id++;
         g_hash_table_insert(sessions.table, &(session->id), session);
-        g_mutex_unlock(sessions.lock); /* Unlocked session table */
         g_array_append_val(domain->sessions, session->id);
-        oh_release_domain(domain->id);
+        g_mutex_unlock(sessions.lock); /* Unlocked session table */        
+        oh_release_domain(domain);
                 
         return session->id;
 }
@@ -65,15 +72,22 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
 SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
 {
         struct oh_session *session = NULL;
-
+        SaHpiDomainIdT did;
+        
         if (sid < 1) return 0;
 
         g_mutex_lock(sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(sessions.table, &sid);
+        if (!session) {
+                g_mutex_unlock(sessions.lock);
+                return 0;
+        }
+        
+        did = session->did;
         g_mutex_unlock(sessions.lock); /* Unlocked session table */
-        if (!session) return 0;
+        
 
-        return session->did;
+        return did;
 }
 
 /**
@@ -96,10 +110,11 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
         domain = oh_get_domain(did);
         if (!domain) return NULL;
 
+        length = domain->sessions->len;
         session_ids = g_array_sized_new(FALSE, TRUE,
                                         sizeof(SaHpiSessionIdT),
-                                        domain->sessions->len);
-        length = domain->sessions->len;
+                                        length);
+        
         for (i = 0; i < length; i++) {
                 g_array_append_val(session_ids,
                                    g_array_index(domain->sessions,
@@ -107,7 +122,7 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
                                                  i)
                                    );
         }
-        oh_release_domain(did);
+        oh_release_domain(domain);
 
         return session_ids;
 }
@@ -279,7 +294,7 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
         g_async_queue_unref(session->eventq2);
         g_free(session);
 
-        /* Update domain of session deletion. */
+        /* Update domain about session deletion. */
         domain = oh_get_domain(did);
         if (domain) {
                 len = domain->sessions->len;
@@ -289,7 +304,7 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
                                 break;
                         }
                 }
-                oh_release_domain(did);
+                oh_release_domain(domain);
         }        
 
         return SA_OK;
