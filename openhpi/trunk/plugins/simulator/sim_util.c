@@ -63,36 +63,37 @@ GSList* sim_util_free_res_id(GSList* ids, char *file)
                 if (res_id == NULL) continue;
                 if (!strcmp(res_id->file, file)) {
                         GSList *list;
-                        
+
                         for (list = res_id->rdr_list; list; list = g_slist_next(list)) {
-                            g_free((struct sim_rdr_id *) list->data);
+                            g_free(list->data);
                         }
                         g_slist_free(res_id->rdr_list);
                         g_free(res_id->file);
                         g_free(res_id);
-                        return g_slist_remove_link(ids, res_list);
+                        return g_slist_remove(ids, res_id);
                 }
         }
         return ids;
 }
 
-void sim_util_free_all_res_id(GSList *ids)
+GSList* sim_util_free_all_res_id(GSList *ids)
 {
-          for ( ; ids; ids = g_slist_next(ids)) {
+         GSList *res_list; 
+         for ( res_list = ids; res_list; res_list = g_slist_next(res_list)) {
                 struct sim_res_id *res_id;
                 GSList *list;
 
-                res_id = (struct sim_res_id *)ids->data;
+                res_id = (struct sim_res_id *)res_list->data;
                 if (res_id == NULL) continue;
                 for (list = res_id->rdr_list; list; list = g_slist_next(list)) {
-                     g_free((struct sim_rdr_id *) list->data);
+                     g_free(list->data);
                 }
                 g_slist_free(res_id->rdr_list);
                 g_free(res_id->file);
                 g_free(res_id);
         }
         g_slist_free(ids);
-        return;
+        return NULL;
 }
 
 void sim_util_add_rdr_id(GSList *ids,
@@ -233,3 +234,103 @@ int sim_util_remove_event(GSList *eventq, struct oh_event *event)
         return -1;
 }
 
+#ifdef UNIT_TEST
+/*
+  I will move test code to another file
+ */
+
+static void sim_util_res_id_print(GSList *ids)
+{
+        printf("--- Resouce Id ---\n");
+        for ( ; ids; ids = g_slist_next(ids)) {
+                struct sim_res_id *res_id;
+                GSList *list;
+
+                res_id = (struct sim_res_id *)ids->data;
+                if (res_id == NULL) continue;
+
+                printf("file:%s\nreqnum:", res_id->file);
+
+                for (list = res_id->rdr_list; list; list = g_slist_next(list)) {
+                        printf("%d,", ((struct sim_rdr_id *)(list->data))->reqnum);
+                }
+                printf("\n");
+        }
+        printf("\n");
+        return;
+}
+
+int main()
+{
+        GSList * res_id = NULL;
+	SaHpiEntityPathT epath;
+        struct sim_res_id *id;
+
+        res_id = sim_util_add_res_id(res_id, "test1", 1, &epath);
+        sim_util_res_id_print(res_id);
+        res_id = sim_util_add_res_id(res_id, "test2", 2, &epath);
+        sim_util_res_id_print(res_id); 
+
+        sim_util_add_rdr_id(res_id, "test1",  11, 11);
+        sim_util_res_id_print(res_id);
+        sim_util_add_rdr_id(res_id, "test1",  12, 12);
+        sim_util_res_id_print(res_id);
+
+        sim_util_add_rdr_id(res_id, "test2",  21, 21);
+        sim_util_res_id_print(res_id);
+        sim_util_add_rdr_id(res_id, "test2",  22, 22);
+        sim_util_res_id_print(res_id);
+
+        id = sim_util_get_res_id_by_reqnum(res_id, 11);
+        if (id == NULL) {
+                printf("cannot get correct resource id\n");
+                return -1;
+        }
+        if (strcmp(id->file, "test1")) {
+                printf("cannot get correct resource id\n");
+                return -1;
+        }
+
+        id = sim_util_get_res_id_by_reqnum(res_id, 12);
+        if (id == NULL) {
+                printf("cannot get correct resource id\n");
+                return -1;
+        }
+        if (strcmp(id->file, "test1")) {
+                printf("cannot get correct resource id\n");
+                return -1;
+        }
+
+        id = sim_util_get_res_id_by_reqnum(res_id, 21);
+        if (id == NULL) {
+                printf("cannot get correct resource id\n");
+                return -1;
+        }
+        if (strcmp(id->file, "test2")) {
+                printf("cannot get correct resource id\n");
+                return -1;
+        }
+
+        res_id = sim_util_free_res_id(res_id, "test1");
+        sim_util_res_id_print(res_id);
+
+        id = sim_util_get_res_id_by_reqnum(res_id, 11);
+        if (id != NULL) {
+                printf("cannot free reource id\n");
+                return -1;
+        }
+
+         
+        res_id =  sim_util_free_all_res_id(res_id);
+        sim_util_res_id_print(res_id);
+
+        id = sim_util_get_res_id_by_reqnum(res_id, 21);
+        if (id != NULL) {
+                printf("cannot free reource id\n");
+                return -1;
+        }
+
+        return 0;
+}
+
+#endif
