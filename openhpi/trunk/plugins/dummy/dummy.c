@@ -22,6 +22,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <uuid/uuid.h>
+#include <unistd.h>
 
 #include <SaHpi.h>
 #include <openhpi.h>
@@ -31,6 +32,8 @@
 
 #define DUMMY_THREADED
 #undef	DUMMY_THREADED
+
+gpointer event_thread(gpointer data);
 
 #define ELEMENT_NUM(x) (sizeof(x)/sizeof(x[0]))
 
@@ -903,8 +906,7 @@ static void *dummy_open(GHashTable *handler_config)
 
 	/* add to oh_handler_state */
 	GThread *thread_handle;
-	GError **error;
-        GAsyncQueue *eventq_async;
+	GError **e = NULL;
 
 	/* make sure the glib threading subsystem is initialized */
         if (!g_thread_supported ()) {
@@ -922,7 +924,7 @@ static void *dummy_open(GHashTable *handler_config)
 	if ( !(thread_handle = g_thread_create (event_thread,
 						i,	/* oh_handler_state */
 						FALSE,
-						error)) ) {
+						e)) ) {
 	     printf("g_thread_create failed\n");
 	     return NULL;
 	}
@@ -1969,8 +1971,9 @@ gpointer event_thread(gpointer data)
 	
 	int i = 0;
 
-	for (i=0; i< 100; i++) {
-		sleep(5);
+	for (i=0; i < 100; i++) {
+//	for (;;) {
+//      	sleep(5);
 		printf("event burp!\n");
 	}
 	
