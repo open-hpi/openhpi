@@ -248,6 +248,8 @@ void rpt_diff(RPTable *current, RPTable *new,
  * @table: Pointer to the RPT to which the RPT entry will be added.
  * @entry: The RPT entry (resource) to be added to the RPT.
  * @data: Pointer to private data for storing along with the RPT entry.
+ * @owndata: boolean flag. true to tell the interface to free the data when
+ * the resource is removed. false if otherwise.
  *
  * Return value:
  * 0 - successful addition to the RPT.
@@ -257,7 +259,7 @@ void rpt_diff(RPTable *current, RPTable *new,
  * -4 - failure and not enough memory could be allocated. 
  * for a new position in the RPT.
  **/
-int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
+int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata)
 {
         RPTEntry *rptentry;
         guint update_flag = RPT_KEEP_COUNT;
@@ -287,6 +289,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
                 update_flag = RPT_INCREMENT;
         }
         /* Else, modify existing RPTEntry */
+        rptentry->owndata = owndata;
         rptentry->data = data;
         rptentry->rpt_entry = *entry;
         rptentry->rpt_entry.EntryId = entry->ResourceId;
@@ -299,6 +302,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
 /**
  * oh_remove_resource: Remove a resource from the RPT. If the rid is
  * RPT_ENTRY_BEGIN (0xffffffff), the first RPT entry in the table will be removed.
+ * The void data will be freed if owndata was not set when adding the resource.
  * @table: Pointer to the RPT from which an RPT entry will be removed.
  * @rid: Resource id of the RPT entry to be removed.
  *
@@ -322,6 +326,7 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
                 }
                 /* then remove the resource itself. */
                 table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
+                if (!rptentry->owndata) g_free(rptentry->data);
                 g_free((gpointer)rptentry);
         }
 
@@ -474,6 +479,8 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * @rid: Id of the RPT entry that will own the RDR to be added.
  * @rdr: RDR to be added to an RPT entry's RDR repository.
  * @data: Pointer to private data belonging to the RDR that is being added.
+ * @owndata: boolean. If true, says that data should not be freed when rdr is removed.
+ * If false, it tells the interface to free the data when the rdr is removed.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
  * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
@@ -485,7 +492,7 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * -4 - Failure. Could not allocate enough memory to position the new RDR in the RDR
  * repository.
  **/ 
-int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
+int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data, int owndata)
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
@@ -518,7 +525,8 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
                 /* Put new rdrecord in rdr repository */
                 rptentry->rdrtable = g_slist_append(rptentry->rdrtable, (gpointer)rdrecord);                        
         }
-        /* Else, modify existing rdrecord */        
+        /* Else, modify existing rdrecord */
+        rdrecord->owndata = owndata;        
         rdrecord->rdr = *rdr;
         rdrecord->data = data;
 
@@ -530,6 +538,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
 /**
  * oh_remove_rdr: Remove an RDR from a RPT entry's RDR repository.
  * If rdrid is RDR_BEGIN (0xffffffff), the first RDR in the repository will be removed.
+ * If owndata has been set on the rdr, the data will not be freed, otherwise, it will free it.
  * @table: Pointer to RPT table containig the RPT entry from which the RDR will
  * be removed.
  * @rid: Id of the RPT entry from which the RDR will be removed.
@@ -559,7 +568,8 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
                 dbg("Failed to remove RDR. Could not be found.");
                 return -3;
         } else {
-                rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);                
+                rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
+                if (!rdrecord->owndata) g_free(rdrecord->data);
                 g_free((gpointer)rdrecord);                
         }
 

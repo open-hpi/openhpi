@@ -84,7 +84,7 @@ static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_del_event.resource_id);
         } else {
-                rv = oh_add_resource(rpt,&(e->u.res_event.entry),h);                
+                rv = oh_add_resource(rpt,&(e->u.res_event.entry),h,1);
         }        
                 
         data_access_unlock();
@@ -129,7 +129,7 @@ static int process_rdr_event(struct oh_handler *h, RPTable *rpt, struct oh_event
                 rv = (rid)? oh_remove_rdr(rpt,rid,e->u.rdr_del_event.record_id) : -1;
         } else {
                 rid = oh_uid_lookup(&(e->u.rdr_event.rdr.Entity));
-                rv = (rid)? oh_add_rdr(rpt,rid,&(e->u.rdr_event.rdr),NULL) : -1;
+                rv = (rid)? oh_add_rdr(rpt,rid,&(e->u.rdr_event.rdr),NULL,0) : -1;
         }
 
         if (rv) dbg("Could not process rdr event. Parent resource not found.");
