@@ -1,7 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
- * Copyright (c) 2003 by Intel Corp.
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,7 +9,7 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
  */
@@ -40,19 +39,14 @@
  *       - IPMI_GROUP + 0xB0       - IPMI_GROUP + 0xD0
  *       - ROOT_VALUE              - SAFHPI_GROUP
  *****************************************************************************/
-
+#include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <epath_utils.h>
-
-#define dbg(format, ...) \
-        do { \
-	        fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \
-		fprintf(stderr, format "\n", ## __VA_ARGS__); \
-        } while(0)
 
 static unsigned int index2entitytype(unsigned int i);
 static unsigned int entitytype2index(unsigned int i);
@@ -122,17 +116,6 @@ static gchar *eshort_names[] = {
 	"SUBBOARD_CARRIER_BLADE",
 };
 
-#define ESHORTNAMES_ARRAY_SIZE 61
-#define ELEMENTS_IN_SaHpiEntityT 2
-#define EPATHSTRING_START_DELIMITER "{"
-#define EPATHSTRING_END_DELIMITER "}"
-#define EPATHSTRING_VALUE_DELIMITER ","
-#define ESHORTNAMES_BEFORE_JUMP 40
-#define ESHORTNAMES_FIRST_JUMP 41
-#define ESHORTNAMES_SECOND_JUMP 42
-#define ESHORTNAMES_THIRD_JUMP 43
-#define ESHORTNAMES_LAST_JUMP 44
-
 /***********************************************************************
  * string2entitypath
  * 
@@ -156,20 +139,37 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 	SaHpiEntityT  *entityptr = NULL;
 
 	if (epathstr == NULL || epathstr[0] == '\0') {
-		dbg("Input entity path string is NULL"); return(-1);
+		dbg("Input entity path string is NULL"); 
+		return -1;
 	}
-       	gstr = g_strstrip(g_strdup(epathstr));
+
         /* Split out {xxx,yyy} definition pairs */
+       	gstr = g_strstrip(g_strdup(epathstr));
+	if (gstr == NULL || gstr[0] == '\0') {
+		dbg("Stripped entity path string is NULL"); 
+		rtncode = -1;
+		goto CLEANUP;
+	}
 	epathdefs = g_strsplit(gstr, EPATHSTRING_END_DELIMITER, -1);
-	if (epathdefs == NULL) { 
-		dbg("Could not split entity path string."); 
-		rtncode = -1; goto CLEANUP;
+	if (epathdefs == NULL) {
+		dbg("Could not split entity path string.");
+		rtncode = -1;
+		goto CLEANUP;
         }
 
-	/* Split out entity type and instance strings; 
-	   Convert to HPI structure types */
-	for (i = 0; epathdefs[i] != NULL && epathdefs[i][0] != '\0'; i++) {
-		epathvalues = g_strsplit(g_strstrip(epathdefs[i]),
+	/* Split out HPI entity type and instance strings */
+	for (i=0; epathdefs[i] != NULL && epathdefs[i][0] != '\0'; i++) {
+
+		epathdefs[i] = g_strstrip(epathdefs[i]);
+		/* Check format - for starting delimiter and a comma */
+		if ((epathdefs[i][0] != EPATHSTRING_START_DELIMITER_CHAR) || 
+		    (strpbrk(epathdefs[i], EPATHSTRING_VALUE_DELIMITER) == NULL)) {
+			dbg("Invalid entity path format.");
+			rtncode = -1;
+			goto CLEANUP;
+		}
+
+		epathvalues = g_strsplit(epathdefs[i],
                                          EPATHSTRING_VALUE_DELIMITER,
                                          ELEMENTS_IN_SaHpiEntityT);
 		epathvalues[0] = g_strdelimit(epathvalues[0], EPATHSTRING_START_DELIMITER, ' ');
@@ -180,7 +180,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		instance = strtol(einstance, &endptr, 10);
 		if (endptr[0] != '\0') { 
 			dbg("Invalid instance character"); 
-			rtncode = -1; goto CLEANUP;
+			rtncode = -1; 
+			goto CLEANUP;
                 }
 
 		for (match=0, j=0; j < ESHORTNAMES_ARRAY_SIZE + 1; j++) {
@@ -192,7 +193,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
                 
 		if (!match) { 
 			dbg("Invalid entity type string"); 
-			rtncode = -1; goto CLEANUP;
+			rtncode = -1; 
+			goto CLEANUP;
 		}
 
 		/* Save entity path definitions; reverse order */
@@ -200,7 +202,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 			entityptr = (SaHpiEntityT *)g_malloc0(sizeof(*entityptr));
 			if (entityptr == NULL) { 
 				dbg("Out of memory"); 
-				rtncode = -1; goto CLEANUP;
+				rtncode = -1; 
+				goto CLEANUP;
 			}
 
 			entityptr->EntityType = index2entitytype(j);
@@ -227,8 +230,9 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		g_slist_free(lst);
 	}
         
-	if (num_valid_entities > SAHPI_MAX_ENTITY_PATH) { 
-		dbg("Too many entity defs"); rtncode = -1;
+	if (num_valid_entities > SAHPI_MAX_ENTITY_PATH) {
+		dbg("Too many entity defs");
+		rtncode = -1;
 	}
    
  CLEANUP:
@@ -259,11 +263,12 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	gint   err, i, strcount = 0, rtncode = 0;
 
 	if (epathstr == NULL || strsize <= 0) { 
-		dbg("Null string or invalid string size"); return(-1);
+		dbg("Null string or invalid string size"); 
+		return -1;
 	}
 
         if (epathptr == NULL) {
-                epathstr = "";
+                *epathstr = '\0';
                 return 0;
         }
 
@@ -271,7 +276,8 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	tmpstr = (gchar *)g_malloc0(strsize);
 	if (instance_str == NULL || tmpstr == NULL) { 
 		dbg("Out of memory"); 
-		rtncode = -1; goto CLEANUP;
+		rtncode = -1; 
+		goto CLEANUP;
 	}
 	
 	for (i = (SAHPI_MAX_ENTITY_PATH - 1); i >= 0; i--) {
@@ -279,15 +285,18 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 
 		/* Find last element of structure; Current choice not good,
 		   since type=instance=0 is valid */
-		if (epathptr->Entry[i].EntityType == 0){ continue; }
-  
+		if (epathptr->Entry[i].EntityType == 0) {
+			continue;
+		}
+
 		/* Validate and convert data */
                 work_instance_num = epathptr->Entry[i].EntityInstance;
                 for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
 		
 		if (num_digits > MAX_INSTANCE_DIGITS) { 
                         dbg("Instance value too big");
-                        rtncode = -1; goto CLEANUP;
+                        rtncode = -1; 
+			goto CLEANUP;
 		}
                 memset(instance_str, 0, MAX_INSTANCE_DIGITS + 1);
                 err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
@@ -301,8 +310,9 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 			strlen(EPATHSTRING_END_DELIMITER);
 
 		if (strcount > strsize - 1) {
-			dbg("Not enough space allocated for string"); 
-			rtncode = -1; goto CLEANUP;
+			dbg("Not enough space allocated for string");
+			rtncode = -1;
+			goto CLEANUP;
 		}
 
 		catstr = g_strconcat(EPATHSTRING_START_DELIMITER,
@@ -313,7 +323,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 				     NULL);
 
 		strcat(tmpstr, catstr);
-		g_free(catstr); 
+		g_free(catstr);
 	}
         rtncode = strcount;
 	/* Write string */
