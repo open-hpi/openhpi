@@ -314,15 +314,6 @@ SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
 void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
 
 
-/* sensor value conversion */
-SaErrorT sensor_convert_from_raw(SaHpiSensorRecT *sensor,
-                                 SaHpiUint32T raw,
-                                 SaHpiFloat32T *value);
-SaErrorT sensor_convert_to_raw(SaHpiSensorRecT *sensor,
-                               SaHpiFloat32T value,
-                               SaHpiUint32T *result);
-
-
 static __inline__
  void gettimeofday1(SaHpiTimeT *t)
 {

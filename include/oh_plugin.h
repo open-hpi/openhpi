@@ -290,14 +290,14 @@ struct oh_abi_v2 {
 	 */
 	SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
                                         SaHpiSensorNumT num,
-                                        SaHpiSensorEvtEnablesT *enables);
+                                        SaHpiBoolT *enables);
 
 	/**
 	 * set sensor event enables
 	 */
 	SaErrorT (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
                                     SaHpiSensorNumT num,
-                                    const SaHpiSensorEvtEnablesT *enables);
+                                    const SaHpiBoolT enables);
 
 	/**
 	 * get control state
@@ -312,7 +312,8 @@ struct oh_abi_v2 {
 	SaErrorT (*set_control_state)(void *hnd, SaHpiResourceIdT id,
                                  SaHpiCtrlNumT num,
                                  SaHpiCtrlStateT *state);
-	
+
+#if 0
 	/**
 	 * get inventory size
 	 */
@@ -335,7 +336,7 @@ struct oh_abi_v2 {
         SaErrorT (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
                                   SaHpiIdrIdT num,
                                   const SaHpiInventoryDataT *data);
-
+#endif
 	/**
 	 * get watchdog timer info
 	 */
