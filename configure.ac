@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.1.0)
+AC_INIT(openhpi, 2.0.1)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE
 
@@ -144,37 +144,29 @@ dnl Enable the marshal directory only when needed by
 dnl the deamon or remote_client plugin
 NEED_MARSHAL=
 openhpid_static="no"
+openhpid_dinamic="no"
 
 AC_ARG_ENABLE([daemon],
-    [  --enable-daemon         build HPI daemon and client library [default=no]],
+    [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
+        openhpid_dinamic="yes"
      elif test "x$enableval" = "xstatic"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
         openhpid_static="yes"
-    fi])
+    fi],
+    [   
+    ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+    NEED_MARSHAL="yes"
+    openhpid_dinamic="yes"])
 
 dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
-
-
-shell_client="no"
-AC_ARG_ENABLE([shell_client],
-    [  --enable-shell_client         build HPI client library [default=no]],
-    [if test "x$enableval" = "xyes"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-	NEED_MARSHAL="yes"
-	shell_client="yes"
-    fi])
-
-dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-dnl     NEED_MARSHAL="yes"])
-
-AM_CONDITIONAL(SHELL_CLIENT, test x$shell_client = xyes)
+AM_CONDITIONAL(OPENHPID_DINAMIC, test x$openhpid_dinamic = xyes)
 
 
 AC_ARG_ENABLE([examples],
@@ -324,14 +316,15 @@ AC_ARG_ENABLE([snmp_bc],
     )
 
 AC_ARG_ENABLE([ipmidirect],
-    [  --enable-ipmidirect     build direct ipmi plugin [default=no]],
+    [  --enable-ipmidirect     build direct ipmi plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
      elif test "x$enableval" = "xstatic"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmidirect"
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
-     fi])
+     fi],
+    [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
 dnl    [AC_SUBST(IPMIDIRECT,ipmidirect)])
 

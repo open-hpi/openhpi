@@ -41,8 +41,7 @@ TESTS = el_test_001 \
 	el_test_016 \
 	el_test_017 \
 	el_test_018 \
-	el_test_019 \
-	el_test_020	
+	el_test_019	
 
 
 check_PROGRAMS = $(TESTS)
@@ -66,4 +65,3 @@ el_test_016_SOURCES = el_test.h el_test_016.c $(REMOTE_SOURCES)
 el_test_017_SOURCES = el_test.h el_test_017.c $(REMOTE_SOURCES)
 el_test_018_SOURCES = el_test.h el_test_018.c $(REMOTE_SOURCES)
 el_test_019_SOURCES = el_test.h el_test_019.c $(REMOTE_SOURCES)
-el_test_020_SOURCES = el_test.h el_test_020.c $(REMOTE_SOURCES)
