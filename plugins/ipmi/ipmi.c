@@ -256,7 +256,7 @@ static int ipmi_discover_resources(void *hnd)
 
 	dbg("ipmi discover_resources");
 	
-	while (0 == ipmi_handler->SDRs_read_done || 0 == ipmi_handler->SELs_read_done) {
+	while (0 == ipmi_handler->SDRs_read_done || 0 == ipmi_handler->bus_scan_done) {
 		rv = sel_select(ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv<0) {
 			dbg("error on waiting for discovery");
@@ -308,10 +308,24 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
                              SaHpiSelInfoT      *info)
 {
         unsigned int count;
+		int rv;
 
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+
         const struct ohoi_resource_id *ohoi_res_id;
 
+		dbg("starting wait for sel retrieval");
+
+		while (0 == ipmi_handler->SELs_read_done) {
+				rv = sel_select(ohoi_sel, NULL, 0 , NULL, NULL);
+				if (rv<0) {
+						dbg("error on waiting for SEL");
+						return -1;
+				}
+		}
+
+		dbg("done retrieving sel");
         ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_id->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");

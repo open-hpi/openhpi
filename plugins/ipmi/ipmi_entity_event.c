@@ -107,9 +107,9 @@ static void get_entity_event(ipmi_entity_t	*entity,
 static void add_entity_event(ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
-        struct ohoi_resource_id *ohoi_res_id;
-	struct oh_event	*e;
-	int 		rv;
+		struct ohoi_resource_id *ohoi_res_id;
+		struct oh_event	*e;
+		int 		rv;
         
         ohoi_res_id = g_malloc0(sizeof(*ohoi_res_id));
         if (!ohoi_res_id) {
