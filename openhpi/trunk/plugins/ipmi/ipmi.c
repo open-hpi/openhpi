@@ -82,6 +82,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	const char *addr;
 	const char *timeout;
 	const char *scan_time;
+	const char *real_write_fru;
 	int rv = 0;
 
 	dbg("ipmi_open");
@@ -94,6 +95,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	addr = g_hash_table_lookup(handler_config, "addr");
 	timeout = g_hash_table_lookup(handler_config, "TimeOut");
 	scan_time = g_hash_table_lookup(handler_config, "OpenIPMIscanTime");	
+	real_write_fru = g_hash_table_lookup(handler_config, "RealWriteFru");	
 	snprintf(domain_name, 24, "%s %s", name, addr);
 
 	handler = (struct oh_handler_state *)g_malloc0(sizeof(
@@ -125,6 +127,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	
 	ipmi_handler->fullup_timeout = 60;
 	ipmi_handler->openipmi_scan_time = 0;
+	ipmi_handler->real_write_fru = 0;
 	if (timeout != NULL) {
 		ipmi_handler->fullup_timeout = (time_t)strtol(timeout,
 					(char **)NULL, 10);
@@ -132,6 +135,11 @@ static void *ipmi_open(GHashTable *handler_config)
 	if (scan_time != NULL) {
 		ipmi_handler->openipmi_scan_time = (time_t)strtol(scan_time,
 					(char **)NULL, 10);
+	}
+	if (real_write_fru && !strcasecmp(real_write_fru, "yes")) {
+		ipmi_handler->real_write_fru = 1;
+	} else {
+		ipmi_handler->real_write_fru = 0;
 	}
 	ipmi_handler->fully_up = 0;
 	ipmi_handler->entity_root = g_hash_table_lookup(handler_config,
@@ -367,11 +375,12 @@ int ipmi_discover_resources(void *hnd)
 	SaHpiRptEntryT *rpt_entry;
 	SaHpiRdrT	*rdr_entry;
 	time_t		tm0, tm;
+	int was_connected = 0;
 
 	
 	struct ohoi_resource_info	*res_info;
 
-	dbg("ipmi discover_resources");
+	trace("ipmi discover_resources");
 	
 	time(&tm0);
 	while (ipmi_handler->fully_up == 0) {
@@ -379,10 +388,18 @@ int ipmi_discover_resources(void *hnd)
 			fprintf(stderr, "IPMI connection is down\n");
 			return SA_ERR_HPI_NO_RESPONSE;
 		}
+		if ((ipmi_handler->connected == 1) && !was_connected) {
+			// set new time stamp. IPMI is alive
+			 was_connected = 1;
+			time(&tm0);
+		}
+
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv < 0) {
+			// error while fetching sel
 			break;
 		}
+
 		time(&tm);
 		if ((tm - tm0) > ipmi_handler->fullup_timeout) {
 			dbg("timeout on waiting for discovery. "
@@ -393,8 +410,8 @@ int ipmi_discover_resources(void *hnd)
 				ipmi_handler->mc_count);
 			return SA_ERR_HPI_NO_RESPONSE;
 		}
-
 	}
+
 	while(rv == 1) {
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 	}
@@ -421,7 +438,7 @@ int ipmi_discover_resources(void *hnd)
 		event->type = res_info->presence ?
 			OH_ET_RESOURCE : OH_ET_RESOURCE_DEL;
 		memcpy(&event->u.res_event.entry, rpt_entry,
-						sizeof(SaHpiRptEntryT));
+			sizeof(SaHpiRptEntryT));
 		handler->eventq = g_slist_append(handler->eventq, event);
 
 		if (res_info->presence == 1) {

@@ -25,16 +25,13 @@
 #include <unistd.h>
 
 #include <OpenIPMI/ipmiif.h>
-//#include <OpenIPMI/ipmi_sel.h>
+#include <OpenIPMI/ipmi_fru.h>
 #include <OpenIPMI/ipmi_smi.h>
 #include <OpenIPMI/ipmi_err.h>
 #include <OpenIPMI/ipmi_auth.h>
 #include <OpenIPMI/ipmi_lan.h>
 #include <OpenIPMI/selector.h>
-//#include <OpenIPMI/ipmi_int.h>
 #include <OpenIPMI/os_handler.h>
-//#include <OpenIPMI/ipmi_domain.h>
-//#include <OpenIPMI/ipmi_event.h>
 #include <OpenIPMI/ipmi_posix.h>
 
 #include <SaHpi.h>
@@ -75,8 +72,10 @@ struct ohoi_handler {
 	int fully_up;
 	time_t fullup_timeout;
 	unsigned int openipmi_scan_time;
+	int real_write_fru;
 };
 
+struct ohoi_inventory_info;
 struct ohoi_resource_info {
 	  	
   	int presence;	/* entity presence from OpenIPMI to determine
@@ -97,6 +96,7 @@ struct ohoi_resource_info {
 
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
+	struct ohoi_inventory_info *fru;
 };
 
 
@@ -123,6 +123,20 @@ struct ohoi_sensor_info {
 	SaHpiEventStateT  deassert;
 	unsigned int support_assert;
 	unsigned int support_deassert;
+};
+
+struct ohoi_inventory_info {
+	SaHpiUint32T	update_count;
+	// zero if area doesn't exist. If area exists
+	// lang for board and product info, 1 for the rest
+	unsigned char	iu, ci, bi, pi, oem;
+	unsigned int ci_fld_msk;
+	unsigned int ci_custom_num;
+	unsigned int bi_fld_msk;
+	unsigned int bi_custom_num;
+	unsigned int pi_fld_msk;
+	unsigned int pi_custom_num;
+	unsigned int oem_fields_num;
 };
 
 /* implemented in ipmi_event.c */
