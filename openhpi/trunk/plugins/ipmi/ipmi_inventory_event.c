@@ -95,7 +95,9 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
 		add_inventory_event(entity, handler, 
 				    rpt_entry->ResourceEntity,
 				    rpt_entry->ResourceId);
-       }
-       res_info->updated = 1;
+	}
+	dbg("Set updated for res_info %p(%d). Inventory",
+		res_info, rpt_entry->ResourceId);
+	entity_rpt_set_updated(res_info, handler->data);;
 			   
 }

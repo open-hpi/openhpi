@@ -50,6 +50,7 @@
 extern selector_t       *ohoi_sel;
 
 struct ohoi_handler {
+	GStaticRecMutex ohoih_lock;
 	int SDRs_read_done;
 	int bus_scan_done;
     	int SELs_read_done;
@@ -337,6 +338,10 @@ static inline void  dump_rpttable(RPTable *table)
 
 /* called when a resource is removed (swapped?) */
 int ipmi_discover_resources(void *hnd);
-void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present);
+void entity_rpt_set_updated(struct ohoi_resource_info *res_info,
+		struct ohoi_handler *hnd);
+void entity_rpt_set_presence(struct ohoi_resource_info *res_info,
+		struct ohoi_handler *hnd, int presence);
 void ohoi_remove_entity(struct oh_handler_state *handler,
 			SaHpiResourceIdT res_id);
+

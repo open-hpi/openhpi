@@ -121,7 +121,8 @@ static void set_event_sensor_num(ipmi_sensor_t    *sensor,
 	if (!rpt_entry) {
                 dump_entity_id("Sensor without RPT Entry?!", entity_id);
 		return;
-	}     
+	}
+	e->u.hpi_event.event.Source = rpt_entry->ResourceId;    
         rdr  = ohoi_get_rdr_by_data(handler->rptcache,
 		                    rpt_entry->ResourceId,
 	                            SAHPI_SENSOR_RDR, &sensor_id);
@@ -742,8 +743,8 @@ void ohoi_sensor_event(enum ipmi_update_e op,
                 return;
         }
 
-	res_info =  oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId); 
-
+	res_info =  oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
+	
 	switch (op) {
 	      	case IPMI_ADDED:
 		    	rpt_entry->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR 
@@ -774,7 +775,8 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 		case IPMI_DELETED:
 			dbg("Sensor DELETED");
 	}
-	res_info->updated = 1;
+	dbg("Set updated for resource %d . Sensor", rpt_entry->ResourceId);
+	entity_rpt_set_updated(res_info, handler->data);
 }
 
 /*

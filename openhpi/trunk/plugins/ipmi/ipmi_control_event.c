@@ -260,6 +260,7 @@ void ohoi_control_event(enum ipmi_update_e op,
                 }
                                 
 	}
-	ohoi_res_info->updated = 1;
+	dbg("Set updated for res_inf0 %p(%d). Control", ohoi_res_info, rpt_entry->ResourceId);
+	entity_rpt_set_updated(ohoi_res_info, handler->data);;
 }
 	

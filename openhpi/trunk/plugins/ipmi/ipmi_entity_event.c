@@ -18,22 +18,48 @@
 #include <oh_utils.h>
 #include <string.h>
 
+
+
+
+void entity_rpt_set_updated(struct ohoi_resource_info *res_info,
+		struct ohoi_handler *ipmi_handler)
+{
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);
+	if (!res_info->presence) {
+		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
+		return;
+	}	
+	res_info->updated = 1;
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
+}
+
+void entity_rpt_set_presence(struct ohoi_resource_info *res_info,
+		struct ohoi_handler *ipmi_handler, int present)
+{
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
+	dbg("res_info %p: old presence %d, new presence %d",
+		res_info, res_info->presence, present);
+	if (present == res_info->presence) {
+		g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
+		return;
+	}
+	res_info->presence =  present;
+	res_info->updated = 1;
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);
+}
+
+
 /* need to update some information here */
-void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
+/*
+static void entity_update_rpt(RPTable *table, struct ohoi_handler *ipmi_handler,
+			SaHpiResourceIdT rid, int present)
 {
   	struct ohoi_resource_info	*res_info;
        
 	res_info = oh_get_resource_data(table, rid);
-
-	if (present) {
-		res_info->presence = 1;
-		dbg("Resource %d present", rid);
-	}else {
-	  	dbg("Resource %d not present", rid);
-		res_info->presence = 0;
-	}
-	res_info->updated = 1;
+	entity_rpt_set_presence(res_info, ipmi_handler, present);
 }
+*/
 
 static void entity_presence(ipmi_entity_t	*entity,
 			    int			present,
@@ -45,7 +71,8 @@ static void entity_presence(ipmi_entity_t	*entity,
 	SaHpiRptEntryT  *rpt;
 	SaHpiResourceIdT rid;
 	ipmi_entity_id_t ent_id;
-
+  	struct ohoi_resource_info	*res_info;
+	
 	ent_id = ipmi_entity_convert_to_id(entity);
 
 	rpt = ohoi_get_resource_by_entityid(handler->rptcache, &ent_id);
@@ -54,9 +81,9 @@ static void entity_presence(ipmi_entity_t	*entity,
 		return;
 	}
 	rid = rpt->ResourceId;
-	dbg("%s %s",ipmi_entity_get_entity_id_string(entity), present?"present":"not present");
-
-	entity_update_rpt(handler->rptcache, rid, present);
+	res_info = oh_get_resource_data(handler->rptcache, rid);;
+	dbg("%s(%d)  %s",ipmi_entity_get_entity_id_string(entity), rid, present ? "present" : "not present");
+	entity_rpt_set_presence(res_info, handler->data,  present);
 }
 
 static void get_entity_event(ipmi_entity_t	*entity,
@@ -182,6 +209,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 {
 		struct ohoi_resource_info *ohoi_res_info;
 		SaHpiRptEntryT	entry;
+		int rv;
 
 		dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
 
@@ -196,12 +224,13 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 
 		ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
 		ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
-		ohoi_res_info->presence = 0;
-		ohoi_res_info->updated = 1;
+//		entity_rpt_set_updated(ohoi_res_info, handler->data);
 
 		get_entity_event(entity, &entry, ipmi_handler);	
-
-		oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
+		rv = oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
+		if (rv) {
+			dbg("oh_add_resource failed for %d = %s\n", entry.ResourceId, oh_lookup_error(rv));
+		}
 }
 
 void ohoi_remove_entity(struct oh_handler_state *handler,
@@ -223,7 +252,7 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 		e->u.res_event.entry.ResourceId = res_id;
 
 		handler->eventq = g_slist_append(handler->eventq, e);
-		res_info->updated = 1;
+		entity_rpt_set_updated(res_info, handler->data);
 }
 
 void ohoi_entity_event(enum ipmi_update_e       op,
@@ -238,9 +267,10 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 	  	case IPMI_ADDED:
 		  	add_entity_event(entity, handler);
 
-			dbg("Entity added: %d.%d", 
+			dbg("Entity added: %d.%d (%s)", 
 					ipmi_entity_get_entity_id(entity), 
-					ipmi_entity_get_entity_instance(entity));
+					ipmi_entity_get_entity_instance(entity),
+					ipmi_entity_get_entity_id_string(entity));
 
 			/* entity presence overall */
 			rv = ipmi_entity_set_presence_handler(entity,
