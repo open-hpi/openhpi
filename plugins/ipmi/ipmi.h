@@ -41,6 +41,8 @@
 
 extern selector_t       *ohoi_sel;
 
+#define SENSOR_DATA_WAIT	5
+
 struct ohoi_handler {
 	int SDRs_read_done;
 	int bus_scan_done;

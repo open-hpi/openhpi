@@ -48,5 +48,5 @@ SaErrorT ohoi_loop(int *done, void *cb_data)
 {
 		struct ohoi_handler *ipmi_plugin = cb_data;
 
-        return (ohoi_loop_until(simple_indicator, done, 5, ipmi_plugin));
+        return (ohoi_loop_until(simple_indicator, done, SENSOR_DATA_WAIT, ipmi_plugin));
 }

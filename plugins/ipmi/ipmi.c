@@ -225,19 +225,25 @@ static void ipmi_close(void *hnd)
 static int ipmi_get_event(void *hnd, struct oh_event *event, 
 			  struct timeval *timeout)
 {
-	struct oh_handler_state *handler = hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-   
-        sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
-	if(g_slist_length(handler->eventq)>0) {
-		
-		memcpy(event, handler->eventq->data, sizeof(*event));
-		free(handler->eventq->data);
-		handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
-		return 1;
-	} else
-		return 0;
-			
+		struct oh_handler_state *handler = hnd;
+		// FIXME: this select call with 1 second is not enough for hpievent
+		// yet delays discovery by almost 30 seconds.
+		// need to figure fix in hpievent. -- Tariq
+
+		//struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+
+		//struct timeval to = {1,0};
+
+		//sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &to);
+
+		if(g_slist_length(handler->eventq)>0) {
+				memcpy(event, handler->eventq->data, sizeof(*event));
+				free(handler->eventq->data);
+				handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
+				return 1;
+
+		} else
+				return 0;
 }
 
 /**
