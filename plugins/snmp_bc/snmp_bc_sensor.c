@@ -38,14 +38,13 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}       
 
-	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-
 	memset(&working, 0, sizeof(SaHpiSensorReadingT));
-
+	working.IsSupported = SAHPI_FALSE;
+	
 	/* Extract index from rdr id and get the snmp of the sensor */
-	if (s->mib.oid != NULL) {
+	if ((s->mib.oid != NULL) && 
+			(rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_TRUE))
+	{
 		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
@@ -60,96 +59,36 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		}
 		g_free(oid);
 
-		/* Based on the sensor description, construct a reading to send up */
-		/* format the value into the reading for each type of reading format */
-		working.ValuesPresent = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats;
-		if(working.ValuesPresent & SAHPI_SRF_RAW) {
-			if(get_value.type != ASN_INTEGER) {
-				dbg("SNMP Sensor value type does not match the expected datatype for SAHPI_SRF_RAW.\n");
-				return SA_ERR_HPI_INVALID_DATA;
-			} else {
-				working.Raw = (SaHpiUint32T)get_value.integer;
-			}
-		}
+		working.IsSupported = SAHPI_TRUE;
+		working.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType;
 
-		if(working.ValuesPresent & SAHPI_SRF_INTERPRETED) {
-			if(get_value.type == ASN_INTEGER) {
-				working.Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_INT32;
-				working.Interpreted.Value.SensorInt32 = get_value.integer;
+		if (get_value.type == ASN_INTEGER) {
+			working.Value.SensorUint64 = (SaHpiUint64T) get_value.integer;
+		} else {
+			if(s->mib.convert_snmpstr >= 0) {
+				SaHpiTextBufferT buffer;
+				SaHpiSensorReadingT tmpvalue;
+						
+				oh_init_textbuffer(&buffer);
+				oh_append_textbuffer(&buffer, get_value.string);
+						
+				if (oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &tmpvalue)) {
+					dbg("Error: oh_encode_sensorreading for %s, (%s)\n",s->mib.oid, buffer.Data);
+					return SA_ERR_HPI_INTERNAL_ERROR;
+				}
+				working = tmpvalue;		
 			} else {
-				SaHpiSensorInterpretedUnionT value;
-				
-				working.Interpreted.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Interpreted.Type;
-				if(rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Interpreted.Type == SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER) {
-					strncpy(working.Interpreted.Value.SensorBuffer,
+				trace("Sensor %s SNMP string value needs to be converted\n", s->mib.oid);
+				working.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
+				strncpy(working.Value.SensorBuffer,
 						get_value.string,
                                                 SAHPI_SENSOR_BUFFER_LENGTH);
-				} else {
-					if(s->mib.convert_snmpstr >= 0) {
-						SaHpiTextBufferT buffer;
-						
-						oh_init_textbuffer(&buffer);
-						oh_append_textbuffer(&buffer, get_value.string);
-						
-						if (oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &value)) {
-							dbg("Error: oh_encode_sensorreading for %s, (%s)\n",s->mib.oid, buffer.Data;
-							return SA_ERR_HPI_INTERNAL_ERROR;
-						}
-						working.Interpreted.Value = value;
-					} else {
-						dbg("Sensor %s SNMP string value needs to be converted\n", s->mib.oid);
-						return SA_ERR_HPI_INVALID_DATA;
-					}
-				}
 			}
-		}
+
+		}  		
+			
 	}
 
-        if (working.ValuesPresent & SAHPI_SRF_EVENT_STATE) {
-
-		working.EventStatus.SensorStatus = s->sensor_evt_enablement.SensorStatus;
-
-		/* Hardcoded hack for R/W LEDs */
-		if (working.ValuesPresent & SAHPI_SRF_RAW) {
-			if (rdr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_USAGE) {
-				switch (working.Raw) {
-				case 0:
-					working.EventStatus.EventStatus = 
-						rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Min.EventStatus.EventStatus;
-					break;
-				case 1:
-					working.EventStatus.EventStatus = 
-						rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Nominal.EventStatus.EventStatus;
-					break;	
-				case 2:
-					working.EventStatus.EventStatus = 
-						rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.EventStatus.EventStatus;
-					break;
-				default:
-					dbg("Unrecognized Raw values for LED=%s", rdr->IdString.Data);
-					return SA_ERR_HPI_INVALID_DATA;
-				}
-			}
-			else {
-				switch (working.Raw) {
-				case 0:
-					working.EventStatus.EventStatus = 
-						rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Min.EventStatus.EventStatus;
-					break;
-				case 1:
-					working.EventStatus.EventStatus = 
-						rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.EventStatus.EventStatus;
-					break;	
-				default:
-					dbg("Unrecognized Raw values for LED=%s", rdr->IdString.Data);
-					return SA_ERR_HPI_INVALID_DATA;
-				}
-			}
-		}
-		else { /* Non-LED sensor - normal case */
-                        working.EventStatus.EventStatus = s->cur_state;
-		}
-        }
 	
 	/* NULL is a valid value for data, need to check before use */
 	if(data)
@@ -162,31 +101,6 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
         return SA_OK;
 }
 
-#define get_raw_thresholds(thdmask, thdoid, thdname) \
-do { \
-        if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold & thdmask) { \
-	        if(s->mib.threshold_oids.RawThresholds.thdoid != NULL && s->mib.threshold_oids.RawThresholds.thdoid[0] != '\0') { \
-	                oid = snmp_derive_objid(rdr->Entity,s->mib.threshold_oids.RawThresholds.thdoid); \
-                        if(oid == NULL) { \
-                                 dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.RawThresholds.thdoid); \
-                                 return -1; \
-                        } \
-	                if((snmp_get(custom_handle->ss, oid, &get_value) != 0) | \
-	                   (get_value.type != ASN_INTEGER)) { \
-		                dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type); \
-		                g_free(oid); \
-		                return SA_ERR_HPI_NO_RESPONSE; \
-	                } \
-	                g_free(oid); \
-	                found_raw = found_raw | thdmask; \
-	                working.thdname.Raw = get_value.integer; \
-	                working.thdname.ValuesPresent = working.thdname.ValuesPresent | SAHPI_SRF_RAW; \
-	        } else { \
-		        dbg("Raw threshold defined as readable but no OID defined\n"); \
-	        } \
-        } \
-} while(0)
-
 #define get_interpreted_thresholds(thdmask, thdoid, thdname) \
 do { \
         if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold & thdmask) { \
@@ -194,7 +108,7 @@ do { \
 		        oid = snmp_derive_objid(rdr->Entity,s->mib.threshold_oids.InterpretedThresholds.thdoid); \
                         if(oid == NULL) { \
                                 dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.InterpretedThresholds.thdoid); \
-                                return -1; \
+                                return SA_ERR_HPI_INTERNAL_ERROR; \
                         } \
 	         	if((snmp_get(custom_handle->ss, oid, &get_value) != 0) | \
 	                   !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) { \
@@ -204,10 +118,10 @@ do { \
 		        } \
                         found_interpreted = found_interpreted | thdmask; \
 		        /* Means we always need to define this field in bc_resources.h */ \
-		        working.thdname.Interpreted.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Interpreted.Type; \
-		        working.thdname.ValuesPresent = working.thdname.ValuesPresent | SAHPI_SRF_INTERPRETED; \
+		        working.thdname.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Type; \
+		        working.thdname.IsSupported = SAHPI_TRUE; \
 		        if(get_value.type == ASN_INTEGER) { \
-			         working.thdname.Interpreted.Value.SensorInt32 = get_value.integer; \
+			         working.thdname.Value.SensorInt64 = (SaHpiInt64T) get_value.integer; \
 		        } else if(get_value.type == ASN_OCTET_STR && s->mib.convert_snmpstr >= 0) { \
                                 SaHpiTextBufferT buffer; \
                                 oh_init_textbuffer(&buffer); \
@@ -215,13 +129,13 @@ do { \
 			        if(oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &value)) { \
 				        dbg("Error: bad return oh_encode_sensorreading for %s\n",oid); \
                                         g_free(oid); \
-				        return -1; \
+				        return SA_ERR_HPI_INTERNAL_ERROR; \
 			        } \
-			        working.thdname.Interpreted.Value = value; \
+			        working.thdname.Value = value.Value; \
 		        } else { \
 			        dbg("%s threshold is string but no conversion defined\n",oid); \
                                 g_free(oid); \
-			        return -1; \
+			        return SA_ERR_HPI_INTERNAL_ERROR; \
 		        } \
                         g_free(oid); \
 	        } else { \
@@ -234,23 +148,25 @@ do { \
 /* Assuming floating point - not generic but works for BladeCenter */
 #define get_up_hysteresis_value(thdname, thdmatch) \
 do { \
-         working.thdname.Interpreted.Value.SensorFloat32 = working.thdmatch.Interpreted.Value.SensorFloat32 - \
-                                                           working.thdname.Interpreted.Value.SensorFloat32; \
-         if (working.thdname.Interpreted.Value.SensorFloat32 < 0) { \
+         working.thdname.Value.SensorFloat64 = working.thdmatch.Value.SensorFloat64 - \
+                                                           working.thdname.Value.SensorFloat64; \
+         if (working.thdname.Value.SensorFloat64 < 0) { \
                 dbg("Positive Hysteresis delta is less than 0"); \
-         	working.thdname.ValuesPresent = 0; \
+         	working.thdname.IsSupported = SAHPI_FALSE; \
          } \
 } while(0)
 
 #define get_low_hysteresis_value(thdname, thdmatch) \
 do { \
-         working.thdname.Interpreted.Value.SensorFloat32 = working.thdname.Interpreted.Value.SensorFloat32 - \
-                                                           working.thdmatch.Interpreted.Value.SensorFloat32; \
-         if (working.thdname.Interpreted.Value.SensorFloat32 < 0) { \
+         working.thdname.Value.SensorFloat64 = working.thdname.Value.SensorFloat64 - \
+                                                           working.thdmatch.Value.SensorFloat64; \
+         if (working.thdname.Value.SensorFloat64 < 0) { \
                 dbg("Negitive Hysteresis delta is less than 0"); \
-         	working.thdname.ValuesPresent = 0; \
+         	working.thdname.IsSupported = SAHPI_FALSE; \
          } \
 } while(0)
+
+
 
 SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT id,
@@ -258,9 +174,9 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiSensorThresholdsT *thres)
 {
         gchar *oid = NULL;
-	SaHpiUint8T found_raw, found_interpreted;
+	SaHpiUint8T  found_interpreted;
 	SaHpiSensorThresholdsT working;
-	SaHpiSensorInterpretedUnionT value;
+	SaHpiSensorReadingT value;
         struct snmp_value get_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -275,99 +191,84 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-
         memset(&working, 0, sizeof(SaHpiSensorThresholdsT));
 
-	if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
-		found_raw = found_interpreted = 0;
-		if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_STC_RAW) {
-			get_raw_thresholds(SAHPI_STM_LOW_MINOR, OidLowMinor, LowMinor);
-			get_raw_thresholds(SAHPI_STM_LOW_MAJOR, OidLowMajor, LowMajor);
-			get_raw_thresholds(SAHPI_STM_LOW_CRIT, OidLowCrit, LowCritical);
-			get_raw_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
-			get_raw_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
-			get_raw_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
-			/* Ignore any PosThdHysteresis and NegThdHysteresis for RAW
-			   (going away in 1.1) */
+	if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_TRUE) {
+		found_interpreted = 0;
+
+		get_interpreted_thresholds(SAHPI_STM_LOW_MINOR, OidLowMinor, LowMinor);
+		get_interpreted_thresholds(SAHPI_STM_LOW_MAJOR, OidLowMajor, LowMajor);
+		get_interpreted_thresholds(SAHPI_STM_LOW_CRIT, OidLowCrit, LowCritical);
+		get_interpreted_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
+		get_interpreted_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
+		get_interpreted_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
+		get_interpreted_thresholds(SAHPI_STM_UP_HYSTERESIS, OidUpHysteresis, PosThdHysteresis);
+		get_interpreted_thresholds(SAHPI_STM_LOW_HYSTERESIS, OidLowHysteresis, NegThdHysteresis);
+
+		/* Hysteresis - BladeCenter supports a reset value for some single threshold
+		 * sensors. So there may be a major threshold of 78 and a reset of 76. This
+                 * extremely ugly code, calculates the delta to report hysteresis. 
+		 * If multiple thresholds are defined, the most severe one is used as the 
+		 * basis for the delta calculation. Also we assume all values are float32 */
+		if ((found_interpreted & SAHPI_STM_UP_HYSTERESIS) && 
+		    ((found_interpreted & SAHPI_STM_UP_CRIT) || 
+		    (found_interpreted & SAHPI_STM_UP_MAJOR) ||
+		    (found_interpreted & SAHPI_STM_UP_MINOR))) {
+			if (found_interpreted & SAHPI_STM_UP_CRIT) {
+				get_up_hysteresis_value(PosThdHysteresis, UpCritical);
+			}
+			else {
+				if (found_interpreted & SAHPI_STM_UP_MAJOR) {
+					get_up_hysteresis_value(PosThdHysteresis, UpMajor);	
+				}
+				else {
+					if (found_interpreted & SAHPI_STM_UP_MINOR) {
+						get_up_hysteresis_value(PosThdHysteresis, UpMinor);
+					}	
+				}	
+			}
 		}
-
-		if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_STC_INTERPRETED) {
-			get_interpreted_thresholds(SAHPI_STM_LOW_MINOR, OidLowMinor, LowMinor);
-			get_interpreted_thresholds(SAHPI_STM_LOW_MAJOR, OidLowMajor, LowMajor);
-			get_interpreted_thresholds(SAHPI_STM_LOW_CRIT, OidLowCrit, LowCritical);
-			get_interpreted_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
-			get_interpreted_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
-			get_interpreted_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
-			get_interpreted_thresholds(SAHPI_STM_UP_HYSTERESIS, OidUpHysteresis, PosThdHysteresis);
-			get_interpreted_thresholds(SAHPI_STM_LOW_HYSTERESIS, OidLowHysteresis, NegThdHysteresis);
-
-			/* Hysteresis - BladeCenter supports a reset value for some single threshold
-			 * sensors. So there may be a major threshold of 78 and a reset of 76. This
-                         * extremely ugly code, calculates the delta to report hysteresis. 
-			 * If multiple thresholds are defined, the most severe one is used as the 
-			 * basis for the delta calculation. Also we assume all values are float32 */
-			if ((found_interpreted & SAHPI_STM_UP_HYSTERESIS) && 
-			    ((found_interpreted & SAHPI_STM_UP_CRIT) || 
-			    (found_interpreted & SAHPI_STM_UP_MAJOR) ||
-			    (found_interpreted & SAHPI_STM_UP_MINOR))) {
-				if (found_interpreted & SAHPI_STM_UP_CRIT) {
-					get_up_hysteresis_value(PosThdHysteresis, UpCritical);
-				}
-				else {
-					if (found_interpreted & SAHPI_STM_UP_MAJOR) {
-						get_up_hysteresis_value(PosThdHysteresis, UpMajor);	
-					}
-					else {
-						if (found_interpreted & SAHPI_STM_UP_MINOR) {
-							get_up_hysteresis_value(PosThdHysteresis, UpMinor);
-						}	
-					}	
-				}
-			}
-			else {
-				dbg("Positive Hysteresis is defined but not any positive thresholds");
-				working.PosThdHysteresis.ValuesPresent = 0;
-			}    
+		else {
+			dbg("Positive Hysteresis is defined but not any positive thresholds");
+			working.PosThdHysteresis.IsSupported = SAHPI_FALSE;
+		}    
 			
-			/* Negitive hysteresis */
-			if ((found_interpreted & SAHPI_STM_LOW_HYSTERESIS) && 
-			    ((found_interpreted & SAHPI_STM_LOW_CRIT) || 
-			    (found_interpreted & SAHPI_STM_LOW_MAJOR) ||
-			    (found_interpreted & SAHPI_STM_LOW_MINOR))) {
-				if (found_interpreted & SAHPI_STM_LOW_CRIT) {
-					get_low_hysteresis_value(NegThdHysteresis, LowCritical);
-				}
-				else {
-					if (found_interpreted & SAHPI_STM_LOW_MAJOR) {
-						get_low_hysteresis_value(NegThdHysteresis, LowMajor);	
-					}
-					else {
-						if (found_interpreted & SAHPI_STM_LOW_MINOR) {
-							get_low_hysteresis_value(NegThdHysteresis, LowMinor);
-						}	
-					}	
-				}
+		/* Negitive hysteresis */
+		if ((found_interpreted & SAHPI_STM_LOW_HYSTERESIS) && 
+			   ((found_interpreted & SAHPI_STM_LOW_CRIT) || 
+			   (found_interpreted & SAHPI_STM_LOW_MAJOR) ||
+			   (found_interpreted & SAHPI_STM_LOW_MINOR))) {
+			if (found_interpreted & SAHPI_STM_LOW_CRIT) {
+				get_low_hysteresis_value(NegThdHysteresis, LowCritical);
 			}
 			else {
-				dbg("Negitive Hysteresis is defined but not any negitive thresholds");
-				working.NegThdHysteresis.ValuesPresent = 0;
-			}    
-		}			    
+				if (found_interpreted & SAHPI_STM_LOW_MAJOR) {
+					get_low_hysteresis_value(NegThdHysteresis, LowMajor);	
+				}
+				else {
+					if (found_interpreted & SAHPI_STM_LOW_MINOR) {
+						get_low_hysteresis_value(NegThdHysteresis, LowMinor);
+					}	
+				}	
+			}
+		}
+		else {
+			dbg("Negitive Hysteresis is defined but not any negitive thresholds");
+			working.NegThdHysteresis.IsSupported = SAHPI_FALSE;
+		}    
+			    
 
-		if (found_raw || found_interpreted) {
+		if (found_interpreted) {
 			memcpy(thres, &working, sizeof(SaHpiSensorThresholdsT));
 			return SA_OK;
 		} else {
 			dbg("No threshold values found\n");
 			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
-        } else {
-                dbg("Thresholds requested, but sensor does not support them.\n");
-                return SA_ERR_HPI_INVALID_CMD;
-        }        
+       } else {
+		dbg("Thresholds requested, but sensor does not support them.\n");
+		return SA_ERR_HPI_INVALID_CMD;
+       }        
 }
 
 SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
@@ -380,6 +281,8 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
         return SA_ERR_HPI_INVALID_CMD;
 }
 
+
+#if 0
 SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
@@ -453,3 +356,5 @@ SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 
         return SA_OK;
 }
+
+#endif
