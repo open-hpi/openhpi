@@ -22,60 +22,86 @@
 #include <ecode_utils.h>
 #include <epath_utils.h>
 #include <print_structs.h>
+#include <print_utils.h>
 
 char progver[] = "1.0";
 int fdebug = 0;
 int fshowthr = 0;
 char *rtypes[5] = {"None    ", "Control ", "Sensor  ", "Invent  ", "Watchdog"};
 
-static void ShowSensor(
-        SaHpiSessionIdT sessionid,
-        SaHpiResourceIdT resourceid,
-        SaHpiSensorRecT *sensorrec )
+static void ShowSensor(SaHpiSessionIdT sessionid,
+                       SaHpiResourceIdT resourceid,
+                       SaHpiSensorRecT *sensorrec )
 {
         SaHpiSensorNumT sensornum;
         SaHpiSensorReadingT reading;
         SaHpiEventStateT events;
-        SaHpiSensorThresholdsT senstbuff;
         SaHpiTextBufferT text;
         SaErrorT rv;
-        char *unit;
-        int i;
         
         sensornum = sensorrec->Num;
         rv = saHpiSensorReadingGet(sessionid,resourceid, sensornum, &reading, &events);
         if (rv != SA_OK)  {
-                printf("ReadingGet ret=%d\n", rv);
+                printf("\nReadingGet ret=%s\n", SaErrorT2str(rv));
                 return;
         }
         
-        if (reading.IsSupported) {
-                oh_sensor_reading2str(reading, sensorrec->DataFormat, &text);
+        if (!reading.IsSupported ) {
+                printf("Reading Not Supported for this sensor!");
+                return;
+        }
+        
+        if((rv = oh_sensor_reading2str(reading, sensorrec->DataFormat, 
+                                       &text)) == SA_OK) {
                 printf(" = %s\n", text.Data);
+        } else {
+                printf(" FAILED %s\n", SaErrorT2str(rv));
+        }
                 
-                if (fshowthr) {
-                        /* ok, this code needs major rework, why was this ever hardcoded
-                           to certain types? */
-                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MAX ) {
-                                if(oh_sensor_reading2str(sensorrec->DataFormat.Range.Max, 
-                                                         sensorrec->DataFormat, &text) == SA_OK) {
-                                        printf( "    Max of Range: %s\n", text.Data);
-                                } else {
-                                        printf( "    Max of Range: FAILED\n");
-                                }
+        if (fshowthr) {
+                if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_NOMINAL ) {
+                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.Nominal, 
+                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tNominal of Range: %s\n", text.Data);
+                        } else {
+                                printf( "\t\tNominal of Range: FAILED %s\n", SaErrorT2str(rv));
                         }
-                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MIN ) {
-                                if(oh_sensor_reading2str(sensorrec->DataFormat.Range.Min, 
-                                                         sensorrec->DataFormat, &text) == SA_OK) {
-                                        printf( "    Min of Range: %s\n", text.Data);
-                                } else {
-                                        printf( "    Min of Range: FAILED\n");
-                                }
+                }
+                if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MAX ) {
+                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.Max, 
+                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tMax of Range: %s\n", text.Data);
+                        } else {
+                                printf( "\t\tMax of Range: FAILED %s\n", SaErrorT2str(rv));
                         }
-                } /* endif valid threshold */
-        } /* endif showthr */
+                }
+                if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MIN ) {
+                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.Min, 
+                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tMin of Range: %s\n", text.Data);
+                        } else {
+                                printf( "\t\tMin of Range: FAILED %s\n", SaErrorT2str(rv));
+                        }
+                }
+                if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MAX ) {
+                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.NormalMax, 
+                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tNormal Max of Range: %s\n", text.Data);
+                        } else {
+                                printf( "\t\tNormal Max of Range: FAILED %s\n", SaErrorT2str(rv));
+                        }
+                }
+                if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MIN ) {
+                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.NormalMin, 
+                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                                printf( "\t\tNormal Min of Range: %s\n", text.Data);
+                        } else {
+                                printf( "\t\tNormal Min of Range: FAILED %s\n", SaErrorT2str(rv));
+                        }
+                }
+        }
         return;
-}  /*end ShowSensor*/
+}
 
 int main(int argc, char **argv)
 {

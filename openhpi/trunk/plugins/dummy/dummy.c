@@ -339,8 +339,8 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.IdString = {
 			.DataType	= SAHPI_TL_TYPE_ASCII6,
 			.Language	= SAHPI_LANG_ENGLISH,
-			.DataLength 	= 23,
-			.Data		= "Dummy-Power-Temperature"
+			.DataLength 	= 25,
+			.Data		= "Dummy-Power-Temperature 1"
 		},
 	},
 	
@@ -495,6 +495,7 @@ static SaHpiRdrT dummy_rdrs[] = {
                                  | SAHPI_ES_UPPER_CRIT,
                                  .DataFormat = {
                                          .BaseUnits = SAHPI_SU_DEGREES_F,
+                                         .IsSupported = SAHPI_TRUE,
                                          .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                          .ModifierUse = SAHPI_SMUU_NONE,
                                          .Percentage = SAHPI_FALSE,
@@ -535,8 +536,8 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.IdString = {
 			.DataType	= SAHPI_TL_TYPE_ASCII6,
 			.Language	= SAHPI_LANG_ENGLISH,
-			.DataLength 	= 23,
-			.Data		= "Dummy-Power-Temperature"
+			.DataLength 	= 25,
+			.Data		= "Dummy-Power-Temperature 2"
 		},
 	},
 	/* seventh rdr */
