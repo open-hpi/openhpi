@@ -20,9 +20,6 @@
  * 11/12/03 Andy Cress v1.1 check for CAPABILITY_SEL
  * 03/03/04 Andy Cress v1.2 use better free space logic now 
  * 
- * Note that HPI 1.0 does not return all event data fields, so event
- * types other than 'user' will not have all bytes filled in as they
- * would have from IPMI alone.
  */
 /*M*
 Copyright (c) 2003, Intel Corporation
@@ -157,7 +154,7 @@ int main(int argc, char **argv)
 														info.Entries,info.Size,info.Enabled);
 										free = info.Size - info.Entries;
 										saftime2str(info.UpdateTimestamp,date,30);
-										printf("UpdateTime = %s,", date);
+										printf("UpdateTime = %s, ", date);
 										saftime2str(info.CurrentTime,date,30);
 										printf("CurrentTime = %s\n", date);
 										printf("Overflow = %d\n", info.OverflowFlag);
@@ -200,7 +197,7 @@ int main(int argc, char **argv)
 								rptentryid = nextrptentryid;
 						}
 				}
-		printf("ALL DONE!!\n"); 
+		printf("done.\n"); 
 		rv = saHpiSessionClose(sessionid);
 		rv = saHpiFinalize();
 
