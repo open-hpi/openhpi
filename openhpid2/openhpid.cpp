@@ -27,9 +27,13 @@
 #include <glib.h>
 #include <errno.h>
 #include <getopt.h>
+extern "C"
+{
+#include <SaHpi.h>
+#include <oHpi.h>
+}
 
 #include "strmsock.h"
-//#include "openhpi.h"
 #include "marshal_hpi.h"
 
 
@@ -1847,6 +1851,77 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiResourcePowerStateSet( session_id, resource_id, state );
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+       }
+       break;
+
+       case eFoHpiPluginLoad: {
+              SaHpiTextBufferT buf;
+
+              PVERBOSE1("Processing oHpiPluginLoad.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &buf ) < 0 )
+                   return eResultError;
+
+              buf.Data[buf.DataLength] = '\0'; // insurance
+              ret = oHpiPluginLoad( (char *)buf.Data );
+
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+       }
+       break;
+
+       case eFoHpiPluginUnload: {
+              SaHpiTextBufferT buf;
+
+              PVERBOSE1("Processing oHpiPluginUnload.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &buf ) < 0 )
+                   return eResultError;
+
+              buf.Data[buf.DataLength] = '\0'; // insurance
+              ret = oHpiPluginUnload( (char *)buf.Data );
+
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+       }
+       break;
+
+       case eFoHpiPluginInfo: {
+              SaHpiTextBufferT buf;
+              oHpiPluginInfoT info;
+
+              PVERBOSE1("Processing oHpiPluginInfo.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &buf ) < 0 )
+                   return eResultError;
+
+              buf.Data[buf.DataLength] = '\0'; // insurance
+              ret = oHpiPluginInfo( (char *)buf.Data, &info );
+
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
+       }
+       break;
+
+       case eFoHpiPluginGetNext: {
+              SaHpiTextBufferT buf, retbuf;
+
+              PVERBOSE1("Processing oHpiPluginGetNext.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &buf ) < 0 )
+                   return eResultError;
+
+              buf.Data[buf.DataLength] = '\0'; // insurance
+              ret = oHpiPluginGetNext( (char *)buf.Data, (char *)retbuf.Data,
+                                       SAHPI_MAX_TEXT_BUFFER_LENGTH );
+
+              // the following is bogus and not used by the client
+              retbuf.DataType = SAHPI_TL_TYPE_TEXT;
+              retbuf.Language = SAHPI_LANG_ENGLISH;
+              // the real data
+              retbuf.DataLength = strlen((char *)retbuf.Data);
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &retbuf );
        }
        break;
 

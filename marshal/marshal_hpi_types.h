@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #include <SaHpi.h>
+#include <oHpi.h>
 #ifdef __cplusplus
 }
 #endif
@@ -59,7 +60,7 @@ extern "C" {
 #define SaHpiSessionIdType  SaHpiUint32Type
 #define SaHpiResourceIdType SaHpiUint32Type
 #define SaHpiHsCapabilitiesType  SaHpiUint32Type
-#define SaHpiEntryIdType    SaHpiUint32Type			  
+#define SaHpiEntryIdType    SaHpiUint32Type			
 #define SaHpiTimeType       SaHpiInt64Type
 #define SaHpiTimeoutType    SaHpiInt64Type
 
@@ -90,7 +91,7 @@ extern cMarshalType SaHpiSensorReadingType;
 // sensor thresholds
 extern cMarshalType SaHpiSensorThresholdsType;
 #define SaHpiSensorRangeFlagsType SaHpiUint8Type
-extern cMarshalType SaHpiSensorRangeType;  
+extern cMarshalType SaHpiSensorRangeType;
 
 // sensor rdr sensor units
 #define SaHpiSensorUnitsType SaHpiUint32Type
@@ -155,17 +156,17 @@ extern cMarshalType SaHpiWatchdogType;
 
 // watchdog resource data records
 extern cMarshalType SaHpiWatchdogRecType;
-  
+
 // Annunciators
-#define SaHpiAnnunciatorNumType SaHpiUint32Type 
-#define SaHpiStatusCondTypeType SaHpiUint32Type 
+#define SaHpiAnnunciatorNumType SaHpiUint32Type
+#define SaHpiStatusCondTypeType SaHpiUint32Type
 extern cMarshalType SaHpiNameType;
 extern cMarshalType SaHpiConditionType;
 extern cMarshalType SaHpiAnnouncementType;
-#define SaHpiAnnunciatorModeType SaHpiUint32Type 
+#define SaHpiAnnunciatorModeType SaHpiUint32Type
 
 // annunciator resource data records
-#define SaHpiAnnunciatorTypeType SaHpiUint32Type 
+#define SaHpiAnnunciatorTypeType SaHpiUint32Type
 extern cMarshalType SaHpiAnnunciatorRecType;
 
 
@@ -231,6 +232,17 @@ extern cMarshalType SaHpiAlarmType;
 extern cMarshalType SaHpiEventLogInfoType;
 #define SaHpiEventLogEntryIdType SaHpiUint32Type
 extern cMarshalType SaHpiEventLogEntryType;
+
+// plugin stuff
+#define refcountType SaHpiInt32Type
+extern cMarshalType oHpiPluginInfoType;
+
+
+
+
+
+
+
 
 
 #ifdef __cplusplus

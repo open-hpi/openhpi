@@ -114,6 +114,10 @@ typedef enum
   eFsaHpiResourceResetStateSet,
   eFsaHpiResourcePowerStateGet,
   eFsaHpiResourcePowerStateSet,
+  eFoHpiPluginLoad,
+  eFoHpiPluginUnload,
+  eFoHpiPluginInfo,
+  eFoHpiPluginGetNext,
 } tHpiFucntionId;
 
 
