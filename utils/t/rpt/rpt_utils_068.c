@@ -31,14 +31,20 @@ int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
         oh_init_rpt(rptable);
-        SaHpiUint32T update_count;
+        SaHpiUint32T update_count, update_count_new;
+	SaHpiTimeT update_timestamp;
 
         update_count = rptable->update_count;
+	if (oh_get_rpt_info(rptable, &update_count, &update_timestamp))
+		return 1;
         
         if (oh_add_resource(rptable, rptentries, NULL, 0))
                 return 1;
 
-        if (rptable->update_count != update_count + 1)
+        if (oh_get_rpt_info(rptable, &update_count_new, &update_timestamp))
+		return 1;
+		
+	if (update_count_new != update_count + 1)
                 return 1;
 
         return 0;

@@ -19,16 +19,26 @@ Start with empty RPTable
     - add 10 resources w/data, fetch data in random order, compare (005)
     - add 10 resources, start at beginning, call next on each one, compare ResourceId (006)
     - add 10 resources, start at beginning, call next on each one, compare RPTentry (007)
-    - add 10 resources, start at random resource, call next to get to the end, compare ResourceId (008)
+    - add 10 resources, start at random resource, call next to get to the end,
+      compare rid (008)
     
 Start with 10 resources
     - add 1 rdr to first resource
           - fetch by id, compare (009)
           - fetch by type, compare (010)
+    - add 1 rdr
+    	- resource must have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
+	  sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
+	  SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX.
     - add 5 rdrs to first resource, in random order
           - fetch by id, compare (011)
           - fetch by type, compare (012)
           - fetch by next, compare (013)
+    - add 5 rdrs of for each of these types:
+    	- Control
+	- Inventory
+	- Watchdog
+      	- Annunciator
 
 Start with 10 resources, multiple rdrs on some resources
     - remove resource
@@ -43,6 +53,16 @@ Start with 10 resources, multiple rdrs on some resources
     
 Check rpt info
     - add a resource, and check that rpt info has been modified. (068)
+
+Start with two tables using rpt_diff
+    - One empty (current table) and one with 10 resources with an rdr each
+      (new table). Get the difference. Expect 10 new resources and 10 rdrs.
+    - Same as above, but the current table will have the resources. The new
+      table will be empty. Expect 10 gone resources and rdrs.
+    - Current table and new table with 10 resources in each. 5 resources in
+      the new table should be new and the other 5 should be updates from the
+      current table. Expect 10 new resources and rdrs in total and 5
+      resources/rdrs in the gone lists.
 
 The negative tests:
     oh_add_resource
@@ -79,6 +99,9 @@ The negative tests:
         - rdr == NULL (043)
         - RPTable == rdr == NULL (044)
         - rdr with an out of range instrument id (067)
+    	- resource must NOT have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
+	  sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
+	  SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX.
     oh_remove_rdr 
         - RPTable == NULL (045)
         - rid not there (046)
@@ -108,6 +131,17 @@ The negative tests:
           is stays the same on the second addition. (069)
     oh_flush_rpt
     	- RPTable == NULL (061)
+    rpt_diff
+    	- cur_rpt == NULL
+	- new_rpt == NULL
+	- res_new == NULL
+	- rdr_new == NULL
+	- res_gone == NULL
+	- rdr_gone == NULL
+    oh_init_rpt
+    	- table == NULL
+    oh_get_rpt_info
+    	- table == NULL
 
 Speed Tests:
     - Add 10,000 resources. Time how long it takes to fetch last one. (1000)
