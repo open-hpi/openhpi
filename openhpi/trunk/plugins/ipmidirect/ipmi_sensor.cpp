@@ -453,10 +453,10 @@ cIpmiSensor::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 {
   memset( &h, 0, sizeof( SaHpiEventT ) );
 
-  cIpmiEntity *ent = Entity();
-  assert( ent );
+  cIpmiResource *res = Resource();
+  assert( res );
 
-  h.Source    = ent->m_resource_id;
+  h.Source    = res->m_resource_id;
   h.EventType = SAHPI_ET_SENSOR;
   h.Timestamp = (SaHpiTimeT)IpmiGetUint32( event->m_data );
 
@@ -478,15 +478,15 @@ cIpmiSensor::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 void
 cIpmiSensor::HandleEvent( cIpmiEvent *event )
 {
-  cIpmiEntity *ent = Entity();
-  assert( ent );
+  cIpmiResource *res = Resource();
+  assert( res );
 
   stdlog << "reading event.\n";
 
   oh_event *e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
   if ( !e )
      {
-       stdlog << "Out of space !\n";
+       stdlog << "out of space !\n";
        return;
      }
 
@@ -495,7 +495,7 @@ cIpmiSensor::HandleEvent( cIpmiEvent *event )
 
   oh_hpi_event &hpi_event = e->u.hpi_event;
 
-  hpi_event.parent = ent->m_resource_id;
+  hpi_event.parent = res->m_resource_id;
   hpi_event.id     = m_record_id;
 
   // hpi event

@@ -428,15 +428,13 @@ int
 cIpmiFru::GetFruInventoryAreaInfo( unsigned int &size,
                                    tFruAccessMode &byte_access )
 {
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, m_entity->Channel(),
-                  m_entity->Lun(), m_entity->AccessAddress() );
-  cIpmiMsg  msg( eIpmiNetfnStorage, eIpmiCmdGetFruInventoryAreaInfo );
-  cIpmiMsg  rsp;
-
+  cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdGetFruInventoryAreaInfo );
   msg.m_data[0] = m_fru_device_id;
   msg.m_data_len = 1;
 
-  int rv = m_entity->Domain()->SendCommand( addr, msg, rsp );
+  cIpmiMsg rsp;
+
+  int rv = SendCommand( msg, rsp );
 
   if ( rv )
      {
@@ -462,17 +460,15 @@ cIpmiFru::GetFruInventoryAreaInfo( unsigned int &size,
 int
 cIpmiFru::ReadFruData( unsigned short offset, unsigned int num, unsigned int &n, unsigned char *data )
 {
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, m_entity->Channel(),
-                  m_entity->Lun(), m_entity->AccessAddress() );
-  cIpmiMsg  msg( eIpmiNetfnStorage, eIpmiCmdReadFruData );
-  cIpmiMsg  rsp;
-
+  cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdReadFruData );
   msg.m_data[0] = m_fru_device_id;
   IpmiSetUint16( msg.m_data + 1, offset >> m_access );
   msg.m_data[3] = num >> m_access;
   msg.m_data_len = 4;
 
-  int rv = m_entity->Domain()->SendCommand( addr, msg, rsp );
+  cIpmiMsg rsp;
+
+  int rv = SendCommand( msg, rsp );
 
   if ( rv )
      {
@@ -563,7 +559,7 @@ checksum( const unsigned char *data, int size )
 int
 cIpmiFru::CreateInventory( const unsigned char *data )
 {
-  stdlog << "MC " << m_entity->AccessAddress() << " FRU Inventory " << m_fru_device_id << "\n";
+  stdlog << "MC " << (unsigned char)m_mc->GetAddress() << " FRU Inventory " << m_fru_device_id << "\n";
 
   if ( m_size < 8 )
      {

@@ -43,8 +43,8 @@ __END_DECLS
 #include "ipmi_mc.h"
 #endif
 
-#ifndef dIpmiEntity_h
-#include "ipmi_entity.h"
+#ifndef dIpmiResource_h
+#include "ipmi_resource.h"
 #endif
 
 #ifndef dIpmiSensorHotswap_h
@@ -63,20 +63,10 @@ __END_DECLS
 #include "ipmi_discover.h"
 #endif
 
+#ifndef dIpmiFruInfo_h
+#include "ipmi_fru_info.h"
+#endif
 
-enum tIpmiAtcaSiteType
-{
-  eIpmiAtcaSiteTypeAtcaBoard = 0,
-  eIpmiAtcaSiteTypePowerEntryModule = 1,
-  eIpmiAtcaSiteTypeShelfFruInformation = 2,
-  eIpmiAtcaSiteTypeDedicatedShMc = 3,
-  eIpmiAtcaSiteTypeFanTray = 4,
-  eIpmiAtcaSiteTypeFanFilterTray = 5,
-  eIpmiAtcaSiteTypeAlarm = 6,
-  eIpmiAtcaSiteTypeAtcaModule = 7,
-  eIpmiAtcaSiteTypePMC = 8,
-  eIpmiAtcaSiteTypeRearTransitionModule = 9,
-};
 
 // property for site types
 // found by get address info
@@ -96,7 +86,7 @@ public:
 #define dIpmiMcPollInterval 1000
 
 
-class cIpmiDomain
+class cIpmiDomain : public cIpmiFruInfoContainer
 {
 public:
   unsigned int m_con_ipmi_timeout;
@@ -216,16 +206,6 @@ public:
   // time between sel rescan in ms
   unsigned int m_sel_rescan_interval;
 
-protected:
-  GList *m_entities;
-
-public:
-  cIpmiEntity *FindEntity( tIpmiDeviceNum device_num,
-                           tIpmiEntityId entity_id, 
-                           unsigned int entity_instance );
-  void AddEntity( cIpmiEntity *ent );
-  void RemEntity( cIpmiEntity *ent );
-
   int CheckAtca();
   int GetChannels();
 
@@ -257,17 +237,17 @@ public:
   // handle a single event
   void HandleEvent( cIpmiEvent *event );
 
-  cIpmiEntity  *VerifyEntity( cIpmiEntity *ent );
-  cIpmiMc      *VerifyMc( cIpmiMc *mc );
-  cIpmiSensor  *VerifySensor( cIpmiSensor *s );
-  cIpmiControl *VerifyControl( cIpmiControl *c );
-  cIpmiFru     *VerifyFru( cIpmiFru *f );
+  cIpmiResource *VerifyResource( cIpmiResource *res );
+  cIpmiMc       *VerifyMc( cIpmiMc *mc );
+  cIpmiSensor   *VerifySensor( cIpmiSensor *s );
+  cIpmiControl  *VerifyControl( cIpmiControl *c );
+  cIpmiFru      *VerifyFru( cIpmiFru *f );
 
   virtual void AddHpiEvent( oh_event *event ) = 0;
   virtual GSList *GetHpiEventList() = 0;
 
-  // called in cIpmiEntity::AddSensor to set the initial hotswap state
-  void IfHotswapSetInitialState( cIpmiEntity *ent, cIpmiSensorHotswap *sensor );
+  // set initial hotswap state
+  void IfHotswapSetInitialState( cIpmiResource *res, cIpmiSensorHotswap *sensor );
 
   virtual const char *EntityRoot() = 0;
   virtual oh_handler_state *GetHandler() = 0;

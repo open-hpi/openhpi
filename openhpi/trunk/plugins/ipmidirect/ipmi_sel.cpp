@@ -43,7 +43,7 @@ cIpmiSel::cIpmiSel( cIpmiMc *mc, unsigned int lun )
     m_overflow( false ),
     m_supports_delete_sel( false ), m_supports_partial_add_sel( false ),
     m_supports_reserve_sel( false ), m_supports_get_sel_allocation( false ),
-    m_entity( 0 ), m_fetched( false ), m_reservation( 0 ),
+    m_fetched( false ), m_reservation( 0 ),
     m_sels_changed( false ),
     m_sel( 0 ), m_sel_num( 0 ),
     m_async_events( 0 ), m_async_events_num( 0 )
@@ -113,14 +113,14 @@ cIpmiSel::ClearSel()
 int
 cIpmiSel::GetInfo()
 {
-  cIpmiMsg cmd_msg( eIpmiNetfnStorage, eIpmiCmdGetSelInfo );
+  cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdGetSelInfo );
   cIpmiMsg rsp;
   int rv;
   unsigned int add_timestamp;
   unsigned int erase_timestamp;
 
   // Fetch the repository info.
-  rv = m_mc->SendCommand( cmd_msg, rsp, m_lun );
+  rv = m_mc->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
      {
@@ -180,12 +180,12 @@ cIpmiSel::GetInfo()
 int
 cIpmiSel::Reserve()
 {
-  cIpmiMsg cmd_msg( eIpmiNetfnStorage, eIpmiCmdReserveSel );
+  cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdReserveSel );
   cIpmiMsg rsp;
   int rv;
 
   // Get a reservation.
-  rv = m_mc->SendCommand( cmd_msg, rsp, m_lun );
+  rv = m_mc->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
      {

@@ -31,29 +31,40 @@ __END_DECLS
 
 
 class cIpmiMc;
-class cIpmiEntity;
+class cIpmiResource;
+
+
+#ifndef dIpmiEntity_h
+#include "ipmi_entity.h"
+#endif
+
+#ifndef dIpmiMsg_h
+#include "ipmi_msg.h"
+#endif
 
 
 class cIpmiRdr
 {
 protected:
   cIpmiMc        *m_mc;
-  cIpmiEntity    *m_entity;
+  cIpmiResource  *m_resource;
   SaHpiEntryIdT   m_record_id;
   SaHpiRdrTypeT   m_type;
   cIpmiTextBuffer m_id_string;
   unsigned int    m_lun;
+  cIpmiEntityPath m_entity_path;
 
 public:
   cIpmiRdr( cIpmiMc *mc, SaHpiRdrTypeT type );
   virtual ~cIpmiRdr();
 
   cIpmiMc         *Mc() const { return m_mc; }
-  cIpmiEntity    *&Entity()   { return m_entity; }
+  cIpmiResource  *&Resource() { return m_resource; }
   SaHpiEntryIdT   &RecordId() { return m_record_id; }
   SaHpiRdrTypeT    Type() const { return m_type; }
   cIpmiTextBuffer &IdString() { return m_id_string; }
   const cIpmiTextBuffer &IdString() const { return m_id_string; }
+  cIpmiEntityPath &EntityPath() { return m_entity_path; }
 
   // create an RDR sensor record
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
@@ -63,6 +74,8 @@ public:
   virtual unsigned int Lun() const { return m_lun; }
 
   //virtual void Dump( cIpmiLog &dump ) = 0;
+  int SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
+		   unsigned int lun = 0, int retries = 3 );
 };
 
 

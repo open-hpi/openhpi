@@ -20,7 +20,7 @@
 
 
 cIpmiRdr::cIpmiRdr( cIpmiMc *mc, SaHpiRdrTypeT type )
-  : m_mc( mc ), m_entity( 0 ), m_type( type ),
+  : m_mc( mc ), m_resource( 0 ), m_type( type ),
     m_lun( 0 )
 {
 }
@@ -37,9 +37,18 @@ cIpmiRdr::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   rdr.RecordId = m_record_id;
   rdr.RdrType  = m_type;
   rdr.Entity   = resource.ResourceEntity;
+  //  rdr.Entity   = m_entity_path;
   rdr.IdString = m_id_string;
 
   return true;
+}
+
+
+int
+cIpmiRdr::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
+		       unsigned int lun, int retries )
+{
+  return m_mc->SendCommand( msg, rsp, lun, retries );
 }
 
 
