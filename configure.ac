@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.1.0)
+AC_INIT(openhpi, 2.0.1)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE
 
@@ -109,7 +109,6 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
         this is required for plugin loading)
     ])
 
-dnl AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
 
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
 
@@ -144,12 +143,14 @@ dnl Enable the marshal directory only when needed by
 dnl the deamon or remote_client plugin
 NEED_MARSHAL=
 openhpid_static="no"
+openhpid_dinamic="no"
 
 AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
+        openhpid_dinamic="yes"
      elif test "x$enableval" = "xstatic"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
@@ -164,21 +165,7 @@ dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
-
-
-shell_client="no"
-AC_ARG_ENABLE([shell_client],
-    [  --enable-shell_client         build HPI client library [default=no]],
-    [if test "x$enableval" = "xyes"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-	NEED_MARSHAL="yes"
-	shell_client="yes"
-    fi])
-
-dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-dnl     NEED_MARSHAL="yes"])
-
-AM_CONDITIONAL(SHELL_CLIENT, test x$shell_client = xyes)
+AM_CONDITIONAL(OPENHPID_DINAMIC, test x$openhpid_dinamic = xyes)
 
 
 AC_ARG_ENABLE([examples],
@@ -264,13 +251,20 @@ AC_ARG_ENABLE([watchdog],
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
+AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
 
-if pkg-config --atleast-version 1.3.14 OpenIPMI; then
-    have_openipmi=yes
-    OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
-    AC_SUBST(OPENIPMI_CFLAGS)
-    OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
-    AC_SUBST(OPENIPMI_LIBS)
+if test "x$have_openipmi" = "xyes"; then
+    if pkg-config --atleast-version 1.3.16 OpenIPMI; then
+        OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
+        AC_SUBST(OPENIPMI_CFLAGS)
+        OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
+        AC_SUBST(OPENIPMI_LIBS)
+    else
+    	OH_CHECK_FAIL(OpenIPMI, libOpenIPMI-devel, http://openipmi.sf.net is needed)
+    fi
+else
+
+    	OH_CHECK_FAIL(OpenIPMI, libOpenIPMI-devel, http://openipmi.sf.net is needed)
 fi
 
 AC_ARG_ENABLE([ipmi],
@@ -536,8 +530,7 @@ CXX_WARNINGS="\
 	-Wcast-align \
         -Wshadow \
         -Wwrite-strings \
-        -Wredundant-decls \
-	-Werror "
+        -Wredundant-decls"
 
 dnl remerge the warnings into the FLAGS
 CXXFLAGS="$CFLAGS $CXX_WARNINGS"

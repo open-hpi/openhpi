@@ -30,46 +30,34 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_prepend when el->enabled == SAHPI_FALSE
+ * This test verifies the failure of oh_el_setgentimestampflag
+ * when el == NULL.
  *
  * Return value: 0 on success, 1 on failure
  **/
+
 
 int main(int argc, char **argv)
 {
         oh_el *el;
         SaErrorT retc;
-	SaHpiEventT event;
-	static char *data[1] = {
-        	"Test data one"
+	SaHpiBoolT flag = 0;
 
-	};
+	/* create a null EL and attempt to save it to file */
+	el = NULL;
 
-	/*test oh_el_prepend with el->enabled == SAHPI_FALSE*/
-	el = oh_el_create(20);
-
-	el->enabled = SAHPI_FALSE;
-        event.Source = 1;
-        event.EventType = SAHPI_ET_USER;
-        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        event.Severity = SAHPI_DEBUG;
-
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
-
-        retc = oh_el_prepend(el, &event, NULL, NULL);
+        /* save the EL to file */
+        retc = oh_el_setgentimestampflag(el, flag);
         if (retc == SA_OK) {
-                dbg("ERROR: oh_el_add failed.");
-                return 1;
-        }   
-
-        /* close el */
-        retc = oh_el_close(el);
-        if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el failed.");
+                dbg("ERROR: oh_el_setgentimestampflag failed.");
                 return 1;
         }
-
-
+ 
         return 0;
 }
+
+
+
+
+
 

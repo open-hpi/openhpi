@@ -848,7 +848,6 @@ IpmiAddSelEntry( void *hnd, SaHpiResourceIdT id,
   return rv;
 }
 
-#ifdef NOTUSED
 static SaErrorT
 IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
                  SaHpiEventLogEntryIdT sid )
@@ -865,7 +864,6 @@ IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
 
   return rv;
 }
-#endif
 
 static SaErrorT
 IpmiGetSelEntry( void *hnd, SaHpiResourceIdT id,
