@@ -2157,7 +2157,7 @@ gpointer event_thread(gpointer data)
 //                g_static_rec_mutex_unlock (inst->handler_lock);
 
 		/* signal threaded infrastructure */
-		oh_wake_event_thread();
+		oh_wake_event_thread(SAHPI_FALSE);
 		dbg("dummy thread, signaled");
 
                 nanosleep(&req, &rem);

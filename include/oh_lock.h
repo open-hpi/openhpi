@@ -46,24 +46,32 @@ int data_access_block_times(void);
 /* initialize mutex used for data locking */
 #include <glib.h>
 extern GStaticRecMutex oh_main_lock;
+extern int lockcount;
 
 #define data_access_lock_init()
 
-#define data_access_lock() \
-        do { \
-                if (!g_static_rec_mutex_trylock(&oh_main_lock)) { \
-                        dbg_lock("Going to block for a lock now"); \
-                        oh_will_block++; \
-                        g_static_rec_mutex_lock(&oh_main_lock); \
-                } else { \
-                        dbg_lock("Got the lock because no one had it"); \
-                } \
+#define data_access_lock()                                              \
+        do {                                                            \
+                dbg_lock("%p - Attempting lock",  g_thread_self());     \
+                if (!g_static_rec_mutex_trylock(&oh_main_lock)) {       \
+                        dbg_lock("%p - Lockcount: %d",  g_thread_self(), lockcount); \
+                        dbg_lock("%p - Going to block for a lock now",  g_thread_self()); \
+                        oh_will_block++;                                \
+                        g_static_rec_mutex_lock(&oh_main_lock);         \
+                        dbg_lock("%p - Got the lock after blocking",  g_thread_self()); \
+                        lockcount++;                                    \
+                } else {                                                \
+                        dbg_lock("%p - Got the lock because no one had it",  g_thread_self()); \
+                        lockcount++;                                    \
+                        dbg_lock("%p - Lockcount: %d", g_thread_self(), lockcount); \
+                }                                                       \
         } while(0)
 
-#define data_access_unlock() \
-        do { \
+#define data_access_unlock()                              \
+        do {                                              \
+                lockcount--;                              \
                 g_static_rec_mutex_unlock(&oh_main_lock); \
-                dbg_lock("released the lock"); \
+                dbg_lock("%p - released the lock",  g_thread_self());      \
         } while(0)
 
 #else 

@@ -45,33 +45,35 @@ static gpointer oh_event_thread_loop(gpointer data)
         GTimeVal time;
         SaErrorT rv;
 
+	g_mutex_lock(oh_thread_mutex);
         while(oh_run_threaded()) {
-                dbg("About to run through the event loop");
-
+		trace("Thread Harvesting events");
                 rv = oh_harvest_events();
                 if(rv != SA_OK) {
-                        dbg("Error on harvest of events.");
+                        trace("Error on harvest of events.");
                 }
                 
+		trace("Thread processing events");
                 rv = oh_process_events();
                 if(rv != SA_OK) {
-                        dbg("Error on processing of events, aborting");
+                        trace("Error on processing of events, aborting");
                 }
                 
+                trace("Thread processing hotswap");
                 process_hotswap_policy();
-
+                
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
 
-                dbg("Going to sleep");
-
+                trace("Going to sleep");
                 if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-                        dbg("SIGNALED: Got signal from plugin");
+                        trace("SIGNALED: Got signal from plugin");
                 else
-                        dbg("TIMEDOUT: Woke up, am looping again");
+                        trace("TIMEDOUT: Woke up, am looping again");
         }
+	g_mutex_unlock(oh_thread_mutex);
         g_thread_exit(0);
-        return 0;
+        return data;
 }
 
 /*
@@ -166,11 +168,18 @@ SaErrorT oh_harvest_events()
         unsigned int hid = 0, next_hid;
         struct oh_handler *h = NULL;
 
-        data_access_lock();
         oh_lookup_next_handler(hid, &next_hid);
         while (next_hid) {
+                dbg("harvesting for %d", next_hid);
                 hid = next_hid;
+                data_access_lock();
+
                 h = oh_lookup_handler(hid);
+                if(!h) {
+                        dbg("No such handler %d", hid);
+                        data_access_unlock();
+                        break;
+                }
 		/*
 		 * Here we want to record an error unless there is
 		 * at least one harvest_events_for_handler that
@@ -178,10 +187,10 @@ SaErrorT oh_harvest_events()
 		 */		
                 if (harvest_events_for_handler(h) == SA_OK && error)
                         error = SA_OK;
+                data_access_unlock();
 
                 oh_lookup_next_handler(hid, &next_hid);
         }
-        data_access_unlock();
 
         return error;
 }
@@ -362,7 +371,7 @@ static int process_rdr_event(struct oh_event *e)
 
         if (e->type == OH_ET_RDR_DEL) {  /* Remove RDR */
                 if (!(rv = oh_remove_rdr(rpt, rid, e->u.rdr_event.rdr.RecordId)) ) {
-                        dbg("SUCCESS: RDR %x in Resource %d in Domain %d has been REMOVED.",
+                        trace("SUCCESS: RDR %x in Resource %d in Domain %d has been REMOVED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
                 } else {
                         dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been REMOVED.",
@@ -370,7 +379,7 @@ static int process_rdr_event(struct oh_event *e)
                 }
         } else if (e->type == OH_ET_RDR) { /* Add/Update RDR */
                 if(!(rv = oh_add_rdr(rpt, rid, &(e->u.rdr_event.rdr), NULL, 0))) {
-                        dbg("SUCCESS: RDR %x in Resource %d in Domain %d has been ADDED.",
+                        trace("SUCCESS: RDR %x in Resource %d in Domain %d has been ADDED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
                 } else {
                         dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been ADDED.",
@@ -433,13 +442,13 @@ SaErrorT oh_get_events()
         SaErrorT rv = SA_OK;
 
         if(oh_run_threaded()) {
-                dbg("Running threaded, time to wake up the event thread");
-                oh_wake_event_thread();
-                /* this is just enough time to give up the processor 
-                   and let the thread do something */
+                trace("Running threaded, time to wake up the event thread");
+                oh_wake_event_thread(SAHPI_TRUE);
+                /* we force a lock that makes us wait for the thread to
+                   do at least one event cycle */
                 return rv;
         } else {
-                dbg("Running non threaded, Harvesting events");
+                trace("Running non threaded, Harvesting events");
                 rv = oh_harvest_events();
                 if(rv != SA_OK) {
                         dbg("Error on harvest of events.");
