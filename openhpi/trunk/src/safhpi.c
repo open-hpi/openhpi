@@ -1934,9 +1934,11 @@ SaErrorT SAHPI_API saHpiControlGet (
         SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT,
                              SaHpiCtrlModeT *, SaHpiCtrlStateT *);
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+        
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1951,8 +1953,19 @@ SaErrorT SAHPI_API saHpiControlGet (
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
-        oh_release_domain(d); /* Unlock domain */
 
+        rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_CTRL_RDR, CtrlNum);
+        if (!rdr) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        if(rdr->RdrTypeUnion.CtrlRec.WriteOnly) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        oh_release_domain(d); /* Unlock domain */
+        
         get_func = h->abi->get_control_state;
         if (!get_func) {
                 return SA_ERR_HPI_INVALID_CMD;
