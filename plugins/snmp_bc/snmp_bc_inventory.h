@@ -11,6 +11,7 @@
  *
  * Author(s):
  *	peter d phan  <pdphan@sourceforge.net>
+ *      Renier Morales <renierm@users.sf.net>
  *
  *	02/16/2004 pdphan Split from snmp_bc.h for ease of test
  *
@@ -21,13 +22,20 @@
 
 #include <snmp_bc.h>
 
+struct snmp_bc_inventory_data {
+        SaHpiInventDataValidityT Validity;
+        SaHpiInventDataRecordT   *DataRecords[2];
+        SaHpiInventDataRecordT   DataRecord;
+        SaHpiTextBufferT         TextBuffers[0];
+};
+
 /* 
  * Functions prototype
  */
 
 SaErrorT get_inventory_data(	void *hnd, SaHpiRdrT *rdr,
 				struct BC_InventoryInfo *s,
-				SaHpiInventoryDataT *l_data,
+				struct snmp_bc_inventory_data *l_data,
 				SaHpiInventGeneralDataT *working,
 				SaHpiUint32T  *vpdrecordlength);
 
