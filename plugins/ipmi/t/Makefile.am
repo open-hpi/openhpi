@@ -42,4 +42,4 @@ ipmi_thres_hyst_LDADD    =  -lOpenIPMI -lOpenIPMIposix
 
 
 set_thres_SOURCES       = set_thres.c
-set_thres_LDADD         = -lopenhpi
+set_thres_LDADD        = $(top_builddir)/src/libopenhpi.la
