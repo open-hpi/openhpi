@@ -242,6 +242,21 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
         } while(0)
 
 
+static inline int is_ignored_sensor(ipmi_sensor_t *sensor)
+{
+        ipmi_entity_t *ent;
+
+        ent = ipmi_sensor_get_entity(sensor);
+
+        if (ent && ipmi_entity_is_present(ent))
+                return 0;
+        
+        if ( !ipmi_sensor_get_ignore_if_no_entity(sensor) )
+                return 0;
+
+        return 1;
+}
+
 /* dump rpttable to make debug easy 
    if you don't like it, feel free to delete it.
    IMO, it is a good idea to place dump_rpttable in rpt_utils.c

@@ -505,9 +505,6 @@ static SaHpiEventCategoryT ohoi_sensor_get_event_reading_type(ipmi_sensor_t   *s
 static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 					SaHpiSensorRecT	*rec)
 {
-	ipmi_entity_t *ent;	
-
-
 	rec->Type = (SaHpiSensorTypeT)ipmi_sensor_get_sensor_type(sensor);
 	rec->Category = (SaHpiEventCategoryT)
 		ohoi_sensor_get_event_reading_type(sensor);
@@ -516,11 +513,7 @@ static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 	/* Cannot find Events in IPMI. */
 	rec->Events = 0xffff;
 
-	ent = ipmi_sensor_get_entity(sensor);
-	if (ipmi_entity_is_present(ent)) 
-		rec->Ignore = SAHPI_FALSE;
-	else
-		rec->Ignore = SAHPI_TRUE;
+        rec->Ignore = is_ignored_sensor(sensor)? SAHPI_TRUE: SAHPI_FALSE;
 
 	add_sensor_event_data_format(sensor, rec);
 
