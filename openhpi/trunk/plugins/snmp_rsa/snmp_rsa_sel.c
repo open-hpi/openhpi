@@ -274,8 +274,21 @@ int snmp_rsa_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT
 int snmp_rsa_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 {
         struct oh_handler_state *handle = hnd;
+        struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+        struct tm tv;
+        time_t tt;
+        SaErrorT returncode;
 
-        return oh_sel_timeset(handle->selcache,time);
+        tt = time / 1000000000;
+        
+        localtime_r(&tt, &tv);
+
+        if (set_rsa_time(custom_handle->ss,&tv) == 0)
+                returncode = SA_OK;
+        else
+                returncode = SA_ERR_HPI_ERROR;
+                 
+        return returncode;
 }
 
 /**
