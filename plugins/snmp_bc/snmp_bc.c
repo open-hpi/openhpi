@@ -159,6 +159,9 @@ static int snmp_bc_discover_resources(void *hnd)
 				if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT)) {
 					find_controls(snmp_bct_blade_controls);
 				}
+				else {
+					find_controls(snmp_bci_blade_controls);
+				}
 				find_inventories(snmp_bc_blade_inventories);
                         }
 			
@@ -569,7 +572,6 @@ int get_interface(void **pp, const uuid_t uuid)
         return -1;
 }
 
-
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           struct snmp_session *ss,
                           const char *objid,
@@ -597,3 +599,28 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 
 }
 
+SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
+                          struct snmp_session *ss,
+                          char *objid,
+                          struct snmp_value value)
+{
+        SaErrorT status;
+
+        status = snmp_set(ss, objid, value);
+        if (status == SA_ERR_SNMP_TIMEOUT) {
+
+                if (custom_handle->handler_retries == MAX_RETRY_ATTEMPTED) {
+                        custom_handle->handler_retries = 0;
+                        status = SA_ERR_HPI_NO_RESPONSE;
+                } else {
+                        custom_handle->handler_retries++;
+                        status = SA_ERR_HPI_BUSY;
+                }
+
+        } else {
+                custom_handle->handler_retries = 0;
+        }
+
+        return status;
+
+}
