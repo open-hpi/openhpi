@@ -50,7 +50,7 @@
 
         <!-- Chapters -->
         &introduction;
-        &methods_and_notations;
+        <!-- &methods_and_notations; -->
         <!-- &assumptions_and_deps; -->
         &sahpi_breakdown;
         &design_decomposition;
