@@ -39,6 +39,19 @@ int str2event_hash_init() {
 		return -1;
 	}
 
+	key = "I/O module 1 Temperature Fault Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1C401"; /* EN_OVER_TEMP_SWITCH_1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "System under recommended voltage for -5v.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -62,6 +75,45 @@ int str2event_hash_init() {
 	strinfo->event = "08216003"; /* EN_PS3_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 8.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E008008"; /* EN_BLADE_8_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 POST Error. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0E003"; /* EN_SWITCH_3_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA00004"; /* EN_FAULT_SWITCH_4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -104,19 +156,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blade Server 13 was installed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0E00200D"; /* EN_BLADE_D_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "Blade Server 10 was installed.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -130,27 +169,14 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 3 was installed. Multiple I/O module failures";
+	key = "Blade Server 12 is incompatible with I/O module configuration.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA02003"; /* EN_SWITCH_3_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "CPU 3 Over Temperature";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0421D083"; /* EN_THERM_TRIP_CPU3 */
+	strinfo->event = "0E00600C"; /* EN_BLADE_C_CFG_FAIL */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -169,93 +195,41 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System shutoff due to CPU 1 over temperature.";
+	key = "BSE +12V over recommended voltage.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0421C481"; /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
+	strinfo->event = "0E836402"; /* EN_BUST_12V_WARNING_HI */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System shutoff due to 1.8V CPU under voltage";
+	key = "Blade Server 4 is incompatible with I/O module configuration.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0807A880"; /* EN_CUTOFF_LO_FAULT_1_8V */
+	strinfo->event = "0E006004"; /* EN_BLADE_4_CFG_FAIL */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage on +1.5v.";
+	key = "SP Communications Failure on Blade 11.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08041400"; /* EN_PFA_HI_FAULT_1_5V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blower 2 Fault Multiple blower failures";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0A026002"; /* EN_FAULT_FAN2 */
+	strinfo->event = "0E00800B"; /* EN_BLADE_B_COMM_FAIL */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blower 2 Failure Multiple blower failures";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "00026802"; /* EN_FAN2_SPEED */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System shutoff due to 1.8V CPU over voltage";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0807A480"; /* EN_CUTOFF_HI_FAULT_1_8V */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blade Server 8 was removed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0E004008"; /* EN_BLADE_8_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -268,6 +242,19 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0821E002"; /* EN_FAULT_PS2_REMOVED */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Management Module BIST Failure. Refer to the BIST Results web page for additional information.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00022000"; /* EN_SP_BIST */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
@@ -286,27 +273,27 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 3 was removed. Multiple I/O module failures";
+	key = "I/O module 3 Temperature Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA04003"; /* EN_SWITCH_3_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event = "0EA1C403"; /* EN_OVER_TEMP_SWITCH_3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "IO Board +3.3V under recommended voltage.";
+	key = "I/O module 3 Current Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0A02CC00"; /* EN_IO_3_3V_WARNING_LOW */
+	strinfo->event = "0EA1A403"; /* EN_OVER_CURRENT_SWITCH_3 */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -325,19 +312,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage on +2.5v.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "FF031480"; /* EN_PFA_HI_FAULT_2_5V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 1;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "Blade Server 9 was removed.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -347,6 +321,19 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0E004009"; /* EN_BLADE_9_REMOVED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +12V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E836802"; /* EN_BUST_12V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -364,15 +351,15 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 2 was instructed to power on.";
+	key = "BSE +1.8V under recommended voltage.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA08002"; /* EN_SWITCH_2_POWERED_ON */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event = "0E87A802"; /* EN_BUST_1_8V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -390,6 +377,45 @@ int str2event_hash_init() {
 	strinfo->event_dup = 1;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "I/O module 4 POST Timeout. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0D004"; /* EN_SWITCH_4_POST_TIMEOUT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 is incompatible with Blade Server configuration. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0C001"; /* EN_SWITCH_1_CFG_ERROR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System Power Good Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00028001"; /* EN_FAULT_SYS_POWER_GOOD */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "System under recommended voltage for +12v._HPIDUP1";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -403,19 +429,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "IO Board +12V over recommended voltage.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0A037C00"; /* EN_IO_12V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "System shutoff due to -5v over voltage.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -424,32 +437,6 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0803C480"; /* EN_CUTOFF_HI_FAULT_N5V */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blower 4 Fault Single blower failure";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0A026004"; /* EN_FAULT_FAN4 */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System shutoff due to +2.5v under voltage.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08030880"; /* EN_CUTOFF_LO_FAULT_2_5V */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -468,6 +455,45 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "I/O module 3 Current Fault Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1A403"; /* EN_OVER_CURRENT_SWITCH_3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 POST Error. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0E004"; /* EN_SWITCH_4_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Good Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00028000"; /* EN_FAULT_POWER_GOOD */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "System over temperature for CPU 1.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -479,19 +505,6 @@ int str2event_hash_init() {
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System under recommended voltage for +12v.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "FF037800"; /* EN_PFA_LO_FAULT_12V_PLANAR */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 1;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
 	key = "Chassis Running Nonredundant I/O Modules";
@@ -533,32 +546,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blower 3 Fault Multiple blower failures";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0A026003"; /* EN_FAULT_FAN3 */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blade Server 1 was removed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0E004001"; /* EN_BLADE_1_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "System under recommended voltage on +3.3v.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -572,16 +559,29 @@ int str2event_hash_init() {
 	strinfo->event_dup = 1;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blower 4 Failure Multiple blower failures";
+	key = "I/O module 2 Temperature Warning Multiple I/O module failures";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "00026804"; /* EN_FAN4_SPEED */
+	strinfo->event = "0EA1D402"; /* EN_OVER_TEMP_WARN_SWITCH_2 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 8 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E006008"; /* EN_BLADE_8_CFG_FAIL */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -607,7 +607,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0681D481"; /* EN_PFA_HI_OVER_TEMP_DASD1 */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -619,19 +619,6 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0A035C00"; /* EN_IO_5V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "CPU 2 shut off due to over temperature";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0421C402"; /* EN_PROC_HOT_CPU2 */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -676,6 +663,1735 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "I/O module 3 Temperature Fault Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1C403"; /* EN_OVER_TEMP_SWITCH_3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 2 Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08200002"; /* EN_FAULT_PS2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to CPU 2 over temperature.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421C482"; /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 5 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E002005"; /* EN_BLADE_5_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 POST Timeout.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0D003"; /* EN_SWITCH_3_POST_TIMEOUT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 3 12V Over Voltage Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236483"; /* EN_FAULT_PS3_12V_OVER */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 3 Temperature Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821C083"; /* EN_FAULT_PS3_OVR_TEMP */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1A401"; /* EN_OVER_CURRENT_SWITCH_1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 1 12V Over Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236001"; /* EN_FAULT_PS1_12V_OVR_CUR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 2 12V Under Voltage Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236802"; /* EN_FAULT_PS2_12V_UNDER */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 Current Fault Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1A404"; /* EN_OVER_CURRENT_SWITCH_4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage on +3.3v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08033480"; /* EN_PFA_HI_FAULT_3_35V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "IO Board +12V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A036C00"; /* EN_IO_12V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 1 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E006001"; /* EN_BLADE_1_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 5.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E008005"; /* EN_BLADE_5_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage for +12v.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "FF037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 1;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "VRM Power Good Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "04428000"; /* EN_FAULT_VRM_POWER_GOOD */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 3 Failure Single blower failure";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00026803"; /* EN_FAN3_SPEED */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage for +5v.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "06035500"; /* EN_PFA_HI_FAULT_PLANAR_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 Temperature Warning";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821C004"; /* EN_FAULT_PS4_TEMP_WARN */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 DC Good Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08028004"; /* EN_FAULT_PS4_DC_GOOD */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 2 12V Over Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236002"; /* EN_FAULT_PS2_12V_OVR_CUR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "CPU Board voltage fault.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "04018000"; /* EN_CPU_BD_VOLTAGE_FAULT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08200004"; /* EN_FAULT_PS4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "CPU 1 shut off due to over temperature";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421C401"; /* EN_PROC_HOT_CPU1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 is incompatible with Blade Server configuration. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0C004"; /* EN_SWITCH_4_CFG_ERROR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Management Module 2 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00282002"; /* EN_MM_2_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 Temperature Warning";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1D403"; /* EN_OVER_TEMP_WARN_SWITCH_3 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 2 was removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E004002"; /* EN_BLADE_2_REMOVED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 3 12V Over Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236003"; /* EN_FAULT_PS3_12V_OVR_CUR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Input Voltage Removed from Power Supply 4";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08180004"; /* EN_FAULT_PS4_EPOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 10 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00600A"; /* EN_BLADE_A_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 12V Over Voltage Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236484"; /* EN_FAULT_PS4_12V_OVER */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 Temperature Warning Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1D404"; /* EN_OVER_TEMP_WARN_SWITCH_4 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "IO Board +1.5V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A040C00"; /* EN_IO_1_5V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821A004"; /* EN_FAULT_PS4_CUR_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 was instructed to power off.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA06002"; /* EN_SWITCH_2_POWERED_OFF */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage on +1.25v.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08001400"; /* EN_PFA_HI_FAULT_1_25V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 POST Error.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0E004"; /* EN_SWITCH_4_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +18V over recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E83C402"; /* EN_BUST_18V_WARNING_HI */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 POST Error. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0E002"; /* EN_SWITCH_2_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to +12v over voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "06036480"; /* EN_CUTOFF_HI_FAULT_12V_PLANAR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 8 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E002008"; /* EN_BLADE_8_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 was instructed to power off.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA06003"; /* EN_SWITCH_3_POWERED_OFF */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage for -5v.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0803D500"; /* EN_PFA_HI_FAULT_N5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Management Module is over recommended temperature.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0001D400"; /* EN_PFA_HI_OVER_TEMP_SP_CARD */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "IO Board +2.5V over recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A031C00"; /* EN_IO_2_5V_WARNING_HI */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 2 Outside Recommended Speed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "000A6002"; /* EN_FAN2_PFA */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 2.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E008002"; /* EN_BLADE_2_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA02002"; /* EN_SWITCH_2_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 6 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E002006"; /* EN_BLADE_6_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 Temperature Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1C401"; /* EN_OVER_TEMP_SWITCH_1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 POST Error.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0E003"; /* EN_SWITCH_3_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Management Module 1 was removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00284001"; /* EN_MM_1_REMOVED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 11 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00600B"; /* EN_BLADE_B_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 3 Removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821E003"; /* EN_FAULT_PS3_REMOVED */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Shutoff due to high Management Module temperature.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0001C500"; /* EN_CUTOFF_HI_OVER_TEMP_SP_CARD */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 3 Outside Recommended Speed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "000A6003"; /* EN_FAN3_PFA */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "CPU 3 shut off due to over temperature";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421C403"; /* EN_PROC_HOT_CPU3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 12.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00800C"; /* EN_BLADE_C_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "IO Board voltage fault.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "06018000"; /* EN_IO_BD_VOLTAGE_FAULT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 Removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821E004"; /* EN_FAULT_PS4_REMOVED */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +18V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E83C802"; /* EN_BUST_18V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to BSE Option temperature.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0681C481"; /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +3.3V over recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E832402"; /* EN_BUST_3_3V_WARNING_HI */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "The media tray was removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "06A1E001"; /* EN_MEDIA_TRAY_REMOVED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 Temperature Warning";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1D401"; /* EN_OVER_TEMP_WARN_SWITCH_1 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over temperature for CPU 4.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421D504"; /* EN_PFA_HI_OVER_TEMP_CPU4 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 9.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E008009"; /* EN_BLADE_9_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA00001"; /* EN_FAULT_SWITCH_1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +1.8V over recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E87A402"; /* EN_BUST_1_8V_WARNING_HI */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to VRM 1 over voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "04400481"; /* EN_CUTOFF_HI_FAULT_VRM1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 Temperature Warning Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1D403"; /* EN_OVER_TEMP_WARN_SWITCH_3 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 7 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E006007"; /* EN_BLADE_7_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 1 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08216001"; /* EN_PS1_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 1 Outside Recommended Speed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "000A6001"; /* EN_FAN1_PFA */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage on +2.5v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08031480"; /* EN_PFA_HI_FAULT_2_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 is incompatible with Blade Server configuration. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0C002"; /* EN_SWITCH_2_CFG_ERROR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to +3.3v under voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08032880"; /* EN_CUTOFF_LO_FAULT_3_35V */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +3.3V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E832802"; /* EN_BUST_3_3V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over/under recommended voltage";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0000006F"; /* EN_NC_VOLT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +2.5V over recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E830402"; /* EN_BUST_2_5V_WARNING_HI */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Management Module 1 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00282001"; /* EN_MM_1_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage for +12v._HPIDUP1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "06037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 13 was removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00400D"; /* EN_BLADE_D_REMOVED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server Powered Down";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "1C000001"; /* EN_BLADE_PWR_DWN */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over temperature for CPU 2.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421D502"; /* EN_PFA_HI_OVER_TEMP_CPU2 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to +2.5v over voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08030480"; /* EN_CUTOFF_HI_FAULT_2_5V */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 POST Error. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0E001"; /* EN_SWITCH_1_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System front panel controller not responding.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "09020000"; /* EN_FAULT_FP_R */
+	strinfo->event_sev = SAHPI_MINOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Input Voltage Removed from Power Supply 2";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08180002"; /* EN_FAULT_PS2_EPOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 2 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E006002"; /* EN_BLADE_2_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 4 Outside Recommended Speed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "000A6004"; /* EN_FAN4_PFA */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "CPU 2 Over Temperature";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421D082"; /* EN_THERM_TRIP_CPU2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Insufficient chassis power to support redundancy";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08080001"; /* EN_NR_PWR_SUPPLY */
+	strinfo->event_sev = SAHPI_MINOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 POST Timeout.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0D002"; /* EN_SWITCH_2_POST_TIMEOUT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 5 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E006005"; /* EN_BLADE_5_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1A402"; /* EN_OVER_CURRENT_SWITCH_2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 13 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00200D"; /* EN_BLADE_D_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "CPU 3 Over Temperature";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421D083"; /* EN_THERM_TRIP_CPU3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 6 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E006006"; /* EN_BLADE_6_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to 1.8V CPU under voltage";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0807A880"; /* EN_CUTOFF_LO_FAULT_1_8V */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to CPU 1 over temperature.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421C481"; /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage on +1.5v.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08041400"; /* EN_PFA_HI_FAULT_1_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 2 Fault Multiple blower failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A026002"; /* EN_FAULT_FAN2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +2.5V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E830802"; /* EN_BUST_2_5V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 Temperature Warning Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1D401"; /* EN_OVER_TEMP_WARN_SWITCH_1 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to 1.8V CPU over voltage";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0807A480"; /* EN_CUTOFF_HI_FAULT_1_8V */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 2 Failure Multiple blower failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00026802"; /* EN_FAN2_SPEED */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 9 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E006009"; /* EN_BLADE_9_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "IO Board power fault.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0601A000"; /* EN_IO_BD_POWER_FAULT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 8 was removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E004008"; /* EN_BLADE_8_REMOVED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 6.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E008006"; /* EN_BLADE_6_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 3 Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08200003"; /* EN_FAULT_PS3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 2 Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821A002"; /* EN_FAULT_PS2_CUR_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "IO Board +3.3V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A02CC00"; /* EN_IO_3_3V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System over recommended voltage on +2.5v.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "FF031480"; /* EN_PFA_HI_FAULT_2_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 1;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 Fault Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA00001"; /* EN_FAULT_SWITCH_1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 was instructed to power on.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA08002"; /* EN_SWITCH_2_POWERED_ON */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1A404"; /* EN_OVER_CURRENT_SWITCH_4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +5V over recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E834402"; /* EN_BUST_5V_WARNING_HI */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "IO Board +12V over recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A037C00"; /* EN_IO_12V_WARNING_HI */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 4 Fault Single blower failure";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A026004"; /* EN_FAULT_FAN4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System shutoff due to +2.5v under voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08030880"; /* EN_CUTOFF_LO_FAULT_2_5V */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 POST Timeout. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0D001"; /* EN_SWITCH_1_POST_TIMEOUT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System under recommended voltage for +12v.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "FF037800"; /* EN_PFA_LO_FAULT_12V_PLANAR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 1;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 1 was removed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E004001"; /* EN_BLADE_1_REMOVED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 3 Fault Multiple blower failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0A026003"; /* EN_FAULT_FAN3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 Current Fault Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1A402"; /* EN_OVER_CURRENT_SWITCH_2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blower 4 Failure Multiple blower failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "00026804"; /* EN_FAN4_SPEED */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 1 Temperature Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821C081"; /* EN_FAULT_PS1_OVR_TEMP */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "CPU 2 shut off due to over temperature";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0421C402"; /* EN_PROC_HOT_CPU2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 POST Timeout.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0D004"; /* EN_SWITCH_4_POST_TIMEOUT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "System over recommended ambient temperature.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -715,14 +2431,27 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System shutoff due to CPU 2 over temperature.";
+	key = "SP Communications Failure on Blade 4.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0421C482"; /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
+	strinfo->event = "0E008004"; /* EN_BLADE_4_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 7.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E008007"; /* EN_BLADE_7_COMM_FAIL */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -736,19 +2465,6 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0EA02003"; /* EN_SWITCH_3_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blade Server 5 was installed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0E002005"; /* EN_BLADE_5_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -780,6 +2496,97 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "Input Voltage Removed from Power Supply 3";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08180003"; /* EN_FAULT_PS3_EPOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 1 12V Under Voltage Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236801"; /* EN_FAULT_PS1_12V_UNDER */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 10.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00800A"; /* EN_BLADE_A_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 Temperature Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821C084"; /* EN_FAULT_PS4_OVR_TEMP */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 3 Temperature Warning";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821C003"; /* EN_FAULT_PS3_TEMP_WARN */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 13 is incompatible with I/O module configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00600D"; /* EN_BLADE_D_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 3 Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821A003"; /* EN_FAULT_PS3_CUR_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "System under recommended voltage on +2.5v._HPIDUP1";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -789,6 +2596,32 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "08031880"; /* EN_PFA_LO_FAULT_2_5V */
 	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 Temperature Warning";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1D402"; /* EN_OVER_TEMP_WARN_SWITCH_2 */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 is incompatible with Blade Server configuration. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0C003"; /* EN_SWITCH_3_CFG_ERROR */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -806,29 +2639,16 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage on +3.3v._HPIDUP1";
+	key = "Power Supply 3 12V Under Voltage Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08033480"; /* EN_PFA_HI_FAULT_3_35V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "IO Board +12V under recommended voltage.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0A036C00"; /* EN_IO_12V_WARNING_LOW */
+	strinfo->event = "08236803"; /* EN_FAULT_PS3_12V_UNDER */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -853,6 +2673,19 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0421D084"; /* EN_THERM_TRIP_CPU4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 Temperature Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1C404"; /* EN_OVER_TEMP_SWITCH_4 */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -884,17 +2717,17 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage for +12v.";
+	key = "DASD backplane Failure";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "FF037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
-	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event = "00000069"; /* EN_DASD */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 1;
+	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
 	key = "I/O module 1 was removed.";
@@ -910,29 +2743,16 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 4 was removed. Multiple I/O module failures";
+	key = "Power Supply 1 DC Good Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA04004"; /* EN_SWITCH_4_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "I/O module 1 was installed. Multiple I/O module failures";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0EA02001"; /* EN_SWITCH_1_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event = "08028001"; /* EN_FAULT_PS1_DC_GOOD */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -949,16 +2769,16 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blower 3 Failure Single blower failure";
+	key = "I/O module 1 was installed.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "00026803"; /* EN_FAN3_SPEED */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event = "0EA02001"; /* EN_SWITCH_1_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -975,15 +2795,15 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 1 was installed.";
+	key = "I/O module 1 Current Fault Multiple I/O module failures";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA02001"; /* EN_SWITCH_1_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event = "0EA1A401"; /* EN_OVER_CURRENT_SWITCH_1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -1001,14 +2821,53 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage for +5v.";
+	key = "I/O module 2 is incompatible with Blade Server configuration.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "06035500"; /* EN_PFA_HI_FAULT_PLANAR_5V */
+	strinfo->event = "0EA0C002"; /* EN_SWITCH_2_CFG_ERROR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 is incompatible with Blade Server configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0C004"; /* EN_SWITCH_4_CFG_ERROR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Input Voltage Removed from Power Supply 1";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08180001"; /* EN_FAULT_PS1_EPOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 Temperature Warning";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1D404"; /* EN_OVER_TEMP_WARN_SWITCH_4 */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -1027,15 +2886,15 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "CPU 1 shut off due to over temperature";
+	key = "I/O module 2 POST Error.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0421C401"; /* EN_PROC_HOT_CPU1 */
-	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event = "0EA0E002"; /* EN_SWITCH_2_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -1049,32 +2908,6 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A02DC00"; /* EN_IO_3_3V_WARNING_HI */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Management Module 2 was installed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "00282002"; /* EN_MM_2_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blade Server 2 was removed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0E004002"; /* EN_BLADE_2_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -1131,54 +2964,41 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "IO Board +1.5V under recommended voltage.";
+	key = "Power Supply 1 Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0A040C00"; /* EN_IO_1_5V_WARNING_LOW */
+	strinfo->event = "08200001"; /* EN_FAULT_PS1 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage on +1.25v.";
+	key = "System Boot Failed";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08001400"; /* EN_PFA_HI_FAULT_1_25V */
+	strinfo->event = "00000077"; /* EN_BOOT_FAIL */
 	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 2 was installed. Multiple I/O module failures";
+	key = "I/O module 3 Fault Multiple I/O module failures";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA02002"; /* EN_SWITCH_2_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "I/O module 2 was instructed to power off.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0EA06002"; /* EN_SWITCH_2_POWERED_OFF */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event = "0EA00003"; /* EN_FAULT_SWITCH_3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -1209,40 +3029,27 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 2 was removed. Multiple I/O module failures";
+	key = "I/O module 2 Fault Multiple I/O module failures";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA04002"; /* EN_SWITCH_2_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System shutoff due to high ambient temperature.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0001C480"; /* EN_CUTOFF_HI_OVER_TEMP_AMBIENT */
+	strinfo->event = "0EA00002"; /* EN_FAULT_SWITCH_2 */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System shutoff due to +12v over voltage.";
+	key = "I/O module 3 is incompatible with Blade Server configuration.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "06036480"; /* EN_CUTOFF_HI_FAULT_12V_PLANAR */
+	strinfo->event = "0EA0C003"; /* EN_SWITCH_3_CFG_ERROR */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -1261,15 +3068,15 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blade Server 8 was installed.";
+	key = "System shutoff due to high ambient temperature.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0E002008"; /* EN_BLADE_8_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event = "0001C480"; /* EN_CUTOFF_HI_OVER_TEMP_AMBIENT */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -1287,14 +3094,27 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 3 was instructed to power off.";
+	key = "Power Supply 1 Current Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA06003"; /* EN_SWITCH_3_POWERED_OFF */
+	strinfo->event = "0821A001"; /* EN_FAULT_PS1_CUR_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 3 was instructed to power on.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA08003"; /* EN_SWITCH_3_POWERED_ON */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -1313,45 +3133,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage for -5v.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0803D500"; /* EN_PFA_HI_FAULT_N5V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "I/O module 3 was instructed to power on.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0EA08003"; /* EN_SWITCH_3_POWERED_ON */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Management Module is over recommended temperature.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0001D400"; /* EN_PFA_HI_OVER_TEMP_SP_CARD */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "Blower 2 Failure Single blower failure";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1365,29 +3146,16 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "IO Board +2.5V over recommended voltage.";
+	key = "I/O module 3 POST Timeout. Multiple I/O module failures";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0A031C00"; /* EN_IO_2_5V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blower 2 Outside Recommended Speed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "000A6002"; /* EN_FAN2_PFA */
+	strinfo->event = "0EA0D003"; /* EN_SWITCH_3_POST_TIMEOUT */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1404,14 +3172,14 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "CPU 1 Over Temperature";
+	key = "I/O module 2 Temperature Fault Multiple I/O module failures";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0421D081"; /* EN_THERM_TRIP_CPU1 */
+	strinfo->event = "0EA1C402"; /* EN_OVER_TEMP_SWITCH_2 */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -1430,28 +3198,15 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "I/O module 2 was installed.";
+	key = "CPU 1 Over Temperature";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0EA02002"; /* EN_SWITCH_2_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blade Server 6 was installed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0E002006"; /* EN_BLADE_6_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event = "0421D081"; /* EN_THERM_TRIP_CPU1 */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -1482,16 +3237,29 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Management Module 1 was removed.";
+	key = "Blade Server 3 is incompatible with I/O module configuration.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "00284001"; /* EN_MM_1_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event = "0E006003"; /* EN_BLADE_3_CFG_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "System under recommended 5V Fault.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08035800"; /* EN_PFA_LO_FAULT_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1508,19 +3276,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 1;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System under recommended 5V Fault.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08035800"; /* EN_PFA_LO_FAULT_5V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "CPU 4 shut off due to over temperature";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1534,42 +3289,68 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Power Supply 3 Removed.";
+	key = "Blade Server 14 is incompatible with I/O module configuration.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0821E003"; /* EN_FAULT_PS3_REMOVED */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Shutoff due to high Management Module temperature.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0001C500"; /* EN_CUTOFF_HI_OVER_TEMP_SP_CARD */
+	strinfo->event = "0E00600E"; /* EN_BLADE_E_CFG_FAIL */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blower 3 Outside Recommended Speed.";
+	key = "SP Communications Failure on Blade 14.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "000A6003"; /* EN_FAN3_PFA */
+	strinfo->event = "0E00800E"; /* EN_BLADE_E_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 POST Timeout.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0D001"; /* EN_SWITCH_1_POST_TIMEOUT */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "CPU Board power fault.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0401A000"; /* EN_CPU_BD_POWER_FAULT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 4 Fault Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA00004"; /* EN_FAULT_SWITCH_4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1586,14 +3367,14 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "CPU 3 shut off due to over temperature";
+	key = "BSE Option failure";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0421C403"; /* EN_PROC_HOT_CPU3 */
+	strinfo->event = "06800000"; /* EN_FAULT_DASD */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -1609,19 +3390,6 @@ int str2event_hash_init() {
 	strinfo->event = "0E004003"; /* EN_BLADE_3_REMOVED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Power Supply 4 Removed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0821E004"; /* EN_FAULT_PS4_REMOVED */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1651,16 +3419,42 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System shutoff due to BSE Option temperature.";
+	key = "I/O module 2 Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0681C481"; /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
+	strinfo->event = "0EA00002"; /* EN_FAULT_SWITCH_2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 1 12V Over Voltage Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236481"; /* EN_FAULT_PS1_12V_OVER */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 13.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E00800D"; /* EN_BLADE_D_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1677,29 +3471,16 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "The media tray was removed.";
+	key = "Power Supply 2 12V Over Voltage Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "06A1E001"; /* EN_MEDIA_TRAY_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event = "08236482"; /* EN_FAULT_PS2_12V_OVER */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "I/O module 4 was installed. Multiple I/O module failures";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0EA02004"; /* EN_SWITCH_4_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1729,32 +3510,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over temperature for CPU 4.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0421D504"; /* EN_PFA_HI_OVER_TEMP_CPU4 */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "I/O module 1 was removed. Multiple I/O module failures";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0EA04001"; /* EN_SWITCH_1_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "Blower 4 Failure Single blower failure";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1768,16 +3523,107 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System shutoff due to VRM 1 over voltage.";
+	key = "SP Communications Failure on Blade 1.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "04400481"; /* EN_CUTOFF_HI_FAULT_VRM1 */
+	strinfo->event = "0E008001"; /* EN_BLADE_1_COMM_FAIL */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 Temperature Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA1C402"; /* EN_OVER_TEMP_SWITCH_2 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "BSE +5V under recommended voltage.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E834802"; /* EN_BUST_5V_WARNING_LOW */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 12V Over Current Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236004"; /* EN_FAULT_PS4_12V_OVR_CUR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 is incompatible with Blade Server configuration.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0C001"; /* EN_SWITCH_1_CFG_ERROR */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 1 POST Error.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0E001"; /* EN_SWITCH_1_POST_ERROR */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "SP Communications Failure on Blade 3.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E008003"; /* EN_BLADE_3_COMM_FAIL */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 4 12V Under Voltage Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "08236804"; /* EN_FAULT_PS4_12V_UNDER */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1807,45 +3653,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Power Supply 1 was installed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08216001"; /* EN_PS1_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blower 1 Outside Recommended Speed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "000A6001"; /* EN_FAN1_PFA */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV | OVR_RID;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System over recommended voltage on +2.5v._HPIDUP1";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08031480"; /* EN_PFA_HI_FAULT_2_5V */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "I/O module 1 was instructed to power off.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1859,29 +3666,16 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blade Server 4 was installed.";
+	key = "Power Supply 2 Temperature Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0E002004"; /* EN_BLADE_4_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System shutoff due to +3.3v under voltage.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08032880"; /* EN_CUTOFF_LO_FAULT_3_35V */
+	strinfo->event = "0821C082"; /* EN_FAULT_PS2_OVR_TEMP */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1895,6 +3689,19 @@ int str2event_hash_init() {
 	strinfo->event = "FFFFFFFF"; /* EN_TEST_EVENT */
 	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = NO_OVR;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Blade Server 4 was installed.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0E002004"; /* EN_BLADE_4_INSTALLED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1924,6 +3731,19 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "I/O module 3 Fault";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA00003"; /* EN_FAULT_SWITCH_3 */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "Blade Server 7 was removed.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1934,6 +3754,32 @@ int str2event_hash_init() {
 	strinfo->event = "0E004007"; /* EN_BLADE_7_REMOVED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "I/O module 2 POST Timeout. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA0D002"; /* EN_SWITCH_2_POST_TIMEOUT */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
+	key = "Power Supply 2 Temperature Warning";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0821C002"; /* EN_FAULT_PS2_TEMP_WARN */
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1950,80 +3796,28 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System over recommended voltage for +12v._HPIDUP1";
+	key = "Power Supply 1 Temperature Warning";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "06037500"; /* EN_PFA_HI_FAULT_12V_PLANAR */
+	strinfo->event = "0821C001"; /* EN_FAULT_PS1_TEMP_WARN */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Management Module 1 was installed.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "00282001"; /* EN_MM_1_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blade Server 13 was removed.";
+	key = "I/O module 4 Temperature Fault Multiple I/O module failures";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0E00400D"; /* EN_BLADE_D_REMOVED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "Blade Server Powered Down";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "1C000001"; /* EN_BLADE_PWR_DWN */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System over temperature for CPU 2.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0421D502"; /* EN_PFA_HI_OVER_TEMP_CPU2 */
-	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "System under recommended voltage on +1.5v.";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "08041800"; /* EN_PFA_LO_FAULT_1_5V */
-	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event = "0EA1C404"; /* EN_OVER_TEMP_SWITCH_4 */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -2041,15 +3835,15 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "System shutoff due to +2.5v over voltage.";
+	key = "System under recommended voltage on +1.5v.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "08030480"; /* EN_CUTOFF_HI_FAULT_2_5V */
-	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event = "08041800"; /* EN_PFA_LO_FAULT_1_5V */
+	strinfo->event_sev = SAHPI_MAJOR;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
@@ -2080,29 +3874,29 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "Blower 4 Outside Recommended Speed.";
+	key = "Power Supply 3 DC Good Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "000A6004"; /* EN_FAN4_PFA */
-	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event = "08028003"; /* EN_FAULT_PS3_DC_GOOD */
+	strinfo->event_sev = SAHPI_CRITICAL;
 	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "CPU 2 Over Temperature";
+	key = "Power Supply 2 DC Good Fault";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
 		dbg("Cannot allocate memory for hash value - %s", key);
 		str2event_hash_free();
 		return -1;
 	}
-	strinfo->event = "0421D082"; /* EN_THERM_TRIP_CPU2 */
+	strinfo->event = "08028002"; /* EN_FAULT_PS2_DC_GOOD */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 

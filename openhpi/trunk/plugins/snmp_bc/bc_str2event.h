@@ -31,7 +31,7 @@ typedef struct {
         short          event_dup;
 } Str2EventInfoT;
 
-/* Global String 2 Event Hash Table */
+/* Global String to Event Hash Table */
 extern GHashTable * str2event_hash;
 
 int str2event_hash_init(void);

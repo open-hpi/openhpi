@@ -499,6 +499,12 @@ struct oh_event * snmp_bc_discover_sensors(struct oh_handler_state *handle,
 		sensor_event_only = 1;
 	}
 
+	if ((sensor->bc_sensor_info.mib.oid == NULL) &&
+	    !(sensor->sensor.DataFormat.ReadingFormats & SAHPI_SRF_EVENT_STATE)) {
+	 	dbg("Sensor %s cannot be read and is NOT event-only", sensor->comment);
+		return e;
+	}
+
 	if (!sensor_event_only) { 
 		oid = snmp_derive_objid(parent_ep, sensor->bc_sensor_info.mib.oid);
 		if (oid == NULL) {
