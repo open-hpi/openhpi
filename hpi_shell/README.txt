@@ -238,6 +238,12 @@ Commands:
 
 
 
+Redirection output.
+
+	Output of the command can be redirect to the local file:
+		command > file		- redirect standard output to the passed file.
+		command >> file		- add standard output to the passed file.
+
 Packet mode.
 
 	In this mode commands are read from the command file. All commands described

@@ -24,7 +24,8 @@
 #include <unistd.h>
 #include "hpi_cmd.h"
 
-#define MAX_IN_FILES	10
+#define MAX_IN_FILES		10
+#define MAX_REDIRECTIONS	10
 
 
 term_def_t	*terms;
@@ -35,6 +36,8 @@ FILE		*input_file = (FILE *)NULL;
 ret_code_t	shell_error = HPI_SHELL_OK;
 int		in_files_count = 0;
 FILE		*input_files[MAX_IN_FILES];
+int		out_files_count = 0;
+FILE		*output_files[MAX_REDIRECTIONS];
 
 /* local variables */
 static char	input_buffer[READ_BUF_SIZE];	// command line buffer
@@ -43,6 +46,36 @@ static char	cmd_line[LINE_BUF_SIZE];	// current command line
 static int	max_term_count = 0;
 static int	term_count = 0;
 static int	current_term = 0;
+
+static int set_redirection(char *name, int redir)
+{
+	char	*flags;
+	FILE	*out;
+
+	if (out_files_count >= MAX_REDIRECTIONS) {
+		printf("Too many redirections\n");
+		return(-1);
+	};
+	if (redir == 1) flags = "w";
+	else flags = "a";
+	out = fopen(name, flags);
+	if (out == (FILE *)NULL) {
+		printf("Can not open/create file: %s\n", name);
+		return(-1);
+	};
+	output_files[out_files_count] = stdout;
+	stdout = out;
+	out_files_count++;
+	return(0);
+}
+
+static void remove_reditection(void)
+{
+	if (out_files_count == 0) return;
+	out_files_count--;
+	fclose(stdout);
+	stdout = output_files[out_files_count];
+}
 
 static int delete_input_file(void)
 {
@@ -167,17 +200,21 @@ static command_def_t *get_cmd(char *name)
 	return((command_def_t *)NULL);
 }
 
-void cmd_parser(char *mes, int as, int new_cmd)
+ret_code_t cmd_parser(char *mes, int as, int new_cmd, int *redirect)
 // as = 0  - get command
 // as = 1  - may be exit with empty command
 // new_cmd = 1 - new command
 // new_cmd = 0 - get added items
+//     returned redirect value (for new_cmd = 1):
+//   0 - no redirect output
+//   1 - redirect to the empty file
+//   2 - add output to the existent file
 {
 	char	*cmd, *str, *beg;
 	term_t	type;
-	int	len;
+	int	len, i;
 
-	if (debug_flag) printf("cmd_parser:\n");
+	*redirect = 0;
 	for (;;) {
 		if (new_cmd) {
 			new_command();
@@ -193,7 +230,7 @@ void cmd_parser(char *mes, int as, int new_cmd)
 		str = cmd;
 		while (isspace(*str)) str++;
 		if (strlen(str) == 0) {
-			if (as) return;
+			if (as) return HPI_SHELL_OK;
 			continue;
 		};
 		beg = str;
@@ -215,8 +252,8 @@ void cmd_parser(char *mes, int as, int new_cmd)
 				if (*str == 0) {
 					add_term(beg, type);
 					if (read_file)
-						add_term(";", CMD_END_TERM);
-					return;
+						add_term(";", CMD_ERROR_TERM);
+					break;
 				};
 				if (*beg == '\"') {
 					beg++;
@@ -228,19 +265,21 @@ void cmd_parser(char *mes, int as, int new_cmd)
 				str++;
 				continue;
 			};
-			if (*str == 0) {
-				if (strlen(beg) > 0)
-					add_term(beg, type);
-				if (read_file)
-					add_term(";", CMD_END_TERM);
-				return;
-			};
-			if (*str == ';') {
+			if (*str == '>') {
 				*str++ = 0;
 				if (strlen(beg) > 0)
 					add_term(beg, type);
-				add_term(";", CMD_END_TERM);
-				return;
+				if (*str == '>') {
+					add_term(">>", CMD_REDIR_TERM);
+					str++;
+				} else add_term(">", CMD_REDIR_TERM);
+				type = ITEM_TERM;
+				beg = str;
+				continue;
+			};
+			if (*str == ';') {
+				*str++ = 0;
+				break;
 			};
 			str++;
 		};
@@ -248,7 +287,20 @@ void cmd_parser(char *mes, int as, int new_cmd)
 			add_term(beg, type);
 		if (read_file)
 			add_term(";", CMD_END_TERM);
-		return;
+		if (new_cmd == 0)
+			return(HPI_SHELL_OK);
+		for (i = 0; i < term_count; i++) {
+			if (terms[i].term_type == CMD_ERROR_TERM)
+				return(HPI_SHELL_SYNTAX_ERROR);
+			if (terms[i].term_type == CMD_REDIR_TERM) {
+				if (*redirect != 0)
+					return(HPI_SHELL_SYNTAX_ERROR);
+				if (strcmp(">>", terms[i].term) == 0)
+					*redirect = 2;
+				else *redirect = 1;
+			}
+		};
+		return(HPI_SHELL_OK);
 	}
 }
 
@@ -309,13 +361,41 @@ int run_command(void)
 int get_new_command(char *mes)
 {
 	term_def_t	*term;
+	int		redir = 0, i, res;
+	char		*name;
 
 	if (debug_flag) printf("get_new_command:\n");
 	term = get_next_term();
 	if ((term != NULL) && (term->term_type == CMD_TERM))
 		unget_term();
 	else
-		cmd_parser(mes, 0, 1);
+		cmd_parser(mes, 0, 1, &redir);
+	if (redir != 0) {
+		for (i = 0; i < term_count; i++) {
+			if (terms[i].term_type == CMD_REDIR_TERM)
+				break;
+		};
+		if (i >= term_count - 1) {
+			printf("Syntax error:\n%s\n", cmd_line);
+			go_to_dialog();
+			return(3);
+		};
+		if (terms[i + 1].term_type != ITEM_TERM) {
+			printf("Syntax error:\n%s\n", cmd_line);
+			go_to_dialog();
+			return(3);
+		};
+		name = terms[i + 1].term;
+		res = set_redirection(name, redir);
+		if (res != 0) {
+			printf("Command failed:\n%s\n", cmd_line);
+			go_to_dialog();
+			return(3);
+		};
+		res = run_command();
+		remove_reditection();
+		return(res);
+	};
 	return(run_command());
 }
 
@@ -334,13 +414,13 @@ void cmd_shell(void)
 
 int get_int_param(char *mes, int *val)
 {
-	int		res;
+	int		res, redir;
 	char		*str;
 	term_def_t	*term;
 
 	term = get_next_term();
 	if (term == NULL) {
-		cmd_parser(mes, 1, 0);
+		cmd_parser(mes, 1, 0, &redir);
 		term = get_next_term();
 	};
 	if (term == NULL) {
@@ -358,11 +438,12 @@ int get_int_param(char *mes, int *val)
 int get_hex_int_param(char *mes, int *val)
 {
 	char		*str, buf[32];
+	int		redir;
 	term_def_t	*term;
 
 	term = get_next_term();
 	if (term == NULL) {
-		cmd_parser(mes, 1, 0);
+		cmd_parser(mes, 1, 0, &redir);
 		term = get_next_term();
 	};
 	if (term == NULL) {
@@ -385,7 +466,7 @@ int get_string_param(char *mes, char *val, int len)
 
 	term = get_next_term();
 	if (term == NULL) {
-		cmd_parser(mes, 1, 0);
+		cmd_parser(mes, 1, 0, &i);
 		term = get_next_term();
 	};
 	if (term == NULL) {

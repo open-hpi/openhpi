@@ -23,6 +23,20 @@
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
 
+typedef struct {
+	SaHpiResourceIdT	rptid;
+	SaHpiInstrumentIdT	rdrnum;
+	SaHpiRdrT		rdr_entry;
+} sen_block_env_t;
+
+static sen_block_env_t		sen_block_env;
+
+typedef struct {
+	SaHpiResourceIdT	rptid;
+} hs_block_env_t;
+
+static hs_block_env_t		hs_block_env;
+
 typedef enum {
 	THRES_LI = 0,
 	THRES_LA,
@@ -244,14 +258,154 @@ static ret_code_t set_threshold(SaHpiResourceIdT rptid, SaHpiRdrT *rdr)
 	return(HPI_SHELL_OK);
 }
 
-static ret_code_t sensor_command_block(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum,
-	SaHpiRdrT *rdr_entry)
+ret_code_t sen_block_show(void)
 {
-	SaHpiBoolT			val;
-	SaHpiEventStateT		assert, deassert;
-	SaHpiSensorEventMaskActionT	act;
-	SaErrorT			rv;
-	char				rep[10];
+	show_sensor(Domain->sessionId, sen_block_env.rptid,
+		sen_block_env.rdrnum, ui_print);
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t sen_block_setthres(void)
+{
+	set_threshold(sen_block_env.rptid, &(sen_block_env.rdr_entry));
+	return(HPI_SHELL_OK);
+}
+
+static ret_code_t sen_block_set_enable(SaHpiBoolT value)
+{
+	SaHpiBoolT	val;
+	SaErrorT	rv;
+	char		*str;
+
+	rv = saHpiSensorEnableSet(Domain->sessionId, sen_block_env.rptid,
+		sen_block_env.rdrnum, value);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEnableSet: error: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	rv = saHpiSensorEnableGet(Domain->sessionId, sen_block_env.rptid,
+		sen_block_env.rdrnum, &val);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEnableGet: error: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	if (val) str = "Enable";
+	else str = "Disable";
+	printf("Sensor:(%d/%d) %s\n", sen_block_env.rptid,
+		sen_block_env.rdrnum, str);
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t sen_block_enable(void)
+{
+	return(sen_block_set_enable(SAHPI_TRUE));
+}
+
+ret_code_t sen_block_disable(void)
+{
+	return(sen_block_set_enable(SAHPI_FALSE));
+}
+
+static ret_code_t sen_block_set_evtenb(SaHpiBoolT value)
+{
+	SaHpiBoolT	val;
+	SaErrorT	rv;
+	char		*str;
+
+	rv = saHpiSensorEventEnableSet(Domain->sessionId,
+		sen_block_env.rptid, sen_block_env.rdrnum, value);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEventEnableSet: error: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	rv = saHpiSensorEventEnableGet(Domain->sessionId,
+		sen_block_env.rptid, sen_block_env.rdrnum, &val);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEventEnableGet: error: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	if (val) str = "Enable";
+	else str = "Disable";
+	printf("Sensor:(%d/%d) event %s\n", sen_block_env.rptid,
+		sen_block_env.rdrnum, str);
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t sen_block_evtenb(void)
+{
+	return(sen_block_set_evtenb(SAHPI_TRUE));
+}
+
+ret_code_t sen_block_evtdis(void)
+{
+	return(sen_block_set_evtenb(SAHPI_FALSE));
+}
+
+static ret_code_t sen_block_set_masks(SaHpiSensorEventMaskActionT act)
+{
+	SaErrorT		rv;
+	char			rep[10];
+	SaHpiEventStateT	assert, deassert;
+	int			res;
+	char			buf[256];
+
+	if (act == SAHPI_SENS_ADD_EVENTS_TO_MASKS) {
+		strcpy(rep, "add");
+	} else {
+		strcpy(rep, "remove");
+	};
+	rv = saHpiSensorEventMasksGet(Domain->sessionId,
+		sen_block_env.rptid, sen_block_env.rdrnum,
+		&assert, &deassert);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEventMasksGet: error: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	get_hex_int_param("Assert mask = 0x", &res);
+	assert = res;
+	get_hex_int_param("Deassert mask = 0x", &res);
+	deassert = res;
+	if (read_stdin) {
+		snprintf(buf, 256,
+			"Sensor:(%d/%d) %s masks: assert = 0x%4.4x   "
+			"deassert = 0x%4.4x  (yes/no)?",
+			sen_block_env.rptid, sen_block_env.rdrnum,
+			rep, assert, deassert);
+		get_string_param(buf, rep, 4);
+		if (strcmp(rep, "yes") != 0) {
+			printf("No action.\n");
+			return(HPI_SHELL_OK);
+		}
+	};
+	rv = saHpiSensorEventMasksSet(Domain->sessionId,
+		sen_block_env.rptid, sen_block_env.rdrnum,
+		act, assert, deassert);
+	if (rv != SA_OK) {
+		printf("saHpiSensorEventMasksSet: error: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t sen_block_maskadd(void)
+{
+	return(sen_block_set_masks(SAHPI_SENS_ADD_EVENTS_TO_MASKS));
+}
+
+ret_code_t sen_block_maskrm(void)
+{
+	return(sen_block_set_masks(SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS));
+}
+
+static ret_code_t sensor_command_block(SaHpiResourceIdT rptid,
+	SaHpiInstrumentIdT rdrnum, SaHpiRdrT *rdr_entry)
+{
 	char				buf[256];
 	term_def_t			*term;
 	int				res;
@@ -270,129 +424,33 @@ static ret_code_t sensor_command_block(SaHpiResourceIdT rptid, SaHpiInstrumentId
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) {
 			break;
 		};
-		if (strcmp(buf, "show") == 0) {
-			show_sensor(Domain->sessionId, rptid, rdrnum, ui_print);
-			continue;
-		};
-		if (strcmp(buf, "setthres") == 0) {
-			set_threshold(rptid, rdr_entry);
-			continue;
-		};
-		if ((strcmp(buf, "enable") == 0) || (strcmp(buf, "disable") == 0)) {
-			if (strcmp(buf, "enable") == 0) val = 1;
-			else val = 0;
-			rv = saHpiSensorEnableSet(Domain->sessionId, rptid,
-				rdrnum, val);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEnableSet: error: %s\n",
-					oh_lookup_error(rv));
-				if (read_file) return(HPI_SHELL_PARM_ERROR);
-				continue;
-			};
-			rv = saHpiSensorEnableGet(Domain->sessionId, rptid,
-				rdrnum, &val);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEnableGet: error: %s\n",
-					oh_lookup_error(rv));
-				if (read_file) return(HPI_SHELL_PARM_ERROR);
-				continue;
-			};
-			if (val) strcpy(buf, "Enable");
-			else strcpy(buf, "Disable");
-			printf("Sensor:(%d/%d) %s\n", rptid, rdrnum, buf);
-			continue;
-		};
-		if ((strcmp(buf, "evtenb") == 0) || (strcmp(buf, "evtdis") == 0)) {
-			if (strcmp(buf, "evtenb") == 0) val = 1;
-			else val = 0;
-			rv = saHpiSensorEventEnableSet(Domain->sessionId,
-				rptid, rdrnum, val);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEventEnableSet: error: %s\n",
-					oh_lookup_error(rv));
-				if (read_file) return(HPI_SHELL_PARM_ERROR);
-				continue;
-			};
-			rv = saHpiSensorEventEnableGet(Domain->sessionId,
-				rptid, rdrnum, &val);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEventEnableGet: error: %s\n",
-					oh_lookup_error(rv));
-				if (read_file) return(HPI_SHELL_PARM_ERROR);
-				continue;
-			};
-			if (val) strcpy(buf, "Enable");
-			else strcpy(buf, "Disable");
-			printf("Sensor:(%d/%d) event %s\n", rptid, rdrnum, buf);
-			continue;
-		};
-		if ((strcmp(buf, "maskadd") == 0) || (strcmp(buf, "maskrm") == 0)) {
-			if (strcmp(buf, "maskadd") == 0) {
-				act = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
-				strcpy(rep, "add");
-			} else {
-				act = SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS;
-				strcpy(rep, "remove");
-			};
-			rv = saHpiSensorEventMasksGet(Domain->sessionId, rptid, rdrnum,
-				&assert, &deassert);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEventMasksGet: error: %s\n",
-					oh_lookup_error(rv));
-				if (read_file) return(HPI_SHELL_PARM_ERROR);
-				continue;
-			};
-			get_hex_int_param("Assert mask = 0x", &res);
-			assert = res;
-			get_hex_int_param("Deassert mask = 0x", &res);
-			deassert = res;
-			if (read_stdin) {
-				snprintf(buf, 256,
-					"Sensor:(%d/%d) %s masks: assert = 0x%4.4x   "
-					"deassert = 0x%4.4x  (yes/no)?", rptid,
-					rdrnum, rep, assert, deassert);
-				get_string_param(buf, rep, 4);
-				if (strcmp(rep, "yes") != 0) {
-					printf("No action.\n");
-					continue;
-				}
-			};
-			rv = saHpiSensorEventMasksSet(Domain->sessionId, rptid, rdrnum,
-				act, assert, deassert);
-			if (rv != SA_OK) {
-				printf("saHpiSensorEventMasksSet: error: %s\n",
-					oh_lookup_error(rv));
-				if (read_file) return(HPI_SHELL_PARM_ERROR);
-			};
-			continue;
-		}
 	};
 	return(HPI_SHELL_OK);
 }
 
 ret_code_t sen_block(void)
 {
-	SaHpiRdrT		rdr_entry;
-	SaHpiResourceIdT	rptid;
-	SaHpiInstrumentIdT	rdrnum;
 	SaHpiRdrTypeT		type;
 	SaErrorT		rv;
 	ret_code_t		ret;
 
-	ret = ask_rpt(&rptid);
+	ret = ask_rpt(&(sen_block_env.rptid));
 	if (ret != HPI_SHELL_OK) return(ret);
 	type = SAHPI_SENSOR_RDR;
-	ret = ask_rdr(rptid, type, &rdrnum);
+	ret = ask_rdr(sen_block_env.rptid, type, &(sen_block_env.rdrnum));
 	if (ret != HPI_SHELL_OK) return(ret);
-	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type,
-		rdrnum, &rdr_entry);
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId,
+		sen_block_env.rptid, type,
+		sen_block_env.rdrnum, &(sen_block_env.rdr_entry));
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiRdrGetByInstrumentId"
 			"(Rpt=%d RdrType=%d Rdr=%d): %s\n",
-			rptid, type, rdrnum, oh_lookup_error(rv));
+			sen_block_env.rptid, type, sen_block_env.rdrnum,
+			oh_lookup_error(rv));
 		return(HPI_SHELL_CMD_ERROR);
 	};
-	ret = sensor_command_block(rptid, rdrnum, &rdr_entry);
+	ret = sensor_command_block(sen_block_env.rptid,
+		sen_block_env.rdrnum, &(sen_block_env.rdr_entry));
 	block_type = MAIN_COM;
 	return(ret);
 }
@@ -403,23 +461,244 @@ ret_code_t list_sensor(void)
 	return(HPI_SHELL_OK);
 }
 
+ret_code_t hs_block_policy(void)
+{
+	SaErrorT	rv;
+
+	rv = saHpiHotSwapPolicyCancel(Domain->sessionId,
+		hs_block_env.rptid);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiHotSwapPolicyCancel: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t hs_block_active(void)
+{
+	SaErrorT	rv;
+
+	rv = saHpiResourceActiveSet(Domain->sessionId,
+		hs_block_env.rptid);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiResourceActiveSet: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t hs_block_inact(void)
+{
+	SaErrorT	rv;
+
+	rv = saHpiResourceInactiveSet(Domain->sessionId,
+		hs_block_env.rptid);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiResourceInactiveSet: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
+static ret_code_t hs_block_getsettime(int get)
+{
+	SaErrorT	rv;
+	int		ins, res, i;
+	char		buf[256];
+	SaHpiTimeoutT	timeout;
+
+	ins = -1;
+	res = get_string_param("Timeout type(insert|extract): ",
+		buf, 256);
+	if (res != 0) {
+		printf("Invalid timeout type");
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(buf, "insert") == 0) ins = 1;
+	if (strcmp(buf, "extract") == 0) ins = 0;
+	if (ins < 0) {
+		printf("Invalid timeout type: %s\n", buf);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (get) {
+		if (ins) {
+			rv = saHpiAutoInsertTimeoutGet(Domain->sessionId,
+				&timeout);
+			if (rv != SA_OK) {
+				printf("ERROR!!! saHpiAutoInsertTimeoutGet:"
+					" %s\n", oh_lookup_error(rv));
+				return(HPI_SHELL_CMD_ERROR);
+			};
+			printf("Auto-insert timeout: %lld\n", timeout);
+			return(HPI_SHELL_OK);
+		};
+		rv = saHpiAutoExtractTimeoutGet(Domain->sessionId,
+			hs_block_env.rptid, &timeout);
+		if (rv != SA_OK) {
+			printf("ERROR!!! saHpiAutoExtractTimeoutGet: %s\n",
+				oh_lookup_error(rv));
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		printf("Auto-extract timeout: %lld\n", timeout);
+		return(HPI_SHELL_OK);
+	};
+	i = get_int_param("Timeout: ", &res);
+	if (i != 1) {
+		printf("Invalid timeout\n");
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	timeout = res;
+	if (ins) {
+		rv = saHpiAutoInsertTimeoutSet(Domain->sessionId, timeout);
+		if (rv != SA_OK) {
+			printf("ERROR!!! saHpiAutoInsertTimeoutSet: %s\n",
+				oh_lookup_error(rv));
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		return(HPI_SHELL_OK);
+	};
+	rv = saHpiAutoExtractTimeoutSet(Domain->sessionId,
+		hs_block_env.rptid, timeout);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiAutoExtractTimeoutSet: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t hs_block_gtime(void)
+{
+	return(hs_block_getsettime(1));
+}
+
+ret_code_t hs_block_stime(void)
+{
+	return(hs_block_getsettime(0));
+}
+
+ret_code_t hs_block_state(void)
+{
+	SaErrorT	rv;
+	SaHpiHsStateT	state;
+	char		*str;
+
+	rv = saHpiHotSwapStateGet(Domain->sessionId,
+		hs_block_env.rptid, &state);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiHotSwapStateGet: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	} else {
+		switch (state) {
+			case SAHPI_HS_STATE_INACTIVE:
+				str = "Inactive"; break;
+			case SAHPI_HS_STATE_INSERTION_PENDING:
+				str = "Ins. Pending"; break;
+			case SAHPI_HS_STATE_ACTIVE:
+				str = "Active"; break;
+			case SAHPI_HS_STATE_EXTRACTION_PENDING:
+				str = "Ext. Pending"; break;
+			case SAHPI_HS_STATE_NOT_PRESENT:
+				str = "Not present"; break;
+			default:
+				str = "Unknown"; break;
+		};
+		printf("Hot Swap State: %s\n", str);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t hs_block_action(void)
+{
+	SaErrorT	rv;
+	SaHpiHsActionT	action;
+	char		buf[256];
+	int		res;
+
+	res = get_string_param("Action type(insert|extract): ",
+		buf, 256);
+	if (res != 0) {
+		printf("Invalid action type");
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(buf, "insert") == 0)
+		action = SAHPI_HS_ACTION_INSERTION;
+	else if (strcmp(buf, "extract") == 0)
+		action = SAHPI_HS_ACTION_EXTRACTION;
+	else {
+		printf("Invalid action type: %s\n", buf);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	rv = saHpiHotSwapActionRequest(Domain->sessionId,
+		hs_block_env.rptid, action);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiHotSwapActionRequest: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t hs_block_ind(void)
+{
+	SaErrorT		rv;
+	int			res;
+	char			buf[256];
+	SaHpiHsIndicatorStateT	ind_state;
+	char			*str;
+
+	res = get_string_param("Action type(get|on|off): ",
+		buf, 256);
+	if (res != 0) {
+		printf("Invalid action type");
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(buf, "get") == 0) {
+		rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId,
+			hs_block_env.rptid, &ind_state);
+		if (rv != SA_OK) {
+			printf("ERROR!!! saHpiHotSwapIndicatorStateGet: %s\n",
+				oh_lookup_error(rv));
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		if (ind_state == SAHPI_HS_INDICATOR_OFF) str = "OFF";
+		else str = "ON";
+		printf("Hot Swap Indicator: %s\n", str);
+		return(HPI_SHELL_OK);
+	};
+	if (strcmp(buf, "on") == 0)
+		ind_state = SAHPI_HS_INDICATOR_ON;
+	else if (strcmp(buf, "off") == 0)
+		ind_state = SAHPI_HS_INDICATOR_OFF;
+	else {
+		printf("Invalid action type: %s\n", buf);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	rv = saHpiHotSwapIndicatorStateSet(Domain->sessionId,
+		hs_block_env.rptid, ind_state);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiHotSwapIndicatorStateSet: %s\n",
+			oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return(HPI_SHELL_OK);
+}
+
 ret_code_t hs_block(void)
 {
 	SaHpiResourceIdT	rptid;
-	SaHpiTimeoutT		timeout;
-	SaHpiHsStateT		state;
-	SaHpiHsActionT		action;
-	SaHpiHsIndicatorStateT	ind_state;
-	SaErrorT		rv;
 	char			buf[256];
-	char			*str;
 	ret_code_t		ret;
 	term_def_t		*term;
-	int			res, i, ins, get;
+	int			res;
 
 	ret = ask_rpt(&rptid);
 	if (ret != HPI_SHELL_OK) return(ret);
-//	show_rdr_attrs(&rdr_entry);
+	hs_block_env.rptid = rptid;
 	for (;;) {
 		block_type = HS_COM;
 		res = get_new_command("Hot swap block ==> ");
@@ -432,173 +711,6 @@ ret_code_t hs_block(void)
 		if (term == NULL) continue;
 		snprintf(buf, 256, "%s", term->term);
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
-		if (strcmp(buf, "policycancel") == 0) {
-			rv = saHpiHotSwapPolicyCancel(Domain->sessionId, rptid);
-			if (rv != SA_OK) {
-				printf("ERROR!!! saHpiHotSwapPolicyCancel: %s\n",
-					oh_lookup_error(rv));
-			};
-			continue;
-		};
-		if (strcmp(buf, "active") == 0) {
-			rv = saHpiResourceActiveSet(Domain->sessionId, rptid);
-			if (rv != SA_OK) {
-				printf("ERROR!!! saHpiResourceActiveSet: %s\n",
-					oh_lookup_error(rv));
-			};
-			continue;
-		};
-		if (strcmp(buf, "inactive") == 0) {
-			rv = saHpiResourceInactiveSet(Domain->sessionId, rptid);
-			if (rv != SA_OK) {
-				printf("ERROR!!! saHpiResourceInactiveSet: %s\n",
-					oh_lookup_error(rv));
-			};
-			continue;
-		};
-		if ((strcmp(buf, "gettimeout") == 0) || (strcmp(buf, "settimeout") == 0)) {
-			ins = -1;
-			if (strcmp(buf, "gettimeout") == 0) get = 1;
-			else get = 0;
-			res = get_string_param("Timeout type(insert|extract): ",
-				buf, 256);
-			if (res != 0) {
-				printf("Invalid timeout type");
-				continue;
-			};
-			if (strcmp(buf, "insert") == 0) ins = 1;
-			if (strcmp(buf, "extract") == 0) ins = 0;
-			if (ins < 0) {
-				printf("Invalid timeout type: %s\n", buf);
-				continue;
-			};
-			if (get) {
-				if (ins) {
-					rv = saHpiAutoInsertTimeoutGet(Domain->sessionId,
-						&timeout);
-					if (rv != SA_OK) {
-						printf("ERROR!!! saHpiAutoInsertTimeoutGet:"
-							" %s\n", oh_lookup_error(rv));
-					} else
-						printf("Auto-insert timeout: %lld\n",
-							timeout);
-					continue;
-				};
-				rv = saHpiAutoExtractTimeoutGet(Domain->sessionId,
-					rptid, &timeout);
-				if (rv != SA_OK) {
-					printf("ERROR!!! saHpiAutoExtractTimeoutGet: %s\n",
-						oh_lookup_error(rv));
-				} else {
-					printf("Auto-extract timeout: %lld\n", timeout);
-				};
-				continue;
-			};
-			i = get_int_param("Timeout: ", &res);
-			if (i != 1) {
-				printf("Invalid timeout\n");
-				continue;
-			};
-			timeout = res;
-			if (ins) {
-				rv = saHpiAutoInsertTimeoutSet(Domain->sessionId, timeout);
-				if (rv != SA_OK) {
-					printf("ERROR!!! saHpiAutoInsertTimeoutSet: %s\n",
-						oh_lookup_error(rv));
-				};
-				continue;
-			};
-			rv = saHpiAutoExtractTimeoutSet(Domain->sessionId,
-				rptid, timeout);
-			if (rv != SA_OK) {
-				printf("ERROR!!! saHpiAutoExtractTimeoutSet: %s\n",
-					oh_lookup_error(rv));
-			};
-			continue;
-		};
-		if (strcmp(buf, "state") == 0) {
-			rv = saHpiHotSwapStateGet(Domain->sessionId, rptid, &state);
-			if (rv != SA_OK) {
-				printf("ERROR!!! saHpiHotSwapStateGet: %s\n",
-					oh_lookup_error(rv));
-			} else {
-				switch (state) {
-					case SAHPI_HS_STATE_INACTIVE:
-						str = "Inactive"; break;
-					case SAHPI_HS_STATE_INSERTION_PENDING:
-						str = "Ins. Pending"; break;
-					case SAHPI_HS_STATE_ACTIVE:
-						str = "Active"; break;
-					case SAHPI_HS_STATE_EXTRACTION_PENDING:
-						str = "Ext. Pending"; break;
-					case SAHPI_HS_STATE_NOT_PRESENT:
-						str = "Not present"; break;
-					default:
-						str = "Unknown"; break;
-				};
-				printf("Hot Swap State: %s\n", str);
-			};
-			continue;
-		};
-		if (strcmp(buf, "action") == 0) {
-			res = get_string_param("Action type(insert|extract): ",
-				buf, 256);
-			if (res != 0) {
-				printf("Invalid action type");
-				continue;
-			};
-			if (strcmp(buf, "insert") == 0)
-				action = SAHPI_HS_ACTION_INSERTION;
-			else if (strcmp(buf, "extract") == 0)
-				action = SAHPI_HS_ACTION_EXTRACTION;
-			else {
-				printf("Invalid action type: %s\n", buf);
-				continue;
-			};
-			rv = saHpiHotSwapActionRequest(Domain->sessionId, rptid, action);
-			if (rv != SA_OK) {
-				printf("ERROR!!! saHpiHotSwapActionRequest: %s\n",
-					oh_lookup_error(rv));
-			};
-			continue;
-		};
-		if (strcmp(buf, "ind") == 0) {
-			res = get_string_param("Action type(get|on|off): ",
-				buf, 256);
-			if (res != 0) {
-				printf("Invalid action type");
-				continue;
-			};
-			if (strcmp(buf, "get") == 0) {
-				rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId,
-					rptid, &ind_state);
-				if (rv != SA_OK) {
-					printf("ERROR!!! saHpiHotSwapIndicatorStateGet: %s\n",
-						oh_lookup_error(rv));
-				} else {
-					if (ind_state == SAHPI_HS_INDICATOR_OFF)
-						str = "OFF";
-					else str = "ON";
-					printf("Hot Swap Indicator: %s\n", str);
-				};
-				continue;
-			};
-			if (strcmp(buf, "on") == 0)
-				ind_state = SAHPI_HS_INDICATOR_ON;
-			else if (strcmp(buf, "off") == 0)
-				ind_state = SAHPI_HS_INDICATOR_OFF;
-			else {
-				printf("Invalid action type: %s\n", buf);
-				continue;
-			};
-			rv = saHpiHotSwapIndicatorStateSet(Domain->sessionId,
-				rptid, ind_state);
-			if (rv != SA_OK) {
-				printf("ERROR!!! saHpiHotSwapIndicatorStateSet: %s\n",
-					oh_lookup_error(rv));
-			};
-			continue;
-		}
 	};
 	block_type = MAIN_COM;
 	return SA_OK;
