@@ -372,6 +372,37 @@ int set_epath_instance(struct oh_event *e, SaHpiEntityTypeT et, SaHpiEntityInsta
         return retval;
 }
 
+/**
+ * append_root: Append the SAHPI_ENT_ROOT element to an entity path structure.
+ * @ep: IN,OUT Pointer to entity path. SAHPI_ENT_ROOT will be appended to it.
+ *
+ * If an entity path already has a root element, the function returns without
+ * making any changes and reporting success.
+ *
+ * Returns value: 0 on Success, Negative number on Failure.
+ **/
+int append_root(SaHpiEntityPathT *ep)
+{
+        unsigned int i;
+        int rc = -1;
+
+        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if (ep->Entry[i].EntityType == 0 &&
+                    ep->Entry[i-1].EntityType != SAHPI_ENT_ROOT) {
+                        ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
+                        ep->Entry[i].EntityInstance = 0;
+                        rc = 0;
+                        break;
+                } else if (ep->Entry[i].EntityType == 0 &&
+                           ep->Entry[i-1].EntityType == SAHPI_ENT_ROOT) {
+                        rc = 0;
+                        break;
+                }
+        }
+
+        return rc;
+}
+
 static unsigned int index2entitytype(unsigned int i)
 {
         if(i <= ESHORTNAMES_BEFORE_JUMP) {

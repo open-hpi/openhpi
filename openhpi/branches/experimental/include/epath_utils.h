@@ -35,4 +35,6 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append);
 
 int set_epath_instance(struct oh_event *e, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
 
+int append_root(SaHpiEntityPathT *ep);
+
 #endif /* EPATH_UTILS_H */
