@@ -161,7 +161,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                         	}
                 	}
 		} else {
-			dbg(" NULL data poiter for ResourceID %d \n", res->ResourceId);
+			dbg(" NULL data pointer for ResourceID %d \n", res->ResourceId);
 		}
         }
         g_slist_free(res_new);
