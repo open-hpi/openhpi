@@ -112,8 +112,6 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_HPI;
-	e->u.hpi_event.parent = rpt_entry->ResourceId;
-	
 	e->u.hpi_event.event.Source = 0;
 	/* Do not find EventType in IPMI */
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
@@ -265,8 +263,6 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_HPI;
-	e->u.hpi_event.parent = rpt_entry->ResourceId;
-	
 	e->u.hpi_event.event.Source = 0;
 	/* Do not find EventType in IPMI */
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;

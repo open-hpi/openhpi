@@ -105,7 +105,6 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_HPI;
-	e->u.hpi_event.parent = rpt_entry->ResourceId;
 	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
 	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
 /* Fix Me in Severity */
