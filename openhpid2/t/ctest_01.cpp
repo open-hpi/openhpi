@@ -25,41 +25,28 @@ extern "C" {
 }
 #include "client.h"
 
-int main (int argc, char *argv [])
-{
-
+int main (int argc, char *argv []) {
 	SaErrorT 		err;
 	SaHpiSessionIdT 	session_id;
 
 	err =  saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &session_id, NULL);
 	if (err != SA_OK) {
-		printf("test_01: SessionOpen failed\n");
+		printf("%s: saHpiSessionOpen failed\n", argv[0]);
+		printf("%s: the daemon may not be running\n", argv[0]);
 		return (-1);
-	} else {
-		printf("test_01: SessionOpen \"sid=%d\"\n", session_id);
 	}
 
-	char c;
-	while (TRUE) {
-		printf ("!!!!type any key or 'q' to exit!!!!\n");
-		fscanf(stdin,"%c", &c);
-		if (c == 'q') {
-			err =  saHpiSessionClose(session_id);
-			if (err == SA_OK)
-				printf("test_01(%d): SessionClose\n", session_id);
-			return 0;
-		} else {
-			err =  saHpiDiscover(session_id);
-			if (err != SA_OK) {
-				printf("test_01(%d): Discover failed\n", session_id);
-				err = saHpiSessionClose(session_id);
-				if (err == SA_OK)
-					printf("test_01(%d): SessionClose\n", session_id);
-				return (-1);
-			} else {
-				printf("test_01(%d): Discover\n", session_id);
-			}
-		}
+	err =  saHpiDiscover(session_id);
+	if (err != SA_OK) {
+		printf("%s: saHpiDiscover failed\n", argv[0]);
+		return (-1);
 	}
 
+	err =  saHpiSessionClose(session_id);
+	if (err != SA_OK) {
+		printf("%s: saHpiSessionClose failed\n", argv[0]);
+		return (-1);
+	}
+
+	return 0;
 }
