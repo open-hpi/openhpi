@@ -40,15 +40,15 @@ typedef union {
 #define	STRUCT_TYPE	4	// structure
 #define	ARRAY_TYPE	5	// array
 #define	LOOKUP_TYPE	6	// call lookup function
-
-typedef char* (*lookup_proc_t)(int num, int val);
+#define	DECODE_TYPE	7	// call encode function
+#define	DECODE1_TYPE	8	// call encode1 function
+#define	READING_TYPE	9	// call reading print function
 
 typedef struct {
 	char		*name;		// attribute name
 	int		type;		// value type
 	int		lunum;		// lookup proc number
 	union_type_t	value;		// value
-	lookup_proc_t	proc;		// original value for recovery
 } attr_t;
 
 typedef struct {
