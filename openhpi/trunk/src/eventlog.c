@@ -44,3 +44,15 @@ SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id)
 void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time)
 {
 }
+
+void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
+{
+}
+
+void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
+{
+}
+
+void dsel_clr(SaHpiDomainIdT domain_id) 
+{
+}

@@ -402,6 +402,90 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 		SAHPI_INOUT SaHpiRdrT *Rdr,
 		SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
+        struct oh_session *s;
+
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		struct oh_domain *d;
+		struct oh_sel *sel;
+		struct oh_resource *res;
+		struct oh_rdr *rdr;
+		GSList *pi, *i, *ni;
+		
+		d = get_domain_by_id(s->domain_id);
+		if (!d) {
+			dbg("Internal error?!");
+		}
+
+		if (d->sel==NULL) {
+			return SA_ERR_HPI_INVALID;
+		} else if (EntryId==SAHPI_OLDEST_ENTRY) {
+			pi = NULL;
+			i  = g_slist_nth(d->sel, 0);
+			ni = g_slist_nth(d->sel, 1);
+		} else if (EntryId==SAHPI_NEWEST_ENTRY) {
+			int num;
+			num = g_slist_length(d->sel);
+			pi  = g_slist_nth(d->sel, num-2);
+			i   = g_slist_nth(d->sel, num-1);
+			ni  = NULL;
+		} else {
+			g_slist_for_each(pi, d->sel) {
+				i = g_slist_next(pi);
+				ni= g_slist_next(i);
+				if (i && ((struct oh_sel*)(i->data))->entry.EntryId == EntryId)
+					break;
+			}
+		}
+		
+		if (!i)
+			return SA_ERR_HPI_INVALID;
+		sel = (struct oh_sel*)(i->data);
+		memcpy( EventLogEntry, 
+			&sel->entry, 
+			sizeof(*EventLogEntry));
+		
+		res = get_res_by_oid(sel->res_id);
+		
+		if (RptEntry) {
+			if (res) 
+				memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+			else
+				RptEntry->ResourceCapabilities = 0;
+		}
+
+		if (Rdr) {
+			if (res) 
+				rdr = get_rdr_by_oid(res, sel->rdr_id);
+			else 
+				rdr = NULL;
+			if (rdr)
+				memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
+			else 
+				Rdr->RdrType = SAHPI_NO_RECORD;
+		}
+		
+		if (pi) 
+			*PrevEntryId = ((struct oh_sel*)(pi->data))->entry.EntryId;
+		else 
+			*PrevEntryId = SAHPI_NO_MORE_ENTRIES;
+
+		if (ni) 
+			*NextEntryId = ((struct oh_sel*)(ni->data))->entry.EntryId;
+		else
+			*NextEntryId = SAHPI_NO_MORE_ENTRIES;
+		
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -410,6 +494,22 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiSelEntryT *EvtEntry)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		dsel_add(s->domain_id, EvtEntry);
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -418,6 +518,22 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiSelEntryIdT EntryId)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		dsel_del(s->domain_id, EntryId);
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -425,6 +541,22 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId)
 {
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}	
+	
+	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+		dsel_clr(s->domain_id);
+		return SA_OK;
+	}
+
+	dbg("FIXME: system event log doesn't support");
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
