@@ -57,7 +57,7 @@ struct ohoi_handler {
 
 struct ohoi_resource_info {
 
-        SaHpiUint8T  rdr_count; 
+        SaHpiUint8T  sensor_count; 
 
         enum {
                 OHOI_RESOURCE_ENTITY = 0,
