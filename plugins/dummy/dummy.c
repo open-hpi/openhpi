@@ -1165,21 +1165,23 @@ dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
 
 static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
-	struct oh_handler_state *inst = hnd;
-
-	struct oh_event *e = NULL;
-	
-	SaHpiRptEntryT *rpt_entry = NULL;
-
-	static unsigned int count = 0;
-	static unsigned int toggle = 0;
-  
-	if (g_slist_length(inst->eventq)>0) {
-		memcpy(event, inst->eventq->data, sizeof(*event));
+        struct oh_handler_state *inst = hnd;
+        
+        struct oh_event *e = NULL;
+        
+        SaHpiRptEntryT *rpt_entry = NULL;
+        
+        static unsigned int count = 0;
+        static unsigned int toggle = 0;
+        
+        if (g_slist_length(inst->eventq)>0) {
+                dbg("List has an event, send it up");
+                memcpy(event, inst->eventq->data, sizeof(*event));
 		free(inst->eventq->data);
 		inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
 		return(1);
 	} else if (count == 0) {
+                dbg("List is empty, getting next resource");
 
 		count++;
 
@@ -1196,9 +1198,12 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 		return(1);
 
 	} else if (count == 1) {
+                dbg("Count is 1, not sure what that means");
 		count++;
 		return(-1);
-	}
+        } else {
+                dbg("We fell through");
+        }
 
 	toggle++;
 	if( (toggle%3) == 0 ) {

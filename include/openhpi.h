@@ -32,6 +32,7 @@
 #include <oh_error.h>
 #include <rpt_utils.h>
 #include <sel_utils.h>
+#include <oh_lock.h>
 
 /*
  * Common OpenHPI implementation specific definitions 
@@ -322,10 +323,6 @@ static __inline__
         gettimeofday(&now, NULL);
         *t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;   
 }
-
-void data_access_lock(void);
-void data_access_unlock(void);
-int data_access_block_times(void); 
 
 #define g_slist_for_each(pos, head) \
         for (pos = head; pos != NULL; pos = g_slist_next(pos))
