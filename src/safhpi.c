@@ -235,7 +235,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		break;
 	}
 	
-	if (no>=g_slist_length(global_rpt)) {
+	if (no < 0 || no>=g_slist_length(global_rpt)) {
 		dbg("Invalid EntryId");
 		return SA_ERR_HPI_INVALID;
 	}
