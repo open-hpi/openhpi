@@ -1088,6 +1088,10 @@ SaErrorT SAHPI_API saHpiEventAdd (
         e.hid = 0;
         e.type = OH_ET_HPI;
         e.u.hpi_event.event = *EvtEntry;
+	e.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
+	e.u.hpi_event.res.ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID; /* indicate there is not resource */
+	e.u.hpi_event.res.ResourceSeverity = SAHPI_INFORMATIONAL; /* indicate this is a user-added event */
+
 
         g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
         
