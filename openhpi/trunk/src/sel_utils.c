@@ -36,6 +36,7 @@ oh_sel *oh_sel_create(SaHpiUint32T size)
                 sel->enabled = TRUE;
                 sel->overflow = FALSE;
                 sel->deletesupported = FALSE;
+                sel->gentimestamp = TRUE;
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
                 sel->offset = 0;
                 sel->maxsize = size;
@@ -91,8 +92,12 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
         /* add the new entry */
         entry->EntryId = sel->nextId;
         sel->nextId++;
-        time(&tt1);
-        sel->lastUpdate = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
+        if (sel->gentimestamp) {
+                time(&tt1);
+                sel->lastUpdate = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
+        } else {
+                sel->lastUpdate = entry->Timestamp;
+        }
         entry->Timestamp = sel->lastUpdate;
         memcpy(myentry, entry, sizeof(SaHpiSelEntryT));
         sel->selentries = g_list_append(sel->selentries, myentry);
@@ -292,6 +297,18 @@ SaErrorT oh_sel_timeset(oh_sel *sel, SaHpiTimeT timestamp)
         }
 
         sel->offset = timestamp;
+        return SA_OK;
+}
+
+
+/* set the timestamp generate flag */
+SaErrorT oh_sel_setgentimestampflag(oh_sel *sel, SaHpiBoolT flag)
+{
+        if (sel == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        sel->gentimestamp = flag;
         return SA_OK;
 }
 
