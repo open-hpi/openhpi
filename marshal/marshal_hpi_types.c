@@ -15,17 +15,17 @@
  */
 
 #include "marshal_hpi_types.h"
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
 
 // text buffer
-static cMarshalType SaHpiTextBufferDataArray = dArray( SaHpiUint8Type, SAHPI_MAX_TEXT_BUFFER_LENGTH );
+static cMarshalType SaHpiTextBufferDataArray = dVarArray( SaHpiUint8Type, 2 );
 
 static cMarshalType SaHpiTextBufferElements[] =
 {
   dStructElement( SaHpiTextBufferT, DataType, SaHpiTextTypeType ),
-  dStructElement( SaHpiTextBufferT, Language, SaHpiLanguageType ),
   dStructElement( SaHpiTextBufferT, Language, SaHpiLanguageType ),
   dStructElement( SaHpiTextBufferT, DataLength, SaHpiUint8Type ),
   dStructElement( SaHpiTextBufferT, Data, SaHpiTextBufferDataArray ),
@@ -395,6 +395,7 @@ SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
   // placeholder for number of entries
   tUint32 *num = (tUint32 *)b;
   b += sizeof( tUint32 );
+  size += sizeof( tUint32 );
 
   SaHpiTextBufferT * const *tbp = &gd->Manufacturer;
   int i;
@@ -479,8 +480,9 @@ SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
   b    += s;
 
   tUint32 *len = (tUint32 *)b;
+  size += sizeof( tUint32 );
   b += sizeof( tUint32 );
-
+  
   tUint32 l;
 
   switch( r->RecordType )
@@ -520,7 +522,7 @@ SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
 	    break;
      }
 
-  Marshal( &Uint32Type, &l, &len );
+  Marshal( &Uint32Type, &l, len );
 
   size += l;
 
@@ -567,7 +569,7 @@ SaHpiInventInternalUseDataDemarshaller( int byte_order, SaHpiUint32T *len,
 					const unsigned char *b, tUint32 *data_size )
 {
   memcpy( iu->Data, b, *len );
-  *data_size = *len;
+  *data_size += *len;
 
   return *len;
 }
@@ -577,12 +579,10 @@ static int
 SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
  				    SaHpiInventGeneralDataT *gd,
 				    const unsigned char *b,
-				    unsigned char *data, tUint32 *data_size )
+				    tUint32 *data_size )
 {
   int size = 0;
   int s;
-
-  *data_size = 0;
 
   s = Demarshal( byte_order, &SaHpiTimeType, &gd->MfgDateTime, b );
   size += s;
@@ -593,6 +593,10 @@ SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
   s = Demarshal( byte_order, &Uint32Type, &num, b );
   size += s;
   b += s;
+
+  int offset = sizeof( SaHpiInventGeneralDataT ) + (num-8) * sizeof( SaHpiTextBufferT * );
+  *data_size += offset;
+  unsigned char *data = (unsigned char *)gd + offset;
 
   int i;
   tUint8 found;
@@ -617,6 +621,7 @@ SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
 
        *tbp = (SaHpiTextBufferT *)data;
 
+       data += sizeof( SaHpiTextBufferT );
        *data_size += sizeof( SaHpiTextBufferT );
      }
 
@@ -632,8 +637,9 @@ SaHpiInventChassisInfoDemarshaller( int byte_order, SaHpiUint32T *len,
   int size = Demarshal( byte_order, &SaHpiInventChassisTypeType, &iu->Type, b );
   b += size;
 
+  *data_size += sizeof( SaHpiInventChassisDataT ) - sizeof( SaHpiInventGeneralDataT );
+
   size += SaHpiInventGeneralDataDemarshaller( byte_order, len, &iu->GeneralData, b,
-					      (unsigned char *)&iu->GeneralData + sizeof( SaHpiInventGeneralDataT ),
 					      data_size );
 
   return size;
@@ -654,7 +660,7 @@ SaHpiInventOemDemarshaller( int byte_order, SaHpiUint32T *len,
 
   size += s;
 
-  *data_size = *len;
+  *data_size += *len - sizeof( SaHpiManufacturerIdT );
 
   return size;
 }
@@ -669,7 +675,8 @@ SaHpiInventDataRecordDemarshaller( int byte_order,
   int size = 0;
   int s;
 
-  s = Demarshal( byte_order, &SaHpiInventDataRecordTypeType, &r->RecordType, b );
+  s = Demarshal( byte_order, &SaHpiInventDataRecordTypeType,
+		 &r->RecordType, b );
   size += s;
   b    += s;
 
@@ -679,6 +686,8 @@ SaHpiInventDataRecordDemarshaller( int byte_order,
   b    += s;
 
   r->DataLength = record_len;
+
+  *data_size = sizeof( SaHpiInventDataRecordT ) - sizeof( SaHpiInventDataUnionT );
 
   switch( r->RecordType )
      {
@@ -697,15 +706,13 @@ SaHpiInventDataRecordDemarshaller( int byte_order,
        case SAHPI_INVENT_RECTYPE_BOARD_INFO:
 	    s = SaHpiInventGeneralDataDemarshaller( byte_order, &r->DataLength,
 						    &r->RecordData.BoardInfo,
-						    b, (unsigned char *)r + sizeof( SaHpiInventGeneralDataT ),
-						    data_size );
+						    b, data_size );
 	    break;
 
        case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
 	    s = SaHpiInventGeneralDataDemarshaller( byte_order, &r->DataLength,
 		 				    &r->RecordData.ProductInfo,
-						    b, (unsigned char *)r + sizeof( SaHpiInventGeneralDataT ),
-						    data_size );
+						    b, data_size );
 
 	    break;
 
@@ -721,9 +728,7 @@ SaHpiInventDataRecordDemarshaller( int byte_order,
 	    break;
      }
 
-  *data_size += sizeof( SaHpiInventDataRecordTypeT ) + sizeof( SaHpiUint32T );
-
-  size += record_len;
+  size += s;
 
   return size;
 }
@@ -751,7 +756,7 @@ SaHpiInventoryDataDemarshaller( int byte_order, const cMarshalType *type, void *
   data_ptr += ( num + 1 ) * sizeof( SaHpiInventDataRecordT * );
 
   tUint32 i;
-  for( i = 0; num; i++ )
+  for( i = 0; i < num; i++ )
      {
        tUint32 data_size;
 

@@ -98,6 +98,11 @@ main( int argc, char *argv[] )
   if ( s1 != s2 )
        return 1;
 
+  unsigned int s3 = MarshalSize( &Test1Type );
+  
+  if ( s1 != s3 )
+       return 1;
+
   if ( value.m_u81 != result.m_u81 )
        return 1;
 
