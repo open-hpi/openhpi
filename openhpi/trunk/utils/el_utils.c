@@ -283,7 +283,21 @@ SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info)
         info->CurrentTime = (SaHpiTimeT) (tt1 * 1000000000) + el->offset;
         info->Enabled = el->enabled;
         info->OverflowFlag = el->overflow;
+	info->OverflowResetable = SAHPI_TRUE;
         info->OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE;
+        return SA_OK;
+}
+
+
+/* reset EL overflowflag */
+SaErrorT oh_el_overflowreset(oh_el *el)
+{
+     
+
+        if (el == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
+		
+	el->overflow = SAHPI_FALSE;
         return SA_OK;
 }
 
