@@ -47,38 +47,6 @@ SaErrorT sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc)
 	return(rv);
 }
 
-SaErrorT show_sensor_status(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
-	SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc)
-{
-	SaErrorT		rv;
-	SaHpiEventStateT	assert;
-	SaHpiEventStateT	deassert;
-	SaHpiBoolT		status;
-	char			buf[SHOW_BUF_SZ];
-
-	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &status);
-	if (rv != SA_OK) {
-		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorEventEnableGet error = %s\n",
-			oh_lookup_error(rv));
-		proc(buf);
-		return -1; 
-	}
-
-	rv = saHpiSensorEventMasksGet(
-			sessionid, resourceid, sensornum, &assert, &deassert);
-	if (rv != SA_OK) {
-		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorEventMasksGet error %s\n",
-			oh_lookup_error(rv));
-		proc(buf);
-		return -1; 
-	}
-
-	snprintf(buf, SHOW_BUF_SZ, "Sensor Event Masks: \nSensor Event Status: %x\n"
-		"Assert Events: %x\nDeassert Events: %x\n", status, assert, deassert);
-	proc(buf);
-        return SA_OK;
-}
-
 int print_thres_value(SaHpiSensorReadingT *item, char *mes, hpi_ui_print_cb_t proc)
 {
 	char	*val;
@@ -170,7 +138,6 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		print_thres_value(&reading, "  Reading Value =", proc);
 	};
 
-	show_sensor_status(sessionid, resourceid, sensornum, proc);
 	show_threshold(sessionid, resourceid, sensornum, proc);
 
 	return SA_OK;
@@ -323,10 +290,18 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT p
 		switch (type) {
 			case SAHPI_SENSOR_RDR:
 				sensor = &(rdr.RdrTypeUnion.SensorRec);
-				snprintf(ar, 256, "%d", sensor->Num);
+				snprintf(ar, 256, "%3.3d Ctrl=", sensor->Num);
+				switch (sensor->EventCtrl) {
+					case SAHPI_SEC_PER_EVENT:
+						strcat(ar, "WR"); break;
+					case SAHPI_SEC_READ_ONLY_MASKS:
+						strcat(ar, "RM"); break;
+					default:
+						strcat(ar, "RO"); break;
+				};
 				break;
 			default:
-				snprintf(ar, 256, "%d", 0);
+				snprintf(ar, 256, "%3.3d", 0);
 		};
 		strcat(buf, ar);
 		len = rdr.IdString.DataLength;
