@@ -1212,11 +1212,11 @@ const char inv_setfhelp[] = "setfield: set inventoty field\n"
 const char inv_showhelp[] = "show: show inventoty\n"
 			"Usage: show";
 //  control command block
-const char ctrl_sthelp[] = "setstate: set control state\n"
-			"Usage: setstate";
+const char ctrl_setsthelp[] = "setstate: set control state\n"
+			"Usage: setstate <values>";
 const char ctrl_showhelp[] = "show: show control\n"
 			"Usage: show";
-const char ctrl_setsthelp[] = "state: show control state\n"
+const char ctrl_sthelp[] = "state: show control state\n"
 			"Usage: state";
 //  annunciator command block
 const char ann_acknowhelp[] = "acknow: set acknowledge flag\n"
