@@ -75,6 +75,7 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                               SaHpiRdrTypeT type, SaHpiUint8T num);
 SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev);
+SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num);
 
 /* Other state information about managed resources */
 guint32 oh_is_resource_managed(SaHpiResourceIdT rid);

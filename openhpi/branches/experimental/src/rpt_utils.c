@@ -69,16 +69,6 @@ static RDRecord *get_rdrecord_by_id(GSList *records, SaHpiEntryIdT id)
         return rdrecord;
 }
 
-static SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
-{
-        SaHpiUint32T uid;
-
-        uid = ((SaHpiUint32T)type) << 16;
-        uid = uid + (SaHpiUint32T)num;
-
-        return uid;
-}
-
 static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
 {
         SaHpiUint8T num = 0;
@@ -146,6 +136,17 @@ static void update_rptable(RPTable *table, guint modifier) {
         } else if (modifier == RPT_DECREMENT) {
                 table->rpt_info.UpdateCount = table->rpt_info.UpdateCount - 1;
         }
+}
+
+/* Public function. Helps derive the Record id from type and num. */
+SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
+{
+        SaHpiUint32T uid;
+
+        uid = ((SaHpiUint32T)type) << 16;
+        uid = uid + (SaHpiUint32T)num;
+
+        return uid;
 }
 
 /**
