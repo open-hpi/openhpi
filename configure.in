@@ -68,6 +68,12 @@ dnl Checks for other helper programs
 
 AC_PATH_PROGS(RPM, rpmbuild)
 
+dnl plugin replacement stuff
+
+PLUGINS=dummy
+PLUGIN_DIRS=src/plugins/dummy/Makefile
+AC_SUBST(PLUGINS)
+
 dnl 
 dnl This code was borrowed from linux-ha configure.in file
 dnl and is used for creating the proper substitutions
@@ -101,7 +107,6 @@ includedir=`var "$includedir" "$exec_prefix/include"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
 
-
 AC_C_STRINGIZE
 
 AC_ARG_ENABLE([fatal-warnings],
@@ -126,13 +131,17 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 
 CFLAGS="$CFLAGS $CC_WARNINGS"
 
-AC_OUTPUT(openhpi.spec 		         \
-	Makefile 	 	         \
-	src/Makefile		         \
-	src/plugins/Makefile             \
-	docs/Makefile		         \
-	docs/hld/Makefile	         \
-	examples/Makefile                \
-)
+AC_CONFIG_FILES([openhpi.spec
+        Makefile
+        src/Makefile
+        src/plugins/Makefile
+        src/plugins/dummy/Makefile
+        src/plugins/watchdog/Makefile
+        src/plugins/ipmi/Makefile
+        docs/Makefile
+        docs/hld/Makefile
+        examples/Makefile])
+
+AC_OUTPUT
 
 
