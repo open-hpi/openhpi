@@ -117,7 +117,6 @@ static GScannerConfig oh_scanner_config =
 /*******************************************************************************
  *  prototypes for functions internal to this file
  ******************************************************************************/
-GTokenType get_next_token_if (GScanner *, GTokenType);
 
 int process_plugin_token (GScanner *);
 
@@ -125,7 +124,6 @@ int process_handler_token (GScanner *);
 void free_hash_table (gpointer key, gpointer value, gpointer user_data);
 
 struct oh_plugin_config * new_plugin_config (char *);
-/*struct oh_handler_config * new_handler_config (char *, char *, char *);*/
 
 
 /**
@@ -155,62 +153,6 @@ struct oh_plugin_config *new_plugin_config (char *plugin)
 
         return pc;
 }
-
-/**
- * new_plugin_config:
- * @plugin: 
- * 
- * 
- * 
- * Return value: 
- **/
-/*struct oh_handler_config *new_handler_config (char *plugin, char *name, char *addr) 
-{
-        struct oh_handler_config *hc;
-        
-        hc = calloc(1,sizeof(*hc));
-        if(hc == NULL) {
-                dbg("Couldn't allocate memory for handler_config");
-                return hc;
-        }
-        
-        if(plugin != NULL) {
-                hc->plugin = g_strdup(plugin);
-        }
-        if(name != NULL) {
-                hc->name = g_strdup(name);
-        }
-        if(addr != NULL) {
-                hc->addr = g_strdup(addr);
-        }
-        
-        return hc;
-}*/
-
-/**
- * get_next_token_if:  returns the next token if it matches an expected type
- * @oh_scanner:  a scanner object
- * @expected:  the expected token type
- * 
- * 
- * 
- * Return value: expected on success, G_TOKEN_ERROR on fail
- **/
-
-/*GTokenType get_next_token_if (GScanner* oh_scanner, GTokenType expected)
-{ 
-        GTokenType my_token;
-        
-        my_token = g_scanner_peek_next_token (oh_scanner);
-        if(my_token == expected) {
-                my_token = g_scanner_get_next_token (oh_scanner);
-                if(my_token == expected) {
-                        return my_token;
-                }
-        }
-        
-        return G_TOKEN_ERROR;
-}*/
 
 /**
  * process_plugin_token:
