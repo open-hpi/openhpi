@@ -107,8 +107,8 @@ typedef enum {
 #define RSA_MAX_FAN    8
 #define RSA_MAX_DASD   4
 
-/* Maximum entries in BladeCenter and RSA eventlog, proximate */
-#define BC_EL_MAX_SIZE 512
+/* Maximum entries in BladeCenter and RSA eventlog, approximate */
+#define BC_EL_MAX_SIZE 768 /* 512 */
 
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
@@ -121,6 +121,9 @@ typedef enum {
 #define SNMP_BC_SWITCH_VECTOR       ".1.3.6.1.4.1.2.3.51.2.2.5.2.113.0"
 #define SNMP_BC_DST                 ".1.3.6.1.4.1.2.3.51.2.4.4.2.0"
 #define SNMP_BC_DST_RSA             ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
+#define SNMP_BC_CPU_OID_RSA         ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.x"
+#define SNMP_BC_DASD_OID_RSA        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.x"
+#define SNMP_BC_FAN_OID_RSA         ".1.3.6.1.4.1.2.3.51.1.2.3.x.0"
 
 /* OID definitions for System Event Log */
 #define SNMP_BC_DATETIME_OID      ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
@@ -270,8 +273,8 @@ extern struct snmp_bc_sensor snmp_bc_power_sensors[];
 extern struct snmp_bc_sensor snmp_bc_switch_sensors[];
 
 extern struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[];
-extern struct snmp_bc_sensor snmp_bc_cpu_thermal_sensors_rsa[];
-extern struct snmp_bc_sensor snmp_bc_dasd_thermal_sensors_rsa[];
+extern struct snmp_bc_sensor snmp_bc_cpu_sensors_rsa[];
+extern struct snmp_bc_sensor snmp_bc_dasd_sensors_rsa[];
 extern struct snmp_bc_sensor snmp_bc_fan_sensors_rsa[];
 
 /*********************
@@ -306,6 +309,11 @@ extern struct snmp_bc_control snmp_bc_mediatray_controls[];
 extern struct snmp_bc_control snmp_bc_fan_controls[];
 extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
+
+extern struct snmp_bc_control snmp_bc_chassis_controls_rsa[];
+extern struct snmp_bc_control snmp_bc_cpu_controls_rsa[];
+extern struct snmp_bc_control snmp_bc_dasd_controls_rsa[];
+extern struct snmp_bc_control snmp_bc_fan_controls_rsa[];
 
 /***********************
  * Inventory Definitions
@@ -350,5 +358,8 @@ extern struct snmp_bc_inventory snmp_bc_mediatray_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
 
 extern struct snmp_bc_inventory snmp_bc_chassis_inventories_rsa[];
+extern struct snmp_bc_inventory snmp_bc_cpu_inventories_rsa[];
+extern struct snmp_bc_inventory snmp_bc_dasd_inventories_rsa[];
+extern struct snmp_bc_inventory snmp_bc_fan_inventories_rsa[];
 
 #endif

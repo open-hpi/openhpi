@@ -88,20 +88,13 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	/* Find resource's events, sensors, controls, etc. */
 	snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
 	snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_rsa, e);
- 	/* snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_rsa, e); */
+ 	snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_rsa, e);
 	snmp_bc_discover_inventories(handle, snmp_bc_chassis_inventories_rsa, e);
 
         /***************
 	 * Discover CPUs
          ***************/
         for (i=0; i<RSA_MAX_CPU; i++) {
-		/* See if CPU exists */
-		if (!rdr_exists(custom_handle,
-				0,
-				snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.oid,
-				snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.not_avail_indicator_num,
-				snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.write_only)) continue;
-
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
 			dbg("Out of memory.");
@@ -115,6 +108,14 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
 		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 				   SAHPI_ENT_PROCESSOR, i + SNMP_BC_HPI_LOCATION_BASE);
+
+		/* See if CPU exists */
+		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity),
+				SNMP_BC_CPU_OID_RSA, 0, 0 )) {
+			g_free(e);
+			continue;
+		}
+
 		e->u.res_event.entry.ResourceId = 
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
@@ -144,22 +145,15 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		
 		/* Find resource's events, sensors, controls, etc. */
 		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-		snmp_bc_discover_sensors(handle, snmp_bc_cpu_thermal_sensors_rsa, e);
-		/* snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_rsa, e); */
-		/* snmp_bc_discover_inventories(handle, snmp_bc_chassis_inventories_rsa, e); */
+		snmp_bc_discover_sensors(handle, snmp_bc_cpu_sensors_rsa, e);
+		snmp_bc_discover_controls(handle, snmp_bc_cpu_controls_rsa, e);
+		snmp_bc_discover_inventories(handle, snmp_bc_cpu_inventories_rsa, e);
 	}
 
         /****************
 	 * Discover DASDs
          ****************/
         for (i=0; i<RSA_MAX_DASD; i++) {
-		/* See if DASD exists */
-		if (!rdr_exists(custom_handle,
-				0,
-				snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.oid,
-				snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.not_avail_indicator_num,
-				snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.write_only)) continue;
-
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
 			dbg("Out of memory.");
@@ -173,6 +167,14 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
 		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 				   SAHPI_ENT_DISK_BAY, i + SNMP_BC_HPI_LOCATION_BASE);
+
+		/* See if DASD exists */
+		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity),
+				SNMP_BC_DASD_OID_RSA, 0, 0 )) {
+			g_free(e);
+			continue;
+		}
+
 		e->u.res_event.entry.ResourceId = 
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
@@ -202,22 +204,15 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		
 		/* Find resource's events, sensors, controls, etc. */
 		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
-		snmp_bc_discover_sensors(handle, snmp_bc_dasd_thermal_sensors_rsa, e);
-		/* snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_rsa, e); */
-		/* snmp_bc_discover_inventories(handle, snmp_bc_chassis_inventories_rsa, e); */
+		snmp_bc_discover_sensors(handle, snmp_bc_dasd_sensors_rsa, e);
+		snmp_bc_discover_controls(handle, snmp_bc_dasd_controls_rsa, e);
+		snmp_bc_discover_inventories(handle, snmp_bc_dasd_inventories_rsa, e);
 	}
 
         /***************
 	 * Discover Fans
          ***************/
         for (i=0; i<RSA_MAX_FAN; i++) {
-		/* See if fan exists */
-		if (!rdr_exists(custom_handle,
-				0,
-				snmp_bc_fan_sensors_rsa[i].sensor_info.mib.oid,
-				snmp_bc_fan_sensors_rsa[i].sensor_info.mib.not_avail_indicator_num,
-				snmp_bc_fan_sensors_rsa[i].sensor_info.mib.write_only)) continue;
-
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
 			dbg("Out of memory.");
@@ -231,6 +226,14 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
 		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
 				   SAHPI_ENT_FAN, i + SNMP_BC_HPI_LOCATION_BASE);
+
+		/* See if fan exists */
+		if (!rdr_exists(custom_handle, &(e->u.res_event.entry.ResourceEntity),
+				SNMP_BC_FAN_OID_RSA, 0, 0 )) {
+			g_free(e);
+			continue;
+		}
+
 		e->u.res_event.entry.ResourceId = 
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
@@ -261,8 +264,8 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		/* Find resource's events, sensors, controls, etc. */
 		snmp_bc_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
 		snmp_bc_discover_sensors(handle, snmp_bc_fan_sensors_rsa, e);
-		/* snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_rsa, e); */
-		/* snmp_bc_discover_inventories(handle, snmp_bc_chassis_inventories_rsa, e); */
+		snmp_bc_discover_controls(handle, snmp_bc_fan_controls_rsa, e);
+		snmp_bc_discover_inventories(handle, snmp_bc_fan_inventories_rsa, e);
 	}
 
   return(SA_OK);

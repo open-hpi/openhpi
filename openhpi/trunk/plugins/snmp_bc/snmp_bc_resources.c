@@ -1714,31 +1714,15 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
-					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                },
-                                {
-                                        .event = "FF21DC81", /* EN_CUTOFF_HI_TEMP_CPU1 */
-					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                },
-                                {
-                                        .event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
-					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_FALSE,
-					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
                                         .event = "0421C401", /* EN_PROC_HOT_CPU1 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
 					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
@@ -1752,6 +1736,14 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 					.event_res_failure_unexpected = SAHPI_TRUE,
                                         .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
                         },
@@ -1818,17 +1810,24 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
-                                {
-                                        .event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
- 					.event_assertion = SAHPI_TRUE,
+				{
+                                        .event = "0421C402", /* EN_PROC_HOT_CPU2 */
+					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
-					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
-                                        .event = "FF21DC82", /* EN_CUTOFF_HI_TEMP_CPU2 */
+                                        .event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421D082", /* EN_THERM_TRIP_CPU2 */
 					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
@@ -1838,30 +1837,12 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 {
                                         .event = "0421D502", /* EN_PFA_HI_OVER_TEMP_CPU2 */
 					.event_assertion = SAHPI_TRUE,
-  					.event_res_failure = SAHPI_FALSE,
+ 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
-                                {
-                                        .event = "0421C402", /* EN_PROC_HOT_CPU2 */
- 					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                },
-                                {
-                                        .event = "0421D082", /* EN_THERM_TRIP_CPU2 */
- 					.event_assertion = SAHPI_TRUE,
- 					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                      SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                },
-                                {},
+				{},
                         },
   			.reading2event = {},
                 },
@@ -1927,15 +1908,23 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
- 					.event_assertion = SAHPI_TRUE,
+                                        .event = "0421C403", /* EN_PROC_HOT_CPU3 */
+					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
-					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
-                                        .event = "FF21DC83", /* EN_CUTOFF_HI_TEMP_CPU3 */
+                                        .event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421D083", /* EN_THERM_TRIP_CPU3 */
 					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
@@ -1944,27 +1933,11 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {
                                         .event = "0421D503", /* EN_PFA_HI_OVER_TEMP_CPU3 */
- 					.event_assertion = SAHPI_TRUE,
+					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
-                                        .event_state = SAHPI_ES_UPPER_MAJOR  | SAHPI_ES_UPPER_MINOR,
-					.recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "0421C403", /* EN_PROC_HOT_CPU3 */
- 					.event_assertion = SAHPI_TRUE,
-  					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                },
-                                {
-                                        .event = "0421D083", /* EN_THERM_TRIP_CPU3 */
- 					.event_assertion = SAHPI_TRUE,
-  					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
                         },
@@ -2032,15 +2005,23 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
 			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
-                                        .event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
- 					.event_assertion = SAHPI_TRUE,
-   					.event_res_failure = SAHPI_TRUE,
+                                        .event = "0421C404", /* EN_PROC_HOT_CPU4 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
-					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
-                                        .event = "FF21DC84", /* EN_CUTOFF_HI_TEMP_CPU4 */
+                                        .event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421D084", /* EN_THERM_TRIP_CPU4 */
 					.event_assertion = SAHPI_TRUE,
  					.event_res_failure = SAHPI_TRUE,
 					.event_res_failure_unexpected = SAHPI_TRUE,
@@ -2049,27 +2030,11 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {
                                         .event = "0421D504", /* EN_PFA_HI_OVER_TEMP_CPU4 */
- 					.event_assertion = SAHPI_TRUE,
-  					.event_res_failure = SAHPI_FALSE,
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
 					.event_res_failure_unexpected = SAHPI_FALSE,
                                         .event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
-                                },
-                                {
-                                        .event = "0421C404", /* EN_PROC_HOT_CPU4 */
- 					.event_assertion = SAHPI_TRUE,
-  					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                },
-                                {
-                                        .event = "0421D084", /* EN_THERM_TRIP_CPU4 */
- 					.event_assertion = SAHPI_TRUE,
-  					.event_res_failure = SAHPI_TRUE,
-					.event_res_failure_unexpected = SAHPI_TRUE,
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
-                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {},
                         },
