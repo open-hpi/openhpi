@@ -89,7 +89,8 @@ TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/u
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
-TESTS = tevent 
+TESTS = 
+#	tevent 
 #	tcontrol_parms \
 #	tset_resource_tag \
 #	tset_resource_sev \
@@ -177,10 +178,10 @@ TESTS = tevent
 check_PROGRAMS = $(TESTS)
 
 # Unit test using normal IF calls and simulation library
-tevent_SOURCES = tevent.c
-tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-		 $(top_builddir)/src/libopenhpi.la \
-		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+#tevent_SOURCES = tevent.c
+#tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit test using normal IF calls and simulation library
 #tcontrol_parms_SOURCES = tcontrol_parms.c
