@@ -2617,6 +2617,87 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 
 }
 
+SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
+				   oid **oid_ptr, 
+				   oid *indices, 
+				   const SaHpiSensorReadingT *writing)
+{
+	SaErrorT status = SA_OK;
+	struct snmp_value get_value,
+			  set_value;
+	int is_writable = SAHPI_FALSE;
+        
+	oid anOID[MAX_OID_LEN];
+
+	/* THOLD_WRITEABLE */
+	build_res_oid(anOID, 
+		      oid_ptr[THOLD_WRITEABLE], 
+		      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+		      indices, 
+		      NUM_SEN_INDICES);	
+	status  = snmp_get2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &get_value);
+
+	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
+		is_writable = (get_value.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
+	else
+		printf("get_sensor_threshold_data: error getting THOLD_IS_READABLE \n");
+
+	/* if the threshold MIB OIDS are not writable return */
+	if (is_writable == SAHPI_FALSE) {
+		printf("RAW and INTERPRETED MIB vars not writable\n");
+		return status;
+	}
+
+	/* RAW_READING */
+	if ( (writing->ValuesPresent & SAHPI_SRF_RAW) && 
+	     (status == SA_OK)) {
+
+		memset(&set_value, 0, sizeof(set_value));
+		set_value.integer = (SaHpiUint32T)writing->Raw;
+		set_value.type = ASN_UNSIGNED;
+		
+		build_res_oid(anOID, 
+			      oid_ptr[THOLD_RAW], 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+
+		status  = snmp_set2(custom_handle->ss,
+				    anOID, 
+				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				    &set_value);
+	} 
+
+	/* INTERPRETED_READING */
+	if( (writing->ValuesPresent & SAHPI_SRF_INTERPRETED) && 
+	    (status == SA_OK) ) {
+
+		memset(&set_value, 0, sizeof(set_value));
+		memcpy(&set_value.string, 
+		       &writing->Interpreted.Value, 
+		       SAHPI_SENSOR_BUFFER_LENGTH);
+		set_value.str_len = SAHPI_SENSOR_BUFFER_LENGTH;
+		set_value.type = ASN_OCTET_STR;
+
+		build_res_oid(anOID, 
+			      oid_ptr[THOLD_INTREPRETED], 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status  = snmp_set2(custom_handle->ss,
+				   anOID, 
+				   SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				   &set_value);
+	} 
+
+	return(status);
+
+}
+
 
 
 

@@ -93,5 +93,10 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 				   oid *indices, 
 				   SaHpiSensorReadingT *reading);
 
+SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
+				   oid **oid_ptr, 
+				   oid *indices, 
+				   const SaHpiSensorReadingT *writing);
+
 
 	     
