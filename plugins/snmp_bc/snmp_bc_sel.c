@@ -487,6 +487,9 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	err = snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);
 	if (err != SA_OK) return(err);
 		
+	if (strncmp(get_value.string, EVT_EN_LOG_FULL, sizeof(EVT_EN_LOG_FULL) == 0))
+		 handle->elcache->overflow = SAHPI_TRUE;
+		 
 	isdst = sel_entry.time.tm_isdst;
 	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst);
 		
