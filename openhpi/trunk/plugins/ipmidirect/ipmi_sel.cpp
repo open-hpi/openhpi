@@ -789,36 +789,38 @@ IpmiSelHandleSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs )
 void
 cIpmiSel::Dump( cIpmiLog &dump, const char *name )
 {
-  // dump events
-  int i = 0;
-
-  for( GList *list = m_sel; list; list = g_list_next( list ) )
+  if ( dump.IsRecursive() )
      {
-       cIpmiEvent *e = (cIpmiEvent *)list->data;
+       // dump events
+       int i = 0;
 
-       char str[80];
-       sprintf( str, "Event%02x_%d", m_mc->GetAddress(), i++ );
-       e->Dump( dump, str );
+       for( GList *list = m_sel; list; list = g_list_next( list ) )
+	  {
+	    cIpmiEvent *e = (cIpmiEvent *)list->data;
+
+	    char str[80];
+	    sprintf( str, "Event%02x_%d", m_mc->GetAddress(), i++ );
+	    e->Dump( dump, str );
+	  }
+
+       assert( i == (int)m_sel_num );
      }
 
-  assert( i == (int)m_sel_num );
-
-  dump << "Sel \"" << name << "\"\n";
-  dump << "{\n";
-  dump << "\tVersion                    = " << m_major_version << ", " << m_minor_version << ";\n";
-  dump << "\tOverflow                   = " << m_overflow << ";\n";
-  dump << "\tSupportsDeleteSel          = " << m_supports_delete_sel << ";\n";
-  dump << "\tSupportsPartialAddSel      = " << m_supports_partial_add_sel << ";\n";
-  dump << "\tSupportsReserveSel         = " << m_supports_reserve_sel << ";\n";
-  dump << "\tSupportsGetSelAllocation   = " << m_supports_get_sel_allocation << ";\n";
+  dump.Begin( "Sel", name );
+  dump.Entry( "Version" ) << (int)m_major_version << ", " << (int)m_minor_version << ";\n";
+  dump.Entry( "Overflow" ) << m_overflow << ";\n";
+  dump.Entry( "SupportsDeleteSel" ) << m_supports_delete_sel << ";\n";
+  dump.Entry( "SupportsPartialAddSel" ) << m_supports_partial_add_sel << ";\n";
+  dump.Entry( "SupportsReserveSel" ) << m_supports_reserve_sel << ";\n";
+  dump.Entry( "SupportsGetSelAllocation" ) << m_supports_get_sel_allocation << ";\n";
 
   // dump events
-  if ( m_sel )
+  if ( dump.IsRecursive() && m_sel )
      {
-       i = 0;
+       int i = 0;
 
-       dump << "\tEvent                      = ";
-       
+       dump.Entry( "Event" );
+
        for( GList *list = m_sel; list; list = g_list_next( list ) )
           {
             if ( i != 0 )
@@ -832,5 +834,5 @@ cIpmiSel::Dump( cIpmiLog &dump, const char *name )
        dump << ";\n";
      }
 
-  dump << "}\n\n\n";
+  dump.End();
 }

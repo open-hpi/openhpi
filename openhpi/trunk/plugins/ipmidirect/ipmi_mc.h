@@ -62,7 +62,7 @@
 class cIpmiDomain;
 
 
-class cIpmiMc
+class cIpmiMc : public cIpmiRdrContainer
 {
 protected:
   cIpmiMcVendor *m_vendor;

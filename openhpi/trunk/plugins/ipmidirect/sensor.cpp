@@ -27,9 +27,12 @@ cIpmi::IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor )
   sensor->Log();
   stdlog << "\n";
 
+  char str[512];
+  sensor->IdString().GetAscii( str, 512 );
+
   dbg( "adding sensor %d.%d (%s) %02x: %s",
        ent->EntityId(), ent->EntityInstance(),
-       ent->EntityIdString(), sensor->Num(), sensor->Id() );
+       ent->EntityIdString(), sensor->Num(), str );
 
   // find resource
   SaHpiRptEntryT *resource = ent->Domain()->FindResource( ent->m_resource_id );
@@ -41,9 +44,7 @@ cIpmi::IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor )
      }
 
   // create event
-  struct oh_event *e;
-
-  e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
+  struct oh_event *e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
   if ( !e )
      {
@@ -80,7 +81,7 @@ cIpmi::IfSensorRem( cIpmiEntity *ent, cIpmiSensor *sensor )
 {
   stdlog << "removing sensor " << ent->EntityId() << "." 
          << ent->EntityInstance() << " (" << ent->EntityIdString()
-         << "): " << sensor->Id() << "\n";
+         << "): " << sensor->IdString() << "\n";
 
   // find resource
   SaHpiRptEntryT *resource = ent->Domain()->FindResource( ent->m_resource_id );

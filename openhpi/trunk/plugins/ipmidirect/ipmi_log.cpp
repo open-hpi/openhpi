@@ -359,3 +359,43 @@ cIpmiLog::Hex( const unsigned char *data, int size )
   if ( s != str )
        Log( "%s\n", str );
 }
+
+
+void
+cIpmiLog::Begin( const char *section, const char *name )
+{
+  if ( IsRecursive() )
+       *this << section << " \"" << name << "\"\n{\n";
+}
+
+
+void
+cIpmiLog::End()
+{
+  if ( IsRecursive() )
+       *this << "}\n\n\n";
+}
+
+
+cIpmiLog &
+cIpmiLog::Entry( const char *entry )
+{
+  char str[256];
+  strcpy( str, entry );
+
+  int l = 30 - strlen( entry );
+
+  if ( l > 0 )
+     {
+       char *p = str + strlen( entry );
+  
+       while( l-- > 0 )
+	    *p++ = ' ';
+
+       *p = 0;
+     }
+
+  *this << "        " << str << " = ";
+
+  return *this;
+}

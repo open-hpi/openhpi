@@ -71,9 +71,6 @@ public:
   unsigned char  m_length;
   unsigned char  m_data[dMaxSdrData];
 
-  void Log();
-  bool Name( char *name, int size );
-
   void Dump( cIpmiLog &dump, const char *name );
 
 protected:

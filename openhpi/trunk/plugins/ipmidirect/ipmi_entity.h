@@ -32,6 +32,10 @@ __BEGIN_DECLS
 __END_DECLS
 
 
+#ifndef dIpmiRdr_h
+#include "ipmi_rdr.h"
+#endif
+
 #ifndef dIpmiEvent_h
 #include "ipmi_event.h"
 #endif
@@ -154,7 +158,7 @@ public:
 class cIpmiSensorHotswap;
 
 
-class cIpmiEntity
+class cIpmiEntity : public cIpmiRdrContainer
 {
 protected:
   cIpmiDomain *m_domain;
@@ -196,7 +200,7 @@ protected:
   bool m_sensor_device;
 
   // For generic device only.
-  unsigned char m_address_span;
+  unsigned char  m_address_span;
 
   tIpmiDeviceNum m_device_num;
   tIpmiEntityId  m_entity_id;
@@ -220,7 +224,7 @@ protected:
   GList *m_sensors;
 
   cIpmiSensorHotswap *m_hotswap_sensor;
-  
+
 public:
   cIpmiSensor *VerifySensor( cIpmiSensor *s );
   void AddSensor( cIpmiSensor *sensor );
@@ -228,32 +232,22 @@ public:
 
   // return hotswap sensor if there is one
   cIpmiSensorHotswap *GetHotswapSensor() { return m_hotswap_sensor; }
+ 
+  // add cIpmiRdr and create an Hpi Rdr.
+  virtual bool Add( cIpmiRdr *rdr );
+
+  // remove cIpmiRdr
+  virtual bool Rem( cIpmiRdr *rdr );
 
 protected:
   unsigned int m_current_control_id;
 
-  // list of controls in this entity
-  GList *m_controls;
-
 public:
-  cIpmiControl *VerifyControl( cIpmiControl *c );
-  void          AddControl( cIpmiControl *control );
-  void          RemoveControl( cIpmiControl *control );
-
   // get a unique control num for this entity
   unsigned int GetControlNum()
   {
     return ++m_current_control_id;
   }
-
-protected:
-  // list of fru inventory
-  GList *m_frus;
-
-public:
-  cIpmiFru *VerifyFru( cIpmiFru *f );
-  cIpmiFru *FindFru( unsigned int fru_id );
-  void AddFru( cIpmiFru *fru );
 
 protected:
   // SEL

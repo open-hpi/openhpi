@@ -146,12 +146,9 @@ enum tIpmiValuePresent
 #define dSensorIdLen 32
 
 
-class cIpmiSensor
+class cIpmiSensor : public cIpmiRdr
 {
 protected:
-  cIpmiMc     *m_mc; // My owner, NOT the SMI mc (unless that
-                     // happens to be my direct owner).
-
   cIpmiMc     *m_source_mc; // If the sensor came from the main SDR,
                             // this will be NULL.  Otherwise, it
                             // will be the MC that owned the device
@@ -193,8 +190,6 @@ protected:
 
   unsigned char m_oem;
 
-  char m_id[dSensorIdLen+1]; // The ID from the device SDR.
-
   const char *m_sensor_type_string;
   const char *m_event_reading_type_string;
   const char *m_rate_unit_string;
@@ -207,12 +202,9 @@ public:
   cIpmiSensor( cIpmiMc *mc );
   virtual ~cIpmiSensor();
 
-  cIpmiMc *Mc() const { return m_mc; }
-
   unsigned char Lun() const { return m_lun; }
 
-  unsigned char Num() const { return m_num; }
-  const char *  Id() const { return m_id; }
+  virtual unsigned int Num() const { return m_num; }
 
   int &SourceIdx() { return m_source_idx; }
   cIpmiSensor **SourceArray() const { return m_source_array; }
@@ -242,7 +234,6 @@ public:
 
   unsigned char GetOem() { return m_oem; }
 
-  void GetId( char *id, int length );
   cIpmiEntity *GetEntity();
 
   // create an HPI event from ipmi event

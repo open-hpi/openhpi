@@ -33,7 +33,7 @@
 #include "ipmi_sensor.h"
 #include "ipmi_entity.h"
 #include "ipmi_utils.h"
-#include "ipmi_type_code.h"
+#include "ipmi_text_buffer.h"
 
 
 static const char *sensor_types[] =
@@ -191,10 +191,10 @@ cIpmiSensorInfo::FindSensor( unsigned int lun, unsigned int sensor_num )
 
 
 cIpmiSensor::cIpmiSensor( cIpmiMc *mc )
-  : m_mc( mc ), m_source_mc( 0 ),
+  : cIpmiRdr( mc, SAHPI_SENSOR_RDR ), m_source_mc( 0 ),
     m_source_idx( 0 ), m_source_array( 0 ),
     m_event_state( 0 ), m_destroyed( false ),
-    m_use_count( 0 ),  
+    m_use_count( 0 ),
     m_owner( 0 ), m_channel( 0 ),
     m_lun( 0 ), m_num( 0 ),
     m_entity_id( eIpmiEntityInvalid ), m_entity_instance( 0 ),
@@ -216,7 +216,6 @@ cIpmiSensor::cIpmiSensor( cIpmiMc *mc )
     m_base_unit_string( 0 ),
     m_modifier_unit_string( 0 )
 {
-  m_id[0] = 0;
 }
 
 
@@ -263,8 +262,7 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 
   m_oem                     = sdr->m_data[46];
 
-  IpmiGetDeviceString( sdr->m_data+47, sdr->m_length-47, m_id,
-                       dSensorIdLen );
+  IdString().SetIpmi( sdr->m_data+47 );
 
   return true;  
 }
@@ -322,7 +320,7 @@ cIpmiSensor::Cmp( const cIpmiSensor &s2 ) const
   if ( m_oem != s2.m_oem )
        return false;
 
-  if ( strcmp( m_id, s2.m_id ) != 0 )
+  if ( IdString() != s2.IdString() )
        return false;
 
   return true;
@@ -370,14 +368,6 @@ cIpmiSensor::Destroy()
 }
 
 
-void
-cIpmiSensor::GetId( char *id, int length )
-{
-  strncpy( id, m_id, length );
-  id[length] = '\0';
-}
-
-
 cIpmiEntity *
 cIpmiSensor::GetEntity()
 {
@@ -416,6 +406,9 @@ cIpmiSensor::Log()
 bool
 cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 {
+  if ( cIpmiRdr::CreateRdr( resource, rdr ) == false )
+       return false;
+
   if (    !(resource.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
        || !(resource.ResourceCapabilities & SAHPI_CAPABILITY_SENSOR ) )
      {
@@ -437,9 +430,6 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
        m_mc->Domain()->AddHpiEvent( e );       
      }
 
-  rdr.RdrType  = SAHPI_SENSOR_RDR;
-  rdr.Entity   = resource.ResourceEntity;
-
   // sensor record
   SaHpiSensorRecT &rec = rdr.RdrTypeUnion.SensorRec;
 
@@ -449,16 +439,6 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   rec.EventCtrl = (SaHpiSensorEventCtrlT)EventSupport();
   rec.Ignore    = (SaHpiBoolT)IgnoreIfNoEntity();
   rec.Oem       = GetOem();
-
-  // id string
-  char	name[32];
-  memset( name,'\0',32 );
-  GetId( name, 31 );
-  rdr.IdString.DataType = SAHPI_TL_TYPE_ASCII6;
-  rdr.IdString.Language = SAHPI_LANG_ENGLISH;
-  rdr.IdString.DataLength = strlen( name );
-
-  memcpy( rdr.IdString.Data,name, strlen( name ) + 1 );
 
   return true;
 }

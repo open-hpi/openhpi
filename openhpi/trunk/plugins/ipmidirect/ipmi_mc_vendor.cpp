@@ -433,7 +433,7 @@ cIpmiMcVendor::CreateSensors( cIpmiMc *mc, cIpmiSdrs *sdrs )
 
        // There's not enough room in the sensor repository for the new
        // item, so expand the array.
-       if ( nsensor->Num() >= sensors->m_idx_size[nsensor->Lun()] )
+       if ( nsensor->Num() >= (unsigned int)sensors->m_idx_size[nsensor->Lun()] )
           {
             unsigned int  new_size = nsensor->Num() + 10;
             cIpmiSensor **new_by_idx = new cIpmiSensor *[new_size];
@@ -472,7 +472,7 @@ cIpmiMcVendor::CreateSensors( cIpmiMc *mc, cIpmiSdrs *sdrs )
        cIpmiSensorInfo *sensors = nsensor->Mc()->Sensors();
 
        if (    sensors->m_sensors_by_idx[nsensor->Lun()]
-            && (nsensor->Num() < sensors->m_idx_size[nsensor->Lun()])
+            && (nsensor->Num() < (unsigned int)sensors->m_idx_size[nsensor->Lun()])
             && sensors->m_sensors_by_idx[nsensor->Lun()][nsensor->Num()])
           {
             // It's already there.
@@ -554,7 +554,7 @@ cIpmiMcVendor::CreateControls( cIpmiMc *mc, cIpmiSdrs *sdrs )
        unsigned int mc_type = mc->Domain()->GetMcType( mc->GetAddress() );
        return CreateControlsAtca( mc, sdrs, mc_type );
      }
-            
+
   return true;
 }
 
@@ -622,7 +622,7 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
   cIpmiMsg rsp;
 
   int rv = mc->SendCommand( msg, rsp );
-  
+
   if (    rv 
        || rsp.m_data_len < 6
        || rsp.m_data[0] != eIpmiCcOk
@@ -637,11 +637,112 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
   unsigned int def      = rsp.m_data[4];
   bool         auto_adj = rsp.m_data[5] & 0x80;
 
-  cIpmiControlFan *f = new cIpmiControlFan( mc, ent, ent->GetControlNum(),
-                                            "ATCA-Fan", min, max, def,
+  cIpmiControlFan *f = new cIpmiControlFan( mc, ent->GetControlNum(),
+                                            min, max, def,
                                             auto_adj );
 
-  ent->AddControl( f );
+  f->IdString().SetAscii( "ATCA-Fan", SAHPI_TL_TYPE_LANGUAGE, SAHPI_LANG_ENGLISH );
+
+  ent->Add( f );
+
+  return true;
+}
+
+
+bool
+cIpmiMcVendor::CreateFrus( cIpmiMc *mc, cIpmiSdrs *sdrs )
+{
+  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
+     {
+       cIpmiSdr *sdr = sdrs->Sdr( i );
+
+       if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
+          {
+            // fru inventory device ?
+            if ( sdr->m_data[2] == 0x01 )
+               {
+                 // old IPMI 1.0 mcdlr
+                 if ( (sdr->m_data[7] & 8) == 0 )
+                      continue;
+
+                 stdlog << "found old IPMI 1.0 MC device locator record.\n";
+               }
+            else
+               {
+                 if ( (sdr->m_data[8] & 8) == 0 )
+                      continue;
+               }
+          }
+       else if ( sdr->m_type != eSdrTypeFruDeviceLocatorRecord )
+            continue;
+
+       if ( CreateFru( mc, sdr ) == false )
+            return false;
+     }
+
+  return true;
+}
+
+
+bool
+cIpmiMcVendor::CreateFru( cIpmiMc *mc, cIpmiSdr *sdr )
+{
+  unsigned int fru_id;
+  unsigned int addr;
+  unsigned int channel;
+  unsigned int lun;
+
+  tIpmiEntityId id       = (tIpmiEntityId)sdr->m_data[12];
+  unsigned int  instance = sdr->m_data[13];
+
+  if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
+     {
+       fru_id   = 0;
+       addr     = sdr->m_data[5];
+       channel  = sdr->m_data[6] & 0xf;
+       lun      = 0;
+     }
+  else
+     {
+       fru_id   = sdr->m_data[6];
+       addr     = sdr->m_data[5];
+       channel  = (sdr->m_data[8] >> 4) & 0xf;
+       lun      = (sdr->m_data[7] >> 3) & 3;
+     }
+
+  cIpmiDomain *domain = mc->Domain();
+
+  // create mc/ domain if nessesary
+  cIpmiMc     *m   = domain->FindOrCreateMcBySlaveAddr( addr );
+  cIpmiEntity *ent = domain->Entities().Add( m, lun, id, instance, "" );
+  assert( ent );
+
+  cIpmiFru *fru = (cIpmiFru *)ent->Find( m, SAHPI_INVENTORY_RDR, fru_id );
+  bool need_add = false;
+
+  if ( fru == 0 )
+     {
+       fru = new cIpmiFru( m, fru_id );
+       fru->Entity() = ent;
+       need_add = true;
+     }
+
+  int rv = fru->Fetch();
+
+  if ( rv )
+     {
+       if ( need_add )
+            delete fru;
+
+       return false;
+     }
+
+  fru->CalcSize();
+
+  if ( !need_add )
+       return true;
+
+  ent->Add( fru );
 
   return true;
 }

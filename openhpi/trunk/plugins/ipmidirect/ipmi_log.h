@@ -93,6 +93,10 @@ public:
 
   void Log( const char *fmt, ... );
   void Hex( const unsigned char *data, int size );
+
+  void Begin( const char *section, const char *name );
+  void End();
+  cIpmiLog &Entry( const char *entry );
 };
 
 
