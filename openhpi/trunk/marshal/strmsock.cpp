@@ -88,13 +88,16 @@ void strmsock::SetType(
 bool strmsock::WriteMsg(const void *request)
 {
 	unsigned char data[dMaxMessageLength];
-	int l = sizeof(cMessageHeader) + header.m_len;
+	unsigned int l = sizeof(cMessageHeader) + header.m_len;
 
+//      printf("Message body length = %d.\n", header.m_len);
 	if (!fOpen) {
+                printf("Socket not open.\n");
 		return true;
 	}
 
 	if (l > dMaxMessageLength) {
+                printf("Message too large.\n");
 		return true;
 	}
 
@@ -116,7 +119,7 @@ bool strmsock::WriteMsg(const void *request)
 
 	int rv = write(s, data, l);
 
-	if ( rv != l ) {
+	if ( (unsigned int)rv != l ) {
 		return true;
 	}
 
@@ -149,11 +152,11 @@ bool strmsock::ReadMsg(char *data)
 	if ( (header.m_flags >> 4) != dMhVersion ) {
 		return true;
 	}
-        printf("Read buffer (%d bytes) is\n", len);
-        for (int i = 0; i < len; i++) {
-                printf("%02x ", (unsigned char)data[i]);
-        }
-        printf("\n");
+//      printf("Read buffer (%d bytes) is\n", len);
+//      for (int i = 0; i < len; i++) {
+//              printf("%02x ", (unsigned char)data[i]);
+//      }
+//      printf("\n");
 
 	return false;
 }

@@ -242,7 +242,6 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
   tResult result = eResultReply;
   char *pReq = data + sizeof(cMessageHeader);
 
-
   hm = HpiMarshalFind(thrdinst->header.m_id);
   // check for function and data length
   if ( !hm || hm->m_request_len != thrdinst->header.m_len )
@@ -262,7 +261,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
 	      ver = saHpiVersionGet( );
 
-	      HpiMarshalReply0( hm, pReq, &ver );
+	      thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ver );
        }
        break;
 
@@ -279,7 +278,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiSessionOpen( domain_id, &session_id, securityparams );
 
-              HpiMarshalReply1( hm, pReq, &ret, &session_id );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &session_id );
        }
        break;
 
@@ -294,7 +293,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
 	      ret = saHpiSessionClose( session_id );
 
-	      HpiMarshalReply0( hm, pReq, &ret );
+	      thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
               result = eResultClose;
        }
        break;
@@ -310,7 +309,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
 	      ret = saHpiDiscover( session_id );
 
-	      HpiMarshalReply0( hm, pReq, &ret );
+	      thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -326,7 +325,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiDomainInfoGet( session_id, &domain_info );
 
-              HpiMarshalReply1( hm, pReq, &ret, &domain_info );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &domain_info );
        }
        break;
 
@@ -345,7 +344,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiDrtEntryGet( session_id, entry_id, &next_entry_id,
                                       &drt_entry );
 
-              HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &drt_entry );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &drt_entry );
        }
        break;
 
@@ -361,7 +360,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiDomainTagSet( session_id, domain_tag );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -377,9 +376,10 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                          hm, pReq, &session_id, &entry_id ) < 0 )
                    return eResultError;
 
+              printf("Session = %d, entryid = %d\n", session_id, entry_id);
               ret = saHpiRptEntryGet( session_id, entry_id, &next_entry_id, &rpt_entry );
 
-              HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rpt_entry );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rpt_entry );
        }
        break;
 
@@ -396,7 +396,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiRptEntryGetByResourceId( session_id, resource_id, &rpt_entry );
 
-              HpiMarshalReply1( hm, pReq, &ret, &rpt_entry );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &rpt_entry );
        }
        break;
 
@@ -415,7 +415,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiResourceSeveritySet( session_id,
                                               resource_id, severity );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -434,7 +434,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourceTagSet( session_id, resource_id, &resource_tag );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
 
        break;
@@ -451,7 +451,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourceIdGet( session_id, &resource_id );
 
-              HpiMarshalReply1( hm, pReq, &ret, &resource_id );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &resource_id );
        }
 
        break;
@@ -469,7 +469,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventLogInfoGet( session_id, resource_id, &info );
 
-              HpiMarshalReply1( hm, pReq, &ret, &info );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
        }
        break;
 
@@ -497,8 +497,8 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                            &prev_entry_id, &next_entry_id,
                                            &event_log_entry, &rdr, &rpt_entry );
 
-              HpiMarshalReply5( hm, pReq, &ret, &prev_entry_id, &next_entry_id,
-                                &event_log_entry, &rdr, &rpt_entry );
+              thrdinst->header.m_len = HpiMarshalReply5( hm, pReq, &ret, &prev_entry_id, &next_entry_id,
+                                                         &event_log_entry, &rdr, &rpt_entry );
        }
        break;
 
@@ -517,7 +517,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiEventLogEntryAdd( session_id, resource_id,
                                            &evt_entry );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -533,7 +533,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventLogClear( session_id, resource_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -550,7 +550,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventLogTimeGet( session_id, resource_id, &ti );
 
-              HpiMarshalReply1( hm, pReq, &ret, &ti );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &ti );
        }
        break;
 
@@ -568,7 +568,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventLogTimeSet( session_id, resource_id, ti );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -585,7 +585,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventLogStateGet( session_id, resource_id, &enable );
 
-              HpiMarshalReply1( hm, pReq, &ret, &enable );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enable );
        }
        break;
 
@@ -603,7 +603,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventLogStateSet( session_id, resource_id, enable );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -619,7 +619,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventLogOverflowReset( session_id, resource_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -634,7 +634,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiSubscribe( session_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -649,7 +649,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiUnsubscribe( session_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -670,7 +670,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiEventGet( session_id, timeout, &event, &rdr,
                                    &rpt_entry, &status );
 
-              HpiMarshalReply4( hm, pReq, &ret, &event, &rdr, &rpt_entry, &status );
+              thrdinst->header.m_len = HpiMarshalReply4( hm, pReq, &ret, &event, &rdr, &rpt_entry, &status );
        }
        break;
 
@@ -686,7 +686,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiEventAdd( session_id, &event );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -705,7 +705,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAlarmGetNext( session_id, severity, unack, &alarm );
 
-              HpiMarshalReply1( hm, pReq, &ret, &alarm );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &alarm );
        }
        break;
 
@@ -722,7 +722,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAlarmGet( session_id, alarm_id, &alarm );
 
-              HpiMarshalReply1( hm, pReq, &ret, &alarm );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &alarm );
        }
        break;
 
@@ -740,7 +740,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAlarmAcknowledge( session_id, alarm_id, severity );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -756,7 +756,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAlarmAdd( session_id, &alarm );
 
-              HpiMarshalReply1( hm, pReq, &ret, &alarm );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &alarm );
        }
        break;
 
@@ -774,7 +774,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAlarmDelete( session_id, alarm_id, severity );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -795,7 +795,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiRdrGet( session_id, resource_id, entry_id,
                                  &next_entry_id, &rdr );
 
-              HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rdr );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rdr );
        }
        break;
 
@@ -816,7 +816,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiRdrGetByInstrumentId( session_id, resource_id, rdr_type,
                                                inst_id, &rdr );
 
-              HpiMarshalReply1( hm, pReq, &ret, &rdr );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &rdr );
        }
        break;
 
@@ -837,7 +837,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorReadingGet( session_id, resource_id,
                                            sensor_num, &reading, &state );
 
-              HpiMarshalReply2( hm, pReq, &ret, &reading, &state );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &reading, &state );
        }
        break;
 
@@ -858,7 +858,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                               resource_id, sensor_num,
                                               &sensor_thresholds);
 
-              HpiMarshalReply1( hm, pReq, &ret, &sensor_thresholds );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &sensor_thresholds );
        }
        break;
 
@@ -879,7 +879,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                               sensor_num,
                                               &sensor_thresholds );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -900,7 +900,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorTypeGet( session_id, resource_id,
                                         sensor_num, &type, &category );
 
-              HpiMarshalReply2( hm, pReq, &ret, &type, &category );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &type, &category );
        }
        break;
 
@@ -920,7 +920,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorEnableGet( session_id, resource_id,
                                           sensor_num, &enables );
 
-              HpiMarshalReply1( hm, pReq, &ret, &enables );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enables );
        }
        break;
 
@@ -940,7 +940,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorEnableSet( session_id, resource_id,
                                           sensor_num, enables );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -960,7 +960,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorEventEnableGet( session_id, resource_id,
                                                sensor_num, &enables );
 
-              HpiMarshalReply1( hm, pReq, &ret, &enables );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enables );
        }
        break;
 
@@ -980,7 +980,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorEventEnableSet( session_id, resource_id,
                                                sensor_num, enables );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1002,7 +1002,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorEventMasksGet( session_id, resource_id, sensor_num,
                                               &assert_mask, &deassert_mask );
 
-              HpiMarshalReply2( hm, pReq, &ret, &assert_mask, &deassert_mask );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &assert_mask, &deassert_mask );
        }
        break;
 
@@ -1025,7 +1025,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiSensorEventMasksSet( session_id, resource_id, sensor_num,
                                               action, assert_mask, deassert_mask );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1045,7 +1045,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiControlTypeGet( session_id, resource_id, ctrl_num,
                                          &type );
 
-              HpiMarshalReply1( hm, pReq, &ret, &type );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &type );
        }
        break;
 
@@ -1066,7 +1066,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiControlGet( session_id, resource_id, ctrl_num,
                                      &ctrl_mode, &ctrl_state );
 
-              HpiMarshalReply2( hm, pReq, &ret, &ctrl_mode, &ctrl_state );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &ctrl_mode, &ctrl_state );
        }
        break;
 
@@ -1087,7 +1087,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiControlSet( session_id, resource_id,
                                      ctrl_num, ctrl_mode, &ctrl_state );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1107,7 +1107,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrInfoGet( session_id, resource_id,
                                      idr_id, &info );
 
-              HpiMarshalReply1( hm, pReq, &ret, &info );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
        }
        break;
 
@@ -1130,7 +1130,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrAreaHeaderGet( session_id, resource_id, idr_id,
                                            area, area_id, &next, &header );
 
-              HpiMarshalReply2( hm, pReq, &ret, &next, &header );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next, &header );
        }
        break;
 
@@ -1151,7 +1151,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrAreaAdd( session_id, resource_id, idr_id,
                                      area, &area_id  );
 
-              HpiMarshalReply1( hm, pReq, &ret, &area_id );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &area_id );
        }
        break;
 
@@ -1171,7 +1171,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrAreaDelete( session_id, resource_id, idr_id,
                                         area_id  );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1195,7 +1195,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrFieldGet( session_id, resource_id, idr_id, area_id,
                                       type, field_id, &next, &field );
 
-              HpiMarshalReply2( hm, pReq, &ret, &next, &field );
+              thrdinst->header.m_len = HpiMarshalReply2( hm, pReq, &ret, &next, &field );
        }
        break;
 
@@ -1215,7 +1215,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrFieldAdd( session_id, resource_id, idr_id,
                                       &field );
 
-              HpiMarshalReply1( hm, pReq, &ret, &field );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &field );
        }
        break;
 
@@ -1235,7 +1235,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrFieldSet( session_id, resource_id, idr_id,
                                       &field );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1256,7 +1256,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiIdrFieldDelete( session_id, resource_id, idr_id,
                                          area_id, field_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1276,7 +1276,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiWatchdogTimerGet( session_id, resource_id,
                                            watchdog_num, &watchdog );
 
-              HpiMarshalReply1( hm, pReq, &ret, &watchdog );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &watchdog );
        }
        break;
 
@@ -1296,7 +1296,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiWatchdogTimerSet( session_id, resource_id,
                                            watchdog_num, &watchdog );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1315,7 +1315,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiWatchdogTimerReset( session_id, resource_id,
                                              watchdog_num );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1338,7 +1338,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiAnnunciatorGetNext( session_id, resource_id, annun_num,
                                              severity, unack, &announcement );
 
-              HpiMarshalReply1( hm, pReq, &ret, &announcement );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &announcement );
        }
        break;
 
@@ -1359,7 +1359,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiAnnunciatorGet( session_id, resource_id, annun_num,
                                          entry_id, &announcement );
 
-              HpiMarshalReply1( hm, pReq, &ret, &announcement );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &announcement );
        }
        break;
 
@@ -1380,7 +1380,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiAnnunciatorAcknowledge( session_id, resource_id, annun_num,
                                                  entry_id, severity );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1400,7 +1400,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiAnnunciatorAdd( session_id, resource_id, annun_num,
                                          &announcement );
 
-              HpiMarshalReply1( hm, pReq, &ret, &announcement );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &announcement );
        }
        break;
 
@@ -1421,7 +1421,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiAnnunciatorDelete( session_id, resource_id, annun_num,
                                             entry_id, severity );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1441,7 +1441,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiAnnunciatorModeGet( session_id, resource_id, annun_num,
                                              &mode );
 
-              HpiMarshalReply1( hm, pReq, &ret, &mode );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &mode );
        }
        break;
 
@@ -1461,7 +1461,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               ret = saHpiAnnunciatorModeSet( session_id, resource_id, annun_num,
                                              mode );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1477,7 +1477,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiHotSwapPolicyCancel( session_id, resource_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1493,7 +1493,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourceActiveSet( session_id, resource_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1509,7 +1509,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourceInactiveSet( session_id, resource_id );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1525,7 +1525,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAutoInsertTimeoutGet( session_id, &timeout );
 
-              HpiMarshalReply1( hm, pReq, &ret, &timeout );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &timeout );
        }
        break;
 
@@ -1541,7 +1541,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAutoInsertTimeoutSet( session_id, timeout );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1558,7 +1558,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAutoExtractTimeoutGet( session_id, resource_id, &timeout );
 
-              HpiMarshalReply1( hm, pReq, &ret, &timeout );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &timeout );
        }
        break;
 
@@ -1576,7 +1576,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiAutoExtractTimeoutSet( session_id, resource_id, timeout );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1593,7 +1593,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiHotSwapStateGet( session_id, resource_id, &state );
 
-              HpiMarshalReply1( hm, pReq, &ret, &state );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &state );
        }
        break;
 
@@ -1611,7 +1611,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiHotSwapActionRequest( session_id, resource_id, action );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1628,7 +1628,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiHotSwapIndicatorStateGet( session_id, resource_id, &state );
 
-              HpiMarshalReply1( hm, pReq, &ret, &state );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &state );
        }
        break;
 
@@ -1646,7 +1646,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiHotSwapIndicatorStateSet( session_id, resource_id, state );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1664,7 +1664,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiParmControl( session_id, resource_id, action );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1681,7 +1681,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourceResetStateGet( session_id, resource_id, &action );
 
-              HpiMarshalReply1( hm, pReq, &ret, &action );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &action );
        }
        break;
 
@@ -1699,7 +1699,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourceResetStateSet( session_id, resource_id, action );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1717,7 +1717,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourcePowerStateGet( session_id, resource_id, &state );
 
-              HpiMarshalReply1( hm, pReq, &ret, &state );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &state );
        }
        break;
 
@@ -1735,7 +1735,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
               ret = saHpiResourcePowerStateSet( session_id, resource_id, state );
 
-              HpiMarshalReply0( hm, pReq, &ret );
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1744,7 +1744,10 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
        }
 
        // send the reply
-       thrdinst->WriteMsg(pReq);
+       bool wrt_result = thrdinst->WriteMsg(pReq);
+       if (wrt_result) {
+               return eResultError;
+       }
 
        printf("Return code = %d\n", ret);
 
