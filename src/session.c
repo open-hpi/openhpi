@@ -17,9 +17,10 @@
 #include <oh_utils.h>
 #include <oh_session.h>
 #include <oh_domain.h>
+#include <oh_config.h>
 #include <string.h>
 
-struct oh_session_table oh_sessions = {        
+struct oh_session_table oh_sessions = {
         .table = NULL,
         .lock = G_STATIC_REC_MUTEX_INIT
 };
@@ -28,7 +29,7 @@ static struct oh_event *oh_generate_hpi_event(void)
 {
         struct oh_event *event = NULL;
 
-        event = g_new0(struct oh_event, 1);        
+        event = g_new0(struct oh_event, 1);
         event->type = OH_ET_HPI;
         event->u.hpi_event.res.ResourceId= SAHPI_UNSPECIFIED_RESOURCE_ID;
         event->u.hpi_event.rdr.RecordId = SAHPI_ENTRY_UNSPECIFIED;
@@ -43,7 +44,7 @@ static struct oh_event *oh_generate_hpi_event(void)
         event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataType =
                 SAHPI_TL_TYPE_TEXT;
         event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Language =
-                SAHPI_TL_TYPE_TEXT;        
+                SAHPI_TL_TYPE_TEXT;
         strcpy((char *)(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data),
                 "This session is being destroyed now!");
         event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataLength =
@@ -84,9 +85,9 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
         session->id = id++;
         g_hash_table_insert(oh_sessions.table, &(session->id), session);
         g_array_append_val(domain->sessions, session->id);
-        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */        
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
         oh_release_domain(domain);
-                
+
         return session->id;
 }
 
@@ -102,7 +103,7 @@ SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
 {
         struct oh_session *session = NULL;
         SaHpiDomainIdT did;
-        
+
         if (sid < 1) return 0;
 
         g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
@@ -111,10 +112,10 @@ SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
                 return 0;
         }
-        
+
         did = session->did;
         g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
-        
+
 
         return did;
 }
@@ -140,12 +141,12 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
         domain = oh_get_domain(did);
         if (!domain) return NULL;
         dbg("Got domain");
-        
+
         length = domain->sessions->len;
         session_ids = g_array_sized_new(FALSE, TRUE,
                                         sizeof(SaHpiSessionIdT),
                                         length);
-        
+
         for (i = 0; i < length; i++) {
                 g_array_append_val(session_ids,
                                    g_array_index(domain->sessions,
@@ -222,20 +223,34 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
  * Returns:
  **/
 SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
-{      
+{
        struct oh_session *session = NULL;
        struct oh_event *qevent = NULL;
+       struct oh_global_param param = { .type = OPENHPI_EVT_QUEUE_LIMIT };
 
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
 
        qevent = g_memdup(event, sizeof(struct oh_event));
+       if (!qevent) return SA_ERR_HPI_OUT_OF_MEMORY;
+
+       if (oh_get_global_param(&param))
+               param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;
+
        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(oh_sessions.table, &sid);
-       if (!session) {               
+       if (!session) {
                g_static_rec_mutex_unlock(&oh_sessions.lock);
                g_free(qevent);
                return SA_ERR_HPI_INVALID_SESSION;
        }
+
+       if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
+           g_async_queue_length(session->eventq) >= param.u.evt_queue_limit) {
+               g_static_rec_mutex_unlock(&oh_sessions.lock);
+               g_free(qevent);
+               return SA_ERR_HPI_OUT_OF_SPACE;
+       }
+
        g_async_queue_push(session->eventq, qevent);
        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
 
@@ -276,7 +291,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                devent = g_async_queue_try_pop(eventq);
        } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
                devent = g_async_queue_pop(eventq); /* FIXME: Need to time this. */
-       } else {               
+       } else {
                g_get_current_time(&gfinaltime);
                g_time_val_add(&gfinaltime, (glong) (timeout / 1000));
                devent = g_async_queue_timed_pop(eventq, &gfinaltime);
