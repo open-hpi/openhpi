@@ -13,8 +13,8 @@
  *      Steve Sherman <sesherman@us.ibm.com>
  */
 
-#ifndef SNMP_BC_WATCHDOG_H
-#define SNMP_BC_WATCHDOG_H
+#ifndef __SNMP_BC_WATCHDOG_H
+#define __SNMP_BC_WATCHDOG_H
 
 SaErrorT snmp_bc_get_watchdog_info(void *hnd,
 				   SaHpiResourceIdT id,

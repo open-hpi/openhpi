@@ -67,8 +67,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	case SAHPI_CTRL_TYPE_DIGITAL:
 		
 		found = 0;
-		/* Icky dependency on SaHpiStateDigitalT enum */
-		for(i=0; i<ELEMENTS_IN_SaHpiStateDigitalT; i++) {
+		for(i=0; i<OH_MAX_CTRLSTATEDIGITAL; i++) {
 			if(s->mib.digitalmap[i] == get_value.integer) { 
 				found++;
 				break; 
@@ -89,11 +88,8 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 			case 3:
 				working.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_ON;
 				break;
-			case 4:
-				working.StateUnion.Digital = SAHPI_CTRL_STATE_AUTO;
-				break;
 			default:
-				dbg("Spec Change: MAX_SaHpiStateDigitalT incorrect?\n");
+				dbg("Invalid Case=%d", i);
 				return -1;
 			}
 		} else {
@@ -160,8 +156,6 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 
 	switch (state->Type) {
 	case SAHPI_CTRL_TYPE_DIGITAL:
-
-		/* More icky dependencies on SaHpiStateDigitalT enum */
 		switch (state->StateUnion.Digital) {
 		case SAHPI_CTRL_STATE_OFF:
 			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_OFF];
@@ -173,13 +167,10 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_OFF];
 			break;
 		case SAHPI_CTRL_STATE_PULSE_ON:
-			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_ON];
-			break;
-		case SAHPI_CTRL_STATE_AUTO:
-			value = s->mib.digitalwmap[ELEMENTS_IN_SaHpiStateDigitalT - 1];
+			value = s->mib.digitalwmap[OH_MAX_CTRLSTATEDIGITAL - 1];
 			break;
 		default:
-			dbg("Spec Change: MAX_SaHpiStateDigitalT incorrect?\n");
+			dbg("Invalid Case=%d", state->StateUnion.Digital);
 			return -1;
 		}
 

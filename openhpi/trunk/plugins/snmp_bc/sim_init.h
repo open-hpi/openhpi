@@ -13,8 +13,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef SIM_INIT_H
-#define SIM_INIT_H
+#ifndef __SIM_INIT_H
+#define __SIM_INIT_H
 
 SaHpiBoolT is_simulator(void);
 SaErrorT sim_banner(struct snmp_bc_hnd *custom_handle);

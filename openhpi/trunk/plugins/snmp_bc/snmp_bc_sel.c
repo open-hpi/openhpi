@@ -11,6 +11,8 @@
  *
  * Author(s):
  *      Sean Dague <http://dague.net/sean>
+ *      Peter Phan <pdphan@sourceforge.net>
+ *      Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <glib.h>
@@ -18,6 +20,7 @@
 
 #include <snmp_bc_plugin.h>
 
+#if 0
 oh_sel *bc_selcache = NULL;
 
 /**
@@ -375,12 +378,12 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
 
 		/*snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);*/
 		/* isdst = sel_entry.time.tm_isdst;*/
-                log2event(hnd, get_value.string, &tmpevent, isdst, &event_enabled);
+                snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst, &event_enabled);
                 handle->selcache->nextId = current;                
                 rv = oh_sel_add(handle->selcache, &tmpevent);
 		
 		if (event_enabled) {
-			rv = snmp_bc_add_to_eventq(hnd, &tmpentry.Event);
+			rv = snmp_bc_add_to_eventq(handle, &tmpentry.Event);
 		}
 	} else {
 		dbg("Couldn't fetch SEL Entry from BladeCenter snmp");
@@ -389,26 +392,34 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
 
         return SA_OK;
 }
+#endif
 
 /**
  * snmp_bc_parse_sel_entry:
- * @text: text as returned by snmpget call for an event log entry
+ * @handle: Pointer to handler data.
+ * @logstr: Hardware log string.
  * @sel: blade center system event log
  * 
- * This call is used to create a blade center sel entry from the returned
- * snmp string.  Another transform will have to happen to turn this into 
- * an SAHPI sel entry. 
+ * Parses a hardware log entry into its various components. 
+ * Another transform has to happen to turn this into an HPI entry. 
  * 
- * Return value: 0 for success, -1 for format error, -2 for premature data termination
+ * Return values:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @handle, @logstr, @sel NULL.
  **/
-int snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char * text, bc_sel_entry * sel) 
+SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, bc_sel_entry *sel)
 {
         bc_sel_entry ent;
         char level[8];
-        char * findit;
+        char *findit;
 	
+	if (!handle || !logstr || !sel) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
         /* Severity first */
-	findit = strstr(text, "Severity:");
+	findit = strstr(logstr, "Severity:");
 	if (findit != NULL) {
         	if(sscanf(findit,"Severity:%7s",level)) {
                 	if(strcmp(level,"INFO") == 0) {
@@ -421,33 +432,34 @@ int snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char * text, bc_sel
                         	ent.sev = SAHPI_DEBUG;
                 	}
         	} else {
-                	dbg("Couldn't parse Severity from Blade Center Log Entry");
-                	return -1;
+                	dbg("Cannot parse severity from log entry.");
+                	return(SA_ERR_HPI_INTERNAL_ERROR);
         	}
 	}
-                
 
-	findit = strstr(text, "Source:");
+	findit = strstr(logstr, "Source:");
 	if (findit != NULL) {
         	if(!sscanf(findit,"Source:%19s",ent.source)) {
-                	dbg("Couldn't parse Source from Blade Center Log Entry");
-                	return -1;
+                	dbg("Cannot parse source from log entry.");
+                	return(SA_ERR_HPI_INTERNAL_ERROR);
         	}
-	} else 
-		return -2;
+	} else {
+		dbg("Premature data termination.");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
-
-	findit = strstr(text, "Name:");
+	findit = strstr(logstr, "Name:");
 	if (findit != NULL) {
         	if(!sscanf(findit,"Name:%19s",ent.sname)) {
-                	dbg("Couldn't parse Name from Blade Center Log Entry");
-                	return -1;
+                	dbg("Cannot parse name from log entry.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
         	}
-	} else 
-		return -2;
+	} else {
+		dbg("Premature data termination.");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
         
-        
-	findit = strstr(text, "Date:");
+	findit = strstr(logstr, "Date:");
 	if (findit != NULL) {
         	if(sscanf(findit,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
                 	  &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
@@ -456,26 +468,30 @@ int snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char * text, bc_sel
                 	ent.time.tm_mon--;
                 	ent.time.tm_year += 100;
         	} else {
-                	dbg("Couldn't parse Date/Time from Blade Center Log Entry");
-                	return -1;
+                	dbg("Cannot parse date/time from log entry.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
         	}
-	} else 
-		return -2;
+	} else {
+		dbg("Premature data termination.");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+        }
         
-        
-	findit = strstr(text, "Text:");
+	findit = strstr(logstr, "Text:");
 	if (findit != NULL) {
-        	/* advance to data */
+        	/* Advance to data */
         	findit += 5;
-        	strncpy(ent.text,findit,BC_SEL_ENTRY_STRING - 1);
-        	ent.text[BC_SEL_ENTRY_STRING - 1] = '\0';
-	} else 
-		return -2;
-        
+        	strncpy(ent.text,findit, SNMP_BC_MAX_SEL_ENTRY_LENGTH - 1);
+        	ent.text[SNMP_BC_MAX_SEL_ENTRY_LENGTH - 1] = '\0';
+	} else {
+		dbg("Premature data termination.");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}        
+
         *sel = ent;
-        return 0;
+        return(SA_OK);
 }
 
+#if 0
 /**
  * snmp_bc_clear_sel:
  * @hnd: 
@@ -509,4 +525,4 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	return rv;
 
 }
-/* end of snmp_bc_sel.c */
+#endif

@@ -14,30 +14,39 @@
  *      Sean Dague <http://dague.net/sean>
  */
 
-#ifndef SNMP_BC_SEL_H
-#define SNMP_BC_SEL_H
+#ifndef __SNMP_BC_SEL_H
+#define __SNMP_BC_SEL_H
 
 #define clearEventLogExecute 1
-#define BC_SEL_ID_STRING 20
-#define BC_SEL_ENTRY_STRING 256
+#define SNMP_BC_MAX_SEL_ID_LENGTH 20
+#define SNMP_BC_MAX_SEL_ENTRY_LENGTH 256
 
 typedef struct {
         struct tm time;
         SaHpiSeverityT sev;
-        char source[BC_SEL_ID_STRING];
-        char sname[BC_SEL_ID_STRING];
-        char text[BC_SEL_ENTRY_STRING];
+        char source[SNMP_BC_MAX_SEL_ID_LENGTH];
+        char sname[SNMP_BC_MAX_SEL_ID_LENGTH];
+        char text[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 } bc_sel_entry;
 
 
 /* 
  * Function Prototyping
  */
-int snmp_bc_parse_sel_entry(struct oh_handler_state *,char * text, bc_sel_entry * sel);
-int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
-int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
-                          SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
+
+/* FIXME:: All of these should return SaErrorT */
+SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle,
+				 char *logstr,
+				 bc_sel_entry *sel);
+
+int snmp_bc_get_sel_entry(void *hnd,
+			  SaHpiResourceIdT id,
+			  SaHpiEventLogEntryIdT current,
+                          SaHpiEventLogEntryIdT *prev,
+			  SaHpiEventLogEntryIdT *next,
                           SaHpiEventLogEntryT *entry);
+
+int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
 int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event);
 int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId);

@@ -14,8 +14,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef SNMP_BC_SESSION_H
-#define SNMP_BC_SESSION_H
+#ifndef __SNMP_BC_SESSION_H
+#define __SNMP_BC_SESSION_H
 
 /**
  * This handle is unique per instance of this plugin. SNMP session data is 

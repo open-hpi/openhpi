@@ -2,29 +2,13 @@
 
 #include <snmp_bc_plugin.h>
 
-SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
-				     SaHpiEntityPathT *ep,
-				     const struct BC_ResourceInfo *bc_res_info)
-{
-
 #if 0
-  printf("Need to implement snmp_bc_discover_res_events\n");
-#endif
-
-  return(SA_OK);
-}
-
-SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
-					SaHpiEntityPathT *ep, 
-					SaHpiSensorNumT sid, 
-					const struct snmp_bc_sensor *rpt_sensor)
+SaErrorT oh_print_event(SaHpiEventT *event)
 {
-#if 0  
-  printf("Need to implement snmp_bc_discover_sensor_events\n");
-#endif
-
+  printf("Need to implement this\n");
   return(SA_OK);
 }
+#endif
 
 SaErrorT snmp_bc_get_sel_info(void *hnd, 
 			       SaHpiResourceIdT id, 

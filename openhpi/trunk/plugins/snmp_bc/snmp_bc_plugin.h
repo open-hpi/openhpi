@@ -13,8 +13,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef SNMP_BC_PLUGIN_H
-#define SNMP_BC_PLUGIN_H
+#ifndef __SNMP_BC_PLUGIN_H
+#define __SNMP_BC_PLUGIN_H
 
 /* Order is important */
 #include <openhpi.h>

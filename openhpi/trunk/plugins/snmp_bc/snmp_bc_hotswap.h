@@ -13,8 +13,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef SNMP_BC_HOTSWAP_H
-#define SNMP_BC_HOTSWAP_H
+#ifndef __SNMP_BC_HOTSWAP_H
+#define __SNMP_BC_HOTSWAP_H
 
 SaErrorT snmp_bc_get_hotswap_state(void *hnd,
 				   SaHpiResourceIdT id,
