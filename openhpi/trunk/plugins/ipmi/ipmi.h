@@ -45,6 +45,7 @@
 
 
 #define IPMI_DATA_WAIT	5
+#define OEM_ALARM_BASE  0x10
 
 extern selector_t       *ohoi_sel;
 
