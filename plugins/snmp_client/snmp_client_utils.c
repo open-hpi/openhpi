@@ -384,7 +384,7 @@ void display_vars( struct snmp_pdu *response)
 	dbg("********************************************************");
 	for(vars = response->variables; vars; vars = vars->next_variable) {
 		c++;
-		printf("\n**** oid count %d ******\n", c);
+		dbg("\n**** oid count %d ******", c);
 		if (CHECK_END(vars->type)) { 
 			fprint_variable(stderr, vars->name, vars->name_length, vars);
 			/* print_variable(vars->name, vars->name_length, vars);   */
@@ -482,7 +482,7 @@ int build_flag_value (char *str,
   g_free (s);
   g_free (delim);
 
-  printf("*** build_flag_value: flags %X *****\n", *flags);
+  dbg("*** build_flag_value: flags %X *****", *flags);
 
   return rc;
 }

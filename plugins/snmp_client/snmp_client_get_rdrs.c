@@ -153,7 +153,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                                 indices[2] = vars->name[vars->name_length - 2];
                                 indices[3] = vars->name[vars->name_length - 1];  
                         } else
-                                printf("SA_HPI_RDR_RECORD_ID:something terrible has happened\n");
+                                dbg("SA_HPI_RDR_RECORD_ID:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(response);
@@ -186,7 +186,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                                 rdr_cache[i].RdrType = 
 					SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_RDR_TYPE:something terrible has happened\n");
+                                dbg("SA_HPI_RDR_TYPE:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(response);
@@ -222,7 +222,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                                 free(ep);
                         }
                         else
-                                printf("SA_HPI_RDR_ENTITY_PATH:something terrible has happened\n");
+                                dbg("SA_HPI_RDR_ENTITY_PATH:something terrible has happened");
                         vars = vars->next_variable;             
                 }
 
@@ -264,9 +264,9 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
         if(status == SA_OK) {
                 /* add the rdrs to the plugin's primary rptcache, */
                 /* the one maintained in oh_handler_state pointer */
-                printf("************************************************************\n");
-                printf("** Adding rdr_cache[] and remote_rdr_data[] to temp_table **\n");
-                printf("************************************************************\n");
+                dbg("************************************************************");
+                dbg("** Adding rdr_cache[] and remote_rdr_data[] to temp_table **");
+                dbg("************************************************************");
                 /* the RDR's to the plugins rptcache */
                 for ( i = 0; i < num_entries; i++) {
                         id = oh_uid_lookup(&rdr_cache[i].Entity);
@@ -282,7 +282,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
         } else {
                 /*free the temporary rptcahce buffer used to capture the */
                 /* snmp remote resource data */
-                printf("Error: freeing remote_rdr_data[] \n");
+                dbg("Error: freeing remote_rdr_data[] ");
                 if (remote_rdr_data) 
                         g_free(remote_rdr_data);
         }
@@ -361,7 +361,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1];    
                         } else
-                                printf("SA_HPI_CNUM_CTRL_INDICESTRL_NUM:something terrible has happened\n");
+                                dbg("SA_HPI_CNUM_CTRL_INDICESTRL_NUM:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -390,7 +390,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_ctr_cap[i].CtrlRec.OutputType = 
                                         (SaHpiCtrlOutputTypeT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_CTRL_OUTPUT_TYPE:something terrible has happened\n");
+                                dbg("SA_HPI_CTRL_OUTPUT_TYPE:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -419,7 +419,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_ctr_cap[i].CtrlRec.Ignore = 
                                         (*vars->val.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_CTRL_IGNORE:something terrible has happened\n");
+                                dbg("SA_HPI_CTRL_IGNORE:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -448,7 +448,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_ctr_cap[i].CtrlRec.Type = 
 					(SaHpiCtrlTypeT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_CTRL_TYPE:something terrible has happened\n");
+                                dbg("SA_HPI_CTRL_TYPE:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -598,7 +598,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                         break;
                                 }
                         } else
-                                printf("SA_HPI_CTRL_STATE:something terrible has happened\n");
+                                dbg("SA_HPI_CTRL_STATE:something terrible has happened");
 
                         vars = vars->next_variable;             
                 }
@@ -627,7 +627,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                         if (vars->type == ASN_UNSIGNED)
                                 sahpi_ctr_cap[i].CtrlRec.Oem = (SaHpiUint32T)*vars->val.integer;
                         else
-                                printf("SA_HPI_CTRL_OEM:something terrible has happened\n");
+                                dbg("SA_HPI_CTRL_OEM:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -642,9 +642,9 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
 
         /* CTRL CAPABILITIES ADD TO rdr_cache */
         if(status == SA_OK) {
-                printf("***********************************************************\n");
-                printf("** Adding sahpi_ctr_cap[] to rdr_cache[]                 **\n");
-                printf("***********************************************************\n");
+                dbg("***********************************************************");
+                dbg("** Adding sahpi_ctr_cap[] to rdr_cache[]                 **");
+                dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_rdrs; i++) {
                         if (rdr_cache[i].RdrType == SAHPI_CTRL_RDR ) {
@@ -752,7 +752,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_INDEX:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_INDEX:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -771,7 +771,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.Type = 
                                         (SaHpiSensorTypeT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_TYPE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_TYPE:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -790,7 +790,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.Category = 
                                         (SaHpiEventCategoryT)(SNMP_ENUM_ADJUST(*vars->val.integer));
                         else
-                                printf("SA_HPI_SENSOR_CATEGORY:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_CATEGORY:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -809,7 +809,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.EventCtrl = 
                                         (SaHpiSensorEventCtrlT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_EVENTS_CATEGORY_CONTROL:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_EVENTS_CATEGORY_CONTROL:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -830,7 +830,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 						   vars->val_len,
 						   &sahpi_sensor_cap[i].SensorRec.Events);
                         else
-                                printf("SA_HPI_SENSOR_EVENT_STATE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_EVENT_STATE:something terrible has happened");
                         vars = vars->next_variable;
                 
                 }
@@ -854,7 +854,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.Ignore = 
                                         (*vars->val.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_IGNORE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_IGNORE:something terrible has happened");
                         vars = vars->next_variable;
                 
                 }
@@ -874,7 +874,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.ReadingFormats = 
                                         (SaHpiSensorReadingFormatsT)*vars->val.integer;
                         else
-                                printf("SA_HPI_SENSOR_READING_FORMATS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_FORMATS:something terrible has happened");
                         vars = vars->next_variable;
                 
                 }
@@ -894,7 +894,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.IsNumeric = 
                                         (*vars->val.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_IS_NUMERIC:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_IS_NUMERIC:something terrible has happened");
                         vars = vars->next_variable;
                 
                 }
@@ -914,7 +914,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.SignFormat = 
                                         (SaHpiSensorSignFormatT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_SIGN_FORMAT:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_SIGN_FORMAT:something terrible has happened");
                         vars = vars->next_variable;
                 
                 }
@@ -934,7 +934,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.BaseUnits = 
                                         (SaHpiSensorUnitsT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_BASE_UNITS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_BASE_UNITS:something terrible has happened");
                         vars = vars->next_variable;
                 
                 }
@@ -954,7 +954,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.ModifierUnits = 
                                         (SaHpiSensorUnitsT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_MODIFIER_UNITS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_MODIFIER_UNITS:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -973,7 +973,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.ModifierUse = 
                                         (SaHpiSensorModUnitUseT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_MODIFIER_USE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_MODIFIER_USE:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -992,7 +992,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.FactorsStatic = 
                                         (*vars->val.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_FACTORS_STATIC:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_FACTORS_STATIC:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1050,7 +1050,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 					factors = factors + sizeof(SaHpiInt8T);
                                 }     
                         } else
-                                printf("SA_HPI_SENSOR_FACTORS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_FACTORS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1069,7 +1069,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.Factors.Linearization = 
                                         (SaHpiSensorLinearizationT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_FACTORS_LINEARIZATION:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_FACTORS_LINEARIZATION:something terrible has happened");
                         vars = vars->next_variable;
                 
                 }
@@ -1089,7 +1089,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.DataFormat.Percentage = 
                                         (*vars->val.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_PERCENTAGE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_PERCENTAGE:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1110,7 +1110,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 						 vars->val_len,
 						 &sahpi_sensor_cap[i].SensorRec.DataFormat.Range.Flags);
                         } else
-                                printf("SA_HPI_SENSOR_RANGE_FLAGS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_RANGE_FLAGS:something terrible has happened");
                         vars = vars->next_variable;                
                 }
 		/* COUNT THE DIFFERENT OCCURANCES of TYPES OF RANGE READINGS */
@@ -1134,7 +1134,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 				if(sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold) 
 					num_sen_rdrs_has_thold++;
                         } else
-                                printf("SA_HPI_SENSOR_HAS_THRESHOLD:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_HAS_THRESHOLD:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1153,7 +1153,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.ThresholdDefn.TholdCapabilities = 
                                         (SaHpiSensorThdCapT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_THOLD_CAPABILITIES:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_THOLD_CAPABILITIES:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1173,7 +1173,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                                 sahpi_sensor_cap[i].SensorRec.Oem = 
                                         (SaHpiUint32T)ntohl(Oem);
                         } else
-                                printf("SA_HPI_SENSOR_OEM:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_OEM:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1222,8 +1222,8 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 	/* READ THE THOLD TABLES */
 	if(num_sen_rdrs_has_thold) {
 
-		dbg("num_sen_rdrs %d\n", (int)get_value.integer);
-		dbg("num_sen_rdrs_has_thold %d\n", num_sen_rdrs_has_thold);
+		dbg("num_sen_rdrs %d", (int)get_value.integer);
+		dbg("num_sen_rdrs_has_thold %d", num_sen_rdrs_has_thold);
 
 		populate_thld_low_crit(custom_handle,
 				       sahpi_sensor_cap, 
@@ -1268,9 +1268,9 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 
 	/* SENSOR CAPABILITIES ADD TO rdr_cache */
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** Adding sahpi_sensor_cap[] to rdr_cache[]              **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** Adding sahpi_sensor_cap[] to rdr_cache[]              **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_rdrs; i++) {
                         if (rdr_cache[i].RdrType == SAHPI_SENSOR_RDR ) {
@@ -1304,36 +1304,36 @@ static void count_range_flags(SaHpiRdrTypeUnionT *sen_cap, int num_sen_rdrs)
 	int i;
 	memset(&range_flags_count, 0, sizeof(range_flags_count));
 
-printf("num_sen_rdrs  %d\n", num_sen_rdrs);
+dbg("num_sen_rdrs  %d", num_sen_rdrs);
 
 	for(i=0; i < num_sen_rdrs; i++) {
 
-printf(" rdr range flags %x count %d\n", sen_cap[i].SensorRec.DataFormat.Range.Flags, i);
+dbg(" rdr range flags %x count %d", sen_cap[i].SensorRec.DataFormat.Range.Flags, i);
 
 		if (sen_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_MIN) 
 			{ 
 			range_flags_count.min++; 
-			printf("MIN %d\n", range_flags_count.min);
+			dbg("MIN %d", range_flags_count.min);
 			}
 		if (sen_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_MAX) 
 			{ 
 			range_flags_count.max++; 
-			printf("MAX %d\n", range_flags_count.max);
+			dbg("MAX %d", range_flags_count.max);
 			}
 		if (sen_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MIN) 
 			{ 
 			range_flags_count.normal_min++; 
-			printf("NORMAL_MIN %d\n", range_flags_count.normal_min);
+			dbg("NORMAL_MIN %d", range_flags_count.normal_min);
 			}
 		if (sen_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MAX)
 			{ 
 			range_flags_count.normal_max++;
-			printf("NORAML_MAX %d\n", range_flags_count.normal_max);
+			dbg("NORAML_MAX %d", range_flags_count.normal_max);
 			}
 		if (sen_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NOMINAL) 
 			{
 			range_flags_count.nominal++;
-			printf("NOM %d\n", range_flags_count.nominal);
+			dbg("NOM %d", range_flags_count.nominal);
 			}
 	}
 }
@@ -1371,7 +1371,7 @@ static SaErrorT get_inventory_capabilities(struct snmp_client_hnd *custom_handle
 	oid anOID[MAX_OID_LEN];
         oid *indices;
 
-printf("***** get_inventory_capabilities *****\n");
+dbg("***** get_inventory_capabilities *****");
 
         /* make sure present inventory cap count marches discovered */
         status = snmp_get2(custom_handle->ss,
@@ -1379,7 +1379,7 @@ printf("***** get_inventory_capabilities *****\n");
                            SA_HPI_INV_COUNT_OID_LEN, 
                            &get_value);
 
-printf("***** get_inventory_capabilities:snmp_get2 *****\n");
+dbg("***** get_inventory_capabilities:snmp_get2 *****");
 
         if (get_value.integer != rdr_type_count[SAHPI_INVENTORY_RDR]) {
                 dbg("Sever Error: SA_HPI_INVENTORY_COUNT value doesn't match Resource Capability Settings");
@@ -1410,7 +1410,7 @@ printf("***** get_inventory_capabilities:snmp_get2 *****\n");
                                      &get_cap_response, 
                                      get_value.integer);
 
-printf("***** get_inventory_capabilities:snmp_getn_bulk *****\n");
+dbg("***** get_inventory_capabilities:snmp_getn_bulk *****");
         /* Process the response */
         if (snmp_status == STAT_SUCCESS && get_cap_response->errstat == SNMP_ERR_NOERROR) {
         /* SUCCESS: Print the result variables */  
@@ -1431,7 +1431,7 @@ printf("***** get_inventory_capabilities:snmp_getn_bulk *****\n");
                                 indices[3] = vars->name[vars->name_length - 1];
 
                         } else
-                                printf("SA_HPI_INVENTORY_EIRID:something terrible has happened\n");
+                                dbg("SA_HPI_INVENTORY_EIRID:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1451,7 +1451,7 @@ printf("***** get_inventory_capabilities:snmp_getn_bulk *****\n");
                                 sahpi_inventory_cap[i].InventoryRec.Oem = 
                                         (SaHpiUint32T)*vars->val.integer;
                         else
-                                printf("SA_HPI_INVENTORY_OEM:something terrible has happened\n");
+                                dbg("SA_HPI_INVENTORY_OEM:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1462,9 +1462,9 @@ printf("***** get_inventory_capabilities:snmp_getn_bulk *****\n");
 
         /* INVENTORY CAPABILITIES ADD TO rdr_cache */
         if (status == SA_OK) {
-                printf("***********************************************************\n");
-                printf("** Adding sahpi_inventory_cap[] to rdr_cache[]           **\n");
-                printf("***********************************************************\n");
+                dbg("***********************************************************");
+                dbg("** Adding sahpi_inventory_cap[] to rdr_cache[]           **");
+                dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_rdrs; i++) {
                         if (rdr_cache[i].RdrType == SAHPI_INVENTORY_RDR ) {
