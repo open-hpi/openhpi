@@ -32,7 +32,7 @@
 
 #define NCT 25
 
-char progver[] = "0.1 HPI-B";
+char progver[] = "0.2 HPI-B";
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
 	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
@@ -109,8 +109,6 @@ main(int argc, char **argv)
 		exit(-1);
 	}
 
-	printf("SessionId %d opened\n", sessionid);
-
 	do {
 		rv = saHpiDiscover(sessionid);
 		if (fxdebug) printf("saHpiDiscover rv = %s\n",oh_lookup_error(rv));
@@ -155,6 +153,8 @@ main(int argc, char **argv)
 							if (rvInvent !=SA_OK) {
 								printf("saHpiIdrInfoGet IdrId %d,  error %s\n", idrid, oh_lookup_error(rvInvent));
 							} else {
+								printf("\nIdr for %s, ResourceId: %d\n",
+									 rptentry.ResourceTag.Data,resourceid);
 								oh_print_idrinfo(&idrInfo, 4);
 								walkInventory(sessionid, resourceid, &idrInfo);
 							}
@@ -169,7 +169,7 @@ main(int argc, char **argv)
 
 	/* 
 	   Because INVENTORY RDR will be added after some time, 
-	   we need to monitor RptInfo here. 
+	   we need to monitor RptInfo here; IMPI plugin.
 	
 	   Try again if none was found this pass 
 	*/        
