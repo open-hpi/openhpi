@@ -71,8 +71,8 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
  * supported by the core infra-structure code.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_INTERNAL_ERROR - infra-structure and plugin ABI versions are incompatible.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_INTERNAL_ERROR - Infra-structure and plugin ABI versions are incompatible.
  **/
 SaErrorT get_interface(void **pp, const uuid_t uuid)
 {
@@ -95,7 +95,7 @@ SaErrorT get_interface(void **pp, const uuid_t uuid)
  *
  * Return values:
  * 1 - events to be processed.
- * SA_OK - no events to be processed.
+ * SA_OK - No events to be processed.
  * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
  **/
 SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
@@ -134,9 +134,9 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
  * Sets resource's tag.
  *
  * Return values:
- * SA_OK - normal case.
+ * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - @tag is NULL or invalid.
- * SA_ERR_HPI_OUT_OF_SPACE - no memory to allocate event.
+ * SA_ERR_HPI_OUT_OF_SPACE - No memory to allocate event.
  **/
 SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag)
 {
@@ -165,7 +165,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
         /* Add changed resource to event queue */
         e = g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) {
-		dbg("No memory.");
+		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
@@ -185,9 +185,9 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
  * Sets severity of events when resource unexpectedly becomes unavailable.
  *
  * Return values:
- * SA_OK - normal case.
+ * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - @sev is invalid.
- * SA_ERR_HPI_OUT_OF_SPACE - no memory to allocate event.
+ * SA_ERR_HPI_OUT_OF_SPACE - No memory to allocate event.
  **/
 SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev)
 {
@@ -211,7 +211,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
         /* Add changed resource to event queue */
         e = g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) {
-		dbg("No memory.");
+		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 	
@@ -231,7 +231,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
  * Save and restore saved configuration parameters.
  *
  * Return values:
- * SA_OK - normal case.
+ * SA_OK - Normal case.
  * SA_ERR_HPI_INVALID_PARAMS - @act is invalid.
  **/
 SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act)
@@ -274,7 +274,7 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
  * BUSY and only fail on NO_RESPONSE.
  *
  * Return values:
- * SA_OK - normal case.
+ * SA_OK - Normal case.
  **/
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           const char *objid,
@@ -323,7 +323,7 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
  * BUSY and only fail on NO_RESPONSE.
  *
  * Return values:
- * SA_OK - normal case.
+ * SA_OK - Normal case.
  **/
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
                           char *objid,

@@ -28,10 +28,11 @@
  * sensor presence.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_INVALID_REQUEST - if sensor is disabled.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_INVALID_REQUEST - Sensor is disabled.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
 SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				    SaHpiResourceIdT rid,
@@ -52,24 +53,22 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
 
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) return(SA_ERR_HPI_CAPABILITY);
 
-	/* Check if sensor exist and is enabled */
+	/* Check if sensor exists and is enabled */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	if (sinfo->sensor_enabled == SAHPI_FALSE) return(SA_ERR_HPI_INVALID_REQUEST);
@@ -104,8 +103,21 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		dbg("Cannot determine sensor's event state. Error=%s", oh_lookup_error(err));
 		return(err);
 	}
-	
-	sinfo->cur_state = working_state;
+
+#if 0
+	{       /* Debug section */
+		SaHpiTextBufferT buffer;
+
+		dbg("Sensor=%s", rdr->IdString.Data);
+		oh_decode_sensorreading(working_reading, rdr->RdrTypeUnion.SensorRec.DataFormat, &buffer);
+		dbg("  Reading: %s.", buffer.Data);
+		
+		oh_decode_eventstate(working_state, rdr->RdrTypeUnion.SensorRec.Category, &buffer);
+		dbg("  Event State: %s\n", buffer.Data);
+	}
+#endif
+
+	/* sinfo->cur_state = working_state; */
 	if (reading) memcpy(reading, &working_reading, sizeof(SaHpiSensorReadingT));
 	if (state) memcpy(state, &working_state, sizeof(SaHpiEventStateT));
 	
@@ -123,11 +135,11 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
  * Translates and sensor's reading into an event state(s).
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_INVALID_REQUEST - if sensor is disabled.
- * SA_ERR_HPI_INVALID_PARAMS - if @hnd, @reading, @state is NULL.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_INVALID_REQUEST - Sensor is disabled.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 				       SaHpiResourceIdT rid,
@@ -154,7 +166,7 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	if (sinfo->sensor_enabled == SAHPI_FALSE) return(SA_ERR_HPI_INVALID_REQUEST);
@@ -189,37 +201,37 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 			return(err);
 		}
 		if (thres.LowCritical.IsSupported == SAHPI_TRUE) {
-			if (memcmp(&reading->Value, &thres.LowCritical.Value, sizeof(SaHpiSensorReadingUnionT)) <= 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, &thres.LowCritical) <= 0) {
 				*state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.LowMajor.IsSupported == SAHPI_TRUE) {
-			if (memcmp(&reading->Value, &thres.LowMajor.Value, sizeof(SaHpiSensorReadingUnionT)) <= 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, &thres.LowMajor) <= 0) {
 				*state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.LowMinor.IsSupported == SAHPI_TRUE) {
-			if (memcmp(&reading->Value, &thres.LowMinor.Value, sizeof(SaHpiSensorReadingUnionT)) <= 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, &thres.LowMinor) <= 0) {
 				*state = SAHPI_ES_LOWER_MINOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.UpCritical.IsSupported == SAHPI_TRUE) {
-			if (memcmp(&reading->Value, &thres.UpCritical.Value, sizeof(SaHpiSensorReadingUnionT)) >= 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, &thres.UpCritical) >= 0) {
 				*state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.UpMajor.IsSupported == SAHPI_TRUE) {
-			if (memcmp(&reading->Value, &thres.UpMajor.Value, sizeof(SaHpiSensorReadingUnionT)) >= 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, &thres.UpMajor) >= 0) {
 				*state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR;
 				return(SA_OK);
 			}
 		}
 		if (thres.UpMinor.IsSupported == SAHPI_TRUE) {		
-			if (memcmp(&reading->Value, &thres.UpMinor.Value, sizeof(SaHpiSensorReadingUnionT)) >= 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, &thres.UpMinor) >= 0) {
 				*state = SAHPI_ES_UPPER_MINOR;
 				return(SA_OK);
 			}
@@ -232,9 +244,8 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 
 		/* reading == nominal */
 		if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_NOMINAL) {
-			if (memcmp(&reading->Value, 
-				   &sinfo->reading2event[i].rangemap.Nominal.Value,
-				   sizeof(SaHpiSensorReadingUnionT)) == 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, 
+						     &sinfo->reading2event[i].rangemap.Nominal) == 0) {
 				*state = sinfo->reading2event[i].state;
 				return(SA_OK);
 			}
@@ -242,12 +253,10 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 		/* min <= reading <= max */
 		if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX &&
 		    sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN) {
-			if (memcmp(&reading->Value, 
-				   &sinfo->reading2event[i].rangemap.Min.Value,
-				   sizeof(SaHpiSensorReadingUnionT)) >= 0 &&
-			    memcmp(&reading->Value, 
-				   &sinfo->reading2event[i].rangemap.Max.Value,
-				   sizeof(SaHpiSensorReadingUnionT)) <= 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, 
+						     &sinfo->reading2event[i].rangemap.Min) >= 0 &&
+			    oh_compare_sensorreading(reading->Type, reading, 
+						     &sinfo->reading2event[i].rangemap.Max) <= 0) {
 				*state = sinfo->reading2event[i].state;
 				return(SA_OK);
 			}
@@ -255,9 +264,8 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 		/* reading > max */
 		if (sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX &&
 		    !(sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN)) {
-			if (memcmp(&reading->Value, 
-				   &sinfo->reading2event[i].rangemap.Max.Value,
-				   sizeof(SaHpiSensorReadingUnionT)) > 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, 
+						     &sinfo->reading2event[i].rangemap.Max) > 0) {
 				*state = sinfo->reading2event[i].state;
 				return(SA_OK);
 			}
@@ -265,16 +273,16 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 		/* reading < min */
 		if (!(sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MAX) &&
 		    sinfo->reading2event[i].rangemap.Flags & SAHPI_SRF_MIN) {
-			if (memcmp(&reading->Value, 
-				   &sinfo->reading2event[i].rangemap.Min.Value,
-				   sizeof(SaHpiSensorReadingUnionT)) < 0) {
+			if (oh_compare_sensorreading(reading->Type, reading, 
+						     &sinfo->reading2event[i].rangemap.Min) < 0) {
 				*state = sinfo->reading2event[i].state;
 				return(SA_OK);
 			}
 		}
 	}
 
-	*state = SAHPI_ES_UNSPECIFIED;
+        /* Unfortunately for thresholds, this also means normal */
+	*state = SAHPI_ES_UNSPECIFIED; 
 
 	return(SA_OK);
 }
@@ -313,11 +321,11 @@ do { \
  * Retreives sensor's threshold values, if defined.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_INVALID_CMD - if sensor is not threshold type, has accessible or readable thresholds.
- * SA_ERR_HPI_INVALID_PARAMS - if @hnd or @thres is NULL.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_INVALID_CMD - Sensor is not threshold type, has accessible or readable thresholds.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT rid,
@@ -345,7 +353,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
         sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
@@ -428,19 +436,19 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		{
 			SaHpiInt64T delta;
 			if (found_thresholds & SAHPI_STM_LOW_CRIT) {
-				delta = reading.Value.SensorInt64 - working.LowCritical.Value.SensorInt64 - 1;
+				delta = reading.Value.SensorInt64 - working.LowCritical.Value.SensorInt64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_LOW_MAJOR) {
-					delta = reading.Value.SensorInt64 - working.LowMajor.Value.SensorInt64 - 1;
+					delta = reading.Value.SensorInt64 - working.LowMajor.Value.SensorInt64;
 				}
 				else {
-					delta = reading.Value.SensorInt64 - working.LowMinor.Value.SensorInt64 - 1;
+					delta = reading.Value.SensorInt64 - working.LowMinor.Value.SensorInt64;
 				}
 			}
 
 			if (delta < 0) {
-				dbg("Hysteresis delta is less than 0");
+				dbg("Negative hysteresis delta is less than 0");
 				working.NegThdHysteresis.IsSupported = SAHPI_FALSE;
 			}
 			else {
@@ -454,19 +462,19 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		{
 			SaHpiFloat64T delta;
 			if (found_thresholds & SAHPI_STM_LOW_CRIT) {
-				delta = reading.Value.SensorFloat64 - working.LowCritical.Value.SensorFloat64 - 1;
+				delta = reading.Value.SensorFloat64 - working.LowCritical.Value.SensorFloat64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_LOW_MAJOR) {
-					delta = reading.Value.SensorFloat64 - working.LowMajor.Value.SensorFloat64 - 1;
+					delta = reading.Value.SensorFloat64 - working.LowMajor.Value.SensorFloat64;
 				}
 				else {
-					delta = reading.Value.SensorFloat64 - working.LowMinor.Value.SensorFloat64 - 1;
+					delta = reading.Value.SensorFloat64 - working.LowMinor.Value.SensorFloat64;
 				}
 			}
 
 			if (delta < 0) {
-				dbg("Hysteresis delta is less than 0");
+				dbg("Negative hysteresis delta is less than 0");
 				working.NegThdHysteresis.IsSupported = SAHPI_FALSE;
 			}
 			else {
@@ -515,19 +523,19 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		{
 			SaHpiInt64T delta;
 			if (found_thresholds & SAHPI_STM_UP_CRIT) {
-				delta = working.UpCritical.Value.SensorInt64 - reading.Value.SensorInt64 - 1;
+				delta = working.UpCritical.Value.SensorInt64 - reading.Value.SensorInt64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_UP_MAJOR) {
-					delta = working.UpMajor.Value.SensorInt64 - reading.Value.SensorInt64 - 1;
+					delta = working.UpMajor.Value.SensorInt64 - reading.Value.SensorInt64;
 				}
 				else {
-					delta = working.UpMinor.Value.SensorInt64 - reading.Value.SensorInt64 - 1;
+					delta = working.UpMinor.Value.SensorInt64 - reading.Value.SensorInt64;
 				}
 			}
 
 			if (delta < 0) {
-				dbg("Hysteresis delta is less than 0");
+				dbg("Positive hysteresis delta is less than 0");
 				working.PosThdHysteresis.IsSupported = SAHPI_FALSE;
 			}
 			else {
@@ -541,19 +549,19 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		{
 			SaHpiFloat64T delta;
 			if (found_thresholds & SAHPI_STM_UP_CRIT) {
-				delta = working.UpCritical.Value.SensorFloat64 - reading.Value.SensorFloat64 - 1;
+				delta = working.UpCritical.Value.SensorFloat64 - reading.Value.SensorFloat64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_UP_MAJOR) {
-					delta = working.UpMajor.Value.SensorFloat64 - reading.Value.SensorFloat64 - 1;
+					delta = working.UpMajor.Value.SensorFloat64 - reading.Value.SensorFloat64;
 				}
 				else {
-					delta = working.UpMinor.Value.SensorFloat64 - reading.Value.SensorFloat64 - 1;
+					delta = working.UpMinor.Value.SensorFloat64 - reading.Value.SensorFloat64;
 				}
 			}
 
 			if (delta < 0) {
-				dbg("Hysteresis delta is less than 0");
+				dbg("Positive hysteresis delta is less than 0");
 				working.PosThdHysteresis.IsSupported = SAHPI_FALSE;
 			}
 			else {
@@ -561,6 +569,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				working.PosThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 				working.PosThdHysteresis.Value.SensorFloat64 = delta;
 			}
+
 			break;
 		}
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
@@ -628,12 +637,12 @@ do { \
  * Sets sensor's threshold values.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
  * SA_ERR_HPI_INVALID_CMD - Non-writable thresholds or invalid thresholds.
- * SA_ERR_HPI_INVALID_DATA - if threshold values out of order; negative hysteresis
- * SA_ERR_HPI_INVALID_PARAMS - if @hnd or @thres is NULL.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_ERR_HPI_INVALID_DATA - Threshold values out of order; negative hysteresis
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT rid,
@@ -660,7 +669,7 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
@@ -719,7 +728,7 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -786,7 +795,7 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -847,10 +856,10 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
  * Retrieves a sensor's boolean enablement status.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_INVALID_PARAMS - if @enable NULL.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @enable is NULL.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_get_sensor_enable(void *hnd,
 				   SaHpiResourceIdT rid,
@@ -876,7 +885,7 @@ SaErrorT snmp_bc_get_sensor_enable(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	
@@ -895,9 +904,9 @@ SaErrorT snmp_bc_get_sensor_enable(void *hnd,
  * Sets a sensor's boolean enablement status.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 				   SaHpiResourceIdT rid,
@@ -925,7 +934,7 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
-			dbg("Cannot retrieve sensor data.");
+			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
@@ -952,9 +961,9 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
  * Retrieves a sensor's boolean event enablement status.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
 					 SaHpiResourceIdT rid,
@@ -979,7 +988,7 @@ SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	
@@ -998,9 +1007,9 @@ SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
  * Sets a sensor's boolean event enablement status.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 					 SaHpiResourceIdT rid,
@@ -1029,7 +1038,7 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
-			dbg("Cannot retrieve sensor data.");
+			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 		
@@ -1057,9 +1066,9 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
  * Retrieves a sensor's assert and deassert event masks.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 					SaHpiResourceIdT rid,
@@ -1090,7 +1099,7 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		dbg("Cannot retrieve sensor data.");
+		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 
@@ -1117,11 +1126,11 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
  * Sets a sensor's assert and deassert event masks.
  *
  * Return values:
- * SA_OK - normal case.
- * SA_ERR_HPI_CAPABILITY - if resource doesn't have SAHPI_CAPABILITY_SENSOR.
- * SA_ERR_HPI_INVALID_DATA - if @act not valid or @AssertEventMask/@DeassertEventMask
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_INVALID_DATA - @act not valid or @AssertEventMask/@DeassertEventMask
  *                           contain events not supported by sensor. 
- * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
+ * SA_ERR_HPI_NOT_PRESENT - Sensor doesn't exist.
  **/
 SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 					SaHpiResourceIdT rid,
@@ -1155,7 +1164,7 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
-			dbg("Cannot retrieve sensor data.");
+			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 

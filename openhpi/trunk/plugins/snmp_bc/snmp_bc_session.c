@@ -49,7 +49,7 @@ void *snmp_bc_open(GHashTable *handler_config)
         handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
         custom_handle = (struct snmp_bc_hnd *)g_malloc0(sizeof(struct snmp_bc_hnd));
         if (!handle || !custom_handle) {
-                dbg("Cannot allocate memory for handle or custom_handle.");
+                dbg("Out of memory.");
                 return NULL;
         }
 
@@ -67,13 +67,13 @@ void *snmp_bc_open(GHashTable *handler_config)
 
 	/* Initialize "String to Event" mapping hash table */
 	/* FIXME:: Add RSA initialization here */
-	if (bc_xml2event_hash_use_count == 0) {
-		if (xml2event_hash_init(&bc_xml2event_hash, bc_eventxml)) {
+	if (errlog2event_hash_use_count == 0) {
+		if (errlog2event_hash_init(&errlog2event_hash, bc_eventxml)) {
 			dbg("Out of memory.");
 			return NULL;
 		}
 	}
-	bc_xml2event_hash_use_count++;
+	errlog2event_hash_use_count++;
 	
 	/* Initialize "Event Number to HPI Event" mapping hash table */
 	if (event2hpi_hash_init(handle)) {
@@ -274,8 +274,8 @@ void snmp_bc_close(void *hnd)
 
 	/* Cleanup str2event hash table */
 	/* FIXME:: Add RSA free here */
-	bc_xml2event_hash_use_count--;
-	if (bc_xml2event_hash_use_count == 0) {
-		xml2event_hash_free(&bc_xml2event_hash);
+	errlog2event_hash_use_count--;
+	if (errlog2event_hash_use_count == 0) {
+		errlog2event_hash_free(&errlog2event_hash);
 	}
 }
