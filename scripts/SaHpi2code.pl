@@ -112,6 +112,7 @@ if ($tfile) { open(FILE_TEST, ">>$tfile") or die "$0 Error! Cannot open file $tf
 #########################
 # Parse input header file
 #########################
+
 $line_count = 0;
 $rtn_code = 0;
 $in_enum = 0;
@@ -124,9 +125,6 @@ $cat_type = "SaHpiEventCategoryT";
 @normalized_array = ();
 
 if (&normalize_file(INPUT_HEADER)) { $rtn_code = 1; goto CLEANUP; }
-#if (&normalize_file(INPUT_HEADER, FILE_TMP)) { $rtn_code = 1; goto CLEANUP; }
-#close FILE_TMP;
-#open(FILE_TMP, $file_tmp) or "$0 Error! Cannot read file $file_tmp. $! Stopped";
 
 &print_copywrite(FILE_C);
 &print_copywrite(FILE_H);
@@ -137,12 +135,11 @@ if ($tfile) { &print_copywrite(FILE_TEST); }
 
 if ($tfile) { &print_testfile_header(); }
 
-#while ( <FILE_TMP> ) {
 foreach $line (@normalized_array) {
     $_ = $line;
 
     # Handle SaErrorT definitions
-    ($err_code) = /^\s*\#define\s+(\w*)\s*\($err_type\).*$/;
+    ($err_code) = /^\s*\#define\s+(\w+)\s*\($err_type\).*$/;
     if ($err_code) {
         push(@err_array, $err_code);
 	next;
@@ -235,13 +232,10 @@ exit ($rtn_code);
 #############
 
 sub normalize_file {
-
-#    my( $input_handle, $tmp_handle ) = @_;
     my( $input_handle ) = @_;
-
     $in_comments = 0;
-    while ( <$input_handle> ) {
 
+    while ( <$input_handle> ) {
 	chomp;
 	next if /^\s*$/;               # Skip blank lines
 	next if /^\s*\/\/.*$/;         # Skip // lines
@@ -257,7 +251,6 @@ sub normalize_file {
 	    ($line) =~ s/^(.*?)\/\*.*$/$1/; # Get part of line before comment
 	    chomp $line;
 	    if ($line ne "") {
-#		print $tmp_handle "$line\n";
 		push(@normalized_array, $line);
 	    }
 	    if ($debug) {
@@ -293,7 +286,6 @@ sub normalize_file {
 
         # Change commas to NLs
 	$line =~ s/,/\n/g;
-#	print $tmp_handle "$line\n";
 	@fields = split/\n/,$line;
 	foreach $field (@fields) {
 	    chomp $field;
@@ -310,8 +302,8 @@ sub normalize_file {
 ####################################
 
 sub print_copywrite {
-    
     my ( $file_handle ) = @_;
+
     print $file_handle <<EOF;
 /*      -*- linux-c -*-
  *
@@ -435,8 +427,8 @@ sub print_cfile_func {
  *
  * Converts \"value\" into its HPI enum string definition.
  * 
- * Returns: HPI enum string definition.
- *          NULL - if \"value\" not a valid $type.
+ * Returns: 
+ * NULL - if \"value\" not a valid $type.
  **/
 const char * $func_name($type value)
 {
@@ -470,9 +462,44 @@ EOF
 sub print_cfile_case {
     my( $case ) = @_;
 
+    # Same stripping code must be in print_testfile_case 
+    $casestr = $case;
+    $casestr =~ s/^SAHPI_//; # Strip "SAHPI_"
+    $casestr =~ s/^SU_//;    # Strip "SU_" from units 
+                             # SaHpi_struct_utils.c depends on this
     print FILE_C <<EOF;
         case $case:
-                return \"$case\";
+                return \"$casestr\";
+EOF
+
+    return 0;
+}
+
+################################
+# Print testcase file's testcase
+################################
+
+sub print_testfile_case {
+    my( $type, $case ) = @_;
+    $func_name = $type . "2str";
+
+    $casestr = $case;
+    $casestr =~ s/^SAHPI_//; # Strip "SAHPI_"
+    $casestr =~ s/^SU_//;    # Strip "SU_" from units 
+                             # SaHpi_struct_utils.c depends on this
+    print FILE_TEST <<EOF;
+        /* $type - $case testcase */
+        {
+	        $type value = $case;
+                expected_str = "$casestr";
+
+                str = $func_name(value);
+                if (strcmp(expected_str, str)) {
+                        printf("$tbase_name Error! Testcase $type - $case failed\\n");
+                        return -1;             
+                }
+	}
+
 EOF
 
     return 0;
@@ -502,38 +529,11 @@ EOF
     return 0;
 }
 
-################################
-# Print testcase file's testcase
-################################
-
-sub print_testfile_case {
-    my( $type, $case ) = @_;
-    $func_name = $type . "2str";
-
-    print FILE_TEST <<EOF;
-        /* $type - $case testcase */
-        {
-	        $type value = $case;
-                expected_str = "$case";
-
-                str = $func_name(value);
-                if (strcmp(expected_str, str)) {
-                        printf("$tbase_name Error! Testcase $type - $case failed\\n");
-                        return -1;             
-                }
-	}
-
-EOF
-
-    return 0;
-}
-
 ####################################
 # Print testcase file's default test
 ####################################
 
 sub print_testfile_endfunc {
-
     my( $type ) = @_;  
     $func_name = $type . "2str";
     
