@@ -165,7 +165,8 @@ TESTS = tevent \
 	thotswap009   \
 	tsptime001    \
 	tsptime002    \
-	tdiscover001
+	tdiscover001  \
+	tdiscover002
 #	testxml
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
@@ -643,6 +644,12 @@ tdiscover001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
+
+# 
+tdiscover002_SOURCES = tdiscover002.c 
+tdiscover002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 # Unit tests with IF and snmp calls stubbed out
 #testxml_SOURCES = testxml.c
 #testxml_LDADD   = com_xml2event.c
