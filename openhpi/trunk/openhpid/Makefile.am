@@ -44,7 +44,7 @@ openhpid_SOURCES        = \
 	openhpid.h \
 	openhpid.cpp
 
-openhpid_LDADD          = libmarshal.a $(top_builddir)/src/libopenhpi.la
+openhpid_LDADD          = $(top_builddir)/openhpid/libmarshal.a $(top_builddir)/src/libopenhpi.la
 openhpid_LDFLAGS        = -static
 
 # client library
@@ -53,12 +53,13 @@ openhpid_LDFLAGS        = -static
 lib_LTLIBRARIES	        = libopenhpiclient.la
 
 libopenhpiclient_la_SOURCES = \
-	${libmarshal_a_SOURCES} \
+	openhpiclient.h \
 	openhpiclient.c \
 	simple_config.h \
 	simple_config.c
 
 libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+libopenhpiclient_la_LIBADD  = $(top_builddir)/openhpid/libmarshal.a
 
 clean:
 	rm -f *~ core core.*

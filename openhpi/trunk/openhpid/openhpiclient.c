@@ -14,29 +14,23 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
-#include <SaHpi.h>
-#include "simple_config.h"
+#include "openhpiclient.h"
 #include "marshal_hpi.h"
-#include "connection.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-#define OH_CLIENT_DEFAULT_CONF "/etc/openhpi/openhpiclient.conf"
-
-
-typedef struct
+#ifdef dOpenHpiClientWithConfig
+static cOpenHpiClientConf config_data = 
 {
-  char m_server[dConfigStringMaxLength];
-  int  m_port;
-  int  m_debug;
-} cOpenHpiClientConf;
+  .m_num_sessions = 0,
+  .m_client_connection = 0,
+  .m_initialize = 0
+};
 
+static cOpenHpiClientConf *config = &config_data;
 
-static cClientConnection  *client_connection = 0;
-static int                 num_sessions = 0;
-static cOpenHpiClientConf  config;
 static cConfigEntry config_table[] =
 {
   {
@@ -61,23 +55,26 @@ static cConfigEntry config_table[] =
     .m_type = eConfigTypeUnknown
   }
 };
+#endif
 
 
 static int
-OpenConnection( void )
+OpenConnection( cOpenHpiClientConf *c )
 {
-  assert( client_connection == 0 );
+  assert( c->m_client_connection == 0 );
 
+#ifdef dOpenHpiClientWithConfig
   char *openhpi_client_conf = getenv( "OPENHPICLIENT_CONF" );
 
   if ( openhpi_client_conf == 0 )
        openhpi_client_conf = OH_CLIENT_DEFAULT_CONF;
 
-  ConfigRead( openhpi_client_conf, config_table, &config );
+  ConfigRead( openhpi_client_conf, config_table, c );
+#endif
 
-  client_connection = ClientConnectionOpen( config.m_server, config.m_port );
+  c->m_client_connection = ClientConnectionOpen( c->m_server, c->m_port );
 
-  if ( !client_connection )
+  if ( !c->m_client_connection )
        return 0;
 
   return 1;
@@ -85,18 +82,18 @@ OpenConnection( void )
 
 
 static void
-CloseConnection( void )
+CloseConnection( cOpenHpiClientConf *c )
 {
-  assert( client_connection );
-  ClientConnectionClose( client_connection );
-  client_connection = 0;
+  assert( c->m_client_connection );
+  ClientConnectionClose( c->m_client_connection );
+  c->m_client_connection = 0;
 }
 
 
 #define CheckSession() \
   do                                            \
      {                                          \
-       if ( !client_connection )                \
+       if ( !config->m_client_connection )      \
 	    return SA_ERR_HPI_INVALID_SESSION;  \
      }                                          \
   while( 0 )
@@ -120,7 +117,7 @@ CloseConnection( void )
 #define Send()       \
   do                 \
      {               \
-       int r = ClientConnectionWriteMsg( client_connection, &request_header, \
+       int r = ClientConnectionWriteMsg( config->m_client_connection, &request_header, \
                                          request, &reply_header, &reply ); \
                      \
        free( request ); \
@@ -136,16 +133,15 @@ CloseConnection( void )
        free( reply )
 
 
-static int initialize = 0;
 
 
-SaErrorT SAHPI_API 
-saHpiInitialize( SAHPI_OUT SaHpiVersionT *HpiImplVersion )
+SaErrorT SAHPI_API
+dOpenHpiClientFunction(Initialize)dOpenHpiClientParam( SAHPI_OUT SaHpiVersionT *HpiImplVersion )
 {
-  if ( initialize )
+  if ( config->m_initialize )
        return SA_ERR_HPI_DUPLICATE;
 
-  initialize = 1;
+  config->m_initialize = 1;
 
   *HpiImplVersion = SAHPI_INTERFACE_VERSION;
 
@@ -154,29 +150,29 @@ saHpiInitialize( SAHPI_OUT SaHpiVersionT *HpiImplVersion )
 
 
 SaErrorT SAHPI_API
-saHpiFinalize ( void )
+dOpenHpiClientFunction(Finalize)dOpenHpiClientParam()
 {
-  if ( num_sessions )
+  if ( config->m_num_sessions )
        return SA_ERR_HPI_BUSY;
- 
-  initialize = 0;
+
+  config->m_initialize = 0;
 
   return SA_OK;
 }
 
 
 SaErrorT SAHPI_API
-saHpiSessionOpen( SAHPI_IN  SaHpiDomainIdT   DomainId,
+dOpenHpiClientFunction(SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT   DomainId,
 		  SAHPI_OUT SaHpiSessionIdT *SessionId,
 		  SAHPI_IN  void            *SecurityParams )
 {
-  if ( num_sessions == 0 )
+  if ( config->m_num_sessions == 0 )
      {
-       if ( !OpenConnection() )
+       if ( !OpenConnection( config ) )
 	    return SA_ERR_HPI_INITIALIZING;
      }
 
-  num_sessions++;
+  config->m_num_sessions++;
 
   PreMarshal( eFsaHpiSessionOpen );
 
@@ -190,15 +186,15 @@ saHpiSessionOpen( SAHPI_IN  SaHpiDomainIdT   DomainId,
 
   if ( err != SA_OK )
      {
-       num_sessions--;
+       config->m_num_sessions--;
    
-       assert( num_sessions >= 0 );
+       assert( config->m_num_sessions >= 0 );
 
-       if ( num_sessions < 0 )
-	    num_sessions = 0;
+       if ( config->m_num_sessions < 0 )
+	    config->m_num_sessions = 0;
   
-       if ( num_sessions == 0 )
-	    CloseConnection();
+       if ( config->m_num_sessions == 0 )
+	    CloseConnection( config );
      }
 
   return err;
@@ -206,7 +202,7 @@ saHpiSessionOpen( SAHPI_IN  SaHpiDomainIdT   DomainId,
 
 
 SaErrorT SAHPI_API
-saHpiSessionClose( SAHPI_IN SaHpiSessionIdT SessionId )
+dOpenHpiClientFunction(SessionClose)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
 {
   CheckSession();
 
@@ -219,22 +215,22 @@ saHpiSessionClose( SAHPI_IN SaHpiSessionIdT SessionId )
 
   PostMarshal();
 
-  num_sessions--;
+  config->m_num_sessions--;
 
-  assert( num_sessions >= 0 );
+  assert( config->m_num_sessions >= 0 );
 
-  if ( num_sessions < 0 )
-       num_sessions = 0;
+  if ( config->m_num_sessions < 0 )
+       config->m_num_sessions = 0;
 
-  if ( num_sessions == 0 )
-       CloseConnection();
+  if ( config->m_num_sessions == 0 )
+       CloseConnection( config );
 
   return err;
 }
 
 
 SaErrorT SAHPI_API
-saHpiResourcesDiscover( SAHPI_IN SaHpiSessionIdT SessionId )
+dOpenHpiClientFunction(ResourcesDiscover)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
 {
   CheckSession();
 
@@ -252,7 +248,7 @@ saHpiResourcesDiscover( SAHPI_IN SaHpiSessionIdT SessionId )
 
 
 SaErrorT SAHPI_API 
-saHpiRptInfoGet( SAHPI_IN SaHpiSessionIdT SessionId,
+dOpenHpiClientFunction(RptInfoGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId,
 		 SAHPI_OUT SaHpiRptInfoT *RptInfo )
 {
   CheckSession();
@@ -271,7 +267,7 @@ saHpiRptInfoGet( SAHPI_IN SaHpiSessionIdT SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiRptEntryGet( SAHPI_IN SaHpiSessionIdT SessionId,
+dOpenHpiClientFunction(RptEntryGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId,
 		  SAHPI_IN SaHpiEntryIdT EntryId,
 		  SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		  SAHPI_OUT SaHpiRptEntryT *RptEntry )
@@ -293,7 +289,7 @@ saHpiRptEntryGet( SAHPI_IN SaHpiSessionIdT SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiRptEntryGetByResourceId( SAHPI_IN  SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(RptEntryGetByResourceId)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 			      SAHPI_IN  SaHpiResourceIdT ResourceId,
 			      SAHPI_OUT SaHpiRptEntryT   *RptEntry )
 {
@@ -314,7 +310,7 @@ saHpiRptEntryGetByResourceId( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiResourceSeveritySet( SAHPI_IN  SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ResourceSeveritySet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 			  SAHPI_IN  SaHpiResourceIdT ResourceId,
 			  SAHPI_IN  SaHpiSeverityT   Severity )
 {
@@ -335,7 +331,7 @@ saHpiResourceSeveritySet( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiResourceTagSet( SAHPI_IN  SaHpiSessionIdT    SessionId,
+dOpenHpiClientFunction(ResourceTagSet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT    SessionId,
 		     SAHPI_IN  SaHpiResourceIdT   ResourceId,
 		     SAHPI_IN  SaHpiTextBufferT   *ResourceTag )
 {
@@ -356,7 +352,7 @@ saHpiResourceTagSet( SAHPI_IN  SaHpiSessionIdT    SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiResourceIdGet( SAHPI_IN  SaHpiSessionIdT   SessionId,
+dOpenHpiClientFunction(ResourceIdGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT   SessionId,
 		    SAHPI_OUT SaHpiResourceIdT  *ResourceId )
 {
   CheckSession();
@@ -376,7 +372,7 @@ saHpiResourceIdGet( SAHPI_IN  SaHpiSessionIdT   SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEntitySchemaGet( SAHPI_IN  SaHpiSessionIdT     SessionId,
+dOpenHpiClientFunction(EntitySchemaGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT     SessionId,
 		      SAHPI_OUT SaHpiUint32T        *SchemaId )
 {
   CheckSession();
@@ -396,7 +392,7 @@ saHpiEntitySchemaGet( SAHPI_IN  SaHpiSessionIdT     SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogInfoGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 		      SAHPI_IN  SaHpiResourceIdT ResourceId,
 		      SAHPI_OUT SaHpiSelInfoT    *Info )
 {
@@ -417,7 +413,7 @@ saHpiEventLogInfoGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogEntryGet( SAHPI_IN    SaHpiSessionIdT     SessionId,
+dOpenHpiClientFunction(EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT     SessionId,
 		       SAHPI_IN    SaHpiResourceIdT    ResourceId,
 		       SAHPI_IN    SaHpiSelEntryIdT    EntryId,
 		       SAHPI_OUT   SaHpiSelEntryIdT    *PrevEntryId,
@@ -454,7 +450,7 @@ saHpiEventLogEntryGet( SAHPI_IN    SaHpiSessionIdT     SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogEntryAdd( SAHPI_IN SaHpiSessionIdT      SessionId,
+dOpenHpiClientFunction(EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      SessionId,
 		       SAHPI_IN SaHpiResourceIdT     ResourceId,
 		       SAHPI_IN SaHpiSelEntryT       *EvtEntry )
 {
@@ -475,7 +471,7 @@ saHpiEventLogEntryAdd( SAHPI_IN SaHpiSessionIdT      SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogEntryDelete( SAHPI_IN SaHpiSessionIdT      SessionId,
+dOpenHpiClientFunction(EventLogEntryDelete)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      SessionId,
 			  SAHPI_IN SaHpiResourceIdT     ResourceId,
 			  SAHPI_IN SaHpiSelEntryIdT     EntryId )
 {
@@ -496,7 +492,7 @@ saHpiEventLogEntryDelete( SAHPI_IN SaHpiSessionIdT      SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiEventLogClear( SAHPI_IN  SaHpiSessionIdT   SessionId,
+dOpenHpiClientFunction(EventLogClear)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT   SessionId,
 		    SAHPI_IN  SaHpiResourceIdT  ResourceId )
 {
   CheckSession();
@@ -516,7 +512,7 @@ saHpiEventLogClear( SAHPI_IN  SaHpiSessionIdT   SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogTimeGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(EventLogTimeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 		      SAHPI_IN  SaHpiResourceIdT ResourceId,
 		      SAHPI_OUT SaHpiTimeT       *Time )
 {
@@ -537,7 +533,7 @@ saHpiEventLogTimeGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogTimeSet( SAHPI_IN SaHpiSessionIdT   SessionId,
+dOpenHpiClientFunction(EventLogTimeSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionId,
 		      SAHPI_IN SaHpiResourceIdT  ResourceId,
 		      SAHPI_IN SaHpiTimeT        Time )
 {
@@ -558,7 +554,7 @@ saHpiEventLogTimeSet( SAHPI_IN SaHpiSessionIdT   SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogStateGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(EventLogStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 		       SAHPI_IN  SaHpiResourceIdT ResourceId,
 		       SAHPI_OUT SaHpiBoolT       *Enable )
 {
@@ -579,7 +575,7 @@ saHpiEventLogStateGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEventLogStateSet( SAHPI_IN SaHpiSessionIdT   SessionId,
+dOpenHpiClientFunction(EventLogStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionId,
 		       SAHPI_IN SaHpiResourceIdT  ResourceId,
 		       SAHPI_IN SaHpiBoolT        Enable )
 {
@@ -600,7 +596,7 @@ saHpiEventLogStateSet( SAHPI_IN SaHpiSessionIdT   SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiSubscribe( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(Subscribe)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 		SAHPI_IN SaHpiBoolT       ProvideActiveAlarms )
 {
   CheckSession();
@@ -620,7 +616,7 @@ saHpiSubscribe( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiUnsubscribe( SAHPI_IN SaHpiSessionIdT SessionId )
+dOpenHpiClientFunction(Unsubscribe)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
 {
   CheckSession();
 
@@ -639,7 +635,7 @@ saHpiUnsubscribe( SAHPI_IN SaHpiSessionIdT SessionId )
 
 
 SaErrorT SAHPI_API
-saHpiEventGet( SAHPI_IN    SaHpiSessionIdT      SessionId,
+dOpenHpiClientFunction(EventGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT      SessionId,
 	       SAHPI_IN    SaHpiTimeoutT        Timeout,
 	       SAHPI_OUT   SaHpiEventT          *Event,
 	       SAHPI_INOUT SaHpiRdrT            *Rdr,
@@ -672,7 +668,7 @@ saHpiEventGet( SAHPI_IN    SaHpiSessionIdT      SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiRdrGet( SAHPI_IN  SaHpiSessionIdT       SessionId,
+dOpenHpiClientFunction(RdrGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT       SessionId,
 	     SAHPI_IN  SaHpiResourceIdT      ResourceId,
 	     SAHPI_IN  SaHpiEntryIdT         EntryId,
 	     SAHPI_OUT SaHpiEntryIdT         *NextEntryId,
@@ -696,7 +692,7 @@ saHpiRdrGet( SAHPI_IN  SaHpiSessionIdT       SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiSensorReadingGet( SAHPI_IN  SaHpiSessionIdT      SessionId,
+dOpenHpiClientFunction(SensorReadingGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      SessionId,
 		       SAHPI_IN  SaHpiResourceIdT     ResourceId,
 		       SAHPI_IN  SaHpiSensorNumT      SensorNum,
 		       SAHPI_OUT SaHpiSensorReadingT  *Reading )
@@ -719,7 +715,7 @@ saHpiSensorReadingGet( SAHPI_IN  SaHpiSessionIdT      SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiSensorReadingConvert( SAHPI_IN  SaHpiSessionIdT      SessionId,
+dOpenHpiClientFunction(SensorReadingConvert)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      SessionId,
 			   SAHPI_IN  SaHpiResourceIdT     ResourceId,
 			   SAHPI_IN  SaHpiSensorNumT      SensorNum,
 			   SAHPI_IN  SaHpiSensorReadingT  *ReadingInput,
@@ -744,7 +740,7 @@ saHpiSensorReadingConvert( SAHPI_IN  SaHpiSessionIdT      SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiSensorThresholdsGet( SAHPI_IN  SaHpiSessionIdT        SessionId,
+dOpenHpiClientFunction(SensorThresholdsGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT        SessionId,
 			  SAHPI_IN  SaHpiResourceIdT       ResourceId,
 			  SAHPI_IN  SaHpiSensorNumT        SensorNum,
 			  SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds )
@@ -770,7 +766,7 @@ saHpiSensorThresholdsGet( SAHPI_IN  SaHpiSessionIdT        SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiSensorThresholdsSet( SAHPI_IN  SaHpiSessionIdT        SessionId,
+dOpenHpiClientFunction(SensorThresholdsSet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT        SessionId,
 			  SAHPI_IN  SaHpiResourceIdT       ResourceId,
 			  SAHPI_IN  SaHpiSensorNumT        SensorNum,
 			  SAHPI_IN  SaHpiSensorThresholdsT *SensorThresholds )
@@ -792,7 +788,7 @@ saHpiSensorThresholdsSet( SAHPI_IN  SaHpiSessionIdT        SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiSensorTypeGet( SAHPI_IN  SaHpiSessionIdT     SessionId,
+dOpenHpiClientFunction(SensorTypeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT     SessionId,
 		    SAHPI_IN  SaHpiResourceIdT    ResourceId,
 		    SAHPI_IN  SaHpiSensorNumT     SensorNum,
 		    SAHPI_OUT SaHpiSensorTypeT    *Type,
@@ -816,7 +812,7 @@ saHpiSensorTypeGet( SAHPI_IN  SaHpiSessionIdT     SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiSensorEventEnablesGet( SAHPI_IN  SaHpiSessionIdT         SessionId,
+dOpenHpiClientFunction(SensorEventEnablesGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT         SessionId,
 			    SAHPI_IN  SaHpiResourceIdT        ResourceId,
 			    SAHPI_IN  SaHpiSensorNumT         SensorNum,
 			    SAHPI_OUT SaHpiSensorEvtEnablesT  *Enables )
@@ -839,7 +835,7 @@ saHpiSensorEventEnablesGet( SAHPI_IN  SaHpiSessionIdT         SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiSensorEventEnablesSet( SAHPI_IN SaHpiSessionIdT        SessionId,
+dOpenHpiClientFunction(SensorEventEnablesSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT        SessionId,
 			    SAHPI_IN SaHpiResourceIdT       ResourceId,
 			    SAHPI_IN SaHpiSensorNumT        SensorNum,
 			    SAHPI_IN SaHpiSensorEvtEnablesT *Enables )
@@ -862,7 +858,7 @@ saHpiSensorEventEnablesSet( SAHPI_IN SaHpiSessionIdT        SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiControlTypeGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ControlTypeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 		     SAHPI_IN  SaHpiResourceIdT ResourceId,
 		     SAHPI_IN  SaHpiCtrlNumT    CtrlNum,
 		     SAHPI_OUT SaHpiCtrlTypeT   *Type )
@@ -885,7 +881,7 @@ saHpiControlTypeGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiControlStateGet( SAHPI_IN    SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ControlStateGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT  SessionId,
 		      SAHPI_IN    SaHpiResourceIdT ResourceId,
 		      SAHPI_IN    SaHpiCtrlNumT    CtrlNum,
 		      SAHPI_INOUT SaHpiCtrlStateT  *CtrlState )
@@ -908,7 +904,7 @@ saHpiControlStateGet( SAHPI_IN    SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiControlStateSet( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ControlStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 		      SAHPI_IN SaHpiResourceIdT ResourceId,
 		      SAHPI_IN SaHpiCtrlNumT    CtrlNum,
 		      SAHPI_IN SaHpiCtrlStateT  *CtrlState )
@@ -930,7 +926,7 @@ saHpiControlStateSet( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEntityInventoryDataRead( SAHPI_IN    SaHpiSessionIdT         SessionId,
+dOpenHpiClientFunction(EntityInventoryDataRead)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT         SessionId,
 			      SAHPI_IN    SaHpiResourceIdT        ResourceId,
 			      SAHPI_IN    SaHpiEirIdT             EirId,
 			      SAHPI_IN    SaHpiUint32T            BufferSize,
@@ -942,7 +938,7 @@ saHpiEntityInventoryDataRead( SAHPI_IN    SaHpiSessionIdT         SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiEntityInventoryDataWrite( SAHPI_IN SaHpiSessionIdT          SessionId,
+dOpenHpiClientFunction(EntityInventoryDataWrite)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT          SessionId,
 			       SAHPI_IN SaHpiResourceIdT         ResourceId,
 			       SAHPI_IN SaHpiEirIdT              EirId,
 			       SAHPI_IN SaHpiInventoryDataT      *InventData )
@@ -952,7 +948,7 @@ saHpiEntityInventoryDataWrite( SAHPI_IN SaHpiSessionIdT          SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiWatchdogTimerGet( SAHPI_IN  SaHpiSessionIdT    SessionId,
+dOpenHpiClientFunction(WatchdogTimerGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT    SessionId,
 		       SAHPI_IN  SaHpiResourceIdT   ResourceId,
 		       SAHPI_IN  SaHpiWatchdogNumT  WatchdogNum,
 		       SAHPI_OUT SaHpiWatchdogT     *Watchdog )
@@ -975,7 +971,7 @@ saHpiWatchdogTimerGet( SAHPI_IN  SaHpiSessionIdT    SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiWatchdogTimerSet( SAHPI_IN SaHpiSessionIdT    SessionId,
+dOpenHpiClientFunction(WatchdogTimerSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT    SessionId,
 		       SAHPI_IN SaHpiResourceIdT   ResourceId,
 		       SAHPI_IN SaHpiWatchdogNumT  WatchdogNum,
 		       SAHPI_IN SaHpiWatchdogT     *Watchdog )
@@ -998,7 +994,7 @@ saHpiWatchdogTimerSet( SAHPI_IN SaHpiSessionIdT    SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiWatchdogTimerReset( SAHPI_IN SaHpiSessionIdT   SessionId,
+dOpenHpiClientFunction(WatchdogTimerReset)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionId,
 			 SAHPI_IN SaHpiResourceIdT  ResourceId,
 			 SAHPI_IN SaHpiWatchdogNumT WatchdogNum )
 {
@@ -1019,7 +1015,7 @@ saHpiWatchdogTimerReset( SAHPI_IN SaHpiSessionIdT   SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiHotSwapControlRequest( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(HotSwapControlRequest)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 			    SAHPI_IN SaHpiResourceIdT ResourceId )
 {
   CheckSession();
@@ -1039,7 +1035,7 @@ saHpiHotSwapControlRequest( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiResourceActiveSet( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ResourceActiveSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 			SAHPI_IN SaHpiResourceIdT ResourceId )
 {
   CheckSession();
@@ -1059,7 +1055,7 @@ saHpiResourceActiveSet( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiResourceInactiveSet( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ResourceInactiveSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 			  SAHPI_IN SaHpiResourceIdT ResourceId )
 {
   CheckSession();
@@ -1079,7 +1075,7 @@ saHpiResourceInactiveSet( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiAutoInsertTimeoutGet( SAHPI_IN  SaHpiSessionIdT SessionId,
+dOpenHpiClientFunction(AutoInsertTimeoutGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT SessionId,
 			   SAHPI_OUT SaHpiTimeoutT    *Timeout )
 {
   CheckSession();
@@ -1100,7 +1096,7 @@ saHpiAutoInsertTimeoutGet( SAHPI_IN  SaHpiSessionIdT SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiAutoInsertTimeoutSet( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(AutoInsertTimeoutSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 			   SAHPI_IN SaHpiTimeoutT    Timeout )
 {
   CheckSession();
@@ -1120,7 +1116,7 @@ saHpiAutoInsertTimeoutSet( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiAutoExtractTimeoutGet( SAHPI_IN  SaHpiSessionIdT   SessionId,
+dOpenHpiClientFunction(AutoExtractTimeoutGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT   SessionId,
 			    SAHPI_IN  SaHpiResourceIdT  ResourceId,
 			    SAHPI_OUT SaHpiTimeoutT     *Timeout )
 {
@@ -1141,7 +1137,7 @@ saHpiAutoExtractTimeoutGet( SAHPI_IN  SaHpiSessionIdT   SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiAutoExtractTimeoutSet( SAHPI_IN  SaHpiSessionIdT   SessionId,
+dOpenHpiClientFunction(AutoExtractTimeoutSet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT   SessionId,
 			    SAHPI_IN  SaHpiResourceIdT  ResourceId,
 			    SAHPI_IN  SaHpiTimeoutT     Timeout )
 {
@@ -1162,7 +1158,7 @@ saHpiAutoExtractTimeoutSet( SAHPI_IN  SaHpiSessionIdT   SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiHotSwapStateGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(HotSwapStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 		      SAHPI_IN  SaHpiResourceIdT ResourceId,
 		      SAHPI_OUT SaHpiHsStateT    *State )
 {
@@ -1184,7 +1180,7 @@ saHpiHotSwapStateGet( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiHotSwapActionRequest( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(HotSwapActionRequest)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 			   SAHPI_IN SaHpiResourceIdT ResourceId,
 			   SAHPI_IN SaHpiHsActionT   Action )
 {
@@ -1205,7 +1201,7 @@ saHpiHotSwapActionRequest( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiResourcePowerStateGet( SAHPI_IN  SaHpiSessionIdT     SessionId,
+dOpenHpiClientFunction(ResourcePowerStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT     SessionId,
 			    SAHPI_IN  SaHpiResourceIdT    ResourceId,
 			    SAHPI_OUT SaHpiHsPowerStateT  *State )
 {
@@ -1227,7 +1223,7 @@ saHpiResourcePowerStateGet( SAHPI_IN  SaHpiSessionIdT     SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiResourcePowerStateSet( SAHPI_IN SaHpiSessionIdT     SessionId,
+dOpenHpiClientFunction(ResourcePowerStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT     SessionId,
 			    SAHPI_IN SaHpiResourceIdT    ResourceId,
 			    SAHPI_IN SaHpiHsPowerStateT  State )
 {
@@ -1248,7 +1244,7 @@ saHpiResourcePowerStateSet( SAHPI_IN SaHpiSessionIdT     SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiHotSwapIndicatorStateGet( SAHPI_IN  SaHpiSessionIdT         SessionId,
+dOpenHpiClientFunction(HotSwapIndicatorStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT         SessionId,
 			       SAHPI_IN  SaHpiResourceIdT        ResourceId,
 			       SAHPI_OUT SaHpiHsIndicatorStateT  *State )
 {
@@ -1270,7 +1266,7 @@ saHpiHotSwapIndicatorStateGet( SAHPI_IN  SaHpiSessionIdT         SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiHotSwapIndicatorStateSet( SAHPI_IN SaHpiSessionIdT         SessionId,
+dOpenHpiClientFunction(HotSwapIndicatorStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT         SessionId,
 			       SAHPI_IN SaHpiResourceIdT        ResourceId,
 			       SAHPI_IN SaHpiHsIndicatorStateT  State )
 {
@@ -1291,7 +1287,7 @@ saHpiHotSwapIndicatorStateSet( SAHPI_IN SaHpiSessionIdT         SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiParmControl( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ParmControl)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 		  SAHPI_IN SaHpiResourceIdT ResourceId,
 		  SAHPI_IN SaHpiParmActionT Action )
 {
@@ -1312,7 +1308,7 @@ saHpiParmControl( SAHPI_IN SaHpiSessionIdT  SessionId,
 
 
 SaErrorT SAHPI_API
-saHpiResourceResetStateGet( SAHPI_IN SaHpiSessionIdT    SessionId,
+dOpenHpiClientFunction(ResourceResetStateGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT    SessionId,
 			    SAHPI_IN SaHpiResourceIdT   ResourceId,
 			    SAHPI_OUT SaHpiResetActionT *ResetAction )
 {
@@ -1334,7 +1330,7 @@ saHpiResourceResetStateGet( SAHPI_IN SaHpiSessionIdT    SessionId,
 
 
 SaErrorT SAHPI_API 
-saHpiResourceResetStateSet( SAHPI_IN SaHpiSessionIdT  SessionId,
+dOpenHpiClientFunction(ResourceResetStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 			    SAHPI_IN SaHpiResourceIdT ResourceId,
 			    SAHPI_IN SaHpiResetActionT ResetAction )
 {
