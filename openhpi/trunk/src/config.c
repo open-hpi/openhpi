@@ -393,7 +393,7 @@ int oh_load_config (char *filename)
         int oh_conf_file, i;
         GScanner* oh_scanner;
         int done = 0;
-        int num_tokens = (int) (sizeof(oh_conf_tokens) / sizeof(GTokenType));
+        int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
         init_plugin();
         add_domain(SAHPI_DEFAULT_DOMAIN_ID);	
