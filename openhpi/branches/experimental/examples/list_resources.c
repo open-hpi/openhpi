@@ -88,7 +88,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                 error("saHpiResourcesDiscover", err);
                 return err;
         }
-        
+ 	warn("list_resources: discover done");       
         /* grab copy of the update counter before traversing RPT */
         err = saHpiRptInfoGet(session_id, &rpt_info_before);
         if (SA_OK != err) {
@@ -114,14 +114,14 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
 
 		printf("***Records:\n");
                 printf("%s\n", (char *)entry.ResourceTag.Data);
-                printf("Entry ID: %x\n", (int) entry.EntryId);
-                printf("Resource ID: %x\n", (int) entry.ResourceId);
-                printf("Domain ID: %x\n", (int) entry.DomainId);
+                printf("Entry ID: %d\n", (int) entry.EntryId);
+                printf("Resource ID: %d\n", (int) entry.ResourceId);
+                printf("Domain ID: %d\n", (int) entry.DomainId);
                 printf("Revision: %c\n", entry.ResourceInfo.ResourceRev);
                 printf("Version: %c\n", entry.ResourceInfo.SpecificVer);
 		printf("Device Support: %c\n", entry.ResourceInfo.DeviceSupport);
-		printf("Manufacturer ID: %x\n", (int) entry.ResourceInfo.ManufacturerId);
-		printf("Product ID: %x\n", (int) entry.ResourceInfo.ProductId);
+		printf("Manufacturer ID: %d\n", (int) entry.ResourceInfo.ManufacturerId);
+		printf("Product ID: %d\n", (int) entry.ResourceInfo.ProductId);
 		printf("Firmware Major, Minor, Aux: %c %c %c\n", 
 		       entry.ResourceInfo.FirmwareMajorRev, 
 		       entry.ResourceInfo.FirmwareMinorRev,
