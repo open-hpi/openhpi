@@ -186,10 +186,10 @@ char *sim_util_get_sensor_dir(struct oh_handler_state *inst,
 {
         int retval;
         GHashTable *handler_config;
-        char *str1, *str2, *str;
-        int len1, len2;
+        char *str1, *str2, *str3, *str;
+        int len1, len2, len3;
         SaHpiEntryIdT entry_id;
- 
+
 
         handler_config = inst->config;
         str1 = g_hash_table_lookup(handler_config, "root_path");
@@ -206,11 +206,21 @@ char *sim_util_get_sensor_dir(struct oh_handler_state *inst,
         if (retval)
                 return NULL;
 
-        str = (char *)g_malloc0(len1 + len2 + 20);
-        if (str == NULL) 
-                return NULL;
+        str3 = oh_get_rdr_data(inst->rptcache, id, entry_id);
+        if (str3 == NULL) {
+            g_free(str2);
+            return NULL;
+        }
+        len3 = strlen(str3);
 
-        sprintf(str, "%s/%s/%x/sensor", str1, str2, entry_id);
+        str = (char *)g_malloc0(len1 + len2 + len3+ 20);
+        if (str == NULL) {
+             g_free(str2);
+             g_free(str3);
+             return NULL;
+        }
+
+        sprintf(str, "%s/%s/%s/sensor", str1, str2, str3);
         return str;
 }
 
