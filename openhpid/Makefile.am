@@ -32,7 +32,7 @@ openhpid_SOURCES        = \
 	openhpid.cpp
 
 openhpid_LDADD          = $(top_builddir)/marshal/libmarshal.la $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
-openhpid_LDFLAGS        = -static
+#openhpid_LDFLAGS        = -static
 
 # client library
 # please do not use any external libraries
