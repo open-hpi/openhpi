@@ -61,6 +61,8 @@ static inline int list_empty(struct list_head *entry)
 		(type *)((char *)ptr - off); })
 
 #define list_for_each(pos, head) \
-		for(pos=(head)->next; pos != head; pos = pos->next)
-
+		for(pos = (head)->next; pos != (head); pos = pos->next)
+#define list_for_each_safe(pos, n, head) \
+		for(pos = (head)->next, n = pos->next; pos != head; \
+				pos = n, n = pos->next)
 #endif//LIST_H
