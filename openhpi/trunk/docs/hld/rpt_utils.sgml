@@ -22,49 +22,49 @@
 #define     <link linkend="FREE-RPT-DATA-CAPS">FREE_RPT_DATA</link>
 #define     <link linkend="KEEP-RPT-DATA-CAPS">KEEP_RPT_DATA</link>
 void        <link linkend="oh-flush-rpt">oh_flush_rpt</link>                    (RPTable *table);
-void        <link linkend="rpt-diff">rpt_diff</link>                        (RPTable *cur_rpt,
-                                             RPTable *new_rpt,
-                                             GSList **res_new,
-                                             GSList **rdr_new,
-                                             GSList **res_gone,
-                                             GSList **rdr_gone);
-int         <link linkend="oh-add-resource">oh_add_resource</link>                 (RPTable *table,
-                                             SaHpiRptEntryT *entry,
-                                             void *data,
-                                             int owndata);
-int         <link linkend="oh-remove-resource">oh_remove_resource</link>              (RPTable *table,
-                                             SaHpiResourceIdT rid);
-void*       <link linkend="oh-get-resource-data">oh_get_resource_data</link>            (RPTable *table,
-                                             SaHpiResourceIdT rid);
-SaHpiRptEntryT* <link linkend="oh-get-resource-by-id">oh_get_resource_by_id</link>       (RPTable *table,
-                                             SaHpiResourceIdT rid);
-SaHpiRptEntryT* <link linkend="oh-get-resource-by-ep">oh_get_resource_by_ep</link>       (RPTable *table,
-                                             SaHpiEntityPathT *ep);
+void        <link linkend="rpt-diff">rpt_diff</link>                        	(RPTable *cur_rpt,
+                                             	RPTable *new_rpt,
+                                             	GSList **res_new,
+                                             	GSList **rdr_new,
+                                             	GSList **res_gone,
+                                             	GSList **rdr_gone);
+int         <link linkend="oh-add-resource">oh_add_resource</link>		(RPTable *table,
+                                             	SaHpiRptEntryT *entry,
+                                             	void *data,
+                                             	int owndata);
+int         <link linkend="oh-remove-resource">oh_remove_resource</link>        (RPTable *table,
+                                             	SaHpiResourceIdT rid);
+void*       <link linkend="oh-get-resource-data">oh_get_resource_data</link>    (RPTable *table,
+                                             	SaHpiResourceIdT rid);
+SaHpiRptEntryT* <link linkend="oh-get-resource-by-id">oh_get_resource_by_id</link>	(RPTable *table,
+                                             		SaHpiResourceIdT rid);
+SaHpiRptEntryT* <link linkend="oh-get-resource-by-ep">oh_get_resource_by_ep</link>      (RPTable *table,
+                                             		SaHpiEntityPathT *ep);
 SaHpiRptEntryT* <link linkend="oh-get-resource-next">oh_get_resource_next</link>        (RPTable *table,
-                                             SaHpiResourceIdT rid_prev);
-int         <link linkend="oh-add-rdr">oh_add_rdr</link>                      (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiRdrT *rdr,
-                                             void *data,
-                                             int owndata);
-int         <link linkend="oh-remove-rdr">oh_remove_rdr</link>                   (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid);
-void*       <link linkend="oh-get-rdr-data">oh_get_rdr_data</link>                 (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid);
-SaHpiRdrT*  <link linkend="oh-get-rdr-by-id">oh_get_rdr_by_id</link>                (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid);
-SaHpiRdrT*  <link linkend="oh-get-rdr-by-type">oh_get_rdr_by_type</link>              (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiRdrTypeT type,
-                                             SaHpiUint8T num);
-SaHpiRdrT*  <link linkend="oh-get-rdr-next">oh_get_rdr_next</link>                 (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid_prev);
-SaHpiUint32T <link linkend="get-rdr-uid">get_rdr_uid</link>                    (SaHpiRdrTypeT type,
-                                             SaHpiUint32T num);
+                                             		SaHpiResourceIdT rid_prev);
+int         <link linkend="oh-add-rdr">oh_add_rdr</link>                      	(RPTable *table,
+                                             	SaHpiResourceIdT rid,
+                                             	SaHpiRdrT *rdr,
+                                             	void *data,
+                                             	int owndata);
+int         <link linkend="oh-remove-rdr">oh_remove_rdr</link>                  (RPTable *table,
+                                             	SaHpiResourceIdT rid,
+                                             	SaHpiEntryIdT rdrid);
+void*       <link linkend="oh-get-rdr-data">oh_get_rdr_data</link>              (RPTable *table,
+                                             	SaHpiResourceIdT rid,
+                                             	SaHpiEntryIdT rdrid);
+SaHpiRdrT*  <link linkend="oh-get-rdr-by-id">oh_get_rdr_by_id</link>            (RPTable *table,
+                                             	SaHpiResourceIdT rid,
+                                             	SaHpiEntryIdT rdrid);
+SaHpiRdrT*  <link linkend="oh-get-rdr-by-type">oh_get_rdr_by_type</link>        (RPTable *table,
+                                             	SaHpiResourceIdT rid,
+                                             	SaHpiRdrTypeT type,
+                                             	SaHpiUint8T num);
+SaHpiRdrT*  <link linkend="oh-get-rdr-next">oh_get_rdr_next</link>              (RPTable *table,
+                                             	SaHpiResourceIdT rid,
+                                             	SaHpiEntryIdT rdrid_prev);
+SaHpiUint32T <link linkend="get-rdr-uid">get_rdr_uid</link>                    	(SaHpiRdrTypeT type,
+                                             	SaHpiUint32T num);
 </synopsis>
 </refsynopsisdiv>
 
@@ -87,7 +87,8 @@ and fetch them.
 <title>Details</title>
 <refsect2>
 <title><anchor id="RPT-ENTRY-BEGIN-CAPS">RPT_ENTRY_BEGIN</title>
-<programlisting>#define RPT_ENTRY_BEGIN 0xffffffff
+<programlisting>
+#define		RPT_ENTRY_BEGIN 0xffffffff
 </programlisting>
 <para>
 This constant can be used as a Resource Id to refer to the first entry in the
@@ -95,7 +96,8 @@ table with all resource calls except the <link linkend="oh-add-resource">oh_add_
 </para></refsect2>
 <refsect2>
 <title><anchor id="RDR-BEGIN-CAPS">RDR_BEGIN</title>
-<programlisting>#define RDR_BEGIN       0xffffffff
+<programlisting>
+#define		RDR_BEGIN	0xffffffff
 </programlisting>
 <para>
 This constant can be used as a Record Id to refer to the first record in the
@@ -103,7 +105,8 @@ Resource's RDR repository with all RDR calls except <link linkend="oh-add-rdr">o
 </para></refsect2>
 <refsect2>
 <title><anchor id="FREE-RPT-DATA-CAPS">FREE_RPT_DATA</title>
-<programlisting>#define FREE_RPT_DATA SAHPI_FALSE
+<programlisting>
+#define		FREE_RPT_DATA	SAHPI_FALSE
 </programlisting>
 <para>
 Used in the <link linkend="oh-add-resource">oh_add_resource</link>() and <link linkend="oh-add-rdr">oh_add_rdr</link>() calls to tell the interface
@@ -111,7 +114,8 @@ if it should free the <parameter>data</parameter> when the resource/rdr is remov
 </para></refsect2>
 <refsect2>
 <title><anchor id="KEEP-RPT-DATA-CAPS">KEEP_RPT_DATA</title>
-<programlisting>#define KEEP_RPT_DATA SAHPI_TRUE
+<programlisting>
+#define 	KEEP_RPT_DATA	SAHPI_TRUE
 </programlisting>
 <para>
 Used in the <link linkend="oh-add-resource">oh_add_resource</link>() and <link linkend="oh-add-rdr">oh_add_rdr</link>() calls to tell the interface
@@ -119,7 +123,9 @@ if it should leave the  <parameter>data</parameter> pointer alone when the resou
 </para></refsect2>
 <refsect2>
 <title><anchor id="oh-flush-rpt">oh_flush_rpt ()</title>
-<programlisting>void        oh_flush_rpt                    (RPTable *table);</programlisting>
+<programlisting>
+void		oh_flush_rpt	(RPTable *table);
+</programlisting>
 <para>
 Cleans RPT from all entries and RDRs and frees the memory
 associated with them.</para>
@@ -132,12 +138,14 @@ associated with them.</para>
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="rpt-diff">rpt_diff ()</title>
-<programlisting>void        rpt_diff                        (RPTable *cur_rpt,
-                                             RPTable *new_rpt,
-                                             GSList **res_new,
-                                             GSList **rdr_new,
-                                             GSList **res_gone,
-                                             GSList **rdr_gone);</programlisting>
+<programlisting>
+void		rpt_diff	(RPTable *cur_rpt,
+				 RPTable *new_rpt,
+				 GSList **res_new,
+				 GSList **rdr_new,
+				 GSList **res_gone,
+				 GSList **rdr_gone);
+</programlisting>
 <para>
 Extracts from current the resources and rdrs that are not found
 in new and puts them in res_gone and rdr_gone. Also, puts in res_new and rdr_new
@@ -169,10 +177,12 @@ discovered.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-add-resource">oh_add_resource ()</title>
-<programlisting>int         oh_add_resource                 (RPTable *table,
-                                             SaHpiRptEntryT *entry,
-                                             void *data,
-                                             int owndata);</programlisting>
+<programlisting>
+int	oh_add_resource		(RPTable *table,
+				 SaHpiRptEntryT *entry,
+				 void *data,
+				 int owndata);
+</programlisting>
 <para>
 Add a RPT entry to the RPT along with some private data.
 If an RPT entry with the same resource id exists int the RPT, it will be
@@ -210,8 +220,10 @@ for a new position in the RPT.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-remove-resource">oh_remove_resource ()</title>
-<programlisting>int         oh_remove_resource              (RPTable *table,
-                                             SaHpiResourceIdT rid);</programlisting>
+<programlisting>
+int	oh_remove_resource	(RPTable *table,
+				 SaHpiResourceIdT rid);
+</programlisting>
 <para>
 Remove a resource from the RPT. If the <parameter>rid</parameter> is
 <literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry in the table will be removed.
@@ -234,8 +246,10 @@ the resource, otherwise if <parameter>owndata</parameter> was true (<literal>KEE
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-resource-data">oh_get_resource_data ()</title>
-<programlisting>void*       oh_get_resource_data            (RPTable *table,
-                                             SaHpiResourceIdT rid);</programlisting>
+<programlisting>
+void*	oh_get_resource_data	(RPTable *table,
+				 SaHpiResourceIdT rid);
+</programlisting>
 <para>
 Get the private data for a RPT entry.  If the <parameter>rid</parameter> is
 <literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry's data in the table will be returned.</para>
@@ -251,8 +265,10 @@ Get the private data for a RPT entry.  If the <parameter>rid</parameter> is
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-resource-by-id">oh_get_resource_by_id ()</title>
-<programlisting>SaHpiRptEntryT* oh_get_resource_by_id       (RPTable *table,
-                                             SaHpiResourceIdT rid);</programlisting>
+<programlisting>
+SaHpiRptEntryT*	oh_get_resource_by_id	(RPTable *table,
+					 SaHpiResourceIdT rid);
+</programlisting>
 <para>
 Get a RPT entry from the RPT by using the resource id.
 If <parameter>rid</parameter> is <literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry in the table will be returned.</para>
@@ -272,8 +288,10 @@ id was not found or the table was a NULL pointer.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-resource-by-ep">oh_get_resource_by_ep ()</title>
-<programlisting>SaHpiRptEntryT* oh_get_resource_by_ep       (RPTable *table,
-                                             SaHpiEntityPathT *ep);</programlisting>
+<programlisting>
+SaHpiRptEntryT* oh_get_resource_by_ep	(RPTable *table,
+					 SaHpiEntityPathT *ep);
+</programlisting>
 <para>
 Get a RPT entry from the RPT by using the entity path.</para>
 <para>
@@ -292,8 +310,10 @@ entity path was not found or the table was a NULL pointer.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-resource-next">oh_get_resource_next ()</title>
-<programlisting>SaHpiRptEntryT* oh_get_resource_next        (RPTable *table,
-                                             SaHpiResourceIdT rid_prev);</programlisting>
+<programlisting>
+SaHpiRptEntryT* oh_get_resource_next	(RPTable *table,
+					 SaHpiResourceIdT rid_prev);
+</programlisting>
 <para>
 Get the RPT entry next to the specified RPT entry
 from the RPT. If <parameter>rid_prev</parameter> is <literal>RPT_ENTRY_BEGIN</literal>, the first RPT entry
@@ -314,11 +334,13 @@ id was not found or the table was a NULL pointer.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-add-rdr">oh_add_rdr ()</title>
-<programlisting>int         oh_add_rdr                      (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiRdrT *rdr,
-                                             void *data,
-                                             int owndata);</programlisting>
+<programlisting>
+int	oh_add_rdr	(RPTable *table,
+			 SaHpiResourceIdT rid,
+			 SaHpiRdrT *rdr,
+			 void *data,
+			 int owndata);
+</programlisting>
 <para>
 Add an RDR to a RPT entry's RDR repository.
 If an RDR is found with the same record id as the one being added, the RDR being
@@ -358,9 +380,11 @@ repository.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-remove-rdr">oh_remove_rdr ()</title>
-<programlisting>int         oh_remove_rdr                   (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid);</programlisting>
+<programlisting>
+int	oh_remove_rdr	(RPTable *table,
+			 SaHpiResourceIdT rid,
+			 SaHpiEntryIdT rdrid);
+</programlisting>
 <para>
 Remove an RDR from a RPT entry's RDR repository.
 If <parameter>rdrid</parameter> is <literal>RDR_BEGIN</literal>, the first RDR in the repository will be removed.
@@ -391,9 +415,10 @@ be removed.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-rdr-data">oh_get_rdr_data ()</title>
-<programlisting>void*       oh_get_rdr_data                 (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid);</programlisting>
+<programlisting>
+void*	oh_get_rdr_data	(RPTable *table,
+			 SaHpiResourceIdT rid,
+			 SaHpiEntryIdT rdrid);</programlisting>
 <para>
 Get the private data associated to an RDR.
 If <parameter>rdrid</parameter> is <literal>RDR_BEGIN</literal>, the first RDR's data in the repository will be returned.
@@ -415,9 +440,10 @@ will be read.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-rdr-by-id">oh_get_rdr_by_id ()</title>
-<programlisting>SaHpiRdrT*  oh_get_rdr_by_id                (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid);</programlisting>
+<programlisting>
+SaHpiRdrT*	oh_get_rdr_by_id	(RPTable *table,
+					 SaHpiResourceIdT rid,
+					 SaHpiEntryIdT rdrid);</programlisting>
 <para>
 Get a reference to an RDR by its record id.
 If <parameter>rdrid</parameter> is <literal>RDR_BEGIN</literal>, the first RDR in the repository will be returned.
@@ -442,10 +468,12 @@ Reference to the RDR looked up or NULL if no RDR was found.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-rdr-by-type">oh_get_rdr_by_type ()</title>
-<programlisting>SaHpiRdrT*  oh_get_rdr_by_type              (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiRdrTypeT type,
-                                             SaHpiUint8T num);</programlisting>
+<programlisting>
+SaHpiRdrT*	oh_get_rdr_by_type	(RPTable *table,
+					 SaHpiResourceIdT rid,
+					 SaHpiRdrTypeT type,
+					 SaHpiUint8T num);
+</programlisting>
 <para>
 Get a reference to an RDR by its type and number.
 All rdr interface funtions, except <link linkend="oh-add-rdr">oh_add_rdr</link>() will act in the context of
@@ -472,9 +500,11 @@ Reference to the RDR looked up or NULL if no RDR was found.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-get-rdr-next">oh_get_rdr_next ()</title>
-<programlisting>SaHpiRdrT*  oh_get_rdr_next                 (RPTable *table,
-                                             SaHpiResourceIdT rid,
-                                             SaHpiEntryIdT rdrid_prev);</programlisting>
+<programlisting>
+SaHpiRdrT*	oh_get_rdr_next		(RPTable *table,
+					 SaHpiResourceIdT rid,
+					 SaHpiEntryIdT rdrid_prev);
+</programlisting>
 <para>
 Get the RDR next to the specified RDR in the specified
 RPT entry's repository. If <parameter>rdrid_prev</parameter> is <literal>RDR_BEGIN</literal>, the first RDR
@@ -502,8 +532,10 @@ will be returned.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="get-rdr-uid">get_rdr_uid ()</title>
-<programlisting>SaHpiUint32T get_rdr_uid                    (SaHpiRdrTypeT type,
-                                             SaHpiUint32T num);</programlisting>
+<programlisting>
+SaHpiUint32T	get_rdr_uid	(SaHpiRdrTypeT type,
+				 SaHpiUint32T num);
+</programlisting>
 <para>
 Helper function to derive the Record id of an rdr from its <parameter>type</parameter> and <parameter>num</parameter></para>
 <para>
