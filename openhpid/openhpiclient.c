@@ -1446,7 +1446,7 @@ EntityInventoryDataRead)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      Sess
      {
        if ( reply )
 	    free( reply );
-       
+
        return SA_ERR_HPI_INVALID_PARAMS;
      }
 
@@ -1478,7 +1478,7 @@ EntityInventoryDataWrite)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      Sess
 
   PreMarshal( eFsaHpiEntityInventoryDataWrite );
 
-  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, InventData );
+  request_header.m_len = HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &EirId, InventData );
 
   Send();
 
