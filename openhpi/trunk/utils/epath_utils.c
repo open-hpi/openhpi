@@ -103,7 +103,10 @@ static gchar *eshort_names[] = {
 	"SUBRACK",
 	"COMPACTPCI_CHASSIS",
 	"ADVANCEDTCA_CHASSIS",
-	"SYSTEM_SLOT",
+	"RACK_MOUNTED_SERVER",
+        "SYSTEM_BLADE",
+        "SWITCH",
+        "SWITCH_BLADE",
 	"SBC_BLADE",
 	"IO_BLADE",
 	"DISK_BLADE",
@@ -114,8 +117,10 @@ static gchar *eshort_names[] = {
 	"IO_SUBBOARD",
 	"SBC_SUBBOARD",
 	"ALARM_MANAGER",
-	"ALARM_MANAGER_BLADE",
+	"SHELF_MANAGER",
+       	"DISPLAY_MANAGER",
 	"SUBBOARD_CARRIER_BLADE",
+        "PHYSICAL_SLOT"
 };
 
 static unsigned int eshort_num_names = sizeof( eshort_names ) / sizeof( gchar * );
@@ -221,7 +226,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 			goto CLEANUP;
                 }
 
-		for (match=0, j=0; j < ESHORTNAMES_ARRAY_SIZE + 1; j++) {
+		for (match=0, j=0; j < eshort_num_names; j++) {
 			if (!strcmp(eshort_names[j], etype)) {
 				match = 1;
 				break;

@@ -25,7 +25,6 @@
 #define MAX_INSTANCE_DIGITS 6
 
 /* Defines to manipulate eshort_names, which is a mirrors SaHpiEntityTypeT */
-#define ESHORTNAMES_ARRAY_SIZE 61
 #define ELEMENTS_IN_SaHpiEntityT 2
 #define EPATHSTRING_START_DELIMITER "{"
 #define EPATHSTRING_START_DELIMITER_CHAR '{'
