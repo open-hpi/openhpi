@@ -12,6 +12,7 @@
  * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
+ *      Chris Chia <cchia@users.sf.net>
  */
 
 #ifndef EPATH_UTILS_H
@@ -49,5 +50,7 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
 int append_root(SaHpiEntityPathT *ep);
 
 int prt_ep(SaHpiEntityPathT *ep);
+
+int ep_cmp(SaHpiEntityPathT *ep1, SaHpiEntityPathT *ep2);
 
 #endif
