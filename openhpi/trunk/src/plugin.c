@@ -68,7 +68,7 @@ int oh_init_ltdl()
                 return -1;
         }
 
-        path = getenv("OPENHPI_PLUGINS");
+        path = getenv("OPENHPI_PATH");
         if(path == NULL) {
                 path = OH_PLUGIN_PATH;
         }
