@@ -77,6 +77,32 @@ static int snmp_rsa_discover_resources(void *hnd)
 //		find_inventories(snmp_rsa_chassis_inventories);
         }
 
+        e = snmp_rsa_discover_cpu(&entity_root);
+        if(e != NULL) {
+                struct ResourceMibInfo *res_mib =
+                        g_memdup(&(snmp_rpt_array[rsa_RPT_ENTRY_CPU].mib),
+                                 sizeof(struct snmp_rpt));
+                oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
+                tmpqueue = g_slist_append(tmpqueue, e);
+                SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+                SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+//		find_sensors(snmp_rsa_cpu_sensors);                        
+//		find_inventories(snmp_rsa_cpu_inventories);
+        }
+
+        e = snmp_rsa_discover_dasd(&entity_root);
+        if(e != NULL) {
+                struct ResourceMibInfo *res_mib =
+                        g_memdup(&(snmp_rpt_array[rsa_RPT_ENTRY_DASD].mib),
+                                 sizeof(struct snmp_rpt));
+                oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
+                tmpqueue = g_slist_append(tmpqueue, e);
+                SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+                SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+//		find_sensors(snmp_rsa_dasd_sensors);                        
+//		find_inventories(snmp_rsa_dasd_inventories);
+        }
+
         /*
         Rediscovery: Get difference between current rptcache and tmpcache. Delete
         obsolete items from rptcache and add new items in.        

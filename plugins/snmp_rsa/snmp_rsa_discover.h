@@ -18,6 +18,8 @@
 
 /* Resource discovery prototypes */
 struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep);
+struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep);
+struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep);
 
 /* RDR discovery prototypes */
 struct oh_event * snmp_rsa_discover_controls(struct snmp_session *ss,

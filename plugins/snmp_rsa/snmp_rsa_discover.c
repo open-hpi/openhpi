@@ -68,3 +68,66 @@ struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep)
  
 	return e;
 }
+
+
+struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep) 
+{
+	int len;
+        struct oh_event working;
+        struct oh_event *e = NULL;
+
+        memset(&working, 0, sizeof(struct oh_event));
+         
+        working.type = OH_ET_RESOURCE;
+        working.u.res_event.entry = snmp_rpt_array[RSA_RPT_ENTRY_CPU].rpt;
+
+	working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+	working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+	len = strlen(snmp_rpt_array[RSA_RPT_ENTRY_CPU].comment);
+	if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+		working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
+		strcpy(working.u.res_event.entry.ResourceTag.Data,
+		       snmp_rpt_array[RSA_RPT_ENTRY_CPU].comment);
+	} else {
+		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_CPU].comment);
+	}
+
+        working.u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
+        working.u.res_event.entry.ResourceEntity = *ep;
+
+        e = eventdup(&working);
+ 
+	return e;
+}
+
+
+struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep) 
+{
+	int len;
+        struct oh_event working;
+        struct oh_event *e = NULL;
+
+        memset(&working, 0, sizeof(struct oh_event));
+         
+        working.type = OH_ET_RESOURCE;
+        working.u.res_event.entry = snmp_rpt_array[RSA_RPT_ENTRY_DASD].rpt;
+
+	working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+	working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+	len = strlen(snmp_rpt_array[RSA_RPT_ENTRY_DASD].comment);
+	if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+		working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
+		strcpy(working.u.res_event.entry.ResourceTag.Data,
+		       snmp_rpt_array[RSA_RPT_ENTRY_DASD].comment);
+	} else {
+		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_DASD].comment);
+	}
+
+        working.u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
+        working.u.res_event.entry.ResourceEntity = *ep;
+
+        e = eventdup(&working);
+ 
+	return e;
+}
+
