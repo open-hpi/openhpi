@@ -71,7 +71,8 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
-                                .integer = SA_ERR_SNMP_NOSUCHOBJECT, /* 255 = BCT */
+                                .integer = SA_ERR_SNMP_NOSUCHOBJECT,
+                                /* .integer = 255, BCT */
                         },
                 },
         },
@@ -6219,7 +6220,7 @@ struct snmp_bc_data sim_resource_array[] = {
         },
         {
                 /* Blade IPMI Voltage Sensor 1 Low Major - Blade 3 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.23.3",
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.24.3",
                 .mib = {
                         .type = ASN_OCTET_STR,
                         .value = {

@@ -259,6 +259,7 @@ struct snmp_bc_ipmi_sensor {
 };
 
 extern struct snmp_bc_sensor snmp_bc_chassis_sensors[];
+extern struct snmp_bc_sensor snmp_bc_chassis_sensors_bct[];
 extern struct snmp_bc_sensor snmp_bc_blade_sensors[];
 extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
 extern struct snmp_bc_sensor snmp_bc_blade_addin_sensors[];

@@ -175,8 +175,7 @@ static void event_start_element(GMarkupParseContext *context,
                         key = g_strdup(attribute_values[i]);
                         if (key == NULL) {
                                 g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_PARSE,
-                                            "No memory for hash key - %s",
-                                            attribute_values[i]);
+                                            "No memory for hash key=%s", attribute_values[i]);
                                 return;
                         }
                 }
@@ -184,7 +183,7 @@ static void event_start_element(GMarkupParseContext *context,
                         working.event = g_strdup(attribute_values[i]);
                         if (working.event == NULL) {
                                 g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_PARSE,
-                                            "No memory for hash value");
+                                            "No memory for hash value=%s", attribute_values[i]);
                                 return;
                         }
                 }
@@ -204,7 +203,8 @@ static void event_start_element(GMarkupParseContext *context,
                         else {
                                 g_markup_parse_context_get_position(context, &line, &pos);
                                 g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT,
-                                            "Bad severity for XML event element line %d", line);
+                                            "Bad severity=%s for XML event element line %d", 
+					    attribute_values[i], line);
                                 return;
                         }
                 }
