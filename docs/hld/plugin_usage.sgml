@@ -315,4 +315,77 @@ handler libsysfs {
       </para>
     </sect2>
   </sect1>
+  <sect1>
+    <title>IPMI Plugin</title>
+    <para>
+      The IPMI plugin provides access to resources in IPMI capable systems 
+      including Management Controllers (MC), sensors and system event log
+	(SEL).
+    </para>
+    <para>
+	The openHpi plug-in requires OpenIPMI library be installed since it
+	serves as the middle-ware to accessing the IPMI hardware.
+	Currently, we're using the CVS up-to-date code of OpenIPMI.
+    </para>
+    <para>
+	The IPMI plug-in can be tested using the <literal>examples/list_resources</literal>
+	program as well as the HPI utils in the <literal>util</literal> directory.
+	Currently, <literal>GET</literal> functions are enabled and tested for sensors and
+	SEL.
+    </para>
+  <sect2>
+      <title>Prerequisites</title>
+    <para>
+	The IPMI plug-in can be enabled using the <literal>--enable-ipmi</literal> flage 
+	to the <literal>./confiure</literal> script.
+    </para>
+    <para>
+	Before compiling the IPMI plug-in, the OpenIPMI library needs to be installed
+	and available on the system.
+	You can get OpenIPMI from 
+	<ulink 
+		url="http://openipmi.sourceforge.net/"
+	> the OpenIPMI web site.</ulink>  Though, getting the latest code from CVS is advised.
+    </para> 
+   </sect2>
+   <sect2>
+      <title>Configuration</title>
+      <para>
+	  Currently, the OpenHPI IPMI plug-in supports both <literal>"SMI"</literal>
+	  and <literal>"LAN"</literal> access methods to IPMI hardware.
+        Below is an example "SMI" configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libipmi
+
+handler libipmi {
+	name="smi"
+	addr="0"
+	entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
+        </programlisting>
+      </para>
+	<para>
+	   And this is an example "LAN" configuration stanza:
+	</para>
+	<para>
+		<programlisting role="config">
+plugin libipmi
+
+handler libipmi {
+	name = lan
+	addr = "IP.ADDRESS.HERE"
+	port = "IPMI LAN PORT NUMBER"
+	auth_type = "STRAIGHT, MD2 or MD5"
+	auth_level= "USER, OPERATOR or ADMIN"
+	username = "YOUR_USER_NAME"
+	password = "YOUR_PASSWORD"
+	entity_root = "{SYSTEM_CHASSIS,0}"
+}
+		</programlisting>
+	</para>
+    </sect2>
+
+  </sect1>
 </chapter>
