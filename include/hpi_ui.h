@@ -102,8 +102,10 @@ extern int	get_attr_type(Attributes_t *Attrs, int num);
 			// get attribute type
 extern void	make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdr_entry);
 extern void	make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry);
-
-
+extern int	print_thres_value(SaHpiSensorReadingT *item, char *mes,
+			SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc);
+extern SaErrorT	show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			int show_short, hpi_ui_print_cb_t proc);
@@ -121,8 +123,6 @@ extern void	show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiSensorNumT sensornum, SaHpiSensorRecT *sen,
 			hpi_ui_print_cb_t proc);
-extern int	print_thres_value(SaHpiSensorReadingT *item, char *mes,
-			SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc);
 extern SaErrorT	sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc);
 extern void	time2str(SaHpiTimeT time, char * str, size_t size);
 

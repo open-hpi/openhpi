@@ -152,6 +152,40 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	return SA_OK;
 }
 
+SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+	SaHpiCtrlNumT num, hpi_ui_print_cb_t proc)
+{
+        SaErrorT		rv;
+	SaHpiRdrT		rdr;
+	SaHpiCtrlRecT		*ctrl;
+	char			*str;
+	char			buf[SHOW_BUF_SZ];
+	char			errbuf[SHOW_BUF_SZ];
+
+	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR, num, &rdr);
+	if (rv != SA_OK) {
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"\nERROR: saHpiRdrGetByInstrumentId: error: %s\n",
+			oh_lookup_error(rv));
+		proc(errbuf);
+		return(rv);
+	};
+	ctrl = &(rdr.RdrTypeUnion.CtrlRec);
+	if (ctrl->WriteOnly) str = "(Write Only)";
+	else str = " ";
+	snprintf(buf, SHOW_BUF_SZ, "Control(%d/%d) Type: %s  %s  Output: %s",
+		resourceid, num, oh_lookup_ctrltype(ctrl->Type), str,
+		oh_lookup_ctrloutputtype(ctrl->OutputType));
+	if (proc(buf) != 0) return(SA_OK);
+	if (ctrl->DefaultMode.ReadOnly) str = "(Read Only)";
+	else str = " ";
+	snprintf(buf, SHOW_BUF_SZ, "  Mode: %s  %s\n",
+		oh_lookup_ctrlmode(ctrl->DefaultMode.Mode), str);
+
+	if (proc(buf) != 0) return(SA_OK);
+	return SA_OK;
+}
+
 SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc)
 {
@@ -563,8 +597,8 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 	SaHpiTextBufferT	tmbuf;
 	SaHpiSensorEventT	*sen;
 	SaErrorT		rv;
-	char			buf[SHOW_BUF_SZ];
-	char			*str;
+	char			buf[SHOW_BUF_SZ], buf1[32];
+	char			*str, *str1;
 
 	rv = oh_decode_time(event->Timestamp, &tmbuf);
 	if (rv)
@@ -579,12 +613,18 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 			sen = &(event->EventDataUnion.SensorEvent);
 			if (sen->Assertion == SAHPI_TRUE) str = "ASSERTED";
 			else str = "DEASSERTED";
-			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s STATE(%4.4x):%s",
+			rv = oh_decode_eventstate(sen->EventState,  sen->EventCategory,
+				   &tmbuf);
+			if (rv != SA_OK) {
+				snprintf(buf1, 32, "STATE(%4.4x)", sen->EventState);
+				str1 = buf1;
+			} else
+				str1 = tmbuf.Data;
+			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s %s:%s",
 				oh_lookup_sensortype(sen->SensorType),
 				event->Source, sen->SensorNum,
 				oh_lookup_severity(event->Severity),
-				oh_lookup_eventcategory(sen->EventCategory),
-				sen->EventState, str);
+				oh_lookup_eventcategory(sen->EventCategory), str1, str);
 			proc(buf);
 			break;
 		case SAHPI_ET_RESOURCE:
