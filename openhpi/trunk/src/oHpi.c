@@ -14,6 +14,7 @@
  */
 
 #include <oHpi.h>
+#include <oh_config.h>
 #include <oh_init.h>
 #include <oh_plugin.h>
 #include <oh_error.h>
@@ -270,7 +271,17 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
  **/
 SaErrorT oHpiGlobalParamGet(char *name, char *value, int size)
 {
-        return -1;
+        if (!name || !value) {
+                dbg("Invalid parameters.");
+                return SA_ERR_HPI_INVALID_PARAMS;                
+        }
+        
+        OH_CHECK_STATE;
+        
+        if (oh_lookup_global_param(name, value, size))
+                return SA_ERR_HPI_NOT_PRESENT;
+        
+        return SA_OK;
 }
 
 /**
@@ -285,5 +296,15 @@ SaErrorT oHpiGlobalParamGet(char *name, char *value, int size)
  **/
 SaErrorT oHpiGlobalParamSet(const char *name, char *value)
 {
-        return -1;
+        if (!name || !value) {
+                dbg("Invalid parameters.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        OH_CHECK_STATE;
+        
+        if (oh_set_global_param(name, value))
+                return SA_ERR_HPI_ERROR;
+                
+        return SA_OK;
 }
