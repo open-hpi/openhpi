@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib
+includedir=/usr/include
+
+Name: OpenHPI
+Description: Implementation of SA Forum's Hardware Platform Interface
+Version: @VERSION@
+Libs: -L${libdir} -l@HPI_PKG@
+Cflags: -I${includedir}/@HPI_PKG@ 
