@@ -507,11 +507,14 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 				SaHpiEventLogEntryIdT current,
 				SaHpiEventLogEntryIdT *prev,
 				SaHpiEventLogEntryIdT *next,
-				SaHpiEventLogEntryT *entry)
+				SaHpiEventLogEntryT *entry,
+				SaHpiRdrT  *rdr,
+				SaHpiRptEntryT  *rptentry)
 {
         struct ohoi_resource_info *ohoi_res_info;
-		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
         ipmi_event_t *event;
+	SaHpiRptEntryT *rpt;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
@@ -519,6 +522,15 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
+	rpt = oh_get_resource_by_id(handler->rptcache, id);
+	if (!rpt) {
+		dbg("no rpt:%d", id);
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+	
+	rdr->RdrType = SAHPI_NO_RECORD;
+	if (rptentry)
+		memcpy(rptentry, rpt, sizeof(rptentry));
 		switch (current) {
 				case SAHPI_OLDEST_ENTRY:
 						ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
