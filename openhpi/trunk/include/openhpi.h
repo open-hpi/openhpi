@@ -365,7 +365,6 @@ int dsel_get_state(SaHpiDomainIdT domain_id);
 int dsel_set_state(SaHpiDomainIdT domain_id, int enable);
 SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
-SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 int dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry);
 int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e);
 int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
