@@ -50,6 +50,7 @@ typedef enum
   eMtFloat32,
   eMtFloat64,
   eMtArray,
+  eMtVarArray, // only possible in structs
   eMtStruct,
   eMtStructElement,
   eMtUnion,
@@ -71,6 +72,17 @@ int IsSimpleType( tMarshalType type );
   .m_u.m_array =              \
   {                           \
     .m_size = size,           \
+    .m_type = &type           \
+  }                           \
+}
+
+// helper macro for var arrays
+#define dVarArray( type, size_pos )  \
+{                             \
+  .m_type = eMtVarArray,      \
+  .m_u.m_var_array =          \
+  {                           \
+    .m_size = size_pos,       \
     .m_type = &type           \
   }                           \
 }
@@ -153,8 +165,14 @@ struct sMarshalType
     struct
     {
       int            m_size;  // array size
-      cMarshalType  *m_type; // array element 
+      cMarshalType  *m_type;  // array element 
     } m_array;
+
+    struct
+    {
+      unsigned int   m_size; // struct pos where size is
+      cMarshalType  *m_type; // array element
+    } m_var_array;
 
     struct
     {

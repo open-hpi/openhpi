@@ -15,7 +15,7 @@
 REMOTE_SOURCES		= connection.c marshal.c
 MARSHAL_SOURCES         = marshal_hpi_types.c
 
-MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
+MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(MARSHAL_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 INCLUDES		= -I.. -I $(top_srcdir)/include
@@ -70,7 +70,10 @@ TESTS = \
 	marshal_025 \
 	marshal_026 \
 	marshal_027 \
-	marshal_hpi_types_000
+	marshal_028 \
+	marshal_029 \
+	marshal_hpi_types_000 \
+	marshal_hpi_types_001
 
 check_PROGRAMS = $(TESTS)
 
@@ -105,4 +108,7 @@ marshal_024_SOURCES = marshal_024.c $(REMOTE_SOURCES)
 marshal_025_SOURCES = marshal_025.c $(REMOTE_SOURCES)
 marshal_026_SOURCES = marshal_026.c $(REMOTE_SOURCES)
 marshal_027_SOURCES = marshal_027.c $(REMOTE_SOURCES)
+marshal_028_SOURCES = marshal_028.c $(REMOTE_SOURCES)
+marshal_029_SOURCES = marshal_029.c $(REMOTE_SOURCES)
 marshal_hpi_types_000_SOURCES = marshal_hpi_types_000.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)
+marshal_hpi_types_001_SOURCES = marshal_hpi_types_001.c $(MARSHAL_SOURCES) $(REMOTE_SOURCES)

@@ -15,20 +15,12 @@
 #include "marshal_hpi_types.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 
 static int
 cmp_text_buffer( SaHpiTextBufferT *d1, SaHpiTextBufferT *d2 )
 {
-  int b1 = d1 ? 1 : 0;
-  int b2 = d2 ? 1 : 0;
-  
-  if ( b1 != b2 )
-       return 0;
-
-  if ( d1 == 0 )
-       return 1;
-
   if ( d1->DataType != d2->DataType )
        return 0;
 
@@ -38,269 +30,81 @@ cmp_text_buffer( SaHpiTextBufferT *d1, SaHpiTextBufferT *d2 )
   if ( d1->DataLength != d2->DataLength )
        return 0;
 
-  return memcmp( d1->Data, d2->Data, d1->DataLength ) ? 1 : 0;
+  return memcmp( d1->Data, d2->Data, d1->DataLength ) ? 0 : 1;
 }
 
 
-static int
-cmp_inventory_general_data( SaHpiInventGeneralDataT *d1,
-			    SaHpiInventGeneralDataT *d2 )
+typedef struct
 {
-  if ( d1->MfgDateTime != d2->MfgDateTime )
-       return 0;
+  tUint8 m_pad1;
+  SaHpiTextBufferT m_tb1;
+  tUint8 m_pad2;
+  SaHpiTextBufferT m_tb2;
+  SaHpiTextBufferT m_tb3;
+  tUint8 m_pad3;
+} cTest;
 
-  if ( !cmp_text_buffer( d1->Manufacturer, d2->Manufacturer ) )
-       return 0;
-
-  if ( !cmp_text_buffer( d1->ProductName, d2->ProductName ) )
-       return 0;
-
-  if ( !cmp_text_buffer( d1->ProductVersion, d2->ProductVersion ) )
-       return 0;
-
-  if ( !cmp_text_buffer( d1->ModelNumber, d2->ModelNumber  ) )
-       return 0;
-
-  if ( !cmp_text_buffer( d1->SerialNumber, d2->SerialNumber ) )
-       return 0;
-
-  if ( !cmp_text_buffer( d1->PartNumber, d2->PartNumber ) )
-       return 0;
-
-  if ( !cmp_text_buffer( d1->FileId, d2->FileId ) )
-       return 0;
-  
-  if ( !cmp_text_buffer( d1->AssetTag, d2->AssetTag ) )
-       return 0;
-
-  SaHpiTextBufferT **t1 = d1->CustomField;
-  SaHpiTextBufferT **t2 = d2->CustomField;
-
-  while( 1 )
-     {
-       int b1 = *t1 ? 1 : 0;
-       int b2 = *t2 ? 1 : 0;
-  
-       if ( b1 != b2 )
-	    return 0;
-
-       if ( *t1 == 0 )
-	    break;
-       
-       if ( !cmp_text_buffer( *t1, *t2 ) )
-	    return 0;
-       
-       t1++;
-       t2++;
-     }
-
-  return 1;
-}
-
-
-static int
-cmp_inventory_data_record( SaHpiInventDataRecordT *d1, SaHpiInventDataRecordT *d2 )
+cMarshalType StructElements[] =
 {
-  if ( d1->RecordType != d2->RecordType )
-       return 0;
-  
-  if ( d1->DataLength != d2->DataLength )
-       return 0;
+  dStructElement( cTest, m_pad1 , Uint8Type ),
+  dStructElement( cTest, m_tb1  , SaHpiTextBufferType ),
+  dStructElement( cTest, m_pad2 , Uint8Type ),
+  dStructElement( cTest, m_tb2  , SaHpiTextBufferType ),
+  dStructElement( cTest, m_tb3  , SaHpiTextBufferType ),
+  dStructElement( cTest, m_pad3 , Uint8Type ),
+  dStructElementEnd()
+};
 
-  switch( d1->RecordType )
-     {
-       case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
-	    return memcmp( d1->RecordData.InternalUse.Data,
-			   d2->RecordData.InternalUse.Data, d1->DataLength ) ? 1 : 0;
-
-       case SAHPI_INVENT_RECTYPE_CHASSIS_INFO:
-	    if ( d1->RecordData.ChassisInfo.Type != d2->RecordData.ChassisInfo.Type )
-		 return 0;
-
-	    return cmp_inventory_general_data( &d1->RecordData.ChassisInfo.GeneralData,
-					       &d2->RecordData.ChassisInfo.GeneralData );
-
-       case SAHPI_INVENT_RECTYPE_BOARD_INFO:
-	    return cmp_inventory_general_data( &d1->RecordData.BoardInfo,
-					       &d2->RecordData.BoardInfo );
-
-       case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
-	    return cmp_inventory_general_data( &d1->RecordData.ProductInfo,
-					       &d2->RecordData.ProductInfo );
-	    
-       case SAHPI_INVENT_RECTYPE_OEM:
-	    if ( d1->RecordData.OemData.MId != d2->RecordData.OemData.MId )
-		 return 0;
-
-	    return memcmp( d1->RecordData.OemData.Data, d2->RecordData.OemData.Data,
-			   d1->DataLength - 4 )
-	      ? 1 : 0;
-
-       default:
-	    exit( 1 );
-     }
-
-  return 1;
-}
-
-
-static int
-cmp_inventory_data( SaHpiInventoryDataT *d1, SaHpiInventoryDataT *d2 )
-{
-  if ( d1->Validity != d2->Validity )
-       return 0;
-  
-  SaHpiInventDataRecordT **r1 = d1->DataRecords;
-  SaHpiInventDataRecordT **r2 = d2->DataRecords;
-  
-  while( 1 )
-     {
-       int b1 = *r1 ? 1 : 0;
-       int b2 = *r2 ? 1 : 0;
-       
-       if ( b1 != b2 )
-	    return 0;
-
-       if ( *r1 == 0 )
-	    break;
-
-       if ( !cmp_inventory_data_record( *r1, *r2 ) )
-	    return 0;
-     }
-
-  return 1;
-}
-
-
-static unsigned char *
-text_buffer( unsigned char *b, SaHpiTextBufferT **tt, SaHpiTextTypeT type, SaHpiLanguageT lang, SaHpiUint8T l,
-	     const char *data )
-{
-  *tt = (SaHpiTextBufferT *)b;
-  SaHpiTextBufferT *t = *tt;
-  t->DataType = type;
-  t->Language = lang;
-  t->DataLength = l;
-  strcpy( t->Data, data );
-
-  return b + sizeof( SaHpiTextBufferT );
-}
+cMarshalType TestType = dStruct( cTest, StructElements );
 
 
 int
 main( int argc, char *argv[] )
 {
-  unsigned char buffer1[10240];
+  cTest value =
+  {
+    .m_pad1 = 47,
+    .m_tb1.DataType   = SAHPI_TL_TYPE_BINARY,
+    .m_tb1.Language   = SAHPI_LANG_TSONGA,
+    .m_tb1.DataLength = 3,
+    .m_tb1.Data       = "AB",
+    .m_pad2 = 48,
+    .m_tb2.DataType   = SAHPI_TL_TYPE_BCDPLUS,
+    .m_tb2.Language   = SAHPI_LANG_SANGRO,
+    .m_tb2.DataLength = 21,
+    .m_tb2.Data       = "12345678901234567890",
+    .m_tb3.DataType   = SAHPI_TL_TYPE_ASCII6,
+    .m_tb3.Language   = SAHPI_LANG_TAJIK,
+    .m_tb3.DataLength = 0,
+    .m_tb3.Data = "",
+    .m_pad3 = 49
+  };
 
-  SaHpiInventoryDataT *d = (SaHpiInventoryDataT *)buffer1;
-  d->Validity = SAHPI_INVENT_DATA_OVERFLOW;
+  unsigned char  buffer[1024];
+  cTest          result;
 
-  // use 5 records
-  unsigned char *b = buffer1 + sizeof( SaHpiInventoryDataT ) + 4 * sizeof( SaHpiInventDataRecordT * );
-
-  // 0 record: InternalUse
-  d->DataRecords[0] = (SaHpiInventDataRecordT *)b;
-  SaHpiInventDataRecordT *r = (SaHpiInventDataRecordT *)b;
-  r->RecordType = SAHPI_INVENT_RECTYPE_INTERNAL_USE;
-  r->DataLength = 7;
-  r->RecordData.InternalUse.Data[0] = 0x42;
-  r->RecordData.InternalUse.Data[1] = 0x43;
-  r->RecordData.InternalUse.Data[2] = 0x44;
-  r->RecordData.InternalUse.Data[3] = 0x45;
-  r->RecordData.InternalUse.Data[4] = 0x46;
-  r->RecordData.InternalUse.Data[5] = 0x47;
-  r->RecordData.InternalUse.Data[6] = 0x48;
-
-  b += sizeof( SaHpiInventDataRecordT ) + 6;
-
-  // 1 record: ChassisInfo
-  d->DataRecords[1] = (SaHpiInventDataRecordT *)b;
-  r = (SaHpiInventDataRecordT *)b;
-  r->RecordType = SAHPI_INVENT_RECTYPE_CHASSIS_INFO;
-  r->DataLength = 8;
-
-  b += sizeof( SaHpiInventDataRecordT );
-  SaHpiInventChassisDataT *c = &r->RecordData.ChassisInfo;
-  c->Type = SAHPI_INVENT_CTYP_SPACE_SAVING;
-  c->GeneralData.MfgDateTime = 0x4713;
-
-  b = text_buffer( b, &c->GeneralData.Manufacturer, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_SERBIAN, 7, "1234567" );
-  c->GeneralData.ProductName = 0;
-  b = text_buffer( b, &c->GeneralData.ProductVersion, SAHPI_TL_TYPE_ASCII6, SAHPI_LANG_LATIN, 7, "1234567" );
-  b = text_buffer( b, &c->GeneralData.ModelNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_MALAY, 7, "1234567" );
-  b = text_buffer( b, &c->GeneralData.SerialNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_NORWEGIAN, 7, "1234567" );
-  b = text_buffer( b, &c->GeneralData.PartNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_FRENCH, 7, "1234567" );
-  b = text_buffer( b, &c->GeneralData.FileId, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_HAUSA, 7, "1234567" );
-  b = text_buffer( b, &c->GeneralData.AssetTag, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_AYMARA, 7, "1234567" );
-  c->GeneralData.CustomField[0] = 0;
-
-  // 2 record: BoardInfo
-  d->DataRecords[2] = (SaHpiInventDataRecordT *)b;
-  r = (SaHpiInventDataRecordT *)b;
-  r->RecordType = SAHPI_INVENT_RECTYPE_BOARD_INFO;
-  r->DataLength = 9;
-
-  b += sizeof( SaHpiInventDataRecordT );
-  SaHpiInventGeneralDataT *g = &r->RecordData.BoardInfo;
-
-  b = text_buffer( b, &g->Manufacturer, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_SERBIAN, 7, "1234567" );
-  g->ProductName = 0;
-  b = text_buffer( b, &g->ProductVersion, SAHPI_TL_TYPE_ASCII6, SAHPI_LANG_LATIN, 7, "1234567" );
-  b = text_buffer( b, &g->ModelNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_MALAY, 7, "1234567" );
-  b = text_buffer( b, &g->SerialNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_NORWEGIAN, 7, "1234567" );
-  b = text_buffer( b, &g->PartNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_FRENCH, 7, "1234567" );
-  b = text_buffer( b, &g->FileId, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_HAUSA, 7, "1234567" );
-  b = text_buffer( b, &g->AssetTag, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_AYMARA, 7, "1234567" );
-  g->CustomField[0] = 0;
-
-  // 3 record: ProductInfo
-  d->DataRecords[3] = (SaHpiInventDataRecordT *)b;
-  r = (SaHpiInventDataRecordT *)b;
-  r->RecordType = SAHPI_INVENT_RECTYPE_PRODUCT_INFO;
-  r->DataLength = 11;
-
-  b += sizeof( SaHpiInventDataRecordT );
-  g = &r->RecordData.ProductInfo;
-
-  b = text_buffer( b, &g->Manufacturer, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_SERBIAN, 7, "1234567" );
-  g->ProductName = 0;
-  b = text_buffer( b, &g->ProductVersion, SAHPI_TL_TYPE_ASCII6, SAHPI_LANG_LATIN, 7, "1234567" );
-  b = text_buffer( b, &g->ModelNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_MALAY, 7, "1234567" );
-  b = text_buffer( b, &g->SerialNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_NORWEGIAN, 7, "1234567" );
-  b = text_buffer( b, &g->PartNumber, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_FRENCH, 7, "1234567" );
-  b = text_buffer( b, &g->FileId, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_HAUSA, 7, "1234567" );
-  b = text_buffer( b, &g->AssetTag, SAHPI_TL_TYPE_BINARY, SAHPI_LANG_AYMARA, 7, "1234567" );
-  g->CustomField[0] = 0;
-
-  // 4 record: Oem
-  d->DataRecords[4] = (SaHpiInventDataRecordT *)b;
-  r = (SaHpiInventDataRecordT *)b;
-  r->RecordType = SAHPI_INVENT_RECTYPE_OEM;
-  r->DataLength = 12;
-  SaHpiInventOemDataT *o = &r->RecordData.OemData;
-  o->MId = 0x12345;
-  o->Data[0] = 0x01;
-  o->Data[1] = 0x02;
-  o->Data[2] = 0x03;
-  o->Data[3] = 0x04;
-  o->Data[4] = 0x05;
-  o->Data[5] = 0x06;
-  o->Data[6] = 0x07;
-  o->Data[7] = 0x08;
-
-  unsigned char data[10240];
-
-  int s1 = Marshal( &SaHpiInventoryDataType, buffer1, data );
-
-  unsigned char buffer2[10240];
-
-  int s2 = Demarshal( MarshalByteOrder(), &SaHpiInventoryDataType, buffer2, data );
-
+  unsigned int s1 = Marshal( &TestType, &value, buffer );
+  unsigned int s2 = Demarshal( MarshalByteOrder(), &TestType, &result, buffer );
+  
   if ( s1 != s2 )
        return 1;
 
-  if ( !cmp_inventory_data( (SaHpiInventoryDataT *)buffer1,
-			    (SaHpiInventoryDataT *)buffer2 ) )
+  if ( value.m_pad1 != result.m_pad1 )
+       return 1;
+
+  if ( !cmp_text_buffer( &value.m_tb1, &result.m_tb1 ) )
+       return 1;
+
+  if ( value.m_pad2 != result.m_pad2 )
+       return 1;
+
+  if ( !cmp_text_buffer( &value.m_tb2, &result.m_tb2 ) )
+       return 1;
+
+  if ( !cmp_text_buffer( &value.m_tb3, &result.m_tb3 ) )
+       return 1;
+
+  if ( value.m_pad3 != result.m_pad3 )
        return 1;
 
   return 0;

@@ -111,6 +111,7 @@ IsSimpleType( tMarshalType type )
             return 1;
 
        case eMtArray:
+       case eMtVarArray:
        case eMtStruct:
        case eMtStructElement:
        case eMtUnion:
@@ -165,6 +166,9 @@ MarshalSize( const cMarshalType *type )
 
 	    return type->m_u.m_array.m_size * MarshalSize( type->m_u.m_array.m_type );
 
+       case eMtVarArray:
+            return 0xffff;
+
        case eMtStruct:
 	    {
 	      assert( type->m_u.m_struct.m_elements );
@@ -203,6 +207,8 @@ MarshalSize( const cMarshalType *type )
             }
 
        case eMtUserDefined:
+            return 0xffff;
+
        case eMtStructElement:
        case eMtUnionElement:
 	    assert( 0 );
@@ -343,6 +349,43 @@ FindUnionModifierType( const cMarshalType *type, cMarshalType *st_type, const vo
 }
 
 
+static tUint32
+FindArraySize( const cMarshalType *type, cMarshalType *st_type, const void *d )
+{
+  cMarshalType *size_struct_element = &type->m_u.m_struct.m_elements[st_type->m_u.m_var_array.m_size];
+  assert( size_struct_element->m_type == eMtStructElement );
+  cMarshalType *size_type = size_struct_element->m_u.m_struct_element.m_type;
+  const unsigned char *so = (const unsigned char *)d + size_struct_element->m_u.m_struct_element.m_offset;
+
+  tUint32 size;
+
+  switch( size_type->m_type )
+     {
+       case eMtUint8:
+       case eMtInt8:
+	    size = (tUint32)*so;
+	    break;
+
+       case eMtUint16:
+       case eMtInt16:
+	    size = (tUint32)*(const tUint16 *)so;
+	    break;
+
+       case eMtUint32:
+       case eMtInt32:
+	    size = *(const tUint32 *)so;
+	    break;
+
+       default:
+	    assert( 0 );
+	    size = 0;
+	    break;
+     }
+
+  return size;
+}
+
+
 unsigned int
 Marshal( const cMarshalType *type, const void *d, void *b )
 {
@@ -358,6 +401,8 @@ Marshal( const cMarshalType *type, const void *d, void *b )
        case eMtArray:
             {
               int i;
+
+              //assert( IsSimpleType( type->m_u.m_array.m_type->m_type ) );
 
               for( i = 0; i < type->m_u.m_array.m_size; i++ )
                  {
@@ -392,6 +437,31 @@ Marshal( const cMarshalType *type, const void *d, void *b )
 
 			if ( mod )
 			     s = Marshal( mod, data + struct_element->m_u.m_struct_element.m_offset, buffer );
+                      }
+                   else if ( st_type->m_type == eMtVarArray )
+                      {
+                        // the array size must be before this entry.
+                        // this is a limitation of demarshaling of var arrays
+                        assert( st_type->m_u.m_var_array.m_size < i );
+
+			int array_size = FindArraySize( type, st_type, data );
+
+                        // only simple types can be array elements
+                        assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );
+
+                        unsigned char *bb = buffer;
+                        const unsigned char *dd = data + struct_element->m_u.m_struct_element.m_offset;
+                        tUint32 j;
+
+                        for( j = 0; j < array_size; j++ )
+                           {
+                             unsigned si = Marshal( st_type->m_u.m_var_array.m_type,
+                                                    dd, bb );
+
+                             bb += si;
+                             dd += si;
+                             s  += si;
+                           }
                       }
                    else
                         s = Marshal( st_type, data + struct_element->m_u.m_struct_element.m_offset,
@@ -602,7 +672,32 @@ Demarshal( int byte_order, const cMarshalType *type,
 			if ( mod )
 			     s = Demarshal( byte_order, mod, data + struct_element->m_u.m_struct_element.m_offset, buffer );
 		      }
-		   else
+		   else if ( st_type->m_type == eMtVarArray )
+		      {
+                        // the array size must be before this entry.
+                        // this is a limitation of demarshaling of var arrays
+                        assert( st_type->m_u.m_var_array.m_size < i );
+
+			tUint32 array_size = FindArraySize( type, st_type, data );
+
+                        // only simple types can be array elements
+                        assert( IsSimpleType( st_type->m_u.m_var_array.m_type->m_type ) );
+
+                        const unsigned char *bb = buffer;
+                        unsigned char       *dd = data + struct_element->m_u.m_struct_element.m_offset;
+                        tUint32 j;
+
+                        for( j = 0; j < array_size; j++ )
+                           {
+                             unsigned si = Demarshal( byte_order, st_type->m_u.m_var_array.m_type,
+                                                      dd, bb );
+
+                             bb += si;
+                             dd += si;
+                             s  += si;
+                           }
+                      }
+                   else
 			s = Demarshal( byte_order, st_type,
 				       data + struct_element->m_u.m_struct_element.m_offset,
 				       buffer );

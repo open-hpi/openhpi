@@ -31,8 +31,6 @@ extern "C" {
 #define dDefaultDaemonPort 4743
 
 
-// inventory functions are missing, because
-// it is quite diffenent handled in hpi 1.1
 typedef enum
 {
   eFsaHpiNull,
@@ -89,7 +87,8 @@ typedef enum
   eFsaHpiHotSwapIndicatorStateSet,
   eFsaHpiParmControl,
   eFsaHpiResourceResetStateGet,
-  eFsaHpiResourceResetStateSet
+  eFsaHpiResourceResetStateSet,
+  eFPing
 } tHpiFucntionId;
 
 
