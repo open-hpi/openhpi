@@ -175,7 +175,7 @@ handler libsnmp_bc {
       The SNMP RSA plugin is an SNMP based interface to IBM's
       Remote Supervisor Adapter hardware.  Technical information about RSA
       is best found at <ulink
-        url="http://www-1.ibm.com/support/docview.wss?rs=0&q1=remote+supervisor+adapter&uid=psg1MIGR-4UKSML&loc=en_US&cs=utf-8&cc=us&lang=en"
+        url="http://www-1.ibm.com/support/docview.wss?rs=0&amp;q1=remote+supervisor+adapter&amp;uid=psg1MIGR-4UKSML&amp;loc=en_US&amp;cs=utf-8&amp;cc=us&amp;lang=en"
         >the RSA Overview
         Page</ulink>.
       
