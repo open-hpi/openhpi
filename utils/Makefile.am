@@ -34,7 +34,7 @@ MAINTAINERCLEANFILES    = Makefile.in
 
 SAHPIFILES = sahpi_enum_utils.c sahpi_enum_utils.h 
 
-EXTRA_DIST		= $(SAHPIFILES) \
+EXTRA_DIST		= \
 					el_utils.h \
 					epath_utils.h \
 					event_utils.h \
