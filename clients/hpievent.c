@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <SaHpi.h>
 
+static char progname[] = "hpievent";
+
 static const char* st_map[] = {
 	"INACTIVE",
 	"INSERTION_PENDING",
@@ -71,13 +73,13 @@ void DoEvent(SaHpiSessionIdT sessionid)
 	SaErrorT    rv;
 
 	printf("Subscribe\n");
-	rv = saHpiSubscribe(sessionid, SAHPI_FALSE);
+	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
 		printf( "saHpiSubscribe error %d\n",rv);
 		return;
 	}	
 	while(1) {
-		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_BLOCK, &event, NULL, NULL);
+		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_BLOCK, &event, NULL, NULL, NULL);
 		if (rv != SA_OK) { 
 			goto out;
 		}
@@ -92,26 +94,22 @@ out:
 int
 main(int argc, char **argv)
 {
-	SaHpiVersionT   hpiver;
+	SaHpiVersionT hpiver;
 	SaHpiSessionIdT sessionid;
 	SaErrorT    rv;
 
-	rv = saHpiInitialize(&hpiver);
+	hpiver = saHpiVersionGet();
+	printf("OpenHPI client %s, HPI Version %d\n", progname, hpiver);
 
-	if (rv != SA_OK) {
-		printf("saHpiInitialize error %d\n",rv);
-		exit(-1);
-	}
-	rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
 	if (rv != SA_OK) {
 		printf("saHpiSessionOpen error %d\n",rv);
 		exit(-1);
 	}
 	printf("Discovery\n");
-  	rv = saHpiResourcesDiscover(sessionid);
+  	rv = saHpiDiscover(sessionid);
 	printf("please use Ctrl+C to quit\n");
 	DoEvent(sessionid);  
 	rv = saHpiSessionClose(sessionid);
-	rv = saHpiFinalize();
 	return 0;
 }
