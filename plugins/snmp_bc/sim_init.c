@@ -20,7 +20,12 @@ int sim_close(void);
 
 int is_simulator()
 {
-  return 0;
+  return(0);
+}
+
+int sim_banner() 
+{
+  return(0);  
 }
 
 int sim_init() 
