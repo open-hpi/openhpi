@@ -24,7 +24,7 @@ main( int argc, char *argv[] )
   tInt64 result;
 
   unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1,
-                              &Int64Type, &result, &swap );
+                              &Marshal_Int64Type, &result, &swap );
 
   if ( s != sizeof( tInt64 ) )
        return 1;

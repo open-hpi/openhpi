@@ -32,19 +32,19 @@ typedef struct
   tInt8    m_array[dArraySize];
 } cTest1;
 
-cMarshalType ArrayType = dArray( Int8Type, dArraySize );
+cMarshalType ArrayType = dArray( Marshal_Int8Type, dArraySize );
 
 cMarshalType Test1Elements[] =
 {
-  dStructElement( cTest1, m_u8 , Uint8Type  ),
-  dStructElement( cTest1, m_u16, Uint16Type ),
-  dStructElement( cTest1, m_u16, Uint16Type ),
-  dStructElement( cTest1, m_u32, Uint32Type ),
-  dStructElement( cTest1, m_i8, Int8Type ),
-  dStructElement( cTest1, m_i16, Int16Type ),
-  dStructElement( cTest1, m_i32, Int32Type ),
-  dStructElement( cTest1, m_f32, Float32Type ),
-  dStructElement( cTest1, m_f64, Float64Type ),
+  dStructElement( cTest1, m_u8 , Marshal_Uint8Type  ),
+  dStructElement( cTest1, m_u16, Marshal_Uint16Type ),
+  dStructElement( cTest1, m_u16, Marshal_Uint16Type ),
+  dStructElement( cTest1, m_u32, Marshal_Uint32Type ),
+  dStructElement( cTest1, m_i8,  Marshal_Int8Type ),
+  dStructElement( cTest1, m_i16, Marshal_Int16Type ),
+  dStructElement( cTest1, m_i32, Marshal_Int32Type ),
+  dStructElement( cTest1, m_f32, Marshal_Float32Type ),
+  dStructElement( cTest1, m_f64, Marshal_Float64Type ),
   dStructElement( cTest1, m_array, ArrayType ),
 
   dStructElementEnd()
@@ -63,10 +63,10 @@ typedef struct
 
 cMarshalType Test2Elements[] =
 {
-  dStructElement( cTest2, m_u16, Uint16Type ),
-  dStructElement( cTest2, m_u8 , Uint8Type  ),
-  dStructElement( cTest2, m_u64, Uint64Type ),
-  dStructElement( cTest2, m_i64, Int64Type  ),
+  dStructElement( cTest2, m_u16, Marshal_Uint16Type ),
+  dStructElement( cTest2, m_u8 , Marshal_Uint8Type  ),
+  dStructElement( cTest2, m_u64, Marshal_Uint64Type ),
+  dStructElement( cTest2, m_i64, Marshal_Int64Type  ),
   dStructElementEnd()
 };
 
@@ -101,7 +101,7 @@ main( int argc, char *argv[] )
   cTest1         result1;
   cTest2         result2;
 
-  const cMarshalType *type_array[] = 
+  const cMarshalType *type_array[] =
   {
     &Test1Type,
     &Test2Type,

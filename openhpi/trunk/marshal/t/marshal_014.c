@@ -23,8 +23,8 @@ main( int argc, char *argv[] )
   tUint64 swap =  bswap_64( value );
   tUint64 result;
 
-  unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1, 
-                              &Uint64Type, &result, &swap );
+  unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1,
+                              &Marshal_Uint64Type, &result, &swap );
 
   if ( s != sizeof( tUint64 ) )
        return 1;

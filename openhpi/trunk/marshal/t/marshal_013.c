@@ -24,7 +24,7 @@ main( int argc, char *argv[] )
   tUint32 result;
 
   unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1,
-                              &Uint32Type, &result, &swap );
+                              &Marshal_Uint32Type, &result, &swap );
 
   if ( s != sizeof( tUint32 ) )
        return 1;

@@ -55,16 +55,16 @@ typedef struct
 
 cMarshalType UnionElements[] =
 {
-  dUnionElement( dModU8 , Uint8Type ),
-  dUnionElement( dModU16, Uint16Type ),
-  dUnionElement( dModU32, Uint32Type ),
-  dUnionElement( dModU64, Uint64Type ),
-  dUnionElement( dModI8 , Int8Type ),
-  dUnionElement( dModI16, Int16Type ),
-  dUnionElement( dModI32, Int32Type ),
-  dUnionElement( dModI64, Int64Type ),
-  dUnionElement( dModF32, Float32Type ),
-  dUnionElement( dModF64, Float64Type ),
+  dUnionElement( dModU8 , Marshal_Uint8Type ),
+  dUnionElement( dModU16, Marshal_Uint16Type ),
+  dUnionElement( dModU32, Marshal_Uint32Type ),
+  dUnionElement( dModU64, Marshal_Uint64Type ),
+  dUnionElement( dModI8 , Marshal_Int8Type ),
+  dUnionElement( dModI16, Marshal_Int16Type ),
+  dUnionElement( dModI32, Marshal_Int32Type ),
+  dUnionElement( dModI64, Marshal_Int64Type ),
+  dUnionElement( dModF32, Marshal_Float32Type ),
+  dUnionElement( dModF64, Marshal_Float64Type ),
   dUnionElementEnd()
 };
 
@@ -74,11 +74,11 @@ cMarshalType TestUnionType = dUnion( 1, cUnion, UnionElements );
 
 cMarshalType StructElements[] =
 {
-  dStructElement( cTest, m_pad1 , Uint8Type ),
-  dStructElement( cTest, m_mod  , Uint8Type ),
-  dStructElement( cTest, m_pad2 , Uint8Type ),
+  dStructElement( cTest, m_pad1 , Marshal_Uint8Type ),
+  dStructElement( cTest, m_mod  , Marshal_Uint8Type ),
+  dStructElement( cTest, m_pad2 , Marshal_Uint8Type ),
   dStructElement( cTest, m_union, TestUnionType ),
-  dStructElement( cTest, m_pad3 , Uint8Type ),
+  dStructElement( cTest, m_pad3 , Marshal_Uint8Type ),
   dStructElementEnd()
 };
 
@@ -125,7 +125,7 @@ main( int argc, char *argv[] )
   };
 
   cTest  result;
- 
+
   // Uint8
   value.m_mod = dModU8;
   value.m_union.m_u8 = 0x43;

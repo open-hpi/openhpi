@@ -24,8 +24,8 @@ typedef struct
 
 cMarshalType Test2Elements[] =
 {
-  dStructElement( cTest2, m_u8 , Uint8Type  ),
-  dStructElement( cTest2, m_u16, Uint16Type ),
+  dStructElement( cTest2, m_u8 , Marshal_Uint8Type  ),
+  dStructElement( cTest2, m_u16, Marshal_Uint16Type ),
   dStructElementEnd()
 };
 
@@ -40,8 +40,8 @@ typedef struct
 
 cMarshalType Test3Elements[] =
 {
-  dStructElement( cTest3, m_u16, Uint16Type ),
-  dStructElement( cTest3, m_u8 , Uint8Type  ),
+  dStructElement( cTest3, m_u16, Marshal_Uint16Type ),
+  dStructElement( cTest3, m_u8 , Marshal_Uint8Type  ),
   dStructElementEnd()
 };
 
@@ -61,12 +61,12 @@ typedef struct
 
 cMarshalType Test1Elements[] =
 {
-  dStructElement( cTest1, m_u81, Uint8Type  ),
-  dStructElement( cTest1, m_u16, Uint16Type ),
+  dStructElement( cTest1, m_u81, Marshal_Uint8Type  ),
+  dStructElement( cTest1, m_u16, Marshal_Uint16Type ),
   dStructElement( cTest1, m_struct2, Test2Type ),
-  dStructElement( cTest1, m_u82, Uint8Type  ),
+  dStructElement( cTest1, m_u82, Marshal_Uint8Type  ),
   dStructElement( cTest1, m_struct3, Test3Type ),
-  dStructElement( cTest1, m_u83, Uint8Type  ),
+  dStructElement( cTest1, m_u83, Marshal_Uint8Type  ),
   dStructElementEnd()
 };
 
@@ -99,7 +99,7 @@ main( int argc, char *argv[] )
        return 1;
 
   unsigned int s3 = MarshalSize( &Test1Type );
-  
+
   if ( s1 != s3 )
        return 1;
 

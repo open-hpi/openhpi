@@ -33,16 +33,16 @@ typedef struct
 
 cMarshalType Elements[] =
 {
-  dStructElement( cTest, m_u8 , Uint8Type  ),
-  dStructElement( cTest, m_u16, Uint16Type ),
-  dStructElement( cTest, m_u32, Uint32Type ),
-  dStructElement( cTest, m_u64, Uint64Type ),
-  dStructElement( cTest, m_i8 , Int8Type ),
-  dStructElement( cTest, m_i16, Int16Type ),
-  dStructElement( cTest, m_i32, Int32Type ),
-  dStructElement( cTest, m_i64, Int64Type ),
-  dStructElement( cTest, m_f32, Float32Type ),
-  dStructElement( cTest, m_f64, Float64Type ),
+  dStructElement( cTest, m_u8 , Marshal_Uint8Type  ),
+  dStructElement( cTest, m_u16, Marshal_Uint16Type ),
+  dStructElement( cTest, m_u32, Marshal_Uint32Type ),
+  dStructElement( cTest, m_u64, Marshal_Uint64Type ),
+  dStructElement( cTest, m_i8 , Marshal_Int8Type ),
+  dStructElement( cTest, m_i16, Marshal_Int16Type ),
+  dStructElement( cTest, m_i32, Marshal_Int32Type ),
+  dStructElement( cTest, m_i64, Marshal_Int64Type ),
+  dStructElement( cTest, m_f32, Marshal_Float32Type ),
+  dStructElement( cTest, m_f64, Marshal_Float64Type ),
   dStructElementEnd()
 };
 

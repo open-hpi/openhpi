@@ -22,12 +22,12 @@ main( int argc, char *argv[] )
   tFloat32       result;
   unsigned char  buffer[256];
 
-  unsigned int s1 = Marshal( &Float32Type, &value, buffer );
+  unsigned int s1 = Marshal( &Marshal_Float32Type, &value, buffer );
 
   if ( s1 != sizeof( tFloat32 ) )
        return 1;
 
-  unsigned int s2 = Demarshal( MarshalByteOrder(), &Float32Type, &result, buffer );
+  unsigned int s2 = Demarshal( MarshalByteOrder(), &Marshal_Float32Type, &result, buffer );
 
   if ( s2 != sizeof( tFloat32 ) )
        return 1;
