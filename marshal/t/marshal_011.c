@@ -22,7 +22,7 @@ main( int argc, char *argv[] )
   tUint8 result;
 
   unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1,
-                              &Marshal_Uint8Type, &result, &value );
+                              &Uint8Type, &result, &value );
 
   if ( s != sizeof( tUint8 ) )
        return 1;

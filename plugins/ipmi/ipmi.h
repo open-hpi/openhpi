@@ -25,13 +25,16 @@
 #include <unistd.h>
 
 #include <OpenIPMI/ipmiif.h>
-#include <OpenIPMI/ipmi_fru.h>
+#include <OpenIPMI/ipmi_sel.h>
 #include <OpenIPMI/ipmi_smi.h>
 #include <OpenIPMI/ipmi_err.h>
 #include <OpenIPMI/ipmi_auth.h>
 #include <OpenIPMI/ipmi_lan.h>
 #include <OpenIPMI/selector.h>
+#include <OpenIPMI/ipmi_int.h>
 #include <OpenIPMI/os_handler.h>
+#include <OpenIPMI/ipmi_domain.h>
+#include <OpenIPMI/ipmi_event.h>
 #include <OpenIPMI/ipmi_posix.h>
 
 #include <SaHpi.h>
@@ -44,9 +47,6 @@
 #define IPMI_DATA_WAIT	5
 #define OEM_ALARM_BASE  0x10
 
-#define	IPMI_EVENT_DATA_MAX_LEN 13
-#define	MAX_ES_STATE 15 /* max number of possible event state - 1 */
-
 extern selector_t       *ohoi_sel;
 
 struct ohoi_handler {
@@ -54,9 +54,9 @@ struct ohoi_handler {
 	int SDRs_read_done;
 	int bus_scan_done;
     	int SELs_read_done;
-	int mc_count;		/* to keep track of num of mcs to wait on sdrs */
-	int sel_clear_done;	/* we need to wait for mc_sel_reread for clear to succeed */
-	int FRU_done;			/* we have to track FRUs */
+	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
+	int sel_clear_done;		/* we need to wait for mc_sel_reread for clear to succeed */
+//	int FRU_done;			/* we have to track FRUs */
 
 	ipmi_domain_id_t domain_id;
 
@@ -69,13 +69,8 @@ struct ohoi_handler {
 	char *entity_root;
 	int connected;
 	int islan;
-	int fully_up;
-	time_t fullup_timeout;
-	unsigned int openipmi_scan_time;
-	int real_write_fru;
 };
 
-struct ohoi_inventory_info;
 struct ohoi_resource_info {
 	  	
   	int presence;	/* entity presence from OpenIPMI to determine
@@ -96,47 +91,14 @@ struct ohoi_resource_info {
 
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
-	struct ohoi_inventory_info *fru;
 };
-
-
-
-#define OHOI_THS_LMINH	0x0001
-#define OHOI_THS_LMINL	0x0002
-#define OHOI_THS_LMAJH	0x0004
-#define OHOI_THS_LMAJL	0x0008
-#define OHOI_THS_LCRTH	0x0010
-#define OHOI_THS_LCRTL	0x0020
-#define OHOI_THS_UMINH	0x0040
-#define OHOI_THS_UMINL	0x0080
-#define OHOI_THS_UMAJH	0x0100
-#define OHOI_THS_UMAJL	0x0200
-#define OHOI_THS_UCRTH	0x0400
-#define OHOI_THS_UCRTL	0x0800
 
 struct ohoi_sensor_info {
 	ipmi_sensor_id_t sensor_id;
-	int sen_enabled;
+	int valid;
 	SaHpiBoolT enable;
-	SaHpiBoolT saved_enable;	
 	SaHpiEventStateT  assert;
 	SaHpiEventStateT  deassert;
-	unsigned int support_assert;
-	unsigned int support_deassert;
-};
-
-struct ohoi_inventory_info {
-	SaHpiUint32T	update_count;
-	// zero if area doesn't exist. If area exists
-	// lang for board and product info, 1 for the rest
-	unsigned char	iu, ci, bi, pi, oem;
-	unsigned int ci_fld_msk;
-	unsigned int ci_custom_num;
-	unsigned int bi_fld_msk;
-	unsigned int bi_custom_num;
-	unsigned int pi_fld_msk;
-	unsigned int pi_custom_num;
-	unsigned int oem_fields_num;
 };
 
 /* implemented in ipmi_event.c */
@@ -169,12 +131,10 @@ int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
 				       void *cb_data);
 
 int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
-					SaHpiBoolT enable,
-					SaHpiEventStateT  assert,
-					SaHpiEventStateT  deassert,
-					unsigned int a_supported,
-					unsigned int d_supported,
-					void *cb_data);
+			               SaHpiBoolT enable,
+			 	       SaHpiEventStateT  assert,
+				       SaHpiEventStateT  deassert,
+				       void *cb_data);
 
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);

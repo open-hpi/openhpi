@@ -4,8 +4,7 @@
 MAINTAINERCLEANFILES = Makefile.in
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
-REMOTE_SOURCES 	= openhpiclient.cpp \
-			openhpiclient.h
+REMOTE_SOURCES		= openhpiclient.cpp openhpiclient.h
 
 if SHELL_CLIENT
 COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la \
@@ -30,8 +29,6 @@ HS_SOURCES		= \
 			hpi_cmd.c \
 			cmdparser.c \
 			commands.c \
-			ctrl_inv.c \
-			sensor.c \
 			session.c
 
 if SHELL_CLIENT
@@ -39,7 +36,7 @@ NHS_SOURCES = ${HS_SOURCES} ${REMOTE_SOURCES}
 else
 NHS_SOURCES = ${HS_SOURCES}
 endif
-hpi_cmd_SOURCES = ${NHS_SOURCES}
+hpi_cmd_SOURCES      = ${NHS_SOURCES}
 hpi_cmd_LDADD        = $(COMMONLIBS)
 hpi_cmd_LDFLAGS      =
 	
@@ -49,4 +46,4 @@ $(REMOTE_SOURCES):
 	fi
 
 clean-local:
-	rm -f *~ *.o  ${REMOTE_SOURCES}
+	rm -f *~ *.o ${REMOTE_SOURCES}
