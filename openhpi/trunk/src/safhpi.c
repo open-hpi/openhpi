@@ -970,10 +970,11 @@ SaErrorT SAHPI_API saHpiEventAdd (
         SaHpiDomainIdT did;
         struct oh_event e;
         GArray *session_list = NULL;
-        SaErrorT error = SA_OK;
+        SaErrorT error;
         unsigned int i;
 
-        if (!EvtEntry) return SA_ERR_HPI_INVALID_PARAMS;
+	error = oh_valid_addevent(EvtEntry);
+	if (error) return(error);
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
