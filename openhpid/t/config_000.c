@@ -13,6 +13,7 @@
  */
 
 #include "simple_config.h"
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -54,7 +55,7 @@ main( int argc, char *argv[] )
 
   cTest t;
   
-  int rv = ConfigRead( "config_000.conf", table, &t );
+  int rv = ConfigRead( getenv("TEST_CONFIG_FILE"), table, &t );
 
   if ( rv )
        return 1;
