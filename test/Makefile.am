@@ -53,7 +53,8 @@ conform:
 	./testconformance.pl
 	./conformance_report.pl
 
-publish-conform: conform
+
+pconform:
 	-chmod a+x $(shell echo $(CONFORMDIR)/*html)
 	-echo "XBitHack on" > $(CONFORMDIR)/.htaccess
 	-echo "Options +Indexes" >> $(CONFORMDIR)/.htaccess 
@@ -61,10 +62,15 @@ publish-conform: conform
 	-ssh $(SERVER) "find $(CONFORMRDIR) -user `whoami` -exec chmod g+w {} \;"
 	-ssh $(SERVER) "find $(CONFORMRDIR) -user `whoami` -type d -exec chmod g+s {} \;"
 
-publish-report: report
+preport: 
 	-chmod a+x $(shell echo $(REPORTDIR)/*html)
 	-echo "XBitHack on" > $(REPORTDIR)/.htaccess
 	-echo "Options +Indexes" >> $(REPORTDIR)/.htaccess 
 	-rsync -e ssh -rP --delete $(REPORTDIR)/ $(SERVER):$(RDIR)
 	-ssh $(SERVER) "find $(RDIR) -user `whoami` -exec chmod g+w {} \;"
 	-ssh $(SERVER) "find $(RDIR) -user `whoami` -type d -exec chmod g+s {} \;"
+
+publish-conform:: conform pconform
+
+publish-report:: report preport
+

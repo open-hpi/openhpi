@@ -43,6 +43,7 @@ my %files = (
              "plugins/snmp_bc/snmp_bc_utils.c" => "t",
              "plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
 
+             "plugins/snmp_bc/t/bc_str2event.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc_control.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc_discover.c" => ".libs",
@@ -55,6 +56,7 @@ my %files = (
 	     "plugins/snmp_bc/t/snmp_bc_time.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc_utils.c" => ".libs",
              "plugins/snmp_bc/t/snmp_bc_watchdog.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_util.c" => ".libs",
             );
 
 # we must ensure that we have coverage created
