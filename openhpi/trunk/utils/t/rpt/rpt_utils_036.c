@@ -22,7 +22,7 @@
 
 /**
  * main: Starting with an empty RPTable, adds 1 resource with an invalid
- * entity path (no root element) to it.
+ * entity path (has a bogus entity type) to it.
  * Passes the test if the interface returns an error, else it fails.
  *
  * Return value: 0 on success, 1 on failure
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 
         for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                 if (rptentries[0].ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT) {
-                        rptentries[0].ResourceEntity.Entry[i].EntityType = 0;
+                        rptentries[0].ResourceEntity.Entry[i].EntityType = 999999;
                         break;
                 }
         }

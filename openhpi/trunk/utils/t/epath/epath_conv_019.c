@@ -52,7 +52,8 @@ int main(int argc, char **argv)
         if(entitypath2string(&tmp_ep, new, 255) < 0) 
                 return 1;
         
-        if(strcmp(new,entity_root) != 0)
+        /* Should get an empty string as root is in entry 0 */
+        if(strcmp(new,"") != 0)
                 return 1;
 
         return 0;

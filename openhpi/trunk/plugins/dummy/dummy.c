@@ -77,7 +77,7 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
 		.ResourceEntity = {	
 			.Entry = {
 				{SAHPI_ENT_SYSTEM_BOARD, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.ResourceId = 0,
@@ -103,7 +103,7 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
 		.ResourceEntity = {	
 			.Entry = {
 				{SAHPI_ENT_POWER_SUPPLY, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.ResourceId = 0,
@@ -124,7 +124,7 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
 		.ResourceEntity = {	
 			.Entry = {
 				{SAHPI_ENT_POWER_SUPPLY, 2},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.ResourceId = 0,
@@ -195,7 +195,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_SYSTEM_BOARD, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -287,7 +287,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_POWER_SUPPLY, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -360,7 +360,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_SYSTEM_BOARD, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -400,7 +400,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_SYSTEM_BOARD, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -424,7 +424,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_SYSTEM_BOARD, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -498,7 +498,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_POWER_SUPPLY, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -574,7 +574,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_SYSTEM_BOARD, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -605,7 +605,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.Entity   = {
 			.Entry = {
 				{SAHPI_ENT_SYSTEM_BOARD, 1},
-				{0, 0}
+				{SAHPI_ENT_ROOT, 0}
 			},
 		},
 		.RdrTypeUnion = {
@@ -1010,8 +1010,7 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 	entity_root = (char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
 
         string2entitypath(entity_root, &root_ep);
-	append_root(&root_ep);
-
+	
 	/* append entity root to resource entity paths */
 	for (i=0; i < NUM_RESOURCES; i++) {
 		memcpy(&res, &dummy_resources[i], sizeof(SaHpiRptEntryT));

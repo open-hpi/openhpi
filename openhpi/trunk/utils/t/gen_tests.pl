@@ -38,7 +38,8 @@ sub ent_list {
     open(IN,"<$file");
     while(<IN>) {
         if(/^\s+SAHPI_ENT_([\_\w]+)/) {
-            push @ents, $1;
+            if($1 neq "ROOT")
+                    push @ents, $1;
         }
     }
     return @ents;

@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 {
         char new[255];
         SaHpiEntityPathT tmp_ep;
-        char *entity_root = "{ROOT,91}{CHASSIS_SPECIFIC,74}";
+        char *entity_root = "{SUB_CHASSIS,91}{CHASSIS_SPECIFIC,74}";
         
         string2entitypath(entity_root, &tmp_ep);
          
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         if(tmp_ep.Entry[0].EntityInstance != 74)
                 return 1;
         
-        if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_ROOT)
+        if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_SUB_CHASSIS)
                 return 1;
         
         if(tmp_ep.Entry[1].EntityInstance != 91)

@@ -180,34 +180,26 @@ TESTS = \
         ep_concat_013 \
         ep_concat_014 \
         ep_concat_015 \
-        set_epath_instance_000 \
-        set_epath_instance_001 \
-        set_epath_instance_002 \
-        set_epath_instance_003 \
-        set_epath_instance_004 \
-        set_epath_instance_005 \
-        set_epath_instance_006 \
-        set_epath_instance_007 \
-        set_epath_instance_008 \
-        set_epath_instance_009 \
-        set_epath_instance_010 \
-        set_epath_instance_011 \
-        set_epath_instance_012 \
-        set_epath_instance_013 \
-        prt_ep_000 \
-        prt_ep_001 \
-        prt_ep_002 \
-        prt_ep_003 \
-        prt_ep_004 \
-        prt_ep_005 \
-        append_root_000 \
-        append_root_001 \
-        append_root_002 \
-        append_root_003 \
-        append_root_004 \
-        append_root_005 \
-        append_root_006 \
-        append_root_007
+        set_ep_instance_000 \
+        set_ep_instance_001 \
+        set_ep_instance_002 \
+        set_ep_instance_003 \
+        set_ep_instance_004 \
+        set_ep_instance_005 \
+        set_ep_instance_006 \
+        set_ep_instance_007 \
+        set_ep_instance_008 \
+        set_ep_instance_009 \
+        set_ep_instance_010 \
+        set_ep_instance_011 \
+        set_ep_instance_012 \
+        set_ep_instance_013 \
+        print_ep_000 \
+        print_ep_001 \
+        print_ep_002 \
+        print_ep_003 \
+        print_ep_004 \
+        print_ep_005 
 
 check_PROGRAMS = \
 	tepath_utils \
@@ -347,34 +339,26 @@ check_PROGRAMS = \
         ep_concat_013 \
         ep_concat_014 \
         ep_concat_015 \
-        set_epath_instance_000 \
-        set_epath_instance_001 \
-        set_epath_instance_002 \
-        set_epath_instance_003 \
-        set_epath_instance_004 \
-        set_epath_instance_005 \
-        set_epath_instance_006 \
-        set_epath_instance_007 \
-        set_epath_instance_008 \
-        set_epath_instance_009 \
-        set_epath_instance_010 \
-        set_epath_instance_011 \
-        set_epath_instance_012 \
-        set_epath_instance_013 \
-        prt_ep_000 \
-        prt_ep_001 \
-        prt_ep_002 \
-        prt_ep_003 \
-        prt_ep_004 \
-        prt_ep_005 \
-        append_root_000 \
-        append_root_001 \
-        append_root_002 \
-        append_root_003 \
-        append_root_004 \
-        append_root_005 \
-        append_root_006 \
-        append_root_007
+        set_ep_instance_000 \
+        set_ep_instance_001 \
+        set_ep_instance_002 \
+        set_ep_instance_003 \
+        set_ep_instance_004 \
+        set_ep_instance_005 \
+        set_ep_instance_006 \
+        set_ep_instance_007 \
+        set_ep_instance_008 \
+        set_ep_instance_009 \
+        set_ep_instance_010 \
+        set_ep_instance_011 \
+        set_ep_instance_012 \
+        set_ep_instance_013 \
+        print_ep_000 \
+        print_ep_001 \
+        print_ep_002 \
+        print_ep_003 \
+        print_ep_004 \
+        print_ep_005 
 
 tepath_utils_SOURCES = tepath_utils.c $(REMOTE_SOURCES)
 
@@ -518,33 +502,25 @@ ep_concat_013_SOURCES = ep_concat_013.c $(REMOTE_SOURCES)
 ep_concat_014_SOURCES = ep_concat_014.c $(REMOTE_SOURCES)
 ep_concat_015_SOURCES = ep_concat_015.c $(REMOTE_SOURCES)
 
-set_epath_instance_000_SOURCES = set_epath_instance_000.c $(REMOTE_SOURCES)
-set_epath_instance_001_SOURCES = set_epath_instance_001.c $(REMOTE_SOURCES)
-set_epath_instance_002_SOURCES = set_epath_instance_002.c $(REMOTE_SOURCES)
-set_epath_instance_003_SOURCES = set_epath_instance_003.c $(REMOTE_SOURCES)
-set_epath_instance_004_SOURCES = set_epath_instance_004.c $(REMOTE_SOURCES)
-set_epath_instance_005_SOURCES = set_epath_instance_005.c $(REMOTE_SOURCES)
-set_epath_instance_006_SOURCES = set_epath_instance_006.c $(REMOTE_SOURCES)
-set_epath_instance_007_SOURCES = set_epath_instance_007.c $(REMOTE_SOURCES)
-set_epath_instance_008_SOURCES = set_epath_instance_008.c $(REMOTE_SOURCES)
-set_epath_instance_009_SOURCES = set_epath_instance_009.c $(REMOTE_SOURCES)
-set_epath_instance_010_SOURCES = set_epath_instance_010.c $(REMOTE_SOURCES)
-set_epath_instance_011_SOURCES = set_epath_instance_011.c $(REMOTE_SOURCES)
-set_epath_instance_012_SOURCES = set_epath_instance_012.c $(REMOTE_SOURCES)
-set_epath_instance_013_SOURCES = set_epath_instance_013.c $(REMOTE_SOURCES)
+set_ep_instance_000_SOURCES = set_ep_instance_000.c $(REMOTE_SOURCES)
+set_ep_instance_001_SOURCES = set_ep_instance_001.c $(REMOTE_SOURCES)
+set_ep_instance_002_SOURCES = set_ep_instance_002.c $(REMOTE_SOURCES)
+set_ep_instance_003_SOURCES = set_ep_instance_003.c $(REMOTE_SOURCES)
+set_ep_instance_004_SOURCES = set_ep_instance_004.c $(REMOTE_SOURCES)
+set_ep_instance_005_SOURCES = set_ep_instance_005.c $(REMOTE_SOURCES)
+set_ep_instance_006_SOURCES = set_ep_instance_006.c $(REMOTE_SOURCES)
+set_ep_instance_007_SOURCES = set_ep_instance_007.c $(REMOTE_SOURCES)
+set_ep_instance_008_SOURCES = set_ep_instance_008.c $(REMOTE_SOURCES)
+set_ep_instance_009_SOURCES = set_ep_instance_009.c $(REMOTE_SOURCES)
+set_ep_instance_010_SOURCES = set_ep_instance_010.c $(REMOTE_SOURCES)
+set_ep_instance_011_SOURCES = set_ep_instance_011.c $(REMOTE_SOURCES)
+set_ep_instance_012_SOURCES = set_ep_instance_012.c $(REMOTE_SOURCES)
+set_ep_instance_013_SOURCES = set_ep_instance_013.c $(REMOTE_SOURCES)
 
-prt_ep_000_SOURCES = prt_ep_000.c $(REMOTE_SOURCES)
-prt_ep_001_SOURCES = prt_ep_001.c $(REMOTE_SOURCES)
-prt_ep_002_SOURCES = prt_ep_002.c $(REMOTE_SOURCES)
-prt_ep_003_SOURCES = prt_ep_003.c $(REMOTE_SOURCES)
-prt_ep_004_SOURCES = prt_ep_004.c $(REMOTE_SOURCES)
-prt_ep_005_SOURCES = prt_ep_005.c $(REMOTE_SOURCES)
+print_ep_000_SOURCES = print_ep_000.c $(REMOTE_SOURCES)
+print_ep_001_SOURCES = print_ep_001.c $(REMOTE_SOURCES)
+print_ep_002_SOURCES = print_ep_002.c $(REMOTE_SOURCES)
+print_ep_003_SOURCES = print_ep_003.c $(REMOTE_SOURCES)
+print_ep_004_SOURCES = print_ep_004.c $(REMOTE_SOURCES)
+print_ep_005_SOURCES = print_ep_005.c $(REMOTE_SOURCES)
 
-append_root_000_SOURCES = append_root_000.c $(REMOTE_SOURCES)
-append_root_001_SOURCES = append_root_001.c $(REMOTE_SOURCES)
-append_root_002_SOURCES = append_root_002.c $(REMOTE_SOURCES)
-append_root_003_SOURCES = append_root_003.c $(REMOTE_SOURCES)
-append_root_004_SOURCES = append_root_004.c $(REMOTE_SOURCES)
-append_root_005_SOURCES = append_root_005.c $(REMOTE_SOURCES)
-append_root_006_SOURCES = append_root_006.c $(REMOTE_SOURCES)
-append_root_007_SOURCES = append_root_007.c $(REMOTE_SOURCES)

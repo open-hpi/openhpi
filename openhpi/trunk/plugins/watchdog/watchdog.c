@@ -99,9 +99,8 @@ static void *watchdog_open(GHashTable *handler_config)
                 return NULL;
         }
         string2entitypath(er, &g_epbase);
-        append_root(&g_epbase);
-
-        hnd = malloc(sizeof(*hnd));
+        
+	hnd = malloc(sizeof(*hnd));
         if (!hnd) {
                 dbg("unable to allocate main handler");
                 return NULL;

@@ -118,9 +118,40 @@ static gchar *eshort_names[] = {
 	"SUBBOARD_CARRIER_BLADE",
 };
 
-
 static unsigned int eshort_num_names = sizeof( eshort_names ) / sizeof( gchar * );
 
+static unsigned int index2entitytype(unsigned int i)
+{
+        if(i <= ESHORTNAMES_BEFORE_JUMP) {
+                return i;
+        } else if(i == ESHORTNAMES_FIRST_JUMP) {
+                return (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC;
+        } else if(i == ESHORTNAMES_SECOND_JUMP) {
+                return (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC;
+        } else if(i == ESHORTNAMES_THIRD_JUMP) {
+                return (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC;
+        } else {
+                assert(i >= ESHORTNAMES_LAST_JUMP);
+                return (i - ESHORTNAMES_LAST_JUMP + (unsigned int)SAHPI_ENT_ROOT);
+        }
+}
+
+static int entitytype2index(unsigned int i)
+{
+        if(i <= ESHORTNAMES_BEFORE_JUMP)
+                return i;
+        else if (i == (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC)
+                return ESHORTNAMES_FIRST_JUMP;
+        else if (i == (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC)
+                return ESHORTNAMES_SECOND_JUMP;
+        else if (i == (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC)
+                return ESHORTNAMES_THIRD_JUMP;
+        else if (i >= (unsigned int)SAHPI_ENT_ROOT &&
+                 i-(unsigned int)SAHPI_ENT_ROOT < eshort_num_names-ESHORTNAMES_LAST_JUMP)
+                return i-(unsigned int)SAHPI_ENT_ROOT+ESHORTNAMES_LAST_JUMP;
+
+        return -1;
+}
 
 /**
  * string2entitypath
@@ -233,8 +264,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		num_valid_entities++; 
 	}  
   
-	/* Clear and write HPI entity path structure */
-	memset(epathptr, 0, SAHPI_MAX_ENTITY_PATH * sizeof(*entityptr));
+	/* Initialize and write HPI entity path structure */
+	ep_init(epathptr);
 
 	for (i = 0; epath_list != NULL; i++) {
                 lst = epath_list;
@@ -273,7 +304,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
  * canonical string version. 
  *
  * Returns: >0 Number of characters written to canonical entity path string, 
- * -1 Error return
+ * -1 Error return. -2 Entity path has invalid entity types.
  */
 int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const gint strsize)
 {
@@ -294,6 +325,11 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 return 0;
         }
 
+        /*if (validate_ep(epathptr)) {
+                dbg("Entity path contains invalid types. Unable to convert to string.");
+                return -2;
+        }*/
+
 	instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
 	tmpstr = (gchar *)g_malloc0(strsize);
 	if (instance_str == NULL || tmpstr == NULL) { 
@@ -301,16 +337,20 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		rtncode = -1; 
 		goto CLEANUP;
 	}
-	
-	for (i = (SAHPI_MAX_ENTITY_PATH - 1); i >= 0; i--) {
+        
+        /* Find last element of structure. Disregard ROOT element
+         * and count as last in entity path.
+         */
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if (epathptr->Entry[i].EntityType == SAHPI_ENT_ROOT) {                            
+                            break;
+                }
+        }
+
+        /* Parse entity path into a string */
+	for (i--; i >= 0; i--) {
                 guint num_digits, work_instance_num;
-
-		/* Find last element of structure. Instance 0 is invalid. */
-		if (epathptr->Entry[i].EntityInstance == 0 &&
-                    epathptr->Entry[i].EntityType != SAHPI_ENT_ROOT) {                        
-			continue;
-		}
-
+                
 		/* Validate and convert data */
                 work_instance_num = epathptr->Entry[i].EntityInstance;
                 for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
@@ -324,17 +364,16 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
                                "%d", epathptr->Entry[i].EntityInstance);
 
-                // check if we can convert the entity type to a string
+                /* Find string for current entity type */
                 tidx = entitytype2index(epathptr->Entry[i].EntityType);
-
                 if ( tidx >= 0 )
                         type_str = eshort_names[tidx];
-                else {
-                        err = snprintf(type_str_buffer, 20,
-                                       "%d", epathptr->Entry[i].EntityType);
+                else { /* String for entity type not found. */
+                        err = snprintf(type_str_buffer, 20, "%d",
+                                       epathptr->Entry[i].EntityType);
                         type_str = type_str_buffer;
-                }
-
+                }                
+                
 		strcount = strcount + 
 			strlen(EPATHSTRING_START_DELIMITER) + 
 			strlen(type_str) + 
@@ -370,6 +409,24 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	return(rtncode);
 } /* End entitypath2string */
 
+/**
+ * ep_init
+ * @ep: Pointer to SaHpiEntityPathT structure to initialize.
+ *
+ * Initializes the given entity path to all {ROOT,0} elements.
+ *
+ * Returns: void.
+ **/
+ void ep_init(SaHpiEntityPathT *ep) {
+         int i;
+
+         if (!ep) return;
+         
+         for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                 ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
+                 ep->Entry[i].EntityInstance = 0;
+         }
+ }
 
 /**
  * ep_concat
@@ -387,19 +444,16 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
 {
         unsigned int i, j;
 
-        if(!dest) return -1;
-        if(!append) return 0;
+        if (!dest) return -1;
+        if (!append) return 0;
 
-        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(dest->Entry[i].EntityInstance == 0) {
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if (dest->Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         break;
                 }
         }
 
-        for (j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(append->Entry[j].EntityInstance == 0 &&
-                   append->Entry[j].EntityType != SAHPI_ENT_ROOT)
-                           break;
+        for (j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {                
                 dest->Entry[i].EntityInstance = append->Entry[j].EntityInstance;
                 dest->Entry[i].EntityType = append->Entry[j].EntityType;
                 if (append->Entry[j].EntityType == SAHPI_ENT_ROOT) break;
@@ -410,7 +464,31 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
 }
 
 /**
- * set_epath_instance
+ * validate_ep
+ * @ep: Pointer to an SaHpiEntityPathT structure.
+ *
+ * This will check the entity path to make sure it does not contain
+ * any invalid entity types in it up to the root element if it has it.
+ *
+ * Returns: 0 if entity path is valid, -1 otherwise.
+ **/
+int validate_ep(const SaHpiEntityPathT *ep)
+{
+        int check = 0;
+	int i;
+
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if (entitytype2index(ep->Entry[i].EntityType) < 0) {
+                        check = -1;
+                        break;
+                } else if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+        }
+
+        return check;
+}
+
+/**
+ * set_ep_instance
  * @ep: Pointer to entity path to work on
  * @et: entity type to look for
  * @ei: entity instance to set when entity type is found
@@ -420,20 +498,19 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
  *
  * Returns: 0 on Success, -1 if the entity type was not found.
  **/
-int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
+int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
 {
         int i;
         int retval = -1;
 
 	if (!ep) return retval;
 
-        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(ep->Entry[i].EntityType == et) {
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if (ep->Entry[i].EntityType == et) {
                         ep->Entry[i].EntityInstance = ei;
                         retval = 0;
-                        break;
-                }
-                else if(ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
+                        break;                        
+                } else if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         break;
                 }
         }
@@ -441,87 +518,17 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
 }
 
 /**
- * append_root
- * @ep: IN,OUT Pointer to entity path. SAHPI_ENT_ROOT will be appended to it.
+ * ep_cmp
+ * @ep1: Pointer to entity path struct
+ * @ep2: Pointer to entity path struct
  *
- * Append the SAHPI_ENT_ROOT element to an entity path structure.
- * If an entity path already has a root element, the function returns without
- * making any changes and reporting success.
+ * Compare two entity paths up to their root element.
+ * To be equal, they must have the same number of elements and each element
+ * (type and instance pair) must be equal to the corresponding element
+ * in the other entity path.
  *
- * Returns: 0 on Success, -1 if ep is NULL.
+ * Returns: 0 if equal, -1 if not.
  **/
-int append_root(SaHpiEntityPathT *ep)
-{
-        unsigned int i;
-
-	if (!ep) return -1;
-
-        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-		if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
-			break;
-		} else if (ep->Entry[i].EntityInstance == 0) {
-		        ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
-                        ep->Entry[i].EntityInstance = 0;
-			break;
-		}
-        }
-
-        return 0;
-}
-
-static unsigned int index2entitytype(unsigned int i)
-{
-        if(i <= ESHORTNAMES_BEFORE_JUMP) {
-                return i;
-        } else if(i == ESHORTNAMES_FIRST_JUMP) {
-                return (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC;
-        } else if(i == ESHORTNAMES_SECOND_JUMP) {
-                return (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC;
-        } else if(i == ESHORTNAMES_THIRD_JUMP) {
-                return (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC;
-        } else {
-                assert(i >= ESHORTNAMES_LAST_JUMP);
-                return (i - ESHORTNAMES_LAST_JUMP + (unsigned int)SAHPI_ENT_ROOT);
-        }
-}
-
-static int entitytype2index(unsigned int i)
-{
-        if(i <= ESHORTNAMES_BEFORE_JUMP)
-                return i;
-        else if (i == (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC)
-                return ESHORTNAMES_FIRST_JUMP;
-        else if (i == (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC)
-                return ESHORTNAMES_SECOND_JUMP;
-        else if (i == (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC)
-                return ESHORTNAMES_THIRD_JUMP;
-        else if (i >= (unsigned int)SAHPI_ENT_ROOT &&
-                 i-(unsigned int)SAHPI_ENT_ROOT < eshort_num_names-ESHORTNAMES_LAST_JUMP)
-                return i-(unsigned int)SAHPI_ENT_ROOT+ESHORTNAMES_LAST_JUMP;
-
-        return -1;
-}
-
-int prt_ep(const SaHpiEntityPathT *ep) 
-{
-        gchar epstr[512];
-	int len;
-
-        if (!ep) {
-		dbg("Error: null pointer \n");
-                return -1;
-        }
-	len = entitypath2string(ep, epstr, sizeof(epstr));
-
-	if (len < 0) {
-		dbg("Cannot translate Entity Path to string");
-		return -1;
-	}
-
-	printf("Entity Path=\"%s\"\n", epstr);
-	return 0;
-} 
-
 int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
 {
         unsigned int i, j;
@@ -553,16 +560,12 @@ int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
         }
 
         for ( i = 0; i < j; i++ ) {
-                if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType) {
-                        dbg("ep1 element%d EntityType %d != ep2 %d\n", i, 
+                if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType ||
+                    ep1->Entry[i].EntityInstance != ep2->Entry[i].EntityInstance) {
+                        dbg("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
                             ep1->Entry[i].EntityType,
-                            ep2->Entry[i].EntityType);
-                        return -1;
-                }
-
-                if (ep1->Entry[i].EntityInstance != ep2->Entry[i].EntityInstance) {
-                        dbg("ep1 element %d EntityInstance %d != ep2 %d\n", i,
                             ep1->Entry[i].EntityInstance,
+                            ep2->Entry[i].EntityType,
                             ep2->Entry[i].EntityInstance);
                         return -1;
                 }
@@ -572,27 +575,32 @@ int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
 }
 
 /**
- * validate_ep
- * @ep: Pointer to an SaHpiEntityPathT structure.
+ * print_ep
+ * @ep: Pointer to entity path stucture.
  *
- * This will check the entity path to make sure it does not contain
- * any invalid entity types in it up to the root element if it has it.
+ * Print the string form of an entity path structure.
  *
- * Returns: 0 if entity path is valid, -1 otherwise.
+ * Returns: 0 on Success, -1 on Failure.
  **/
-int validate_ep(const SaHpiEntityPathT *ep)
+int print_ep(const SaHpiEntityPathT *ep)
 {
-        int check = 0;
-	int i;
+        const int buffer_size = 512;
+        gchar epstr[buffer_size];
+        int len;
+	
+        memset(epstr,0,buffer_size);
 
-        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (ep->Entry[i].EntityInstance == 0) {
-                        if (ep->Entry[i].EntityType != SAHPI_ENT_ROOT) {
-                                check = -1;
-                                break;
-                        } else break;
-                }
+        if (!ep) {
+		dbg("Error: null pointer \n");
+                return -1;
         }
+        
+	len = entitypath2string(ep, epstr, sizeof(epstr));
 
-        return check;
+        if (len < 0) return -1;
+        /* Entity path with a sole root element will be an empty string */
+
+	printf("Entity Path=\"%s\"\n", epstr);
+
+        return 0;
 }

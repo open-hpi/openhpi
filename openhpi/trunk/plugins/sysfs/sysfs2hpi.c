@@ -80,7 +80,6 @@ static void *sysfs2hpi_open(GHashTable *handler_config)
 		return NULL;
         }
         string2entitypath(er, &g_epbase);
-        append_root(&g_epbase);
 
         hnd = malloc(sizeof(*hnd));
         if (!hnd) {
