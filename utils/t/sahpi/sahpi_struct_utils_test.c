@@ -821,6 +821,7 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_print_sensorrec: Default sensor testcase */
+		memset(&default_sensor, 0, sizeof(SaHpiSensorRecT));
 		err = oh_print_sensorrec(&default_sensor, 0);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
