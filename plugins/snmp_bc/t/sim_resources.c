@@ -7704,7 +7704,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 1 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.1",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7714,7 +7714,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 2 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.2",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7724,7 +7724,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 3 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.3",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7734,7 +7734,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 4 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.4",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7744,7 +7744,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 5 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.5",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7754,7 +7754,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 6 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.6",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7764,7 +7764,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 7 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.7",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7774,7 +7774,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 8 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.8",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7784,7 +7784,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 9 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.9",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7794,7 +7794,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 10 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.10",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7804,7 +7804,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 11 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.11",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7814,7 +7814,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 12 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.12",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7824,7 +7824,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 13 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.13",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7834,7 +7834,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Manufacturer VPD - Blade Add-on 14 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.10.14",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7844,7 +7844,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 1 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.1",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7854,7 +7854,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 2 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.2",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7864,7 +7864,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 3 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.3",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7874,7 +7874,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 4 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.4",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7884,7 +7884,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 5 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.5",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7894,7 +7894,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 6 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.6",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7904,7 +7904,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 7 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.7",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7914,7 +7914,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 8 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.8",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7924,7 +7924,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 9 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.9",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7934,7 +7934,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 10 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.10",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7944,7 +7944,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 11 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.11",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7954,7 +7954,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 12 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.12",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7964,7 +7964,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 13 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.13",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7974,7 +7974,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Name VPD - Blade Add-on 14 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.9.14",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -7984,7 +7984,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 1 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.1",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.1",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -7994,7 +7994,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 2 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.2",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.2",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8004,7 +8004,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 3 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.3",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.3",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8014,7 +8014,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 4 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.4",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.4",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8024,7 +8024,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 5 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.5",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.5",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8034,7 +8034,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 6 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.6",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.6",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8044,7 +8044,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 7 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.7",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.7",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8054,7 +8054,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 8 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.8",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.8",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8064,7 +8064,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 9 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.9",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.9",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8074,7 +8074,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 10 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.10",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.10",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8084,7 +8084,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 11 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.11",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.11",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8094,7 +8094,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 12 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.12",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.12",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8104,7 +8104,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 13 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.13",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.13",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8114,7 +8114,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Product Version VPD - Blade Add-on 14 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.12.14",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.14",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
@@ -8124,7 +8124,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 1 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.1",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.1",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8134,7 +8134,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 2 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.2",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.2",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8144,7 +8144,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 3 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.3",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.3",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8154,7 +8154,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 4 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.4",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.4",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8164,7 +8164,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 5 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.5",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.5",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8174,7 +8174,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 6 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.6",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.6",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8184,7 +8184,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 7 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.7",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.7",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8194,7 +8194,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 8 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.8",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.8",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8204,7 +8204,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 9 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.9",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.9",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8214,7 +8214,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 10 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.10",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.10",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8224,7 +8224,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 11 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.11",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.11",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8234,7 +8234,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 12 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.12",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.12",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8244,7 +8244,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 13 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.13",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.13",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
@@ -8254,7 +8254,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Blade Add-on Part Number VPD - Blade Add-on 14 */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.11.14",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.14",
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
