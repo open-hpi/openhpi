@@ -194,15 +194,20 @@ void DoEvent(
      ShowThresh( &senstbuff2 );
    }
 
+   senstbuff2.LowMajor.ValuesPresent = SAHPI_SRF_INTERPRETED;
+
 /* Set new threshold to current reading + 10% */
    senstbuff2.LowMajor.Interpreted.Value.SensorFloat32 =
         reading.Interpreted.Value.SensorFloat32 * (SaHpiFloat32T)1.10;
 
+/* In this case, LowMinor > LowMajor */
+
+   senstbuff2.LowMinor.ValuesPresent = SAHPI_SRF_INTERPRETED;
+   senstbuff2.LowMinor.Interpreted.Value.SensorFloat32 =
+        reading.Interpreted.Value.SensorFloat32 * (SaHpiFloat32T)1.10 + 10;
+
 printf( "ValuesPresent = %x\n", senstbuff2.LowMajor.ValuesPresent);
-printf( "Values Mask   = %x\n", (SAHPI_SRF_RAW));
-   senstbuff2.LowMajor.ValuesPresent =
-        senstbuff2.LowMajor.ValuesPresent ^ (SAHPI_SRF_RAW);
-printf( "ValuesPresent = %x\n", senstbuff2.LowMajor.ValuesPresent);
+printf( "Values Mask   = %x\n", (SAHPI_SRF_INTERPRETED));
 
    /* Display new current thresholds */ 
    if (rv == SA_OK) {
