@@ -16,6 +16,7 @@
  * 02/26/04 ARCress - added general search for any Fan sensor.
  * 03/17/04 ARCress - changed to Temp sensor (always has Lower Major)
  * 11/03/2004  kouzmich   porting to HPI B
+ * 11/25/2004  kouzmich   changed as new threshold client (first release)
  */
 
 #include <stdio.h>
@@ -27,43 +28,95 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
+#define READ_BUF_SIZE	1024
 
-int fdebug = 0;
-int fxdebug = 0;
-int fsensor = 0;
-int slist = 0;
-int i,j,k = 0;
-int sensor_name_len = 0;
-char *sensor_name;
-char s_name[] = "80mm Sys Fan (R)";  /*TSRLT2, default*/
-char sm_name[] = "Baseboard Fan 2";  /*TSRMT2, Mullins*/
-char s_pattn[] = "Temp";  /* else use the first temperature SDR found */
-char progver[] = "1.1";
-SaHpiUint32T buffersize;
-SaHpiUint32T actualsize;
-//SaHpiInventGeneralDataT *dataptr;
-SaHpiTextBufferT *strptr;
-SaHpiBoolT enables1;
-SaHpiBoolT enables2;
-SaErrorT rv;
+typedef enum {
+	UNKNOWN_TYPE = 0,
+	LOWER_CRIT,
+	LOWER_MAJOR,
+	LOWER_MINOR,
+	UPPER_CRIT,
+	UPPER_MAJOR,
+	UPPER_MINOR,
+	POS_HYST,
+	NEG_HYST
+} ThresTypes_t;
 
-char *rdrtypes[5] = {
-	"None    ",
-	"Control ",
-	"Sensor  ",
-	"Invent  ",
-	"Watchdog"};
+typedef struct {
+	int			rpt_ind;
+	int			is_value;
+	int			modify;
+	SaHpiRdrT		Rdr;
+	SaHpiSensorReadingT	reading;
+	SaHpiSensorThresholdsT	thresholds;
+} Rdr_t;
 
-#define HPI_NSEC_PER_SEC 1000000000LL
-#define NSU   32
-char *units[NSU] = {
-	"units", "deg C",     "deg F",     "deg K",     "volts", "amps",
-	"watts", "joules",    "coulombs",  "va",        "nits",  "lumen",
-	"lux",   "candela",   "kpa",       "psi",     "newton",  "cfm",
-	"rpm",   "Hz",        "us",        "ms",      "sec",     "min",
-	"hours", "days",      "weeks",     "mil",     "in",     "ft",
-	"mm",    "cm"
+typedef struct {
+	SaHpiRptEntryT	Rpt;
+	int		nrdrs;
+	Rdr_t		*rdrs;
+} Rpt_t;
+
+typedef enum {
+	COM_UNDEF = 0,
+	COM_EXIT,
+	COM_HELP,
+	COM_RPT,
+	COM_RDR,
+	COM_SENS,
+	COM_MOD,
+	COM_UNDO
+} Com_enum_t;
+
+typedef struct {
+	char	*command_name;
+	Com_enum_t	type;
+} Commands_def_t;
+
+Commands_def_t	Coms[] = {
+	{ "quit",	COM_EXIT },
+	{ "q",		COM_EXIT },
+	{ "exit",	COM_EXIT },
+	{ "help",	COM_HELP },
+	{ "h",		COM_HELP },
+	{ "rpt",	COM_RPT },
+	{ "rdr",	COM_RDR },
+	{ "sen",	COM_SENS },
+	{ "mod",	COM_MOD },
+	{ "undo",	COM_UNDO },
+	{ NULL,		COM_UNDEF }
 };
+
+Rpt_t	*Rpts;
+int	nrpts = 0;
+
+int	fdebug = 0;
+char	progver[] = "2.1";
+
+SaHpiSessionIdT		sessionid;
+
+static void *resize_array(void *Ar, int item_size, int *last_num, int add_num)
+/* Resize array Ar:
+ *	item_size - item size (bytes)
+ *	last_num  - current array size
+ *	add_num   - new array size = last_num + add_num
+ * Return:	new pointer
+ */
+{
+	void	*R;
+	int	new_num = *last_num + add_num;
+
+	if (new_num <= 0)
+		return((void *)NULL);
+	R = malloc(item_size * new_num);
+	memset(R, 0, item_size * new_num);
+	if (*last_num > 0) {
+		memcpy(R, Ar, *last_num * item_size);
+		free(Ar);
+	}
+	*last_num = new_num;
+	return(R);
+}
 
 static void print_value(SaHpiSensorReadingT *item, char *mes)
 {
@@ -73,444 +126,564 @@ static void print_value(SaHpiSensorReadingT *item, char *mes)
 		return;
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
-			printf("%s %lld\n", mes, item->Value.SensorInt64);
+			printf("%lld %s\n", item->Value.SensorInt64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			printf("%s %llu\n", mes, item->Value.SensorUint64);
+			printf("%llu %s\n", item->Value.SensorUint64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			printf("%s %10.3f\n", mes, item->Value.SensorFloat64);
+			printf("%10.3f %s\n", item->Value.SensorFloat64, mes);
 			return;
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
 			val = item->Value.SensorBuffer;
 			if (val != NULL)
-				printf("%s %s\n", mes, val);
+				printf("%s %s\n", val, mes);
 			return;
 	}
 }
 
-static void Set_value(SaHpiSensorReadingT *item, SaHpiSensorReadingUnionT value)
+static void ShowThres(SaHpiSensorThresholdsT *sensbuff)
 {
-	switch (item->Type) {
-		case SAHPI_SENSOR_READING_TYPE_INT64:
-			item->Value.SensorInt64 = value.SensorInt64;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			item->Value.SensorUint64 = value.SensorUint64;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			item->Value.SensorFloat64 = value.SensorFloat64;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			printf("Set_value: Buffer type is not supported\n");
-			break;
-	}
+	printf("    Supported Thresholds:\n");
+	print_value(&(sensbuff->LowCritical), "      Lower Critical Threshold(lc):");
+	print_value(&(sensbuff->LowMajor), "      Lower Major Threshold(la):");
+	print_value(&(sensbuff->LowMinor), "      Lower Minor Threshold(li):");
+	print_value(&(sensbuff->UpCritical), "      Upper Critical Threshold(uc):");
+	print_value(&(sensbuff->UpMajor), "      Upper Major Threshold(ua):");
+	print_value(&(sensbuff->UpMinor), "      Upper Minor Threshold(ui):");
+	print_value(&(sensbuff->PosThdHysteresis), "      Positive Threshold Hysteresis(ph):");
+	print_value(&(sensbuff->NegThdHysteresis), "      Negative Threshold Hysteresis(nh):");
+	printf("\n");
 }
 
-static void Mul_value(SaHpiSensorReadingT *item, SaHpiFloat64T value)
+static void show_rpt(Rpt_t *Rpt, int ind)
 {
-	switch (item->Type) {
-		case SAHPI_SENSOR_READING_TYPE_INT64:
-			item->Value.SensorInt64 =
-				(SaHpiInt64T)((SaHpiFloat64T)(item->Value.SensorInt64) * value);
-			break;
-		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			item->Value.SensorUint64 =
-				(SaHpiUint64T)((SaHpiFloat64T)(item->Value.SensorUint64) * value);
-			break;
-		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			item->Value.SensorFloat64 *= value;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			printf("Mul_value: Buffer type is not supported\n");
-			break;
-	}
+	printf("%3d RPT: id = %3d  ResourceId = %3d  Tag = %s\n",
+		ind, Rpt->Rpt.EntryId, Rpt->Rpt.ResourceId, Rpt->Rpt.ResourceTag.Data);
 }
 
-static void Sum_value(SaHpiSensorReadingT *item, SaHpiFloat64T value)
+static int find_rpt_by_id(SaHpiEntryIdT id)
 {
-	switch (item->Type) {
-		case SAHPI_SENSOR_READING_TYPE_INT64:
-			item->Value.SensorInt64 =
-				(SaHpiInt64T)((SaHpiFloat64T)(item->Value.SensorInt64) + value);
-			break;
-		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			item->Value.SensorUint64 =
-				(SaHpiUint64T)((SaHpiFloat64T)(item->Value.SensorUint64) + value);
-			break;
-		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			item->Value.SensorFloat64 += value;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			printf("Sum_value: Buffer type is not supported\n");
-			break;
-	}
+	int	i;
+
+	for (i = 0; i < nrpts; i++)
+		if (Rpts[i].Rpt.EntryId == id) return(i);
+	return(-1);
 }
 
-static void
-ShowThresh(SaHpiSensorThresholdsT *sensbuff)
+static void show_rpts(char *S)
 {
-	printf( "    Supported Thresholds:\n");
-	print_value(&(sensbuff->LowCritical), "      Lower Critical Threshold:");
-	print_value(&(sensbuff->LowMajor), "      Lower Major Threshold:");
-	print_value(&(sensbuff->LowMinor), "      Lower Minor Threshold:");
-	print_value(&(sensbuff->UpCritical), "      Upper Critical Threshold:");
-	print_value(&(sensbuff->UpMajor), "      Upper Major Threshold:");
-	print_value(&(sensbuff->UpMinor), "      Upper Minor Threshold:");
-	print_value(&(sensbuff->PosThdHysteresis), "      Positive Threshold Hysteresis:");
-	print_value(&(sensbuff->NegThdHysteresis), "      Negative Threshold Hysteresis:");
-	printf( "\n");
+	int	i, rpt;
+
+	i = sscanf(S, "%d", &rpt);
+	if (i == 1) {
+		i = find_rpt_by_id(rpt);
+		if (i >= 0)
+			oh_print_rptentry(&(Rpts[i].Rpt), 1);
+		else
+			printf("No RPT for id: %d\n", rpt);
+		return;
+	}
+
+	for (i = 0; i < nrpts; i++)
+		show_rpt(Rpts + i, i);
 }
 
-static
-void DoEvent(
-   SaHpiSessionIdT sessionid,
-   SaHpiResourceIdT resourceid,
-   SaHpiSensorRecT *sensorrec )
+static int find_rdr_by_id(Rpt_t *R, SaHpiEntryIdT id)
 {
-	SaHpiSensorNumT sensornum;
-	SaHpiSensorReadingT reading;
-	SaHpiSensorReadingT item;
-	SaHpiSensorThresholdsT senstbuff1;
-	SaHpiSensorThresholdsT senstbuff2;
-// 	SaHpiTimeoutT timeout = (SaHpiInt64T)(120 * HPI_NSEC_PER_SEC); /* 120 seconds */
-	SaHpiTimeoutT timeout = SAHPI_TIMEOUT_IMMEDIATE;
-	SaHpiEventT event;
-	SaHpiRptEntryT rptentry;
-	SaHpiRdrT rdr;
-	char *unit;
-	int eventflag = 0;
-	int i;
+	int	i;
 
-	sensornum = sensorrec->Num;
+	for (i = 0; i < R->nrdrs; i++)
+		if (R->rdrs[i].Rdr.RecordId == id) return(i);
+	return(-1);
+}
 
-	/* Get current sensor reading */
-
-	rv = saHpiSensorReadingGet( sessionid, resourceid, sensornum, &reading, NULL);
-	if (rv != SA_OK)  {
-		printf( "saHpiSensorReadingGet error %d\n",rv);
-		return;
-	}
-
-	/* Determine units of interpreted reading */
-
-	i = sensorrec->DataFormat.BaseUnits;
-
-	if (i > NSU)
-		i = 0;
-	unit = units[i];
-
-	print_value(&reading, unit);
-
-	/* Retrieve current threshold setings, twice */
-	/* once for backup and once for modification */
-
-	/* Get backup copy */
-	rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff1);
-	if (rv != SA_OK) {
-		printf( "saHpiSensorThresholdsGet error %d\n",rv);
-		return;
-	}
-
-	/* Get modification copy */
-	rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff2);
-	if (rv != SA_OK) {
-		printf( "saHpiSensorThresholdsGet error %d\n",rv);
-		return;
-	}
-
-	/* Display current thresholds */ 
-	printf( "   Current\n");
-	ShowThresh( &senstbuff2 );
-
-	senstbuff2.LowMajor.IsSupported = 1;
-
-	/* Set new threshold to current reading + 10% */
-	switch (senstbuff2.LowMajor.Type) {
-		case SAHPI_SENSOR_READING_TYPE_INT64:
-			senstbuff2.LowMajor.Value.SensorInt64 =
-        			reading.Value.SensorInt64 * 1.10;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			senstbuff2.LowMajor.Value.SensorFloat64 =
-        			reading.Value.SensorUint64 * 1.10;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			senstbuff2.LowMajor.Value.SensorFloat64 =
-        			reading.Value.SensorFloat64 * 1.10;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			printf("Buffer type is not supported\n");
-			break;
-	};
-	item = reading;
-	Mul_value(&item, (SaHpiFloat64T)1.10);
-	Set_value(&(senstbuff2.LowMajor), item.Value);
-
-/* In this case, LowMinor > LowMajor */
-
-	senstbuff2.LowMinor.IsSupported = 1;
-	switch (senstbuff2.LowMinor.Type) {
-		case SAHPI_SENSOR_READING_TYPE_INT64:
-			senstbuff2.LowMinor.Value.SensorInt64 =
-        			reading.Value.SensorInt64 * (SaHpiInt64T)1.10 + 10;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			senstbuff2.LowMinor.Value.SensorFloat64 =
-        			reading.Value.SensorUint64 * (SaHpiUint64T)1.10 + 10;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			senstbuff2.LowMinor.Value.SensorFloat64 =
-        			reading.Value.SensorFloat64 * (SaHpiFloat64T)1.10 + 10;
-			break;
-		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			printf("Buffer type is not supported\n");
-			break;
-	};
-
-	item = reading;
-	Mul_value(&item, (SaHpiFloat64T)1.10);
-	Sum_value(&item, (SaHpiFloat64T)10);
-	Set_value(&(senstbuff2.LowMinor), item.Value);
-   
-	printf( "   New\n");
-	ShowThresh( &senstbuff2 );
-
-	/* See what Events are Enabled */
-
-	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &enables1);
-	 if (rv != SA_OK) {
-		printf( "saHpiSensorEventEnablesGet error %d\n",rv);
-		return;
-	}
-
-	/* Subscribe to New Events, only */
-	printf( "Subscribe to events\n");
-	rv = saHpiSubscribe( sessionid );
-	if (rv != SA_OK) {
-		printf( "saHpiSubscribe error %d\n",rv);
-		return;
-	}
-
-	/* Set new thresholds */
-	printf( "Set new thresholds\n");
-
-	rv = saHpiSensorThresholdsSet(sessionid, resourceid, sensornum, &senstbuff2);
-	if (rv != SA_OK) {
-		printf( "saHpiSensorThresholdsSet error %d\n",rv);
-		goto out;
-	}
-
-	/* Go wait on event to occur */
-	printf( "Go and get the event\n");
-	eventflag = 0;
-	while ( eventflag == 0) {
-		rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL );
-		if (rv != SA_OK) { 
-			if (rv != SA_ERR_HPI_TIMEOUT) {
-				printf( "Error during EventGet - Test FAILED\n");
-				goto out;
-			};
-			rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff2);
-			printf( "Result:\n");
-			ShowThresh( &senstbuff2 );
-			if (memcmp( &senstbuff1, &senstbuff2, sizeof(SaHpiSensorThresholdsT)) == 0)
-				printf( "Test PASSED\n");
-			else
-				printf( "Test FAILED\n");			/* Reset to the original thresholds */
-			printf( "Reset thresholds\n");
-			rv = saHpiSensorThresholdsSet(sessionid, resourceid, sensornum, &senstbuff1);
-			if (rv != SA_OK)
-				goto out;
-			/* Re-read threshold values */
-			saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff2);
-			goto out;
-		}
-
-		if (event.EventType == SAHPI_ET_SENSOR) {
-			printf( "Sensor # = %2d  Severity = %2x\n", 
-				event.EventDataUnion.SensorEvent.SensorNum, event.Severity );
-			if (event.EventDataUnion.SensorEvent.SensorNum == sensornum) {
-				eventflag = 1;
-				printf( "Got it - Test PASSED\n");
-			}
-		}
-	}
+static void show_rdr(Rdr_t *Rdr, int ind)
+{
 	
-	/* Reset to the original thresholds */
-	printf( "Reset thresholds\n");
-	rv = saHpiSensorThresholdsSet(sessionid, resourceid, sensornum, &senstbuff1);
-	if (rv != SA_OK) {
-		printf( "saHpiSensorThresholdsSet error %d\n",rv);
-		goto out;
+	printf("    %3d RDR: id = %3d  Data = %s\n",
+		ind, Rdr->Rdr.RecordId, Rdr->Rdr.IdString.Data);
+}
+
+static void show_sen(Rdr_t *Rdr, int rptid)
+{
+	if (Rdr->Rdr.RdrType != SAHPI_SENSOR_RDR)
+		return;
+	printf("    RPT id = %3d RDR id = %3d  sensornum = %3d  Data = %s\n",
+		rptid, Rdr->Rdr.RecordId, Rdr->Rdr.RdrTypeUnion.SensorRec.Num,
+		Rdr->Rdr.IdString.Data);
+}
+
+static void show_sens_for_rpt(Rpt_t *R)
+{
+	int	j;
+
+	for (j = 0; j < R->nrdrs; j++) {
+		show_sen(R->rdrs + j, R->Rpt.EntryId);
+	}
+}
+
+static void show_rdrs_for_rpt(Rpt_t *R)
+{
+	int	j;
+
+	for (j = 0; j < R->nrdrs; j++) {
+		show_rdr(R->rdrs + j, j);
+	}
+}
+
+static void show_rdrs(char *S)
+{
+	int	i, j, rpt, rdr;
+	Rpt_t	*R;
+
+	i = sscanf(S, "%d %d", &rpt, &rdr);
+	if (i == 1) {
+		i = find_rpt_by_id(rpt);
+		if (i >= 0) {
+			show_rpt(Rpts + i, i);
+			show_rdrs_for_rpt(Rpts + i);
+		} else
+			printf("No RPT for id: %d\n", rpt);
+		return;
+	}
+	if (i == 2) {
+		i = find_rpt_by_id(rpt);
+		if (i >= 0) {
+			j = find_rdr_by_id(Rpts + i, rdr);
+			if (j >= 0)
+				oh_print_rdr(&(Rpts[i].rdrs[j].Rdr), 2);
+			else
+				printf("No RDR %d for rpt %d\n", rdr, rpt);
+		} else
+			printf("No RPT for id: %d\n", rpt);
+		return;
 	}
 
-	/* Re-read threshold values */
-	rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff2);
+	for (i = 0, R = Rpts; i < nrpts; i++, R++) {
+		show_rpt(R, i);
+		show_rdrs_for_rpt(R);
+	}
+}
+
+static void show_reading_value(Rpt_t *Rpt, Rdr_t *R)
+{
+	SaHpiSensorUnitsT	k;
+	SaErrorT		rv;
+	char			unit[128];
+
+	rv = saHpiSensorReadingGet(sessionid, Rpt->Rpt.ResourceId,
+		R->Rdr.RdrTypeUnion.SensorRec.Num, &(R->reading), NULL);
+
 	if (rv != SA_OK) {
-		printf( "saHpiSensorThresholdsGet error %d\n",rv);
-		goto out;
+		printf("ERROR: %s\n", oh_lookup_error(rv));
+		return;
+	};
+	k = R->Rdr.RdrTypeUnion.SensorRec.DataFormat.BaseUnits;
+	printf("Reading value: ");
+	snprintf(unit, 128, "%s", oh_lookup_sensorunits(k));
+	print_value(&(R->reading), unit);
+}
+
+static void show_thresholds(Rpt_t *Rpt, Rdr_t *R)
+{
+	SaHpiSensorThresholdsT	buf;
+	SaErrorT		rv;
+
+	rv = saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
+		R->Rdr.RdrTypeUnion.SensorRec.Num, &buf);
+	if (rv != SA_OK) {
+		printf("ERROR: %s\n", oh_lookup_error(rv));
+		return;
+	};
+	printf("  Thresholds:\n");
+	ShowThres(&buf);
+	if (R->is_value == 0) {
+		R->thresholds = buf;
+		R->is_value = 1;
+	}
+}
+
+static int find_sensor_by_num(Rpt_t *R, int num)
+{
+	int	i;
+
+	for (i = 0; i < R->nrdrs; i++) {
+		if (R->rdrs[i].Rdr.RdrType == SAHPI_SENSOR_RDR) {
+			if (R->rdrs[i].Rdr.RdrTypeUnion.SensorRec.Num == num)
+				return(i);
+		}
+	};
+	return(-1);
+}
+
+static void show_sens(char *S)
+{
+	int		i, j, rpt, num;
+	Rpt_t		*Rpt;
+	Rdr_t		*Rdr;
+
+	i = sscanf(S, "%d %d", &rpt, &num);
+	if (i == 1) {
+		i = find_rpt_by_id(rpt);
+		if (i >= 0)
+			show_sens_for_rpt(Rpts + i);
+		return;
+	}
+	if (i == 2) {
+		i = find_rpt_by_id(rpt);
+		if (i < 0) {
+			printf("No RPT for id: %d\n", rpt);
+			return;
+		};
+		j = find_sensor_by_num(Rpts + i, num);
+		if (j < 0) {
+			printf("No sensor %d for rpt %d\n", num, rpt);
+			return;
+		};
+		oh_print_rdr(&(Rpts[i].rdrs[j].Rdr), 2);
+		show_reading_value(Rpts + i, Rpts[i].rdrs + j);
+		show_thresholds(Rpts + i, Rpts[i].rdrs + j);
+		return;
 	}
 
-	/* Display reset thresholds */ 
-	printf( "   Reset\n");
-	ShowThresh( &senstbuff2 );
+	for (i = 0, Rpt = Rpts; i < nrpts; i++, Rpt++) {
+		for (j = 0, Rdr = Rpt->rdrs; j < Rpt->nrdrs; Rdr++, j++)
+				show_sen(Rdr, Rpt->Rpt.EntryId);
+	}
+}
 
-out:
-	printf( "Unsubscribe\n");
-	rv = saHpiUnsubscribe( sessionid );
-}  /*end DoEvent*/
-
-/*
- * findmatch
- * returns offset of the match if found, or -1 if not found.
- */
-static int
-findmatch(char *buffer, int sbuf, char *pattern, int spattern, char figncase)
+static int get_number(char *mes, int *res)
 {
-    int c, j, imatch;
+	char	buf[READ_BUF_SIZE];
 
-    for (j = 0, imatch = 0; j < sbuf; j++) {
-        if (sbuf - j < spattern && imatch == 0) return (-1);
-        c = buffer[j];
-        if (c == pattern[imatch]) {
-            imatch++;
-            if (imatch == spattern) return (++j - imatch);
-        } else if (pattern[imatch] == '?') {  /*wildcard char*/
-            imatch++;
-            if (imatch == spattern) return (++j - imatch);
-        } else if (figncase == 1) {
-            if ((c & 0x5f) == (pattern[imatch] & 0x5f)) {
-                imatch++;
-                if (imatch == spattern) return (++j - imatch);
-            } else
-                imatch = 0;
-        } else
-            imatch = 0;
-    }
-    return (-1);
-}                               /*end findmatch */
+	printf("%s", mes);
+	fgets(buf, READ_BUF_SIZE, stdin);
+	return (sscanf(buf, "%d", res));
+}
 
-int
-main(int argc, char **argv)
+static void set_thres_value(SaHpiSensorReadingT *R, double val)
 {
-	int c;
-	SaHpiSessionIdT sessionid;
-	SaHpiDomainInfoT domainInfo;
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiEntryIdT entryid;
-	SaHpiEntryIdT nextentryid;
-	SaHpiResourceIdT resourceid;
-	SaHpiRdrT rdr;
-	int firstpass = 1;
-	int sensor_found = 0;
+	if (R->IsSupported == 0) {
+		printf("ERROR: this threshold isn't supported\n");
+		return;
+	};
+	R->Value.SensorFloat64 = val;
+}
+
+static void mod_sen(void)
+{
+	int			i, rpt, rdr, num;
+	char			buf[READ_BUF_SIZE], *S;
+	Rpt_t			*Rpt;
+	Rdr_t			*Rdr;
+	SaHpiSensorThresholdsT	thres;
+	SaErrorT		rv;
+	ThresTypes_t		type = UNKNOWN_TYPE;
+	float			f;
+	SaHpiEventT		event;
+
+	i = get_number("RPT number: ", &rpt);
+	if (i != 1) {
+		printf("ERROR: no RPT number\n");
+		return;
+	};
+	i = find_rpt_by_id(rpt);
+	if (i < 0) {
+		printf("ERROR: invalid RPT number\n");
+		return;
+	};
+	rpt = i;
+	Rpt = Rpts + rpt;
+	show_sens_for_rpt(Rpt);
+	i = get_number("Sensor number: ", &num);
+	if (i != 1) {
+		printf("ERROR: no Sensor number\n");
+		return;
+	};
+	rdr = find_sensor_by_num(Rpt, num);
+	if (rdr < 0) {
+		printf("ERROR: invalid sensor number\n");
+		return;
+	};
+	Rdr = Rpt->rdrs + rdr;
+	oh_print_rdr(&(Rdr->Rdr), 2);
+	show_reading_value(Rpt, Rdr);
+	rv = saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
+		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
+	if (rv != SA_OK) {
+		printf("ERROR: %s\n", oh_lookup_error(rv));
+		return;
+	};
+	printf("  Thresholds:\n");
+	ShowThres(&thres);
+	if (Rdr->is_value == 0) {
+		Rdr->thresholds = thres;
+		Rdr->is_value = 1;
+	};
+	printf("threshold type (lc, la, li, uc, ua, ui, ph, nh): ");
+	fgets(buf, READ_BUF_SIZE, stdin);
+	S = buf;
+	while (*S == ' ') S++;
+	if (strlen(S) < 2) {
+		printf("ERROR: invalid threshold type: %s\n", S);
+		return;
+	};
+
+	if (strncmp(S, "lc", 2) == 0) type = LOWER_CRIT;
+	if (strncmp(S, "la", 2) == 0) type = LOWER_MAJOR;
+	if (strncmp(S, "li", 2) == 0) type = LOWER_MINOR;
+	if (strncmp(S, "uc", 2) == 0) type = UPPER_CRIT;
+	if (strncmp(S, "ua", 2) == 0) type = UPPER_MAJOR;
+	if (strncmp(S, "ui", 2) == 0) type = UPPER_MINOR;
+	if (strncmp(S, "ph", 2) == 0) type = POS_HYST;
+	if (strncmp(S, "nh", 2) == 0) type = NEG_HYST;
+
+	if (type == UNKNOWN_TYPE) {
+		printf("ERROR: unknown threshold type: %s\n", S);
+		return;
+	};
+	
+	printf("new value: ");
+	fgets(buf, READ_BUF_SIZE, stdin);
+	i = sscanf(buf, "%f", &f);
+	if (i == 0) {
+		printf("ERROR: no value\n");
+		return;
+	};
+	switch (type) {
+		case LOWER_CRIT:
+			set_thres_value(&(thres.LowCritical), (double)f);
+			break;
+		case LOWER_MAJOR:
+			set_thres_value(&(thres.LowMajor), (double)f);
+			break;
+		case LOWER_MINOR:
+			set_thres_value(&(thres.LowMinor), (double)f);
+			break;
+		case UPPER_CRIT:
+			set_thres_value(&(thres.UpCritical), (double)f);
+			break;
+		case UPPER_MAJOR:
+			set_thres_value(&(thres.UpMajor), (double)f);
+			break;
+		case UPPER_MINOR:
+			set_thres_value(&(thres.UpMinor), (double)f);
+			break;
+		case POS_HYST:
+			set_thres_value(&(thres.PosThdHysteresis), (double)f);
+			break;
+		case NEG_HYST:
+			set_thres_value(&(thres.NegThdHysteresis), (double)f);
+			break;
+		default:
+			printf("ERROR: unknown threshold\n");
+	};
+	printf("\n  Nem threshold:\n");
+	ShowThres(&thres);
+	printf("Is it correct (yes, no)?:");
+	fgets(buf, READ_BUF_SIZE, stdin);
+	S = buf;
+	while (*S == ' ') S++;
+	if (strncmp(S, "yes", 3) != 0)
+		return;
+	rv = saHpiSensorThresholdsSet(sessionid, Rpt->Rpt.ResourceId,
+		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
+	if (rv != SA_OK) {
+		printf("ERROR: saHpiSensorThresholdsSet: %s\n", oh_lookup_error(rv));
+		return;
+	};
+	Rdr->modify = 1;
+	for (i = 0; i < 10; i++) {
+		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_IMMEDIATE, &event,
+			NULL, NULL, NULL);
+		if (rv == SA_OK)
+			break;
+		if (fdebug) printf("sleep before saHpiEventGet\n");
+		sleep(1);
+	};
+	saHpiSensorThresholdsGet(sessionid, Rpt->Rpt.ResourceId,
+		Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &thres);
+	printf("Current thresholds:\n");
+	ShowThres(&thres);
+}
+
+static void undo(void)
+{
+	int			i, j;
+	Rpt_t			*Rpt;
+	Rdr_t			*Rdr;
+
+	for (i = 0, Rpt = Rpts; i < nrpts; i++, Rpt++) {
+		for (j = 0, Rdr = Rpt->rdrs; j < Rpt->nrdrs; j++, Rdr++) {
+			if (Rdr->modify == 0) continue;
+			saHpiSensorThresholdsSet(sessionid, Rpt->Rpt.ResourceId,
+				Rdr->Rdr.RdrTypeUnion.SensorRec.Num, &(Rdr->thresholds));
+			Rdr->modify = 0;
+		}
+	}
+}
+
+static void get_rpts(void)
+{
+	SaHpiEntryIdT	rptentryid, nextrptentryid;
+	SaErrorT	rv;
+	SaHpiRptEntryT	rptentry;
+	int		n;
+
+	rptentryid = SAHPI_FIRST_ENTRY;
+	while (rptentryid != SAHPI_LAST_ENTRY) {
+		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
+		if (rv != SA_OK)
+			break;
+		n = nrpts;
+		Rpts = (Rpt_t *)resize_array(Rpts, sizeof(Rpt_t), &nrpts, 1);
+		rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+		Rpts[n].Rpt =  rptentry;
+		rptentryid = nextrptentryid;
+	}
+}
+
+static void get_rdrs(Rpt_t *Rpt)
+{
+	SaHpiRdrT		rdr;
+	SaErrorT		rv;
+	int			n;
+	SaHpiEntryIdT		entryid;
+	SaHpiEntryIdT		nextentryid;
+	SaHpiResourceIdT	resourceid;
+
+	entryid = SAHPI_FIRST_ENTRY;
+	while (entryid !=SAHPI_LAST_ENTRY) {
+		resourceid = Rpt->Rpt.ResourceId;
+		rv = saHpiRdrGet(sessionid, resourceid, entryid, &nextentryid, &rdr);
+		if (rv != SA_OK)
+			break;
+		n = Rpt->nrdrs;
+		Rpt->rdrs = (Rdr_t *)resize_array(Rpt->rdrs, sizeof(Rdr_t), &(Rpt->nrdrs), 1);
+		rdr.IdString.Data[rdr.IdString.DataLength] = 0;
+		Rpt->rdrs[n].Rdr = rdr;
+		entryid = nextentryid;
+	}
+}
+
+static void help(void)
+{
+	printf("Available commands:\n");
+	printf("	exit, quit, q		- exit\n");
+	printf("	help, h			- this instruction\n");
+	printf("	rpt			- show all RPT entries\n");
+	printf("	rpt <id>		- show #id RPT entry\n");
+	printf("	rdr			- show all RDR entries\n");
+	printf("	rdr <rptid>		- show RDRs entries for #rptid\n");
+	printf("	rdr <rptid> <rdrid>	- show #rdrid RDR entry for #rptid\n");
+	printf("	sen			- show all sensors\n");
+	printf("	sen <rptid>		- show sensors for #rptid\n");
+	printf("	sen <rptid> <num>	- show #num sensor for #rptid\n");
+	printf("	mod			- modify thresholds\n");
+	printf("	undo			- delete all changes\n");
+}
+
+static Com_enum_t find_command(char *S)
+{
+	int	i;
+
+	for (i = 0;; i++) {
+		if (Coms[i].command_name == (char *)NULL)
+			return(COM_UNDEF);
+		if (strcmp(Coms[i].command_name, S) == 0)
+			return(Coms[i].type);
+	}
+}
+
+static int parse_command(char *Str)
+{
+	int		len;
+	char		*S, *S1;
+	Com_enum_t	com;
+
+	S = Str;
+	while (*S != 0) {
+		if ((*S == '\t') || (*S == '\n')) *S = ' ';
+		S++;
+	};
+
+	S = Str;
+	while (*S == ' ') S++;
+	len = strlen(S);
+	if (len == 0) return(0);
+
+	S1 = S;
+	while ((*S1 != 0) && (*S1 != ' ')) S1++;
+	if (*S1 != 0) 
+		*S1++ = 0;
+	
+	com = find_command(S);
+	switch (com) {
+		case COM_UNDEF:
+			printf("Invalid command: %s\n", S);
+			help();
+			break;
+		case COM_EXIT:	return(-1);
+		case COM_RPT:	show_rpts(S1); break;
+		case COM_RDR:	show_rdrs(S1); break;
+		case COM_SENS:	show_sens(S1); break;
+		case COM_MOD:	mod_sen(); break;
+		case COM_UNDO:	undo(); break;
+		case COM_HELP:	help(); break;
+	};
+	return(0);
+}
+	
+int main(int argc, char **argv)
+{
+	int		c, i;
+	SaErrorT	rv;
+	char		buf[READ_BUF_SIZE];
+	char		*S;
 
 	printf("%s  ver %s\n", argv[0], progver);
-	sensor_name = (char *)strdup(s_name);
-	while ( (c = getopt( argc, argv,"ms:xz?")) != EOF )
+	while ( (c = getopt( argc, argv,"x?")) != EOF )
 		switch(c)  {
-			case 'z': fxdebug = 1; /* fall thru to include next setting */
 			case 'x':
 				fdebug = 1;
 				break;
-			/*
-			case 'l': slist = 1; break;
-			*/
-			case 'm': 
-				sensor_name = (char *)strdup(sm_name);
-				break;
-			case 's':
-				fsensor = 1;
-				if (optarg)
-					sensor_name = (char *)strdup(optarg);
-				break;
 			default:
-				printf("Usage: %s [-mxz] [-s sensor_descriptor]\n", argv[0]);
-				printf("   -s  Sensor descriptor\n");
-				printf("   -m  use Mullins sensor descriptor\n");
-				/*
-				printf("   -l  Display entire sensor list\n");
-				*/
+				printf("Usage: %s [-x]\n", argv[0]);
 				printf("   -x  Display debug messages\n");
-				printf("   -z  Display extra debug messages\n");
-				exit(1);
+				return(1);
 		}
 
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID ,&sessionid, NULL);
+	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
 
 	if (rv != SA_OK) {
-		printf("saHpiSessionOpen error %d\n",rv);
-		exit(-1);
+		printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
+		return(-1);
 	}
  
 	rv = saHpiDiscover(sessionid);
 
-	if (fxdebug) printf("saHpiDiscover rv = %d\n",rv);
+	if (fdebug) printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
 
-	rv = saHpiDomainInfoGet(sessionid,&domainInfo);
+	rv = saHpiSubscribe(sessionid);
+	if (rv != SA_OK) {
+		printf( "saHpiSubscribe error %d\n",rv);
+		return(-1);
+	}	
+	
+	/* make the RPT list */
+	get_rpts();
+	/* get rdrs for the RPT list */
+	for (i = 0; i < nrpts; i++)
+		get_rdrs(Rpts + i);
 
-	if (fxdebug) printf("saHpiDomainInfoGet: rv = %d\n",rv);
-	if (fdebug) printf("DomainInfo: UpdateCount = %x, UpdateTime = %lx\n",
-		domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
- 
-	/* walk the RPT list */
-	rptentryid = SAHPI_FIRST_ENTRY;
-	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY)) {
-		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if (rv == SA_OK) {
-			/* walk the RDR list for this RPT entry */
-			entryid = SAHPI_FIRST_ENTRY;
-			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-			resourceid = rptentry.ResourceId;
-      
-			if (fdebug) printf("rptentry[%d] resourceid=%d\n", rptentryid,resourceid);
-			printf("Resource Tag: %s\n", rptentry.ResourceTag.Data);
-
-			while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) {
-				rv = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
-
-				if (fxdebug) printf("saHpiRdrGet[%d] rv = %d\n",entryid,rv);
-
-				if (rv == SA_OK) {
-					if (rdr.RdrType == SAHPI_SENSOR_RDR) { 
-						/*type 2 includes sensor and control records*/
-						rdr.IdString.Data[rdr.IdString.DataLength] = 0;
-
-						if (findmatch(rdr.IdString.Data,rdr.IdString.DataLength,
-								sensor_name, strlen(sensor_name),0) >= 0) {
-							sensor_found = 1;
-							printf( "%02d %s\t", rdr.RecordId, rdr.IdString.Data);
-							DoEvent( sessionid, resourceid, &rdr.RdrTypeUnion.SensorRec);
-							if (rv != SA_OK)
-								printf( "Returned Error from DoEvent: rv=%d\n", rv);
-							break;  /* done with rdr loop */
-						}
-					} 
-				} else {
-					printf( "saHpiRdrGet: Returned HPI Error: rv=%d\n", rv);
-					break;
-				};
-				entryid = nextentryid;
-
-				if (firstpass && entryid == SAHPI_LAST_ENTRY) {
-					/* Not found yet, so try again, looking for any Fan */
-					if (sensor_found)
-						break;
-					sensor_name = s_pattn;
-					entryid = SAHPI_FIRST_ENTRY;
-					firstpass = 0;
-				}
-			}  /*while rdr loop */
-
-			if (entryid != SAHPI_LAST_ENTRY)
-				break;  /*found one, done*/
-			rptentryid = nextrptentryid;
-		}  else
-			break;
-	}  /*while rpt loop*/
+	help();
+	for (;;) {
+		printf("==> ");
+		S = fgets(buf, READ_BUF_SIZE, stdin);
+		if (parse_command(S) < 0) break;
+	};
 	rv = saHpiSessionClose(sessionid);
 	return(0);
 }
- /* end hpievent.c */
+ /* end hpthres.c */
