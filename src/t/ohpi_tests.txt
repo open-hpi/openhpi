@@ -43,6 +43,13 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id):
         (010) Load 'libdummy', create three handlers, iterate through them
               making sure they match with the expected values.
               Destroy handlers, unload plugin.
+              
+SaErrorT oHpiGlobalParamGet(char *name, char *value, int size):
+        (035) Set OPENHPI_CONF to valid file. Open session. Get parameter
+              that was set through config file comparing with known value.
+
+SaErrorT oHpiGlobalParamSet(const char *name, char *value):
+        (036) Set a paramter, get it, and compare values.
 
 **Negative Tests** (expect a bad return code)
 
@@ -86,3 +93,10 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id):
         (032) Pass null as arguments (for each argument).
         (033) Get next bogus handler.
         (034) Create three handlers, destroy one, and get next that one.
+        
+SaErrorT oHpiGlobalParamGet(char *name, char *value, int size):
+        (037) Pass null as arguments (for each argument).
+        (038) Get bogus parameter.
+
+SaErrorT oHpiGlobalParamSet(const char *name, char *value):
+        (039) Pass null as arguments (for each argument).

@@ -535,7 +535,7 @@ int oh_set_global_param(const char *param, char *value)
 
         if (!param || !value) {
                 dbg("ERROR. Invalid parameters.");
-                return -1;
+                return -2;
         }
 
         data_access_lock();

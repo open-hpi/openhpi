@@ -9,6 +9,7 @@
 # full licensing terms.
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ uid_map
+EXTRA_DIST              = openhpi.conf
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
@@ -54,7 +55,12 @@ TESTS = ohpi_000 \
         ohpi_031 \
         ohpi_032 \
         ohpi_033 \
-        ohpi_034
+        ohpi_034 \
+        ohpi_035 \
+        ohpi_036 \
+        ohpi_037 \
+        ohpi_038 \
+        ohpi_039
 
 check_PROGRAMS = $(TESTS)
 
@@ -162,3 +168,18 @@ ohpi_033_LDADD   = $(TDEPLIB)
 
 ohpi_034_SOURCES = ohpi_034.c
 ohpi_034_LDADD   = $(TDEPLIB)
+
+ohpi_035_SOURCES = ohpi_035.c
+ohpi_035_LDADD   = $(TDEPLIB)
+
+ohpi_036_SOURCES = ohpi_036.c
+ohpi_036_LDADD   = $(TDEPLIB)
+
+ohpi_037_SOURCES = ohpi_037.c
+ohpi_037_LDADD   = $(TDEPLIB)
+
+ohpi_038_SOURCES = ohpi_038.c
+ohpi_038_LDADD   = $(TDEPLIB)
+
+ohpi_039_SOURCES = ohpi_039.c
+ohpi_039_LDADD   = $(TDEPLIB)

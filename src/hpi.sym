@@ -91,3 +91,5 @@ oHpiHandlerCreate
 oHpiHandlerDestroy
 oHpiHandlerInfo
 oHpiHandlerGetNext
+oHpiGlobalParamGet
+oHpiGlobalParamSet
