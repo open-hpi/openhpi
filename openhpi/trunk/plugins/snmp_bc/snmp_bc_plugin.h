@@ -29,6 +29,8 @@
 #include <snmp_bc_event.h>
 #include <snmp_bc_hotswap.h>
 #include <snmp_bc_inventory.h>
+#include <snmp_bc_power.h>
+#include <snmp_bc_reset.h>
 #include <snmp_bc_sel.h>
 #include <snmp_bc_sensor.h>
 #include <snmp_bc_session.h>

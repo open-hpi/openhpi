@@ -22,6 +22,8 @@ REMOTE_SIM_SOURCES   = \
 			snmp_bc_event.c \
 			snmp_bc_inventory.c \
 			snmp_bc_hotswap.c \
+			snmp_bc_power.c \
+			snmp_bc_reset.c \
 			snmp_bc_resources.c \
 			snmp_bc_sel.c \
 			snmp_bc_sensor.c \

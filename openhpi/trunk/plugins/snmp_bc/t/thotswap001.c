@@ -56,32 +56,54 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 **************************/
-	expected_err = SA_ERR_HPI_INVALID_CMD;                   
+	expected_err = SA_ERR_HPI_CAPABILITY;                   
 	err = snmp_bc_get_indicator_state((void *)h->hnd, id, &state);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
-	 * expected_err = SA_ERR_HPI_INVALID_CMD;                   
+	 * expected_err = SA_ERR_HPI_CAPABILITY;
 	 **************************/
 	err = snmp_bc_set_indicator_state((void *)h->hnd, id, state);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
-	 * expected_err = SA_ERR_HPI_INVALID_CMD;                   
+	 * expected_err = SA_ERR_HPI_CAPABILITY;
 	 **************************/
 	err = snmp_bc_request_hotswap_action((void *)h->hnd, id, act);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
-	 * expected_err = SA_ERR_HPI_INVALID_CMD;                   
+	 * expected_err = SA_ERR_HPI_CAPABILITY;
 	 **************************/
 	err = snmp_bc_set_hotswap_state((void *)h->hnd, id, state);
 	checkstatus(&err, &expected_err, &testfail);
 
-	/**************************&*
+	expected_err =  SA_ERR_HPI_INVALID_REQUEST;
+	/************************** 
+	 * Test :
+	 * expected_err = SA_ERR_HPI_INVALID_REQUEST;
+	 **************************/
+	err = snmp_bc_request_hotswap_action((void *)h->hnd, id, -1);
+	checkstatus(&err, &expected_err, &testfail);
+
+	/************************** 
+	 * Test :
+	 * expected_err = SA_ERR_HPI_INVALID_REQUEST;
+	 **************************/
+	err = snmp_bc_set_indicator_state((void *)h->hnd, id, -1);
+	checkstatus(&err, &expected_err, &testfail);
+
+	/************************** 
+	 * Test :
+	 * expected_err = SA_ERR_HPI_INVALID_REQUEST;
+	 **************************/
+	err = snmp_bc_set_hotswap_state((void *)h->hnd, id, -1);
+	checkstatus(&err, &expected_err, &testfail);
+
+	/***************************
 	 * Cleanup after all tests
 	 ***************************/
 	err = tcleanup(&sessionid);
