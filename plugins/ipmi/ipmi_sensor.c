@@ -296,7 +296,7 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 	if (ipmi_sensor_get_event_reading_type(sensor) ==
 			IPMI_EVENT_READING_TYPE_THRESHOLD) {
 		if (ipmi_sensor_get_threshold_access(sensor) ==
-				IPMI_EVENT_SUPPORT_NONE)
+				IPMI_THRESHOLD_ACCESS_SUPPORT_NONE)
 			dbg("sensor doesn't support threshold read");
 		else {
 			rv = get_thresholds(sensor, thres_data);
@@ -349,7 +349,7 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 	struct ohoi_sensor_thresholds	thres_data;
         int rv;
 	
-        memset(&thres_data, 0, sizeof(thres));
+        memset(&thres_data, 0, sizeof(thres_data));
         
         rv = ipmi_sensor_pointer_cb(sensor_id,
                                     get_sensor_thresholds,
