@@ -376,6 +376,8 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	memset(&working, 0, sizeof(SaHpiEventT));
 	is_recovery_event = is_threshold_event = SAHPI_FALSE;
 
+	trace("Original event string = %s", logstr);
+
         /* Parse hardware log entry into its various components */
 	err = snmp_bc_parse_sel_entry(handle, logstr, &log_entry);
 	if (err) {
@@ -744,12 +746,31 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 		goto CLEANUP;
 	}
 
+	/* Strip any leading/trailing blanks */
+	thresh_substrs[0] = g_strstrip(thresh_substrs[0]);
+	thresh_substrs[1] = g_strstrip(thresh_substrs[1]);
+	if ((thresh_substrs[0] == NULL || thresh_substrs[0][0] == '\0') ||
+	    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0')) {
+		dbg("NULL threshold values=%s.", str);
+		err = SA_ERR_HPI_INTERNAL_ERROR;
+		goto CLEANUP;
+	}
+	
+	/* Strip any ending periods */
+	if (thresh_substrs[0][strlen(thresh_substrs[0]) - 1] == '.')
+		thresh_substrs[0][strlen(thresh_substrs[0]) - 1] = '\0';
+	if (thresh_substrs[1][strlen(thresh_substrs[1]) - 1]  == '.')
+		thresh_substrs[1][strlen(thresh_substrs[1]) - 1] = '\0';
+
+	/* Check for valid length */
 	if ((strlen(thresh_substrs[0]) > SAHPI_MAX_TEXT_BUFFER_LENGTH) ||
 	    (strlen(thresh_substrs[1]) > SAHPI_MAX_TEXT_BUFFER_LENGTH)) {
 		dbg("Threshold value string(s) exceed max size for %s.", str);
 		err = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
 	}
+
+	trace("Threshold strings: %s; %s", thresh_substrs[0], thresh_substrs[1]);
 	
 	strcpy(root_str, event_substrs[0]);
 	oh_append_textbuffer(read_value_str, thresh_substrs[0]);
