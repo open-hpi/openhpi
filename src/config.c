@@ -33,6 +33,7 @@
 static const char *known_globals[] = {
         "OPENHPI_ON_EP",
         "OPENHPI_LOG_ON_SEV",
+        "OPENHPI_EVT_QUEUE_LIMIT",
         "OPENHPI_DEL_SIZE_LIMIT",
         "OPENHPI_DAT_SIZE_LIMIT",
         "OPENHPI_DAT_USER_LIMIT",
@@ -48,6 +49,7 @@ static const char *known_globals[] = {
 static struct {
         SaHpiEntityPathT on_ep;
         SaHpiSeverityT log_on_sev;
+        SaHpiUint32T evt_queue_limit;
         SaHpiUint32T del_size_limit;
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
@@ -62,6 +64,7 @@ static struct {
 } global_params = { /* Defaults for global params are set here */
         .on_ep = { .Entry[0] = { .EntityType = SAHPI_ENT_ROOT, .EntityLocation = 0 } },
         .log_on_sev = SAHPI_MINOR,
+        .evt_queue_limit = 0, /* Unlimited size */
         .del_size_limit = 0, /* Unlimited size */
         .dat_size_limit = 0, /* Unlimited size */
         .dat_user_limit = 0, /* Unlimited size */
@@ -237,6 +240,8 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_lock(&global_params.lock);
                 oh_encode_severity(&buffer, &global_params.log_on_sev);
                 g_static_rec_mutex_unlock(&global_params.lock);
+        } else if (!strcmp("OPENHPI_EVT_QUEUE_LIMIT", name)) {
+                global_params.evt_queue_limit = atoi(value);
         } else if (!strcmp("OPENHPI_DEL_SIZE_LIMIT", name)) {
                 global_params.del_size_limit = atoi(value);
         } else if (!strcmp("OPENHPI_DAT_SIZE_LIMIT", name)) {
@@ -640,6 +645,9 @@ int oh_get_global_param(struct oh_global_param *param)
                 case OPENHPI_LOG_ON_SEV:
                         param->u.log_on_sev = global_params.log_on_sev;
                         break;
+                case OPENHPI_EVT_QUEUE_LIMIT:
+                        param->u.evt_queue_limit = global_params.evt_queue_limit;
+                        break;
                 case OPENHPI_DEL_SIZE_LIMIT:
                         param->u.del_size_limit = global_params.del_size_limit;
                         break;
@@ -706,6 +714,9 @@ int oh_set_global_param(struct oh_global_param *param)
                         break;
                 case OPENHPI_LOG_ON_SEV:
                         global_params.log_on_sev = param->u.log_on_sev;
+                        break;
+                case OPENHPI_EVT_QUEUE_LIMIT:
+                        global_params.evt_queue_limit = param->u.evt_queue_limit;
                         break;
                 case OPENHPI_DEL_SIZE_LIMIT:
                         global_params.del_size_limit = param->u.del_size_limit;
