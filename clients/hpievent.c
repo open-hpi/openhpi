@@ -11,6 +11,8 @@
  *
  * Authors:
  *     Racing Guo <racing.guo@intel.com>
+ * Changes:
+ *     11/03/2004  kouzmich   change timeout type
  */
 
 #include <stdio.h>
@@ -79,13 +81,18 @@ void DoEvent(SaHpiSessionIdT sessionid)
 		return;
 	}	
 	while(1) {
-		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_BLOCK, &event, NULL, NULL, NULL);
-		if (rv != SA_OK) { 
-			goto out;
+		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_IMMEDIATE, &event,
+			NULL, NULL, NULL);
+		if (rv != SA_OK) {
+			if (rv == SA_ERR_HPI_TIMEOUT) { 
+				rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_BLOCK, &event,
+					NULL, NULL, NULL);
+				if (rv != SA_OK)
+					break;
+			}
 		}
 		PrintEvent(&event);
-	}
-out:
+	};
 	printf( "Unsubscribe\n");
 	rv = saHpiUnsubscribe( sessionid );
 	return;
@@ -106,8 +113,9 @@ main(int argc, char **argv)
 		printf("saHpiSessionOpen error %d\n",rv);
 		exit(-1);
 	}
+
 	printf("Discovery\n");
-  	rv = saHpiDiscover(sessionid);
+	rv = saHpiDiscover(sessionid);
 	printf("please use Ctrl+C to quit\n");
 	DoEvent(sessionid);  
 	rv = saHpiSessionClose(sessionid);
