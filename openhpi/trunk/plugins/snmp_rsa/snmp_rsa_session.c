@@ -233,8 +233,8 @@ void snmp_rsa_close(void *hnd)
 		SOCK_CLEANUP;
 	}
 
-	/* Cleanup str2event hash table */
-	rsa_str2event_hash_free();
+	/* Cleanup event2hpi hash table */
+	event2hpi_hash_free(handle);
 
 	/* Cleanup event2hpi hash table */
 	rsa_str2event_use_count--;
