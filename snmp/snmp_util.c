@@ -127,7 +127,6 @@ SaErrorT snmp_set(
 {
         struct snmp_pdu *pdu;
         struct snmp_pdu *response;
-        struct variable_list *vars;
 
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
@@ -142,11 +141,11 @@ SaErrorT snmp_set(
         pdu = snmp_pdu_create(SNMP_MSG_SET);
         read_objid(objid, anOID, &anOID_len);
 
+        rtncode = 0; /* Default - All is OK */
 
         switch (value.type)
         {
                 case ASN_INTEGER:
-		case ASN_UNSIGNED:
                 case ASN_COUNTER:
                         datatype = 'i';
 			dataptr = (long *)&value.integer;
@@ -161,7 +160,7 @@ SaErrorT snmp_set(
                         break;
         }
 
-        if (rtncode == SA_OK) {
+        if (rtncode == 0) {
 
 		/*
 		 * Set the data to send out
@@ -185,13 +184,8 @@ SaErrorT snmp_set(
                 	if (status == STAT_SUCCESS)
                         	fprintf(stderr, "Error in packet %s\nReason: %s\n",
                                 		objid, snmp_errstring(response->errstat));
-                        	if (response->errstat == SNMP_ERR_NOSUCHNAME)
-                                		response->errstat = SNMP_NOSUCHOBJECT;
-                        	rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - response->errstat);
-			}
-        	} else {
-                       	snmp_sess_perror("snmpset", ss);
-                       	rtncode = (SaErrorT) (SA_SNMP_ERR_BASE - status);
+                	else
+                        	snmp_sess_perror("snmpset", ss);
         	}
 
         	/* Clean up: free the response */
@@ -487,5 +481,3 @@ void sc_free_pdu(struct snmp_pdu **p)
 		*p = NULL;
 	}
 }
-
-
