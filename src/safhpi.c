@@ -517,7 +517,7 @@ static void rsel_get_entry(void *ptr,
 {
 	struct oh_rsel *rsel = ptr;
 	struct oh_resource *res;
-	res = get_res_by_oid(rsel->res_id);
+	res = get_res_by_oid(rsel->parent);
 	if (!res) {
 		dbg("Cannot find resource");
 		return;

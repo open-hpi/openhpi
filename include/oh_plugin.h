@@ -99,6 +99,9 @@ struct oh_hpi_event {
 
 /* The structure is used to storage RSEL entry*/
 struct oh_rsel {
+	/* this is SEL's id */
+	struct oh_resource_id	parent;
+
 	/* this is the entry's id */
 	struct oh_sel_id	oid;
 	
@@ -115,9 +118,6 @@ struct oh_rsel {
  * The event is used for plugin to notify SEL events
  */
 struct oh_rsel_event {
-	/* this is SEL's id */
-	struct oh_resource_id	parent;
-
 	struct oh_rsel rsel;
 };
 
