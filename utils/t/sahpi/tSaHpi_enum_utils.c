@@ -35,11 +35,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_UNDEF testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_UNDEF;
-                expected_str = "LANG_UNDEF";
+                expected_str = "UNDEF";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_UNDEF failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_UNDEF failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -47,11 +48,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_AFAR testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_AFAR;
-                expected_str = "LANG_AFAR";
+                expected_str = "AFAR";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_AFAR failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_AFAR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -59,11 +61,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ABKHAZIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ABKHAZIAN;
-                expected_str = "LANG_ABKHAZIAN";
+                expected_str = "ABKHAZIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ABKHAZIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ABKHAZIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -71,11 +74,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_AFRIKAANS testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_AFRIKAANS;
-                expected_str = "LANG_AFRIKAANS";
+                expected_str = "AFRIKAANS";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_AFRIKAANS failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_AFRIKAANS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -83,11 +87,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_AMHARIC testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_AMHARIC;
-                expected_str = "LANG_AMHARIC";
+                expected_str = "AMHARIC";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_AMHARIC failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_AMHARIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -95,11 +100,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ARABIC testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ARABIC;
-                expected_str = "LANG_ARABIC";
+                expected_str = "ARABIC";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ARABIC failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ARABIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -107,11 +113,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ASSAMESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ASSAMESE;
-                expected_str = "LANG_ASSAMESE";
+                expected_str = "ASSAMESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ASSAMESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ASSAMESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -119,11 +126,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_AYMARA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_AYMARA;
-                expected_str = "LANG_AYMARA";
+                expected_str = "AYMARA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_AYMARA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_AYMARA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -131,11 +139,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_AZERBAIJANI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_AZERBAIJANI;
-                expected_str = "LANG_AZERBAIJANI";
+                expected_str = "AZERBAIJANI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_AZERBAIJANI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_AZERBAIJANI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -143,11 +152,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BASHKIR testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BASHKIR;
-                expected_str = "LANG_BASHKIR";
+                expected_str = "BASHKIR";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BASHKIR failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BASHKIR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -155,11 +165,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BYELORUSSIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BYELORUSSIAN;
-                expected_str = "LANG_BYELORUSSIAN";
+                expected_str = "BYELORUSSIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BYELORUSSIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BYELORUSSIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -167,11 +178,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BULGARIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BULGARIAN;
-                expected_str = "LANG_BULGARIAN";
+                expected_str = "BULGARIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BULGARIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BULGARIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -179,11 +191,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BIHARI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BIHARI;
-                expected_str = "LANG_BIHARI";
+                expected_str = "BIHARI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BIHARI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BIHARI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -191,11 +204,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BISLAMA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BISLAMA;
-                expected_str = "LANG_BISLAMA";
+                expected_str = "BISLAMA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BISLAMA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BISLAMA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -203,11 +217,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BENGALI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BENGALI;
-                expected_str = "LANG_BENGALI";
+                expected_str = "BENGALI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BENGALI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BENGALI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -215,11 +230,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TIBETAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TIBETAN;
-                expected_str = "LANG_TIBETAN";
+                expected_str = "TIBETAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TIBETAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TIBETAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -227,11 +243,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BRETON testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BRETON;
-                expected_str = "LANG_BRETON";
+                expected_str = "BRETON";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BRETON failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BRETON failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -239,11 +256,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_CATALAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_CATALAN;
-                expected_str = "LANG_CATALAN";
+                expected_str = "CATALAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_CATALAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_CATALAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -251,11 +269,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_CORSICAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_CORSICAN;
-                expected_str = "LANG_CORSICAN";
+                expected_str = "CORSICAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_CORSICAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_CORSICAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -263,11 +282,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_CZECH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_CZECH;
-                expected_str = "LANG_CZECH";
+                expected_str = "CZECH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_CZECH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_CZECH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -275,11 +295,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_WELSH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_WELSH;
-                expected_str = "LANG_WELSH";
+                expected_str = "WELSH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_WELSH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_WELSH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -287,11 +308,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_DANISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_DANISH;
-                expected_str = "LANG_DANISH";
+                expected_str = "DANISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_DANISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_DANISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -299,11 +321,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_GERMAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_GERMAN;
-                expected_str = "LANG_GERMAN";
+                expected_str = "GERMAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_GERMAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_GERMAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -311,11 +334,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BHUTANI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BHUTANI;
-                expected_str = "LANG_BHUTANI";
+                expected_str = "BHUTANI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BHUTANI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BHUTANI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -323,11 +347,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_GREEK testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_GREEK;
-                expected_str = "LANG_GREEK";
+                expected_str = "GREEK";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_GREEK failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_GREEK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -335,11 +360,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ENGLISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ENGLISH;
-                expected_str = "LANG_ENGLISH";
+                expected_str = "ENGLISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ENGLISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ENGLISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -347,11 +373,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ESPERANTO testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ESPERANTO;
-                expected_str = "LANG_ESPERANTO";
+                expected_str = "ESPERANTO";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ESPERANTO failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ESPERANTO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -359,11 +386,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SPANISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SPANISH;
-                expected_str = "LANG_SPANISH";
+                expected_str = "SPANISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SPANISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SPANISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -371,11 +399,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ESTONIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ESTONIAN;
-                expected_str = "LANG_ESTONIAN";
+                expected_str = "ESTONIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ESTONIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ESTONIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -383,11 +412,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BASQUE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BASQUE;
-                expected_str = "LANG_BASQUE";
+                expected_str = "BASQUE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BASQUE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BASQUE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -395,11 +425,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_PERSIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_PERSIAN;
-                expected_str = "LANG_PERSIAN";
+                expected_str = "PERSIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_PERSIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_PERSIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -407,11 +438,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_FINNISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_FINNISH;
-                expected_str = "LANG_FINNISH";
+                expected_str = "FINNISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_FINNISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_FINNISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -419,11 +451,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_FIJI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_FIJI;
-                expected_str = "LANG_FIJI";
+                expected_str = "FIJI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_FIJI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_FIJI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -431,11 +464,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_FAEROESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_FAEROESE;
-                expected_str = "LANG_FAEROESE";
+                expected_str = "FAEROESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_FAEROESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_FAEROESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -443,11 +477,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_FRENCH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_FRENCH;
-                expected_str = "LANG_FRENCH";
+                expected_str = "FRENCH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_FRENCH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_FRENCH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -455,11 +490,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_FRISIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_FRISIAN;
-                expected_str = "LANG_FRISIAN";
+                expected_str = "FRISIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_FRISIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_FRISIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -467,11 +503,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_IRISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_IRISH;
-                expected_str = "LANG_IRISH";
+                expected_str = "IRISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_IRISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_IRISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -479,11 +516,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SCOTSGAELIC testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SCOTSGAELIC;
-                expected_str = "LANG_SCOTSGAELIC";
+                expected_str = "SCOTSGAELIC";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SCOTSGAELIC failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SCOTSGAELIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -491,11 +529,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_GALICIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_GALICIAN;
-                expected_str = "LANG_GALICIAN";
+                expected_str = "GALICIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_GALICIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_GALICIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -503,11 +542,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_GUARANI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_GUARANI;
-                expected_str = "LANG_GUARANI";
+                expected_str = "GUARANI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_GUARANI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_GUARANI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -515,11 +555,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_GUJARATI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_GUJARATI;
-                expected_str = "LANG_GUJARATI";
+                expected_str = "GUJARATI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_GUJARATI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_GUJARATI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -527,11 +568,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_HAUSA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_HAUSA;
-                expected_str = "LANG_HAUSA";
+                expected_str = "HAUSA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_HAUSA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_HAUSA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -539,11 +581,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_HINDI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_HINDI;
-                expected_str = "LANG_HINDI";
+                expected_str = "HINDI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_HINDI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_HINDI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -551,11 +594,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_CROATIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_CROATIAN;
-                expected_str = "LANG_CROATIAN";
+                expected_str = "CROATIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_CROATIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_CROATIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -563,11 +607,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_HUNGARIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_HUNGARIAN;
-                expected_str = "LANG_HUNGARIAN";
+                expected_str = "HUNGARIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_HUNGARIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_HUNGARIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -575,11 +620,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ARMENIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ARMENIAN;
-                expected_str = "LANG_ARMENIAN";
+                expected_str = "ARMENIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ARMENIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ARMENIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -587,11 +633,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_INTERLINGUA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_INTERLINGUA;
-                expected_str = "LANG_INTERLINGUA";
+                expected_str = "INTERLINGUA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_INTERLINGUA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_INTERLINGUA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -599,11 +646,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_INTERLINGUE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_INTERLINGUE;
-                expected_str = "LANG_INTERLINGUE";
+                expected_str = "INTERLINGUE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_INTERLINGUE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_INTERLINGUE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -611,11 +659,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_INUPIAK testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_INUPIAK;
-                expected_str = "LANG_INUPIAK";
+                expected_str = "INUPIAK";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_INUPIAK failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_INUPIAK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -623,11 +672,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_INDONESIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_INDONESIAN;
-                expected_str = "LANG_INDONESIAN";
+                expected_str = "INDONESIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_INDONESIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_INDONESIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -635,11 +685,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ICELANDIC testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ICELANDIC;
-                expected_str = "LANG_ICELANDIC";
+                expected_str = "ICELANDIC";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ICELANDIC failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ICELANDIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -647,11 +698,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ITALIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ITALIAN;
-                expected_str = "LANG_ITALIAN";
+                expected_str = "ITALIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ITALIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ITALIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -659,11 +711,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_HEBREW testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_HEBREW;
-                expected_str = "LANG_HEBREW";
+                expected_str = "HEBREW";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_HEBREW failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_HEBREW failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -671,11 +724,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_JAPANESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_JAPANESE;
-                expected_str = "LANG_JAPANESE";
+                expected_str = "JAPANESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_JAPANESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_JAPANESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -683,11 +737,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_YIDDISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_YIDDISH;
-                expected_str = "LANG_YIDDISH";
+                expected_str = "YIDDISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_YIDDISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_YIDDISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -695,11 +750,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_JAVANESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_JAVANESE;
-                expected_str = "LANG_JAVANESE";
+                expected_str = "JAVANESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_JAVANESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_JAVANESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -707,11 +763,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_GEORGIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_GEORGIAN;
-                expected_str = "LANG_GEORGIAN";
+                expected_str = "GEORGIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_GEORGIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_GEORGIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -719,11 +776,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KAZAKH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KAZAKH;
-                expected_str = "LANG_KAZAKH";
+                expected_str = "KAZAKH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KAZAKH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KAZAKH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -731,11 +789,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_GREENLANDIC testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_GREENLANDIC;
-                expected_str = "LANG_GREENLANDIC";
+                expected_str = "GREENLANDIC";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_GREENLANDIC failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_GREENLANDIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -743,11 +802,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_CAMBODIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_CAMBODIAN;
-                expected_str = "LANG_CAMBODIAN";
+                expected_str = "CAMBODIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_CAMBODIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_CAMBODIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -755,11 +815,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KANNADA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KANNADA;
-                expected_str = "LANG_KANNADA";
+                expected_str = "KANNADA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KANNADA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KANNADA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -767,11 +828,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KOREAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KOREAN;
-                expected_str = "LANG_KOREAN";
+                expected_str = "KOREAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KOREAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KOREAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -779,11 +841,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KASHMIRI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KASHMIRI;
-                expected_str = "LANG_KASHMIRI";
+                expected_str = "KASHMIRI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KASHMIRI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KASHMIRI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -791,11 +854,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KURDISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KURDISH;
-                expected_str = "LANG_KURDISH";
+                expected_str = "KURDISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KURDISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KURDISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -803,11 +867,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KIRGHIZ testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KIRGHIZ;
-                expected_str = "LANG_KIRGHIZ";
+                expected_str = "KIRGHIZ";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KIRGHIZ failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KIRGHIZ failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -815,11 +880,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_LATIN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_LATIN;
-                expected_str = "LANG_LATIN";
+                expected_str = "LATIN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_LATIN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_LATIN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -827,11 +893,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_LINGALA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_LINGALA;
-                expected_str = "LANG_LINGALA";
+                expected_str = "LINGALA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_LINGALA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_LINGALA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -839,11 +906,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_LAOTHIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_LAOTHIAN;
-                expected_str = "LANG_LAOTHIAN";
+                expected_str = "LAOTHIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_LAOTHIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_LAOTHIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -851,11 +919,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_LITHUANIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_LITHUANIAN;
-                expected_str = "LANG_LITHUANIAN";
+                expected_str = "LITHUANIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_LITHUANIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_LITHUANIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -863,11 +932,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_LATVIANLETTISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_LATVIANLETTISH;
-                expected_str = "LANG_LATVIANLETTISH";
+                expected_str = "LATVIANLETTISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_LATVIANLETTISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_LATVIANLETTISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -875,11 +945,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MALAGASY testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MALAGASY;
-                expected_str = "LANG_MALAGASY";
+                expected_str = "MALAGASY";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALAGASY failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALAGASY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -887,11 +958,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MAORI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MAORI;
-                expected_str = "LANG_MAORI";
+                expected_str = "MAORI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MAORI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MAORI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -899,11 +971,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MACEDONIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MACEDONIAN;
-                expected_str = "LANG_MACEDONIAN";
+                expected_str = "MACEDONIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MACEDONIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MACEDONIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -911,11 +984,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MALAYALAM testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MALAYALAM;
-                expected_str = "LANG_MALAYALAM";
+                expected_str = "MALAYALAM";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALAYALAM failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALAYALAM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -923,11 +997,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MONGOLIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MONGOLIAN;
-                expected_str = "LANG_MONGOLIAN";
+                expected_str = "MONGOLIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MONGOLIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MONGOLIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -935,11 +1010,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MOLDAVIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MOLDAVIAN;
-                expected_str = "LANG_MOLDAVIAN";
+                expected_str = "MOLDAVIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MOLDAVIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MOLDAVIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -947,11 +1023,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MARATHI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MARATHI;
-                expected_str = "LANG_MARATHI";
+                expected_str = "MARATHI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MARATHI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MARATHI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -959,11 +1036,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MALAY testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MALAY;
-                expected_str = "LANG_MALAY";
+                expected_str = "MALAY";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALAY failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -971,11 +1049,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_MALTESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_MALTESE;
-                expected_str = "LANG_MALTESE";
+                expected_str = "MALTESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALTESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_MALTESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -983,11 +1062,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_BURMESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_BURMESE;
-                expected_str = "LANG_BURMESE";
+                expected_str = "BURMESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_BURMESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_BURMESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -995,11 +1075,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_NAURU testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_NAURU;
-                expected_str = "LANG_NAURU";
+                expected_str = "NAURU";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_NAURU failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_NAURU failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1007,11 +1088,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_NEPALI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_NEPALI;
-                expected_str = "LANG_NEPALI";
+                expected_str = "NEPALI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_NEPALI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_NEPALI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1019,11 +1101,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_DUTCH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_DUTCH;
-                expected_str = "LANG_DUTCH";
+                expected_str = "DUTCH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_DUTCH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_DUTCH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1031,11 +1114,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_NORWEGIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_NORWEGIAN;
-                expected_str = "LANG_NORWEGIAN";
+                expected_str = "NORWEGIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_NORWEGIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_NORWEGIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1043,11 +1127,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_OCCITAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_OCCITAN;
-                expected_str = "LANG_OCCITAN";
+                expected_str = "OCCITAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_OCCITAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_OCCITAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1055,11 +1140,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_AFANOROMO testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_AFANOROMO;
-                expected_str = "LANG_AFANOROMO";
+                expected_str = "AFANOROMO";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_AFANOROMO failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_AFANOROMO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1067,11 +1153,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ORIYA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ORIYA;
-                expected_str = "LANG_ORIYA";
+                expected_str = "ORIYA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ORIYA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ORIYA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1079,11 +1166,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_PUNJABI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_PUNJABI;
-                expected_str = "LANG_PUNJABI";
+                expected_str = "PUNJABI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_PUNJABI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_PUNJABI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1091,11 +1179,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_POLISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_POLISH;
-                expected_str = "LANG_POLISH";
+                expected_str = "POLISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_POLISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_POLISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1103,11 +1192,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_PASHTOPUSHTO testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_PASHTOPUSHTO;
-                expected_str = "LANG_PASHTOPUSHTO";
+                expected_str = "PASHTOPUSHTO";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_PASHTOPUSHTO failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_PASHTOPUSHTO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1115,11 +1205,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_PORTUGUESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_PORTUGUESE;
-                expected_str = "LANG_PORTUGUESE";
+                expected_str = "PORTUGUESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_PORTUGUESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_PORTUGUESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1127,11 +1218,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_QUECHUA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_QUECHUA;
-                expected_str = "LANG_QUECHUA";
+                expected_str = "QUECHUA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_QUECHUA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_QUECHUA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1139,11 +1231,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_RHAETOROMANCE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_RHAETOROMANCE;
-                expected_str = "LANG_RHAETOROMANCE";
+                expected_str = "RHAETOROMANCE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_RHAETOROMANCE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_RHAETOROMANCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1151,11 +1244,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KIRUNDI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KIRUNDI;
-                expected_str = "LANG_KIRUNDI";
+                expected_str = "KIRUNDI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KIRUNDI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KIRUNDI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1163,11 +1257,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ROMANIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ROMANIAN;
-                expected_str = "LANG_ROMANIAN";
+                expected_str = "ROMANIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ROMANIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ROMANIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1175,11 +1270,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_RUSSIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_RUSSIAN;
-                expected_str = "LANG_RUSSIAN";
+                expected_str = "RUSSIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_RUSSIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_RUSSIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1187,11 +1283,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_KINYARWANDA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_KINYARWANDA;
-                expected_str = "LANG_KINYARWANDA";
+                expected_str = "KINYARWANDA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_KINYARWANDA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_KINYARWANDA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1199,11 +1296,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SANSKRIT testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SANSKRIT;
-                expected_str = "LANG_SANSKRIT";
+                expected_str = "SANSKRIT";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SANSKRIT failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SANSKRIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1211,11 +1309,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SINDHI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SINDHI;
-                expected_str = "LANG_SINDHI";
+                expected_str = "SINDHI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SINDHI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SINDHI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1223,11 +1322,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SANGRO testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SANGRO;
-                expected_str = "LANG_SANGRO";
+                expected_str = "SANGRO";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SANGRO failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SANGRO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1235,11 +1335,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SERBOCROATIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SERBOCROATIAN;
-                expected_str = "LANG_SERBOCROATIAN";
+                expected_str = "SERBOCROATIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SERBOCROATIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SERBOCROATIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1247,11 +1348,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SINGHALESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SINGHALESE;
-                expected_str = "LANG_SINGHALESE";
+                expected_str = "SINGHALESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SINGHALESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SINGHALESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1259,11 +1361,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SLOVAK testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SLOVAK;
-                expected_str = "LANG_SLOVAK";
+                expected_str = "SLOVAK";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SLOVAK failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SLOVAK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1271,11 +1374,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SLOVENIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SLOVENIAN;
-                expected_str = "LANG_SLOVENIAN";
+                expected_str = "SLOVENIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SLOVENIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SLOVENIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1283,11 +1387,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SAMOAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SAMOAN;
-                expected_str = "LANG_SAMOAN";
+                expected_str = "SAMOAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SAMOAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SAMOAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1295,11 +1400,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SHONA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SHONA;
-                expected_str = "LANG_SHONA";
+                expected_str = "SHONA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SHONA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SHONA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1307,11 +1413,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SOMALI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SOMALI;
-                expected_str = "LANG_SOMALI";
+                expected_str = "SOMALI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SOMALI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SOMALI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1319,11 +1426,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ALBANIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ALBANIAN;
-                expected_str = "LANG_ALBANIAN";
+                expected_str = "ALBANIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ALBANIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ALBANIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1331,11 +1439,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SERBIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SERBIAN;
-                expected_str = "LANG_SERBIAN";
+                expected_str = "SERBIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SERBIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SERBIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1343,11 +1452,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SISWATI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SISWATI;
-                expected_str = "LANG_SISWATI";
+                expected_str = "SISWATI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SISWATI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SISWATI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1355,11 +1465,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SESOTHO testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SESOTHO;
-                expected_str = "LANG_SESOTHO";
+                expected_str = "SESOTHO";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SESOTHO failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SESOTHO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1367,11 +1478,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SUDANESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SUDANESE;
-                expected_str = "LANG_SUDANESE";
+                expected_str = "SUDANESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SUDANESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SUDANESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1379,11 +1491,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SWEDISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SWEDISH;
-                expected_str = "LANG_SWEDISH";
+                expected_str = "SWEDISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SWEDISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SWEDISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1391,11 +1504,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SWAHILI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SWAHILI;
-                expected_str = "LANG_SWAHILI";
+                expected_str = "SWAHILI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SWAHILI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SWAHILI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1403,11 +1517,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TAMIL testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TAMIL;
-                expected_str = "LANG_TAMIL";
+                expected_str = "TAMIL";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TAMIL failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TAMIL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1415,11 +1530,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TELUGU testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TELUGU;
-                expected_str = "LANG_TELUGU";
+                expected_str = "TELUGU";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TELUGU failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TELUGU failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1427,11 +1543,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TAJIK testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TAJIK;
-                expected_str = "LANG_TAJIK";
+                expected_str = "TAJIK";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TAJIK failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TAJIK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1439,11 +1556,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_THAI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_THAI;
-                expected_str = "LANG_THAI";
+                expected_str = "THAI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_THAI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_THAI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1451,11 +1569,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TIGRINYA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TIGRINYA;
-                expected_str = "LANG_TIGRINYA";
+                expected_str = "TIGRINYA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TIGRINYA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TIGRINYA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1463,11 +1582,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TURKMEN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TURKMEN;
-                expected_str = "LANG_TURKMEN";
+                expected_str = "TURKMEN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TURKMEN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TURKMEN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1475,11 +1595,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TAGALOG testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TAGALOG;
-                expected_str = "LANG_TAGALOG";
+                expected_str = "TAGALOG";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TAGALOG failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TAGALOG failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1487,11 +1608,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_SETSWANA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_SETSWANA;
-                expected_str = "LANG_SETSWANA";
+                expected_str = "SETSWANA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_SETSWANA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_SETSWANA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1499,11 +1621,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TONGA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TONGA;
-                expected_str = "LANG_TONGA";
+                expected_str = "TONGA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TONGA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TONGA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1511,11 +1634,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TURKISH testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TURKISH;
-                expected_str = "LANG_TURKISH";
+                expected_str = "TURKISH";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TURKISH failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TURKISH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1523,11 +1647,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TSONGA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TSONGA;
-                expected_str = "LANG_TSONGA";
+                expected_str = "TSONGA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TSONGA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TSONGA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1535,11 +1660,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TATAR testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TATAR;
-                expected_str = "LANG_TATAR";
+                expected_str = "TATAR";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TATAR failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TATAR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1547,11 +1673,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_TWI testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_TWI;
-                expected_str = "LANG_TWI";
+                expected_str = "TWI";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_TWI failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_TWI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1559,11 +1686,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_UKRAINIAN testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_UKRAINIAN;
-                expected_str = "LANG_UKRAINIAN";
+                expected_str = "UKRAINIAN";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_UKRAINIAN failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_UKRAINIAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1571,11 +1699,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_URDU testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_URDU;
-                expected_str = "LANG_URDU";
+                expected_str = "URDU";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_URDU failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_URDU failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1583,11 +1712,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_UZBEK testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_UZBEK;
-                expected_str = "LANG_UZBEK";
+                expected_str = "UZBEK";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_UZBEK failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_UZBEK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1595,11 +1725,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_VIETNAMESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_VIETNAMESE;
-                expected_str = "LANG_VIETNAMESE";
+                expected_str = "VIETNAMESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_VIETNAMESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_VIETNAMESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1607,11 +1738,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_VOLAPUK testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_VOLAPUK;
-                expected_str = "LANG_VOLAPUK";
+                expected_str = "VOLAPUK";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_VOLAPUK failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_VOLAPUK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1619,11 +1751,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_WOLOF testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_WOLOF;
-                expected_str = "LANG_WOLOF";
+                expected_str = "WOLOF";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_WOLOF failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_WOLOF failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1631,11 +1764,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_XHOSA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_XHOSA;
-                expected_str = "LANG_XHOSA";
+                expected_str = "XHOSA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_XHOSA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_XHOSA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1643,11 +1777,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_YORUBA testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_YORUBA;
-                expected_str = "LANG_YORUBA";
+                expected_str = "YORUBA";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_YORUBA failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_YORUBA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1655,11 +1790,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_CHINESE testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_CHINESE;
-                expected_str = "LANG_CHINESE";
+                expected_str = "CHINESE";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_CHINESE failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_CHINESE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1667,11 +1803,12 @@ int main(int argc, char **argv)
         /* SaHpiLanguageT - SAHPI_LANG_ZULU testcase */
         {
 	        SaHpiLanguageT value = SAHPI_LANG_ZULU;
-                expected_str = "LANG_ZULU";
+                expected_str = "ZULU";
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - SAHPI_LANG_ZULU failed\n");
+                        printf("Error! Testcase SaHpiLanguageT - SAHPI_LANG_ZULU failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1681,7 +1818,7 @@ int main(int argc, char **argv)
 	        SaHpiLanguageT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiLanguageT2str(value);
+                str = oh_lookup_language(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiLanguageT - Default failed\n");
                         return -1;             
@@ -1691,11 +1828,12 @@ int main(int argc, char **argv)
         /* SaHpiTextTypeT - SAHPI_TL_TYPE_UNICODE testcase */
         {
 	        SaHpiTextTypeT value = SAHPI_TL_TYPE_UNICODE;
-                expected_str = "TL_TYPE_UNICODE";
+                expected_str = "UNICODE";
 
-                str = SaHpiTextTypeT2str(value);
+                str = oh_lookup_texttype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_UNICODE failed\n");
+                        printf("Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_UNICODE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1703,11 +1841,12 @@ int main(int argc, char **argv)
         /* SaHpiTextTypeT - SAHPI_TL_TYPE_BCDPLUS testcase */
         {
 	        SaHpiTextTypeT value = SAHPI_TL_TYPE_BCDPLUS;
-                expected_str = "TL_TYPE_BCDPLUS";
+                expected_str = "BCDPLUS";
 
-                str = SaHpiTextTypeT2str(value);
+                str = oh_lookup_texttype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_BCDPLUS failed\n");
+                        printf("Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_BCDPLUS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1715,11 +1854,12 @@ int main(int argc, char **argv)
         /* SaHpiTextTypeT - SAHPI_TL_TYPE_ASCII6 testcase */
         {
 	        SaHpiTextTypeT value = SAHPI_TL_TYPE_ASCII6;
-                expected_str = "TL_TYPE_ASCII6";
+                expected_str = "ASCII6";
 
-                str = SaHpiTextTypeT2str(value);
+                str = oh_lookup_texttype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_ASCII6 failed\n");
+                        printf("Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_ASCII6 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1727,11 +1867,12 @@ int main(int argc, char **argv)
         /* SaHpiTextTypeT - SAHPI_TL_TYPE_TEXT testcase */
         {
 	        SaHpiTextTypeT value = SAHPI_TL_TYPE_TEXT;
-                expected_str = "TL_TYPE_TEXT";
+                expected_str = "TEXT";
 
-                str = SaHpiTextTypeT2str(value);
+                str = oh_lookup_texttype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_TEXT failed\n");
+                        printf("Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_TEXT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1739,11 +1880,12 @@ int main(int argc, char **argv)
         /* SaHpiTextTypeT - SAHPI_TL_TYPE_BINARY testcase */
         {
 	        SaHpiTextTypeT value = SAHPI_TL_TYPE_BINARY;
-                expected_str = "TL_TYPE_BINARY";
+                expected_str = "BINARY";
 
-                str = SaHpiTextTypeT2str(value);
+                str = oh_lookup_texttype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_BINARY failed\n");
+                        printf("Error! Testcase SaHpiTextTypeT - SAHPI_TL_TYPE_BINARY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1753,7 +1895,7 @@ int main(int argc, char **argv)
 	        SaHpiTextTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiTextTypeT2str(value);
+                str = oh_lookup_texttype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiTextTypeT - Default failed\n");
                         return -1;             
@@ -1763,11 +1905,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_UNSPECIFIED testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_UNSPECIFIED;
-                expected_str = "ENT_UNSPECIFIED";
+                expected_str = "UNSPECIFIED";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_UNSPECIFIED failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_UNSPECIFIED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1775,11 +1918,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_OTHER testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_OTHER;
-                expected_str = "ENT_OTHER";
+                expected_str = "OTHER";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OTHER failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OTHER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1787,11 +1931,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_UNKNOWN testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_UNKNOWN;
-                expected_str = "ENT_UNKNOWN";
+                expected_str = "UNKNOWN";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_UNKNOWN failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_UNKNOWN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1799,11 +1944,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_PROCESSOR;
-                expected_str = "ENT_PROCESSOR";
+                expected_str = "PROCESSOR";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1811,11 +1957,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_DISK_BAY testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_DISK_BAY;
-                expected_str = "ENT_DISK_BAY";
+                expected_str = "DISK_BAY";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_BAY failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_BAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1823,11 +1970,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_PERIPHERAL_BAY testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_PERIPHERAL_BAY;
-                expected_str = "ENT_PERIPHERAL_BAY";
+                expected_str = "PERIPHERAL_BAY";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PERIPHERAL_BAY failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PERIPHERAL_BAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1835,11 +1983,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SYS_MGMNT_MODULE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SYS_MGMNT_MODULE;
-                expected_str = "ENT_SYS_MGMNT_MODULE";
+                expected_str = "SYS_MGMNT_MODULE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYS_MGMNT_MODULE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYS_MGMNT_MODULE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1847,11 +1996,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SYSTEM_BOARD;
-                expected_str = "ENT_SYSTEM_BOARD";
+                expected_str = "SYSTEM_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1859,11 +2009,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_MEMORY_MODULE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_MEMORY_MODULE;
-                expected_str = "ENT_MEMORY_MODULE";
+                expected_str = "MEMORY_MODULE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_MEMORY_MODULE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_MEMORY_MODULE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1871,11 +2022,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR_MODULE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_PROCESSOR_MODULE;
-                expected_str = "ENT_PROCESSOR_MODULE";
+                expected_str = "PROCESSOR_MODULE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR_MODULE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR_MODULE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1883,11 +2035,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_POWER_SUPPLY testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_POWER_SUPPLY;
-                expected_str = "ENT_POWER_SUPPLY";
+                expected_str = "POWER_SUPPLY";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_SUPPLY failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_SUPPLY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1895,11 +2048,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_ADD_IN_CARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_ADD_IN_CARD;
-                expected_str = "ENT_ADD_IN_CARD";
+                expected_str = "ADD_IN_CARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ADD_IN_CARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ADD_IN_CARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1907,11 +2061,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_FRONT_PANEL_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_FRONT_PANEL_BOARD;
-                expected_str = "ENT_FRONT_PANEL_BOARD";
+                expected_str = "FRONT_PANEL_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_FRONT_PANEL_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_FRONT_PANEL_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1919,11 +2074,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_BACK_PANEL_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_BACK_PANEL_BOARD;
-                expected_str = "ENT_BACK_PANEL_BOARD";
+                expected_str = "BACK_PANEL_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BACK_PANEL_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BACK_PANEL_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1931,11 +2087,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_POWER_SYSTEM_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_POWER_SYSTEM_BOARD;
-                expected_str = "ENT_POWER_SYSTEM_BOARD";
+                expected_str = "POWER_SYSTEM_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_SYSTEM_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_SYSTEM_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1943,11 +2100,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_DRIVE_BACKPLANE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_DRIVE_BACKPLANE;
-                expected_str = "ENT_DRIVE_BACKPLANE";
+                expected_str = "DRIVE_BACKPLANE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DRIVE_BACKPLANE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DRIVE_BACKPLANE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1955,11 +2113,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SYS_EXPANSION_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SYS_EXPANSION_BOARD;
-                expected_str = "ENT_SYS_EXPANSION_BOARD";
+                expected_str = "SYS_EXPANSION_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYS_EXPANSION_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYS_EXPANSION_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1967,11 +2126,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_OTHER_SYSTEM_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_OTHER_SYSTEM_BOARD;
-                expected_str = "ENT_OTHER_SYSTEM_BOARD";
+                expected_str = "OTHER_SYSTEM_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OTHER_SYSTEM_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OTHER_SYSTEM_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1979,11 +2139,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_PROCESSOR_BOARD;
-                expected_str = "ENT_PROCESSOR_BOARD";
+                expected_str = "PROCESSOR_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PROCESSOR_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -1991,11 +2152,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_POWER_UNIT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_POWER_UNIT;
-                expected_str = "ENT_POWER_UNIT";
+                expected_str = "POWER_UNIT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_UNIT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_UNIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2003,11 +2165,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_POWER_MODULE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_POWER_MODULE;
-                expected_str = "ENT_POWER_MODULE";
+                expected_str = "POWER_MODULE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_MODULE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_MODULE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2015,11 +2178,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_POWER_MGMNT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_POWER_MGMNT;
-                expected_str = "ENT_POWER_MGMNT";
+                expected_str = "POWER_MGMNT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_MGMNT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_MGMNT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2027,11 +2191,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD;
-                expected_str = "ENT_CHASSIS_BACK_PANEL_BOARD";
+                expected_str = "CHASSIS_BACK_PANEL_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2039,11 +2204,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_CHASSIS testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SYSTEM_CHASSIS;
-                expected_str = "ENT_SYSTEM_CHASSIS";
+                expected_str = "SYSTEM_CHASSIS";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_CHASSIS failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_CHASSIS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2051,11 +2217,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SUB_CHASSIS testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SUB_CHASSIS;
-                expected_str = "ENT_SUB_CHASSIS";
+                expected_str = "SUB_CHASSIS";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SUB_CHASSIS failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SUB_CHASSIS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2063,11 +2230,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_OTHER_CHASSIS_BOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_OTHER_CHASSIS_BOARD;
-                expected_str = "ENT_OTHER_CHASSIS_BOARD";
+                expected_str = "OTHER_CHASSIS_BOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OTHER_CHASSIS_BOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OTHER_CHASSIS_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2075,11 +2243,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_DISK_DRIVE_BAY testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_DISK_DRIVE_BAY;
-                expected_str = "ENT_DISK_DRIVE_BAY";
+                expected_str = "DISK_DRIVE_BAY";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_DRIVE_BAY failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_DRIVE_BAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2087,11 +2256,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_PERIPHERAL_BAY_2 testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_PERIPHERAL_BAY_2;
-                expected_str = "ENT_PERIPHERAL_BAY_2";
+                expected_str = "PERIPHERAL_BAY_2";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PERIPHERAL_BAY_2 failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PERIPHERAL_BAY_2 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2099,11 +2269,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_DEVICE_BAY testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_DEVICE_BAY;
-                expected_str = "ENT_DEVICE_BAY";
+                expected_str = "DEVICE_BAY";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DEVICE_BAY failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DEVICE_BAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2111,11 +2282,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_COOLING_DEVICE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_COOLING_DEVICE;
-                expected_str = "ENT_COOLING_DEVICE";
+                expected_str = "COOLING_DEVICE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_COOLING_DEVICE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_COOLING_DEVICE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2123,11 +2295,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_COOLING_UNIT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_COOLING_UNIT;
-                expected_str = "ENT_COOLING_UNIT";
+                expected_str = "COOLING_UNIT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_COOLING_UNIT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_COOLING_UNIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2135,11 +2308,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_INTERCONNECT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_INTERCONNECT;
-                expected_str = "ENT_INTERCONNECT";
+                expected_str = "INTERCONNECT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_INTERCONNECT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_INTERCONNECT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2147,11 +2321,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_MEMORY_DEVICE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_MEMORY_DEVICE;
-                expected_str = "ENT_MEMORY_DEVICE";
+                expected_str = "MEMORY_DEVICE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_MEMORY_DEVICE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_MEMORY_DEVICE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2159,11 +2334,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SYS_MGMNT_SOFTWARE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SYS_MGMNT_SOFTWARE;
-                expected_str = "ENT_SYS_MGMNT_SOFTWARE";
+                expected_str = "SYS_MGMNT_SOFTWARE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYS_MGMNT_SOFTWARE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYS_MGMNT_SOFTWARE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2171,11 +2347,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_BIOS testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_BIOS;
-                expected_str = "ENT_BIOS";
+                expected_str = "BIOS";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BIOS failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BIOS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2183,11 +2360,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_OPERATING_SYSTEM testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_OPERATING_SYSTEM;
-                expected_str = "ENT_OPERATING_SYSTEM";
+                expected_str = "OPERATING_SYSTEM";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OPERATING_SYSTEM failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OPERATING_SYSTEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2195,11 +2373,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BUS testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SYSTEM_BUS;
-                expected_str = "ENT_SYSTEM_BUS";
+                expected_str = "SYSTEM_BUS";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BUS failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BUS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2207,11 +2386,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_GROUP testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_GROUP;
-                expected_str = "ENT_GROUP";
+                expected_str = "GROUP";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_GROUP failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_GROUP failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2219,11 +2399,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_REMOTE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_REMOTE;
-                expected_str = "ENT_REMOTE";
+                expected_str = "REMOTE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_REMOTE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_REMOTE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2231,11 +2412,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_EXTERNAL_ENVIRONMENT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_EXTERNAL_ENVIRONMENT;
-                expected_str = "ENT_EXTERNAL_ENVIRONMENT";
+                expected_str = "EXTERNAL_ENVIRONMENT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_EXTERNAL_ENVIRONMENT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_EXTERNAL_ENVIRONMENT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2243,11 +2425,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_BATTERY testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_BATTERY;
-                expected_str = "ENT_BATTERY";
+                expected_str = "BATTERY";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BATTERY failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BATTERY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2255,11 +2438,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_CHASSIS_SPECIFIC testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_CHASSIS_SPECIFIC;
-                expected_str = "ENT_CHASSIS_SPECIFIC";
+                expected_str = "CHASSIS_SPECIFIC";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_CHASSIS_SPECIFIC failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_CHASSIS_SPECIFIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2267,11 +2451,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_BOARD_SET_SPECIFIC testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_BOARD_SET_SPECIFIC;
-                expected_str = "ENT_BOARD_SET_SPECIFIC";
+                expected_str = "BOARD_SET_SPECIFIC";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BOARD_SET_SPECIFIC failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_BOARD_SET_SPECIFIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2279,11 +2464,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_OEM_SYSINT_SPECIFIC testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_OEM_SYSINT_SPECIFIC;
-                expected_str = "ENT_OEM_SYSINT_SPECIFIC";
+                expected_str = "OEM_SYSINT_SPECIFIC";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OEM_SYSINT_SPECIFIC failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_OEM_SYSINT_SPECIFIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2291,11 +2477,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_ROOT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_ROOT;
-                expected_str = "ENT_ROOT";
+                expected_str = "ROOT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ROOT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ROOT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2303,11 +2490,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_RACK testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_RACK;
-                expected_str = "ENT_RACK";
+                expected_str = "RACK";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_RACK failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_RACK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2315,11 +2503,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SUBRACK testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SUBRACK;
-                expected_str = "ENT_SUBRACK";
+                expected_str = "SUBRACK";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SUBRACK failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SUBRACK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2327,11 +2516,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_COMPACTPCI_CHASSIS testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_COMPACTPCI_CHASSIS;
-                expected_str = "ENT_COMPACTPCI_CHASSIS";
+                expected_str = "COMPACTPCI_CHASSIS";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_COMPACTPCI_CHASSIS failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_COMPACTPCI_CHASSIS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2339,11 +2529,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_ADVANCEDTCA_CHASSIS testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
-                expected_str = "ENT_ADVANCEDTCA_CHASSIS";
+                expected_str = "ADVANCEDTCA_CHASSIS";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ADVANCEDTCA_CHASSIS failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ADVANCEDTCA_CHASSIS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2351,11 +2542,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_RACK_MOUNTED_SERVER testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_RACK_MOUNTED_SERVER;
-                expected_str = "ENT_RACK_MOUNTED_SERVER";
+                expected_str = "RACK_MOUNTED_SERVER";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_RACK_MOUNTED_SERVER failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_RACK_MOUNTED_SERVER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2363,11 +2555,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BLADE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SYSTEM_BLADE;
-                expected_str = "ENT_SYSTEM_BLADE";
+                expected_str = "SYSTEM_BLADE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BLADE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SYSTEM_BLADE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2375,11 +2568,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SWITCH testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SWITCH;
-                expected_str = "ENT_SWITCH";
+                expected_str = "SWITCH";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SWITCH failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SWITCH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2387,11 +2581,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SWITCH_BLADE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SWITCH_BLADE;
-                expected_str = "ENT_SWITCH_BLADE";
+                expected_str = "SWITCH_BLADE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SWITCH_BLADE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SWITCH_BLADE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2399,11 +2594,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SBC_BLADE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SBC_BLADE;
-                expected_str = "ENT_SBC_BLADE";
+                expected_str = "SBC_BLADE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SBC_BLADE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SBC_BLADE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2411,11 +2607,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_IO_BLADE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_IO_BLADE;
-                expected_str = "ENT_IO_BLADE";
+                expected_str = "IO_BLADE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_IO_BLADE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_IO_BLADE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2423,11 +2620,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_DISK_BLADE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_DISK_BLADE;
-                expected_str = "ENT_DISK_BLADE";
+                expected_str = "DISK_BLADE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_BLADE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_BLADE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2435,11 +2633,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_DISK_DRIVE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_DISK_DRIVE;
-                expected_str = "ENT_DISK_DRIVE";
+                expected_str = "DISK_DRIVE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_DRIVE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISK_DRIVE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2447,11 +2646,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_FAN testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_FAN;
-                expected_str = "ENT_FAN";
+                expected_str = "FAN";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_FAN failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_FAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2459,11 +2659,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_POWER_DISTRIBUTION_UNIT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_POWER_DISTRIBUTION_UNIT;
-                expected_str = "ENT_POWER_DISTRIBUTION_UNIT";
+                expected_str = "POWER_DISTRIBUTION_UNIT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_DISTRIBUTION_UNIT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_POWER_DISTRIBUTION_UNIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2471,11 +2672,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SPEC_PROC_BLADE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SPEC_PROC_BLADE;
-                expected_str = "ENT_SPEC_PROC_BLADE";
+                expected_str = "SPEC_PROC_BLADE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SPEC_PROC_BLADE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SPEC_PROC_BLADE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2483,11 +2685,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_IO_SUBBOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_IO_SUBBOARD;
-                expected_str = "ENT_IO_SUBBOARD";
+                expected_str = "IO_SUBBOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_IO_SUBBOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_IO_SUBBOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2495,11 +2698,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SBC_SUBBOARD testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SBC_SUBBOARD;
-                expected_str = "ENT_SBC_SUBBOARD";
+                expected_str = "SBC_SUBBOARD";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SBC_SUBBOARD failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SBC_SUBBOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2507,11 +2711,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_ALARM_MANAGER testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_ALARM_MANAGER;
-                expected_str = "ENT_ALARM_MANAGER";
+                expected_str = "ALARM_MANAGER";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ALARM_MANAGER failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_ALARM_MANAGER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2519,11 +2724,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SHELF_MANAGER testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SHELF_MANAGER;
-                expected_str = "ENT_SHELF_MANAGER";
+                expected_str = "SHELF_MANAGER";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SHELF_MANAGER failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SHELF_MANAGER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2531,11 +2737,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_DISPLAY_PANEL testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_DISPLAY_PANEL;
-                expected_str = "ENT_DISPLAY_PANEL";
+                expected_str = "DISPLAY_PANEL";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISPLAY_PANEL failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_DISPLAY_PANEL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2543,11 +2750,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_SUBBOARD_CARRIER_BLADE testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_SUBBOARD_CARRIER_BLADE;
-                expected_str = "ENT_SUBBOARD_CARRIER_BLADE";
+                expected_str = "SUBBOARD_CARRIER_BLADE";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SUBBOARD_CARRIER_BLADE failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_SUBBOARD_CARRIER_BLADE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2555,11 +2763,12 @@ int main(int argc, char **argv)
         /* SaHpiEntityTypeT - SAHPI_ENT_PHYSICAL_SLOT testcase */
         {
 	        SaHpiEntityTypeT value = SAHPI_ENT_PHYSICAL_SLOT;
-                expected_str = "ENT_PHYSICAL_SLOT";
+                expected_str = "PHYSICAL_SLOT";
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PHYSICAL_SLOT failed\n");
+                        printf("Error! Testcase SaHpiEntityTypeT - SAHPI_ENT_PHYSICAL_SLOT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2569,7 +2778,7 @@ int main(int argc, char **argv)
 	        SaHpiEntityTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiEntityTypeT2str(value);
+                str = oh_lookup_entitytype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEntityTypeT - Default failed\n");
                         return -1;             
@@ -2581,9 +2790,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_TEMPERATURE;
                 expected_str = "TEMPERATURE";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_TEMPERATURE failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_TEMPERATURE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2593,9 +2803,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_VOLTAGE;
                 expected_str = "VOLTAGE";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_VOLTAGE failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_VOLTAGE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2605,9 +2816,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_CURRENT;
                 expected_str = "CURRENT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_CURRENT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_CURRENT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2617,9 +2829,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_FAN;
                 expected_str = "FAN";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_FAN failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_FAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2629,9 +2842,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_PHYSICAL_SECURITY;
                 expected_str = "PHYSICAL_SECURITY";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_PHYSICAL_SECURITY failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_PHYSICAL_SECURITY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2641,9 +2855,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_PLATFORM_VIOLATION;
                 expected_str = "PLATFORM_VIOLATION";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_PLATFORM_VIOLATION failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_PLATFORM_VIOLATION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2653,9 +2868,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_PROCESSOR;
                 expected_str = "PROCESSOR";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_PROCESSOR failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_PROCESSOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2665,9 +2881,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_POWER_SUPPLY;
                 expected_str = "POWER_SUPPLY";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_POWER_SUPPLY failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_POWER_SUPPLY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2677,9 +2894,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_POWER_UNIT;
                 expected_str = "POWER_UNIT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_POWER_UNIT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_POWER_UNIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2689,9 +2907,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_COOLING_DEVICE;
                 expected_str = "COOLING_DEVICE";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_COOLING_DEVICE failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_COOLING_DEVICE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2701,9 +2920,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_OTHER_UNITS_BASED_SENSOR;
                 expected_str = "OTHER_UNITS_BASED_SENSOR";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_OTHER_UNITS_BASED_SENSOR failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_OTHER_UNITS_BASED_SENSOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2713,9 +2933,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_MEMORY;
                 expected_str = "MEMORY";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_MEMORY failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_MEMORY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2725,9 +2946,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_DRIVE_SLOT;
                 expected_str = "DRIVE_SLOT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_DRIVE_SLOT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_DRIVE_SLOT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2737,9 +2959,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_POST_MEMORY_RESIZE;
                 expected_str = "POST_MEMORY_RESIZE";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_POST_MEMORY_RESIZE failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_POST_MEMORY_RESIZE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2749,9 +2972,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_SYSTEM_FW_PROGRESS;
                 expected_str = "SYSTEM_FW_PROGRESS";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_FW_PROGRESS failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_FW_PROGRESS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2761,9 +2985,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_EVENT_LOGGING_DISABLED;
                 expected_str = "EVENT_LOGGING_DISABLED";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_EVENT_LOGGING_DISABLED failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_EVENT_LOGGING_DISABLED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2773,9 +2998,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_RESERVED1;
                 expected_str = "RESERVED1";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_RESERVED1 failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_RESERVED1 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2785,9 +3011,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_SYSTEM_EVENT;
                 expected_str = "SYSTEM_EVENT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_EVENT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_EVENT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2797,9 +3024,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_CRITICAL_INTERRUPT;
                 expected_str = "CRITICAL_INTERRUPT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_CRITICAL_INTERRUPT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_CRITICAL_INTERRUPT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2809,9 +3037,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_BUTTON;
                 expected_str = "BUTTON";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_BUTTON failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_BUTTON failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2821,9 +3050,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_MODULE_BOARD;
                 expected_str = "MODULE_BOARD";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_MODULE_BOARD failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_MODULE_BOARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2833,9 +3063,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_MICROCONTROLLER_COPROCESSOR;
                 expected_str = "MICROCONTROLLER_COPROCESSOR";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_MICROCONTROLLER_COPROCESSOR failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_MICROCONTROLLER_COPROCESSOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2845,9 +3076,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_ADDIN_CARD;
                 expected_str = "ADDIN_CARD";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_ADDIN_CARD failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_ADDIN_CARD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2857,9 +3089,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_CHASSIS;
                 expected_str = "CHASSIS";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_CHASSIS failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_CHASSIS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2869,9 +3102,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_CHIP_SET;
                 expected_str = "CHIP_SET";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_CHIP_SET failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_CHIP_SET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2881,9 +3115,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_OTHER_FRU;
                 expected_str = "OTHER_FRU";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_OTHER_FRU failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_OTHER_FRU failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2893,9 +3128,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_CABLE_INTERCONNECT;
                 expected_str = "CABLE_INTERCONNECT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_CABLE_INTERCONNECT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_CABLE_INTERCONNECT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2905,9 +3141,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_TERMINATOR;
                 expected_str = "TERMINATOR";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_TERMINATOR failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_TERMINATOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2917,9 +3154,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_SYSTEM_BOOT_INITIATED;
                 expected_str = "SYSTEM_BOOT_INITIATED";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_BOOT_INITIATED failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_BOOT_INITIATED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2929,9 +3167,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_BOOT_ERROR;
                 expected_str = "BOOT_ERROR";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_BOOT_ERROR failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_BOOT_ERROR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2941,9 +3180,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_OS_BOOT;
                 expected_str = "OS_BOOT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_OS_BOOT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_OS_BOOT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2953,9 +3193,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_OS_CRITICAL_STOP;
                 expected_str = "OS_CRITICAL_STOP";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_OS_CRITICAL_STOP failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_OS_CRITICAL_STOP failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2965,9 +3206,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_SLOT_CONNECTOR;
                 expected_str = "SLOT_CONNECTOR";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_SLOT_CONNECTOR failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_SLOT_CONNECTOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2977,9 +3219,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_SYSTEM_ACPI_POWER_STATE;
                 expected_str = "SYSTEM_ACPI_POWER_STATE";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_ACPI_POWER_STATE failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_SYSTEM_ACPI_POWER_STATE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -2989,9 +3232,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_RESERVED2;
                 expected_str = "RESERVED2";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_RESERVED2 failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_RESERVED2 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3001,9 +3245,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_PLATFORM_ALERT;
                 expected_str = "PLATFORM_ALERT";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_PLATFORM_ALERT failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_PLATFORM_ALERT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3013,9 +3258,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_ENTITY_PRESENCE;
                 expected_str = "ENTITY_PRESENCE";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_ENTITY_PRESENCE failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_ENTITY_PRESENCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3025,9 +3271,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_MONITOR_ASIC_IC;
                 expected_str = "MONITOR_ASIC_IC";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_MONITOR_ASIC_IC failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_MONITOR_ASIC_IC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3037,9 +3284,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_LAN;
                 expected_str = "LAN";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_LAN failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_LAN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3049,9 +3297,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH;
                 expected_str = "MANAGEMENT_SUBSYSTEM_HEALTH";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3061,9 +3310,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_BATTERY;
                 expected_str = "BATTERY";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_BATTERY failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_BATTERY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3073,9 +3323,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_OPERATIONAL;
                 expected_str = "OPERATIONAL";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_OPERATIONAL failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_OPERATIONAL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3085,9 +3336,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = SAHPI_OEM_SENSOR;
                 expected_str = "OEM_SENSOR";
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - SAHPI_OEM_SENSOR failed\n");
+                        printf("Error! Testcase SaHpiSensorTypeT - SAHPI_OEM_SENSOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3097,7 +3349,7 @@ int main(int argc, char **argv)
 	        SaHpiSensorTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSensorTypeT2str(value);
+                str = oh_lookup_sensortype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorTypeT - Default failed\n");
                         return -1;             
@@ -3107,11 +3359,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_INT64 testcase */
         {
 	        SaHpiSensorReadingTypeT value = SAHPI_SENSOR_READING_TYPE_INT64;
-                expected_str = "SENSOR_READING_TYPE_INT64";
+                expected_str = "INT64";
 
-                str = SaHpiSensorReadingTypeT2str(value);
+                str = oh_lookup_sensorreadingtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_INT64 failed\n");
+                        printf("Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_INT64 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3119,11 +3372,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_UINT64 testcase */
         {
 	        SaHpiSensorReadingTypeT value = SAHPI_SENSOR_READING_TYPE_UINT64;
-                expected_str = "SENSOR_READING_TYPE_UINT64";
+                expected_str = "UINT64";
 
-                str = SaHpiSensorReadingTypeT2str(value);
+                str = oh_lookup_sensorreadingtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_UINT64 failed\n");
+                        printf("Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_UINT64 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3131,11 +3385,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase */
         {
 	        SaHpiSensorReadingTypeT value = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-                expected_str = "SENSOR_READING_TYPE_FLOAT64";
+                expected_str = "FLOAT64";
 
-                str = SaHpiSensorReadingTypeT2str(value);
+                str = oh_lookup_sensorreadingtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_FLOAT64 failed\n");
+                        printf("Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_FLOAT64 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3143,11 +3398,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_BUFFER testcase */
         {
 	        SaHpiSensorReadingTypeT value = SAHPI_SENSOR_READING_TYPE_BUFFER;
-                expected_str = "SENSOR_READING_TYPE_BUFFER";
+                expected_str = "BUFFER";
 
-                str = SaHpiSensorReadingTypeT2str(value);
+                str = oh_lookup_sensorreadingtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_BUFFER failed\n");
+                        printf("Error! Testcase SaHpiSensorReadingTypeT - SAHPI_SENSOR_READING_TYPE_BUFFER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3157,7 +3413,7 @@ int main(int argc, char **argv)
 	        SaHpiSensorReadingTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSensorReadingTypeT2str(value);
+                str = oh_lookup_sensorreadingtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorReadingTypeT - Default failed\n");
                         return -1;             
@@ -3167,11 +3423,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorEventMaskActionT - SAHPI_SENS_ADD_EVENTS_TO_MASKS testcase */
         {
 	        SaHpiSensorEventMaskActionT value = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
-                expected_str = "SENS_ADD_EVENTS_TO_MASKS";
+                expected_str = "ADD_EVENTS_TO_MASKS";
 
-                str = SaHpiSensorEventMaskActionT2str(value);
+                str = oh_lookup_sensoreventmaskaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorEventMaskActionT - SAHPI_SENS_ADD_EVENTS_TO_MASKS failed\n");
+                        printf("Error! Testcase SaHpiSensorEventMaskActionT - SAHPI_SENS_ADD_EVENTS_TO_MASKS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3179,11 +3436,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorEventMaskActionT - SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS testcase */
         {
 	        SaHpiSensorEventMaskActionT value = SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS;
-                expected_str = "SENS_REMOVE_EVENTS_FROM_MASKS";
+                expected_str = "REMOVE_EVENTS_FROM_MASKS";
 
-                str = SaHpiSensorEventMaskActionT2str(value);
+                str = oh_lookup_sensoreventmaskaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorEventMaskActionT - SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS failed\n");
+                        printf("Error! Testcase SaHpiSensorEventMaskActionT - SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3193,7 +3451,7 @@ int main(int argc, char **argv)
 	        SaHpiSensorEventMaskActionT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSensorEventMaskActionT2str(value);
+                str = oh_lookup_sensoreventmaskaction(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorEventMaskActionT - Default failed\n");
                         return -1;             
@@ -3205,9 +3463,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_UNSPECIFIED;
                 expected_str = "UNSPECIFIED";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_UNSPECIFIED failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_UNSPECIFIED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3217,9 +3476,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DEGREES_C;
                 expected_str = "DEGREES_C";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DEGREES_C failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DEGREES_C failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3229,9 +3489,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DEGREES_F;
                 expected_str = "DEGREES_F";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DEGREES_F failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DEGREES_F failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3241,9 +3502,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DEGREES_K;
                 expected_str = "DEGREES_K";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DEGREES_K failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DEGREES_K failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3253,9 +3515,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_VOLTS;
                 expected_str = "VOLTS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_VOLTS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_VOLTS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3265,9 +3528,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_AMPS;
                 expected_str = "AMPS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_AMPS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_AMPS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3277,9 +3541,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_WATTS;
                 expected_str = "WATTS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_WATTS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_WATTS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3289,9 +3554,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_JOULES;
                 expected_str = "JOULES";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_JOULES failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_JOULES failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3301,9 +3567,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_COULOMBS;
                 expected_str = "COULOMBS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_COULOMBS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_COULOMBS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3313,9 +3580,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_VA;
                 expected_str = "VA";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_VA failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_VA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3325,9 +3593,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_NITS;
                 expected_str = "NITS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_NITS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_NITS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3337,9 +3606,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_LUMEN;
                 expected_str = "LUMEN";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LUMEN failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LUMEN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3349,9 +3619,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_LUX;
                 expected_str = "LUX";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LUX failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LUX failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3361,9 +3632,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CANDELA;
                 expected_str = "CANDELA";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CANDELA failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CANDELA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3373,9 +3645,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_KPA;
                 expected_str = "KPA";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_KPA failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_KPA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3385,9 +3658,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_PSI;
                 expected_str = "PSI";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_PSI failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_PSI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3397,9 +3671,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_NEWTON;
                 expected_str = "NEWTON";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_NEWTON failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_NEWTON failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3409,9 +3684,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CFM;
                 expected_str = "CFM";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CFM failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CFM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3421,9 +3697,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_RPM;
                 expected_str = "RPM";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RPM failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RPM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3433,9 +3710,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_HZ;
                 expected_str = "HZ";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HZ failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HZ failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3445,9 +3723,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MICROSECOND;
                 expected_str = "MICROSECOND";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MICROSECOND failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MICROSECOND failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3457,9 +3736,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MILLISECOND;
                 expected_str = "MILLISECOND";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MILLISECOND failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MILLISECOND failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3469,9 +3749,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_SECOND;
                 expected_str = "SECOND";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_SECOND failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_SECOND failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3481,9 +3762,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MINUTE;
                 expected_str = "MINUTE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MINUTE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MINUTE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3493,9 +3775,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_HOUR;
                 expected_str = "HOUR";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HOUR failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HOUR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3505,9 +3788,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DAY;
                 expected_str = "DAY";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DAY failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3517,9 +3801,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_WEEK;
                 expected_str = "WEEK";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_WEEK failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_WEEK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3529,9 +3814,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MIL;
                 expected_str = "MIL";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MIL failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MIL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3541,9 +3827,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_INCHES;
                 expected_str = "INCHES";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_INCHES failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_INCHES failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3553,9 +3840,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_FEET;
                 expected_str = "FEET";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FEET failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FEET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3565,9 +3853,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CU_IN;
                 expected_str = "CU_IN";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_IN failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_IN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3577,9 +3866,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CU_FEET;
                 expected_str = "CU_FEET";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_FEET failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_FEET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3589,9 +3879,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MM;
                 expected_str = "MM";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MM failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3601,9 +3892,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CM;
                 expected_str = "CM";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CM failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3613,9 +3905,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_M;
                 expected_str = "M";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_M failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_M failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3625,9 +3918,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CU_CM;
                 expected_str = "CU_CM";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_CM failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_CM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3637,9 +3931,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CU_M;
                 expected_str = "CU_M";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_M failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CU_M failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3649,9 +3944,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_LITERS;
                 expected_str = "LITERS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LITERS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LITERS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3661,9 +3957,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_FLUID_OUNCE;
                 expected_str = "FLUID_OUNCE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FLUID_OUNCE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FLUID_OUNCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3673,9 +3970,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_RADIANS;
                 expected_str = "RADIANS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RADIANS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RADIANS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3685,9 +3983,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_STERADIANS;
                 expected_str = "STERADIANS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_STERADIANS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_STERADIANS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3697,9 +3996,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_REVOLUTIONS;
                 expected_str = "REVOLUTIONS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_REVOLUTIONS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_REVOLUTIONS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3709,9 +4009,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CYCLES;
                 expected_str = "CYCLES";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CYCLES failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CYCLES failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3721,9 +4022,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_GRAVITIES;
                 expected_str = "GRAVITIES";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GRAVITIES failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GRAVITIES failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3733,9 +4035,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_OUNCE;
                 expected_str = "OUNCE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OUNCE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OUNCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3745,9 +4048,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_POUND;
                 expected_str = "POUND";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_POUND failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_POUND failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3757,9 +4061,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_FT_LB;
                 expected_str = "FT_LB";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FT_LB failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FT_LB failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3769,9 +4074,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_OZ_IN;
                 expected_str = "OZ_IN";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OZ_IN failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OZ_IN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3781,9 +4087,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_GAUSS;
                 expected_str = "GAUSS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GAUSS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GAUSS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3793,9 +4100,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_GILBERTS;
                 expected_str = "GILBERTS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GILBERTS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GILBERTS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3805,9 +4113,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_HENRY;
                 expected_str = "HENRY";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HENRY failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HENRY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3817,9 +4126,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MILLIHENRY;
                 expected_str = "MILLIHENRY";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MILLIHENRY failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MILLIHENRY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3829,9 +4139,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_FARAD;
                 expected_str = "FARAD";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FARAD failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_FARAD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3841,9 +4152,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MICROFARAD;
                 expected_str = "MICROFARAD";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MICROFARAD failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MICROFARAD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3853,9 +4165,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_OHMS;
                 expected_str = "OHMS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OHMS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OHMS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3865,9 +4178,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_SIEMENS;
                 expected_str = "SIEMENS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_SIEMENS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_SIEMENS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3877,9 +4191,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MOLE;
                 expected_str = "MOLE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MOLE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MOLE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3889,9 +4204,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_BECQUEREL;
                 expected_str = "BECQUEREL";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_BECQUEREL failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_BECQUEREL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3901,9 +4217,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_PPM;
                 expected_str = "PPM";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_PPM failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_PPM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3913,9 +4230,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_RESERVED;
                 expected_str = "RESERVED";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RESERVED failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RESERVED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3925,9 +4243,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DECIBELS;
                 expected_str = "DECIBELS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DECIBELS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DECIBELS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3937,9 +4256,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DBA;
                 expected_str = "DBA";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DBA failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DBA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3949,9 +4269,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DBC;
                 expected_str = "DBC";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DBC failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DBC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3961,9 +4282,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_GRAY;
                 expected_str = "GRAY";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GRAY failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GRAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3973,9 +4295,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_SIEVERT;
                 expected_str = "SIEVERT";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_SIEVERT failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_SIEVERT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3985,9 +4308,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_COLOR_TEMP_DEG_K;
                 expected_str = "COLOR_TEMP_DEG_K";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_COLOR_TEMP_DEG_K failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_COLOR_TEMP_DEG_K failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -3997,9 +4321,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_BIT;
                 expected_str = "BIT";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_BIT failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_BIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4009,9 +4334,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_KILOBIT;
                 expected_str = "KILOBIT";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_KILOBIT failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_KILOBIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4021,9 +4347,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MEGABIT;
                 expected_str = "MEGABIT";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MEGABIT failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MEGABIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4033,9 +4360,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_GIGABIT;
                 expected_str = "GIGABIT";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GIGABIT failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GIGABIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4045,9 +4373,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_BYTE;
                 expected_str = "BYTE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_BYTE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_BYTE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4057,9 +4386,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_KILOBYTE;
                 expected_str = "KILOBYTE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_KILOBYTE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_KILOBYTE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4069,9 +4399,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MEGABYTE;
                 expected_str = "MEGABYTE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MEGABYTE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MEGABYTE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4081,9 +4412,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_GIGABYTE;
                 expected_str = "GIGABYTE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GIGABYTE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_GIGABYTE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4093,9 +4425,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_WORD;
                 expected_str = "WORD";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_WORD failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_WORD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4105,9 +4438,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_DWORD;
                 expected_str = "DWORD";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DWORD failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_DWORD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4117,9 +4451,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_QWORD;
                 expected_str = "QWORD";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_QWORD failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_QWORD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4129,9 +4464,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_LINE;
                 expected_str = "LINE";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LINE failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_LINE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4141,9 +4477,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_HIT;
                 expected_str = "HIT";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HIT failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_HIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4153,9 +4490,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MISS;
                 expected_str = "MISS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MISS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MISS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4165,9 +4503,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_RETRY;
                 expected_str = "RETRY";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RETRY failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RETRY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4177,9 +4516,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_RESET;
                 expected_str = "RESET";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RESET failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_RESET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4189,9 +4529,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_OVERRUN;
                 expected_str = "OVERRUN";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OVERRUN failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_OVERRUN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4201,9 +4542,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_UNDERRUN;
                 expected_str = "UNDERRUN";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_UNDERRUN failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_UNDERRUN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4213,9 +4555,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_COLLISION;
                 expected_str = "COLLISION";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_COLLISION failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_COLLISION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4225,9 +4568,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_PACKETS;
                 expected_str = "PACKETS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_PACKETS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_PACKETS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4237,9 +4581,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_MESSAGES;
                 expected_str = "MESSAGES";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MESSAGES failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_MESSAGES failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4249,9 +4594,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CHARACTERS;
                 expected_str = "CHARACTERS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CHARACTERS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CHARACTERS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4261,9 +4607,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_ERRORS;
                 expected_str = "ERRORS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_ERRORS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_ERRORS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4273,9 +4620,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_CORRECTABLE_ERRORS;
                 expected_str = "CORRECTABLE_ERRORS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CORRECTABLE_ERRORS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_CORRECTABLE_ERRORS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4285,9 +4633,10 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = SAHPI_SU_UNCORRECTABLE_ERRORS;
                 expected_str = "UNCORRECTABLE_ERRORS";
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_UNCORRECTABLE_ERRORS failed\n");
+                        printf("Error! Testcase SaHpiSensorUnitsT - SAHPI_SU_UNCORRECTABLE_ERRORS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4297,7 +4646,7 @@ int main(int argc, char **argv)
 	        SaHpiSensorUnitsT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSensorUnitsT2str(value);
+                str = oh_lookup_sensorunits(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorUnitsT - Default failed\n");
                         return -1;             
@@ -4307,11 +4656,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorModUnitUseT - SAHPI_SMUU_NONE testcase */
         {
 	        SaHpiSensorModUnitUseT value = SAHPI_SMUU_NONE;
-                expected_str = "SMUU_NONE";
+                expected_str = "NONE";
 
-                str = SaHpiSensorModUnitUseT2str(value);
+                str = oh_lookup_sensormodunituse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorModUnitUseT - SAHPI_SMUU_NONE failed\n");
+                        printf("Error! Testcase SaHpiSensorModUnitUseT - SAHPI_SMUU_NONE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4319,11 +4669,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorModUnitUseT - SAHPI_SMUU_BASIC_OVER_MODIFIER testcase */
         {
 	        SaHpiSensorModUnitUseT value = SAHPI_SMUU_BASIC_OVER_MODIFIER;
-                expected_str = "SMUU_BASIC_OVER_MODIFIER";
+                expected_str = "BASIC_OVER_MODIFIER";
 
-                str = SaHpiSensorModUnitUseT2str(value);
+                str = oh_lookup_sensormodunituse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorModUnitUseT - SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
+                        printf("Error! Testcase SaHpiSensorModUnitUseT - SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4331,11 +4682,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorModUnitUseT - SAHPI_SMUU_BASIC_TIMES_MODIFIER testcase */
         {
 	        SaHpiSensorModUnitUseT value = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
-                expected_str = "SMUU_BASIC_TIMES_MODIFIER";
+                expected_str = "BASIC_TIMES_MODIFIER";
 
-                str = SaHpiSensorModUnitUseT2str(value);
+                str = oh_lookup_sensormodunituse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorModUnitUseT - SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
+                        printf("Error! Testcase SaHpiSensorModUnitUseT - SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4345,7 +4697,7 @@ int main(int argc, char **argv)
 	        SaHpiSensorModUnitUseT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSensorModUnitUseT2str(value);
+                str = oh_lookup_sensormodunituse(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorModUnitUseT - Default failed\n");
                         return -1;             
@@ -4355,11 +4707,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorEventCtrlT - SAHPI_SEC_PER_EVENT testcase */
         {
 	        SaHpiSensorEventCtrlT value = SAHPI_SEC_PER_EVENT;
-                expected_str = "SEC_PER_EVENT";
+                expected_str = "PER_EVENT";
 
-                str = SaHpiSensorEventCtrlT2str(value);
+                str = oh_lookup_sensoreventctrl(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorEventCtrlT - SAHPI_SEC_PER_EVENT failed\n");
+                        printf("Error! Testcase SaHpiSensorEventCtrlT - SAHPI_SEC_PER_EVENT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4367,11 +4720,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorEventCtrlT - SAHPI_SEC_READ_ONLY_MASKS testcase */
         {
 	        SaHpiSensorEventCtrlT value = SAHPI_SEC_READ_ONLY_MASKS;
-                expected_str = "SEC_READ_ONLY_MASKS";
+                expected_str = "READ_ONLY_MASKS";
 
-                str = SaHpiSensorEventCtrlT2str(value);
+                str = oh_lookup_sensoreventctrl(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorEventCtrlT - SAHPI_SEC_READ_ONLY_MASKS failed\n");
+                        printf("Error! Testcase SaHpiSensorEventCtrlT - SAHPI_SEC_READ_ONLY_MASKS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4379,11 +4733,12 @@ int main(int argc, char **argv)
         /* SaHpiSensorEventCtrlT - SAHPI_SEC_READ_ONLY testcase */
         {
 	        SaHpiSensorEventCtrlT value = SAHPI_SEC_READ_ONLY;
-                expected_str = "SEC_READ_ONLY";
+                expected_str = "READ_ONLY";
 
-                str = SaHpiSensorEventCtrlT2str(value);
+                str = oh_lookup_sensoreventctrl(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorEventCtrlT - SAHPI_SEC_READ_ONLY failed\n");
+                        printf("Error! Testcase SaHpiSensorEventCtrlT - SAHPI_SEC_READ_ONLY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4393,7 +4748,7 @@ int main(int argc, char **argv)
 	        SaHpiSensorEventCtrlT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSensorEventCtrlT2str(value);
+                str = oh_lookup_sensoreventctrl(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSensorEventCtrlT - Default failed\n");
                         return -1;             
@@ -4403,11 +4758,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_DIGITAL testcase */
         {
 	        SaHpiCtrlTypeT value = SAHPI_CTRL_TYPE_DIGITAL;
-                expected_str = "CTRL_TYPE_DIGITAL";
+                expected_str = "DIGITAL";
 
-                str = SaHpiCtrlTypeT2str(value);
+                str = oh_lookup_ctrltype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_DIGITAL failed\n");
+                        printf("Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_DIGITAL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4415,11 +4771,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_DISCRETE testcase */
         {
 	        SaHpiCtrlTypeT value = SAHPI_CTRL_TYPE_DISCRETE;
-                expected_str = "CTRL_TYPE_DISCRETE";
+                expected_str = "DISCRETE";
 
-                str = SaHpiCtrlTypeT2str(value);
+                str = oh_lookup_ctrltype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_DISCRETE failed\n");
+                        printf("Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_DISCRETE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4427,11 +4784,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_ANALOG testcase */
         {
 	        SaHpiCtrlTypeT value = SAHPI_CTRL_TYPE_ANALOG;
-                expected_str = "CTRL_TYPE_ANALOG";
+                expected_str = "ANALOG";
 
-                str = SaHpiCtrlTypeT2str(value);
+                str = oh_lookup_ctrltype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_ANALOG failed\n");
+                        printf("Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_ANALOG failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4439,11 +4797,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_STREAM testcase */
         {
 	        SaHpiCtrlTypeT value = SAHPI_CTRL_TYPE_STREAM;
-                expected_str = "CTRL_TYPE_STREAM";
+                expected_str = "STREAM";
 
-                str = SaHpiCtrlTypeT2str(value);
+                str = oh_lookup_ctrltype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_STREAM failed\n");
+                        printf("Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_STREAM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4451,11 +4810,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_TEXT testcase */
         {
 	        SaHpiCtrlTypeT value = SAHPI_CTRL_TYPE_TEXT;
-                expected_str = "CTRL_TYPE_TEXT";
+                expected_str = "TEXT";
 
-                str = SaHpiCtrlTypeT2str(value);
+                str = oh_lookup_ctrltype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_TEXT failed\n");
+                        printf("Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_TEXT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4463,11 +4823,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_OEM testcase */
         {
 	        SaHpiCtrlTypeT value = SAHPI_CTRL_TYPE_OEM;
-                expected_str = "CTRL_TYPE_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiCtrlTypeT2str(value);
+                str = oh_lookup_ctrltype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_OEM failed\n");
+                        printf("Error! Testcase SaHpiCtrlTypeT - SAHPI_CTRL_TYPE_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4477,7 +4838,7 @@ int main(int argc, char **argv)
 	        SaHpiCtrlTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiCtrlTypeT2str(value);
+                str = oh_lookup_ctrltype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlTypeT - Default failed\n");
                         return -1;             
@@ -4487,11 +4848,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_OFF testcase */
         {
 	        SaHpiCtrlStateDigitalT value = SAHPI_CTRL_STATE_OFF;
-                expected_str = "CTRL_STATE_OFF";
+                expected_str = "OFF";
 
-                str = SaHpiCtrlStateDigitalT2str(value);
+                str = oh_lookup_ctrlstatedigital(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_OFF failed\n");
+                        printf("Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_OFF failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4499,11 +4861,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_ON testcase */
         {
 	        SaHpiCtrlStateDigitalT value = SAHPI_CTRL_STATE_ON;
-                expected_str = "CTRL_STATE_ON";
+                expected_str = "ON";
 
-                str = SaHpiCtrlStateDigitalT2str(value);
+                str = oh_lookup_ctrlstatedigital(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_ON failed\n");
+                        printf("Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_ON failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4511,11 +4874,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_PULSE_OFF testcase */
         {
 	        SaHpiCtrlStateDigitalT value = SAHPI_CTRL_STATE_PULSE_OFF;
-                expected_str = "CTRL_STATE_PULSE_OFF";
+                expected_str = "PULSE_OFF";
 
-                str = SaHpiCtrlStateDigitalT2str(value);
+                str = oh_lookup_ctrlstatedigital(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_PULSE_OFF failed\n");
+                        printf("Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_PULSE_OFF failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4523,11 +4887,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_PULSE_ON testcase */
         {
 	        SaHpiCtrlStateDigitalT value = SAHPI_CTRL_STATE_PULSE_ON;
-                expected_str = "CTRL_STATE_PULSE_ON";
+                expected_str = "PULSE_ON";
 
-                str = SaHpiCtrlStateDigitalT2str(value);
+                str = oh_lookup_ctrlstatedigital(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_PULSE_ON failed\n");
+                        printf("Error! Testcase SaHpiCtrlStateDigitalT - SAHPI_CTRL_STATE_PULSE_ON failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4537,7 +4902,7 @@ int main(int argc, char **argv)
 	        SaHpiCtrlStateDigitalT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiCtrlStateDigitalT2str(value);
+                str = oh_lookup_ctrlstatedigital(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlStateDigitalT - Default failed\n");
                         return -1;             
@@ -4547,11 +4912,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlModeT - SAHPI_CTRL_MODE_AUTO testcase */
         {
 	        SaHpiCtrlModeT value = SAHPI_CTRL_MODE_AUTO;
-                expected_str = "CTRL_MODE_AUTO";
+                expected_str = "AUTO";
 
-                str = SaHpiCtrlModeT2str(value);
+                str = oh_lookup_ctrlmode(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlModeT - SAHPI_CTRL_MODE_AUTO failed\n");
+                        printf("Error! Testcase SaHpiCtrlModeT - SAHPI_CTRL_MODE_AUTO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4559,11 +4925,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlModeT - SAHPI_CTRL_MODE_MANUAL testcase */
         {
 	        SaHpiCtrlModeT value = SAHPI_CTRL_MODE_MANUAL;
-                expected_str = "CTRL_MODE_MANUAL";
+                expected_str = "MANUAL";
 
-                str = SaHpiCtrlModeT2str(value);
+                str = oh_lookup_ctrlmode(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlModeT - SAHPI_CTRL_MODE_MANUAL failed\n");
+                        printf("Error! Testcase SaHpiCtrlModeT - SAHPI_CTRL_MODE_MANUAL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4573,7 +4940,7 @@ int main(int argc, char **argv)
 	        SaHpiCtrlModeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiCtrlModeT2str(value);
+                str = oh_lookup_ctrlmode(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlModeT - Default failed\n");
                         return -1;             
@@ -4583,11 +4950,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_GENERIC testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_GENERIC;
-                expected_str = "CTRL_GENERIC";
+                expected_str = "GENERIC";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_GENERIC failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_GENERIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4595,11 +4963,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_LED testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_LED;
-                expected_str = "CTRL_LED";
+                expected_str = "LED";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_LED failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_LED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4607,11 +4976,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_FAN_SPEED testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_FAN_SPEED;
-                expected_str = "CTRL_FAN_SPEED";
+                expected_str = "FAN_SPEED";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_FAN_SPEED failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_FAN_SPEED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4619,11 +4989,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_DRY_CONTACT_CLOSURE testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_DRY_CONTACT_CLOSURE;
-                expected_str = "CTRL_DRY_CONTACT_CLOSURE";
+                expected_str = "DRY_CONTACT_CLOSURE";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_DRY_CONTACT_CLOSURE failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_DRY_CONTACT_CLOSURE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4631,11 +5002,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_SUPPLY_INHIBIT testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_POWER_SUPPLY_INHIBIT;
-                expected_str = "CTRL_POWER_SUPPLY_INHIBIT";
+                expected_str = "POWER_SUPPLY_INHIBIT";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_SUPPLY_INHIBIT failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_SUPPLY_INHIBIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4643,11 +5015,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_AUDIBLE testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_AUDIBLE;
-                expected_str = "CTRL_AUDIBLE";
+                expected_str = "AUDIBLE";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_AUDIBLE failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_AUDIBLE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4655,11 +5028,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_FRONT_PANEL_LOCKOUT testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_FRONT_PANEL_LOCKOUT;
-                expected_str = "CTRL_FRONT_PANEL_LOCKOUT";
+                expected_str = "FRONT_PANEL_LOCKOUT";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_FRONT_PANEL_LOCKOUT failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_FRONT_PANEL_LOCKOUT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4667,11 +5041,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_INTERLOCK testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_POWER_INTERLOCK;
-                expected_str = "CTRL_POWER_INTERLOCK";
+                expected_str = "POWER_INTERLOCK";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_INTERLOCK failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_INTERLOCK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4679,11 +5054,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_STATE testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_POWER_STATE;
-                expected_str = "CTRL_POWER_STATE";
+                expected_str = "POWER_STATE";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_STATE failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_POWER_STATE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4691,11 +5067,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_LCD_DISPLAY testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_LCD_DISPLAY;
-                expected_str = "CTRL_LCD_DISPLAY";
+                expected_str = "LCD_DISPLAY";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_LCD_DISPLAY failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_LCD_DISPLAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4703,11 +5080,12 @@ int main(int argc, char **argv)
         /* SaHpiCtrlOutputTypeT - SAHPI_CTRL_OEM testcase */
         {
 	        SaHpiCtrlOutputTypeT value = SAHPI_CTRL_OEM;
-                expected_str = "CTRL_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_OEM failed\n");
+                        printf("Error! Testcase SaHpiCtrlOutputTypeT - SAHPI_CTRL_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4717,7 +5095,7 @@ int main(int argc, char **argv)
 	        SaHpiCtrlOutputTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiCtrlOutputTypeT2str(value);
+                str = oh_lookup_ctrloutputtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiCtrlOutputTypeT - Default failed\n");
                         return -1;             
@@ -4727,11 +5105,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_INTERNAL_USE testcase */
         {
 	        SaHpiIdrAreaTypeT value = SAHPI_IDR_AREATYPE_INTERNAL_USE;
-                expected_str = "IDR_AREATYPE_INTERNAL_USE";
+                expected_str = "INTERNAL_USE";
 
-                str = SaHpiIdrAreaTypeT2str(value);
+                str = oh_lookup_idrareatype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_INTERNAL_USE failed\n");
+                        printf("Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_INTERNAL_USE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4739,11 +5118,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_CHASSIS_INFO testcase */
         {
 	        SaHpiIdrAreaTypeT value = SAHPI_IDR_AREATYPE_CHASSIS_INFO;
-                expected_str = "IDR_AREATYPE_CHASSIS_INFO";
+                expected_str = "CHASSIS_INFO";
 
-                str = SaHpiIdrAreaTypeT2str(value);
+                str = oh_lookup_idrareatype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_CHASSIS_INFO failed\n");
+                        printf("Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_CHASSIS_INFO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4751,11 +5131,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_BOARD_INFO testcase */
         {
 	        SaHpiIdrAreaTypeT value = SAHPI_IDR_AREATYPE_BOARD_INFO;
-                expected_str = "IDR_AREATYPE_BOARD_INFO";
+                expected_str = "BOARD_INFO";
 
-                str = SaHpiIdrAreaTypeT2str(value);
+                str = oh_lookup_idrareatype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_BOARD_INFO failed\n");
+                        printf("Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_BOARD_INFO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4763,11 +5144,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_PRODUCT_INFO testcase */
         {
 	        SaHpiIdrAreaTypeT value = SAHPI_IDR_AREATYPE_PRODUCT_INFO;
-                expected_str = "IDR_AREATYPE_PRODUCT_INFO";
+                expected_str = "PRODUCT_INFO";
 
-                str = SaHpiIdrAreaTypeT2str(value);
+                str = oh_lookup_idrareatype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_PRODUCT_INFO failed\n");
+                        printf("Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_PRODUCT_INFO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4775,11 +5157,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_OEM testcase */
         {
 	        SaHpiIdrAreaTypeT value = SAHPI_IDR_AREATYPE_OEM;
-                expected_str = "IDR_AREATYPE_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiIdrAreaTypeT2str(value);
+                str = oh_lookup_idrareatype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_OEM failed\n");
+                        printf("Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4787,11 +5170,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_UNSPECIFIED testcase */
         {
 	        SaHpiIdrAreaTypeT value = SAHPI_IDR_AREATYPE_UNSPECIFIED;
-                expected_str = "IDR_AREATYPE_UNSPECIFIED";
+                expected_str = "UNSPECIFIED";
 
-                str = SaHpiIdrAreaTypeT2str(value);
+                str = oh_lookup_idrareatype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_UNSPECIFIED failed\n");
+                        printf("Error! Testcase SaHpiIdrAreaTypeT - SAHPI_IDR_AREATYPE_UNSPECIFIED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4801,7 +5185,7 @@ int main(int argc, char **argv)
 	        SaHpiIdrAreaTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiIdrAreaTypeT2str(value);
+                str = oh_lookup_idrareatype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrAreaTypeT - Default failed\n");
                         return -1;             
@@ -4811,11 +5195,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE;
-                expected_str = "IDR_FIELDTYPE_CHASSIS_TYPE";
+                expected_str = "CHASSIS_TYPE";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4823,11 +5208,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_MFG_DATETIME testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_MFG_DATETIME;
-                expected_str = "IDR_FIELDTYPE_MFG_DATETIME";
+                expected_str = "MFG_DATETIME";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_MFG_DATETIME failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_MFG_DATETIME failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4835,11 +5221,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_MANUFACTURER testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_MANUFACTURER;
-                expected_str = "IDR_FIELDTYPE_MANUFACTURER";
+                expected_str = "MANUFACTURER";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_MANUFACTURER failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_MANUFACTURER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4847,11 +5234,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PRODUCT_NAME testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME;
-                expected_str = "IDR_FIELDTYPE_PRODUCT_NAME";
+                expected_str = "PRODUCT_NAME";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PRODUCT_NAME failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PRODUCT_NAME failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4859,11 +5247,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
-                expected_str = "IDR_FIELDTYPE_PRODUCT_VERSION";
+                expected_str = "PRODUCT_VERSION";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4871,11 +5260,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
-                expected_str = "IDR_FIELDTYPE_SERIAL_NUMBER";
+                expected_str = "SERIAL_NUMBER";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4883,11 +5273,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PART_NUMBER testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
-                expected_str = "IDR_FIELDTYPE_PART_NUMBER";
+                expected_str = "PART_NUMBER";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PART_NUMBER failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_PART_NUMBER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4895,11 +5286,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_FILE_ID testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_FILE_ID;
-                expected_str = "IDR_FIELDTYPE_FILE_ID";
+                expected_str = "FILE_ID";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_FILE_ID failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_FILE_ID failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4907,11 +5299,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_ASSET_TAG testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
-                expected_str = "IDR_FIELDTYPE_ASSET_TAG";
+                expected_str = "ASSET_TAG";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_ASSET_TAG failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_ASSET_TAG failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4919,11 +5312,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_CUSTOM testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_CUSTOM;
-                expected_str = "IDR_FIELDTYPE_CUSTOM";
+                expected_str = "CUSTOM";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_CUSTOM failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_CUSTOM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4931,11 +5325,12 @@ int main(int argc, char **argv)
         /* SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_UNSPECIFIED testcase */
         {
 	        SaHpiIdrFieldTypeT value = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
-                expected_str = "IDR_FIELDTYPE_UNSPECIFIED";
+                expected_str = "UNSPECIFIED";
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_UNSPECIFIED failed\n");
+                        printf("Error! Testcase SaHpiIdrFieldTypeT - SAHPI_IDR_FIELDTYPE_UNSPECIFIED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4945,7 +5340,7 @@ int main(int argc, char **argv)
 	        SaHpiIdrFieldTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiIdrFieldTypeT2str(value);
+                str = oh_lookup_idrfieldtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiIdrFieldTypeT - Default failed\n");
                         return -1;             
@@ -4955,11 +5350,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionT - SAHPI_WA_NO_ACTION testcase */
         {
 	        SaHpiWatchdogActionT value = SAHPI_WA_NO_ACTION;
-                expected_str = "WA_NO_ACTION";
+                expected_str = "NO_ACTION";
 
-                str = SaHpiWatchdogActionT2str(value);
+                str = oh_lookup_watchdogaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_NO_ACTION failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_NO_ACTION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4967,11 +5363,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionT - SAHPI_WA_RESET testcase */
         {
 	        SaHpiWatchdogActionT value = SAHPI_WA_RESET;
-                expected_str = "WA_RESET";
+                expected_str = "RESET";
 
-                str = SaHpiWatchdogActionT2str(value);
+                str = oh_lookup_watchdogaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_RESET failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_RESET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4979,11 +5376,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionT - SAHPI_WA_POWER_DOWN testcase */
         {
 	        SaHpiWatchdogActionT value = SAHPI_WA_POWER_DOWN;
-                expected_str = "WA_POWER_DOWN";
+                expected_str = "POWER_DOWN";
 
-                str = SaHpiWatchdogActionT2str(value);
+                str = oh_lookup_watchdogaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_POWER_DOWN failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_POWER_DOWN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -4991,11 +5389,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionT - SAHPI_WA_POWER_CYCLE testcase */
         {
 	        SaHpiWatchdogActionT value = SAHPI_WA_POWER_CYCLE;
-                expected_str = "WA_POWER_CYCLE";
+                expected_str = "POWER_CYCLE";
 
-                str = SaHpiWatchdogActionT2str(value);
+                str = oh_lookup_watchdogaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_POWER_CYCLE failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionT - SAHPI_WA_POWER_CYCLE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5005,7 +5404,7 @@ int main(int argc, char **argv)
 	        SaHpiWatchdogActionT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiWatchdogActionT2str(value);
+                str = oh_lookup_watchdogaction(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionT - Default failed\n");
                         return -1;             
@@ -5015,11 +5414,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionEventT - SAHPI_WAE_NO_ACTION testcase */
         {
 	        SaHpiWatchdogActionEventT value = SAHPI_WAE_NO_ACTION;
-                expected_str = "WAE_NO_ACTION";
+                expected_str = "NO_ACTION";
 
-                str = SaHpiWatchdogActionEventT2str(value);
+                str = oh_lookup_watchdogactionevent(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_NO_ACTION failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_NO_ACTION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5027,11 +5427,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionEventT - SAHPI_WAE_RESET testcase */
         {
 	        SaHpiWatchdogActionEventT value = SAHPI_WAE_RESET;
-                expected_str = "WAE_RESET";
+                expected_str = "RESET";
 
-                str = SaHpiWatchdogActionEventT2str(value);
+                str = oh_lookup_watchdogactionevent(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_RESET failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_RESET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5039,11 +5440,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionEventT - SAHPI_WAE_POWER_DOWN testcase */
         {
 	        SaHpiWatchdogActionEventT value = SAHPI_WAE_POWER_DOWN;
-                expected_str = "WAE_POWER_DOWN";
+                expected_str = "POWER_DOWN";
 
-                str = SaHpiWatchdogActionEventT2str(value);
+                str = oh_lookup_watchdogactionevent(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_POWER_DOWN failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_POWER_DOWN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5051,11 +5453,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionEventT - SAHPI_WAE_POWER_CYCLE testcase */
         {
 	        SaHpiWatchdogActionEventT value = SAHPI_WAE_POWER_CYCLE;
-                expected_str = "WAE_POWER_CYCLE";
+                expected_str = "POWER_CYCLE";
 
-                str = SaHpiWatchdogActionEventT2str(value);
+                str = oh_lookup_watchdogactionevent(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_POWER_CYCLE failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_POWER_CYCLE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5063,11 +5466,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogActionEventT - SAHPI_WAE_TIMER_INT testcase */
         {
 	        SaHpiWatchdogActionEventT value = SAHPI_WAE_TIMER_INT;
-                expected_str = "WAE_TIMER_INT";
+                expected_str = "TIMER_INT";
 
-                str = SaHpiWatchdogActionEventT2str(value);
+                str = oh_lookup_watchdogactionevent(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_TIMER_INT failed\n");
+                        printf("Error! Testcase SaHpiWatchdogActionEventT - SAHPI_WAE_TIMER_INT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5077,7 +5481,7 @@ int main(int argc, char **argv)
 	        SaHpiWatchdogActionEventT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiWatchdogActionEventT2str(value);
+                str = oh_lookup_watchdogactionevent(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogActionEventT - Default failed\n");
                         return -1;             
@@ -5087,11 +5491,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_NONE testcase */
         {
 	        SaHpiWatchdogPretimerInterruptT value = SAHPI_WPI_NONE;
-                expected_str = "WPI_NONE";
+                expected_str = "NONE";
 
-                str = SaHpiWatchdogPretimerInterruptT2str(value);
+                str = oh_lookup_watchdogpretimerinterrupt(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_NONE failed\n");
+                        printf("Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_NONE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5099,11 +5504,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_SMI testcase */
         {
 	        SaHpiWatchdogPretimerInterruptT value = SAHPI_WPI_SMI;
-                expected_str = "WPI_SMI";
+                expected_str = "SMI";
 
-                str = SaHpiWatchdogPretimerInterruptT2str(value);
+                str = oh_lookup_watchdogpretimerinterrupt(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_SMI failed\n");
+                        printf("Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_SMI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5111,11 +5517,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_NMI testcase */
         {
 	        SaHpiWatchdogPretimerInterruptT value = SAHPI_WPI_NMI;
-                expected_str = "WPI_NMI";
+                expected_str = "NMI";
 
-                str = SaHpiWatchdogPretimerInterruptT2str(value);
+                str = oh_lookup_watchdogpretimerinterrupt(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_NMI failed\n");
+                        printf("Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_NMI failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5123,11 +5530,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_MESSAGE_INTERRUPT testcase */
         {
 	        SaHpiWatchdogPretimerInterruptT value = SAHPI_WPI_MESSAGE_INTERRUPT;
-                expected_str = "WPI_MESSAGE_INTERRUPT";
+                expected_str = "MESSAGE_INTERRUPT";
 
-                str = SaHpiWatchdogPretimerInterruptT2str(value);
+                str = oh_lookup_watchdogpretimerinterrupt(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_MESSAGE_INTERRUPT failed\n");
+                        printf("Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_MESSAGE_INTERRUPT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5135,11 +5543,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_OEM testcase */
         {
 	        SaHpiWatchdogPretimerInterruptT value = SAHPI_WPI_OEM;
-                expected_str = "WPI_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiWatchdogPretimerInterruptT2str(value);
+                str = oh_lookup_watchdogpretimerinterrupt(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_OEM failed\n");
+                        printf("Error! Testcase SaHpiWatchdogPretimerInterruptT - SAHPI_WPI_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5149,7 +5558,7 @@ int main(int argc, char **argv)
 	        SaHpiWatchdogPretimerInterruptT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiWatchdogPretimerInterruptT2str(value);
+                str = oh_lookup_watchdogpretimerinterrupt(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogPretimerInterruptT - Default failed\n");
                         return -1;             
@@ -5159,11 +5568,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogTimerUseT - SAHPI_WTU_NONE testcase */
         {
 	        SaHpiWatchdogTimerUseT value = SAHPI_WTU_NONE;
-                expected_str = "WTU_NONE";
+                expected_str = "NONE";
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_NONE failed\n");
+                        printf("Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_NONE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5171,11 +5581,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogTimerUseT - SAHPI_WTU_BIOS_FRB2 testcase */
         {
 	        SaHpiWatchdogTimerUseT value = SAHPI_WTU_BIOS_FRB2;
-                expected_str = "WTU_BIOS_FRB2";
+                expected_str = "BIOS_FRB2";
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_BIOS_FRB2 failed\n");
+                        printf("Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_BIOS_FRB2 failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5183,11 +5594,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogTimerUseT - SAHPI_WTU_BIOS_POST testcase */
         {
 	        SaHpiWatchdogTimerUseT value = SAHPI_WTU_BIOS_POST;
-                expected_str = "WTU_BIOS_POST";
+                expected_str = "BIOS_POST";
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_BIOS_POST failed\n");
+                        printf("Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_BIOS_POST failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5195,11 +5607,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogTimerUseT - SAHPI_WTU_OS_LOAD testcase */
         {
 	        SaHpiWatchdogTimerUseT value = SAHPI_WTU_OS_LOAD;
-                expected_str = "WTU_OS_LOAD";
+                expected_str = "OS_LOAD";
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_OS_LOAD failed\n");
+                        printf("Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_OS_LOAD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5207,11 +5620,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogTimerUseT - SAHPI_WTU_SMS_OS testcase */
         {
 	        SaHpiWatchdogTimerUseT value = SAHPI_WTU_SMS_OS;
-                expected_str = "WTU_SMS_OS";
+                expected_str = "SMS_OS";
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_SMS_OS failed\n");
+                        printf("Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_SMS_OS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5219,11 +5633,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogTimerUseT - SAHPI_WTU_OEM testcase */
         {
 	        SaHpiWatchdogTimerUseT value = SAHPI_WTU_OEM;
-                expected_str = "WTU_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_OEM failed\n");
+                        printf("Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5231,11 +5646,12 @@ int main(int argc, char **argv)
         /* SaHpiWatchdogTimerUseT - SAHPI_WTU_UNSPECIFIED testcase */
         {
 	        SaHpiWatchdogTimerUseT value = SAHPI_WTU_UNSPECIFIED;
-                expected_str = "WTU_UNSPECIFIED";
+                expected_str = "UNSPECIFIED";
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_UNSPECIFIED failed\n");
+                        printf("Error! Testcase SaHpiWatchdogTimerUseT - SAHPI_WTU_UNSPECIFIED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5245,7 +5661,7 @@ int main(int argc, char **argv)
 	        SaHpiWatchdogTimerUseT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiWatchdogTimerUseT2str(value);
+                str = oh_lookup_watchdogtimeruse(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiWatchdogTimerUseT - Default failed\n");
                         return -1;             
@@ -5255,11 +5671,12 @@ int main(int argc, char **argv)
         /* SaHpiHsIndicatorStateT - SAHPI_HS_INDICATOR_OFF testcase */
         {
 	        SaHpiHsIndicatorStateT value = SAHPI_HS_INDICATOR_OFF;
-                expected_str = "HS_INDICATOR_OFF";
+                expected_str = "OFF";
 
-                str = SaHpiHsIndicatorStateT2str(value);
+                str = oh_lookup_hsindicatorstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsIndicatorStateT - SAHPI_HS_INDICATOR_OFF failed\n");
+                        printf("Error! Testcase SaHpiHsIndicatorStateT - SAHPI_HS_INDICATOR_OFF failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5267,11 +5684,12 @@ int main(int argc, char **argv)
         /* SaHpiHsIndicatorStateT - SAHPI_HS_INDICATOR_ON testcase */
         {
 	        SaHpiHsIndicatorStateT value = SAHPI_HS_INDICATOR_ON;
-                expected_str = "HS_INDICATOR_ON";
+                expected_str = "ON";
 
-                str = SaHpiHsIndicatorStateT2str(value);
+                str = oh_lookup_hsindicatorstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsIndicatorStateT - SAHPI_HS_INDICATOR_ON failed\n");
+                        printf("Error! Testcase SaHpiHsIndicatorStateT - SAHPI_HS_INDICATOR_ON failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5281,7 +5699,7 @@ int main(int argc, char **argv)
 	        SaHpiHsIndicatorStateT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiHsIndicatorStateT2str(value);
+                str = oh_lookup_hsindicatorstate(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsIndicatorStateT - Default failed\n");
                         return -1;             
@@ -5291,11 +5709,12 @@ int main(int argc, char **argv)
         /* SaHpiHsActionT - SAHPI_HS_ACTION_INSERTION testcase */
         {
 	        SaHpiHsActionT value = SAHPI_HS_ACTION_INSERTION;
-                expected_str = "HS_ACTION_INSERTION";
+                expected_str = "INSERTION";
 
-                str = SaHpiHsActionT2str(value);
+                str = oh_lookup_hsaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsActionT - SAHPI_HS_ACTION_INSERTION failed\n");
+                        printf("Error! Testcase SaHpiHsActionT - SAHPI_HS_ACTION_INSERTION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5303,11 +5722,12 @@ int main(int argc, char **argv)
         /* SaHpiHsActionT - SAHPI_HS_ACTION_EXTRACTION testcase */
         {
 	        SaHpiHsActionT value = SAHPI_HS_ACTION_EXTRACTION;
-                expected_str = "HS_ACTION_EXTRACTION";
+                expected_str = "EXTRACTION";
 
-                str = SaHpiHsActionT2str(value);
+                str = oh_lookup_hsaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsActionT - SAHPI_HS_ACTION_EXTRACTION failed\n");
+                        printf("Error! Testcase SaHpiHsActionT - SAHPI_HS_ACTION_EXTRACTION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5317,7 +5737,7 @@ int main(int argc, char **argv)
 	        SaHpiHsActionT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiHsActionT2str(value);
+                str = oh_lookup_hsaction(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsActionT - Default failed\n");
                         return -1;             
@@ -5327,11 +5747,12 @@ int main(int argc, char **argv)
         /* SaHpiHsStateT - SAHPI_HS_STATE_INACTIVE testcase */
         {
 	        SaHpiHsStateT value = SAHPI_HS_STATE_INACTIVE;
-                expected_str = "HS_STATE_INACTIVE";
+                expected_str = "INACTIVE";
 
-                str = SaHpiHsStateT2str(value);
+                str = oh_lookup_hsstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_INACTIVE failed\n");
+                        printf("Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_INACTIVE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5339,11 +5760,12 @@ int main(int argc, char **argv)
         /* SaHpiHsStateT - SAHPI_HS_STATE_INSERTION_PENDING testcase */
         {
 	        SaHpiHsStateT value = SAHPI_HS_STATE_INSERTION_PENDING;
-                expected_str = "HS_STATE_INSERTION_PENDING";
+                expected_str = "INSERTION_PENDING";
 
-                str = SaHpiHsStateT2str(value);
+                str = oh_lookup_hsstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_INSERTION_PENDING failed\n");
+                        printf("Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_INSERTION_PENDING failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5351,11 +5773,12 @@ int main(int argc, char **argv)
         /* SaHpiHsStateT - SAHPI_HS_STATE_ACTIVE testcase */
         {
 	        SaHpiHsStateT value = SAHPI_HS_STATE_ACTIVE;
-                expected_str = "HS_STATE_ACTIVE";
+                expected_str = "ACTIVE";
 
-                str = SaHpiHsStateT2str(value);
+                str = oh_lookup_hsstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_ACTIVE failed\n");
+                        printf("Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_ACTIVE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5363,11 +5786,12 @@ int main(int argc, char **argv)
         /* SaHpiHsStateT - SAHPI_HS_STATE_EXTRACTION_PENDING testcase */
         {
 	        SaHpiHsStateT value = SAHPI_HS_STATE_EXTRACTION_PENDING;
-                expected_str = "HS_STATE_EXTRACTION_PENDING";
+                expected_str = "EXTRACTION_PENDING";
 
-                str = SaHpiHsStateT2str(value);
+                str = oh_lookup_hsstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_EXTRACTION_PENDING failed\n");
+                        printf("Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_EXTRACTION_PENDING failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5375,11 +5799,12 @@ int main(int argc, char **argv)
         /* SaHpiHsStateT - SAHPI_HS_STATE_NOT_PRESENT testcase */
         {
 	        SaHpiHsStateT value = SAHPI_HS_STATE_NOT_PRESENT;
-                expected_str = "HS_STATE_NOT_PRESENT";
+                expected_str = "NOT_PRESENT";
 
-                str = SaHpiHsStateT2str(value);
+                str = oh_lookup_hsstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_NOT_PRESENT failed\n");
+                        printf("Error! Testcase SaHpiHsStateT - SAHPI_HS_STATE_NOT_PRESENT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5389,7 +5814,7 @@ int main(int argc, char **argv)
 	        SaHpiHsStateT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiHsStateT2str(value);
+                str = oh_lookup_hsstate(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiHsStateT - Default failed\n");
                         return -1;             
@@ -5401,9 +5826,10 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = SAHPI_CRITICAL;
                 expected_str = "CRITICAL";
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - SAHPI_CRITICAL failed\n");
+                        printf("Error! Testcase SaHpiSeverityT - SAHPI_CRITICAL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5413,9 +5839,10 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = SAHPI_MAJOR;
                 expected_str = "MAJOR";
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - SAHPI_MAJOR failed\n");
+                        printf("Error! Testcase SaHpiSeverityT - SAHPI_MAJOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5425,9 +5852,10 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = SAHPI_MINOR;
                 expected_str = "MINOR";
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - SAHPI_MINOR failed\n");
+                        printf("Error! Testcase SaHpiSeverityT - SAHPI_MINOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5437,9 +5865,10 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = SAHPI_INFORMATIONAL;
                 expected_str = "INFORMATIONAL";
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - SAHPI_INFORMATIONAL failed\n");
+                        printf("Error! Testcase SaHpiSeverityT - SAHPI_INFORMATIONAL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5449,9 +5878,10 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = SAHPI_OK;
                 expected_str = "OK";
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - SAHPI_OK failed\n");
+                        printf("Error! Testcase SaHpiSeverityT - SAHPI_OK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5461,9 +5891,10 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = SAHPI_DEBUG;
                 expected_str = "DEBUG";
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - SAHPI_DEBUG failed\n");
+                        printf("Error! Testcase SaHpiSeverityT - SAHPI_DEBUG failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5473,9 +5904,10 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = SAHPI_ALL_SEVERITIES;
                 expected_str = "ALL_SEVERITIES";
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - SAHPI_ALL_SEVERITIES failed\n");
+                        printf("Error! Testcase SaHpiSeverityT - SAHPI_ALL_SEVERITIES failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5485,7 +5917,7 @@ int main(int argc, char **argv)
 	        SaHpiSeverityT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSeverityT2str(value);
+                str = oh_lookup_severity(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSeverityT - Default failed\n");
                         return -1;             
@@ -5495,11 +5927,12 @@ int main(int argc, char **argv)
         /* SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_FAILURE testcase */
         {
 	        SaHpiResourceEventTypeT value = SAHPI_RESE_RESOURCE_FAILURE;
-                expected_str = "RESE_RESOURCE_FAILURE";
+                expected_str = "FAILURE";
 
-                str = SaHpiResourceEventTypeT2str(value);
+                str = oh_lookup_resourceeventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_FAILURE failed\n");
+                        printf("Error! Testcase SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_FAILURE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5507,11 +5940,12 @@ int main(int argc, char **argv)
         /* SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_RESTORED testcase */
         {
 	        SaHpiResourceEventTypeT value = SAHPI_RESE_RESOURCE_RESTORED;
-                expected_str = "RESE_RESOURCE_RESTORED";
+                expected_str = "RESTORED";
 
-                str = SaHpiResourceEventTypeT2str(value);
+                str = oh_lookup_resourceeventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_RESTORED failed\n");
+                        printf("Error! Testcase SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_RESTORED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5519,11 +5953,12 @@ int main(int argc, char **argv)
         /* SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_ADDED testcase */
         {
 	        SaHpiResourceEventTypeT value = SAHPI_RESE_RESOURCE_ADDED;
-                expected_str = "RESE_RESOURCE_ADDED";
+                expected_str = "ADDED";
 
-                str = SaHpiResourceEventTypeT2str(value);
+                str = oh_lookup_resourceeventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_ADDED failed\n");
+                        printf("Error! Testcase SaHpiResourceEventTypeT - SAHPI_RESE_RESOURCE_ADDED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5533,7 +5968,7 @@ int main(int argc, char **argv)
 	        SaHpiResourceEventTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiResourceEventTypeT2str(value);
+                str = oh_lookup_resourceeventtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResourceEventTypeT - Default failed\n");
                         return -1;             
@@ -5543,11 +5978,12 @@ int main(int argc, char **argv)
         /* SaHpiDomainEventTypeT - SAHPI_DOMAIN_REF_ADDED testcase */
         {
 	        SaHpiDomainEventTypeT value = SAHPI_DOMAIN_REF_ADDED;
-                expected_str = "DOMAIN_REF_ADDED";
+                expected_str = "ADDED";
 
-                str = SaHpiDomainEventTypeT2str(value);
+                str = oh_lookup_domaineventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiDomainEventTypeT - SAHPI_DOMAIN_REF_ADDED failed\n");
+                        printf("Error! Testcase SaHpiDomainEventTypeT - SAHPI_DOMAIN_REF_ADDED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5555,11 +5991,12 @@ int main(int argc, char **argv)
         /* SaHpiDomainEventTypeT - SAHPI_DOMAIN_REF_REMOVED testcase */
         {
 	        SaHpiDomainEventTypeT value = SAHPI_DOMAIN_REF_REMOVED;
-                expected_str = "DOMAIN_REF_REMOVED";
+                expected_str = "REMOVED";
 
-                str = SaHpiDomainEventTypeT2str(value);
+                str = oh_lookup_domaineventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiDomainEventTypeT - SAHPI_DOMAIN_REF_REMOVED failed\n");
+                        printf("Error! Testcase SaHpiDomainEventTypeT - SAHPI_DOMAIN_REF_REMOVED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5569,7 +6006,7 @@ int main(int argc, char **argv)
 	        SaHpiDomainEventTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiDomainEventTypeT2str(value);
+                str = oh_lookup_domaineventtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiDomainEventTypeT - Default failed\n");
                         return -1;             
@@ -5579,11 +6016,12 @@ int main(int argc, char **argv)
         /* SaHpiSwEventTypeT - SAHPI_HPIE_AUDIT testcase */
         {
 	        SaHpiSwEventTypeT value = SAHPI_HPIE_AUDIT;
-                expected_str = "HPIE_AUDIT";
+                expected_str = "AUDIT";
 
-                str = SaHpiSwEventTypeT2str(value);
+                str = oh_lookup_sweventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSwEventTypeT - SAHPI_HPIE_AUDIT failed\n");
+                        printf("Error! Testcase SaHpiSwEventTypeT - SAHPI_HPIE_AUDIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5591,11 +6029,12 @@ int main(int argc, char **argv)
         /* SaHpiSwEventTypeT - SAHPI_HPIE_STARTUP testcase */
         {
 	        SaHpiSwEventTypeT value = SAHPI_HPIE_STARTUP;
-                expected_str = "HPIE_STARTUP";
+                expected_str = "STARTUP";
 
-                str = SaHpiSwEventTypeT2str(value);
+                str = oh_lookup_sweventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSwEventTypeT - SAHPI_HPIE_STARTUP failed\n");
+                        printf("Error! Testcase SaHpiSwEventTypeT - SAHPI_HPIE_STARTUP failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5603,11 +6042,12 @@ int main(int argc, char **argv)
         /* SaHpiSwEventTypeT - SAHPI_HPIE_OTHER testcase */
         {
 	        SaHpiSwEventTypeT value = SAHPI_HPIE_OTHER;
-                expected_str = "HPIE_OTHER";
+                expected_str = "OTHER";
 
-                str = SaHpiSwEventTypeT2str(value);
+                str = oh_lookup_sweventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSwEventTypeT - SAHPI_HPIE_OTHER failed\n");
+                        printf("Error! Testcase SaHpiSwEventTypeT - SAHPI_HPIE_OTHER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5617,7 +6057,7 @@ int main(int argc, char **argv)
 	        SaHpiSwEventTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiSwEventTypeT2str(value);
+                str = oh_lookup_sweventtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiSwEventTypeT - Default failed\n");
                         return -1;             
@@ -5627,11 +6067,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_RESOURCE testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_RESOURCE;
-                expected_str = "ET_RESOURCE";
+                expected_str = "RESOURCE";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_RESOURCE failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_RESOURCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5639,11 +6080,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_DOMAIN testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_DOMAIN;
-                expected_str = "ET_DOMAIN";
+                expected_str = "DOMAIN";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_DOMAIN failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_DOMAIN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5651,11 +6093,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_SENSOR testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_SENSOR;
-                expected_str = "ET_SENSOR";
+                expected_str = "SENSOR";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_SENSOR failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_SENSOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5663,11 +6106,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_SENSOR_ENABLE_CHANGE testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_SENSOR_ENABLE_CHANGE;
-                expected_str = "ET_SENSOR_ENABLE_CHANGE";
+                expected_str = "SENSOR_ENABLE_CHANGE";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_SENSOR_ENABLE_CHANGE failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_SENSOR_ENABLE_CHANGE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5675,11 +6119,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_HOTSWAP testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_HOTSWAP;
-                expected_str = "ET_HOTSWAP";
+                expected_str = "HOTSWAP";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_HOTSWAP failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_HOTSWAP failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5687,11 +6132,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_WATCHDOG testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_WATCHDOG;
-                expected_str = "ET_WATCHDOG";
+                expected_str = "WATCHDOG";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_WATCHDOG failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_WATCHDOG failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5699,11 +6145,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_HPI_SW testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_HPI_SW;
-                expected_str = "ET_HPI_SW";
+                expected_str = "HPI_SW";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_HPI_SW failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_HPI_SW failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5711,11 +6158,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_OEM testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_OEM;
-                expected_str = "ET_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_OEM failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5723,11 +6171,12 @@ int main(int argc, char **argv)
         /* SaHpiEventTypeT - SAHPI_ET_USER testcase */
         {
 	        SaHpiEventTypeT value = SAHPI_ET_USER;
-                expected_str = "ET_USER";
+                expected_str = "USER";
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - SAHPI_ET_USER failed\n");
+                        printf("Error! Testcase SaHpiEventTypeT - SAHPI_ET_USER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5737,7 +6186,7 @@ int main(int argc, char **argv)
 	        SaHpiEventTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiEventTypeT2str(value);
+                str = oh_lookup_eventtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventTypeT - Default failed\n");
                         return -1;             
@@ -5747,11 +6196,12 @@ int main(int argc, char **argv)
         /* SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_SENSOR testcase */
         {
 	        SaHpiStatusCondTypeT value = SAHPI_STATUS_COND_TYPE_SENSOR;
-                expected_str = "STATUS_COND_TYPE_SENSOR";
+                expected_str = "SENSOR";
 
-                str = SaHpiStatusCondTypeT2str(value);
+                str = oh_lookup_statuscondtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_SENSOR failed\n");
+                        printf("Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_SENSOR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5759,11 +6209,12 @@ int main(int argc, char **argv)
         /* SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_RESOURCE testcase */
         {
 	        SaHpiStatusCondTypeT value = SAHPI_STATUS_COND_TYPE_RESOURCE;
-                expected_str = "STATUS_COND_TYPE_RESOURCE";
+                expected_str = "RESOURCE";
 
-                str = SaHpiStatusCondTypeT2str(value);
+                str = oh_lookup_statuscondtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_RESOURCE failed\n");
+                        printf("Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_RESOURCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5771,11 +6222,12 @@ int main(int argc, char **argv)
         /* SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_OEM testcase */
         {
 	        SaHpiStatusCondTypeT value = SAHPI_STATUS_COND_TYPE_OEM;
-                expected_str = "STATUS_COND_TYPE_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiStatusCondTypeT2str(value);
+                str = oh_lookup_statuscondtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_OEM failed\n");
+                        printf("Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5783,11 +6235,12 @@ int main(int argc, char **argv)
         /* SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_USER testcase */
         {
 	        SaHpiStatusCondTypeT value = SAHPI_STATUS_COND_TYPE_USER;
-                expected_str = "STATUS_COND_TYPE_USER";
+                expected_str = "USER";
 
-                str = SaHpiStatusCondTypeT2str(value);
+                str = oh_lookup_statuscondtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_USER failed\n");
+                        printf("Error! Testcase SaHpiStatusCondTypeT - SAHPI_STATUS_COND_TYPE_USER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5797,7 +6250,7 @@ int main(int argc, char **argv)
 	        SaHpiStatusCondTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiStatusCondTypeT2str(value);
+                str = oh_lookup_statuscondtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiStatusCondTypeT - Default failed\n");
                         return -1;             
@@ -5807,11 +6260,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_AUTO testcase */
         {
 	        SaHpiAnnunciatorModeT value = SAHPI_ANNUNCIATOR_MODE_AUTO;
-                expected_str = "ANNUNCIATOR_MODE_AUTO";
+                expected_str = "AUTO";
 
-                str = SaHpiAnnunciatorModeT2str(value);
+                str = oh_lookup_annunciatormode(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_AUTO failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_AUTO failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5819,11 +6273,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_USER testcase */
         {
 	        SaHpiAnnunciatorModeT value = SAHPI_ANNUNCIATOR_MODE_USER;
-                expected_str = "ANNUNCIATOR_MODE_USER";
+                expected_str = "USER";
 
-                str = SaHpiAnnunciatorModeT2str(value);
+                str = oh_lookup_annunciatormode(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_USER failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_USER failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5831,11 +6286,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_SHARED testcase */
         {
 	        SaHpiAnnunciatorModeT value = SAHPI_ANNUNCIATOR_MODE_SHARED;
-                expected_str = "ANNUNCIATOR_MODE_SHARED";
+                expected_str = "SHARED";
 
-                str = SaHpiAnnunciatorModeT2str(value);
+                str = oh_lookup_annunciatormode(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_SHARED failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorModeT - SAHPI_ANNUNCIATOR_MODE_SHARED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5845,7 +6301,7 @@ int main(int argc, char **argv)
 	        SaHpiAnnunciatorModeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiAnnunciatorModeT2str(value);
+                str = oh_lookup_annunciatormode(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorModeT - Default failed\n");
                         return -1;             
@@ -5855,11 +6311,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_LED testcase */
         {
 	        SaHpiAnnunciatorTypeT value = SAHPI_ANNUNCIATOR_TYPE_LED;
-                expected_str = "ANNUNCIATOR_TYPE_LED";
+                expected_str = "LED";
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_LED failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_LED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5867,11 +6324,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE testcase */
         {
 	        SaHpiAnnunciatorTypeT value = SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE;
-                expected_str = "ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE";
+                expected_str = "DRY_CONTACT_CLOSURE";
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5879,11 +6337,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_AUDIBLE testcase */
         {
 	        SaHpiAnnunciatorTypeT value = SAHPI_ANNUNCIATOR_TYPE_AUDIBLE;
-                expected_str = "ANNUNCIATOR_TYPE_AUDIBLE";
+                expected_str = "AUDIBLE";
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_AUDIBLE failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_AUDIBLE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5891,11 +6350,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY testcase */
         {
 	        SaHpiAnnunciatorTypeT value = SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY;
-                expected_str = "ANNUNCIATOR_TYPE_LCD_DISPLAY";
+                expected_str = "LCD_DISPLAY";
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5903,11 +6363,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_MESSAGE testcase */
         {
 	        SaHpiAnnunciatorTypeT value = SAHPI_ANNUNCIATOR_TYPE_MESSAGE;
-                expected_str = "ANNUNCIATOR_TYPE_MESSAGE";
+                expected_str = "MESSAGE";
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_MESSAGE failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_MESSAGE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5915,11 +6376,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_COMPOSITE testcase */
         {
 	        SaHpiAnnunciatorTypeT value = SAHPI_ANNUNCIATOR_TYPE_COMPOSITE;
-                expected_str = "ANNUNCIATOR_TYPE_COMPOSITE";
+                expected_str = "COMPOSITE";
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_COMPOSITE failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_COMPOSITE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5927,11 +6389,12 @@ int main(int argc, char **argv)
         /* SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_OEM testcase */
         {
 	        SaHpiAnnunciatorTypeT value = SAHPI_ANNUNCIATOR_TYPE_OEM;
-                expected_str = "ANNUNCIATOR_TYPE_OEM";
+                expected_str = "OEM";
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_OEM failed\n");
+                        printf("Error! Testcase SaHpiAnnunciatorTypeT - SAHPI_ANNUNCIATOR_TYPE_OEM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5941,7 +6404,7 @@ int main(int argc, char **argv)
 	        SaHpiAnnunciatorTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiAnnunciatorTypeT2str(value);
+                str = oh_lookup_annunciatortype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiAnnunciatorTypeT - Default failed\n");
                         return -1;             
@@ -5953,9 +6416,10 @@ int main(int argc, char **argv)
 	        SaHpiRdrTypeT value = SAHPI_NO_RECORD;
                 expected_str = "NO_RECORD";
 
-                str = SaHpiRdrTypeT2str(value);
+                str = oh_lookup_rdrtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiRdrTypeT - SAHPI_NO_RECORD failed\n");
+                        printf("Error! Testcase SaHpiRdrTypeT - SAHPI_NO_RECORD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5965,9 +6429,10 @@ int main(int argc, char **argv)
 	        SaHpiRdrTypeT value = SAHPI_CTRL_RDR;
                 expected_str = "CTRL_RDR";
 
-                str = SaHpiRdrTypeT2str(value);
+                str = oh_lookup_rdrtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiRdrTypeT - SAHPI_CTRL_RDR failed\n");
+                        printf("Error! Testcase SaHpiRdrTypeT - SAHPI_CTRL_RDR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5977,9 +6442,10 @@ int main(int argc, char **argv)
 	        SaHpiRdrTypeT value = SAHPI_SENSOR_RDR;
                 expected_str = "SENSOR_RDR";
 
-                str = SaHpiRdrTypeT2str(value);
+                str = oh_lookup_rdrtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiRdrTypeT - SAHPI_SENSOR_RDR failed\n");
+                        printf("Error! Testcase SaHpiRdrTypeT - SAHPI_SENSOR_RDR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -5989,9 +6455,10 @@ int main(int argc, char **argv)
 	        SaHpiRdrTypeT value = SAHPI_INVENTORY_RDR;
                 expected_str = "INVENTORY_RDR";
 
-                str = SaHpiRdrTypeT2str(value);
+                str = oh_lookup_rdrtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiRdrTypeT - SAHPI_INVENTORY_RDR failed\n");
+                        printf("Error! Testcase SaHpiRdrTypeT - SAHPI_INVENTORY_RDR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6001,9 +6468,10 @@ int main(int argc, char **argv)
 	        SaHpiRdrTypeT value = SAHPI_WATCHDOG_RDR;
                 expected_str = "WATCHDOG_RDR";
 
-                str = SaHpiRdrTypeT2str(value);
+                str = oh_lookup_rdrtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiRdrTypeT - SAHPI_WATCHDOG_RDR failed\n");
+                        printf("Error! Testcase SaHpiRdrTypeT - SAHPI_WATCHDOG_RDR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6013,9 +6481,10 @@ int main(int argc, char **argv)
 	        SaHpiRdrTypeT value = SAHPI_ANNUNCIATOR_RDR;
                 expected_str = "ANNUNCIATOR_RDR";
 
-                str = SaHpiRdrTypeT2str(value);
+                str = oh_lookup_rdrtype(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiRdrTypeT - SAHPI_ANNUNCIATOR_RDR failed\n");
+                        printf("Error! Testcase SaHpiRdrTypeT - SAHPI_ANNUNCIATOR_RDR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6025,7 +6494,7 @@ int main(int argc, char **argv)
 	        SaHpiRdrTypeT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiRdrTypeT2str(value);
+                str = oh_lookup_rdrtype(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiRdrTypeT - Default failed\n");
                         return -1;             
@@ -6037,9 +6506,10 @@ int main(int argc, char **argv)
 	        SaHpiParmActionT value = SAHPI_DEFAULT_PARM;
                 expected_str = "DEFAULT_PARM";
 
-                str = SaHpiParmActionT2str(value);
+                str = oh_lookup_parmaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiParmActionT - SAHPI_DEFAULT_PARM failed\n");
+                        printf("Error! Testcase SaHpiParmActionT - SAHPI_DEFAULT_PARM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6049,9 +6519,10 @@ int main(int argc, char **argv)
 	        SaHpiParmActionT value = SAHPI_SAVE_PARM;
                 expected_str = "SAVE_PARM";
 
-                str = SaHpiParmActionT2str(value);
+                str = oh_lookup_parmaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiParmActionT - SAHPI_SAVE_PARM failed\n");
+                        printf("Error! Testcase SaHpiParmActionT - SAHPI_SAVE_PARM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6061,9 +6532,10 @@ int main(int argc, char **argv)
 	        SaHpiParmActionT value = SAHPI_RESTORE_PARM;
                 expected_str = "RESTORE_PARM";
 
-                str = SaHpiParmActionT2str(value);
+                str = oh_lookup_parmaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiParmActionT - SAHPI_RESTORE_PARM failed\n");
+                        printf("Error! Testcase SaHpiParmActionT - SAHPI_RESTORE_PARM failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6073,7 +6545,7 @@ int main(int argc, char **argv)
 	        SaHpiParmActionT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiParmActionT2str(value);
+                str = oh_lookup_parmaction(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiParmActionT - Default failed\n");
                         return -1;             
@@ -6085,9 +6557,10 @@ int main(int argc, char **argv)
 	        SaHpiResetActionT value = SAHPI_COLD_RESET;
                 expected_str = "COLD_RESET";
 
-                str = SaHpiResetActionT2str(value);
+                str = oh_lookup_resetaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResetActionT - SAHPI_COLD_RESET failed\n");
+                        printf("Error! Testcase SaHpiResetActionT - SAHPI_COLD_RESET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6097,9 +6570,10 @@ int main(int argc, char **argv)
 	        SaHpiResetActionT value = SAHPI_WARM_RESET;
                 expected_str = "WARM_RESET";
 
-                str = SaHpiResetActionT2str(value);
+                str = oh_lookup_resetaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResetActionT - SAHPI_WARM_RESET failed\n");
+                        printf("Error! Testcase SaHpiResetActionT - SAHPI_WARM_RESET failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6109,9 +6583,10 @@ int main(int argc, char **argv)
 	        SaHpiResetActionT value = SAHPI_RESET_ASSERT;
                 expected_str = "RESET_ASSERT";
 
-                str = SaHpiResetActionT2str(value);
+                str = oh_lookup_resetaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResetActionT - SAHPI_RESET_ASSERT failed\n");
+                        printf("Error! Testcase SaHpiResetActionT - SAHPI_RESET_ASSERT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6121,9 +6596,10 @@ int main(int argc, char **argv)
 	        SaHpiResetActionT value = SAHPI_RESET_DEASSERT;
                 expected_str = "RESET_DEASSERT";
 
-                str = SaHpiResetActionT2str(value);
+                str = oh_lookup_resetaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResetActionT - SAHPI_RESET_DEASSERT failed\n");
+                        printf("Error! Testcase SaHpiResetActionT - SAHPI_RESET_DEASSERT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6133,7 +6609,7 @@ int main(int argc, char **argv)
 	        SaHpiResetActionT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiResetActionT2str(value);
+                str = oh_lookup_resetaction(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiResetActionT - Default failed\n");
                         return -1;             
@@ -6143,11 +6619,12 @@ int main(int argc, char **argv)
         /* SaHpiPowerStateT - SAHPI_POWER_OFF testcase */
         {
 	        SaHpiPowerStateT value = SAHPI_POWER_OFF;
-                expected_str = "POWER_OFF";
+                expected_str = "OFF";
 
-                str = SaHpiPowerStateT2str(value);
+                str = oh_lookup_powerstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiPowerStateT - SAHPI_POWER_OFF failed\n");
+                        printf("Error! Testcase SaHpiPowerStateT - SAHPI_POWER_OFF failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6155,11 +6632,12 @@ int main(int argc, char **argv)
         /* SaHpiPowerStateT - SAHPI_POWER_ON testcase */
         {
 	        SaHpiPowerStateT value = SAHPI_POWER_ON;
-                expected_str = "POWER_ON";
+                expected_str = "ON";
 
-                str = SaHpiPowerStateT2str(value);
+                str = oh_lookup_powerstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiPowerStateT - SAHPI_POWER_ON failed\n");
+                        printf("Error! Testcase SaHpiPowerStateT - SAHPI_POWER_ON failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6167,11 +6645,12 @@ int main(int argc, char **argv)
         /* SaHpiPowerStateT - SAHPI_POWER_CYCLE testcase */
         {
 	        SaHpiPowerStateT value = SAHPI_POWER_CYCLE;
-                expected_str = "POWER_CYCLE";
+                expected_str = "CYCLE";
 
-                str = SaHpiPowerStateT2str(value);
+                str = oh_lookup_powerstate(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiPowerStateT - SAHPI_POWER_CYCLE failed\n");
+                        printf("Error! Testcase SaHpiPowerStateT - SAHPI_POWER_CYCLE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6181,7 +6660,7 @@ int main(int argc, char **argv)
 	        SaHpiPowerStateT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiPowerStateT2str(value);
+                str = oh_lookup_powerstate(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiPowerStateT - Default failed\n");
                         return -1;             
@@ -6191,11 +6670,12 @@ int main(int argc, char **argv)
         /* SaHpiEventLogOverflowActionT - SAHPI_EL_OVERFLOW_DROP testcase */
         {
 	        SaHpiEventLogOverflowActionT value = SAHPI_EL_OVERFLOW_DROP;
-                expected_str = "EL_OVERFLOW_DROP";
+                expected_str = "OVERFLOW_DROP";
 
-                str = SaHpiEventLogOverflowActionT2str(value);
+                str = oh_lookup_eventlogoverflowaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventLogOverflowActionT - SAHPI_EL_OVERFLOW_DROP failed\n");
+                        printf("Error! Testcase SaHpiEventLogOverflowActionT - SAHPI_EL_OVERFLOW_DROP failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6203,11 +6683,12 @@ int main(int argc, char **argv)
         /* SaHpiEventLogOverflowActionT - SAHPI_EL_OVERFLOW_OVERWRITE testcase */
         {
 	        SaHpiEventLogOverflowActionT value = SAHPI_EL_OVERFLOW_OVERWRITE;
-                expected_str = "EL_OVERFLOW_OVERWRITE";
+                expected_str = "OVERFLOW_OVERWRITE";
 
-                str = SaHpiEventLogOverflowActionT2str(value);
+                str = oh_lookup_eventlogoverflowaction(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventLogOverflowActionT - SAHPI_EL_OVERFLOW_OVERWRITE failed\n");
+                        printf("Error! Testcase SaHpiEventLogOverflowActionT - SAHPI_EL_OVERFLOW_OVERWRITE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6217,7 +6698,7 @@ int main(int argc, char **argv)
 	        SaHpiEventLogOverflowActionT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiEventLogOverflowActionT2str(value);
+                str = oh_lookup_eventlogoverflowaction(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventLogOverflowActionT - Default failed\n");
                         return -1;             
@@ -6229,9 +6710,10 @@ int main(int argc, char **argv)
 	        SaErrorT value = SA_OK;
                 expected_str = "SA_OK";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_OK failed\n");
+                        printf("Error! Testcase SaErrorT - SA_OK failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6239,11 +6721,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_ERROR testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_ERROR;
-                expected_str = "SA_ERR_HPI_ERROR";
+                expected_str = "ERROR";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_ERROR failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_ERROR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6251,11 +6734,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_UNSUPPORTED_API testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_UNSUPPORTED_API;
-                expected_str = "SA_ERR_HPI_UNSUPPORTED_API";
+                expected_str = "UNSUPPORTED_API";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_UNSUPPORTED_API failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_UNSUPPORTED_API failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6263,11 +6747,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_BUSY testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_BUSY;
-                expected_str = "SA_ERR_HPI_BUSY";
+                expected_str = "BUSY";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_BUSY failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_BUSY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6275,11 +6760,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INTERNAL_ERROR testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INTERNAL_ERROR;
-                expected_str = "SA_ERR_HPI_INTERNAL_ERROR";
+                expected_str = "INTERNAL_ERROR";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INTERNAL_ERROR failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INTERNAL_ERROR failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6287,11 +6773,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INVALID_CMD testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INVALID_CMD;
-                expected_str = "SA_ERR_HPI_INVALID_CMD";
+                expected_str = "INVALID_CMD";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_CMD failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_CMD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6299,11 +6786,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_TIMEOUT testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_TIMEOUT;
-                expected_str = "SA_ERR_HPI_TIMEOUT";
+                expected_str = "TIMEOUT";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_TIMEOUT failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_TIMEOUT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6311,11 +6799,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_OUT_OF_SPACE testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_OUT_OF_SPACE;
-                expected_str = "SA_ERR_HPI_OUT_OF_SPACE";
+                expected_str = "OUT_OF_SPACE";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_OUT_OF_SPACE failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_OUT_OF_SPACE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6323,11 +6812,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_OUT_OF_MEMORY testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_OUT_OF_MEMORY;
-                expected_str = "SA_ERR_HPI_OUT_OF_MEMORY";
+                expected_str = "OUT_OF_MEMORY";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_OUT_OF_MEMORY failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_OUT_OF_MEMORY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6335,11 +6825,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INVALID_PARAMS testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INVALID_PARAMS;
-                expected_str = "SA_ERR_HPI_INVALID_PARAMS";
+                expected_str = "INVALID_PARAMS";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_PARAMS failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_PARAMS failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6347,11 +6838,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INVALID_DATA testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INVALID_DATA;
-                expected_str = "SA_ERR_HPI_INVALID_DATA";
+                expected_str = "INVALID_DATA";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_DATA failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_DATA failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6359,11 +6851,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_NOT_PRESENT testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_NOT_PRESENT;
-                expected_str = "SA_ERR_HPI_NOT_PRESENT";
+                expected_str = "NOT_PRESENT";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_NOT_PRESENT failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_NOT_PRESENT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6371,11 +6864,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_NO_RESPONSE testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_NO_RESPONSE;
-                expected_str = "SA_ERR_HPI_NO_RESPONSE";
+                expected_str = "NO_RESPONSE";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_NO_RESPONSE failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_NO_RESPONSE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6383,11 +6877,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_DUPLICATE testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_DUPLICATE;
-                expected_str = "SA_ERR_HPI_DUPLICATE";
+                expected_str = "DUPLICATE";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_DUPLICATE failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_DUPLICATE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6395,11 +6890,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INVALID_SESSION testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INVALID_SESSION;
-                expected_str = "SA_ERR_HPI_INVALID_SESSION";
+                expected_str = "INVALID_SESSION";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_SESSION failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_SESSION failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6407,11 +6903,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INVALID_DOMAIN testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INVALID_DOMAIN;
-                expected_str = "SA_ERR_HPI_INVALID_DOMAIN";
+                expected_str = "INVALID_DOMAIN";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_DOMAIN failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_DOMAIN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6419,11 +6916,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INVALID_RESOURCE testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INVALID_RESOURCE;
-                expected_str = "SA_ERR_HPI_INVALID_RESOURCE";
+                expected_str = "INVALID_RESOURCE";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_RESOURCE failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_RESOURCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6431,11 +6929,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_INVALID_REQUEST testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_INVALID_REQUEST;
-                expected_str = "SA_ERR_HPI_INVALID_REQUEST";
+                expected_str = "INVALID_REQUEST";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_REQUEST failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_INVALID_REQUEST failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6443,11 +6942,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_ENTITY_NOT_PRESENT testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_ENTITY_NOT_PRESENT;
-                expected_str = "SA_ERR_HPI_ENTITY_NOT_PRESENT";
+                expected_str = "ENTITY_NOT_PRESENT";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_ENTITY_NOT_PRESENT failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_ENTITY_NOT_PRESENT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6455,11 +6955,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_READ_ONLY testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_READ_ONLY;
-                expected_str = "SA_ERR_HPI_READ_ONLY";
+                expected_str = "READ_ONLY";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_READ_ONLY failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_READ_ONLY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6467,11 +6968,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_CAPABILITY testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_CAPABILITY;
-                expected_str = "SA_ERR_HPI_CAPABILITY";
+                expected_str = "CAPABILITY";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_CAPABILITY failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_CAPABILITY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6479,11 +6981,12 @@ int main(int argc, char **argv)
         /* SaErrorT - SA_ERR_HPI_UNKNOWN testcase */
         {
 	        SaErrorT value = SA_ERR_HPI_UNKNOWN;
-                expected_str = "SA_ERR_HPI_UNKNOWN";
+                expected_str = "UNKNOWN";
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - SA_ERR_HPI_UNKNOWN failed\n");
+                        printf("Error! Testcase SaErrorT - SA_ERR_HPI_UNKNOWN failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6493,7 +6996,7 @@ int main(int argc, char **argv)
 	        SaErrorT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaErrorT2str(value);
+                str = oh_lookup_error(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaErrorT - Default failed\n");
                         return -1;             
@@ -6503,11 +7006,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_UNSPECIFIED testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_UNSPECIFIED;
-                expected_str = "EC_UNSPECIFIED";
+                expected_str = "UNSPECIFIED";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_UNSPECIFIED failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_UNSPECIFIED failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6515,11 +7019,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_THRESHOLD testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_THRESHOLD;
-                expected_str = "EC_THRESHOLD";
+                expected_str = "THRESHOLD";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_THRESHOLD failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_THRESHOLD failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6527,11 +7032,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_USAGE testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_USAGE;
-                expected_str = "EC_USAGE";
+                expected_str = "USAGE";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_USAGE failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_USAGE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6539,11 +7045,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_STATE testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_STATE;
-                expected_str = "EC_STATE";
+                expected_str = "STATE";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_STATE failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_STATE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6551,11 +7058,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_PRED_FAIL testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_PRED_FAIL;
-                expected_str = "EC_PRED_FAIL";
+                expected_str = "PRED_FAIL";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_PRED_FAIL failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_PRED_FAIL failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6563,11 +7071,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_LIMIT testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_LIMIT;
-                expected_str = "EC_LIMIT";
+                expected_str = "LIMIT";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_LIMIT failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_LIMIT failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6575,11 +7084,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_PERFORMANCE testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_PERFORMANCE;
-                expected_str = "EC_PERFORMANCE";
+                expected_str = "PERFORMANCE";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_PERFORMANCE failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_PERFORMANCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6587,11 +7097,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_SEVERITY testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_SEVERITY;
-                expected_str = "EC_SEVERITY";
+                expected_str = "SEVERITY";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_SEVERITY failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_SEVERITY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6599,11 +7110,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_PRESENCE testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_PRESENCE;
-                expected_str = "EC_PRESENCE";
+                expected_str = "PRESENCE";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_PRESENCE failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_PRESENCE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6611,11 +7123,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_ENABLE testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_ENABLE;
-                expected_str = "EC_ENABLE";
+                expected_str = "ENABLE";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_ENABLE failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_ENABLE failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6623,11 +7136,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_AVAILABILITY testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_AVAILABILITY;
-                expected_str = "EC_AVAILABILITY";
+                expected_str = "AVAILABILITY";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_AVAILABILITY failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_AVAILABILITY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6635,11 +7149,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_REDUNDANCY testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_REDUNDANCY;
-                expected_str = "EC_REDUNDANCY";
+                expected_str = "REDUNDANCY";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_REDUNDANCY failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_REDUNDANCY failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6647,11 +7162,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_SENSOR_SPECIFIC testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_SENSOR_SPECIFIC;
-                expected_str = "EC_SENSOR_SPECIFIC";
+                expected_str = "SENSOR_SPECIFIC";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_SENSOR_SPECIFIC failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_SENSOR_SPECIFIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6659,11 +7175,12 @@ int main(int argc, char **argv)
         /* SaHpiEventCategoryT - SAHPI_EC_GENERIC testcase */
         {
 	        SaHpiEventCategoryT value = SAHPI_EC_GENERIC;
-                expected_str = "EC_GENERIC";
+                expected_str = "GENERIC";
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (strcmp(expected_str, str)) {
-                        printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - SAHPI_EC_GENERIC failed\n");
+                        printf("Error! Testcase SaHpiEventCategoryT - SAHPI_EC_GENERIC failed\n");
+			printf("Received string=%s\n", str);
                         return -1;             
                 }
 	}
@@ -6673,13 +7190,12 @@ int main(int argc, char **argv)
 	        SaHpiEventCategoryT value = BAD_ENUM_VALUE;
                 expected_str = NULL;
 
-                str = SaHpiEventCategoryT2str(value);
+                str = oh_lookup_eventcategory(value);
                 if (str != expected_str) {
                         printf("tSaHpi_enum_utils.c Error! Testcase SaHpiEventCategoryT - Default failed\n");
                         return -1;             
                 }
 	}
-
 
         return 0;
 }
