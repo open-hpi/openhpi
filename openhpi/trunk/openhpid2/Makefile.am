@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2004 by IBM Corporation.
+# Copyright (c) 2004-2005 by IBM Corporation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
