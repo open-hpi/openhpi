@@ -537,66 +537,61 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
 	rpt = oh_get_resource_by_id(handler->rptcache, id);
 	if (!rpt) {
-		dbg("no rpt:%d", id);
+		dbg("no rpt:%d",(int) id);
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 	
 	if (rdr)
 		rdr->RdrType = SAHPI_NO_RECORD;
-	if (rptentry)
-		memcpy(rptentry, rpt, sizeof(rptentry));
-		switch (current) {
-				case SAHPI_OLDEST_ENTRY:
-						ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
+	if (rptentry) {
+		rptentry->ResourceCapabilities = 0;
+		rptentry->ResourceId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	}
+	
+	switch (current) {
+		case SAHPI_OLDEST_ENTRY:
+			ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
 
-						ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
-						*prev = SAHPI_NO_MORE_ENTRIES;
+			*prev = SAHPI_NO_MORE_ENTRIES;
 
-						break;
+			break;
 
-				case SAHPI_NEWEST_ENTRY:
+		case SAHPI_NEWEST_ENTRY:
 
-						ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
+			ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
 
-						*next = SAHPI_NO_MORE_ENTRIES;
+			*next = SAHPI_NO_MORE_ENTRIES;
 
-						ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
 
-						break;
+			break;
 
-				case SAHPI_NO_MORE_ENTRIES:
-						dbg("SEL is empty!");
+		case SAHPI_NO_MORE_ENTRIES:
+			dbg("SEL is empty!");
 
-						goto out;
+			goto out;
 
-				default:                		
-						/* get the entry requested by id */
-						ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
-						ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+		default:                		
+			/* get the entry requested by id */
+			ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
+			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
-						ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
 
-						break; 
+			break; 
 
-		}
+	}
 
+	entry->Event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
         entry->Event.EventType = SAHPI_ET_USER;
 
-		/* get the event time */
-		SaHpiTimeT event_timestamp;
-		event_timestamp = ipmi_event_get_timestamp(event);
-		memcpy (&entry->Event.Timestamp, &event_timestamp, sizeof(event_timestamp));
-
-		/* get record id */
-		 SaHpiEventLogEntryIdT event_record_id;
-
-		 event_record_id = ipmi_event_get_record_id(event);
-		 event_record_id = event_record_id;
-
-		 memcpy(&entry->EntryId, &event_record_id, sizeof(event_record_id));
-
-	entry->Event.Source = id;
+	/* get the event time */
+	entry->Event.Timestamp = ipmi_event_get_timestamp(event);
+	
+	/* get record id */
+	entry->EntryId = ipmi_event_get_record_id(event);
         entry->Event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_BINARY;
         entry->Event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_UNDEF;
         entry->Event.EventDataUnion.UserEvent.UserEventData.DataLength = ipmi_event_get_data_len(event);
