@@ -256,7 +256,7 @@ static void ipmi_close(void *hnd)
 
 	if (ipmi_handler->connected) {
 		dbg("close connection");
-		ohoi_close_connection(ipmi_handler->domain_id, ipmi_handler);
+		ohoi_close_connection(ipmi_handler->domain_id, handler);
 	}
 	
 	ipmi_close_mv();
