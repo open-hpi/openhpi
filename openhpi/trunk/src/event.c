@@ -126,6 +126,7 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
                 dbg("Pushed hotswap event");
         }
         
+        /* FIXME: Add event to DEL */
         // dbg("About to add to EL");
         // oh_add_event_to_del(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
         // dbg("Added event to EL");
@@ -134,7 +135,7 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
          * TODO: Here is where we need the SESSION MULTIPLEXING code
          */
         
-        /* yes, we need to figure out the real domain at some point */
+        /* FIXME: yes, we need to figure out the real domain at some point */
         dbg("About to get session list");
         sessions = oh_list_sessions(1);
 
