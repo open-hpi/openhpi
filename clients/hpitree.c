@@ -475,20 +475,26 @@ void sensor_readingthreshold(SaHpiSessionIdT sessionid,
         }
         
         if (!reading.IsSupported ) {
-                printf("\t  Reading Not Supported for sensor %d!\n\n", sensornum);
+                printf("\t  Reading not supported for sensor %d!\n\n", sensornum);
                 return;
         } 
         
         if((rv = oh_decode_sensorreading(reading, sensorrec->DataFormat, &text)) == SA_OK) {
                 printf("\t  Sensor %d reading = %s\n", sensornum, text.Data);
         } else {
-                printf("\n\t  Sensor %d Reading FAILED, %s\n", sensornum, oh_lookup_error(rv));
+                printf("\n\t  Sensor %d reading FAILED, %s\n", sensornum, oh_lookup_error(rv));
         }
 	
 	rv = saHpiSensorThresholdsGet(sessionid,resourceid, sensornum, &thresh);
 	if (rv != SA_OK)  {
-		printf("\t    ThresholdsGet ret=%s\n\n", oh_lookup_error(rv));
-		return;
+		if (rv == SA_ERR_HPI_INVALID_CMD) {
+			printf("\t  Readable thresholds not supported\n\n");
+			return;
+		}
+		else {
+			printf("\t  ThresholdsGet ret=%s\n\n", oh_lookup_error(rv));
+			return;
+		}
 	}
 	printf( "\t    Thresholds:\n" );
 
