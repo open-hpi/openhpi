@@ -271,7 +271,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		rtncode = -1; goto CLEANUP;
 	}
 	
-	for (i=SAHPI_MAX_ENTITY_PATH - 1; i >= 0; i--) {
+	for (i = (SAHPI_MAX_ENTITY_PATH - 1); i >= 0; i--) {
 
 		/* Find last element of structure; Current choice not good,
 		   since type=instance=0 is valid */
@@ -282,8 +282,8 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 			dbg("Invalid entity type"); 
 			rtncode = -1; goto CLEANUP;
 		} */
-		memset(instance_str, 0, MAX_INSTANCE_DIGITS);
-		err = sprintf(instance_str, "%d", epathptr->Entry[i].EntityInstance);
+		err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
+                               "%d", epathptr->Entry[i].EntityInstance);
 		if (err > MAX_INSTANCE_DIGITS) { 
                         g_free(instance_str); 
 			dbg("Instance value too big");
