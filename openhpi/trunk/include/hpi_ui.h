@@ -34,6 +34,7 @@ typedef union {
 #define	FLOAT_TYPE	2	// float
 #define	STR_TYPE	3	// string
 #define	STRUCT_TYPE	4	// structure
+#define	ARRAY_TYPE	5	// array
 
 /*	attribute flags		*/
 
@@ -54,15 +55,19 @@ typedef struct {
 } Attributes_t;
 
 typedef struct {
+	SaHpiRdrT	*Rdr;
 	SaHpiEntryIdT	RecordId;
 	SaHpiRdrTypeT	RdrType;
 	Attributes_t	Attrutes;
+	int		is_inited;
 } Rdr_t;
 
 typedef struct {
+	SaHpiRptEntryT		*Rpt;
 	SaHpiEntryIdT		EntryId;
 	SaHpiResourceIdT	ResourceId;
 	Attributes_t		Attrutes;
+	int			is_inited;
 	int			n_rdrs;
 	Rdr_t			*rdrs;
 } Rpt_t;
@@ -103,6 +108,8 @@ extern SaErrorT	get_value_as_string(Attributes_t *Attrs, int num, char *val, int
 			// get attribute value as string by number (max length: len)
 extern char	*get_attr_name(Attributes_t *Attrs, int num);
 			// get attribute name
+extern int	get_attr_type(Attributes_t *Attrs, int num);
+			// get attribute type
 
 
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
