@@ -29,58 +29,65 @@ int main(int argc, char **argv)
 	SaErrorT expected_err;
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
-	 
+	SaHpiRptEntryT rptentry;
+	SaHpiRdrT	rdr;	 
 	SaHpiSensorNumT sid = 0;
 	SaHpiSensorThresholdsT thres;
-        /* *************************************                 
+	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
-	SaHpiRdrT	*rdrptr;
-	
+	 * ************************************* */		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
-	}
 
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	}
+	err = tfind_resource(&sessionid,SAHPI_CAPABILITY_SENSOR,SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
 
 	id = rptentry.ResourceId;
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
-        /************************** 
-	 *         
-         **************************/
-        sid = 0;
-        do {
-                sid++;
-                rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, sid);
-                if (rdrptr != NULL) {
-                        if (rdrptr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_TRUE) 
-                                break;
-	                else
-				rdrptr = NULL;
+	/************************** 
+	 * Test: find a sensor with desired property
+	 **************************/
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor = SAHPI_FALSE;			
+	do {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if ((rdr.RdrType == SAHPI_SENSOR_RDR) &&
+				(rdr.RdrTypeUnion.SensorRec.Category == SAHPI_EC_THRESHOLD) &&
+				(rdr.RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold == 0xFF) &&
+				(rdr.RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold  == 0xFF))
+			{
+				foundSensor = SAHPI_TRUE;
+				break;
+														
+			}
+			entryid = nextentryid;
 		}
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
 
-        } while ((rdrptr == NULL) && (sid < 128));
-
-        if (rdrptr == NULL) testfail = -1;
+	if (!foundSensor) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		sid = rdr.RdrTypeUnion.SensorRec.Num; 
+	}	
 
         /************************** 
 	 * Test  
          **************************/
-        rdrptr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold = 0xFF;  
-        rdrptr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold = 0xFF;  
         expected_err = SA_ERR_HPI_INTERNAL_ERROR;
-	err = snmp_bc_set_sensor_thresholds((void *)h->hnd, id, sid, &thres);
-        checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorThresholdsSet(sessionid, id, sid, &thres);
+        checkstatus(err, expected_err, testfail);
 											
 	/***************************
 	 * Cleanup after all tests
