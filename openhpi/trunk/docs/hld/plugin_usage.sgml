@@ -207,10 +207,9 @@ handler libsnmp_bc {
         your distribution is recommended.
       </para>
       <para>
-	Currently the only functions supported are discovery for the main
-	chassis, CPUs and DASD. These resources are dynamically discovered
-        but no RDR records are created. Sensors, controls and inventories are
-	not yet discovered.
+        The snmp_rsa plugin is function complete with this release but has
+        not been fully unit tested. If you discover bugs please contact the
+        OpenHPI team.
       </para>
     </sect2>
     <sect2>
