@@ -233,7 +233,8 @@ struct oh_abi_v2 {
          */
         SaErrorT (*get_sensor_data)(void *hnd, SaHpiResourceIdT id,
                                SaHpiSensorNumT num,
-                               SaHpiSensorReadingT *data);
+                               SaHpiSensorReadingT *data,
+			       SaHpiEventStateT    *state);
 
         /**
          * get sensor reading
@@ -241,7 +242,7 @@ struct oh_abi_v2 {
         SaErrorT (*get_sensor_reading)(void *hnd, SaHpiResourceIdT id,
                                        SaHpiSensorNumT num,
                                        SaHpiSensorReadingT *reading,
-                                       SaHpiEventStateT *EventState);
+                                       SaHpiEventStateT *state);
         /**
          * get sensor thresholds
          */
