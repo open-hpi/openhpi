@@ -125,7 +125,7 @@ static void harvest_events(gpointer key, gpointer value, gpointer data)
         struct oh_handler *h = (struct oh_handler *)value;
         SaErrorT *error = (SaErrorT *)data;
 
-        if (*error && harvest_events_for_handler(h) == SA_OK)
+        if (harvest_events_for_handler(h) == SA_OK && *error)
                 *error = SA_OK;        
 }
 
