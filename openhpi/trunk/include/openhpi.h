@@ -210,7 +210,13 @@ struct oh_resource {
           RPT entry visible by the HPI caller
         */
         SaHpiRptEntryT		entry;
-      
+     
+	/*
+	 * Valid when resource is CAPABILITY_HOWSWAP
+	 * Status if the re
+	 */
+	int controlled;
+	
 	/*
 	   The handler of the resource
 	*/
@@ -292,6 +298,11 @@ int free_handler(struct oh_handler*);
 
 /* event handler*/
 int get_events(void);
+
+/* howswap */
+int hotswap_push_event(struct oh_event *e);
+int hotswap_pop_event(struct oh_event *e); 
+int hotswap_has_event(void);
 
 #define dbg(format, ...)                                      \
         do {							                      \

@@ -974,7 +974,26 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*set_hotswap_state)(void *hnd, struct oh_resource_id id,
+			SaHpiHsStateT state);
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+		return SA_ERR_HPI_INVALID;
+	if (!res->controlled)
+		return SA_ERR_HPI_INVALID_CMD;
+	
+	set_hotswap_state = res->handler->abi->set_hotswap_state;
+	if (!set_hotswap_state) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	res->controlled = 0;
+	if (set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_ACTIVE_HEALTHY)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceInactiveSet (
@@ -1035,7 +1054,20 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiHsPowerStateT *State)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*get_power_state)(void *hnd, struct oh_resource_id id,
+			SaHpiHsPowerStateT *state);
+	
+	OH_GET_RESOURCE;
+	
+	get_power_state = res->handler->abi->get_power_state;
+	if (!get_power_state) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (get_power_state(res->handler->hnd, res->oid, State)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourcePowerStateSet (
@@ -1043,7 +1075,20 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiHsPowerStateT State)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*set_power_state)(void *hnd, struct oh_resource_id id,
+			SaHpiHsPowerStateT state);
+	
+	OH_GET_RESOURCE;
+	
+	set_power_state = res->handler->abi->set_power_state;
+	if (!set_power_state) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (set_power_state(res->handler->hnd, res->oid, State)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
