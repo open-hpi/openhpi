@@ -1,3 +1,7 @@
+2003-12-04  jnfleisc   <julie.n.fleischer@intel.com>
+	* src/plugins/sysfs/sysfs2hpi.c:
+	Upgraded to work with libsysfs 0.3.0.
+
 2003-12-04  TariqX   <tariq.shureih@intel.com>
 	* src/plugins/ipmi/ipmi.c:
 	Enabled retrieval of IPMI SEL UpdateTimestamp.
