@@ -224,7 +224,7 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
                         SAHPI_RESE_RESOURCE_FAILURE;
-                
+		dbg("************************ process_resource_event REMOVE\n");                
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
@@ -245,6 +245,7 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
                         SAHPI_RESE_RESOURCE_ADDED;
+		dbg("************************ process_resource_event ADD\n");
         }
         oh_release_domain(d);
         
@@ -268,17 +269,25 @@ static int process_rdr_event(struct oh_event *e)
                 return -1;
         }
         rpt = &(d->rpt);
-
+			     
         if (e->type == OH_ET_RDR_DEL) {
                 rv = oh_remove_rdr(rpt,rid,e->u.rdr_event.rdr.RecordId);
+		dbg("************************ process_rdr_event REMOVE\n");
         } else {
                 rv = oh_add_rdr(rpt,rid,&(e->u.rdr_event.rdr),NULL,0);
+		dbg("************************ process_rdr_event ADD\n");
         }
 
         if (rv) dbg("Could not process rdr event. Parent resource not found.");
 
         oh_release_domain(d);
-        
+
+/*	need this after different type rdr events are processed above FIXME:DJ
+	otherwise rdr events are never palced on eventq
+        if(rv == SA_OK) {
+                rv = process_hpi_event(&hpie);
+        }
+*/        
         return rv;
 }
 
