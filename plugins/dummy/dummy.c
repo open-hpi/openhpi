@@ -29,6 +29,9 @@
 #include <uid_utils.h>
 #include <oh_error.h>
 
+#define DUMMY_THREADED
+#undef	DUMMY_THREADED
+
 #define ELEMENT_NUM(x) (sizeof(x)/sizeof(x[0]))
 
 /* set of defines to make the sample definitions below right */
@@ -950,6 +953,7 @@ static void *dummy_open(GHashTable *handler_config)
         hotswap_event[1].u.hpi_event.res.ResourceId = dummy_resources[1].ResourceId;
 
 #ifdef DUMMY_THREADED
+
 	/* add to oh_handler_state */
 	GThread *thread_handle;
 	GError **error;
