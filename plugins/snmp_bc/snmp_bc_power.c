@@ -66,7 +66,6 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 	}
 
 	/* Read power state of resource */
-
 	err = snmp_bc_oid_snmp_get(custom_handle, &(rpt->ResourceEntity),
 				   resinfo->mib.OidPowerState, &get_value, SAHPI_TRUE);
 	if (!err && (get_value.type == ASN_INTEGER)) {
@@ -139,7 +138,6 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 	}
 
 	/* Set power on/off */
-
 	set_value.type = ASN_INTEGER;
 	set_value.str_len = 1;
 

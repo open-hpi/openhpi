@@ -18,12 +18,6 @@
 #include <glib.h>
 #include <snmp_bc_plugin.h>
 
-/*
-static SaErrorT snmp_bc_get_oid_value(struct snmp_bc_hnd *custom_handle,
-				      SaHpiEntityPathT *ep,
-				      const gchar *oid,
-				      struct snmp_value *oid_value);
-*/
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 
 #define SNMP_BC_IPMI_STRING_DELIMITER "="
@@ -451,7 +445,14 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct, e);
 	}
- 	snmp_bc_discover_controls(handle, snmp_bc_chassis_controls, e);
+
+	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+		snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_bct, e);
+	}
+	else {
+		snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_bc, e);
+	}
+
 	snmp_bc_discover_inventories(handle, snmp_bc_chassis_inventories, e);
 
 	/***************** 
@@ -609,7 +610,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-                        /* Get BC UUID and convert to GUID */
+                        /* Get UUID and convert to GUID */
                         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
@@ -669,7 +670,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-                        /* Get BC UUID and convert to GUID */
+                        /* Get UUID and convert to GUID */
                         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
@@ -729,7 +730,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-                        /* Get BC UUID and convert to GUID */
+                        /* Get UUID and convert to GUID */
                         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
@@ -788,7 +789,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					sizeof(struct ResourceInfo));
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-                /* Get BC UUID and convert to GUID */
+                /* Get UUID and convert to GUID */
                 err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 		
 		/* Add resource to temporary event cache/queue */
@@ -857,7 +858,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-                        /* Get BC UUID and convert to GUID */
+                        /* Get UUID and convert to GUID */
                         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
@@ -906,10 +907,9 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	struct snmp_value get_value;
 
 	/* Check if this is an IPMI blade */
-	/* err = snmp_bc_get_oid_value(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
-				    SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value); */
-	err = snmp_bc_oid_snmp_get(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
-				    SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value, SAHPI_FALSE);
+	err = snmp_bc_oid_snmp_get(custom_handle,
+				   &(res_oh_event->u.res_event.entry.ResourceEntity),
+				   SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value, SAHPI_FALSE);
 				    
         if (err || get_value.type != ASN_INTEGER) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
@@ -930,11 +930,17 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	/* Search for active IPMI sensors */
 	for (i=0; i<SNMP_BC_MAX_IPMI_SENSORS; i++) {
 	
-		/* err = snmp_bc_get_oid_value(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity), */
-		/*			    snmp_bc_ipmi_sensors[i].oid, &get_value);                            */
-		err = snmp_bc_oid_snmp_get(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
-					    snmp_bc_ipmi_sensors[i].oid, &get_value, SAHPI_FALSE);
+		err = snmp_bc_oid_snmp_get(custom_handle, 
+					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   snmp_bc_ipmi_sensors[i].oid, &get_value, SAHPI_FALSE);
 
+		/* Work around for BC/BCT problem of timing out for each generoc IPMI Voltage OID
+                   after the last real one */
+		if (err) {
+			dbg("SNMP error=%s; oid=%s",
+			    oh_lookup_error(err), snmp_bc_ipmi_sensors[i].oid);
+			break;
+		}
 
 		if (!err) {
 			char *hash_existing_key, *hash_value;
@@ -976,6 +982,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
 			}
 			else { /* Already exists */
+				dbg("IPMI OID ERROR=%s.", snmp_bc_ipmi_sensors[i].oid);
 				g_free(ipmi_tag);
 			}
 		}
@@ -1039,27 +1046,6 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 
 	return(rtn_code);
 }
-
-#if 0
-/* Extra function - to be sunset */
-static SaErrorT snmp_bc_get_oid_value(struct snmp_bc_hnd *custom_handle,
-				      SaHpiEntityPathT *ep,
-				      const gchar *oid,
-				      struct snmp_value *oid_value)
-{
-	SaErrorT err = SA_OK;
-	
-	if (!custom_handle || !oid || !ep || !oid_value) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-
-	trace("Getting IPMI OID=%s", oid);
-	err = snmp_bc_oid_snmp_get(custom_handle, ep, oid, oid_value, SAHPI_FALSE);
-
-	return(err);
-}
-#endif
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
 {
