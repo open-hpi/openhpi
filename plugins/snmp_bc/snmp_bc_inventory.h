@@ -155,4 +155,9 @@ SaErrorT snmp_bc_del_idr_field( void *hnd,
 		SaHpiEntryIdT            AreaId,
 		SaHpiEntryIdT            FieldId);
 
+SaErrorT snmp_bc_build_idr( void *hnd,
+               SaHpiResourceIdT         ResourceId,
+               SaHpiIdrIdT              IdrId,
+               void *                   i_record);
+	
 #endif
