@@ -187,18 +187,28 @@ SaErrorT snmp_get2(struct snmp_session *ss,
                        
                 }
 		/* display data */
-		printf("*** snmp_get2 ******************************************\n");
+		dbg("*** snmp_get2 ******************************************");
 			if (CHECK_END(vars->type)) { 
-				print_variable(vars->name, vars->name_length, vars);  
-			}  else 
-				fprintf(stderr,"snmp_get2(): No idea.\n");
-		printf("********************************************************\n");
+				fprint_variable(stderr, 
+						vars->name, 
+						vars->name_length, 
+						vars);
+				/* print_variable(vars->name, vars->name_length, vars); */
+			}  else {
+
+				dbg("snmp_get2(): No idea.Unknown Type: %X", vars->type);
+				fprint_variable(stderr, 
+						vars->name, 
+						vars->name_length, 
+						vars);
+			}
+		dbg("********************************************************");
 
         } else {
 		int i;
                 value->type = (u_char)0x00; /* Set return type to 0 in case of error. */
                 if (status == STAT_SUCCESS) {
-                        fprintf(stderr, "Error, Reason: %s\n", 
+                        dbg("Error, Reason: %s", 
 				snmp_errstring(response->errstat));
 			fprintf(stderr, "objid: ");
 			for(i = 0; i<objid_len; i++ )
@@ -262,8 +272,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
                         break;
                 default:
                         rtncode = -1;
-                        fprintf(stderr, 
-				"datatype %c not yet supported by snmp_set2()\n", 
+                        dbg("datatype %c not yet supported by snmp_set2()", 
 				value->type);
                         break;
         }
@@ -283,21 +292,24 @@ SaErrorT snmp_set2(struct snmp_session *ss,
          	*/
         	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
 			/* display data */
-			printf("*** snmp_set2 ******************************************\n");
-				if (CHECK_END(response->variables->type)) { 
-					print_variable(response->variables->name,
+			dbg("*** snmp_set2 ******************************************");
+				if (CHECK_END(response->variables->type)) {
+					fprint_variable(stderr, 
+							response->variables->name,
+							response->variables->name_length,
+							response->variables);
+					/* print_variable(response->variables->name,
 						       response->variables->name_length,
-						       response->variables);  
+						       response->variables); */  
 				}  else 
-					fprintf(stderr,"snmp_set2(): No idea.\n");
-			printf("********************************************************\n");
+					dbg("snmp_set2(): No idea.");
+			dbg("********************************************************");
                 	rtncode = 0;
                 
         	} else {
                 	rtncode = -1;
                 	if (status == STAT_SUCCESS) 
-                        	fprintf(stderr, 
-					"snmp_set2: Error in packet, Reason: %s\n",
+                        	dbg("snmp_set2: Error in packet, Reason: %s",
 					snmp_errstring(response->errstat));
                 	else
                         	snmp_sess_perror("snmpset", ss);
@@ -310,169 +322,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 
         return rtncode;
 
-
-
-
-
-#if 0
-
-/**
- * snmp_set
- * @ss: a handle to the snmp session needed to make an snmp transaction.
- * @objid: string containing the OID to set.
- * @value: the value to set the oid with.
- *
- * Sets a value where indicated by the objectid
- * using snmp.
- *
- * Returns: 0 if Success, less than 0 if Failure.
- **/
-int snmp_set(
-        struct snmp_session *ss,
-        char *objid,
-        struct snmp_value value) 
-{
-        struct snmp_pdu *pdu;
-        struct snmp_pdu *response;
-
-        oid anOID[MAX_OID_LEN];
-        size_t anOID_len = MAX_OID_LEN;
-        char datatype = 's';
-        void *dataptr = NULL;
-        int status = 0;
-	int rtncode = 0;
-
-        /*
-         * Create the PDU for the data for our request.
-         */
-        pdu = snmp_pdu_create(SNMP_MSG_SET);
-        read_objid(objid, anOID, &anOID_len);
-
-
-        rtncode = 0; /* Default - All is OK */
-
-        switch (value.type)
-        {
-                case ASN_INTEGER:
-                case ASN_COUNTER:
-                        datatype = 'i';
-			(long *)dataptr = &value.integer;
-                        break;
-                case ASN_OCTET_STR:
-                        datatype = 's';
-			(u_char *)dataptr = &value.string;
-                        break;
-                default:
-                        rtncode = -1;
-                        fprintf(stderr, "datatype %c not yet supported by snmp_set()\n", value.type);
-                        break;
-        }
-
-        if (rtncode == 0) {
-
-		/*
-		 * Set the data to send out
-		 */
-                snmp_add_var(pdu, anOID, anOID_len, datatype, dataptr);
-        	/*
-         	* Send the Request out.
-         	*/
-        	status = snmp_synch_response(ss, pdu, &response);
-        	/*
-         	* Process the response.
-         	*/
-        	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                	rtncode = SA_OK;
-                
-        	} else {
-                	rtncode = SA_ERR_HPI_ERROR;
-                	if (status == STAT_SUCCESS)
-                        	fprintf(stderr, "Error in packet %s\nReason: %s\n",
-                                		objid, snmp_errstring(response->errstat));
-                	else
-                        	snmp_sess_perror("snmpset", ss);
-        	}
-
-        	/* Clean up: free the response */
-		sc_free_pdu(&response) 
-	}
-
-        return rtncode;
-
-/********************************************/
-
-	struct snmp_pdu *pdu;
-        struct snmp_pdu *response;
-        
-        struct variable_list *vars;
-        int status;
-        
-        /*
-         * Create the PDU for the data for our request.
-         */
-        pdu = snmp_pdu_create(SNMP_MSG_GET);
-
-        snmp_add_null_var(pdu, objid, objid_len);
-
-        /*
-         * Send the Request out.
-         */
-        status = snmp_synch_response(ss, pdu, &response);
-
-        /*
-         * Process the response.
-         */
-        if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                vars = response->variables;
-                value->type = vars->type;
-                if (vars->next_variable != NULL) {
-                        value->type = ASN_NULL;
-                }/* If there are more values, set return type to null. */
-                else if ( (vars->type == ASN_INTEGER) || 
-			  (vars->type == ASN_COUNTER) || 
-			  (vars->type == ASN_UNSIGNED) ) {
-                        value->integer = *(vars->val.integer);
-                } else {
-                        value->str_len = vars->val_len;
-                        if (value->str_len >= MAX_ASN_STR_LEN)
-                                value->str_len = MAX_ASN_STR_LEN;
-                        else value->string[value->str_len] = '\0';
-                        
-                        memcpy(value->string, vars->val.string, value->str_len);
-                       
-                }
-		/* display data */
-		printf("********************************************************\n");
-			if (CHECK_END(vars->type)) { 
-				print_variable(vars->name, vars->name_length, vars);  
-			}  else 
-				fprintf(stderr,"snmp_set2(): No idea.\n");
-		printf("********************************************************\n");
-
-        } else {
-		int i;
-                value->type = (u_char)0x00; /* Set return type to 0 in case of error. */
-                if (status == STAT_SUCCESS) {
-                        fprintf(stderr, "Error, Reason: %s\n", 
-				snmp_errstring(response->errstat));
-			fprintf(stderr, "objid: ");
-			for(i = 0; i<objid_len; i++ )
-				fprintf(stderr, "%d.", (int)objid[i]);
-			fprintf(stderr, "\n");
-                } else
-                        snmp_sess_perror("snmpget", ss);
-        }
-
-        /* Clean up: free the response */
-	sc_free_pdu(&response); 
-
-        return value->type? SA_OK : SA_ERR_HPI_ERROR;
-
-#endif
-
 }
-
-
 
 int snmp_getn_bulk( struct snmp_session *ss, 
 		    oid *bulk_objid, 
@@ -514,8 +364,10 @@ SaErrorT net_snmp_failure(struct snmp_client_hnd *custom_handle, int snmp_status
 				 struct snmp_pdu *response)
 {
 	if (snmp_status == STAT_SUCCESS) {
-		fprintf(stderr, "Error in packet, Whilst getting Resources\nReason: %s\n", snmp_errstring(response->errstat));
-		dbg("ERROR: net_snmp_failure %s", snmp_errstring(response->errstat));
+		dbg("Error in packet, Whilst getting Resources\nReason: %s", 
+		    snmp_errstring(response->errstat));
+		dbg("ERROR: net_snmp_failure %s", 
+		    snmp_errstring(response->errstat));
 	} else	{
 		snmp_sess_perror("snmpget", custom_handle->ss);
 		dbg("ERROR: net_snmp_failure");
@@ -529,16 +381,17 @@ void display_vars( struct snmp_pdu *response)
 	int c = 0;
 	struct variable_list *vars;
 
-	printf("********************************************************\n");
+	dbg("********************************************************");
 	for(vars = response->variables; vars; vars = vars->next_variable) {
 		c++;
 		printf("\n**** oid count %d ******\n", c);
 		if (CHECK_END(vars->type)) { 
-			print_variable(vars->name, vars->name_length, vars);  
+			fprint_variable(stderr, vars->name, vars->name_length, vars);
+			/* print_variable(vars->name, vars->name_length, vars);   */
 		}  else 
-			fprintf(stderr,"display_vars(): No idea.\n");
+			dbg("display_vars(): No idea.");
 	}
-	printf("********************************************************\n");
+	dbg("********************************************************");
 }
 
 int build_state_value (char *str,
@@ -617,7 +470,7 @@ int build_flag_value (char *str,
     for (i = 0; i < RANGE_FLAGS_LEN; i++) {
       if (strncasecmp(tok, range_flags[i].str, strlen(range_flags[i].str)) == 0) {
 
-	printf(" Matched: %X[%s] = [%s] \n", range_flags[i].flag, range_flags[i].str, tok); 
+	dbg(" Matched: %X[%s] = [%s]", range_flags[i].flag, range_flags[i].str, tok); 
 
 	*flags = *flags | range_flags[i].flag;
       }
