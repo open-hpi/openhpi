@@ -148,12 +148,18 @@ static int process_hpi_event(struct oh_event *full_event)
         trace("About to get session list");
         sessions = oh_list_sessions(1);
 
+        /* multiplex event to the appropriate sessions */
         for(i = 0; i < sessions->len; i++) {
+                SaHpiBoolT is_subscribed = SAHPI_FALSE;
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
-                /* add subscribe code here */
-                oh_queue_session_event(sid, full_event);
+                
+                oh_get_session_state(sid, &is_subscribed);
+                if(is_subscribed) {
+                        oh_queue_session_event(sid, full_event);
+                }
         }
-
+        g_array_free(sessions, TRUE);
+        
         oh_release_domain(d);
         
         return 0;
