@@ -35,7 +35,7 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>Test Coverage Analysis</title>
-<link rel="stylesheet" href="openhpi.css" type="text/css">
+<link rel="stylesheet" href="/openhpi.css" type="text/css">
 </head>
 <body>
 <div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>
@@ -90,7 +90,7 @@ sub slurp_summary_table {
     close(IN);
 
     my $snip = "";
-    if($content =~ m{(<h2 class='file'>.*?</h2>\s*<table.*?</table>)}igs) {
+    if($content =~ m{(<h4 class='file'>.*?</h4>\s*<table.*?</table>)}igs) {
         $snip = $1;
     }
     return $snip;

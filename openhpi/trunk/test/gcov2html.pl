@@ -39,7 +39,7 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>GCOV execution analyis for $title</title>
-<link rel="stylesheet" href="openhpi.css" type="text/css">
+<link rel="stylesheet" href="/openhpi.css" type="text/css">
 </head>
 <body>
 <div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>
@@ -51,7 +51,8 @@ sub make_html_head {
 <div>
 The left column is the number of times the code was executed
 during the unit test suites.
-<table>
+<p>
+<table class="report">
 <tr><th>Exec</th><th>&nbsp;</th><th>Code</th></tr>
 END
 }
@@ -89,7 +90,7 @@ sub make_html_body {
 	$data =~ s{<(\S+)\@(.*?)\.(net|com)>}{< address removed >}ig; 
 	$data = encode_entities($data);
 
-        $html .= "<tr class='$status'><td align='right'>$exec</td><td>&nbsp;</td><td><pre>$data</pre></td></tr>\n";
+        $html .= "<tr class='$status'><td align='right'>$exec</td><td>&nbsp;</td><td><pre class='report'>$data</pre></td></tr>\n";
     }
     return $html;
 }

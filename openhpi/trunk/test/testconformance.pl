@@ -36,7 +36,7 @@ system("./bootstrap && ./configure --enable-testcover @ARGV && make clean && mak
 
 chdir("../hpitest");
 
-system("./hpitest --clean --hpiversion 1.0 openhpi");
+system("./hpitest --clean --hpiversion B.1.01 openhpi");
 
 chdir($start . "/src");
 
