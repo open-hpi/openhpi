@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * Copyright (c) 2003 by Intel Corp.
+ * Copyright (c) 2004 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,14 +9,16 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
- *     Andy Cress <arcress@users.sourceforge.net>
+ * Filename: hpiwdt.c
+ * Authors:  Andy Cress <arcress@users.sourceforge.net>
+ * 
  * Changes:
  * 03/15/04 Andy Cress - v1.0 added strings for use & actions in show_wdt
  * 10/13/04  kouzmich  - porting to HPI B
+ * 12/02/04 Andy Cress - v1.1 fixed domain/RPT loop, added some decoding
  */
-
-/* This tool reads and enables the watchdog timer via HPI.
+/* 
+ * This tool reads and enables the watchdog timer via HPI.
  * Note that there are other methods for doing this, and the
  * standard interface is for the driver to expose a /dev/watchdog
  * device interface.
@@ -27,12 +29,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
 #include <string.h>
+#include <getopt.h>
 #include "SaHpi.h"
 
 #define  uchar  unsigned char
-char *progver  = "1.0";
+#ifdef HPI_A
+char *progver  = "1.1 HPI-A";
+#else
+char *progver  = "1.1 HPI-B";
+#endif
 char fdebug = 0;
 #define NUSE  6
 char *usedesc[NUSE] = {"reserved", "BIOS FRB2", "BIOS/POST",
@@ -47,19 +53,36 @@ show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
   int icount, pcount;
   char ustr[12]; 
   char astr[16]; 
+  char estr[30]; 
+  char *pstr;
   icount = wdt->InitialCount /1000;        /*1000 msec = 1 sec*/
   pcount = wdt->PresentCount /1000;
 
   if (wdt->TimerUse > NUSE) sprintf(ustr,"%d", wdt->TimerUse );
   else strcpy(ustr, usedesc[wdt->TimerUse]);
-  if (wdt->TimerAction > NUSE) sprintf(astr,"%d", wdt->TimerAction );
+  if (wdt->TimerAction > NACT) sprintf(astr,"%d", wdt->TimerAction );
   else strcpy(astr, actions[wdt->TimerAction]);
   printf("Watchdog: Num=%d, Log=%d, Running=%d, TimerUse=%s, TimerAction=%s\n",
 	wdnum,wdt->Log,wdt->Running,ustr, astr);
-  printf("          TimerUseExpFlags=%x, Timeout=%d sec, Counter=%d sec\n",
-	wdt->TimerUseExpFlags, icount,pcount);
-  printf("          PreTimerInterrupt=%d, PreTimeoutInterval=%d msec\n",
-	wdt->PretimerInterrupt,wdt->PreTimeoutInterval);
+  if (wdt->TimerUseExpFlags == 0) strcpy(estr,"none");
+  else {
+	estr[0] = 0;
+	if (wdt->TimerUseExpFlags & 0x01) strcat(estr,"FRB2 ");
+	if (wdt->TimerUseExpFlags & 0x02) strcat(estr,"POST ");
+	if (wdt->TimerUseExpFlags & 0x04) strcat(estr,"OS_Load ");
+	if (wdt->TimerUseExpFlags & 0x08) strcat(estr,"SMS_OS ");
+	if (wdt->TimerUseExpFlags & 0x10) strcat(estr,"OEM ");
+  }
+  printf("          ExpiredUse=%s, Timeout=%d sec, Counter=%d sec\n",
+	estr, icount,pcount);
+  switch(wdt->PretimerInterrupt) {
+  case 1:  pstr = "SMI";    break;
+  case 2:  pstr = "NMI";    break;
+  case 3:  pstr = "MsgInt"; break;
+  default: pstr = "none";   break;
+  }
+  printf("          PreTimerInterrupt=%s, PreTimeoutInterval=%d msec\n",
+	 pstr,wdt->PreTimeoutInterval);
   return;
 }
 
@@ -69,7 +92,12 @@ main(int argc, char **argv)
   int c;
   SaErrorT rv;
   SaHpiSessionIdT sessionid;
+#ifdef HPI_A
+  SaHpiVersionT hpiVer;
+  SaHpiRptInfoT rptinfo;
+#else
   SaHpiDomainInfoT domainInfo;
+#endif
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -109,21 +137,38 @@ main(int argc, char **argv)
      }
   if (t == 0) t = 120;
 
-  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+#ifdef HPI_A
+  rv = saHpiInitialize(&hpiVer);
+  if (rv != SA_OK) {
+      printf("saHpiInitialize error %d\n",rv);
+      exit(-1);
+      }
+  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
-           printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
-        else
-	   printf("saHpiSessionOpen error %d\n",rv);
+           printf("saHpiSessionOpen: error %d, library not running\n",rv);
+        else printf("saHpiSessionOpen error %d\n",rv);
 	exit(-1);
 	}
- 
+  rv = saHpiResourcesDiscover(sessionid);
+  if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+  rv = saHpiRptInfoGet(sessionid,&rptinfo);
+  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
+  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
+       rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+#else
+  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
+  if (rv != SA_OK) {
+        printf("saHpiSessionOpen error %d\n",rv);
+	exit(-1);
+	}
   rv = saHpiDiscover(sessionid);
   if (fdebug) printf("saHpiDiscover rv = %d\n",rv);
   rv = saHpiDomainInfoGet(sessionid, &domainInfo);
   if (fdebug) printf("saHpiDomainInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
-         domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
+  printf("DomainInfo: UpdateCount = %x, UpdateTime = %lx\n",
+       domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
+#endif
  
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -134,58 +179,71 @@ main(int argc, char **argv)
      if (rv == SA_OK) {
 	/* handle WDT for this RPT entry */
 	resourceid = rptentry.ResourceId;
-	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-	printf("rptentry[%d] resourceid=%d tag: %s\n",
-		rptentryid, resourceid, rptentry.ResourceTag.Data);
+	// rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+	if (fdebug)
+	   printf("rptentry[%d] resourceid=%d capab=%x tag: %s\n",
+		rptentryid, resourceid, rptentry.ResourceCapabilities, 
+		rptentry.ResourceTag.Data);
 
-	wdnum = SAHPI_DEFAULT_WATCHDOG_NUM;
+	if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG) {
+	   printf("%s has watchdog capability\n",rptentry.ResourceTag.Data);
 
-	rv = saHpiWatchdogTimerGet(sessionid,resourceid,wdnum,&wdt);
-	if (fdebug) 
-	   printf("saHpiWatchdogTimerGet rv = %d\n",rv);
-	show_wdt(wdnum,&wdt);
-
-	if (fdisable) {
-	   printf("Disabling watchdog timer ...\n");
-	   /* clear FRB2, timeout back to 120 sec */
-	   /* TODO: add setting wdt values here */
-	   wdt.TimerUse = SAHPI_WTU_NONE;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
-	   wdt.TimerAction = SAHPI_WAE_NO_ACTION; /* 0=none 1=reset 2=powerdown 3=powercycle */
-	   wdt.PretimerInterrupt = SAHPI_WPI_NONE; /* 0=none 1=SMI 2=NMI 3=message */
-	   wdt.PreTimeoutInterval = 60000; /*msec*/
-	   wdt.InitialCount = 120000; /*msec*/
-	   wdt.PresentCount = 120000; /*msec*/
-
-	   rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
-	   if (fdebug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
+	   wdnum = SAHPI_DEFAULT_WATCHDOG_NUM;
+	   rv = saHpiWatchdogTimerGet(sessionid,resourceid,wdnum,&wdt);
+	   if (fdebug) printf("saHpiWatchdogTimerGet rv = %d\n",rv);
+	   if (rv != 0) {
+		printf("saHpiWatchdogTimerGet error = %d\n",rv);
+		rv = 0;
+		rptentryid = nextrptentryid; 
+		continue;
+	   }
 	   show_wdt(wdnum,&wdt);
-	} else if (fenable) {
-	   printf("Enabling watchdog timer ...\n");
-	   /* hard reset action, no pretimeout, clear SMS/OS when done */
-	   /* use t for timeout */
-	   wdt.TimerUse = SAHPI_WTU_SMS_OS;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
-	   wdt.TimerAction = SAHPI_WAE_RESET; /* 0=none 1=reset 2=powerdown 3=powercycle */
-	   wdt.PretimerInterrupt = SAHPI_WPI_NMI; /* 0=none 1=SMI 2=NMI 3=message */
-	   wdt.PreTimeoutInterval = (t / 2) * 1000; /*msec*/
-	   wdt.InitialCount = t * 1000; /*msec*/
-	   wdt.PresentCount = t * 1000; /*msec*/
 
-	   rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
-	   if (fdebug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
-	   show_wdt(wdnum,&wdt);
-	}
-	if (freset && !fdisable) {
-	   printf("Resetting watchdog timer ...\n");
-	   rv = saHpiWatchdogTimerReset(sessionid,resourceid,wdnum);
-	   if (fdebug) printf("saHpiWatchdogTimerReset rv = %d\n",rv);
-	}
+	   if (fdisable) {
+	      printf("Disabling watchdog timer ...\n");
+	      /* clear FRB2, timeout back to 120 sec */
+	      /* TODO: add setting wdt values here */
+	      wdt.TimerUse = SAHPI_WTU_NONE;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
+	      wdt.TimerAction = SAHPI_WAE_NO_ACTION; /* 0=none 1=reset 2=powerdown 3=powercycle */
+	      wdt.PretimerInterrupt = SAHPI_WPI_NONE; /* 0=none 1=SMI 2=NMI 3=message */
+	      wdt.PreTimeoutInterval = 60000; /*msec*/
+	      wdt.InitialCount = 120000; /*msec*/
+	      wdt.PresentCount = 120000; /*msec*/
+
+	      rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
+	      if (fdebug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
+	      if (rv == 0) show_wdt(wdnum,&wdt);
+	   } else if (fenable) {
+	      printf("Enabling watchdog timer ...\n");
+	      /* hard reset action, no pretimeout, clear SMS/OS when done */
+	      /* use t for timeout */
+	      wdt.TimerUse = SAHPI_WTU_SMS_OS;    /* 1=FRB2 2=POST 3=OSLoad 4=SMS_OS 5=OEM */
+	      wdt.TimerAction = SAHPI_WAE_RESET; /* 0=none 1=reset 2=powerdown 3=powercycle */
+	      wdt.PretimerInterrupt = SAHPI_WPI_NMI; /* 0=none 1=SMI 2=NMI 3=message */
+	      wdt.PreTimeoutInterval = (t / 2) * 1000; /*msec*/
+	      wdt.InitialCount = t * 1000; /*msec*/
+	      wdt.PresentCount = t * 1000; /*msec*/
+
+	      rv = saHpiWatchdogTimerSet(sessionid,resourceid,wdnum,&wdt);
+	      if (fdebug) printf("saHpiWatchdogTimerSet rv = %d\n",rv);
+	      if (rv == 0) show_wdt(wdnum,&wdt);
+	   }
+	   if (freset && !fdisable) {
+	      printf("Resetting watchdog timer ...\n");
+	      rv = saHpiWatchdogTimerReset(sessionid,resourceid,wdnum);
+	      if (fdebug) printf("saHpiWatchdogTimerReset rv = %d\n",rv);
+	   }
+	} /*watchdog capability*/
 	rptentryid = nextrptentryid;  /* get next RPT (usu only one anyway) */
      }  /*endif RPT ok*/
   }  /*end while loop*/
  
   rv = saHpiSessionClose(sessionid);
 
-  return(0);
+#ifdef HPI_A
+  rv = saHpiFinalize();
+#endif
+  exit(0);
 }
  
 /* end hpiwdt.c */
