@@ -142,6 +142,12 @@ int main (int argc, char *argv[])
                 if (pid && (pid == getpid() || kill(pid, 0) < 0)) {
                         unlink(pid_file);
                         pfile = open(pid_file, O_WRONLY | O_CREAT, 0640);
+                        if (pfile == -1) {
+                                // there is already a server running
+                                printf("Error: Cannot open PID file .\n");
+                                printf("       Aborting execution.\n");
+                                exit(1);
+                        }
                         snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
                         write(pfile, pid_buf, strlen(pid_buf));
                         close(pfile);
