@@ -84,9 +84,20 @@ static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_del_event.resource_id);
         } else {
-                rv = oh_add_resource(rpt,&(e->u.res_event.entry),h,1);
-        }        
-                
+                struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
+
+                if (!rd) {
+                        dbg("Couldn't allocate resource data");
+                        return SA_ERR_HPI_ERROR;
+                }
+
+                rd->handler = h;
+                rd->controlled = 0;
+                rd->auto_extract_timeout = get_default_hotswap_auto_extract_timeout();
+
+                rv = oh_add_resource(rpt,&(e->u.res_event.entry),rd,0);
+        }
+
         data_access_unlock();
         
         return rv;
