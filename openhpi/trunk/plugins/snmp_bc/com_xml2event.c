@@ -225,6 +225,9 @@ static void event_start_element(GMarkupParseContext *context,
                         }
                         /* ignore any other values */
                 }
+                else if (strcmp(attribute_names[i], "dup") == 0) {
+                        xmlinfo->event_dup = (short)atoi(attribute_values[i]);
+                }
                 else {
                         g_markup_parse_context_get_position(context,
                                                             &line, &pos);
@@ -243,7 +246,6 @@ static void event_start_element(GMarkupParseContext *context,
                 return;
         }
 
-        xmlinfo->event_dup = 0;
         g_hash_table_insert(*hashtable, key, xmlinfo);
         return;
 }
