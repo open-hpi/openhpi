@@ -173,7 +173,18 @@ struct oh_abi_v1 {
 	 */
 	int (*set_sensor_thresholds)(void *hnd, struct oh_rdr_id *id,
 				     const SaHpiSensorThresholdsT *thres);
-	
+
+	/**
+	 * get sensor event enables
+	 */
+	int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id *id,
+					SaHpiSensorEvtEnablesT *enables);
+
+	/**
+	 * set sensor event enables
+	 */
+	int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id *id,
+					const SaHpiSensorEvtEnablesT *enables);
 	/**
 	 * get control info
 	 */
