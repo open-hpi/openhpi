@@ -182,7 +182,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         /* check if we have at least one handler */
         if ( global_handler_list == 0 ) {
                 /* there is no handler => this can not work */
-                dbg("no handler found. please check /etc/openhpi/openhpi.conf !");
+                dbg("no handler found. please check %s!", openhpi_conf);
 
                 data_access_unlock();
                 saHpiFinalize();
