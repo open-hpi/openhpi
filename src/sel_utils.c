@@ -27,7 +27,7 @@
 
 
 /* allocate and initialize an SEL */
-oh_sel *oh_sel_create(void)
+oh_sel *oh_sel_create(SaHpiUint32T size)
 {
         oh_sel *sel;
 
@@ -38,6 +38,7 @@ oh_sel *oh_sel_create(void)
                 sel->deletesupported = FALSE;
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
                 sel->offset = 0;
+                sel->maxsize = size;
                 sel->nextId = SAHPI_OLDEST_ENTRY;
                 sel->selentries = NULL;
         }
@@ -64,20 +65,30 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
 {
         SaHpiSelEntryT * myentry;
         time_t tt1;
+        GList *temp;
 
+        /* check for valid sel params and state */
         if (sel == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
         if (sel->enabled == FALSE) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
+        /* alloc the new entry */
         myentry = (SaHpiSelEntryT *) malloc(sizeof(SaHpiSelEntryT));
         if (myentry == NULL) {
                 sel->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
+
+        /* if necessary, wrap the sel entries */
+        if (sel->maxsize != OH_SEL_MAX_SIZE && g_list_length(sel->selentries) == sel->maxsize) {
+                temp = g_list_first(sel->selentries);
+                sel->selentries = g_list_remove(sel->selentries, temp->data);
+        }
+
+        /* add the new entry */
         entry->EntryId = sel->nextId;
         sel->nextId++;
         time(&tt1);
@@ -137,7 +148,7 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
         sellist = g_list_first(sel->selentries);
         while (sellist != NULL) {
                 myentry = (SaHpiSelEntryT *) sellist->data;
-                if (myentry->EntryId == entryid) {
+                if (entryid == myentry->EntryId) {
                         *entry = myentry;
                         /* is this the first entry? */
                         if (myentry->EntryId == SAHPI_OLDEST_ENTRY) {
@@ -155,6 +166,9 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
                         }
                         return SA_OK;
                 }
+                else if (entryid < myentry->EntryId) {
+                        return SA_ERR_HPI_NOT_PRESENT;
+                }
                 sellist = g_list_next(sellist);
         }
         return SA_ERR_HPI_NOT_PRESENT;
@@ -166,14 +180,14 @@ SaErrorT oh_sel_info(oh_sel *sel, SaHpiSelInfoT *info)
 {
         time_t tt1;
 
-        info->Entries = sel->nextId;
-        info->Size = -1; /* unlimited */
+        info->Entries = g_list_length(sel->selentries);
+        info->Size = sel->maxsize;
         info->UpdateTimestamp = sel->lastUpdate;
         time(&tt1);
         info->CurrentTime = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
         info->Enabled = sel->enabled;
         info->OverflowFlag = sel->overflow;
-        info->OverflowAction = SAHPI_SEL_OVERFLOW_DROP;
+        info->OverflowAction = SAHPI_SEL_OVERFLOW_WRAP;
         info->DeleteEntrySupported = sel->deletesupported;
         return SA_OK;
 }
@@ -217,10 +231,10 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
         SaHpiSelEntryT entry;
         SaErrorT retc;
 
+        /* check sel params and state */
         if (sel == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
         if (sel->enabled == FALSE) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
@@ -239,6 +253,7 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
                         return retc;
                 }
         }
+        sel->nextId = entry.EntryId + 1;
 
         if(close(file) != 0) {
                 dbg("Couldn't close file '%s'.", filename);

@@ -97,7 +97,7 @@ int add_domain(SaHpiDomainIdT did)
         }
         
         d->domain_id = did;
-        d->sel = oh_sel_create();
+        d->sel = oh_sel_create(OH_SEL_MAX_SIZE);
  
         global_domain_list = g_slist_append(global_domain_list, d);
 
