@@ -38,9 +38,6 @@ EXTRA_DIST              = plugin_static.c.in
 
 INCLUDES		= -I$(top_srcdir)/include
 
-SUBDIRS			= @SNMPDIR@
-DIST_SUBDIRS		= snmp
-
 AM_CFLAGS		= @CFLAGS@
 
 lib_LTLIBRARIES		= libopenhpi.la
