@@ -215,12 +215,58 @@ static int snmp_rsa_discover_resources(void *hnd)
 
 static int snmp_rsa_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
 {
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        SaHpiRptEntryT *resource = oh_get_resource_by_id(handle->rptcache, id);
+        struct oh_event *e = NULL;
+        guint datalength = tag->DataLength;
+
+        if (!resource) {
+                dbg("Error. Cannot set resource tag in plugin. No resource found by that id.");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        if (datalength > SAHPI_MAX_TEXT_BUFFER_LENGTH) datalength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
+
+        strncpy(resource->ResourceTag.Data, tag->Data, datalength);
+        resource->ResourceTag.DataLength = tag->DataLength;
+        resource->ResourceTag.DataType = tag->DataType;
+        resource->ResourceTag.Language = tag->Language;
+
+        /** Can we persist this to hardware or disk? */
+
+        /* Add changed resource to event queue */
+        e = g_malloc0(sizeof(struct oh_event));
+        e->type = OH_ET_RESOURCE;
+        e->u.res_event.entry = *resource;
+
+        handle->eventq = g_slist_append(handle->eventq, e);
+        
         return SA_OK;
 }
 
 
 static int snmp_rsa_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev)
 {
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        SaHpiRptEntryT *resource = oh_get_resource_by_id(handle->rptcache, id);
+        struct oh_event *e = NULL;
+
+        if (!resource) {
+                dbg("Error. Cannot set resource severity in plugin. No resource found by that id.");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        resource->ResourceSeverity = sev;
+
+        /** Can we persist this to disk? */
+
+        /* Add changed resource to event queue */
+        e = g_malloc0(sizeof(struct oh_event));
+        e->type = OH_ET_RESOURCE;
+        e->u.res_event.entry = *resource;
+        
+        handle->eventq = g_slist_append(handle->eventq, e);
+
         return SA_OK;
 }
 
