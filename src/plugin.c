@@ -100,23 +100,19 @@ int uninit_plugin(void)
 	return 0;
 }
 
-int load_handler (char *plugin_name, char *name, char *addr) 
+int load_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
-        
-        handler = new_handler(
-                g_strdup(plugin_name),
-                g_strdup(name),
-                g_strdup(addr)
-                );
-                
+
+        handler = new_handler(handler_config);
+
         if(handler == NULL) {
                 return -1;
         }
         
         global_handler_list = g_slist_append(
                 global_handler_list,
-                (gpointer *) handler
+                (gpointer) handler
                 );
         
         return 0;
@@ -127,7 +123,7 @@ int load_handler (char *plugin_name, char *name, char *addr)
  * FIXME: the plugins with multi-instances should reuse 'lt_dlhandler'
  */
 
-struct oh_handler *new_handler(char *plugin_name, char *name, char *addr)
+struct oh_handler *new_handler(GHashTable *handler_config)
 {
         struct oh_plugin_config *p_config;
         struct oh_handler *handler;
@@ -139,12 +135,13 @@ struct oh_handler *new_handler(char *plugin_name, char *name, char *addr)
         }
         memset(handler, '\0', sizeof(*handler));
         
-        if(plugin_refcount(plugin_name) < 1) {
-                dbg("Attempt to create handler for unknown plugin %s", plugin_name);
+        if(plugin_refcount((char *)g_hash_table_lookup(handler_config, "plugin")) < 1) {
+                dbg("Attempt to create handler for unknown plugin %s",
+                        (char *)g_hash_table_lookup(handler_config, "plugin"));
                 goto err;
         }
 
-        p_config = plugin_config(plugin_name);
+        p_config = plugin_config((char *)g_hash_table_lookup(handler_config, "plugin"));
         if(p_config == NULL) {
                 dbg("No such plugin config");
                 goto err;
@@ -161,7 +158,7 @@ struct oh_handler *new_handler(char *plugin_name, char *name, char *addr)
 
         /* this should be done elsewhere.  if 0 it for now to make it
            easier to migrate */
-        handler->hnd = handler->abi->open(name, addr);
+        handler->hnd = handler->abi->open(handler_config);
         if (!handler->hnd) {
                 dbg("The plugin can not work");
                 goto err;

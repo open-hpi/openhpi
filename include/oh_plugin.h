@@ -17,6 +17,7 @@
 #define __OH_PLUGIN_H
 
 #include <uuid/uuid.h>
+#include <glib.h>
 
 #include <sys/time.h>
 #include <SaHpi.h>
@@ -174,7 +175,7 @@ struct oh_abi_v1 {
 	 * @param addr the interface name.
 	 * for example, "ipaddr:port" for SNMP, "if_num" for IPMI SMI
 	 */
-	void *(*open)(const char *name, const char *addr);
+	void *(*open)(GHashTable *handler_config);
 	
 	void (*close)(void *hnd);
 	/**

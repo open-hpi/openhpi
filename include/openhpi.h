@@ -347,10 +347,10 @@ struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid);
 int init_plugin(void);
 int uninit_plugin(void);
 int load_plugin(struct oh_plugin_config *);
-int load_handler(char *plugin_name, char *name, char *addr);
+int load_handler(GHashTable *handler_config);
 
 /* here are the handler calls we need */
-struct oh_handler *new_handler(char *plugin_name, char *name,char *addr);
+struct oh_handler *new_handler(GHashTable *handler_config);
 int free_handler(struct oh_handler*);
 
 /* system event log */

@@ -135,9 +135,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                 tmph = (GHashTable *) g_slist_nth_data(
                         global_handler_configs, i);
                 if(plugin_refcount((char *)g_hash_table_lookup(tmph, "plugin")) > 0) {
-                        if(load_handler((char *)g_hash_table_lookup(tmph, "plugin"),
-                                (char *)g_hash_table_lookup(tmph, "name"),
-                                (char *)g_hash_table_lookup(tmph, "addr")) == 0) {
+                        if(load_handler(tmph) == 0) {
                                 dbg("Loaded handler for plugin %s",
                                         (char *)g_hash_table_lookup(tmph, "plugin"));
                         } else {
