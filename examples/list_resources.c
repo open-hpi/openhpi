@@ -314,20 +314,9 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 	SaHpiCtrlTypeT  	ctrl_type;
 
         SaHpiEirIdT             l_eirid;
-        SaHpiInventoryDataT     ll_inventdata;
-        SaHpiInventoryDataT     *l_inventdata;
+        SaHpiInventoryDataT     *l_inventdata = NULL;
         SaHpiUint32T            l_actualsize;
-        SaHpiUint32T            l_buffersize;
-        SaHpiInventDataRecordT  l_inventorydata;
-        SaHpiTextBufferT        l_manufacturer;
-        SaHpiTextBufferT        l_productname;
-        SaHpiTextBufferT        l_productversion;
-        SaHpiTextBufferT        l_modelnumber;
-        SaHpiTextBufferT        l_serialnumber;
-        SaHpiTextBufferT        l_partnumber;
-        SaHpiTextBufferT        l_fileid;
-        SaHpiTextBufferT        l_assettag;
-
+        SaHpiUint32T            l_buffersize = 0;
 
         printf("RDR Info:\n");
         next_rdr = SAHPI_FIRST_ENTRY;
@@ -335,7 +324,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 char tmp_epath[128];
                 current_rdr = next_rdr;
                 err = saHpiRdrGet(session_id, resource_id, current_rdr, 
-                                &next_rdr, &rdr);
+                                  &next_rdr, &rdr);
                 if (SA_OK != err) {
                         if (current_rdr == SAHPI_FIRST_ENTRY)
                                 printf("Empty RDR table\n");
@@ -478,17 +467,6 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			}
                 }
 
-                l_inventdata = (SaHpiInventoryDataT *)&ll_inventdata;
-                l_buffersize = 8 * (sizeof(SaHpiTextBufferT));
-                l_inventorydata.RecordData.ProductInfo.Manufacturer = &l_manufacturer;
-                l_inventorydata.RecordData.ProductInfo.ProductName =  &l_productname;
-                l_inventorydata.RecordData.ProductInfo.ProductVersion = &l_productversion;
-                l_inventorydata.RecordData.ProductInfo.ModelNumber = &l_modelnumber;
-                l_inventorydata.RecordData.ProductInfo.SerialNumber = &l_serialnumber;
-                l_inventorydata.RecordData.ProductInfo.PartNumber = &l_partnumber;
-                l_inventorydata.RecordData.ProductInfo.FileId = &l_fileid;
-                l_inventorydata.RecordData.ProductInfo.AssetTag = &l_assettag;
-                l_inventdata->DataRecords[0] = &l_inventorydata;
                 if (rdr.RdrType == SAHPI_INVENTORY_RDR)
                 {
                         l_eirid = rdr.RdrTypeUnion.InventoryRec.EirId;
