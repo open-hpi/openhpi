@@ -27,6 +27,11 @@
 #include <assert.h>
 
 
+#ifndef dIpmiLog_h
+#include "ipmi_log.h"
+#endif
+
+
 #define dMaxSdrData 255
 
 #define dSdrHeaderSize 5
@@ -68,6 +73,13 @@ public:
 
   void Log();
   bool Name( char *name, int size );
+
+  void Dump( cIpmiLog &dump, const char *name );
+
+protected:
+  void DumpFullSensor( cIpmiLog &dump );
+  void DumpFruDeviceLocator( cIpmiLog &dump );
+  void DumpMcDeviceLocator( cIpmiLog &dump );
 };
 
 
@@ -78,6 +90,8 @@ enum tIpmiRepositorySdrUpdate
   eIpmiRepositorySdrUpdateModal       = 2,
   eIpmiRepositorySdrUpdatBoth         = 3
 };
+
+const char *IpmiRepositorySdrUpdateToString( tIpmiRepositorySdrUpdate val );
 
 
 class cIpmiMc;
@@ -146,6 +160,8 @@ public:
   }
 
   int Fetch();
+
+  void Dump( cIpmiLog &dump, const char *name );
 };
 
 

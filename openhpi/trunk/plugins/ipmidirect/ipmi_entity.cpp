@@ -355,53 +355,53 @@ cIpmiEntity::Destroy()
 
 static const char *entity_id_types[] =
 {
-  "unspecified",
-  "other",
-  "unkown",
-  "processor",
-  "disk",
-  "peripheral",
-  "system_management_module",
-  "system_board",
-  "memory_module",
-  "processor_module",
-  "power_supply",
-  "add_in_card",
-  "front_panel_board",
-  "back_panel_board",
-  "power_system_board",
-  "drive_backplane",
-  "system_internal_expansion_board",
-  "other_system_board",
-  "processor_board",
-  "power_unit",
-  "power_module",
-  "power_management_board",
-  "chassis_back_panel_board",
-  "system_chassis",
-  "sub_chassis",
-  "other_chassis_board",
-  "disk_drive_bay",
-  "peripheral_bay",
-  "device_bay",
-  "fan_cooling",
-  "cooling_unit",
-  "cable_interconnect",
-  "memory_device",
-  "system_management_software",
-  "bios",
-  "operating_system",
-  "system_bus",
-  "group",
-  "remote_mgmt_comm_device",
-  "external_environment",
-  "battery",
-  "processing blade",
-  "connectivity switch",
-  "processor/memory module",
-  "I/O module",
-  "processor I/O module",
-  "management controller firmware",
+  "Unspecified",
+  "Other",
+  "Unkown",
+  "Processor",
+  "Disk",
+  "Peripheral",
+  "SystemManagementModule",
+  "SystemBoard",
+  "MemoryModule",
+  "ProcessorModule",
+  "PowerSupply",
+  "AddInCard",
+  "FrontPanelBoard",
+  "BackPanelBoard",
+  "PowerSystemBoard",
+  "DriveBackplane",
+  "SystemInternalExpansionBoard",
+  "OtherSystemBoard",
+  "ProcessorBoard",
+  "PowerUnit",
+  "PowerModule",
+  "PowerManagementBoard",
+  "ChassisBackPanelBoard",
+  "SystemChassis",
+  "SubChassis",
+  "OtherChassisBoard",
+  "DiskDriveBay",
+  "PeripheralBay",
+  "DeviceBay",
+  "FanCooling",
+  "CoolingUnit",
+  "CableInterconnect",
+  "MemoryDevice",
+  "SystemManagementSoftware",
+  "Bios",
+  "OperatingSystem",
+  "SystemBus",
+  "Group",
+  "RemoteMgmtCommDevice",
+  "ExternalEnvironment",
+  "Battery",
+  "ProcessingBlade",
+  "ConnectivitySwitch",
+  "ProcessorMemoryModule",
+  "IoModule",
+  "ProcessorIoModule",
+  "ManagementControllerFirmware",
 };
 
 #define dNumEntityIdTypes (sizeof(entity_id_types)/sizeof(char *))
@@ -416,23 +416,23 @@ IpmiEntityIdToString( tIpmiEntityId val )
   switch( val )
      {
        case eIpmiEntityIdPigMgFrontBoard:
-            return "PIGMG front board";
+            return "PigmigFrontBoard";
 
        case eIpmiEntityIdPigMgRearTransitionModule:
-            return "PIGMG rear transition module";
+            return "PigmigRearTransitionModule";
 
        case eIpmiEntityIdAtcaShelfManager:
-            return "ATCA shelf manager";
+            return "AtcaShelfManager";
             
        case eIpmiEntityIdAtcaFiltrationUnit:
-            return "ATCA filtration unit";
+            return "AtcaFiltrationUnit";
 
        default:
-            return "invalid";
+            return "Invalid";
      }
 
   // not reached
-  return "invalid";
+  return "Invalid";
 }
 
 
@@ -444,8 +444,8 @@ cIpmiEntity::AddSensor( cIpmiSensor *sensor )
   if ( hs )
      {
        if ( m_hotswap_sensor )
-            IpmiLog( "ups: found a second hotswap sensor !\n" );
-       
+            stdlog << "ups: found a second hotswap sensor !\n";
+
        m_hotswap_sensor = hs;
      }
 
@@ -463,8 +463,8 @@ cIpmiEntity::RemoveSensor( cIpmiSensor *sensor )
 
   if ( item == 0 )
      {
-       IpmiLog( "User requested removal of a sensor"
-                " from an entity, but the sensor was not there");
+       stdlog << "User requested removal of a sensor"
+                " from an entity, but the sensor was not there !\n";
        return;
      }
 
@@ -473,7 +473,7 @@ cIpmiEntity::RemoveSensor( cIpmiSensor *sensor )
   if ( hs )
      {
        if ( hs != m_hotswap_sensor )
-            IpmiLog( "ups: remove second hotswap sensor !\n" );
+            stdlog << "ups: remove second hotswap sensor !\n";
 
        m_hotswap_sensor = 0;
      }
@@ -494,8 +494,9 @@ cIpmiEntity::AddControl( cIpmiControl *control )
 {
   m_controls = g_list_append( m_controls, control );
 
-  IpmiLog( "adding control " );
+  stdlog << "adding control ";
   control->Log();
+  stdlog << "\n";
 
   dbg( "adding control %d.%d (%s) %02x: %s",
        EntityId(), EntityInstance(),
@@ -517,7 +518,7 @@ cIpmiEntity::AddControl( cIpmiControl *control )
 
   if ( !e )
      {
-       IpmiLog( "Out of space !\n" );   
+       stdlog << "Out of space !\n";   
        return;
      }
 
@@ -550,8 +551,8 @@ cIpmiEntity::RemoveControl( cIpmiControl *control )
 
   if ( item == 0 )
      {
-       IpmiLog( "User requested removal of a control"
-                " from an entity, but the control was not there");
+       stdlog << "User requested removal of a control"
+                " from an entity, but the control was not there";
        return;
      }
 

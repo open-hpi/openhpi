@@ -40,10 +40,10 @@ cIpmiControl::~cIpmiControl()
 void
 cIpmiControl::Log()
 {
-  IpmiLog( "control: mc = 0x%02x, num 0x%02x, %d.%d (%s), %s\n",
-           m_mc->GetAddress(), m_num,
-           m_entity->EntityId(), m_entity->EntityInstance(),
-           m_entity->EntityIdString(), m_id );
+  stdlog << "control: mc " << (unsigned char)m_mc->GetAddress() << ", num "
+         << m_num << ", " << m_entity->EntityId() << "."
+         << m_entity->EntityInstance() << " ("
+         << m_entity->EntityIdString() << "), " << m_id << "\n";
 }
 
 
@@ -60,7 +60,7 @@ cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 
        if ( !e )
           {
-            IpmiLog( "Out of space !\n" );
+            stdlog << "Out of space !\n";
             return false;
           }
 

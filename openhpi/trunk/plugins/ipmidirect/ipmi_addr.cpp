@@ -49,14 +49,16 @@ cIpmiAddr::Log() const
   switch( m_type )
      {
        case eIpmiAddrTypeSystemInterface:
-            IpmiLog( "si <%02x %02x>", m_channel, m_lun );
+            stdlog << "si <" << m_channel << " " << m_lun << ">";
             break;
        case eIpmiAddrTypeIpmb:
-            IpmiLog( "ipmb <%02x %02x %02x>", m_channel, m_lun, m_slave_addr );
+            stdlog << "ipmb <" << m_channel << " " << m_lun << " "
+                   << (unsigned char)m_slave_addr << ">";
             break;
 
        case eIpmiAddrTypeIpmbBroadcast:
-            IpmiLog( "bc <%02x %02x %02x>", m_channel, m_lun, m_slave_addr );
+            stdlog << "bc <" << m_channel << " " << m_lun << " "
+                   << (unsigned char)m_slave_addr << ">";
             break;
      }
 }

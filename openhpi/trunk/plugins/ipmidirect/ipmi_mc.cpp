@@ -59,8 +59,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
     m_real_major_version( 0 ), m_real_minor_version( 0 ),
     m_real_manufacturer_id( 0 ), m_real_product_id( 0 )
 {
-  IpmiLog( "adding MC: 0x%02x 0x%02x\n",
-           addr.m_channel, addr.m_slave_addr );
+  stdlog << "adding MC: " << addr.m_channel << " " << addr.m_slave_addr << "\n";
 
   // use default as long the manufactorer
   // and product id not known
@@ -75,7 +74,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   m_real_aux_fw_revision[2] = 0;
   m_real_aux_fw_revision[3] = 0;
 
-  m_sdrs = new cIpmiSdrs( this, 0, 1 );
+  m_sdrs = new cIpmiSdrs( this, 0, true );
   assert( m_sdrs );
 
   m_sensors = new cIpmiSensorInfo( this );
@@ -137,8 +136,7 @@ cIpmiMc::Cleanup()
   if ( m_sensors == 0 || m_sensors->m_sensor_count == 0 )
        return true;
 
-  IpmiLog( "removing MC: 0x%02x 0x%02x\n",
-           m_addr.m_channel, m_addr.m_slave_addr );
+  stdlog << "removing MC: " << m_addr.m_channel << " " << m_addr.m_slave_addr << "\n";
 
   return false;
 }
@@ -151,14 +149,14 @@ cIpmiMc::SendSetEventRcvr( unsigned int addr )
   cIpmiMsg rsp;
   int rv;
 
-  IpmiLog( "Send set event receiver: 0x%02x.\n", addr );
+  stdlog << "Send set event receiver: " << addr << ".\n";
 
   msg.m_data_len = 2;
   msg.m_data[0]  = addr;
   msg.m_data[1]  = 0; // LUN is 0 per the spec (section 7.2 of 1.5 spec).
 
-  IpmiLog( "SendSetEventRcvr: %x %x -> %x %x\n",
-           GetChannel(), GetAddress(), 0, addr  );
+  stdlog << "SendSetEventRcvr: " << GetChannel() << " " << (unsigned char)GetAddress()
+         << " -> 0 " << (unsigned char)addr << "\n";
 
   rv = SendCommand( msg, rsp );
 
@@ -168,8 +166,7 @@ cIpmiMc::SendSetEventRcvr( unsigned int addr )
   if ( rsp.m_data[0] != 0 )
      {
        // Error setting the event receiver, report it.
-       IpmiLog( "Could not set event receiver for MC at 0x%x !\n",
-                m_addr.m_slave_addr );
+       stdlog << "Could not set event receiver for MC at " << m_addr.m_slave_addr << " !\n";
 
        return EINVAL;
      }
@@ -443,16 +440,13 @@ cIpmiMc::CheckEventRcvr()
   if ( rsp.m_data[0] != 0 )
      {
        // Error getting the event receiver, report it.
-       IpmiLog( "Could not get event receiver for MC at 0x%x !\n",
-                m_addr.m_slave_addr );
+       stdlog << "Could not get event receiver for MC at " << m_addr.m_slave_addr << " !\n";
        return;
      } 
 
   if ( rsp.m_data_len < 2 )
      {
-       IpmiLog( "Get event receiver length invalid for MC at 0x%x !\n",
-                m_addr.m_slave_addr );
-
+       stdlog << "Get event receiver length invalid for MC at " << m_addr.m_slave_addr << " !\n";
        return;
      }
 
@@ -557,7 +551,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
 
   if ( rv )
      {
-       IpmiLog( "cannot send get power level: %d\n", rv );
+       stdlog << "cannot send get power level: " << rv << " !\n";
        return EINVAL;
      }
 
@@ -565,7 +559,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
        || rsp.m_data[0] != eIpmiCcOk 
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "cannot get power level: 0x%02x !\n", rsp.m_data[0] );
+       stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
        return EINVAL;
      }
 
@@ -584,14 +578,62 @@ cIpmiMc::AtcaPowerFru( int fru_id )
 
   if ( rv )
      {
-       IpmiLog( "cannot send set power level: %d\n", rv );
+       stdlog << "cannot send set power level: " << rv << " !\n";
        return EINVAL;
      }
 
   if (    rsp.m_data_len != 2
        || rsp.m_data[0] != eIpmiCcOk 
        || rsp.m_data[1] != dIpmiPigMgId )
-       IpmiLog( "cannot set power level: 0x%02x !\n", rsp.m_data[0] );
+       stdlog << "cannot set power level: " << rsp.m_data[0] << " !\n";
 
   return 0;
+}
+
+
+void
+cIpmiMc::Dump( cIpmiLog &dump, const char *name )
+{
+  char sdr_name[80];
+  sprintf( sdr_name, "Sdr%02x", GetAddress() );
+
+  if ( m_sdrs && m_provides_device_sdrs )
+       m_sdrs->Dump( dump, sdr_name );
+
+  char sel_name[80];
+  sprintf( sel_name, "Sel%02x", GetAddress() );
+
+  if ( m_sel && m_sel_device_support )
+       m_sel->Dump( dump, sel_name );
+
+  dump << "Mc \"" << name << "\"\n";
+  dump << "{\n";
+
+  if ( m_sdrs && m_provides_device_sdrs )
+       dump << "\tSdr                       = " << sdr_name << ";\n";
+
+  if ( m_sel && m_sel_device_support )
+       dump << "\tSel                       = " << sel_name << ";\n";
+
+  dump << "\tDeviceId                  = " << m_device_id << ";\n";
+  dump << "\tDeviceRevision            = " << m_device_revision << ";\n";
+  dump << "\tProvidesDeviceSdr         = " << m_provides_device_sdrs << ";\n";
+  dump << "\tDeviceAvailable           = " << (m_device_available ? "dIpmiDeviceStateUpdateInProgress" 
+                                               : "dIpmiDeviceStateNormalOperation" ) << ";\n";
+  dump << "\tChassisSupport            = " << m_chassis_support << ";\n";
+  dump << "\tBridgeSupport             = " << m_bridge_support << ";\n";
+  dump << "\tIpmbEventGeneratorSupport = " << m_ipmb_event_generator_support << ";\n";
+  dump << "\tIpmbEventReceiverSupport  = " << m_ipmb_event_receiver_support << ";\n";
+  dump << "\tFruInventorySupport       = " << m_fru_inventory_support << ";\n";
+  dump << "\tSelDeviceSupport          = " << m_sel_device_support << ";\n";
+  dump << "\tSdrRepositorySupport      = " << m_sdr_repository_support << ";\n";
+  dump << "\tSensorDeviceSupport       = " << m_sensor_device_support << ";\n";
+  dump << "\tFwVersion                 = " << m_major_fw_revision
+       << ", " << m_minor_fw_revision << ";\n";
+  dump << "\tVersion                   = " << m_major_version << ", " << m_minor_version << ";\n";
+  dump.Hex( true );
+  dump << "\tManufacturerId            = " << m_manufacturer_id << ";\n";
+  dump.Hex( false );
+  dump << "\tProductId                 = " << m_product_id << ";\n";
+  dump << "}\n\n\n";
 }

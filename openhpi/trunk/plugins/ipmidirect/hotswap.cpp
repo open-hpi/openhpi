@@ -35,7 +35,7 @@ static int hotswap_states_num = sizeof( hotswap_states ) / sizeof( char * );
 
 
 const char *
-HostswapStateToString( SaHpiHsStateT state )
+HotswapStateToString( SaHpiHsStateT state )
 {
   if ( state >= hotswap_states_num )
        return "invalid";
@@ -63,7 +63,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
 {
   if ( !m_is_atca )
      {
-       IpmiLog( "ATCA not supported by SI !\n" );
+       stdlog << "ATCA not supported by SI !\n";
        return SA_ERR_HPI_INVALID;
      }
 
@@ -80,7 +80,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
             break;
 
        default:
-            IpmiLog( "IfSetHotSwapState: illegal state %d !\n", state );
+            stdlog << "IfSetHotSwapState: illegal state " << state << " !\n";
             return SA_ERR_HPI_INVALID;
      }
 
@@ -104,7 +104,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
 
   if ( rv )
      {
-       IpmiLog( "IfSetHotSwapState: could not send set FRU activation: 0x%02x !\n", rv );
+       stdlog << "IfSetHotSwapState: could not send set FRU activation: " << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -112,8 +112,8 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
        || rsp.m_data[0] != eIpmiCcOk
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "IfSetHotSwapState: IPMI error set FRU activation: %x !\n",
-                rsp.m_data[0]);
+       stdlog << "IfSetHotSwapState: IPMI error set FRU activation: "
+	      << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_DATA_LEN_INVALID;
      }
@@ -128,7 +128,7 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
 {
   if ( !m_is_atca )
      {
-       IpmiLog( "ATCA not supported by SI !\n" );
+       stdlog << "ATCA not supported by SI !\n";
        return SA_ERR_HPI_INVALID;
      }
 
@@ -158,8 +158,7 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
      {
        if ( current != SAHPI_HS_STATE_INACTIVE )
           {
-            IpmiLog( "FRU not SAHPI_HS_STATE_INACTIVE: %d !\n",
-                     current );
+            stdlog << "FRU not SAHPI_HS_STATE_INACTIVE: " << current << " !\n";
             return SA_ERR_HPI_INVALID;
           }
 
@@ -174,8 +173,8 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
      {
        if ( current != SAHPI_HS_STATE_ACTIVE_HEALTHY )
           {
-            IpmiLog( "FRU not SAHPI_HS_STATE_ACTIVE_HEALTHY: %d !\n",
-                     current );
+            stdlog << "FRU not SAHPI_HS_STATE_ACTIVE_HEALTHY: "
+		   << current << " !\n";
             return SA_ERR_HPI_INVALID;
           }
 
@@ -192,7 +191,8 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
 
   if ( r )
      {
-       IpmiLog( "IfRequestHotswapAction: could not send set FRU activation policy: 0x%02x !\n", r );
+       stdlog << "IfRequestHotswapAction: could not send set FRU activation policy: "
+	      << r << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -200,7 +200,7 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
        || rsp.m_data[0] != eIpmiCcOk
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "IfRequestHotswapAction: set FRU activation: 0x%02x !\n", rsp.m_data[0] );
+       stdlog << "IfRequestHotswapAction: set FRU activation: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -227,7 +227,7 @@ cIpmi::IfGetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT &state )
 
   if ( rv )
      {
-       IpmiLog( "cannot send get power level: %d\n", rv );
+       stdlog << "cannot send get power level: " << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -235,7 +235,7 @@ cIpmi::IfGetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT &state )
        || rsp.m_data[0] != eIpmiCcOk 
        || rsp.m_data[0] != dIpmiPigMgId )
      {
-       IpmiLog( "cannot get power level: 0x%02x !\n", rsp.m_data[0] );
+       stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -248,7 +248,7 @@ cIpmi::IfGetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT &state )
 
   if ( rv )
      {
-       IpmiLog( "SetHotSwapState: could not send get power level: 0x%02x !\n", rv );
+       stdlog << "SetHotSwapState: could not send get power level: " << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -256,8 +256,7 @@ cIpmi::IfGetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT &state )
        || rsp.m_data[0] != eIpmiCcOk
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "SetHotSwapState: IPMI error get power level: 0x%02x !\n",
-                rsp.m_data[0]);
+       stdlog << "SetHotSwapState: IPMI error get power level: " << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_CMD;
      }
@@ -299,7 +298,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
 
        if ( rv )
           {
-            IpmiLog( "cannot send set power level: %d\n", rv );
+            stdlog << "cannot send set power level: " << rv << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
           }
 
@@ -307,7 +306,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
                || rsp.m_data[0] != eIpmiCcOk 
                || rsp.m_data[1] != dIpmiPigMgId )
           {
-            IpmiLog( "cannot set power level: 0x%02x !\n", rsp.m_data[0] );
+            stdlog << "cannot set power level: " <<  rsp.m_data[0] << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
           }
 
@@ -327,7 +326,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
 
        if ( rv )
           {
-            IpmiLog( "cannot send get power level: %d\n", rv );
+            stdlog << "cannot send get power level: " << rv << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
           }
 
@@ -335,7 +334,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
             || rsp.m_data[0] != eIpmiCcOk 
             || rsp.m_data[1] != dIpmiPigMgId )
           {
-            IpmiLog( "cannot get power level: 0x%02x !\n", rsp.m_data[0] );
+            stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
           }
 
@@ -355,7 +354,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
 
   if ( rv )
      {
-       IpmiLog( "cannot send set power level: %d\n", rv );
+       stdlog << "cannot send set power level: " << rv << "! \n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -363,7 +362,7 @@ cIpmi::IfSetPowerState( cIpmiEntity *ent, SaHpiHsPowerStateT state )
        || rsp.m_data[0] != eIpmiCcOk 
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "cannot set power level: 0x%02x !\n", rsp.m_data[0] );
+       stdlog << "cannot set power level: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -394,7 +393,7 @@ cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
 
   if ( rv )
      {
-       IpmiLog( "IfGetIndicatorState: could not send get FRU LED state: 0x%02x !\n", rv );
+       stdlog << "IfGetIndicatorState: could not send get FRU LED state: " << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -402,8 +401,8 @@ cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
        || rsp.m_data[0] != 0
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "IfGetIndicatorState: IPMI error set FRU LED state: %x !\n",
-                rsp.m_data[0]);
+       stdlog << "IfGetIndicatorState: IPMI error set FRU LED state: "
+	      <<  rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_DATA_LEN_INVALID;
      }
@@ -413,8 +412,8 @@ cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
      {     
        if ( rsp.m_data_len < 10 )
           {
-            IpmiLog( "IfGetIndicatorState: IPMI error (lamp test) message to short: %d !\n",
-                     rsp.m_data_len);
+            stdlog << "IfGetIndicatorState: IPMI error (lamp test) message to short: "
+		   << rsp.m_data_len << " !\n";
 
             return SA_ERR_HPI_DATA_LEN_INVALID;
           }
@@ -428,8 +427,8 @@ cIpmi::IfGetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT &state )
      {
        if ( rsp.m_data_len < 9 )
           {
-            IpmiLog( "IfGetIndicatorState: IPMI error (overwrite) message to short: %d !\n",
-                     rsp.m_data_len );
+            stdlog << "IfGetIndicatorState: IPMI error (overwrite) message to short: " 
+		   << rsp.m_data_len << " !\n";
 
             return SA_ERR_HPI_DATA_LEN_INVALID;
           }
@@ -479,7 +478,8 @@ cIpmi::IfSetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT state )
 
   if ( rv )
      {
-       IpmiLog( "IfGetIndicatorState: could not send get FRU LED state: 0x%02x !\n", rv );
+       stdlog << "IfGetIndicatorState: could not send get FRU LED state: "
+	      << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -487,8 +487,8 @@ cIpmi::IfSetIndicatorState( cIpmiEntity *ent, SaHpiHsIndicatorStateT state )
        || rsp.m_data[0] != 0
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "IfGetIndicatorState: IPMI error set FRU LED state: %x !\n",
-                rsp.m_data[0] );
+       stdlog << "IfGetIndicatorState: IPMI error set FRU LED state: " 
+	      << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_DATA_LEN_INVALID;
      }
@@ -522,7 +522,7 @@ cIpmi::IfSetResetState( cIpmiEntity *ent, SaHpiResetActionT state )
             break;
 
        default:
-            IpmiLog( "IfSetResetState: unsupported state 0x%02x !\n", state );
+            stdlog << "IfSetResetState: unsupported state " << state << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -546,7 +546,7 @@ cIpmi::IfSetResetState( cIpmiEntity *ent, SaHpiResetActionT state )
 
   if ( rv )
      {
-       IpmiLog( "SetHotSwapState: could not send FRU control: 0x%02x !\n", rv );
+       stdlog << "SetHotSwapState: could not send FRU control: " << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
@@ -554,8 +554,8 @@ cIpmi::IfSetResetState( cIpmiEntity *ent, SaHpiResetActionT state )
        || rsp.m_data[0] != 0
        || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "SetHotSwapState: IPMI error set FRU activation: %x !\n",
-                rsp.m_data[0]);
+       stdlog << "SetHotSwapState: IPMI error set FRU activation: "
+	      << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_CMD;
      }

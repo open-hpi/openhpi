@@ -68,7 +68,7 @@ cIpmiSensorHotswap::CreateRdr( SaHpiRptEntryT &resource,
 
        if ( !e )
           {
-            IpmiLog( "Out of space !\n" );
+            stdlog << "out of space !\n";
             return false;
           }
 
@@ -149,7 +149,7 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
 
   if ( rv != SA_OK )
      {
-       IpmiLog( "cannot get hotswap state !\n" );
+       stdlog << "cannot get hotswap state !\n";
        return rv;
      }
 

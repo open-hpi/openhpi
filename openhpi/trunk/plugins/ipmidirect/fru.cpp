@@ -72,7 +72,7 @@ GeneralDataRecord( SaHpiInventGeneralDataT *r, cIpmiFruRecord *fr )
             break;
 
        idx++;
-      }
+     }
 
   size = idx * sizeof( SaHpiTextBufferT * );
   p += size;
@@ -91,7 +91,7 @@ GeneralDataRecord( SaHpiInventGeneralDataT *r, cIpmiFruRecord *fr )
   r->Manufacturer   = SetItem( fr, p, size, dIpmiFruItemManufacturer );
   r->ProductName    = SetItem( fr, p, size, dIpmiFruItemProductName );
   r->ProductVersion = SetItem( fr, p, size, dIpmiFruItemProductVersion );
-  r->ModelNumber    = SetItem( fr, p, size, "ModelNumer" ); // just to create an empty text buffer
+  r->ModelNumber    = SetItem( fr, p, size, "ModelNumber" ); // just to create an empty text buffer
   r->SerialNumber   = SetItem( fr, p, size, dIpmiFruItemSerialNumber );
   r->PartNumber	    = SetItem( fr, p, size, dIpmiFruItemPartNumber );
   r->FileId 	    = SetItem( fr, p, size, dIpmiFruItemFruFileId );
@@ -269,7 +269,7 @@ AddInventoryDataEvent( cIpmiEntity *ent, cIpmiFru *fru, const SaHpiRptEntryT &re
 
   if ( !e )
      {
-       IpmiLog( "Out of space !\n" );   
+       stdlog << "Out of space !\n";
        return;
      }
 
@@ -296,7 +296,7 @@ AddInventoryDataEvent( cIpmiEntity *ent, cIpmiFru *fru, const SaHpiRptEntryT &re
 void
 cIpmi::IfFruAdd( cIpmiEntity *ent, cIpmiFru *fru )
 {
-  IpmiLog( "adding inventory data\n" );
+  stdlog << "adding inventory data\n";
 
   dbg( "adding inventory data %d.%d (%s): id %02x",
        ent->EntityId(), ent->EntityInstance(),
@@ -354,7 +354,7 @@ cIpmi::IfFruAdd( cIpmiEntity *ent, cIpmiFru *fru )
 
        if ( !e )
           {
-            IpmiLog( "Out of space !\n" );
+            stdlog << "Out of space !\n";
             return;
           }
 

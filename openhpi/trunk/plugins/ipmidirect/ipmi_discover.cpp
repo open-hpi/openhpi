@@ -46,9 +46,10 @@ public:
 cIpmiMcThread::cIpmiMcThread( cIpmiDomain *domain,
                               unsigned char addr,
                               unsigned int properties,
-                              unsigned int mc_type )
+                              unsigned int mc_type,
+                              int slot )
   : m_domain( domain ), m_addr( addr ), m_type( mc_type ),
-    m_mc( 0 ), m_properties( properties ),
+    m_slot( slot ), m_mc( 0 ), m_properties( properties ),
     m_exit( false ), m_tasks( 0 ),
     m_sel( 0 ), m_events( 0 )
 {
@@ -150,7 +151,7 @@ cIpmiMcThread::ClearMcTaskList()
 void *
 cIpmiMcThread::Run()
 {
-  IpmiLog( "starting MC thread 0x%02x.\n", m_addr );
+  stdlog << "starting MC thread " << m_addr << ".\n";
 
   m_domain->m_mc_thread_lock.Lock();
   m_domain->m_num_mc_threads++;
@@ -195,7 +196,7 @@ cIpmiMcThread::Run()
           }
      }
 
-  IpmiLog( "stop MC thread 0x%02x.\n", m_addr );
+  stdlog << "stop MC thread " << m_addr << ".\n";
 
   m_domain->m_mc_thread_lock.Lock();
   assert( m_domain->m_num_mc_threads > 0 );
@@ -226,32 +227,33 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        get_device_id_rsp = &gdi_rsp;
      }
 
-  IpmiLog( "MC at 0x%02x found:\n", m_addr );
-  IpmiLog( "\tdevice id             : 0x%02x\n", get_device_id_rsp->m_data[1] );
-  IpmiLog( "\tdevice SDR            : %s\n", (get_device_id_rsp->m_data[2] & 0x80) ? "yes" : "no" );
-  IpmiLog( "\tdevice revision       : 0x%02x\n", get_device_id_rsp->m_data[2] & 0x0f );
-  IpmiLog( "\tdevice available      : %s\n", (get_device_id_rsp->m_data[3] & 0x80) ? "update" : "normal operation" );
-  IpmiLog( "\tmajor firmware revsion: 0x%02x\n", get_device_id_rsp->m_data[3] & 0x7f );
-  IpmiLog( "\tfirmware              : %d.%d\n", (get_device_id_rsp->m_data[4] >>4) & 0xf,
-           get_device_id_rsp->m_data[4] & 0xf );
-  IpmiLog( "\tIPMI version          : %d.%d\n", get_device_id_rsp->m_data[5] & 0xf,
-           (get_device_id_rsp->m_data[5] >> 4) & 0xf );
-  IpmiLog( "\tchassis device        : %s\n", (get_device_id_rsp->m_data[6] & 0x80) ? "yes" : "no" );
-  IpmiLog( "\tbridge                : %s\n", (get_device_id_rsp->m_data[6] & 0x40) ? "yes" : "no" );
-  IpmiLog( "\tIPMB event generator  : %s\n", (get_device_id_rsp->m_data[6] & 0x20) ? "yes" : "no" );
-  IpmiLog( "\tIPMB event receiver   : %s\n", (get_device_id_rsp->m_data[6] & 0x10) ? "yes" : "no" );
-  IpmiLog( "\tFRU inventory data    : %s\n", (get_device_id_rsp->m_data[6] & 0x08) ? "yes" : "no" );
-  IpmiLog( "\tSEL device            : %s\n", (get_device_id_rsp->m_data[6] & 0x04) ? "yes" : "no" );
-  IpmiLog( "\tSDR repository device : %s\n", (get_device_id_rsp->m_data[6] & 0x02) ? "yes" : "no" );
-  IpmiLog( "\tsensor device         : %s\n", (get_device_id_rsp->m_data[6] & 0x01) ? "yes" : "no" );
+  stdlog << "MC at " << m_addr << " found:\n";
+  stdlog << "\tdevice id             : " <<  get_device_id_rsp->m_data[1] << "\n";
+  stdlog << "\tdevice SDR            : " << ((get_device_id_rsp->m_data[2] & 0x80) ? "yes" : "no") << "\n";
+  stdlog << "\tdevice revision       : " << (get_device_id_rsp->m_data[2] & 0x0f ) << "\n";
+  stdlog << "\tdevice available      : " << ((get_device_id_rsp->m_data[3] & 0x80) ? "update" : "normal operation" ) << "\n";
+  stdlog << "\tmajor firmware revsion: " << (get_device_id_rsp->m_data[3] & 0x7f) << "\n";
+  stdlog << "\tfirmware              : " << (int)((get_device_id_rsp->m_data[4] >>4) & 0xf) << "." 
+         << (int)(get_device_id_rsp->m_data[4] & 0xf) << "\n";
+  stdlog << "\tIPMI version          : " << (int)(get_device_id_rsp->m_data[5] & 0xf) << "."
+         << ((get_device_id_rsp->m_data[5] >> 4) & 0xf) << "\n";
+  stdlog << "\tchassis device        : " << ((get_device_id_rsp->m_data[6] & 0x80) ? "yes" : "no") << "\n";
+  stdlog << "\tbridge                : " << ((get_device_id_rsp->m_data[6] & 0x40) ? "yes" : "no") << "\n";
+  stdlog << "\tIPMB event generator  : " << ((get_device_id_rsp->m_data[6] & 0x20) ? "yes" : "no") << "\n";
+  stdlog << "\tIPMB event receiver   : " << ((get_device_id_rsp->m_data[6] & 0x10) ? "yes" : "no") << "\n";
+  stdlog << "\tFRU inventory data    : " << ((get_device_id_rsp->m_data[6] & 0x08) ? "yes" : "no") << "\n";
+  stdlog << "\tSEL device            : " << ((get_device_id_rsp->m_data[6] & 0x04) ? "yes" : "no") << "\n";
+  stdlog << "\tSDR repository device : " << ((get_device_id_rsp->m_data[6] & 0x02) ? "yes" : "no") << "\n";
+  stdlog << "\tsensor device         : " << ((get_device_id_rsp->m_data[6] & 0x01) ? "yes" : "no") << "\n";
 
   unsigned int mid =    get_device_id_rsp->m_data[7]
                      | (get_device_id_rsp->m_data[8] << 8)
                      | (get_device_id_rsp->m_data[9] << 16);
-  IpmiLog( "\tmanufacturer id       : 0x%03x\n", mid );
+  stdlog.Hex();
+  stdlog << "\tmanufacturer id       : " << mid << "\n";
 
   unsigned int pid = IpmiGetUint16( get_device_id_rsp->m_data + 10 );
-  IpmiLog( "\tproduct id            : 0x%02x\n", pid );
+  stdlog << "\tproduct id            : " << pid << "\n";
 
   m_mc = m_domain->FindMcByAddr( addr );
 
@@ -282,7 +284,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
           {
             // If we couldn't handle the device data, just clean
             // it up
-            IpmiLog( "couldn't handle the device data !\n" );
+            stdlog << "couldn't handle the device data !\n";
 
             m_domain->CleanupMc( m_mc );
             m_mc = 0;
@@ -295,7 +297,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
 
        if ( mv->Init( m_mc, *get_device_id_rsp ) == false )
           {
-            IpmiLog( "cannot initialize MC: %02x !\n", m_mc->GetAddress() );
+            stdlog << "cannot initialize MC: " <<  (unsigned char)m_mc->GetAddress() << " !\n";
 
             m_domain->CleanupMc( m_mc );
             m_mc = 0;
@@ -307,7 +309,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
 
        if ( rv )
           {
-            IpmiLog( "error while discover MC 0x%02x !\n", m_addr );
+            stdlog << "error while discover MC " << m_addr << " !\n";
 
             m_domain->CleanupMc( m_mc );
             m_mc = 0;
@@ -328,7 +330,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
      {
        assert( m_sel == 0 );
 
-       IpmiLog( "addr 0x%02x: add read sel. cIpmiMcThread::Discover\n", m_addr );
+       stdlog << "addr " << m_addr << ": add read sel. cIpmiMcThread::Discover\n";
 
        m_sel = m_mc->Sel();
 
@@ -378,18 +380,18 @@ void
 cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
                             cIpmiEvent *event )
 {
-  IpmiLog( "event: " );
+  stdlog << "event: ";
   event->Log();
 
   if ( event->m_type != 0x02 )
      {
-       IpmiLog( "remove event: unknown event type %02x !\n", event->m_type );
+       stdlog << "remove event: unknown event type " << (unsigned char)event->m_type << " !\n";
        return;
      }
 
   if ( (event->m_data[4] & 0x01) != 0 )
      {
-       IpmiLog( "remove event: system software event.\n" );
+       stdlog << "remove event: system software event.\n";
        return;
      }
 
@@ -418,7 +420,7 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
        
        if ( !hs )
           {
-            IpmiLog( "Not a hotswap sensor !\n" );
+            stdlog << "Not a hotswap sensor !\n";
             return;
           }
 
@@ -436,7 +438,7 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
        if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
             || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
           {
-            IpmiLog( "addr 0x%02x: rem poll. cIpmiMcThread::HandleEvent\n", m_addr );
+            stdlog << "addr " << m_addr << ": rem poll. cIpmiMcThread::HandleEvent\n";
             RemMcTask( m_mc );
           }
 
@@ -446,7 +448,7 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
        if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
             || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
           {
-            IpmiLog( "addr 0x%02x: add poll. cIpmiMcThread::HandleEvent\n", m_addr );
+            stdlog << "addr " << m_addr << ": add poll. cIpmiMcThread::HandleEvent\n";
             AddMcTask( &cIpmiMcThread::PollAddr, m_domain->m_mc_poll_interval,
                        m_mc );
           }
@@ -465,7 +467,7 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
      }
 
   // unknown event
-  IpmiLog( "unknown event.\n" );
+  stdlog << "unknown event.\n";
 }
 
 
@@ -477,25 +479,25 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
        || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
      {
-       IpmiLog( "addr 0x%02x: rem poll. cIpmiMcThread::HandleHotswapEvent\n", m_addr );
+       stdlog << "addr " << m_addr << ": rem poll. cIpmiMcThread::HandleHotswapEvent\n";
        RemMcTask( m_mc );
      }
 
   tIpmiFruState current_state = (tIpmiFruState)(event->m_data[10] & 0x0f);
   tIpmiFruState prev_state    = (tIpmiFruState)(event->m_data[11] & 0x0f);
 
-  IpmiLog( "hot swap event M%d -> M%d.\n", prev_state, current_state );
+  stdlog << "hot swap event M" << (int)prev_state << " -> M" 
+         << (int)current_state << ".\n";
 
   // check for mc
   if ( !m_mc )
      {
-       IpmiLog( "scan for MC 0x%02x 0x%02x.\n",
-                event->m_data[5] >> 4, event->m_data[4] );
+       stdlog << "scan for MC " << (event->m_data[5] >> 4) << " " << event->m_data[4] << ".\n";
 
        if (    m_mc && m_mc->IsActive()
             && m_mc->GetChannel() == (unsigned int)(event->m_data[5] >> 4)
             && m_mc->GetAddress() == (unsigned int)event->m_data[4] )
-            IpmiLog( "MC exists and is active !\n" );
+            stdlog << "MC exists and is active !\n";
        else
           {
             assert( m_sel == 0 );
@@ -533,14 +535,14 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
             rv = m_mc->SendCommand( msg, rsp );
 
             if ( rv )
-                 IpmiLog( "cannot send set fru activation: %d\n", rv );
+                 stdlog << "cannot send set fru activation: " << rv << " !\n";
             else if (    rsp.m_data_len != 2
                       || rsp.m_data[0] != eIpmiCcOk 
                       || rsp.m_data[1] != dIpmiPigMgId )
-                 IpmiLog( "cannot set fru activation: 0x%02x !\n", rsp.m_data[0] );
+                 stdlog << "cannot set fru activation: " << rsp.m_data[0] << " !\n";
           }
        else
-            IpmiLog( "power fru.\n" );
+            stdlog << "power fru.\n";
      }
 
   sensor->HandleEvent( event );
@@ -567,7 +569,7 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
        || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
      {
-       IpmiLog( "addr 0x%02x: add poll. cIpmiMcThread::HandleHotswapEvent\n", m_addr );
+       stdlog << "addr " << m_addr << ": add poll. cIpmiMcThread::HandleHotswapEvent\n";
        AddMcTask( &cIpmiMcThread::PollAddr, m_domain->m_mc_poll_interval, m_mc );
      }
 }
@@ -587,7 +589,7 @@ cIpmiMcThread::PollAddr( void *userdata )
 {
   cIpmiMc *mc = (cIpmiMc *)userdata;
 
-  IpmiLog( "poll MC at 0x%02x.\n", m_addr );
+  stdlog << "poll MC at " << m_addr << ".\n";
 
   // send a get device id
   cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, m_addr );
@@ -602,7 +604,7 @@ cIpmiMcThread::PollAddr( void *userdata )
      {
        if ( m_mc )
           {
-            IpmiLog( "communication lost: 0x%02x !\n", m_addr );
+            stdlog << "communication lost: " << m_addr << " !\n";
 
             if ( m_properties & dIpmiMcThreadCreateM0 )
                {
@@ -632,7 +634,7 @@ cIpmiMcThread::PollAddr( void *userdata )
                       if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
                               || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
                          {
-                           IpmiLog( "addr 0x%02x: add poll. cIpmiMcThread::PollAddr\n", m_addr );
+                           stdlog << "addr " << m_addr << ": add poll. cIpmiMcThread::PollAddr\n";
                            AddMcTask( &cIpmiMcThread::PollAddr, m_domain->m_mc_poll_interval, m_mc );
                          }
 
@@ -666,7 +668,7 @@ cIpmiMcThread::PollAddr( void *userdata )
   if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
        || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
      {
-       IpmiLog( "addr 0x%02x: add poll. cIpmiMcThread::PollAddr\n", m_addr );
+       stdlog << "addr " << m_addr << ": add poll. cIpmiMcThread::PollAddr\n";
        AddMcTask( &cIpmiMcThread::PollAddr, m_domain->m_mc_poll_interval, m_mc );
      }
 }
@@ -678,7 +680,7 @@ cIpmiMcThread::ReadSel( void *userdata )
   cIpmiSel *sel = (cIpmiSel *)userdata;
   GList *new_events = sel->GetEvents();
 
-  IpmiLog( "addr 0x%02x: add sel reading. cIpmiMcThread::ReadSel\n", m_addr );
+  stdlog << "addr " << m_addr << ": add sel reading. cIpmiMcThread::ReadSel\n";
 
   // add myself to task list
   AddMcTask( &cIpmiMcThread::ReadSel, m_domain->m_sel_rescan_interval,

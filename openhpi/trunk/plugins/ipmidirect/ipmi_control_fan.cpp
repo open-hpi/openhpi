@@ -62,9 +62,9 @@ void
 cIpmiControlFan::Log()
 {
   cIpmiControl::Log();
-  IpmiLog( "\tfan min %d, max %d, auto speed %s\n",
-           m_minimum_speed_level, m_maximum_speed_level,
-           m_local_control_mode ? "true" : "false" );
+  stdlog << "\tfan min " << m_minimum_speed_level << ", max "
+         << m_maximum_speed_level << ", auto speed "
+         << m_local_control_mode << "\n";
 }
 
 
@@ -93,7 +93,7 @@ cIpmiControlFan::SetState( const SaHpiCtrlStateT &state )
        || rsp.m_data[0] != eIpmiCcOk
           || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "cannot send set fan speed !\n" );
+       stdlog << "cannot send set fan speed !\n";
        return SA_ERR_HPI_INVALID_REQUEST;
      }
 
@@ -118,7 +118,7 @@ cIpmiControlFan::GetState( SaHpiCtrlStateT &state )
        || rsp.m_data[0] != eIpmiCcOk
           || rsp.m_data[1] != dIpmiPigMgId )
      {
-       IpmiLog( "cannot send get fan speed !\n" );
+       stdlog << "cannot send get fan speed !\n";
        return SA_ERR_HPI_INVALID_REQUEST;
      }
 

@@ -32,12 +32,12 @@
 
 static const char *thres_map[] =
 {
-  "IpmiLowerNonCritical",
-  "IpmiLowerCritical",
-  "IpmiLowerNonRecoverable",
-  "IpmiUpperNonCritical",
-  "IpmiUpperCritical",
-  "IpmiUpperNonRecoverable"
+  "dIpmiThresholdLowerNonCritical",
+  "dIpmiThresholdLowerCritical",
+  "dIpmiThresholdLowerNonRecoverable",
+  "dIpmiThresholdUpperNonCritical",
+  "dIpmiThresholdUpperCritical",
+  "dIpmiThresholdUpperNonRecoverable"
 };
 
 static int thres_map_num = sizeof( thres_map ) / sizeof( char * );
@@ -50,6 +50,22 @@ IpmiThresToString( tIpmiThresh val )
        return "invalid";
 
   return thres_map[val];
+}
+
+
+void 
+IpmiThresholdMaskToString( unsigned int mask, char *str )
+{
+  *str = 0;
+
+  for( int i = 0; i < 6; i++ )
+       if ( mask & ( 1 << i ) )
+          {
+            if ( *str )
+                 strcat( str, " | " );
+
+            strcat( str, thres_map[i] );
+          }
 }
 
 
@@ -85,8 +101,10 @@ cIpmiEvent::Cmp( const cIpmiEvent &event2 ) const
 void
 cIpmiEvent::Log() const
 {
+
   assert( m_mc );
 
+/*
   unsigned int t = IpmiGetUint32( m_data );
   char ts[dDateTimeStringSize];
 
@@ -99,4 +117,70 @@ cIpmiEvent::Log() const
            m_data[8], (m_data[9] >> 7) ? "deassertion" : "assertion",
            IpmiEventReadingTypeToString( (tIpmiEventReadingType)( m_data[9] & 0x7f) ),
            m_data[10], m_data[11], m_data[12] );
+*/
+}
+
+
+void
+cIpmiEvent::Dump( cIpmiLog &dump, const char *name )
+{
+  dump << "Event \"" << name << "\"\n";
+  dump << "{\n";
+  dump << "\tRecordId                   = " << m_record_id << ";\n";
+
+  char str[80];
+
+  if ( m_type == 0x02 )
+       strcpy( str, "dIpmiEventRecordTypeSystemEvent" );
+  else
+       sprintf( str, "0x%02x", m_type );
+
+  dump << "\tRecordType                 = " << str << ";\n";
+
+  unsigned int t = IpmiGetUint32( m_data );
+  dump.Hex( true );
+  dump << "\tTimestamp                  = " << t << ";\n";
+  dump.Hex( false );
+  
+  dump << "\tSlaveAddr                  = " << m_data[4] << ";\n";
+  dump << "\tChannel                    = " << (m_data[5] >> 4) << ";\n";
+  dump << "\tLun                        = " << (m_data[5] & 3 ) << ";\n";
+  dump << "\tRevision                   = " << m_data[6] << ";\n";
+
+  tIpmiSensorType sensor_type = (tIpmiSensorType)m_data[7];
+
+  if ( !strcmp( IpmiSensorTypeToString( sensor_type ), "Invalid" ) )
+       sprintf( str, "0x%02x", sensor_type );
+  else
+       sprintf( str, "dIpmiSensorType%s", IpmiSensorTypeToString( sensor_type ) );
+
+  dump << "\tSensorType                 = " << str << ";\n";
+
+  sprintf( str, "0x%02x", m_data[8] );
+  dump << "\tSensorNum                  = " << str << ";\n";
+
+  dump << "\tEventDirection             = " << ((m_data[9] & 0x80) ?
+                                                "dIpmiEventDirectionDeassertion" 
+                                                : "dIpmiEventDirectionAssertion" )
+       << ";\n";
+
+  tIpmiEventReadingType reading_type = (tIpmiEventReadingType)(m_data[9] & 0x7f);
+
+  if ( !strcmp( IpmiEventReadingTypeToString( reading_type ), "Invalid" ) )
+       sprintf( str, "0x%02x", reading_type );
+  else
+       sprintf( str, "dIpmiEventReadingType%s", IpmiEventReadingTypeToString( reading_type ) );
+
+  dump << "\tEventReadingType           = " << str << ";\n";
+
+  sprintf( str, "0x%02x", m_data[10] );
+  dump << "\tEventData1                 = " << str << ";\n";
+
+  sprintf( str, "0x%02x", m_data[11] );
+  dump << "\tEventData2                 = " << str << ";\n";
+
+  sprintf( str, "0x%02x", m_data[12] );
+  dump << "\tEventData3                 = " << str << ";\n";
+
+  dump << "}\n\n\n";
 }

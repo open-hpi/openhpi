@@ -22,7 +22,7 @@
 void
 cIpmi::IfSelAdd( cIpmiEntity *ent, cIpmiSel * /*sel*/ )
 {
-  IpmiLog( "adding SEL\n" );
+  stdlog << "adding SEL\n";
 
   dbg( "adding SEL %d.%d (%s)",
        ent->EntityId(), ent->EntityInstance(),
@@ -46,7 +46,7 @@ cIpmi::IfSelAdd( cIpmiEntity *ent, cIpmiSel * /*sel*/ )
 
   if ( !e )
      {
-       IpmiLog( "Out of space !\n" );
+       stdlog << "out of space !\n";
        return;
      }
 

@@ -135,14 +135,6 @@ enum tIpmiEventSupport
 const char *IpmiEventSupportToString( tIpmiEventSupport val );
 
 
-struct tIpmiStates
-{
-  int          m_event_messages_enabled;
-  int          m_sensor_scanning_enabled;
-  int          m_initial_update_in_progress;
-  unsigned int m_states;
-};
-
 enum tIpmiValuePresent
 {
   eIpmiNoValuesPresent,
@@ -315,9 +307,6 @@ public:
 
   cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_num );
 };
-
-
-void IpmiInitStates( tIpmiStates &states );
 
 
 #endif

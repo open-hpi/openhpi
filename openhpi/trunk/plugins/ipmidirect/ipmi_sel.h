@@ -136,6 +136,8 @@ public:
 
   void Lock() { m_sel_lock.Lock(); }
   void Unlock() { m_sel_lock.Unlock(); }
+
+  void Dump( cIpmiLog &dump, const char *name );
 };
 
 

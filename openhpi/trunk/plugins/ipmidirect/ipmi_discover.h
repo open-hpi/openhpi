@@ -52,21 +52,29 @@ private:
   cIpmiDomain  *m_domain;
   unsigned char m_addr;
   unsigned int  m_type; // dIpmiMcTypeBitXXXX
+  int           m_slot;
   cIpmiMc      *m_mc;
 
   // properties
   unsigned int m_properties; // dIpmiMcThreadXXXX
 
+public:
+  unsigned int Type() { return m_type; }
+  int          Slot() { return m_slot; }
+  cIpmiMc     *Mc()   { return m_mc; }
+
+protected:
   virtual void *Run();
 
 public:
   // signal to MC thread to exit
   bool m_exit;
 
-  cIpmiMcThread( cIpmiDomain *domain,
+  cIpmiMcThread( cIpmiDomain  *domain,
                  unsigned char addr,
-                 unsigned int properties,
-                 unsigned int mc_type );
+                 unsigned int  properties,
+                 unsigned int  mc_type,
+                 int           slot );
 
   ~cIpmiMcThread();
 

@@ -83,7 +83,7 @@ cIpmiSel::ClearSel()
             return rv;
      }
 
-  IpmiLog( "clear SEL.\n" );
+  stdlog << "clear SEL.\n";
 
   cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdClearSel );
   msg.m_data_len = 6;
@@ -124,21 +124,21 @@ cIpmiSel::GetInfo()
 
   if ( rv )
      {
-       IpmiLog( "could not send get sel info: 0x%02x !\n", rv );
+       stdlog << "could not send get sel info: " << rv << " !\n";
        return rv;
      }
 
   if ( rsp.m_data[0] != 0 )
      {
-       IpmiLog( "IpmiSelGetInfo: IPMI error from SEL info fetch: %x !\n",
-                rsp.m_data[0]);
+       stdlog << "IpmiSelGetInfo: IPMI error from SEL info fetch: "
+              << rsp.m_data[0] << " !\n";
 
        return EINVAL;
      }
 
   if ( rsp.m_data_len < 15 )
      {
-       IpmiLog( "handle_sel_info: SEL info too short !\n");
+       stdlog << "handle_sel_info: SEL info too short !\n";
        return EINVAL;
      }
 
@@ -146,7 +146,7 @@ cIpmiSel::GetInfo()
 
   // Pull pertinant info from the response.
   m_major_version               = rsp.m_data[1] & 0xf;
-  m_major_version               = (rsp.m_data[1] >> 4) & 0xf;
+  m_minor_version               = (rsp.m_data[1] >> 4) & 0xf;
   m_entries                     = IpmiGetUint16( rsp.m_data + 2 );
   m_overflow                    = (rsp.m_data[14] & 0x80) == 0x80;
   m_supports_delete_sel         = (rsp.m_data[14] & 0x08) == 0x08;
@@ -189,19 +189,19 @@ cIpmiSel::Reserve()
 
   if ( rv )
      {
-       IpmiLog( "cannot send reserve sel: 0x%02x !\n", rv );
+       stdlog << "cannot send reserve sel: " << rv << " !\n";
        return rv;
      }
 
   if ( rsp.m_data[0] != 0 )
      {
-       IpmiLog( "sel_handle_reservation: Failed getting reservation !\n" );
+       stdlog << "sel_handle_reservation: Failed getting reservation !\n";
        return ENOSYS;
      }
 
   if ( rsp.m_data_len < 3 )
      {
-       IpmiLog( "sel_handle_reservation: got invalid reservation length !\n" );
+       stdlog << "sel_handle_reservation: got invalid reservation length !\n";
        return EINVAL;
      }
 
@@ -242,13 +242,13 @@ cIpmiSel::ReadSelRecord( cIpmiEvent &event, unsigned int &next_rec_id )
 
   if ( rv )
      {
-       IpmiLog( "Could not send SEL fetch command: %x !\n", rv );
+       stdlog << "Could not send SEL fetch command: " << rv << " !\n";
        return -1;
      }
   
   if ( rsp.m_data[0] == eIpmiCcInvalidReservation )
      {
-       IpmiLog( "SEL reservation lost !\n" );
+       stdlog << "SEL reservation lost !\n";
        m_reservation = 0;
 
        return eIpmiCcInvalidReservation;
@@ -256,8 +256,8 @@ cIpmiSel::ReadSelRecord( cIpmiEvent &event, unsigned int &next_rec_id )
 
   if ( rsp.m_data[0] != 0 )
      {
-       IpmiLog( "IPMI error from SEL fetch: %x !\n",
-                rsp.m_data[0] );
+       stdlog << "IPMI error from SEL fetch: " 
+              << rsp.m_data[0] << " !\n";
 
        return -1;
      }
@@ -286,7 +286,7 @@ cIpmiSel::ReadSel( unsigned int &num, bool &uptodate )
      {
        if ( fetch_retry_count >= dMaxSelFetchRetries )
           {
-            IpmiLog( "too many lost reservations in SEL fetch !\n");
+            stdlog << "too many lost reservations in SEL fetch !\n";
             return 0;
           }
 
@@ -392,7 +392,7 @@ cIpmiSel::GetEvents()
 {
   cThreadLockAuto al( m_sel_lock );
 
-  IpmiLog( "reading SEL.\n" );
+  stdlog << "reading SEL.\n";
 
   // read sel
   bool uptodate = false;
@@ -574,7 +574,7 @@ cIpmiSel::DeleteSelEntry( unsigned short rid )
 
        if ( rv )
           {
-            IpmiLog( "Could not send delete SEL entry: %x !\n", rv );
+            stdlog << "Could not send delete SEL entry: " << rv << " !\n";
             return EINVAL;
           }
 
@@ -584,16 +584,16 @@ cIpmiSel::DeleteSelEntry( unsigned short rid )
                  // reservation lost
                  continue;
 
-            IpmiLog( "IPMI error from delete SEL entry: %x !\n",
-                     rsp.m_data[0] );
+            stdlog << "IPMI error from delete SEL entry: "
+                   << rsp.m_data[0] << " !\n";
 
             return EINVAL;
           }
 
        if ( rsp.m_data_len < 3 )
           {
-            IpmiLog( "IPMI error from delete SEL entry: message to short (%d) !\n", 
-                     rsp.m_data_len );
+            stdlog << "IPMI error from delete SEL entry: message to short "
+                   << rsp.m_data_len << " !\n";
 
             return EINVAL;
           }
@@ -627,7 +627,7 @@ cIpmiSel::DeleteSelEntry( unsigned short rid )
      }
 
   // reservation lost too many times
-  IpmiLog( "IPMI error from delete SEL entry: reservation lost too many times !\n" );
+  stdlog << "IPMI error from delete SEL entry: reservation lost too many times !\n";
 
   return EINVAL;
 }
@@ -643,22 +643,22 @@ cIpmiSel::GetSelTime( time_t &t )
 
   if ( rv )
      {
-       IpmiLog( "Could not send get SEL time: %x !\n", rv );
+       stdlog << "Could not send get SEL time: " << rv << " !\n";
        return EINVAL;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
      {
-       IpmiLog( "IPMI error from get SEL time: %x !\n",
-                rsp.m_data[0] );
+       stdlog << "IPMI error from get SEL time: " 
+              << rsp.m_data[0] << " !\n";
 
        return EINVAL;
      }
 
   if ( rsp.m_data_len < 5 )
      {
-       IpmiLog( "IPMI error from get SEL time: message to short (%d) !\n", 
-                rsp.m_data_len );
+       stdlog << "IPMI error from get SEL time: message to short "
+              << rsp.m_data_len << " !\n";
 
        return EINVAL;
      }
@@ -682,14 +682,14 @@ cIpmiSel::SetSelTime( time_t t )
 
   if ( rv )
      {
-       IpmiLog( "Could not send set SEL time: %x !\n", rv );
+       stdlog << "Could not send set SEL time: " << rv << " !\n";
        return EINVAL;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
      {
-       IpmiLog( "IPMI error from set SEL time: %x !\n",
-                rsp.m_data[0] );
+       stdlog << "IPMI error from set SEL time: "
+              << rsp.m_data[0] << " !\n";
 
        return EINVAL;
      }
@@ -783,4 +783,54 @@ IpmiSelHandleSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs )
 
        ent->Domain()->IfSelAdd( ent, sel );
      }
+}
+
+
+void
+cIpmiSel::Dump( cIpmiLog &dump, const char *name )
+{
+  // dump events
+  int i = 0;
+
+  for( GList *list = m_sel; list; list = g_list_next( list ) )
+     {
+       cIpmiEvent *e = (cIpmiEvent *)list->data;
+
+       char str[80];
+       sprintf( str, "Event%02x_%d", m_mc->GetAddress(), i++ );
+       e->Dump( dump, str );
+     }
+
+  assert( i == (int)m_sel_num );
+
+  dump << "Sel \"" << name << "\"\n";
+  dump << "{\n";
+  dump << "\tVersion                    = " << m_major_version << ", " << m_minor_version << ";\n";
+  dump << "\tOverflow                   = " << m_overflow << ";\n";
+  dump << "\tSupportsDeleteSel          = " << m_supports_delete_sel << ";\n";
+  dump << "\tSupportsPartialAddSel      = " << m_supports_partial_add_sel << ";\n";
+  dump << "\tSupportsReserveSel         = " << m_supports_reserve_sel << ";\n";
+  dump << "\tSupportsGetSelAllocation   = " << m_supports_get_sel_allocation << ";\n";
+
+  // dump events
+  if ( m_sel )
+     {
+       i = 0;
+
+       dump << "\tEvent                      = ";
+       
+       for( GList *list = m_sel; list; list = g_list_next( list ) )
+          {
+            if ( i != 0 )
+                 dump << ", ";
+
+            char str[80];
+            sprintf( str, "Event%02x_%d", m_mc->GetAddress(), i++ );
+            dump << str;
+          }
+
+       dump << ";\n";
+     }
+
+  dump << "}\n\n\n";
 }
