@@ -229,6 +229,8 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
 
         SaHpiRptEntryT *res = NULL;
 
+	if (!res_new || !rdr_new || !res_gone || !rdr_gone) return;
+
         /* Look for absent resources and rdrs */
         for (res = oh_get_resource_by_id(cur_rpt, SAHPI_FIRST_ENTRY);
              res != NULL;

@@ -131,17 +131,17 @@ The negative tests:
           is stays the same on the second addition. (069)
     oh_flush_rpt
     	- RPTable == NULL (061)
-    rpt_diff
-    	- cur_rpt == NULL
-	- new_rpt == NULL
-	- res_new == NULL
-	- rdr_new == NULL
-	- res_gone == NULL
-	- rdr_gone == NULL
-    oh_init_rpt
-    	- table == NULL
     oh_get_rpt_info
-    	- table == NULL
+    	- table == NULL (070)
+    oh_init_rpt
+    	- table == NULL (071)
+    rpt_diff
+    	- cur_rpt == NULL (072)
+	- new_rpt == NULL (073)
+	- res_new == NULL (074)
+	- rdr_new == NULL (075)
+	- res_gone == NULL (076)
+	- rdr_gone == NULL (077)
 
 Speed Tests:
     - Add 10,000 resources. Time how long it takes to fetch last one. (1000)
