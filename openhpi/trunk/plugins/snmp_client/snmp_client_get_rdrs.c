@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -817,10 +817,21 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 		/* temp storage variable for build_state_value() */ 
 
                 for (i = 0; i < get_value.integer; i++) {
-                        if (vars->type == ASN_OCTET_STR) 
+                        if (vars->type == ASN_OCTET_STR) {
+				SaHpiTextBufferT buffer;
+				SaHpiEventCategoryT cat;
+				
+				oh_init_textbuffer(&buffer);
+				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_encode_eventstate(&buffer,
+						     &sahpi_sensor_cap[i].SensorRec.Events,
+						     &cat);
+#if 0
 				build_state_value (vars->val.string,
 						   vars->val_len,
 						   &sahpi_sensor_cap[i].SensorRec.Events);
+#endif
+			}
                         else
                                 dbg("SA_HPI_SENSOR_EVENT_STATE:something terrible has happened");
                         vars = vars->next_variable;

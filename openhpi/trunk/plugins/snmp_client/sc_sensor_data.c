@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,6 @@
 #include <openhpi.h>
 #include <oh_utils.h>
 #include <snmp_util.h>
-
 #include <snmp_client.h>
 #include <snmp_client_res.h>
 #include <snmp_client_utils.h>
@@ -59,7 +58,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-dbg("**** # of range readings of type max, rr_num %d *****" ,rr_num);
+	dbg("**** # of range readings of type max, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_MAX_VALUE_PRESENT */
         snmp_status = snmp_getn_bulk(custom_handle->ss, 
@@ -201,10 +200,21 @@ dbg("**** # of range readings of type max, rr_num %d *****" ,rr_num);
                 vars = get_cap_response->variables;
 
                 for (i = 0; i < rr_num; i++) {
-                        if ( vars->type == ASN_OCTET_STR ) 
+                        if ( vars->type == ASN_OCTET_STR ) {
+				SaHpiTextBufferT buffer;
+				SaHpiEventCategoryT cat;
+
+				oh_init_textbuffer(&buffer);
+				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_encode_eventstate(&buffer,
+						     &sen_max_reading[i].EventStatus.EventStatus,
+						     &cat);
+#if 0				
 				build_state_value(vars->val.string,
 						  vars->val_len,
 						  &sen_max_reading[i].EventStatus.EventStatus);
+#endif
+			}
                         else
                                 dbg("SA_HPI_SENSOR_READING_MAX_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
@@ -419,10 +429,21 @@ dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
                 vars = get_cap_response->variables;
 
                 for (i = 0; i < rr_num; i++) {
-                        if ( vars->type == ASN_OCTET_STR ) 
+                        if ( vars->type == ASN_OCTET_STR ) {
+				SaHpiTextBufferT buffer;
+				SaHpiEventCategoryT cat;
+				
+				oh_init_textbuffer(&buffer);
+				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_encode_eventstate(&buffer,
+						     &sen_min_reading[i].EventStatus.EventStatus,
+						     &cat);
+#if 0
 				build_state_value(vars->val.string,
 						  vars->val_len,
 						  &sen_min_reading[i].EventStatus.EventStatus);
+#endif
+			}
                         else
                                 dbg("SA_HPI_SENSOR_READING_MIN_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
@@ -636,10 +657,21 @@ dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
                 vars = get_cap_response->variables;
 
                 for (i = 0; i < rr_num; i++) {
-                        if ( vars->type == ASN_OCTET_STR ) 
+                        if ( vars->type == ASN_OCTET_STR ) {
+				SaHpiTextBufferT buffer;
+				SaHpiEventCategoryT cat;
+
+				oh_init_textbuffer(&buffer);
+				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_encode_eventstate(&buffer,
+						     &sen_nominal_reading[i].EventStatus.EventStatus,
+						     &cat);
+#if 0
 				build_state_value(vars->val.string,
 						  vars->val_len,
 						  &sen_nominal_reading[i].EventStatus.EventStatus);
+#endif
+			}
                         else
                                 dbg("SA_HPI_SENSOR_READING_NOMINAL_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
@@ -853,10 +885,21 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
                 vars = get_cap_response->variables;
 
                 for (i = 0; i < rr_num; i++) {
-                        if ( vars->type == ASN_OCTET_STR ) 
+                        if ( vars->type == ASN_OCTET_STR ) {
+				SaHpiTextBufferT buffer;
+				SaHpiEventCategoryT cat;
+
+				oh_init_textbuffer(&buffer);
+				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_encode_eventstate(&buffer,
+						     &sen_normal_max_reading[i].EventStatus.EventStatus,
+						     &cat);
+#if 0
 				build_state_value(vars->val.string,
 						  vars->val_len,
 						  &sen_normal_max_reading[i].EventStatus.EventStatus);
+#endif
+			}
                         else
                                 dbg("SA_HPI_SENSOR_READING_NORMAL_MAX_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
@@ -1070,10 +1113,21 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
                 vars = get_cap_response->variables;
 
                 for (i = 0; i < rr_num; i++) {
-                        if ( vars->type == ASN_OCTET_STR ) 
+                        if ( vars->type == ASN_OCTET_STR ) {
+				SaHpiTextBufferT buffer;
+				SaHpiEventCategoryT cat;
+
+				oh_init_textbuffer(&buffer);
+				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_encode_eventstate(&buffer,
+						     &sen_normal_min_reading[i].EventStatus.EventStatus,
+						     &cat);
+#if 0
 				build_state_value(vars->val.string,
 						  vars->val_len,
 						  &sen_normal_min_reading[i].EventStatus.EventStatus);
+#endif
+			}
                         else
                                 dbg("SA_HPI_SENSOR_READING_NORMAL_MIN_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;

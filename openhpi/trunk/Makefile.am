@@ -68,7 +68,6 @@ include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
                   $(top_srcdir)/utils/rpt_utils.h \
                   $(top_srcdir)/utils/el_utils.h \
                   $(top_srcdir)/utils/printevent_utils.h \
-                  $(top_srcdir)/utils/sensor_utils.h \
                   $(top_srcdir)/utils/oh_utils.h
 
 install-data-local: openhpi.pc
