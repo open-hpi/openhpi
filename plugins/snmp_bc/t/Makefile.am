@@ -29,6 +29,7 @@ REMOTE_SIM_SOURCES   = \
 			snmp_bc_sensor.c \
 			snmp_bc_session.c \
 	 		snmp_bc_time.c \
+	 		snmp_bc_utils.c \
 			snmp_bc_watchdog.c \
 			snmp_bc_xml2event.c
 
@@ -93,6 +94,7 @@ TESTS = tevent \
 	tset_resource_tag \
 	tset_resource_sev \
 	tsnmp_bc_getset \
+	tsnmp_bc_get_guid \
 	tsensorget001 \
 	tsensorget002 \
 	tsensorget003 \
@@ -201,6 +203,12 @@ tset_resource_sev_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 # Unit test using normal IF calls and simulation library
 tsnmp_bc_getset_SOURCES = tsnmp_bc_getset.c
 tsnmp_bc_getset_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# Unit test using normal IF calls and simulation library
+tsnmp_bc_get_guid_SOURCES = tsnmp_bc_get_guid.c
+tsnmp_bc_get_guid_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
