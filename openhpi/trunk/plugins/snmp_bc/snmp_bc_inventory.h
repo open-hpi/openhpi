@@ -31,6 +31,20 @@ SaErrorT get_inventory_data(	void *hnd, SaHpiRdrT *rdr,
 				SaHpiInventGeneralDataT *working,
 				SaHpiUint32T  *vpdrecordlength);
 
+SaErrorT snmp_bc_get_inventory_info(void *hnd,
+				    SaHpiResourceIdT id,
+				    SaHpiEirIdT num,
+				    SaHpiInventoryDataT *data);
+
+
+SaErrorT snmp_bc_get_inventory_size(void *hnd, SaHpiResourceIdT id,
+				    SaHpiEirIdT num,
+				    SaHpiUint32T *size);
+
+SaErrorT snmp_bc_set_inventory_info(void *hnd, SaHpiResourceIdT id,
+				    SaHpiEirIdT num,
+				    const SaHpiInventoryDataT *data);
+
 /*
 SaErrorT find_inventories(	struct snmp_bc_hnd *custom_handle,
 				struct snmp_bc_inventory * rdr_array,
