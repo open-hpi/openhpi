@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	
 	/*test oh_el_append with entry == NULL */
 	
-	el4 = oh_el_create(0);
+	el4 = oh_el_create(1);
 
         event3.Source = 1;
         event3.EventType = SAHPI_ET_USER;
