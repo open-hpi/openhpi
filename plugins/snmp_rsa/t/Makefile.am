@@ -21,7 +21,8 @@ REMOTE_SIM_SOURCES 	= rsa_resources.c \
 			  snmp_rsa_sensor.c \
 			  snmp_rsa_session.c \
 			  snmp_rsa_utils.c \
-			  snmp_rsa_watchdog.c
+			  snmp_rsa_watchdog.c \
+			  snmp_rsa_time.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(REMOTE_SIM_SOURCES) \
