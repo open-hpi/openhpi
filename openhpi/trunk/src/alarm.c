@@ -131,9 +131,9 @@ SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
         if (!d) return NULL;
         
         alarm_node = __get_alarm_node(d, aid, severity, type, rid, mid, num,
-                                      state, 0, get_next);
+                                      state, unacknowledged, get_next);
         if (!alarm_node) return NULL;
-        
+
         return alarm_node->data;
 }
 

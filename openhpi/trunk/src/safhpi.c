@@ -1113,7 +1113,6 @@ SaErrorT SAHPI_API saHpiAlarmGet(
         SaHpiDomainIdT did = 0;
         struct oh_domain *d = NULL;
         SaHpiAlarmT *a = NULL;
-        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_USER;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
         
         OH_CHECK_INIT_STATE(SessionId);
@@ -1123,7 +1122,7 @@ SaErrorT SAHPI_API saHpiAlarmGet(
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
         
-        a = oh_get_alarm(d, &Alarm->AlarmId, NULL, &type,
+        a = oh_get_alarm(d, &AlarmId, NULL, NULL,
                          NULL, NULL, NULL, NULL,
                          0, 0);
         if (a) {
@@ -1148,7 +1147,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         
         OH_CHECK_INIT_STATE(SessionId);
         
-        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED ||
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
         
@@ -1219,7 +1218,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
         
         OH_CHECK_INIT_STATE(SessionId);
         
-        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED ||
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
         
