@@ -246,12 +246,14 @@ int get_events(void)
         data_access_lock();
 
         g_slist_for_each(i, global_handler_list) {
-                do {
-                        got_event = get_handler_event(i->data, rpt);
+
+				do {
+						got_event = get_handler_event(i->data, rpt);
                 } while (got_event > 0);
 
-		process_hotswap_policy(i->data);
-        }
+				process_hotswap_policy(i->data);
+
+		}
         
         data_access_unlock();
 

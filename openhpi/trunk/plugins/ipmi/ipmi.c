@@ -28,6 +28,7 @@ struct ohoi_sel_entry {
         unsigned int    recid;
 };
 
+int ipmi_refcount = 0;
 /* ABI Interface functions */
 
 
@@ -58,14 +59,6 @@ static void *ipmi_open(GHashTable *handler_config)
 
 	name = g_hash_table_lookup(handler_config, "name");
 	addr = g_hash_table_lookup(handler_config, "addr");
-	entity_root = g_hash_table_lookup(handler_config, "entity_root");
-
-	if ( !name || !addr || !entity_root) {
-		dbg("Problem getting correct required parameters! \
-				check config file");
-		return NULL;
-	} else
-		dbg("name: %s, addr: %s, entity_root: %s", name, addr, entity_root);
 
 	handler = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
 	ipmi_handler = (struct ohoi_handler *)g_malloc0(sizeof(struct ohoi_handler));
@@ -84,7 +77,15 @@ static void *ipmi_open(GHashTable *handler_config)
     ipmi_handler->SELs_read_done = 0;			/* SEL flag, 1 when done */
 	ipmi_handler->mc_count = 0;					/* MC level SDRs, 0 when done */
 
+	ipmi_handler->entity_root = g_hash_table_lookup(handler_config, "entity_root");
 	
+	if ( !name || !addr || !ipmi_handler->entity_root) {
+		dbg("Problem getting correct required parameters! \
+				check config file");
+		return NULL;
+	} else
+		dbg("name: %s, addr: %s, entity_root: %s", name, addr, ipmi_handler->entity_root);
+
     /* OS handler allocated first. */
     ipmi_handler->os_hnd = ipmi_posix_get_os_handler();
 	sel_alloc_selector(ipmi_handler->os_hnd, &ipmi_handler->ohoi_sel);
@@ -190,6 +191,15 @@ static void *ipmi_open(GHashTable *handler_config)
 			return NULL;
 	}
 
+	if (ipmi_refcount) {
+			ipmi_refcount++;
+			dbg("ipmi instance: %d", ipmi_refcount);
+	} else {
+			ipmi_refcount = 0;
+			ipmi_refcount++;
+			dbg("ipmi first instance: %d", ipmi_refcount);
+	}
+
 	return handler;
 }
 
@@ -207,7 +217,14 @@ static void ipmi_close(void *hnd)
 	struct oh_handler_state *handler = (struct oh_handler_state *) hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-	ipmi_shutdown();
+	if (ipmi_refcount > 1) {
+			dbg("one instance of ipmi_plugin done, decrementing");
+			ipmi_refcount--;
+			dbg("remaining instances: %d", ipmi_refcount);
+	} else {
+			dbg("ipmi connection...closing");
+			ipmi_shutdown();
+	}
 	
 	g_free(ipmi_handler);
 	g_free(handler);
@@ -227,7 +244,6 @@ static int ipmi_get_event(void *hnd, struct oh_event *event,
 			  struct timeval *timeout)
 {
 		struct oh_handler_state *handler = hnd;
-
 		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
 		struct timeval to = {0, 0};
@@ -618,7 +634,6 @@ static int ipmi_get_sensor_data(void 			*hnd,
                 return rv;
 
 		memset(data, 0, sizeof(*data));
-		
 		return ohoi_get_sensor_data(*sensor, data, ipmi_handler);
 }
 

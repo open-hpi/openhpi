@@ -20,15 +20,17 @@
 
 
 static void get_mc_entity_event(ipmi_mc_t	*mc,
-			        SaHpiRptEntryT	*entry)
+			        SaHpiRptEntryT	*entry, void *cb_data)
 {
 	uint8_t	vals[4];
 	SaHpiEntityPathT mc_ep;
 	char mc_name[128];
 	int sel_support;
         
-	dbg("entity_root: %s", entity_root);
-	string2entitypath(entity_root, &mc_ep);
+	struct ohoi_handler *ipmi_handler = cb_data;
+
+	dbg("entity_root: %s", ipmi_handler->entity_root);
+	string2entitypath(ipmi_handler->entity_root, &mc_ep);
 
         snprintf(mc_name, sizeof(mc_name),
                  "Management Controller(%x, %x)",
@@ -85,6 +87,8 @@ static void mc_add(ipmi_mc_t                    *mc,
 {
         struct ohoi_resource_info *ohoi_res_info;
         struct oh_event *e;
+
+		struct ohoi_handler *ipmi_handler = handler->data;
         
         ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
         if (!ohoi_res_info) {
@@ -103,7 +107,7 @@ static void mc_add(ipmi_mc_t                    *mc,
 
 	e->type = OH_ET_RESOURCE;
 
-	get_mc_entity_event(mc, &(e->u.res_event.entry));
+	get_mc_entity_event(mc, &(e->u.res_event.entry), ipmi_handler);
 
 	/* add to rptcache */
 	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_info, 1);
