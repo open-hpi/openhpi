@@ -451,8 +451,8 @@ int main(int argc, char **argv)
                rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
         
         /* walk the RPT list */
-        rptentryid = SAHPI_OLDEST_ENTRY;
-        while ((rv == SA_OK) && (rptentryid != SAHPI_FIRST_ENTRY))
+        rptentryid = SAHPI_FIRST_ENTRY;
+        while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
                 if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
@@ -462,6 +462,7 @@ int main(int argc, char **argv)
                                            rptentry.ResourceCapabilities);
                         if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                                 if (fdebug) printf("RPT doesn't have SEL\n");
+                                rptentryid = nextrptentryid;
                                 continue;  /* no SEL here, try next RPT */
                         }
                         if (fclear) {
