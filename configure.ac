@@ -420,19 +420,6 @@ AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/${HPI_CLIENT_PKG}.conf",
                    [default client configfile])
 
 
-dnl defines OH_DEFAULT_UID_MAP and VARPATH
-dnl set VARPATH only if unset or null.
-VARPATH=${VARPATH:=${localstatedir}/lib/${PACKAGE_NAME}}
-
-AC_ARG_WITH(varpath,
-    [[  --with-varpath=PATH     use directory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
-    [VARPATH=$withval])
-dnl substitute @VARPATH@ in all Makefiles
-AC_SUBST(VARPATH)
-dnl create the #define VARPATH and #define OH_DEFAULT_UID_MAP in config.h
-AC_DEFINE_UNQUOTED(VARPATH,"$VARPATH",[openhpi specific data path])
-AC_DEFINE_UNQUOTED(OH_DEFAULT_UID_MAP,"$VARPATH/uid_map",[uid map])
-
 dnl 
 dnl This code was borrowed from linux-ha configure.in file
 dnl and is used for creating the proper substitutions
@@ -463,8 +450,24 @@ bindir=`var "$bindir" "$exec_prefix/bin"`
 sbindir=`var "$sbindir" "$exec_prefix/sbin"`
 libdir=`var "$libdir" "$exec_prefix/lib"`
 includedir=`var "$includedir" "$exec_prefix/include"`
+localstatedir=`var "$localstatedir" "/var/lib"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
+
+echo "Localstatedir = $localstatedir"
+
+dnl defines OH_DEFAULT_UID_MAP and VARPATH
+dnl set VARPATH only if unset or null.
+VARPATH=${VARPATH:=${localstatedir}/lib/${PACKAGE_NAME}}
+
+AC_ARG_WITH(varpath,
+    [[  --with-varpath=PATH     use directory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
+    [VARPATH=$withval])
+dnl substitute @VARPATH@ in all Makefiles
+AC_SUBST(VARPATH)
+dnl create the #define VARPATH and #define OH_DEFAULT_UID_MAP in config.h
+AC_DEFINE_UNQUOTED(VARPATH,"$VARPATH",[openhpi specific data path])
+AC_DEFINE_UNQUOTED(OH_DEFAULT_UID_MAP,"$VARPATH/uid_map",[uid map])
 
 dnl OH_PLUGIN_PATH - Directory where plugin libraries live.
 dnl default is "$libdir/openhpir"
