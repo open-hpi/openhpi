@@ -18,6 +18,8 @@
 #include <sim_init.h>
 #include <sim_resources.c>
 #include <sim_resources.h>
+//#include <sim_sensors.c>
+//#include <sim_sensors.h>
 
 void *sim_open(GHashTable *handler_config)
 {
@@ -114,7 +116,9 @@ SaErrorT sim_discover(void *hnd)
 		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
 		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep.Entry[i].EntityLocation);
 	}
-	
+
+	//doesn't work
+	new_sensor(inst->rptcache, rpt_entry->ResourceId, rpt_entry->SensorNum);	
         return 0;
 }
 
@@ -148,8 +152,7 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 {
 	int i;
 	SaHpiRptEntryT res;
-
-	
+	               
 	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
 		memcpy(&res, &dummy_rpt_array[i], sizeof(SaHpiRptEntryT));
 		oh_concat_ep(&res.ResourceEntity, root_ep);
@@ -157,10 +160,42 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 		
 		dbg("Adding resource number %d",i);
 		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
-        }
 
         return 0;
 }
+
+SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiSensorNumT IndexInSensorArray)
+{
+	SaHpiRdrT res_rdr;
+	SaHpiRptEntryT res;
+
+	memcpy(&res_rdr, &dummy_sensors[IndexInSesnorArray], sizeof(SaHpiRdrT));
+	memcpy(&res, &dummy_rpt_array[ResId], sizeof(SaHpiRptEntryT));
+	res_rdr.ResourceId = ResId;
+	res_rdr.Entity = res.ResourceEntity;
+	res_rdr.sensor->Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.type);
+
+	oh_add_rdr(rptcache, res_rdr.ResourceId, &res_rdr, NULL, 0);
+
+	return 0;
+}
+
+int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type)
+{
+	int i=1;
+	
+	if(!(oh_get_rdr_by_type(rptcache, ResId, type, i))){
+	return i;
+	}
+	else{
+		while(oh_get_rdr_by_type(rptcache, ResId, type, i)){
+			i++;
+		}
+		return i;
+	}
+}
+	
+
 
 struct oh_event *eventdup(const struct oh_event *event)
 {
