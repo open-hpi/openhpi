@@ -171,7 +171,9 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 			       SaHpiEventLogEntryIdT current,
 			       SaHpiEventLogEntryIdT *prev,
 			       SaHpiEventLogEntryIdT *next,
-			       SaHpiEventLogEntryT *entry)
+			       SaHpiEventLogEntryT *entry,
+			       SaHpiRdrT  *rdr,
+                               SaHpiRptEntryT  *rptentry)
 {
 
 	SaErrorT err = SA_OK;
@@ -200,6 +202,15 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 			return(err);
 		} else {
 			memcpy(entry, &(tmpentryptr->event), sizeof(SaHpiEventLogEntryT));
+                        if (rdr)
+                                memcpy(rdr, &tmpentryptr->rdr, sizeof(SaHpiRdrT));
+                        else
+                                trace("NULL rdrptr with SaHpiEventLogEntryGet()\n");
+
+                        if (rptentry)
+                                memcpy(rptentry, &tmpentryptr->res, sizeof(SaHpiRptEntryT));
+                        else
+                                trace("NULL rptptr with SaHpiEventLogEntryGet()\n");	
 		}
 	} else {
 		dbg("Missing handle->elcache");

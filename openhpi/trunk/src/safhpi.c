@@ -477,8 +477,14 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         SAHPI_INOUT SaHpiRptEntryT        *RptEntry)
 {
         SaErrorT rv;
-        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
-                                  SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT *entry);
+        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id,
+				SaHpiEventLogEntryIdT current,
+				SaHpiEventLogEntryIdT *prev,
+				SaHpiEventLogEntryIdT *next,
+				SaHpiEventLogEntryT *entry,
+				SaHpiRdrT  *rdr,
+				SaHpiRptEntryT  *rptentry);
+				
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -501,8 +507,13 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 retc = oh_el_get(d->del, EntryId, PrevEntryId, NextEntryId,
                                  &elentry);
-                if (retc == SA_OK)
+                if (retc == SA_OK) {
                         memcpy(EventLogEntry, &elentry->event, sizeof(SaHpiEventLogEntryT));
+			if (Rdr)
+				memcpy(Rdr, &elentry->rdr, sizeof(SaHpiRdrT)); 	
+			if (RptEntry)
+				memcpy(RptEntry, &elentry->res, sizeof(SaHpiRptEntryT));
+		}
                 oh_release_domain(d); /* Unlock domain */
                 return retc;
         }
@@ -516,53 +527,22 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
-
+	oh_release_domain(d); /* Unlock domain */
+	
         get_el_entry = h->abi->get_el_entry;
 
         if (!get_el_entry) {
                 dbg("This api is not supported");
-                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = get_el_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
-                           NextEntryId, EventLogEntry);
+        rv = get_el_entry(h->hnd, ResourceId,
+				EntryId, PrevEntryId,
+				NextEntryId, EventLogEntry,
+				Rdr, RptEntry);
 
-        if(rv != SA_OK) {
-                dbg("EL entry get failed");
-                oh_release_domain(d); /* Unlock domain */
-                return rv;
-        }
-
-        /* FIXME: When res and rdr are stored with log entry,
-         * will need to change this to use the stored copies and
-         * not the ones in the RP Table. So will be able to release
-         * the domain lock earlier.
-         */
-        if (RptEntry) *RptEntry = *res;
-        if (Rdr) {
-                SaHpiRdrT *tmprdr = NULL;
-                SaHpiUint8T num;
-                switch (EventLogEntry->Event.EventType) {
-                        case SAHPI_ET_SENSOR:
-                                num = EventLogEntry->Event.EventDataUnion.SensorEvent.SensorNum;
-                                tmprdr = oh_get_rdr_by_type(&(d->rpt),ResourceId,SAHPI_SENSOR_RDR,num);
-                                if (tmprdr)
-                                         memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
-                                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
-                                break;
-                        case SAHPI_ET_WATCHDOG:
-                                num = EventLogEntry->Event.EventDataUnion.WatchdogEvent.WatchdogNum;
-                                tmprdr = oh_get_rdr_by_type(&(d->rpt),ResourceId,SAHPI_WATCHDOG_RDR,num);
-                                if (tmprdr)
-                                         memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
-                                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
-                                break;
-                        default:
-                                ;
-                }
-        }
-        oh_release_domain(d); /* Unlock domain */
+        if(rv != SA_OK)
+                dbg("EL entry get failed\n");
 
         return rv;
 }

@@ -40,7 +40,9 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 			       SaHpiEventLogEntryIdT current,
 			       SaHpiEventLogEntryIdT *prev,
 			       SaHpiEventLogEntryIdT *next,
-			       SaHpiEventLogEntryT *entry);
+			       SaHpiEventLogEntryT *entry,
+			       SaHpiRdrT	*rdr,
+			       SaHpiRptEntryT	*rptentry);
 
 SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
 SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);

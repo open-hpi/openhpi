@@ -1012,10 +1012,13 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 		case SAHPI_ET_OEM:
 		case SAHPI_ET_HOTSWAP:
 		case SAHPI_ET_USER:
-			/* FIXME:: this case a bit differ than snmp_bc_sel.c - have function 
-		   	just return NULL. If need to set RecordId = 0, let caller do this */
-			working.u.hpi_event.rdr.RecordId = 0; /* There is no RDR associated to OEM event */
-			break;			              /* Set RDR ID to invalid value of 0        */
+                                        /* There is no RDR associated to OEM event */
+                        memset(&working.u.hpi_event.rdr, 0, sizeof(SaHpiRdrT));
+                        working.u.hpi_event.rdr.RdrType = SAHPI_NO_RECORD;
+                                          /* Set RDR Type to SAHPI_NO_RECORD, spec B-01.01 */
+                                          /* It is redundant because SAHPI_NO_RECORD == 0 */
+                                          /* Put code here for clarity      */
+			break;			           
 		case SAHPI_ET_SENSOR:
 			rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
 				    thisEvent->EventDataUnion.SensorEvent.SensorNum); 
