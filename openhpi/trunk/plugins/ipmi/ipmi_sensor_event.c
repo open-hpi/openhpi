@@ -965,8 +965,10 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 
 	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 
-	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr,
-				   	sensor_info, 1);
+	rv = oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr,
+					sensor_info, 1);
+	if (rv != SA_OK)
+		dbg("Failed to add sensor rdr");
 }
 
 void ohoi_sensor_event(enum ipmi_update_e op,
@@ -1007,6 +1009,7 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			add_sensor_event(ent, sensor, handler,
 					 rpt_entry->ResourceEntity,
 					 rpt_entry->ResourceId);
+			dbg("Sensor Added");
 		
 			if (ipmi_sensor_get_event_reading_type(sensor) == 
 					IPMI_EVENT_READING_TYPE_THRESHOLD)
@@ -1019,12 +1022,18 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			if (rv)
 			      	dbg("Unable to reg sensor event handler: %#x\n",
 					rv);
+			break;
 		case IPMI_CHANGED:
 			add_sensor_event(ent, sensor, handler,
 					 rpt_entry->ResourceEntity, 
 					 rpt_entry->ResourceId);
+			dbg("Sensor Changed");
+			break;
 		case IPMI_DELETED:
-			dbg("Sensor DELETED");
+			/* We don't do anything, if the entity is gone
+			   infrastructre deletes the RDRs automatically
+			*/
+			break;
 	}
 	dbg("Set updated for resource %d . Sensor", rpt_entry->ResourceId);
 	entity_rpt_set_updated(res_info, handler->data);

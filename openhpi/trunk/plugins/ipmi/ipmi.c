@@ -104,7 +104,7 @@ static void *ipmi_open(GHashTable *handler_config)
 		dbg("Cannot allocate handler or private ipmi");
 		return NULL;
 	}	
-	g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));;	
+	g_static_rec_mutex_init(&(ipmi_handler->ohoih_lock));
 	handler->data = ipmi_handler;
 
 	handler->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
