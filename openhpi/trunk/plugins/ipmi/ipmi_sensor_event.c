@@ -408,22 +408,12 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 					 SaHpiSensorRecT	*rec)
 {
+	double accur = 0;
+	
+	rec->DataFormat.IsSupported = SAHPI_TRUE;
+	
+	rec->DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;	
 
-/*Fix Me*/
-#if 0
-	SaHpiSensorRangeFlagsT temp = 0;
-	
-	/* Depends on IPMI */
-	if (rec->Category == SAHPI_EC_THRESHOLD)
-		rec->DataFormat.ReadingFormats = SAHPI_SRF_RAW |
-						 SAHPI_SRF_INTERPRETED;
-	else
-		rec->DataFormat.ReadingFormats = SAHPI_SRF_EVENT_STATE;
-	
-	/*No info about IsNumeric in IPMI */
-	rec->DataFormat.IsNumeric = SAHPI_TRUE;
-	rec->DataFormat.SignFormat = (SaHpiSensorSignFormatT)
-		ipmi_sensor_get_analog_data_format(sensor);
 	rec->DataFormat.BaseUnits = (SaHpiSensorUnitsT)
 		ipmi_sensor_get_base_unit(sensor);
 	rec->DataFormat.ModifierUnits = (SaHpiSensorUnitsT)
@@ -431,29 +421,14 @@ static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 	rec->DataFormat.ModifierUse = (SaHpiSensorModUnitUseT)
 		ipmi_sensor_get_modifier_unit_use(sensor);
 	
-	rec->DataFormat.FactorsStatic = SAHPI_TRUE;
-	/* We use first...*/
-	rec->DataFormat.Factors.M_Factor = (SaHpiInt16T)
-		ipmi_sensor_get_raw_m(sensor, 0);
-	rec->DataFormat.Factors.B_Factor = (SaHpiInt16T)
-		ipmi_sensor_get_raw_b(sensor, 0);
-	rec->DataFormat.Factors.AccuracyFactor = (SaHpiUint16T)
-		ipmi_sensor_get_raw_accuracy(sensor, 0);
-	rec->DataFormat.Factors.ToleranceFactor = (SaHpiUint8T)
-		ipmi_sensor_get_raw_tolerance(sensor, 0);
-	rec->DataFormat.Factors.ExpA = (SaHpiUint8T)
-		ipmi_sensor_get_raw_accuracy_exp(sensor, 0);
-	rec->DataFormat.Factors.ExpR = (SaHpiUint8T)
-		ipmi_sensor_get_raw_r_exp(sensor, 0);
-	rec->DataFormat.Factors.ExpB = (SaHpiUint8T)
-		ipmi_sensor_get_raw_b_exp(sensor, 0);
-	rec->DataFormat.Factors.Linearization = (SaHpiSensorLinearizationT)
-		ipmi_sensor_get_linearization(sensor);
-	
+	ipmi_sensor_get_accuracy(sensor, 0, &accur);
+	rec->DataFormat.AccuracyFactor = (SaHpiFloat64T)accur;
+
 	rec->DataFormat.Percentage = (SaHpiBoolT)
 		ipmi_sensor_get_percentage(sensor);
 
-	temp |= SAHPI_SRF_MAX | SAHPI_SRF_MIN;	
+#if 0
+	/* Fix Me: Range */
 	rec->DataFormat.Range.Max.ValuesPresent = SAHPI_SRF_RAW;
 	rec->DataFormat.Range.Max.Raw = (SaHpiUint32T)
 		ipmi_sensor_get_raw_sensor_max(sensor);
