@@ -18,14 +18,16 @@
 #include <oHpi.h>
 
 /**
- * Load the dummy plugin.
- * Pass on success, otherwise a failure.
+ * Load the dummy plugin. Create and destroy a handler. Unload plugin.
+ * Pass on success, otherwise failure.
  **/
  
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
         char *config_file = NULL;
+        GHashTable *config = g_hash_table_new(g_str_hash, g_str_equal);
+        oHpiHandlerIdT hid = 0;
         
         /* Save config file env variable and unset it */
         config_file = getenv("OPENHPI_CONF");
@@ -34,8 +36,23 @@ int main(int argc, char **argv)
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                 
+        if (oHpiPluginLoad("libdummy"))
+                return -1;
+                
+        /* Set configuration. */
+        g_hash_table_insert(config, "plugin", "libdummy");
+        g_hash_table_insert(config, "entity_root", "{SYSTEM_CHASSIS,1}");
+        g_hash_table_insert(config, "name", "test");
+        g_hash_table_insert(config, "addr", "0");
+        
+        if (oHpiHandlerCreate(config, &hid))
+                return -1;
+                
+        if (oHpiHandlerDestroy(hid))
+                return -1;
+                
         /* Restore config file env variable */
         setenv("OPENHPI_CONF",config_file,1);
         
-        return oHpiPluginLoad("libdummy");
+        return oHpiPluginUnload("libdummy");
 }

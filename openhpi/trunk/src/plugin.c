@@ -238,7 +238,7 @@ int oh_load_plugin(char *plugin_name)
                 dbg("Out of memory.");
                 return -1;
         }
-        plugin->name = plugin_name;
+        plugin->name = g_strdup(plugin_name);
         plugin->refcount = 1;
 
         data_access_lock();
