@@ -203,30 +203,30 @@ struct oh_abi_v1 {
 	 * before returns. It may be zero, causing select to return 
 	 * immediately.
 	 */
-	int (*get_event)(void *hnd, struct oh_event *event, 
+	SaErrorT (*get_event)(void *hnd, struct oh_event *event, 
 			 struct timeval *timeout);
 	
 	/**
 	 * prompt plug-in to search for new resources
 	 */
-	int (*discover_resources)(void *hnd);
+	SaErrorT (*discover_resources)(void *hnd);
 
         /**
          * set resource tag, this is passed down so the device has
          * a chance to set it in nv storage if it likes
          */
-        int (*set_resource_tag)(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
+        SaErrorT (*set_resource_tag)(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
         
         /**
          * set resource severity is pushed down so the device has
          * a chance to set it in nv storage
          */
-        int (*set_resource_severity)(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
+        SaErrorT (*set_resource_severity)(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
 
         /**
 	 * get the id which the caller is running
 	 */
-	int (*get_self_id)(void *hnd, SaHpiResourceIdT id);
+	SaErrorT (*get_self_id)(void *hnd, SaHpiResourceIdT id);
 
         /******************************************************
          *
@@ -237,22 +237,22 @@ struct oh_abi_v1 {
 	/**
 	 * get info from RSEL
 	 */
-	int (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
+	SaErrorT (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
 
 	/**
 	 * set time to RSEL
 	 */
-	int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
+	SaErrorT (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 
 	/**
 	 * add entry to RSEL
 	 */
-	int (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
+	SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
 
 	/**
 	 * del entry in RSEL
 	 */
-        int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
+        SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
 
 	/**
 	 * get entry in RSEL
@@ -261,68 +261,68 @@ struct oh_abi_v1 {
          * because SelEntryT has that info stored in it.  We'll just unwind 
          * that in infrastructure.
 	 */
-        int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
                              SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         
         /**
          * clear SEL 
          */
-        int (*clear_sel)(void *hnd, SaHpiResourceIdT id);
+        SaErrorT (*clear_sel)(void *hnd, SaHpiResourceIdT id);
 
         /* end of SEL functions */
 	/**
 	 * get sensor data
 	 */
-	int (*get_sensor_data)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*get_sensor_data)(void *hnd, SaHpiResourceIdT id, 
                                SaHpiSensorNumT num,
                                SaHpiSensorReadingT *data);
 
 	/**
 	 * get sensor thresholds
 	 */
-	int (*get_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*get_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
                                      SaHpiSensorNumT num,
                                      SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * set sensor thresholds
 	 */
-	int (*set_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*set_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
                                      SaHpiSensorNumT num,
                                      const SaHpiSensorThresholdsT *thres);
 
 	/**
 	 * get sensor event enables
 	 */
-	int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
                                         SaHpiSensorNumT num,
                                         SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * set sensor event enables
 	 */
-	int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
                                     SaHpiSensorNumT num,
                                     const SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * get control state
 	 */
-	int (*get_control_state)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*get_control_state)(void *hnd, SaHpiResourceIdT id,
                                  SaHpiCtrlNumT num,
                                  SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
-	int (*set_control_state)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*set_control_state)(void *hnd, SaHpiResourceIdT id,
                                  SaHpiCtrlNumT num,
                                  SaHpiCtrlStateT *state);
 	
 	/**
 	 * get inventory size
 	 */
-        int (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
+        SaErrorT (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
                                   SaHpiEirIdT num, /* yes, they don't call it a
                                                     * num, but it still is one
                                                     */
@@ -331,94 +331,94 @@ struct oh_abi_v1 {
 	/**
 	 * get inventory state
 	 */
-        int (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
+        SaErrorT (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
                                   SaHpiEirIdT num,
                                   SaHpiInventoryDataT *data);
 
 	/**
 	 * set inventory state
 	 */
-        int (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
+        SaErrorT (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
                                   SaHpiEirIdT num,
                                   const SaHpiInventoryDataT *data);
 
 	/**
 	 * get watchdog timer info
 	 */
-	int (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
                                  SaHpiWatchdogNumT num,
                                  SaHpiWatchdogT *wdt);
 
 	/** 
 	 * set watchdog timer info
 	 */
-	int (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
+	SaErrorT (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
                                  SaHpiWatchdogNumT num,
                                  SaHpiWatchdogT *wdt);
 
 	/**
 	 * reset watchdog timer info
 	 */
-        int (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
+        SaErrorT (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
                               SaHpiWatchdogNumT num);
 
 	/**
 	 * get hotswap state
 	 */
-	int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
 				 SaHpiHsStateT *state);
 
 	/**
 	 * set hotswap state
 	 */
-	int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
 				 SaHpiHsStateT state);
 
 	/**
 	 * request hotswap state
 	 */
-	int (*request_hotswap_action)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*request_hotswap_action)(void *hnd, SaHpiResourceIdT id, 
 				      SaHpiHsActionT act);
 
 	/**
 	 * get power state
 	 */
-	int (*get_power_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiHsPowerStateT *state);
 
 	/**
 	 * set power state
 	 */
-	int (*set_power_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiHsPowerStateT state);
 	
 	/**
 	 * get indicator state
 	 */
-	int (*get_indicator_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*get_indicator_state)(void *hnd, SaHpiResourceIdT id, 
 				   SaHpiHsIndicatorStateT *state);
 
 	/**
 	 * set indicator state
 	 */
-	int (*set_indicator_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*set_indicator_state)(void *hnd, SaHpiResourceIdT id, 
 				   SaHpiHsIndicatorStateT state);
 
 	/**
 	 * control parameter
 	 */
-	int (*control_parm)(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
+	SaErrorT (*control_parm)(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
 
 	/**
 	 * get reset state
 	 */
-	int (*get_reset_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*get_reset_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiResetActionT *act);
 
 	/**
 	 * set_reset state
 	 */
-	int (*set_reset_state)(void *hnd, SaHpiResourceIdT id, 
+	SaErrorT (*set_reset_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiResetActionT act);
 
 };
