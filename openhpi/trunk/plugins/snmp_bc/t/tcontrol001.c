@@ -27,12 +27,10 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-
-        SaHpiDomainIdT did;
-        struct oh_domain *d;					
+        SaHpiRptEntryT rptentry;
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
-	 
+	SaHpiRdrT	rdr;
 	SaHpiCtrlNumT cid = 1;
 	SaHpiCtrlModeT mode;
 	SaHpiCtrlStateT state;
@@ -40,67 +38,93 @@ int main(int argc, char **argv)
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
 	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_control, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
-
 	}
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_CONTROL, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_CONTROL, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_control, can not find a control resource.");
+		printf("Can not find a control resource for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
-
+	
 	id = rptentry.ResourceId;
+	/************************** 
+	 * Test: find a control RDR
+	 **************************/
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundControl = SAHPI_FALSE;			
+	do {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if (rdr.RdrType == SAHPI_CTRL_RDR) 
+			{
+				foundControl = SAHPI_TRUE;
+				break;
+														
+			}
+			entryid = nextentryid;
+		}
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
+
+	if (!foundControl) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		cid = rdr.RdrTypeUnion.CtrlRec.Num; 
+	}	
+
 	/************************** 
 	 * Test 1: Invalid Handle    
 	 *************************/
+	struct oh_handler_state l_handle;
+	memset(&l_handle, 0, sizeof(struct oh_handler_state));
+
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	err = snmp_bc_get_control_state(NULL, id, cid, &mode, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 2: Resource ID with no RPT
 	 *************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
-	err = snmp_bc_get_control_state((void *)h->hnd, 5000, cid, &mode, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_get_control_state(&l_handle, 5000, cid, &mode, &state);
+	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 3: Control ID with no RDR 
 	 *************************/
 	expected_err = SA_ERR_HPI_NOT_PRESENT;
-	err = snmp_bc_get_control_state((void *)h->hnd, id, 5000, &mode, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiControlGet(sessionid, id, 5000, &mode, &state);
+	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 4: NULL mode and state    
 	 *************************/
 	expected_err = SA_OK;
-	err = snmp_bc_get_control_state((void *)h->hnd, id, cid, NULL, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiControlGet(sessionid, id, cid, NULL, NULL);
+	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
-	 * Test 5: Invalid Capability
+	 * Test: resource without SAHPI_CAPABILITY_CONTROL    
 	 *************************/
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
-
-        OH_GET_DID(sessionid, did);
-	OH_GET_DOMAIN(did, d); /* Lock domain */
-	rptentry.ResourceCapabilities &= !SAHPI_CAPABILITY_CONTROL;  
-	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
-	oh_release_domain(d); /* Unlock domain */
-	
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_CONTROL, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_FALSE);
+	if (err != SA_OK) {
+		printf("Error! Can not find resources for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
+		err = tcleanup(&sessionid);
+		return SA_OK;
+	}
+		
 	expected_err = SA_ERR_HPI_CAPABILITY;
-	err = snmp_bc_get_control_state((void *)h->hnd, id, cid, &mode, &state);
-	checkstatus(&err, &expected_err, &testfail);
-
+	err = saHpiControlGet(sessionid, rptentry.ResourceId, cid, &mode, &state);
+	checkstatus(err, expected_err, testfail);
 	/***************************
 	 * Cleanup after all tests
 	 ***************************/
