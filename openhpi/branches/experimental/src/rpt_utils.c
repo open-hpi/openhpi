@@ -19,6 +19,9 @@
 #include <rpt_utils.h>
 #include <openhpi.h>
 
+/* declare Rptable object */		     
+RPTable default_rpt; 
+
 static inline RPTEntry *get_rptentry_by_rid( RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry = NULL;
