@@ -1,70 +1,45 @@
-<!doctype book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
-  <!ENTITY intel-copyright "<YEAR>2003</YEAR><HOLDER>Intel Corporation</HOLDER>">
-  <!ENTITY ibm-copyright "<YEAR>2003</YEAR><HOLDER>IBM Corporation</HOLDER>">
+<!-- ...................................................................... -->
+<!-- File OpenHPI_HLD.sgml ................................................ -->
+<!-- 
+        This material may be distributed only subject to the terms and 
+        conditions set forth in the Open Publication License, v1.0 or later 
+        (the latest version is currently available at 
+        http://www.opencontent.org/openpub/).  Distribution of substantively 
+        modified version of this document is prohibited without the explicit 
+        permission of the copyright holder.
 
- <!ENTITY openhpi-legal-notice "
-<para>
-This material may be distributed only subject to the terms and conditions
-set forth in the Open Publication License, v1.0 or later (the latest version
-is currently available at http://www.opencontent.org/openpub/).  Distribution
-of substantively modified version of this document is prohibited without the
-explicit permission of the copyright holder.
-</para>
-<para>
-Other company, product, or service names may be trademarks or service marks of 
-others.
-</para>
-">
+        Other company, product, or service names may be trademarks or service 
+        marks of others.
+-->
+
+<!doctype book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!ENTITY % legal PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "legal.dtd">
+%legal;
+
+<!ENTITY % authors PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "authors.dtd">
+%authors;
+
+<!ENTITY % revisions PUBLIC "-//OASIS//DTD DocBook V4.1//EN" "revisions.dtd">
+%revisions;
 
 ]>
 
 <book>
+
   <bookinfo>
     <date>March 18, 2003</date>
     <title>OpenHPI High-Level Design</title>
-    <subtitle>An Implementation of SAForum's Hardware Platform Interface</subtitle>
-    <authorgroup>
-       <author>
-          <firstname>Andrea</firstname>
-          <surname>Brugger</surname>
-       </author>
-       <author>
-          <firstname>Sean</firstname>
-          <surname>Dague</surname>
-       </author>
-       <author>
-          <firstname>Kevin</firstname>
-          <surname>Gao</surname>
-       </author>
-       <author>
-          <firstname>David</firstname>
-          <surname>Judkovics</surname>
-       </author>
-       <author>
-          <firstname>Rusty</firstname>
-          <surname>Lynch</surname>
-       </author>
-       <author>
-          <firstname>Louis</firstname>
-          <surname>Zhuang</surname>
-       </author>
-     </authorgroup>
-
-     <copyright>&intel-copyright;</copyright>
-     <copyright>&ibm-copyright;</copyright>
-     <legalnotice>&openhpi-legal-notice;</legalnotice>
-     <revhistory>
-      <revision>
-	<revnumber>0.1</revnumber>
-	<date>2003-3-18</date>
-	<authorinitials>Andrea Brugger</authorinitials>
-	<revremark>Initial outline revision</revremark>
-      </revision>
-     </revhistory>
-
+    <subtitle>
+An Implementation of SAForum's Hardware Platform Interface
+    </subtitle>
+    &openhpi-authors;
+    &openhpi-copyrights;
+    &openhpi-legal-notice;
+    &openhpi-revisions;
   </bookinfo>
-  <toc></toc>
-  
+
+  <toc></toc>  
   <chapter>
     <title>Introduction</title>
     <para>OpenHPI is an open source project created with the intent of providing

@@ -39,7 +39,10 @@ openhpi_docs_DATA	= \
 
 
 
-SGML_FILES		= OpenHPI_HLD.sgml
+SGML_FILES		= OpenHPI_HLD.sgml \
+                          legal.dtd \
+                          authors.dtd \
+                          revisions.dtd
 
 EXTRA_DIST		= implementation_view.png \
                           physical_view.png       \
