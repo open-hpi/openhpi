@@ -35,25 +35,15 @@ SERVER = shell1.sf.net
 RDIR = /home/groups/o/op/openhpi/htdocs/coverage_report
 CONFORMRDIR = /home/groups/o/op/openhpi/htdocs/conform_report
 
-MAINTAINERCLEANFILES 	= Makefile.in @TEST_CLEAN@
+MAINTAINERCLEANFILES 	= Makefile.in
 
-EXTRA_DIST              = testcoverage.pl \
-	coverage_report.pl \
-	gcov2html.pl \
-	gsum2html.pl
+MOSTLYCLEANFILES 	= @TEST_CLEAN@ 
 
-#INCLUDES		= -I$(top_srcdir)/include
-
-#SUBDIRS			= @SNMPDIR@ plugins t
-
-#DIST_SUBDIRS		= snmp plugins t
-
-#AM_CFLAGS		= @CFLAGS@
-
-#lib_LTLIBRARIES		= libopenhpi.la
+# we want all the local perl programs
+EXTRA_DIST              = $(shell ls *pl) 
 
 clean-local:
-	rm -rf $(REPORTDIR)
+	rm -rf $(REPORTDIR) $(CONFORMDIR)
 
 report:
 	./testcoverage.pl
