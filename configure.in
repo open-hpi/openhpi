@@ -42,60 +42,58 @@ if test "x$found_pkg_config" != "xyes"; then
     OH_CHECK_FAIL(pkg-config,pkg-config)
 fi
 
-GLIB_REQUIRED_VERSION=2.0.0
+GLIB_REQUIRED_VERSION=1.2.0
 
 AC_ARG_WITH([glib],
-    [[  --with-glib=VERSION     use glib version >= VERSION [default=2.0.0]]],
-    [GLIB_REQUIRED_VERSION=$withval;
-     if pkg-config --atleast-version $GLIB_REQUIRED_VERSION glib-2.0; then
-         :
-     else
-         AC_MSG_ERROR([
-*** GLIB >= $GLIB_REQUIRED_VERSION is required. The latest version of
-*** GLIB is always available from ftp://ftp.gtk.org/.])
-     fi],
-    [if pkg-config --atleast-version 2.0.0 glib-2.0; then
+    [[  --with-glib=VERSION     use glib version >= VERSION [default=1.2.0]]],
+    [GLIB_REQUIRED_VERSION=$withval],
+    [if pkg-config --atleast-version 1.2.0 glib; then
+         GLIB_REQUIRED_VERSION=1.2.0;
+     elif pkg-config --atleast-version 2.0.0 glib-2.0; then
          GLIB_REQUIRED_VERSION=2.0.0;
-     elif pkg-config --atleast-version 1.0.0 glib; then
-         GLIB_REQUIRED_VERSION=1.0.0;
      else
          AC_MSG_ERROR([
 *** GLIB is required. The latest version of
 *** GLIB is always available from ftp://ftp.gtk.org/.])
         fi])
 
-AC_MSG_CHECKING(for GLIB - version >= $GLIB_REQUIRED_VERSION)
-
 case "$GLIB_REQUIRED_VERSION" in
     1*)
-        exact_version=`pkg-config --modversion glib`;
-        GLIB_CFLAGS=`pkg-config --cflags glib`
-        GLIB_LIBS=`pkg-config --libs glib`
         GLIB=glib;
         ;;
     2*)
-        exact_version=`pkg-config --modversion glib-2.0`;
-        GLIB_CFLAGS=`pkg-config --cflags glib-2.0`
-        GLIB_LIBS=`pkg-config --libs glib-2.0`
         GLIB=glib-2.0;
+        AC_MSG_WARN([using glib 2.0 is not recommended, please use glib 1.2])
         ;;
     *)
-        dnl unknown glib version
         AC_MSG_ERROR([
-*** unknown GLIB $GLIB_REQUIRED_VERSION version. Try to use glib 1.2 or 2.0.])
-        ;;
+*** unsupported GLIB $GLIB_REQUIRED_VERSION. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
 esac
 
+if pkg-config --atleast-version $GLIB_REQUIRED_VERSION $GLIB; then
+   :
+else
+   AC_MSG_ERROR([
+*** GLIB >= $GLIB_REQUIRED_VERSION is required. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+fi
+
+exact_version=`pkg-config --modversion $GLIB`;
+GLIB_CFLAGS=`pkg-config --cflags $GLIB`
+GLIB_LIBS=`pkg-config --libs $GLIB`
+
+AC_MSG_CHECKING(for GLIB - version >= $GLIB_REQUIRED_VERSION)
 AC_MSG_RESULT(yes (version $exact_version))
- 
+
 dnl if the glib is installed on a non standard place
-dnl like /opt/gnome/lib AC_CHECK_LIB, cc will find the library.
+dnl like /opt/gnome/lib AC_CHECK_LIB will find the library.
 old_cflags=$CFLAGS
 old_libs=$LIBS
 
 CFLAGS="$CFLAGS $GLIB_CFLAGS"
 LIBS="$LIBS $GLIB_LIBS"
- 
+
 AC_CHECK_LIB([$GLIB], [g_slist_alloc], [],
 [
 OH_CHECK_FAIL(glib,glib-devel)
