@@ -18,7 +18,7 @@ const char * get_error_string(SaErrorT);
 void display_entity_capabilities(SaHpiCapabilitiesT);
 const char * severity2str(SaHpiSeverityT);
 const char * rdrtype2str(SaHpiRdrTypeT type);
-char * interpreted2str (SaHpiSensorInterpretedT interpreted);
+void interpreted2str (SaHpiSensorInterpretedT interpreted);
 void rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
 const char * ctrldigital2str(SaHpiCtrlStateDigitalT digstate);
 const char * get_sensor_type(SaHpiSensorTypeT type);
@@ -357,7 +357,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
 			if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED) {
 				printf("\tValues Present: Interpreted\n");
-				printf("\t\tInterpreted value: %s\n", interpreted2str(reading.Interpreted));
+                                printf("\t\t");
+				interpreted2str(reading.Interpreted);
 			}
 
 			if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE) {
@@ -509,45 +510,48 @@ void display_textbuffer(SaHpiTextBufferT string)
  * interpreted2str:
  * @interpreted: structure with interpreted data for sensor
  *
- * Return a string containing the interpreted data from the
+ * Print a string containing the interpreted data from the
  * interpreted data structure given.
  **/
 
-char * interpreted2str (SaHpiSensorInterpretedT interpreted)
+void interpreted2str (SaHpiSensorInterpretedT interpreted)
 {
-        char *str = calloc(1,10);  /* max size is 10 b/c 10 digits in 2^32 */
+        char *str = calloc(SAHPI_SENSOR_BUFFER_LENGTH ,sizeof(char));
+
+        printf("Interpreted value: ");
                 
 	switch (interpreted.Type) {
 		case SAHPI_SENSOR_INTERPRETED_TYPE_UINT8:
-			sprintf(str, "%d", interpreted.Value.SensorUint8);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%d",interpreted.Value.SensorUint8);
 			break;
 		case SAHPI_SENSOR_INTERPRETED_TYPE_UINT16:
-			sprintf(str, "%d", interpreted.Value.SensorUint16);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%d",interpreted.Value.SensorUint16);
 			break;
 		case SAHPI_SENSOR_INTERPRETED_TYPE_UINT32:
-			sprintf(str, "%d", interpreted.Value.SensorUint32);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%d",interpreted.Value.SensorUint32);
 			break;
 		case SAHPI_SENSOR_INTERPRETED_TYPE_INT8:
-			sprintf(str, "%d", interpreted.Value.SensorInt8);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%d",interpreted.Value.SensorInt8);
 			break;
 		case SAHPI_SENSOR_INTERPRETED_TYPE_INT16:
-			sprintf(str, "%d", interpreted.Value.SensorInt16);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%d",interpreted.Value.SensorInt16);
 			break;
 		case SAHPI_SENSOR_INTERPRETED_TYPE_INT32:
-			sprintf(str, "%d", interpreted.Value.SensorInt32);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%d",interpreted.Value.SensorInt32);
 			break;
 		case SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32:
-			sprintf(str, "%6.2f", interpreted.Value.SensorFloat32);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%6.2f",interpreted.Value.SensorFloat32);
 			break;
 		case SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER:
-			sprintf(str, "%s", interpreted.Value.SensorBuffer);
+			snprintf(str,SAHPI_SENSOR_BUFFER_LENGTH,"%s",interpreted.Value.SensorBuffer);
 			break;
 		default:
 			printf("Invalid interpreted type=%d\n", interpreted.Type);
 			break;
 	}
+        printf("%s\n",str);
         
-	return str;
+	free(str);
 }
 
 void rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
@@ -763,7 +767,8 @@ void printreading (SaHpiSensorReadingT reading)
 	if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED)
 		printf("\t\t\tValues Present: Interpreted\n");
 
-	printf("\t\t\t\tInterpreted value: %s\n", interpreted2str(reading.Interpreted));
+        printf("\t\t\t\t");
+        interpreted2str(reading.Interpreted);
 
 	if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE)
 		printf("\t\t\tValues Present: Event State\n");
