@@ -78,6 +78,21 @@ static enum {
                 h = rd->handler;                                              \
         } while(0)
 
+/* 
+ * OH_RPT_GET - sets up rpt table, and does a sanity check that it 
+ * is actually valid, returning badly if it isn't
+ */
+
+#define OH_RPT_GET(SessionId, rpt) \
+        do { \
+                rpt = default_rpt;              \
+                if(rpt == NULL) { \
+                        dbg("RPT for Session %d not found",SessionId); \
+                        return SA_ERR_HPI_INVALID_SESSION; \
+                } \
+        } while(0)
+
+
 /*
  * OH_RESOURCE_GET gets the resource for an resource id and rpt
  * it returns invalid resource if no resource id is found
@@ -322,13 +337,7 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
         OH_STATE_READY_CHECK;
 
         data_access_lock();
-
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+        OH_SESSION_SETUP(SessionId, s);
         
         g_slist_for_each(i, global_handler_list) {
                 struct oh_handler *h = i->data;
@@ -356,20 +365,26 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_OUT SaHpiRptInfoT *RptInfo)
 {
-        int rv =0;
-
+        struct oh_session *s;
+        /* determine the right pointer later when we do multi domains */
+        RPTable *rpt;
+        int rv = 0;
+        
         OH_STATE_READY_CHECK;
-
+        
+        OH_SESSION_SETUP(SessionId, s);
+        
+        OH_RPT_GET(SessionId, rpt);
+        
         rv = get_events();
+        
         if (rv<0) {
                 dbg("Error attempting to process events");
                 return SA_ERR_HPI_UNKNOWN;
         }
-        
-        /* FIXME: we should really be getting event default_rpt from 
-           a domain or session keyed hash */
-        RptInfo->UpdateCount = default_rpt->rpt_info.UpdateCount;
-        RptInfo->UpdateTimestamp= default_rpt->rpt_info.UpdateTimestamp;
+                
+        RptInfo->UpdateCount = rpt->rpt_info.UpdateCount;
+        RptInfo->UpdateTimestamp= rpt->rpt_info.UpdateTimestamp;
 
         return SA_OK;
 }
@@ -383,7 +398,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         struct oh_session *s;
 
         /* determine the right pointer later when we do multi domains */
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         SaHpiRptEntryT *req_entry;
         SaHpiRptEntryT *next_entry;
         
@@ -397,6 +412,8 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_SESSION;
         }
+
+        OH_RPT_GET(SessionId, rpt);
         
         if (EntryId == SAHPI_FIRST_ENTRY) {
                 req_entry = oh_get_resource_next(rpt, SAHPI_FIRST_ENTRY);
@@ -431,15 +448,26 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-        RPTable *rpt = default_rpt;
+        
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRptEntryT *req_entry;
 
         OH_STATE_READY_CHECK;
+        
+        OH_SESSION_SETUP(SessionId, s);
+
+        OH_RPT_GET(SessionId, rpt);
 
         data_access_lock();
 
         req_entry = oh_get_resource_by_id(rpt, ResourceId);
 
+        /*
+         * is this case really supposed to be an error?  I thought 
+         * there was a valid return for "not found in domain"
+         */
+        
         if(req_entry == NULL) {
                 dbg("No such resource id");
                 data_access_unlock();
