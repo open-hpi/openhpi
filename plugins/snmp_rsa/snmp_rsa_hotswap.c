@@ -72,13 +72,13 @@ SaErrorT snmp_rsa_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT snmp_rsa_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
 		        	    SaHpiHsStateT state)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 SaErrorT snmp_rsa_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 					 SaHpiHsActionT act)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 SaErrorT snmp_rsa_get_reset_state(void *hnd, SaHpiResourceIdT id,
