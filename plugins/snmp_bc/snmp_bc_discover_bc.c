@@ -950,7 +950,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 					   &(res_oh_event->u.res_event.entry.ResourceEntity),
 					   snmp_bc_ipmi_sensors[i].oid, &get_value, SAHPI_FALSE);
 
-		/* Work around for BC/BCT problem of timing out for each generoc IPMI Voltage OID
+		/* Work around for BC/BCT problem of timing out for each generic IPMI Voltage OID
                    after the last real one */
 		if (err) {
 			dbg("SNMP error=%s; oid=%s",
