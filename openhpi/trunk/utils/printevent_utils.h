@@ -33,11 +33,19 @@ struct code2string {
 };
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 /* 
  * Export function prototypes
 */
 void print_event(SaHpiEventT *thisEvent);
 char *decode_enum(struct code2string *code_array, int NUM_MAX, int code);
 void saftime2str(SaHpiTimeT time, char * str, size_t size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
