@@ -28,10 +28,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-extern pthread_mutex_t data_access_mutex; 
-
 /*******************************************************************************
  *  global_plugin_list - list of all the plugins that should be loaded
  *
@@ -172,18 +168,18 @@ int process_plugin_token (GScanner *oh_scanner)
         guint my_token;
         int refcount;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         my_token = g_scanner_get_next_token(oh_scanner); 
         if (my_token != HPI_CONF_TOKEN_PLUGIN) {
                 dbg("Token is not what I was promissed");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         my_token = g_scanner_get_next_token(oh_scanner);
         if(my_token != G_TOKEN_STRING) {
                 dbg("Where the heck is my string!");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         
@@ -195,11 +191,11 @@ int process_plugin_token (GScanner *oh_scanner)
                         );
         } else {
                 dbg("WARNING: Attempt to load a plugin more than once");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }
@@ -230,7 +226,7 @@ struct oh_plugin_config * plugin_config (char *name)
         GSList *node;
         struct oh_plugin_config *return_config = NULL;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         g_slist_for_each(node, global_plugin_list) {
                 struct oh_plugin_config *pconf = node->data;
@@ -240,7 +236,7 @@ struct oh_plugin_config * plugin_config (char *name)
                 }
         }
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
         
         return return_config;
 }
@@ -259,19 +255,19 @@ int process_handler_token (GScanner* oh_scanner)
         char *tablekey, *tablevalue;
         int found_right_curly = 0;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         
         if (g_scanner_get_next_token(oh_scanner) != HPI_CONF_TOKEN_HANDLER) {
                 dbg("Processing handler: Expected handler token.");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
 
         /* Get the plugin type and store in Hash Table */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
                 dbg("Processing handler: Expected string token.");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         } else {
                 handler_stanza = g_hash_table_new(g_str_hash, g_str_equal);
@@ -367,7 +363,7 @@ int process_handler_token (GScanner* oh_scanner)
                         (gpointer) handler_stanza);
         }        
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 
@@ -382,7 +378,7 @@ free_table:
         g_hash_table_foreach(handler_stanza, free_hash_table, NULL);
         g_hash_table_destroy(handler_stanza);
 
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return -1;
 }

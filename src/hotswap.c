@@ -23,10 +23,6 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-/* multi-threading support, use Posix mutex for data access */
-/* initialize mutex used for data locking */
-extern pthread_mutex_t data_access_mutex; 
-
 void process_hotswap_policy(void)
 {
         SaHpiTimeT cur, est;
@@ -89,19 +85,19 @@ int hotswap_push_event(struct oh_hpi_event *e)
 {
         struct oh_event *e1;
 
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         e1 = malloc(sizeof(*e1));
         if (!e1) {
                 dbg("Out of memory!");
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return -1;
         }
         memcpy(e1, e, sizeof(*e));
 
         hs_eq = g_slist_append(hs_eq, (gpointer *) e1);
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 0;
 }
@@ -117,10 +113,10 @@ int hotswap_pop_event(struct oh_hpi_event *e)
 {
         GSList *head;
         
-        pthread_mutex_lock(&data_access_mutex);
+        data_access_lock();
 
         if (g_slist_length(hs_eq) == 0) {
-                pthread_mutex_unlock(&data_access_mutex);
+                data_access_unlock();
                 return 0;
         }
        
@@ -132,7 +128,7 @@ int hotswap_pop_event(struct oh_hpi_event *e)
         free(head->data);
         g_slist_free_1(head);
         
-        pthread_mutex_unlock(&data_access_mutex);
+        data_access_unlock();
 
         return 1;
 }
