@@ -111,12 +111,21 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 }
 
 
-static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
+static int process_hpi_event(struct oh_event *full_event)
 {
         int i;
         GArray *sessions = NULL;
         SaHpiSessionIdT sid;
+        struct oh_domain *d = NULL;
         struct oh_hpi_event *e = NULL;
+
+        /* We take the domain lock for the whole function here */
+        
+        d = oh_get_domain(full_event->did);
+        if(!d) {
+                dbg("Domain %d doesn't exist", full_event->did);
+                return -1; /* FIXME: should this be -1? */
+        }
 
         e = &(full_event->u.hpi_event);
 
@@ -127,9 +136,9 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
         }
         
         /* FIXME: Add event to DEL */
-        // trace("About to add to EL");
-        oh_add_event_to_del(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
-        // trace("Added event to EL");
+        trace("About to add to EL");
+        oh_add_event_to_del(d->id, e);
+        trace("Added event to EL");
 
         /*
          * TODO: Here is where we need the SESSION MULTIPLEXING code
@@ -145,13 +154,24 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
                 oh_queue_session_event(sid, full_event);
         }
 
+        oh_release_domain(d);
+        
         return 0;
 }
 
-static int process_resource_event(RPTable *rpt, struct oh_event *e)
+static int process_resource_event(struct oh_event *e)
 {
         int rv;
-
+        RPTable *rpt = NULL;
+        struct oh_domain *d = NULL;
+        
+        d = oh_get_domain(e->did);
+        if(!d) {
+                dbg("Domain %d doesn't exist", e->did);
+                return -1;
+        }
+        rpt = &(d->rpt);
+        
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_event.entry.ResourceId);
         } else {
@@ -168,14 +188,24 @@ static int process_resource_event(RPTable *rpt, struct oh_event *e)
 
                 rv = oh_add_resource(rpt,&(e->u.res_event.entry),rd,0);
         }
+        oh_release_domain(d);
 
         return rv;
 }
 
-static int process_rdr_event(RPTable *rpt, struct oh_event *e)
+static int process_rdr_event(struct oh_event *e)
 {
         int rv;
         SaHpiResourceIdT rid = e->u.rdr_event.parent;
+        RPTable *rpt = NULL;
+        struct oh_domain *d = NULL;
+
+        d = oh_get_domain(e->did);
+        if(!d) {
+                dbg("Domain %d doesn't exist", e->did);
+                return -1;
+        }
+        rpt = &(d->rpt);
 
         if (e->type == OH_ET_RDR_DEL) {
                 rv = oh_remove_rdr(rpt,rid,e->u.rdr_event.rdr.RecordId);
@@ -185,34 +215,45 @@ static int process_rdr_event(RPTable *rpt, struct oh_event *e)
 
         if (rv) dbg("Could not process rdr event. Parent resource not found.");
 
+        oh_release_domain(d);
+        
         return rv;
 }
 
-SaErrorT process_events(RPTable *rpt)
+SaErrorT process_events()
 {
         struct oh_event *e;
 
         while((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
+
+                /* FIXME: add real check if handler is allowed to push event 
+                   to the domain id in the event */
+                if(e->did != 1) { // add use of real domain checker once renier provides
+                        dbg("Domain Id %d not valid for event", e->did);
+                        g_free(e);
+                        return SA_ERR_HPI_INVALID_DATA;
+                }
+
                 switch(e->type) {
                 case OH_ET_RESOURCE:
                         trace("Event Type = Resource");
-                        process_resource_event(rpt, e);
+                        process_resource_event(e);
                         break;
                 case OH_ET_RESOURCE_DEL:
                         trace("Event Type = Resource Delete");
-                        process_resource_event(rpt, e);
+                        process_resource_event(e);
                         break;
                 case OH_ET_RDR:
                         trace("Event Type = RDR");
-                        process_rdr_event(rpt, e);
+                        process_rdr_event(e);
                         break;
                 case OH_ET_RDR_DEL:
                         trace("Event Type = RDR Delete");
-                        process_rdr_event(rpt, e);
+                        process_rdr_event(e);
                         break;
                 case OH_ET_HPI:
                         trace("Event Type = HPI Event");
-                        process_hpi_event(rpt, e);
+                        process_hpi_event(e);
                         break;
                 default:
                         trace("Event Type = Unknown Event");
@@ -222,7 +263,7 @@ SaErrorT process_events(RPTable *rpt)
         return SA_OK;
 }
 
-SaErrorT get_events(RPTable *rpt)
+SaErrorT get_events()
 {
         // in a thread world this becomes a noop
         SaErrorT rv = SA_OK;
@@ -231,7 +272,7 @@ SaErrorT get_events(RPTable *rpt)
                 dbg("Error on harvest of events, aborting");
                 return rv;
         }
-        rv = process_events(rpt);
+        rv = process_events();
         if(rv != SA_OK) {
                 dbg("Error on processing of events, aborting");
                 return rv;

@@ -106,7 +106,7 @@ SaErrorT SAHPI_API saHpiDiscover(
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
         /* FIXME: This rpt access must be buried deeper later */
-        rv = get_events(&(d->rpt));
+        rv = get_events();
 
         oh_release_domain(d); /* Unlock domain */
 
@@ -140,7 +140,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
-        rv = get_events(&(d->rpt)); /* FIXME: Is this necessary ? */
+        rv = get_events(); /* FIXME: Is this necessary ? */
         if (rv<0) {
                 dbg("Error attempting to process events");
                 return SA_ERR_HPI_UNKNOWN;
@@ -323,7 +323,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         /* to get rpt entry into infrastructure */
-        get_events(&(d->rpt));
+        get_events();
         oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
@@ -620,7 +620,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
 
         /* to get REL entry into infrastructure */
-        rv = get_events(&(d->rpt));
+        rv = get_events();
         oh_release_domain(d); /* Unlock domain */
         if(rv != SA_OK) {
                 dbg("Event loop failed");
@@ -903,7 +903,7 @@ SaErrorT SAHPI_API saHpiEventGet (
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
-        error = get_events(&(d->rpt));
+        error = get_events();
         oh_release_domain(d); /* Unlock domain */
 
         if (error < 0) return SA_ERR_HPI_UNKNOWN;
@@ -2523,7 +2523,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
 
         rv = request_hotswap_action(h->hnd, ResourceId, Action);
 
-        get_events(&(d->rpt));
+        get_events();
 
         return rv;
 }

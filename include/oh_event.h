@@ -86,9 +86,9 @@ extern GAsyncQueue *oh_process_q;
 int oh_event_init(void);
 int oh_event_final(void);
 unsigned int get_log_severity(char *severity);
-SaErrorT get_events(RPTable *rpt);
+SaErrorT get_events(void);
 SaErrorT harvest_events(void);
-SaErrorT process_events(RPTable *rpt);
+SaErrorT process_events(void);
 
 #ifdef __cplusplus
 }
