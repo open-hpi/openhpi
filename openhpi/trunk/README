@@ -8,8 +8,9 @@ PREREQUISITES
 ---------------------------------------------------------
 The following software is required to build openhpi
 
-autoconf >= 2.50
+autoconf >= 2.57
 automake >= 1.5
+gcc      >= 3.2.0
 uuid.h      (may be found in e2fsprogs-devel or uuid-dev)
 GLIB-1.2	(note we may be switching to 2.0 in the next release)
 
