@@ -56,9 +56,9 @@ DIST_SUBDIRS = src docs examples util
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
-ALLSOURCES = $(shell \
+ALLSOURCES = \
 	find @abs_top_srcdir@ \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print )
+	-name '*.[chS]' -print
 
 includedir=$(base_includedir)/openhpi
 
@@ -87,12 +87,15 @@ clean: am_config_clean
 am_config_clean:
 	rm -fr $(PACKAGE)-*.tar.gz
 
-tags:   $(ALLSOURCES)
+tags:   FORCE
 	@echo making tags		
-	@ctags $(ALLSOURCES)
-TAGS:   $(ALLSOURCES)
+	$(ALLSOURCES) |xargs ctags
+TAGS:   FORCE
 	@echo making TAGS
-	@etags $(ALLSOURCES)
-cscope: $(ALLSOURCES)
+	$(ALLSOURCES) |xargs etags
+cscope: FORCE
 	@echo making cscope
-	@echo $(ALLSOURCES) > cscope.files && cscope -b
+	$(ALLSOURCES) > cscope.files
+	cscope -b
+
+.PHONY: FORCE
