@@ -21,25 +21,21 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static void process_session_event(struct oh_event *e)
+static void process_session_event(struct oh_hpi_event *e)
 {
 	struct oh_resource *res;
 	GSList *i;
 
-	res = get_res_by_oid(e->u.hpi_event.parent);
+	res = get_res_by_oid(e->parent);
 	if (!res) {
 		dbg("No the resource");
 	}
 
 	if (res->controlled == 0 
-		&& e->u.hpi_event.event.EventType == SAHPI_ET_HOTSWAP) {
+		&& e->event.EventType == SAHPI_ET_HOTSWAP) {
 		hotswap_push_event(e);
 	}
 
-	/* if the event is come from resource with SEL cap.*/
-	if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
-		rsel_add2(res, &e->u.sel_event);
-	
 	g_slist_for_each(i, res->domain_list) {
 		SaHpiDomainIdT domain_id;
 		struct oh_domain *d;
@@ -48,7 +44,7 @@ static void process_session_event(struct oh_event *e)
 		domain_id = GPOINTER_TO_UINT(i->data);
 		d = get_domain_by_id(domain_id);
 		if (d) 
-			dsel_add2(d, &e->u.hpi_event);
+			dsel_add2(d, e);
 		else 
 			dbg("Invalid domain");
 
@@ -56,7 +52,6 @@ static void process_session_event(struct oh_event *e)
 			struct oh_session *s = j->data;
 			if (domain_id == s->domain_id
 			    && s->event_state==OH_EVENT_SUBSCRIBE) {
-				dbg("push a new event, type=%d", e->type);
 				session_push_event(s, e);
 			}
 		}
@@ -137,7 +132,7 @@ static int get_event(void)
 		if (rv>0) {
 			if (event.type == OH_ET_HPI) {
 				/* add the event to session event list */
-				process_session_event(&event);
+				process_session_event(&event.u.hpi_event);
 			} else {
 				process_internal_event(h, &event);
 			}
