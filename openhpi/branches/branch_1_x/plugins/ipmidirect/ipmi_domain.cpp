@@ -438,7 +438,7 @@ cIpmiDomain::CheckAtca()
 
   stdlog << "found a PigMg system version " << major << "." << minor << ".\n";
 
-  if ( major != 2 || minor != 0 )
+  if ( major != 2 || ( ( minor != 0 ) && ( minor != 1 ) ) )
        return SA_OK;
 
   stdlog << "found an ATCA system.\n";
