@@ -96,7 +96,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 /* Create remove RDR event and add to event queue */
                 struct oh_event *e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e) {
-			e->did = 1;
+			e->did = oh_get_default_domain_id();
                         e->type = OH_ET_RDR_DEL;
                         e->u.rdr_event.parent = res->ResourceId;			
 			memcpy(&(e->u.rdr_event.rdr), rdr, sizeof(SaHpiRdrT));
@@ -116,8 +116,9 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		/* Create remove resource event and add to event queue */
 		struct oh_event *e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
                 if (e) {
-			e->did = 1;
+			e->did = oh_get_default_domain_id();
                         e->type = OH_ET_RESOURCE_DEL;
+
                         e->u.res_event.entry.ResourceId = res->ResourceId;
                         handle->eventq = g_slist_append(handle->eventq, e);
                 } else { error("Out of memory."); }
@@ -206,12 +207,11 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
   **/
 SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				  struct snmp_bc_sensor *sensor_array,
-				  struct oh_event *parent_res_event)
+				  struct oh_event *res_oh_event)
 {
 	int i;
-	gchar *oid = NULL;
 	SaErrorT err;
-	SaHpiBoolT sensor_event_only;
+	SaHpiBoolT valid_sensor;
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
@@ -224,20 +224,26 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
+		valid_sensor = SAHPI_FALSE;
 		/* Check for event-only sensor */
 		if (sensor_array[i].sensor.DataFormat.IsSupported == SAHPI_FALSE) {
-			sensor_event_only = SAHPI_TRUE;
+			valid_sensor = SAHPI_TRUE;
 		}
 		else {
-			sensor_event_only = SAHPI_FALSE;
 			if (sensor_array[i].bc_sensor_info.mib.oid != NULL) {
-				oid = snmp_derive_objid(parent_res_event->u.res_event.entry.ResourceEntity, 
+				gchar *oid;
+
+				oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
 							sensor_array[i].bc_sensor_info.mib.oid);
 				if (oid == NULL) {
-					error("Cannot translate OID=%s.", sensor_array[i].bc_sensor_info.mib.oid);
+					error("Cannot derive OID=%s.", sensor_array[i].bc_sensor_info.mib.oid);
 					g_free(e);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
+				valid_sensor = rdr_exists(ss, oid, 
+							  sensor_array[i].bc_sensor_info.mib.not_avail_indicator_num,
+							  sensor_array[i].bc_sensor_info.mib.write_only);
+				g_free(oid);
 			}
 			else {
 				error("Sensor %s cannot be read.", sensor_array[i].comment);
@@ -247,20 +253,22 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 		}
 
 		/* Add sensor RDR, if sensor is event-only or can be read */
-		if (sensor_event_only ||
-		    rdr_exists(ss, oid, sensor_array[i].bc_sensor_info.mib.not_avail_indicator_num,
-			       sensor_array[i].bc_sensor_info.mib.write_only)) {
+		if (valid_sensor) {
 			e->type = OH_ET_RDR;
+			e->did = oh_get_default_domain_id();
 			e->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
-			e->u.rdr_event.rdr.Entity = parent_res_event->u.res_event.entry.ResourceEntity;
+			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
 			e->u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor_array[i].sensor;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].comment);
-			
+#if 0
+			trace("Discovered sensor: %s.", e->u.rdr_event.rdr.IdString.Data);
+#endif
 			sensor_info_ptr = g_memdup(&(sensor_array[i].bc_sensor_info), sizeof(struct BC_SensorInfo));
+
 			err = oh_add_rdr(custom_handle->tmpcache,
-					 parent_res_event->u.res_event.entry.ResourceId,
+					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
 					 sensor_info_ptr, 0);
 			if (err) {
@@ -270,13 +278,14 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			else {
 				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
 				snmp_bc_discover_sensor_events(handle,
-							       &(parent_res_event->u.res_event.entry.ResourceEntity),
+							       &(res_oh_event->u.res_event.entry.ResourceEntity),
 							       sensor_array[i].sensor.Num,
 							       &(sensor_array[i]));
 			}
 		}
-
-		g_free(oid);
+		else {
+			g_free(e);
+		}
 	}
 	
 	return(SA_OK);
@@ -286,7 +295,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
  * snmp_bc_discover_controls: 
  * @handler: Pointer to handler's data.
  * @control_array: Pointer to resource's static control data array.
- * @parent_res_event: Pointer to resource's event structure.
+ * @res_oh_event: Pointer to resource's event structure.
  *
  * Discovers resource's available controls.
  *
@@ -296,11 +305,12 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
   **/
 SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 				   struct snmp_bc_control *control_array,
-				   struct oh_event *parent_res_event)
+				   struct oh_event *res_oh_event)
 {
 	int i;
-	gchar *oid = NULL;
+	gchar *oid;
 	SaErrorT err;
+	SaHpiBoolT valid_control;
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
@@ -313,28 +323,35 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
-		oid = snmp_derive_objid(parent_res_event->u.res_event.entry.ResourceEntity, 
+		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity,
 					control_array[i].bc_control_info.mib.oid);
 		if (oid == NULL) {
-			error("Cannot translate OID=%s.", control_array[i].bc_control_info.mib.oid);
+			error("Cannot derive OID=%s.", control_array[i].bc_control_info.mib.oid);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
+		valid_control = rdr_exists(ss, oid, 
+					   control_array[i].bc_control_info.mib.not_avail_indicator_num,
+					   control_array[i].bc_control_info.mib.write_only);
+		g_free(oid);
+
 		/* Add control RDR, if control can be read */
-		if (rdr_exists(ss, oid, control_array[i].bc_control_info.mib.not_avail_indicator_num,
-			       control_array[i].bc_control_info.mib.write_only)) {
+		if (valid_control) {
 			e->type = OH_ET_RDR;
+			e->did = oh_get_default_domain_id();
 			e->u.rdr_event.rdr.RdrType = SAHPI_CTRL_RDR;
-			e->u.rdr_event.rdr.Entity = parent_res_event->u.res_event.entry.ResourceEntity;
+			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
 			e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec = control_array[i].control;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), control_array[i].comment);
-			
+#if 0
+			trace("Discovered control: %s.", e->u.rdr_event.rdr.IdString.Data);
+#endif
 			control_info_ptr = g_memdup(&(control_array[i].bc_control_info), sizeof(struct BC_ControlInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
-					 parent_res_event->u.res_event.entry.ResourceId,
+					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
 					 control_info_ptr, 0);
 			if (err) {
@@ -345,19 +362,19 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
 			}
 		}
-
-		g_free(oid);
+		else {
+			g_free(e);
+		}
 	}
 	
 	return(SA_OK);
 }
 
-
 /**
  * snmp_bc_discover_inventory: 
  * @handler: Pointer to handler's data.
  * @inventory_array: Pointer to resource's static inventory data array.
- * @parent_res_event: Pointer to resource's event structure.
+ * @res_oh_event: Pointer to resource's event structure.
  *
  * Discovers resource's available inventory data records.
  *
@@ -367,10 +384,11 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
   **/
 SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 				      struct snmp_bc_inventory *inventory_array,
-				      struct oh_event *parent_res_event)
+				      struct oh_event *res_oh_event)
 {
 	int i;
-	gchar *oid = NULL;
+	gchar *oid;
+	SaHpiBoolT valid_idr;
 	SaErrorT err;
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -385,28 +403,34 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
-		oid = snmp_derive_objid(parent_res_event->u.res_event.entry.ResourceEntity, 
+		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
 					inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
 		if (oid == NULL) {
-			error("Cannot translate OID=%s.", 
+			error("Cannot derive OID=%s.", 
 			      inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
+		
+		valid_idr = rdr_exists(ss, oid, 0, 0);
+		g_free(oid);
 
 		/* Add inventory RDR, if inventory can be read */
-		if (rdr_exists(ss, oid, 0, 0)) {
+		if (valid_idr) {
 			e->type = OH_ET_RDR;
+			e->did = oh_get_default_domain_id();
 			e->u.rdr_event.rdr.RdrType = SAHPI_INVENTORY_RDR;
-			e->u.rdr_event.rdr.Entity = parent_res_event->u.res_event.entry.ResourceEntity;
+			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
 			e->u.rdr_event.rdr.RdrTypeUnion.InventoryRec = inventory_array[i].inventory;
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), inventory_array[i].comment);
-			
+#if 0
+			trace("Discovered inventory: %s.", e->u.rdr_event.rdr.IdString.Data);
+#endif
 			inventory_info_ptr = g_memdup(&(inventory_array[i].bc_inventory_info), sizeof(struct BC_InventoryInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
-					 parent_res_event->u.res_event.entry.ResourceId,
+					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
 					 inventory_info_ptr, 0);
 			if (err) {
@@ -417,8 +441,9 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 				custom_handle->tmpqueue = g_slist_append(custom_handle->tmpqueue, e);
 			}
 		}
-
-		g_free(oid);
+		else {
+			g_free(e);
+		}
 	}
 	
 	return(SA_OK);
@@ -436,7 +461,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
  *
  * Return values:
  * SaHpiTextBufferT - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - /@buffer is NULL; or /@loc is not valid
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL; or @loc not valid
  * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
  **/
 SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
@@ -445,11 +470,8 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 	SaErrorT err = SA_OK;
 	SaHpiTextBufferT working;
 
-	if (!buffer || loc < SNMP_BC_HPI_LOCATION_BASE) {
-#if 0
-	    /* What library is this in ??? */
-	    || loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
-#endif
+	if (!buffer || loc < SNMP_BC_HPI_LOCATION_BASE ||
+	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -468,7 +490,6 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 	if (!err) {
 		err = oh_copy_textbuffer(buffer, &working);
 	}
-	
 	g_free(locstr);
 	return(err);
 }

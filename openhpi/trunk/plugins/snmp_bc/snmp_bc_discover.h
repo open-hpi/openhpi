@@ -26,15 +26,15 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 
 SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				  struct snmp_bc_sensor *sensor_array,
-				  struct oh_event *res_event);
+				  struct oh_event *res_oh_event);
 
 SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 				   struct snmp_bc_control *control_array,
-				   struct oh_event *parent_res_event);
+				   struct oh_event *res_oh_event);
 
 SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 				      struct snmp_bc_inventory *inventory_array,
-				      struct oh_event *parent_res_event);
+				      struct oh_event *res_oh_event);
 
 SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer,
 				    const char *str,
