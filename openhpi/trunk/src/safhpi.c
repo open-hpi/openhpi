@@ -1148,10 +1148,6 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        if (!Reading) {
-                return SA_OK;
-        }
-
         rv = get_func(h->hnd, ResourceId, SensorNum, Reading, EventState);
 
         return rv;
