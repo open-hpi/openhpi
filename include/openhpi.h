@@ -112,10 +112,10 @@ int present_entity(struct oh_domain *d, struct oh_id *oid);
 int init_plugin(void);
 int uninit_plugin(void);
 
-#define dbg(format, arg...)                                     \
+#define dbg(format, ...)                                     \
         do {							\
 		fprintf(stderr, "%s:%d: " format "\n",		\
-			__FUNCTION__, __LINE__, ## arg);	\
+			__FUNCTION__, __LINE__, ## __VA_ARGS__);	\
         } while(0)
 
 #endif/*__OPENHPI_H*/
