@@ -59,10 +59,7 @@ SaErrorT oh_initialize()
                 dbg("Cannot initialize twice");
                 data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
-        }
-        
-        /* Initialize event process queue */
-        oh_event_init();
+        }        
 
         /* Set openhpi configuration file location */        
         oh_get_global_param(&config_param);
@@ -74,6 +71,9 @@ SaErrorT oh_initialize()
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+        
+        /* Initialize event process queue */
+        oh_event_init();
 
         /* Initialize uid_utils */
         rval = oh_uid_initialize();
