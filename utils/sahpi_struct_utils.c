@@ -240,11 +240,11 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
  * buffer.
  *
  * Notes!
- * - Numerical strings can contain commas but it is assummed that strings follow
+ * - Numerical strings can contain commas but it is assummed that strings follow.
  *   US format (e.g. "1,000,000" = 1 million; not "1.000.000").
- * - Decimal points are always preceded by at least one number (e.g. "0.9")
- * - Numerical percentage strings like "9%" are converted into a float 0.09
- * - Hex notation is not supported (e.g. "0x23")
+ * - Decimal points are always preceded by at least one number (e.g. "0.9").
+ * - Numerical percentage strings like "89%" are stripped of their percent sign.
+ * - Hex notation is not supported (e.g. "0x23").
  * - Scientific notation is not supported (e.g. "e+02").
  *
  * Returns: 
@@ -252,7 +252,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL; Invalid @type.
  * SA_ERR_HPI_INVALID_DATA - Converted @buffer->Data too large for @type; cannot
  *                           convert string into valid number; @type incorrect
- *                           for resulting number (e.g. percentage not a float).
+ *                           for resulting number.
  **/
 SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				 SaHpiSensorReadingTypeT type,
@@ -346,7 +346,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 		found_number = 1;
 	}
 
-	if ((is_percent || found_float) && type != SAHPI_SENSOR_READING_TYPE_FLOAT64) {
+	if (found_float && type != SAHPI_SENSOR_READING_TYPE_FLOAT64) {
 		dbg("Number and type incompatible");
 		return(SA_ERR_HPI_INVALID_DATA);
 	}
@@ -406,12 +406,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				return(SA_ERR_HPI_INVALID_DATA);
 			}
 			
-			if (is_percent) {
-				working.Value.SensorFloat64 = num_float64/100.0;
-			}
-			else {
-				working.Value.SensorFloat64 = num_float64;
-			}
+			working.Value.SensorFloat64 = num_float64;
 		}
 		else { /* No number in string */
 			num_float64 = 0;
