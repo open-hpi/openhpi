@@ -17,7 +17,7 @@
 
 SaErrorT ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int to, struct ohoi_handler *ipmi_handler) 
 {
-		struct timeval tv1, tv2, tv3; 
+        struct timeval tv1, tv2, tv3; 
 		
         /* Wait 5 seconds for result */
         gettimeofday(&tv1, NULL);
