@@ -116,7 +116,6 @@ static void sensor_read(ipmi_sensor_t			*sensor,
 		p->sensor_reading->ValuesPresent = 0;
 	
 	p->done = 1;
-DEBUG_MSG_DISABLE();
 }
 
 static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
@@ -126,7 +125,6 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
 
         reading_data = cb_data;
         
-DEBUG_MSG_ENABLE();	
 	if (ignore_sensor(sensor)) {
 		dbg("Sensor is not present, ignored");
 		return;
