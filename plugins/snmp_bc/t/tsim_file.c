@@ -37,7 +37,8 @@ int main(int argc, char **argv)
         }
 	// regular sim_init is part of saHpiSessionOpen, here we close it
 	sim_close();
-	setenv("OPENHPI_SIMTEST_FILE","./sim_test_file", 1);
+	// env variable OPENHPI_SIMTEST_FILE is now defined in Makefile.am
+	// setenv("OPENHPI_SIMTEST_FILE","./sim_test_file", 1);
 	// create hash table based on input file
 	if (sim_file() != SA_OK) {
 	  printf(" Error! sim_file failed\n");
