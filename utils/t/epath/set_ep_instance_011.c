@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep;
         SaHpiEntityTypeT     w = SAHPI_ENT_POWER_DISTRIBUTION_UNIT;
-        SaHpiEntityLocationT x = 87654;
+        SaHpiEntityInstanceT x = 87654;
         unsigned int    y = 77;
         unsigned int    z = 29;
         unsigned int    i = 0;
@@ -39,18 +39,18 @@ int main(int argc, char **argv)
         if (mydebug) printf(" test11\n");
         for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
                 ep.Entry[i].EntityType = w;
-                ep.Entry[i].EntityLocation = y;
+                ep.Entry[i].EntityInstance = y;
         }
         ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType = SAHPI_ENT_REMOTE;
-        ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityLocation = z;
+        ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityInstance = z;
 
         if(set_ep_instance(&ep, SAHPI_ENT_REMOTE, x)) {
                 if (mydebug) printf("set_ep_inst test11 checkpoint 1 failed\n");
                 return 1;
         }
-        if ( ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityLocation != x ) {
+        if ( ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityInstance != x ) {
                 if (mydebug) printf("set_ep_inst test11 failed, entInst %d != %d\n",
-                                   ep.Entry[0].EntityLocation, x);
+                                   ep.Entry[0].EntityInstance, x);
                 return 1;
         }
         if (ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType != SAHPI_ENT_REMOTE) {
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
         }
         for ( i=0; i<SAHPI_MAX_ENTITY_PATH-1; i++ ) {
                 if((ep.Entry[i].EntityType != w) ||
-                   (ep.Entry[i].EntityLocation != y)) {
+                   (ep.Entry[i].EntityInstance != y)) {
                         if (mydebug) printf("set_ep_inst test11 failed at element %d\n", i);
                         return 1;
                 }

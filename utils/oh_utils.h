@@ -24,7 +24,5 @@
 #include <ecode_utils.h>
 #include <printevent_utils.h>
 #include <sensor_utils.h>
-#include <event_utils.h>
-#include <print_utils.h>
 
 #endif

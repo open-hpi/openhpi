@@ -1,20 +1,4 @@
 /*      -*- linux-c -*- 
- *
- * (C) Copyright IBM Corp. 2003, 2004
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
- * file and program are licensed under a BSD style license.  See
- * the Copying file included with the OpenHPI distribution for
- * full licensing terms.
- *
- * Author(s):
- *      Renier Morales <renierm@users.sf.net>
- *      David Judkovics 
- *      Sean Dague
- *  
- *      Others (please add yourself here)
  */
 
 #include <stdio.h>
@@ -41,30 +25,30 @@
 
 /* dummy resource status */
 static struct {
-        SaHpiPowerStateT 	power;
-        SaHpiHsStateT		hotswap;
+	SaHpiHsPowerStateT 	power;
+	SaHpiHsStateT		hotswap;
 	SaHpiHsIndicatorStateT	indicator;
 	SaHpiResetActionT	reset;
 	SaHpiResourceIdT    	ResourceId;
 } dummy_resource_status[NUM_RESOURCES] = {
-        {
-                .power = SAHPI_POWER_ON,
-                .hotswap = SAHPI_HS_STATE_ACTIVE,
-                .indicator =  SAHPI_HS_INDICATOR_ON,
+	{
+		.power = SAHPI_HS_POWER_ON,
+		.hotswap = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+		.indicator =  SAHPI_HS_INDICATOR_ON,
 		.reset = SAHPI_COLD_RESET,
-        },
-        {
-                .power = SAHPI_POWER_ON,
-                .hotswap = SAHPI_HS_STATE_ACTIVE,
-                .indicator =  SAHPI_HS_INDICATOR_ON,
-                .reset = SAHPI_COLD_RESET,
-        },
-        {
-                .power = SAHPI_POWER_ON,
-                .hotswap = SAHPI_HS_STATE_ACTIVE,
-                .indicator =  SAHPI_HS_INDICATOR_ON,
-                .reset = SAHPI_COLD_RESET,
-        },
+	},
+	{
+		.power = SAHPI_HS_POWER_ON,
+		.hotswap = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+		.indicator =  SAHPI_HS_INDICATOR_ON,
+		.reset = SAHPI_COLD_RESET,
+	},
+	{
+		.power = SAHPI_HS_POWER_ON,
+		.hotswap = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+		.indicator =  SAHPI_HS_INDICATOR_ON,
+		.reset = SAHPI_COLD_RESET,
+	},
 };
 
 /* dummy entity array */
@@ -78,61 +62,63 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
     SaHpiSeverityT       ResourceSeverity; 
     SaHpiDomainIdT       DomainId;  
     SaHpiTextBufferT     ResourceTag; */
-        /* resource one */
-        {
-                .EntryId = 0, 
-                .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
-                SAHPI_CAPABILITY_CONTROL |
-                SAHPI_CAPABILITY_RESOURCE |
-                SAHPI_CAPABILITY_RDR |
-                SAHPI_CAPABILITY_CONFIGURATION |
-                SAHPI_CAPABILITY_SENSOR |
-                SAHPI_CAPABILITY_POWER |
-                SAHPI_CAPABILITY_EVENT_LOG,
-                .ResourceEntity = {	
-                        .Entry = {
-                                 {SAHPI_ENT_SYSTEM_BOARD, 1},
-                                 {SAHPI_ENT_ROOT, 0}
-                         },
-                },
-                .ResourceId = 0,
-                .ResourceInfo = {0},
-                .ResourceSeverity= SAHPI_MAJOR, 
-                .ResourceTag	= {
-                        .DataType	= SAHPI_TL_TYPE_ASCII6,
-                        .Language	= SAHPI_LANG_ENGLISH,
-                        .DataLength 	= 18,
-                        .Data		= "Dummy-System-Board"
-                },	
-        },
-        /* resource two */
-        {
-                .EntryId = 0, 
-                .ResourceCapabilities = 
-                        SAHPI_CAPABILITY_RESOURCE 
-                        | SAHPI_CAPABILITY_RDR 
+	/* resource one */
+	{
+		.DomainId = SAHPI_DEFAULT_DOMAIN_ID,
+		.EntryId = 0, 
+		.ResourceCapabilities =
+			SAHPI_CAPABILITY_INVENTORY_DATA |
+			SAHPI_CAPABILITY_CONTROL |
+			SAHPI_CAPABILITY_RESOURCE |
+			SAHPI_CAPABILITY_RDR |
+			SAHPI_CAPABILITY_CONFIGURATION |
+                        SAHPI_CAPABILITY_SENSOR |
+			SAHPI_CAPABILITY_SEL,
+		.ResourceEntity = {	
+			.Entry = {
+				{SAHPI_ENT_SYSTEM_BOARD, 1},
+				{SAHPI_ENT_ROOT, 0}
+			},
+		},
+		.ResourceId = 0,
+		.ResourceInfo = {0},
+		.ResourceSeverity= SAHPI_MAJOR, 
+		.ResourceTag	= {
+			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.Language	= SAHPI_LANG_ENGLISH,
+			.DataLength 	= 18,
+			.Data		= "Dummy-System-Board"
+		},	
+	},
+	/* resource two */
+	{
+		.DomainId = SAHPI_DEFAULT_DOMAIN_ID,
+		.EntryId = 0, 
+		.ResourceCapabilities = 
+			SAHPI_CAPABILITY_RESOURCE 
+			| SAHPI_CAPABILITY_RDR 
                         | SAHPI_CAPABILITY_SENSOR 
 			| SAHPI_CAPABILITY_FRU 
-                        | SAHPI_CAPABILITY_POWER 
 			| SAHPI_CAPABILITY_MANAGED_HOTSWAP,
-                .ResourceEntity = {	
-                        .Entry = {
-                                 {SAHPI_ENT_POWER_SUPPLY, 1},
-                                 {SAHPI_ENT_ROOT, 0}
-                         },
-                },
-                .ResourceId = 0,
-                .ResourceInfo = {0},
-                .ResourceSeverity= SAHPI_MAJOR, 
-                .ResourceTag	= {
-                        .DataType	= SAHPI_TL_TYPE_ASCII6,
-                        .Language	= SAHPI_LANG_ENGLISH,
-                        .DataLength 	= 18,
+		.ResourceEntity = {	
+			.Entry = {
+				{SAHPI_ENT_POWER_SUPPLY, 1},
+				{SAHPI_ENT_ROOT, 0}
+			},
+		},
+		.ResourceId = 0,
+		.ResourceInfo = {0},
+		.ResourceSeverity= SAHPI_MAJOR, 
+		.ResourceTag	= {
+			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.Language	= SAHPI_LANG_ENGLISH,
+			.DataLength 	= 18,
 			.Data		= "Dummy-System-Board"
 		},	
 	},
 	/* resource third */
 	{
+		.DomainId = SAHPI_DEFAULT_DOMAIN_ID,
 		.EntryId = 0, 
 		.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE,
 		.ResourceEntity = {	
@@ -191,7 +177,7 @@ static struct oh_event hotswap_event[] = {
 					.EventDataUnion = {
 						.HotSwapEvent = {
 							.HotSwapState = SAHPI_HS_STATE_EXTRACTION_PENDING,
-							.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE,
+							.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE_HEALTHY,
 						},
 					},
 				},
@@ -203,88 +189,87 @@ static struct oh_event hotswap_event[] = {
 static SaHpiRdrT dummy_rdrs[] = {
 	/* first rdr */
 	/* This is the one temperature sensor on System Board */
-        {
-                .RecordId = 0, /*no use, should be rewritten by upper layer */
-                .RdrType  = SAHPI_SENSOR_RDR,
-                .Entity   = {
-                        .Entry = {
-                                 {SAHPI_ENT_SYSTEM_BOARD, 1},
-                                 {SAHPI_ENT_ROOT, 0}
-                         },
-                },
-                .RdrTypeUnion = {
-                        .SensorRec = {
-                                 .Num  = 1, /*no use! should be rewritten by upper layer */
-                                 .Type = SAHPI_TEMPERATURE,
-                                 .Category = SAHPI_EC_THRESHOLD,
-                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
-                                 .Events	= 
-                                 SAHPI_ES_UPPER_MINOR
-                                 | SAHPI_ES_UPPER_MAJOR
-                                 | SAHPI_ES_UPPER_CRIT,
-                                 .DataFormat = {
-                                         .BaseUnits = SAHPI_SU_DEGREES_C,
-                                         .IsSupported = SAHPI_TRUE,
-                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                         .ModifierUse = SAHPI_SMUU_NONE,
-                                         .Percentage = SAHPI_TRUE,
-                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
-                                         .Range = {
-                                                  .Flags = SAHPI_SRF_MIN | 
-                                                  SAHPI_SRF_MAX | 
-                                                  SAHPI_SRF_NORMAL_MIN | 
-                                                  SAHPI_SRF_NORMAL_MAX |
-                                                  SAHPI_SRF_NOMINAL,
-                                                  .Max = {
-                                                          .IsSupported = SAHPI_TRUE,
-                                                          .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                          .Value = {
-                                                                   .SensorInt64 = 200
-                                                           },
-                                                  },
-                                                  .Min = {
-                                                          .IsSupported = SAHPI_TRUE,
-                                                          .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                          .Value = {
-                                                                   .SensorInt64 = 0
-                                                           },
-                                                  },
-                                                  .NormalMin = {
-                                                          .IsSupported = SAHPI_TRUE,
-                                                          .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                          .Value = {
-                                                                   .SensorInt64 = 20
-                                                           },
-                                                  },
-                                                  .NormalMax = { 
-                                                          .IsSupported = SAHPI_TRUE,
-                                                          .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                          .Value = {
-                                                                   .SensorInt64 = 100
-                                                           },
-                                                  },
-                                                  .Nominal = {
-                                                          .IsSupported = SAHPI_TRUE,
-                                                          .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                          .Value = {
-                                                                   .SensorInt64 = 40
-                                                           },
-                                                  },
-                                          },
-                                 },
+	{
+		.RecordId = 0, /*no use, should be rewritten by upper layer */
+		.RdrType  = SAHPI_SENSOR_RDR,
+		.Entity   = {
+			.Entry = {
+				{SAHPI_ENT_SYSTEM_BOARD, 1},
+				{SAHPI_ENT_ROOT, 0}
+			},
+		},
+		.RdrTypeUnion = {
+			.SensorRec = {
+				.Num  = 1, /*no use! should be rewritten by upper layer */
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EventCtrl = SAHPI_SEC_PER_EVENT,
+				.Events	= 
+					SAHPI_ES_UPPER_MINOR
+					| SAHPI_ES_UPPER_MAJOR
+					| SAHPI_ES_UPPER_CRIT,
+				.Ignore = SAHPI_FALSE,
+				.DataFormat = {
+					.ReadingFormats = SAHPI_SRF_RAW,
+					.IsNumeric = SAHPI_TRUE,
+					.SignFormat = SAHPI_SDF_UNSIGNED,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.FactorsStatic = SAHPI_TRUE,
+					.Factors = { 
+						.M_Factor = 1, 
+						.B_Factor = 0, 
+						.AccuracyFactor = 0,
+						.ToleranceFactor = 0,
+						.ExpA = 0,
+						.ExpR = 0,
+						.ExpB = 0,
+						.Linearization = SAHPI_SL_LINEAR,
+					},
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MIN | 
+							 SAHPI_SRF_MAX | 
+						         SAHPI_SRF_NORMAL_MIN | 
+						         SAHPI_SRF_NORMAL_MAX |
+							 SAHPI_SRF_NOMINAL,
+						.Max = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 200,
+						},
+						.Min = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 0,
+						},
+						.NormalMin = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 0,
+						},
+						.NormalMax = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 0,
+						},
+						.Nominal = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 0,
+						},			
+					},
+				},
 				.ThresholdDefn = {
-                                         .IsAccessible = SAHPI_TRUE,
-                                         .ReadThold = SAHPI_STM_LOW_MINOR |
-						     SAHPI_STM_LOW_MAJOR |
+					.IsThreshold = SAHPI_TRUE,
+					.TholdCapabilities = SAHPI_STC_RAW,
+					.ReadThold = SAHPI_STM_LOW_MINOR|
+						     SAHPI_STM_LOW_MAJOR|
 						     SAHPI_STM_LOW_CRIT |
 						     SAHPI_STM_UP_MINOR |
 					             SAHPI_STM_UP_MAJOR |
 					             SAHPI_STM_UP_CRIT |
 					             SAHPI_STM_UP_HYSTERESIS |
-                                                     SAHPI_STM_LOW_HYSTERESIS,
-                                         .WriteThold = SAHPI_STM_LOW_CRIT,
-                                 },
-                                 .Oem = 0,
+					             SAHPI_STM_LOW_HYSTERESIS,
+					.WriteThold = SAHPI_STM_LOW_CRIT,
+				},
+				.Oem = 0,
 			},
 		},
 		.IdString = {
@@ -297,66 +282,74 @@ static SaHpiRdrT dummy_rdrs[] = {
 	/* second rdr */
 	/* This is the one temperature sensor on Power Supply */
 	{
-            .RecordId = 0, /*no use, should be rewritten by upper layer */
-            .RdrType  = SAHPI_SENSOR_RDR,
-            .Entity   = {
-                    .Entry = {
-                             {SAHPI_ENT_POWER_SUPPLY, 1},
-                             {SAHPI_ENT_ROOT, 0}
-                     },
-            },
-            .RdrTypeUnion = {
-                    .SensorRec = {
-                             .Num  = 2, /*no use! should be rewritten by upper layer */
-                             .Type = SAHPI_TEMPERATURE,
-                             .Category = SAHPI_EC_THRESHOLD,
-                             .EventCtrl = SAHPI_SEC_PER_EVENT,
-                             .Events	= SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                             .DataFormat = {
-                                     .BaseUnits = SAHPI_SU_DEGREES_C,
-                                     .IsSupported = SAHPI_TRUE,
-                                     .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                     .ModifierUse = SAHPI_SMUU_NONE,
-                                     .Percentage = SAHPI_FALSE,
-                                     .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
-                                     .Range = {
-                                              .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                              .Max = {
-                                                      .IsSupported = SAHPI_TRUE,
-                                                      .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                      .Value = {
-                                                               .SensorInt64 = 100
-                                                       },
-                                              },
-                                              .Min = {
-                                                      .IsSupported = SAHPI_TRUE,
-                                                      .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                      .Value = {
-                                                               .SensorInt64 = 0
-                                                       },
-                                              }
-                                      },
-                             },
-                             .ThresholdDefn = {
-                                     .IsAccessible = SAHPI_TRUE,
-                                     .ReadThold = SAHPI_STM_LOW_MINOR | 
-                                     SAHPI_STM_LOW_MAJOR |
-                                     SAHPI_STM_LOW_CRIT |
-                                     SAHPI_STM_UP_MINOR |
-                                     SAHPI_STM_UP_MAJOR |
-                                     SAHPI_STM_UP_CRIT |
-                                     SAHPI_STM_UP_HYSTERESIS |
-                                     SAHPI_STM_LOW_HYSTERESIS,
-                                     .WriteThold = SAHPI_STM_LOW_CRIT,
-                             },
-                             .Oem = 0,
+		.RecordId = 0, /*no use, should be rewritten by upper layer */
+		.RdrType  = SAHPI_SENSOR_RDR,
+		.Entity   = {
+			.Entry = {
+				{SAHPI_ENT_POWER_SUPPLY, 1},
+				{SAHPI_ENT_ROOT, 0}
+			},
+		},
+		.RdrTypeUnion = {
+			.SensorRec = {
+				.Num  = 2, /*no use! should be rewritten by upper layer */
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EventCtrl = SAHPI_SEC_PER_EVENT,
+				.Events	= SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Ignore = SAHPI_FALSE,
+				.DataFormat = {
+					.ReadingFormats = SAHPI_SRF_RAW,
+					.IsNumeric = SAHPI_TRUE,
+					.SignFormat = SAHPI_SDF_UNSIGNED,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.FactorsStatic = SAHPI_TRUE,
+					.Factors = { 
+						.M_Factor = 1, 
+						.B_Factor = 0, 
+						.AccuracyFactor = 0,
+						.ToleranceFactor = 0,
+						.ExpA = 0,
+						.ExpR = 0,
+						.ExpB = 0,
+						.Linearization = SAHPI_SL_LINEAR,
+					},
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
+						.Max = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 200,
+						},
+						.Min = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 0,
+						}
+					},
+				},
+				.ThresholdDefn = {
+					.IsThreshold = SAHPI_TRUE,
+					.TholdCapabilities = SAHPI_STC_RAW | SAHPI_STC_INTERPRETED,
+					.ReadThold = SAHPI_STM_LOW_MINOR|
+						     SAHPI_STM_LOW_MAJOR|
+						     SAHPI_STM_LOW_CRIT |
+						     SAHPI_STM_UP_MINOR |
+					             SAHPI_STM_UP_MAJOR |
+					             SAHPI_STM_UP_CRIT |
+					             SAHPI_STM_UP_HYSTERESIS |
+					             SAHPI_STM_LOW_HYSTERESIS,
+					.WriteThold = SAHPI_STM_LOW_CRIT,
+				},
+				.Oem = 0,
 			},
 		},
 		.IdString = {
 			.DataType	= SAHPI_TL_TYPE_ASCII6,
 			.Language	= SAHPI_LANG_ENGLISH,
-			.DataLength 	= 25,
-			.Data		= "Dummy-Power-Temperature 1"
+			.DataLength 	= 23,
+			.Data		= "Dummy-Power-Temperature"
 		},
 	},
 	
@@ -373,6 +366,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.RdrTypeUnion = {
 			.CtrlRec = {
 				.Num = 5,
+				.Ignore = SAHPI_FALSE,
 				.OutputType = SAHPI_CTRL_LED,
 				.Type = SAHPI_CTRL_TYPE_DIGITAL,
 				.TypeUnion = {
@@ -411,7 +405,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		},
 		.RdrTypeUnion = {
 			.InventoryRec = {
-				.IdrId	= 6,
+				.EirId	= 6,
 				.Oem	= 0x12344321,
 			},
 		},
@@ -425,117 +419,56 @@ static SaHpiRdrT dummy_rdrs[] = {
 	/* fifth rdr */
 	/* This is the one temperature sensor on System Board */
 	{
-            .RecordId = 0, /*no use, should be rewritten by upper layer */
-            .RdrType  = SAHPI_SENSOR_RDR,
-            .Entity   = {
-                    .Entry = {
-                             {SAHPI_ENT_SYSTEM_BOARD, 1},
-                             {SAHPI_ENT_ROOT, 0}
-                     },
-            },
-            .RdrTypeUnion = {
-                    .SensorRec = {
-                             .Num  = 3, 
-                             .Type = SAHPI_TEMPERATURE,
-                             .Category = SAHPI_EC_THRESHOLD,
-                             .EventCtrl = SAHPI_SEC_PER_EVENT,
-                             .Events	= SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                             .DataFormat = {
-                                     .BaseUnits = SAHPI_SU_DEGREES_K,
-                                     .IsSupported = SAHPI_TRUE,
-                                     .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                     .ModifierUse = SAHPI_SMUU_NONE,
-                                     .Percentage = SAHPI_FALSE,
-                                     .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
-                                     .Range = {
-                                              .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                              .Max = {
-                                                      .IsSupported = SAHPI_TRUE,
-                                                      .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                      .Value = {
-                                                               .SensorInt64 = 373
-                                                       },
-                                              },
-                                              .Min = {
-                                                      .IsSupported = SAHPI_TRUE,
-                                                      .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                      .Value = {
-                                                               .SensorInt64 = 272
-                                                       },
-                                              }
-                                      },
-                             },
-                             .ThresholdDefn = {
-                                     .IsAccessible = SAHPI_TRUE,
-                                     .ReadThold = SAHPI_STM_LOW_MINOR|
-						     SAHPI_STM_LOW_MAJOR|
-						     SAHPI_STM_LOW_CRIT |
-						     SAHPI_STM_UP_MINOR |
-					             SAHPI_STM_UP_MAJOR |
-					             SAHPI_STM_UP_CRIT |
-					             SAHPI_STM_UP_HYSTERESIS |
-					             SAHPI_STM_LOW_HYSTERESIS,
-                                     .WriteThold = SAHPI_STM_LOW_CRIT,
-                             },
-                             .Oem = 0,
-                     },
-            },
-            .IdString = {
-                    .DataType	= SAHPI_TL_TYPE_ASCII6,
-                    .Language	= SAHPI_LANG_ENGLISH,
-                    .DataLength 	= 24,
-                    .Data		= "Dummy-System-Temperature"
-            },
-	},
-	/* sixth rdr */
-	/* This is the one temperature sensor on Power Supply */
-        {
-                .RecordId = 0, /*no use,
-                                 should be rewritten by upper layer */
-                .RdrType  = SAHPI_SENSOR_RDR,
-                .Entity   = {
-                        .Entry = {
-                                 {SAHPI_ENT_POWER_SUPPLY, 1},
-                                 {SAHPI_ENT_ROOT, 0}
-                         },
-                },
-                .RdrTypeUnion = {
-                        .SensorRec = {
-                                 .Num  = 4, /*no use!
-                                              should be rewritten by upper layer */
-                                 .Type = SAHPI_TEMPERATURE,
-                                 .Category = SAHPI_EC_THRESHOLD,
-                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
-                                 .Events	= SAHPI_ES_UPPER_MINOR
-                                 | SAHPI_ES_UPPER_MAJOR
-                                 | SAHPI_ES_UPPER_CRIT,
-                                 .DataFormat = {
-                                         .BaseUnits = SAHPI_SU_DEGREES_F,
-                                         .IsSupported = SAHPI_TRUE,
-                                         .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                         .ModifierUse = SAHPI_SMUU_NONE,
-                                         .Percentage = SAHPI_FALSE,
-                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
-                                         .Range = {
-                                                  .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                                  .Max = {
-                                                          .IsSupported = SAHPI_TRUE,
-                                                          .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                          .Value = {
-                                                                   .SensorInt64 = 212
-                                                           },
-                                                  },
-                                                  .Min = {
-                                                          .IsSupported = SAHPI_TRUE,
-                                                          .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                                                          .Value = {
-                                                                   .SensorInt64 = 32
-                                                           },
-                                                  }
-                                          },
-                                 },
+		.RecordId = 0, /*no use, should be rewritten by upper layer */
+		.RdrType  = SAHPI_SENSOR_RDR,
+		.Entity   = {
+			.Entry = {
+				{SAHPI_ENT_SYSTEM_BOARD, 1},
+				{SAHPI_ENT_ROOT, 0}
+			},
+		},
+		.RdrTypeUnion = {
+			.SensorRec = {
+				.Num  = 3, 
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EventCtrl = SAHPI_SEC_PER_EVENT,
+				.Events	= SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+				.Ignore = SAHPI_FALSE,
+				.DataFormat = {
+					.ReadingFormats = SAHPI_SRF_RAW,
+					.IsNumeric = SAHPI_TRUE,
+					.SignFormat = SAHPI_SDF_UNSIGNED,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.FactorsStatic = SAHPI_TRUE,
+					.Factors = { 
+						.M_Factor = 1, 
+						.B_Factor = 0, 
+						.AccuracyFactor = 0,
+						.ToleranceFactor = 0,
+						.ExpA = 0,
+						.ExpR = 0,
+						.ExpB = 0,
+						.Linearization = SAHPI_SL_LINEAR,
+					},
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
+						.Max = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 200,
+						},
+						.Min = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 0,
+						}
+					},
+				},
 				.ThresholdDefn = {
-					.IsAccessible = SAHPI_TRUE,
+					.IsThreshold = SAHPI_TRUE,
+					.TholdCapabilities=SAHPI_STC_RAW,
 					.ReadThold = SAHPI_STM_LOW_MINOR|
 						     SAHPI_STM_LOW_MAJOR|
 						     SAHPI_STM_LOW_CRIT |
@@ -552,8 +485,85 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.IdString = {
 			.DataType	= SAHPI_TL_TYPE_ASCII6,
 			.Language	= SAHPI_LANG_ENGLISH,
-			.DataLength 	= 25,
-			.Data		= "Dummy-Power-Temperature 2"
+			.DataLength 	= 24,
+			.Data		= "Dummy-System-Temperature"
+		},
+	},
+	/* sixth rdr */
+	/* This is the one temperature sensor on Power Supply */
+	{
+		.RecordId = 0, /*no use,
+				 should be rewritten by upper layer */
+		.RdrType  = SAHPI_SENSOR_RDR,
+		.Entity   = {
+			.Entry = {
+				{SAHPI_ENT_POWER_SUPPLY, 1},
+				{SAHPI_ENT_ROOT, 0}
+			},
+		},
+		.RdrTypeUnion = {
+			.SensorRec = {
+				.Num  = 4, /*no use!
+					     should be rewritten by upper layer */
+				.Type = SAHPI_TEMPERATURE,
+				.Category = SAHPI_EC_THRESHOLD,
+				.EventCtrl = SAHPI_SEC_PER_EVENT,
+				.Events	= SAHPI_ES_UPPER_MINOR
+				| SAHPI_ES_UPPER_MAJOR
+				| SAHPI_ES_UPPER_CRIT,
+				.Ignore = SAHPI_FALSE,
+				.DataFormat = {
+					.ReadingFormats = SAHPI_SRF_RAW,
+					.IsNumeric = SAHPI_TRUE,
+					.SignFormat = SAHPI_SDF_UNSIGNED,
+					.BaseUnits = SAHPI_SU_DEGREES_C,
+					.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+					.ModifierUse = SAHPI_SMUU_NONE,
+					.FactorsStatic = SAHPI_TRUE,
+					.Factors = { 
+						.M_Factor = 1, 
+						.B_Factor = 0, 
+						.AccuracyFactor = 0,
+						.ToleranceFactor = 0,
+						.ExpA = 0,
+						.ExpR = 0,
+						.ExpB = 0,
+						.Linearization = SAHPI_SL_LINEAR,
+					},
+					.Percentage = SAHPI_FALSE,
+					.Range = {
+						.Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
+						.Max = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 200,
+						},
+						.Min = {
+							.ValuesPresent = SAHPI_SRF_RAW,
+							.Raw = 0,
+						}
+					},
+				},
+				.ThresholdDefn = {
+					.IsThreshold = SAHPI_TRUE,
+					.TholdCapabilities=SAHPI_STC_RAW,
+					.ReadThold = SAHPI_STM_LOW_MINOR|
+						     SAHPI_STM_LOW_MAJOR|
+						     SAHPI_STM_LOW_CRIT |
+						     SAHPI_STM_UP_MINOR |
+					             SAHPI_STM_UP_MAJOR |
+					             SAHPI_STM_UP_CRIT |
+					             SAHPI_STM_UP_HYSTERESIS |
+					             SAHPI_STM_LOW_HYSTERESIS,
+					.WriteThold = SAHPI_STM_LOW_CRIT,
+				},
+				.Oem = 0,
+			},
+		},
+		.IdString = {
+			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.Language	= SAHPI_LANG_ENGLISH,
+			.DataLength 	= 23,
+			.Data		= "Dummy-Power-Temperature"
 		},
 	},
 	/* seventh rdr */
@@ -570,6 +580,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 		.RdrTypeUnion = {
 			.CtrlRec = {
 				.Num = 7,
+				.Ignore = SAHPI_FALSE,
 				.OutputType = SAHPI_CTRL_LED,
 				.Type = SAHPI_CTRL_TYPE_DIGITAL,
 				.TypeUnion = {
@@ -589,27 +600,28 @@ static SaHpiRdrT dummy_rdrs[] = {
 	/* eigth rdr */
 	/* This is an RDR representing a inventory */
 	/* on the first system board */
-        {
-                .RdrType  = SAHPI_INVENTORY_RDR,
-                .Entity   = {
-                        .Entry = {
-                                 {SAHPI_ENT_SYSTEM_BOARD, 1},
-                                 {SAHPI_ENT_ROOT, 0}
-                         },
-                },
-                .RdrTypeUnion = {
-                        .InventoryRec = {
-                                 .IdrId	= 8,
-                                 .Oem	= 0x12344321,
-                         },
-                },
-                .IdString = {
-                        .DataType	= SAHPI_TL_TYPE_ASCII6,
-                        .Language	= SAHPI_LANG_ENGLISH,
-                        .DataLength 	= 18,
-                        .Data		= "System-Inventory-1"
-                },
-        },
+	{
+		.RdrType  = SAHPI_INVENTORY_RDR,
+		.Entity   = {
+			.Entry = {
+				{SAHPI_ENT_SYSTEM_BOARD, 1},
+				{SAHPI_ENT_ROOT, 0}
+			},
+		},
+		.RdrTypeUnion = {
+			.InventoryRec = {
+				.EirId	= 8,
+				.Oem	= 0x12344321,
+			},
+		},
+		.IdString = {
+			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.Language	= SAHPI_LANG_ENGLISH,
+			.DataLength 	= 18,
+			.Data		= "System-Inventory-1"
+		},
+	},
+
 };
 
 
@@ -626,306 +638,279 @@ static SaHpiCtrlStateT dummy_controls = {
 static struct dummy_sensor {
 	SaHpiSensorReadingT reading;
 	SaHpiSensorThresholdsT thresholds;
-        SaHpiBoolT enabled;
-        SaHpiEventStateT assert;
-        SaHpiEventStateT deassert;
+	SaHpiSensorEvtEnablesT enables;
 } dummy_sensors[]= {
 	{
 	/*This is temp sensor on system board*/
-            .reading = {
-                    .IsSupported = SAHPI_TRUE,
-                    .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                    .Value = {
-                             .SensorInt64 = 50,
-                     },
-            },
-            .thresholds = {
-                    .LowCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "35 tics"
-                             },
-                     },
-                    .LowMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "88 tocs",
-                             }
-                     },
-                    .LowMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "20,0000 leagues",
-                             },
-                     },
-                    .UpCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "556 hands",
-                             },
-                     },
-                    .UpMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "297 hectares",
-                             },
-                     },
-                    .UpMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "10 kilometers",
-                             },
-                     },
-                    .PosThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "5 decaliters",
-                             },
-                     },
-                    .NegThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
-                             .Value = {
-                                     .SensorBuffer = "1 centillion",
-                             },
-                     },
-            },
-            /* Sensor Event Enables */
-            /* typedef struct {
-               SaHpiSensorStatusT SensorStatus;
-               SaHpiEventStateT   AssertEvents; 
-               SaHpiEventStateT   DeassertEvents;
-               } SaHpiSensorEvtEnablesT; */
-            /* .Category = SAHPI_EC_THRESHOLD, from above*/
-            .enabled = SAHPI_TRUE,
-            .assert = SAHPI_ES_LOWER_MINOR,
-            .deassert = SAHPI_ES_UPPER_MINOR,
-	},
-	{
-            /*This is temp sensor on system board*/
-            .reading = {
-                    .IsSupported = SAHPI_TRUE,
-                    .Type = SAHPI_SENSOR_READING_TYPE_INT64, 
-                    .Value = {
-                             .SensorInt64 = 180,
-//                             .SensorBuffer = "8-e1.23 tics",
-                     },
-            },
-            .thresholds = {
-                    .LowCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 201
-                             }
-                     },
-                    .LowMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 202,
-                             }
-                     },
-                    .LowMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 203,
-                             }
-                     },
-                    .UpCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 204
-                             }
-                     },
-                    .UpMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 205
-                             }
-                     },
-                    .UpMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 206
-                             }
-                     },
-                    .PosThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 207,
-                             }                                     
-                     },
-                    .NegThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 208,
-                             },
-                             
-                     },
-            },
-            .enabled = SAHPI_TRUE,
-            .assert = SAHPI_ES_LOWER_MAJOR,
-            .deassert = SAHPI_ES_UPPER_MAJOR,
+		.reading = {
+			.ValuesPresent = SAHPI_SRF_RAW,
+			.Raw = 0x55,
+		},
+		.thresholds = {
+			.LowCritical = {
+				/*
+				typedef struct {
+					SaHpiSensorReadingFormatsT  ValuesPresent;
+					SaHpiUint32T                Raw;
+					SaHpiSensorInterpretedT     Interpreted;
+					SaHpiSensorEvtStatusT       EventStatus;
+				} SaHpiSensorReadingT;
+				
+				typedef struct {
+					SaHpiSensorInterpretedTypeT  Type;
+					SaHpiSensorInterpretedUnionT Value;
+				} SaHpiSensorInterpretedT;
+				*/
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x7e,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "5 tics",
+					},
+				},
+			},
+			.LowMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0xff,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "88 tocs",
+					}
+				},
+			},
+			.LowMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x1fe,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "20,0000 leagues",
+					},
+				},
+			},
+			.UpCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x400,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "556 hands",
+					},
+				},
+
+			},
+			.UpMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x800,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "297 hectares",
+					},
+				},
+
+			},
+			.UpMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x1000,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "10 kilometers",
+					},
+				},
+
+			},
+			.PosThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x2000,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "5 decaliters",
+					},
+				},
+
+			},
+			.NegThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x4000,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "1 centillion",
+					},
+				},
+
+			},
+
+
+		},
+		/* Sensor Event Enables */
+		/* typedef struct {
+			SaHpiSensorStatusT SensorStatus;
+			SaHpiEventStateT   AssertEvents; 
+			SaHpiEventStateT   DeassertEvents;
+		} SaHpiSensorEvtEnablesT; */
+		/* .Category = SAHPI_EC_THRESHOLD, from above*/
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_LOWER_MINOR,
+			.DeassertEvents = SAHPI_ES_UPPER_MINOR,
+		},
 	},
 	{
 	/*This is temp sensor on system board*/
-            .reading = {
-                    .IsSupported = SAHPI_TRUE,
-                    .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                    .Value = {
-                             .SensorInt64 = 0xff,
-                     }
-            },
-            .thresholds = {
-                    .LowCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 301,
-                             }
-                     },
-                    .LowMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 302,
-                             }
-                     },
-                    .LowMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 303,
-                             }
-                     },
-                    .UpCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 304,
-                             }
-                     },
-                    .UpMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 305,
-                             }
-                     },
-                    .UpMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 306,
-                             }
-                     },
-                    .PosThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 307,
-                             }
-                     },
-                    .NegThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 308,
-                             }
-                     },
-            },
-            .enabled = SAHPI_TRUE,
-            .assert = SAHPI_ES_LOWER_CRIT,
-            .deassert = SAHPI_ES_UPPER_CRIT,
+		.reading = {
+			.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+			.Raw = 0xaa,
+			.Interpreted = {
+				.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+				.Value = { 
+					.SensorBuffer = "8-e1.23 tics",
+				},
+			},
+		},
+		.thresholds = {
+			.LowCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x201,
+			},
+			.LowMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x202,
+			},
+			.LowMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x203,
+			},
+			.UpCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x204,
+			},
+			.UpMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x205,
+			},
+			.UpMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x206,
+			},
+			.PosThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x207,
+			},
+			.NegThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x208,
+			},
+
+		},
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_LOWER_MAJOR,
+			.DeassertEvents = SAHPI_ES_UPPER_MAJOR,
+		},
 	},
 	{
-            /*This is temp sensor on system board*/
-            .reading = {
-                    .IsSupported = SAHPI_TRUE,
-                    .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                    .Value = {
-                             .SensorInt64 = 0xcc,
-                     }
-            },
-            .thresholds = {
-                    .LowCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x401,
-                             }
-                     },
-                    .LowMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x402,
-                             }
-                     },
-                    .LowMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x403,
-                             }
-                     },
-                    .UpCritical = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x404,
-                             }
-                     },
-                    .UpMajor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x405,
-                             }
-                     },
-                    .UpMinor = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x406,
-                             }
-                     },
-                    .PosThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x407,
-                             }
-                     },
-                    .NegThdHysteresis = {
-                             .IsSupported = SAHPI_TRUE,
-                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
-                             .Value = {
-                                     .SensorInt64 = 0x408,
-                             }
-                     },
-            },
-            .enabled = SAHPI_TRUE,
-            .assert = SAHPI_ES_UPPER_CRIT,
-            .deassert = SAHPI_ES_LOWER_CRIT,
-    },     
+	/*This is temp sensor on system board*/
+		.reading = {
+			.ValuesPresent = SAHPI_SRF_RAW,
+			.Raw = 0xff,
+		},
+		.thresholds = {
+			.LowCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x301,
+			},
+			.LowMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x302,
+			},
+			.LowMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x303,
+			},
+			.UpCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x304,
+			},
+			.UpMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x305,
+			},
+			.UpMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x306,
+			},
+			.PosThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x307,
+			},
+			.NegThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x308,
+			},
+
+
+		},
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_LOWER_CRIT,
+			.DeassertEvents = SAHPI_ES_UPPER_CRIT,
+		},
+	},
+	{
+	/*This is temp sensor on system board*/
+		.reading = {
+			.ValuesPresent = SAHPI_SRF_RAW,
+			.Raw = 0xcc,
+		},
+		.thresholds = {
+			.LowCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x401,
+			},
+			.LowMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x402,
+			},
+			.LowMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x403,
+			},
+			.UpCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x404,
+			},
+			.UpMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x405,
+			},
+			.UpMinor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x406,
+			},
+			.PosThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x407,
+			},
+			.NegThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x408,
+			},
+
+		},
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_UPPER_CRIT,
+			.DeassertEvents = SAHPI_ES_LOWER_CRIT,
+		},
+	},     
 };
 
-#if 0
 /* resource one inventory data */
 static struct dummy_inventories {
 	SaHpiInventDataValidityT Validity;
@@ -939,10 +924,9 @@ static struct dummy_inventories {
 		},
  };
 
-#endif 
 
 static struct dummy_rsel {
-	SaHpiEventLogEntryT entry;
+	SaHpiSelEntryT entry;
 } rsel_entries = {
 	.entry = {
 		.EntryId = 0,
@@ -1015,48 +999,47 @@ static struct oh_event *__eventdup(const struct oh_event *event)
 
 static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 {
-        int i;
-        int id;
-        SaHpiRptEntryT res;
-        SaHpiRdrT res_rdr;
-        
-        SaHpiEntityPathT root_ep;
-        char *entity_root;
-        
-        entity_root = (char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
-        
+	int i;
+	int id;
+	SaHpiRptEntryT res;
+	SaHpiRdrT res_rdr;
+
+	SaHpiEntityPathT root_ep;
+	char *entity_root;
+
+	entity_root = (char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
+
         string2entitypath(entity_root, &root_ep);
-        
-        /* append entity root to resource entity paths */
-        for (i=0; i < NUM_RESOURCES; i++) {
-                memcpy(&res, &dummy_resources[i], sizeof(SaHpiRptEntryT));
-                
-                ep_concat( &res.ResourceEntity, &root_ep);
-                
-                res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
-                
-                /* add the resource */
-                if (oh_add_resource(oh_hnd->rptcache, &res, NULL, 0))
-                        dbg("oh_add_resource failed for resource %d", i);
-                
-                /* save the resource id for tracking resource status */
-                dummy_resource_status[i].ResourceId = res.ResourceId;
-                
-        }
-        /* append entity root to rdrs entity paths */
-        for (i=0; i < NUM_RDRS; i++) {
-                memcpy(&res_rdr, &dummy_rdrs[i], sizeof(SaHpiRdrT));
-                
-                ep_concat( &res_rdr.Entity, &root_ep);
-                
-                id = oh_uid_lookup(&res_rdr.Entity);
-                
-                if( id < 0 ) { dbg("error looking up uid in dummy_open");  return(-1); }
-                
-                /* add rdrs */
-                if (oh_add_rdr(oh_hnd->rptcache, id, &res_rdr, NULL, 0)) {
-                        dbg("oh_add_resource failed for rdr %d", i);
-                } 
+	
+	/* append entity root to resource entity paths */
+	for (i=0; i < NUM_RESOURCES; i++) {
+		memcpy(&res, &dummy_resources[i], sizeof(SaHpiRptEntryT));
+
+		ep_concat( &res.ResourceEntity, &root_ep);
+		
+		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
+
+		/* add the resource */
+		if (oh_add_resource(oh_hnd->rptcache, &res, NULL, 0))
+			dbg("oh_add_resource failed for resource %d", i);
+
+		/* save the resource id for tracking resource status */
+		dummy_resource_status[i].ResourceId = res.ResourceId;
+
+	}
+	/* append entity root to rdrs entity paths */
+	for (i=0; i < NUM_RDRS; i++) {
+		memcpy(&res_rdr, &dummy_rdrs[i], sizeof(SaHpiRdrT));
+
+		ep_concat( &res_rdr.Entity, &root_ep);
+
+		id = oh_uid_lookup(&res_rdr.Entity);
+
+		if( id < 0 ) { dbg("error looking up uid in dummy_open");  return(-1); }
+
+		/* add rdrs */
+		if (oh_add_rdr(oh_hnd->rptcache, id, &res_rdr, NULL, 0))
+			dbg("oh_add_resource failed for rdr %d", i);
 	}
 
 	return(0);
@@ -1146,7 +1129,7 @@ static struct oh_event *remove_resource(struct oh_handler_state *inst)
 	if(rpt_e_pre) {
 
 		e.type = OH_ET_RESOURCE_DEL;
-		e.u.res_event.entry.ResourceId = rpt_e_pre->ResourceId;
+		e.u.res_del_event.resource_id = rpt_e_pre->ResourceId;
 //		memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));       	
 	}
 
@@ -1189,23 +1172,21 @@ dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
 
 static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
-        struct oh_handler_state *inst = hnd;
-        
-        struct oh_event *e = NULL;
-        
-        SaHpiRptEntryT *rpt_entry = NULL;
-        
-        static unsigned int count = 0;
-        static unsigned int toggle = 0;
-        
-        if (g_slist_length(inst->eventq)>0) {
-                dbg("List has an event, send it up");
-                memcpy(event, inst->eventq->data, sizeof(*event));
+	struct oh_handler_state *inst = hnd;
+
+	struct oh_event *e = NULL;
+	
+	SaHpiRptEntryT *rpt_entry = NULL;
+
+	static unsigned int count = 0;
+	static unsigned int toggle = 0;
+  
+	if (g_slist_length(inst->eventq)>0) {
+		memcpy(event, inst->eventq->data, sizeof(*event));
 		free(inst->eventq->data);
 		inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
 		return(1);
 	} else if (count == 0) {
-                dbg("List is empty, getting next resource");
 
 		count++;
 
@@ -1222,15 +1203,12 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 		return(1);
 
 	} else if (count == 1) {
-                dbg("Count is 1, not sure what that means");
 		count++;
 		return(-1);
-        } else {
-                dbg("We fell through");
-        }
+	}
 
-        toggle++;
-        if( (toggle%3) == 0 ) {
+	toggle++;
+	if( (toggle%3) == 0 ) {
 		/* once initial reporting of events toggle between 	*/
 		/* removing and adding resource, removes resource 3	*/
 		/* since it has no rdr's to add back later		*/
@@ -1253,56 +1231,55 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 
 	return(-1);
 
+
 }
 
 static int dummy_discover_resources(void *hnd)
 {
-        static int done_once = FALSE;
-        struct oh_handler_state *inst = hnd;
-        struct oh_event event;
-        SaHpiRptEntryT *rpt_entry;
-        SaHpiRdrT      *rdr_entry;
-        
+	static int done_once = FALSE;
+	struct oh_handler_state *inst = hnd;
+	struct oh_event event;
+	SaHpiRptEntryT *rpt_entry;
+	SaHpiRdrT      *rdr_entry;
+
 	/* create a counter, on even remove your favorite resource
 	   on odd add it back */
-        if (!done_once) {
-                
-                /* get the first rpt entry */
-                
-                rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
-                
-                while (rpt_entry) {
-//dbg("here resource event id %d", rpt_entry->ResourceId);
-                        memset(&event, 0, sizeof(event));
-                        event.type = OH_ET_RESOURCE;
-                        memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-                        inst->eventq = g_slist_append(inst->eventq, __eventdup(&event) );
-                        
-                        
-                        /* get every resource rdr's */
-                        rdr_entry = oh_get_rdr_next(inst->rptcache, 
-                                                    rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
-                        while (rdr_entry) {
-//dbg("here rdr event id %d", rdr_entry->RecordId);
-                                memset(&event, 0, sizeof(event));
-                                event.type = OH_ET_RDR;
-                                event.u.rdr_event.parent = rpt_entry->ResourceId;
-                                memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
+	if (!done_once) {
 
-                                inst->eventq = g_slist_append(inst->eventq, __eventdup(&event));
-                                rdr_entry = oh_get_rdr_next(inst->rptcache, 
-                                                            rpt_entry->ResourceId, rdr_entry->RecordId);
-                        }
-                        /* get any resource rdr's end */
-                        
-                        
-                        rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);
-                }
-                
-                done_once = TRUE;
-        }
-        
-        return 0;
+		/* get the first rpt entry */
+
+		rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
+
+		while (rpt_entry) {
+//dbg("here resource event id %d", rpt_entry->ResourceId);
+			memset(&event, 0, sizeof(event));
+			event.type = OH_ET_RESOURCE;
+			memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
+			inst->eventq = g_slist_append(inst->eventq, __eventdup(&event) );
+
+
+			/* get every resource rdr's */
+			rdr_entry = oh_get_rdr_next(inst->rptcache, 
+						    rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
+			while (rdr_entry) {
+//dbg("here rdr event id %d", rdr_entry->RecordId);
+				memset(&event, 0, sizeof(event));
+				event.type = OH_ET_RDR;
+				memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
+				inst->eventq = g_slist_append(inst->eventq, __eventdup(&event));
+				rdr_entry = oh_get_rdr_next(inst->rptcache, 
+							    rpt_entry->ResourceId, rdr_entry->RecordId);
+			}
+			/* get any resource rdr's end */
+
+
+			rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);
+		}
+		
+		done_once = TRUE;
+	}
+	
+	return 0;
 }
 
 static int dummy_get_self_id(void *hnd, SaHpiResourceIdT id)
@@ -1312,7 +1289,7 @@ static int dummy_get_self_id(void *hnd, SaHpiResourceIdT id)
 
 static int sel_enabled;
 
-static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
+static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
 {
 	info->Entries			= 0;
 	info->Size			= 0xFFFFFFFF;
@@ -1320,7 +1297,8 @@ static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 	gettimeofday1(&info->CurrentTime);
 	info->Enabled			= sel_enabled;
 	info->OverflowFlag		= 0;
-	info->OverflowAction		= SAHPI_EL_OVERFLOW_DROP;
+	info->OverflowAction		= SAHPI_SEL_OVERFLOW_DROP;
+	info->DeleteEntrySupported 	= 1;
 
 	return 0;
 }
@@ -1330,7 +1308,7 @@ static int dummy_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	return 0;
 }
 
-static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
+static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event)
 {
 dbg("TODO: dummy_add_sel_entry(), need to set res based on id");
 
@@ -1364,7 +1342,7 @@ dbg("TODO: need to set res based on id");
 	return 0;
 }
 
-static int dummy_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
+static int dummy_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
 {
 dbg("TODO: dummy_del_sel_entry() need to set rsel based on id");
 //	struct dummy_rsel *rsel = id.ptr;
@@ -1374,15 +1352,15 @@ dbg("TODO: dummy_del_sel_entry() need to set rsel based on id");
 
 static int dummy_get_sel_entry(void *hnd, 
 			       SaHpiResourceIdT id, 
-			       SaHpiEventLogEntryIdT current,
-			       SaHpiEventLogEntryIdT *prev, 
-			       SaHpiEventLogEntryIdT *next, 
-			       SaHpiEventLogEntryT *entry)
+			       SaHpiSelEntryIdT current,
+			       SaHpiSelEntryIdT *prev, 
+			       SaHpiSelEntryIdT *next, 
+			       SaHpiSelEntryT *entry)
 {       
 dbg("dummy_get_sel_entry(): This is a very bad implementation");
 	*prev = SAHPI_NO_MORE_ENTRIES;
 	*next = SAHPI_NO_MORE_ENTRIES;
-	memcpy(entry, &rsel_entries.entry, sizeof(SaHpiEventLogEntryT));
+	memcpy(entry, &rsel_entries.entry, sizeof(SaHpiSelEntryT));
 
 	return 0;
 }
@@ -1428,16 +1406,17 @@ static int dummy_get_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 
 static int reading_has_values(const SaHpiSensorReadingT *reading)
 {
-        if (reading->IsSupported)
-                return 1;
+	if ((reading->ValuesPresent & SAHPI_SRF_RAW)
+	    || (reading->ValuesPresent & SAHPI_SRF_INTERPRETED))
+		return 1;
 	return 0;
 }
 
 static void reading_cpy(SaHpiSensorReadingT *r1, 
-                        const SaHpiSensorReadingT *r2)
+			       const SaHpiSensorReadingT *r2)
 {
-        if (reading_has_values(r2))
-                memcpy(r1, r2, sizeof(*r1));
+	if (reading_has_values(r2))
+		memcpy(r1, r2, sizeof(*r1));
 }
 
 static int dummy_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
@@ -1471,25 +1450,25 @@ static int dummy_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 	return 0;
 }
 
-static int dummy_get_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
+static int dummy_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  SaHpiBoolT *enabled)
+					  SaHpiSensorEvtEnablesT *enables)
 {
 
-        dbg(" ********* dummy_get_sensor_event_enables *******");
-        memcpy(enabled, &dummy_sensors[num - 1].enabled, sizeof(*enabled));
+dbg(" ********* dummy_get_sensor_event_enables *******");
+	memcpy(enables, &dummy_sensors[num - 1].enables, sizeof(*enables));
 
 	return 0;
 }
 
-static int dummy_set_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
+static int dummy_set_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  const SaHpiBoolT enabled)
+					  const SaHpiSensorEvtEnablesT *enables)
 {	  
-        
-        dbg(" ********* dummy_set_sensor_event_enables *******");
-        
-        memcpy(&dummy_sensors[num - 1].enabled, &enabled, sizeof(enabled));
+
+dbg(" ********* dummy_set_sensor_event_enables *******");
+	
+memcpy(&dummy_sensors[num - 1].enables, enables, sizeof(*enables));
 
 	return 0;
 }
@@ -1526,7 +1505,6 @@ dbg("TODO: dummy_set_control_state(), need to set control based on id");
 	return 0;
 }
 
-#if 0
 /************************************************************************/
 /* Begin: Inventory functions 						*/
 /************************************************************************/
@@ -1642,8 +1620,6 @@ static int dummy_set_inventory_info(void *hnd, SaHpiResourceIdT id,
 
 	return(rval);
 }
-#endif
-
 /************************************************************************/
 /* End: Inventory functions 						*/
 /************************************************************************/
@@ -1730,62 +1706,67 @@ static int dummy_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
 }
 
 static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id, 
-                                        SaHpiHsActionT act)
+					SaHpiHsActionT act)
 {
-        struct oh_handler_state *inst = hnd;
+	struct oh_handler_state *inst = hnd;
 //	SaHpiRptEntryT *e = NULL;
-        
-        int rval = -1;
-        int i = 0;
-        int done = FALSE;
-        
-        done = FALSE;
-        i = 0;
-        do {
-                if(dummy_resource_status[i].ResourceId == id) {
-                        done = TRUE;
-                }
-                else  {
-                        i++;
-                }
-                
-        } while ( (i < NUM_RESOURCES) && !done  );
-        
-        if ( i < NUM_RESOURCES ) {
-                rval = 0;
-        }
-        else {
-                dbg("The resource does not hotswapable!");
-                rval = -1;
-        }
-                
-        if (!rval && act == SAHPI_HS_ACTION_INSERTION) {
-                if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_INACTIVE) {
-                        dummy_resource_status[1].hotswap = SAHPI_HS_STATE_INSERTION_PENDING;
-                        hotswap_event[0].u.hpi_event.parent = id;
-                        inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[0]));
-                } else {
-                        dbg("Cannot instertion");
-                        rval = -1;
-                }
-                
-        } else if (!rval && act == SAHPI_HS_ACTION_EXTRACTION) {
-                if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_ACTIVE) {
-                        dummy_resource_status[1].hotswap = SAHPI_HS_STATE_EXTRACTION_PENDING;
-                        hotswap_event[1].u.hpi_event.parent = id;
-                        inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[1]));
+
+	int rval = -1;
+	int i = 0;
+	int done = FALSE;
+
+	done = FALSE;
+	i = 0;
+	do {
+		if(dummy_resource_status[i].ResourceId == id) {
+			done = TRUE;
+		}
+		else  {
+			i++;
+		}
+
+	} while ( (i < NUM_RESOURCES) && !done  );
+
+	if ( i < NUM_RESOURCES ) {
+		rval = 0;
+ 	}
+	else {
+		dbg("The resource does not hotswapable!");
+		rval = -1;
+	}
+
+
+	if (!rval && act == SAHPI_HS_ACTION_INSERTION) {
+
+		if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_INACTIVE) {
+			dummy_resource_status[1].hotswap = SAHPI_HS_STATE_INSERTION_PENDING;
+			hotswap_event[0].u.hpi_event.parent = id;
+			inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[0]));
 		} else {
-                        dbg("Cannot extraction");
-                        rval = -1;
-                }
-        } else 
-                rval = -1;
-        
-        return(rval);
-        
+			dbg("Cannot instertion");
+			rval = -1;
+		}
+
+	} else if (!rval && act == SAHPI_HS_ACTION_EXTRACTION) {
+		
+		if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_ACTIVE_HEALTHY 
+		    || dummy_resource_status[1].hotswap == SAHPI_HS_STATE_ACTIVE_UNHEALTHY) {
+			dummy_resource_status[1].hotswap = SAHPI_HS_STATE_EXTRACTION_PENDING;
+			hotswap_event[1].u.hpi_event.parent = id;
+			inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[1]));
+		} else {
+			dbg("Cannot extraction");
+			rval = -1;
+		}
+
+	} else 
+		rval = -1;
+	
+	return(rval);
+
 }
 
-static int dummy_get_power_state(void *hnd, SaHpiResourceIdT id, SaHpiPowerStateT *state)
+static int dummy_get_power_state(void *hnd, SaHpiResourceIdT id, SaHpiHsPowerStateT *state)
 {
 	int rval = -1;
 	int i = 0;
@@ -1812,7 +1793,7 @@ static int dummy_get_power_state(void *hnd, SaHpiResourceIdT id, SaHpiPowerState
 }
 
 static int dummy_set_power_state(void *hnd, SaHpiResourceIdT id, 
-				 SaHpiPowerStateT state)
+				 SaHpiHsPowerStateT state)
 {
 	int rval = -1;
 	int i = 0;
@@ -1953,7 +1934,7 @@ static int dummy_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		}
 
 	} while ( (i < NUM_RESOURCES) && !done  );
-    
+		
 	if ( i < NUM_RESOURCES ) {
 		rval = 0;
 		switch (act) {
@@ -1986,13 +1967,13 @@ static struct oh_abi_v2 oh_dummy_plugin = {
 	.get_sensor_data		= dummy_get_sensor_data,
 	.get_sensor_thresholds		= dummy_get_sensor_thresholds,
 	.set_sensor_thresholds		= dummy_set_sensor_thresholds,
-	.get_sensor_event_enables	= dummy_get_sensor_event_enabled,
-	.set_sensor_event_enables	= dummy_set_sensor_event_enabled,
+	.get_sensor_event_enables	= dummy_get_sensor_event_enables,
+	.set_sensor_event_enables	= dummy_set_sensor_event_enables,
 	.get_control_state		= dummy_get_control_state,
 	.set_control_state		= dummy_set_control_state,
-//	.get_inventory_size	= dummy_get_inventory_size,
-//	.get_inventory_info	= dummy_get_inventory_info,
-//	.set_inventory_info	= dummy_set_inventory_info,
+	.get_inventory_size	= dummy_get_inventory_size,
+	.get_inventory_info	= dummy_get_inventory_info,
+	.set_inventory_info	= dummy_set_inventory_info,
 	.get_watchdog_info	= dummy_get_watchdog_info,
 	.set_watchdog_info	= dummy_set_watchdog_info,
 	.reset_watchdog		= dummy_reset_watchdog,
@@ -2009,14 +1990,13 @@ static struct oh_abi_v2 oh_dummy_plugin = {
 };
 
 int dummy_get_interface(void **pp, const uuid_t uuid);
-
 int dummy_get_interface(void **pp, const uuid_t uuid)
 {
-        if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
+	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
 		*(struct oh_abi_v2 **)pp = &oh_dummy_plugin;
 		return 0;
 	}
-    
+
 	*pp = NULL;
 	return -1;
 }

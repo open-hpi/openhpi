@@ -88,7 +88,7 @@ static int get_bc_sel_size_from_hardware(struct snmp_session *ss)
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info) 
+int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info) 
 {
         struct snmp_value first_value;
         struct oh_handler_state *handle = hnd;
@@ -97,8 +97,9 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *inf
         struct tm curtime;
         char oid[50];
         int i = 1;
+	SaErrorT status;
         
-        SaHpiEventLogInfoT sel = {
+        SaHpiSelInfoT sel = {
                 .Size = 512, /* this is clearly a guess but looks about right 
                               * from the 75% full errors I've seen */
                 .Enabled = SAHPI_TRUE,
@@ -109,26 +110,35 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *inf
         
         sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, i);
         /* we need first value to figure out what our update time is */
-        snmp_get(custom_handle->ss,oid,&first_value);
+        status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&first_value);
         
-        if(first_value.type == ASN_OCTET_STR) {
+        if((status == SA_OK) && (first_value.type == ASN_OCTET_STR)) {
                 if(snmp_bc_parse_sel_entry(handle,first_value.string, &sel_entry) < 0) {
-                        dbg("Couldn't get first date");
+                        dbg("Couldn't parse date and time of first entry");
                 } else {
-                        sel.UpdateTimestamp = 
-                                (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
+			if (sel_entry.time.tm_year > 138) 
+                        	sel.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+			else 
+                        	sel.UpdateTimestamp = 
+                                	(SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
                 }
-        }
+        } else {
+		dbg("SNMP timeout on OID %s\n", oid);
+		return status;	
+	}
         
         if(get_bc_sp_time(handle,&curtime) == 0) {
-                sel.CurrentTime = 
-                        (SaHpiTimeT) mktime(&curtime) * 1000000000;
+		if (curtime.tm_year > 138)
+			sel.CurrentTime = SAHPI_TIME_UNSPECIFIED;
+		else
+                	sel.CurrentTime = 
+                        	(SaHpiTimeT) mktime(&curtime) * 1000000000;
         }
         
         sel.Entries = get_bc_sel_size(hnd, id);
         *info = sel;
         
-        return 0;
+        return SA_OK;
 }
 
 /**
@@ -144,11 +154,11 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *inf
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
-                          SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
-                          SaHpiEventLogEntryT *entry)
+int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                          SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
+                          SaHpiSelEntryT *entry)
 {
-        SaHpiEventLogEntryT tmpentry, *tmpentryptr;
+        SaHpiSelEntryT tmpentry, *tmpentryptr;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	tmpentryptr = &tmpentry; 
 	SaErrorT rc;
@@ -159,7 +169,18 @@ int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
 		if (rc != SA_OK) {
 			dbg("Error fetching entry number %d from cache, errnum %d  >>>\n", current, rc);
 		} else {
-			memcpy(entry, tmpentryptr, sizeof(SaHpiEventLogEntryT));
+		
+			/* If BladeCenter target has year set out of range, */
+			/* 1970 =< range =< 2038, set timestamp to          */
+			/* SAHPI_TIME_UNSPECIFIED before sending SEL entry  */
+			/* to user.  Test for a more negative number        */ 
+			if ((unsigned long long)tmpentryptr->Event.Timestamp  >
+				(unsigned long long) SAHPI_TIME_UNSPECIFIED ) {
+	
+				tmpentryptr->Timestamp = SAHPI_TIME_UNSPECIFIED;
+				tmpentryptr->Event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+			}
+			memcpy(entry, tmpentryptr, sizeof(SaHpiSelEntryT));
 		}
 	} else {
 		dbg("Missing handle->selcache");
@@ -202,7 +223,7 @@ SaErrorT snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id)
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
+int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId)
 {
         struct oh_handler_state *handle = hnd;
 	SaErrorT rv;
@@ -224,20 +245,20 @@ int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
+int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId)
 {
-	SaHpiEventLogEntryIdT current;
-	SaHpiEventLogEntryIdT prev;
-	SaHpiEventLogEntryIdT next;
+	SaHpiSelEntryIdT current;
+	SaHpiSelEntryIdT prev;
+	SaHpiSelEntryIdT next;
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
         bc_sel_entry sel_entry;
-        SaHpiEventLogEntryT  *fetchentry;
+        SaHpiSelEntryT  *fetchentry;
         SaHpiTimeT new_timestamp;
 	char oid[50];
 	SaErrorT rv;
-	int rc, cacheupdate = 0;
+	int cacheupdate = 0;
 
 	rv = oh_sel_get(handle->selcache, SAHPI_NEWEST_ENTRY, &prev, &next, &fetchentry);
 	if (rv != SA_OK)
@@ -245,17 +266,20 @@ int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
 		
 	current = 1;
 	sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-       	rc = snmp_get(custom_handle->ss,oid,&get_value);
-       	if (rc != 0) 
+       	rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
+       	if (rv != SA_OK) 
 	{
 		/* 
 		 * snmp_get() returns -1 if snmp agent does not respond *or*
 		 * snmp log entry does not exist. 
-		 *
-		 * For now, assuming the best i.e. snmp log is empty. 
 		 */
-		dbg("snmp log is empty.\n");
-		rv = oh_sel_clear(handle->selcache);
+		 if ( (rv == SA_ERR_HPI_NO_RESPONSE) || (rv == SA_ERR_HPI_BUSY) ) {
+			dbg("bc snmp client is not responding\n");
+		 	return rv;
+		} else {
+			dbg("snmp log is empty.\n");
+			rv = oh_sel_clear(handle->selcache);
+		}
 	
 	} else {
 		if (fetchentry == NULL) {
@@ -274,7 +298,7 @@ int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
 			while (1) {
 				current++;
                			sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-               			rv = snmp_get(custom_handle->ss,oid,&get_value);
+               			rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
 				if (rv == 0) {
                				if(snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
                					dbg("Couldn't parse SEL Entry");
@@ -351,7 +375,7 @@ int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
  * 
  * Return value: -1
  **/
-int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
+int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event)
 {
         return SA_ERR_HPI_INVALID_CMD;
 }
@@ -366,7 +390,7 @@ int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEnt
  * 
  * Return value: -1
  **/
-int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
+int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
 {
         return SA_ERR_HPI_INVALID_CMD;
 }
@@ -381,37 +405,53 @@ int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
  * 
  * Return value: -1 if fails. 0 SA_OK
  **/
-int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current)
+int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current)
 {
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
-        SaHpiEventT tmpevent;
+        SaHpiSelEntryT tmpentry;
         char oid[50];
         SaErrorT rv;
 	int isdst = 0;
 
 	sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-	snmp_get(custom_handle->ss,oid,&get_value);
+	rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
 
-	if(get_value.type == ASN_OCTET_STR) {
+	if ( (rv == SA_OK) && (get_value.type == ASN_OCTET_STR)) {
 		int event_enabled;
 
-		/*snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);*/
-		/* isdst = sel_entry.time.tm_isdst;*/
-                log2event(hnd, get_value.string, &tmpevent, isdst, &event_enabled);
-                handle->selcache->nextId = current;                
-                rv = oh_sel_add(handle->selcache, &tmpevent);
+                log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
+                tmpentry.EntryId = current;
+                tmpentry.Timestamp = tmpentry.Event.Timestamp;
 		
+		/* Keep the original BladeCenter timestamp in cache copy     */
+		/* even if timestamp is set out of range, 1970 =< yr =< 2038 */
+		/* Because original timestamp is used to determine if cache  */
+		/* synchronization is needed. If we convert  out-of-range    */
+		/* timestamp in the cache SEL, then we will refresh cache on */
+		/* every SEL get.                                            */
+                rv = oh_sel_add(handle->selcache, &tmpentry);
+			
 		if (event_enabled) {
+		
+			/* If BladeCenter target has year set out of range, */
+			/* 1970 =< range =< 2038, set timestamp to          */
+			/* SAHPI_TIME_UNSPECIFIED before placing SEL entry  */
+			/* in event queue. Test for more negative number.   */ 
+			if ((unsigned long long)tmpentry.Timestamp > 
+				(unsigned long long)SAHPI_TIME_UNSPECIFIED) {
+				
+				tmpentry.Timestamp = SAHPI_TIME_UNSPECIFIED;
+				tmpentry.Event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+			} 
 			rv = snmp_bc_add_to_eventq(hnd, &tmpentry.Event);
 		}
 	} else {
 		dbg("Couldn't fetch SEL Entry from BladeCenter snmp");
-		return -1;
 	}
 
-        return SA_OK;
+        return rv;
 }
 
 /**
@@ -478,7 +518,8 @@ int snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char * text, bc_sel
                   	&ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
 			set_bc_dst(handle, &ent.time);
                 	ent.time.tm_mon--;
-                	ent.time.tm_year += 100;
+                	ent.time.tm_year += 100;  /* based year == 1900 */
+						  /* expected  2000 =< current yr =< 2038 */ 
         	} else {
                 	dbg("Couldn't parse Date/Time from Blade Center Log Entry");
                 	return -1;

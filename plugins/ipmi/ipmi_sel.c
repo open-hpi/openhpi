@@ -263,11 +263,7 @@ SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id, void *cb_data)
         rv = ipmi_mc_pointer_cb(mc_id, clear_sel, ipmi_handler);
         if (rv) {
                 dbg("Unable to convert mcid to pointer: %d", rv);
-#if 0
                 return SA_ERR_HPI_INVALID;
-#else
-		return SA_ERR_HPI_INVALID_CMD;
-#endif
         }
         
         return SA_OK;
@@ -379,7 +375,7 @@ static void get_sel_by_recid(ipmi_mc_t *mc, void *cb_data)
 		data->event = ipmi_mc_event_by_recid(mc, data->record_id);
 }
 
-void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ipmi_event_t **event)
+void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_event_t **event)
 {
 		int rv;
         struct ohoi_get_event_by_recid_cb_data data;

@@ -45,7 +45,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -81,11 +81,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
@@ -129,11 +129,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_INTERCONNECT,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -192,11 +192,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_SBC_BLADE,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
@@ -262,15 +262,15 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_ADD_IN_CARD,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_SBC_BLADE,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
@@ -303,11 +303,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_PERIPHERAL_BAY,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
@@ -350,11 +350,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_FAN,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
@@ -388,11 +388,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_POWER_SUPPLY,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityInstance = BC_HPI_INSTANCE_BASE
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityInstance = 0
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |

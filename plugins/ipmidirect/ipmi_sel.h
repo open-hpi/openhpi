@@ -109,20 +109,20 @@ public:
   // add an event to the list of async events
   int AddAsyncEvent( cIpmiEvent *event );
 
-  SaErrorT GetEventLogInfo( SaHpiEventLogInfoT &info );
+  SaErrorT GetSelInfo( SaHpiSelInfoT &info );
 
   // get an event
-  int GetEventLogEntry( unsigned short rid, unsigned short &prev, 
+  int GetSelEntry( unsigned short rid, unsigned short &prev, 
                    unsigned short &next, cIpmiEvent &event );
 
-  SaErrorT GetEventLogEntry( SaHpiEventLogEntryIdT current,
-                        SaHpiEventLogEntryIdT &prev, SaHpiEventLogEntryIdT &next,
-                        SaHpiEventLogEntryT &entry );
+  SaErrorT GetSelEntry( SaHpiSelEntryIdT current,
+                        SaHpiSelEntryIdT &prev, SaHpiSelEntryIdT &next,
+                        SaHpiSelEntryT &entry );
 
-  SaErrorT AddEventLogEntry( const SaHpiEventLogEntryT & /*Event*/ );
+  SaErrorT AddSelEntry( const SaHpiSelEntryT & /*Event*/ );
 
   // delete SEL entry
-  SaErrorT DeleteEventLogEntry( SaHpiEventLogEntryIdT sid );
+  SaErrorT DeleteSelEntry( SaHpiSelEntryIdT sid );
 
   // clear the SEL
   SaErrorT ClearSel();

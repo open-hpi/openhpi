@@ -37,7 +37,16 @@ INCLUDES                = -I$(top_srcdir)/include \
 
 AM_CFLAGS		= -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
 
-EXTRA_DIST		= sim_resources.h
+EXTRA_DIST		= sim_resources.h \
+			  openhpi.conf \
+			  thotswap.h \
+			  tsensor.h \
+			  tstubs_rdr.h \
+			  tstubs_res.h \
+			  tstubs_snmp.h \
+			  tstubs_rdr.c \
+			  tstubs_res.c \
+			  tstubs_snmp.c 
 
 noinst_LTLIBRARIES	= libsnmp_bc.la
 
@@ -59,7 +68,7 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Setup environment variables for TESTS programs
-TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
+TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf
 TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
@@ -77,6 +86,7 @@ TESTS = tevent \
 	thotswap_power_set_err \
 	thotswap_unsupported \
 	tsensor \
+	tsensor_1 \
 	tutils_conv \
 	tutils_oid
 
@@ -91,6 +101,11 @@ tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
+tsensor_1_SOURCES = tsensor_1.c
+tsensor_1_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+
 # Unit tests with IF and snmp calls stubbed out
 tutils_oid_SOURCES = tutils_oid.c
 tutils_oid_LDADD   = snmp_bc_utils.o
@@ -101,10 +116,10 @@ tutils_conv_LDADD   = snmp_bc_utils.o
 tsensor_SOURCES = tsensor.c
 tsensor_LDADD   = snmp_bc_sensor.o snmp_bc_utils.o
 
-thotswap_state_SOURCES = thotswap_state.c
+thotswap_state_SOURCES = thotswap_state.c 
 thotswap_state_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
 
-thotswap_state_err_SOURCES = thotswap_state_err.c
+thotswap_state_err_SOURCES = thotswap_state_err.c 
 thotswap_state_err_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
 
 thotswap_reset_SOURCES = thotswap_reset.c

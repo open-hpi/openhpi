@@ -142,9 +142,12 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_ERROR;
 	}
 
-        ohoi_loop(&info.done, ipmi_handler);
-
-	return SA_OK;
+        if (info.done<0) {
+                dbg("Invalid control state data");
+                return SA_ERR_HPI_INVALID;
+        }
+        
+        return ohoi_loop(&info.done, ipmi_handler);
 }
 
 static void set_reset_state(ipmi_control_t *control,
@@ -195,13 +198,13 @@ static void set_power_state(ipmi_control_t *control,
 }
 
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
-		              SaHpiPowerStateT state)
+		              SaHpiHsPowerStateT state)
 {
         struct ohoi_resource_info *ohoi_res_info;
 	struct oh_handler_state *handler;
         int rv;
         
-        if (state != SAHPI_POWER_OFF) {
+        if (state != SAHPI_HS_POWER_OFF) {
                 dbg("Only support power off");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }

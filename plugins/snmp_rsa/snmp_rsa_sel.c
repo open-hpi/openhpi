@@ -65,7 +65,7 @@ static int get_rsa_sel_size_from_hardware(struct snmp_session *ss)
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_rsa_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info) 
+int snmp_rsa_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info) 
 {
         struct oh_handler_state *handle = hnd;
 
@@ -90,11 +90,11 @@ int snmp_rsa_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *in
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_rsa_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
-                           SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
-                           SaHpiEventLogEntryT *entry)
+int snmp_rsa_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                           SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
+                           SaHpiSelEntryT *entry)
 {
-        SaHpiEventLogEntryT tmpentry, *tmpentryptr;
+        SaHpiSelEntryT tmpentry, *tmpentryptr;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	tmpentryptr = &tmpentry; 
 	SaErrorT rc;
@@ -106,7 +106,7 @@ int snmp_rsa_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT
 			printf("entryId %d, oh_sel_get returncode %d\n", current, rc);
 			dbg("Error fetching entry number %d from cache    >>>\n", current);
 		} else {
-			memcpy(entry, tmpentryptr, sizeof(SaHpiEventLogEntryT));
+			memcpy(entry, tmpentryptr, sizeof(SaHpiSelEntryT));
 		}
 	} else {
 		dbg("Missing handle->selcache");
@@ -152,7 +152,7 @@ SaErrorT snmp_rsa_build_selcache(void *hnd, SaHpiResourceIdT id)
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_rsa_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
+int snmp_rsa_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId)
 {
         struct oh_handler_state *handle = hnd;
 	SaErrorT rv;
@@ -174,16 +174,16 @@ int snmp_rsa_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryId
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_rsa_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
+int snmp_rsa_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId)
 {
-	SaHpiEventLogEntryIdT current;
-	SaHpiEventLogEntryIdT prev;
-	SaHpiEventLogEntryIdT next;
+	SaHpiSelEntryIdT current;
+	SaHpiSelEntryIdT prev;
+	SaHpiSelEntryIdT next;
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_rsa_hnd *custom_handle = handle->data;
         rsa_sel_entry sel_entry;
-        SaHpiEventLogEntryT  *fetchentry;
+        SaHpiSelEntryT  *fetchentry;
         SaHpiTimeT new_timestamp;
 	char oid[50];
 	SaErrorT rv;
@@ -301,7 +301,7 @@ int snmp_rsa_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
  * 
  * Return value: -1
  **/
-int snmp_rsa_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
+int snmp_rsa_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event)
 {
         return SA_ERR_HPI_INVALID_CMD;
 }
@@ -316,7 +316,7 @@ int snmp_rsa_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEn
  * 
  * Return value: -1
  **/
-int snmp_rsa_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
+int snmp_rsa_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
 {
         return SA_ERR_HPI_INVALID_CMD;
 }
@@ -331,12 +331,12 @@ int snmp_rsa_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT
  * 
  * Return value: -1 if fails. 0 SA_OK
  **/
-int snmp_rsa_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current)
+int snmp_rsa_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current)
 {
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_rsa_hnd *custom_handle = handle->data;
-        SaHpiEventLogEntryT tmpentry;
+        SaHpiSelEntryT tmpentry;
         char oid[50];
         SaErrorT rv;
 	int isdst = 0;
@@ -394,7 +394,7 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
                                 ent.sev = SAHPI_DEBUG;
                         }
                 } else {
-                        dbg("Couldn't parse Severity from RSA Log Entry");
+                        dbg("Couldn't parse Severity from Blade Center Log Entry");
                         return -1;
                 }
         }
@@ -403,21 +403,12 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
         findit = strstr(text, "Source:");
         if (findit != NULL) {
                 if(!sscanf(findit,"Source:%19s",ent.source)) {
-                        dbg("Couldn't parse Source from RSA Log Entry");
+                        dbg("Couldn't parse Source from Blade Center Log Entry");
                         return -1;
                 }
         } else 
                 return -2;
 
-	findit = strstr(text, "Name:");
-	if (findit != NULL) {
-        	if(!sscanf(findit,"Name:%19s",ent.sname)) {
-                	dbg("Couldn't parse Name from RSA Log Entry");
-                	return -1;
-        	}
-	} else 
-		return -2;
-        
         findit = strstr(text, "Date:");
         if (findit != NULL) {
                 if(sscanf(findit,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
@@ -427,7 +418,7 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
                         ent.time.tm_mon--;
                         ent.time.tm_year += 100;
                 } else {
-                        dbg("Couldn't parse Date/Time from RSA Log Entry");
+                        dbg("Couldn't parse Date/Time from Blade Center Log Entry");
                         return -1;
                 }
         } else

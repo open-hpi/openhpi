@@ -109,8 +109,7 @@ install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@H
 %defattr(-,root,root)
 %dir %{prefix}/include/@HPI_PKG@
 %{prefix}/include/@HPI_PKG@/*h
-%{prefix}/lib/pkgconfig/openhpi.pc
-%{prefix}/lib/pkgconfig/openhpiutils.pc
+%{prefix}/lib/pkgconfig/@HPI_PKG@*pc
 
 
 ###################################################

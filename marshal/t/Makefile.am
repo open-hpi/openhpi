@@ -18,7 +18,7 @@ MARSHAL_SOURCES         = marshal_hpi_types.c
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(MARSHAL_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
-INCLUDES		= -I.. -I $(top_srcdir)/include
+INCLUDES		= -I $(srcdir)/.. -I $(top_srcdir)/include
 
 AM_CFLAGS		= @CFLAGS@ -ftest-coverage -fprofile-arcs
 

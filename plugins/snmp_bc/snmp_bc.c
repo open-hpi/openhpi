@@ -572,6 +572,7 @@ int get_interface(void **pp, const uuid_t uuid)
         return -1;
 }
 
+
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           struct snmp_session *ss,
                           const char *objid,
@@ -604,6 +605,7 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
                           char *objid,
                           struct snmp_value value)
 {
+
         SaErrorT status;
 
         status = snmp_set(ss, objid, value);
@@ -624,3 +626,5 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
         return status;
 
 }
+
+

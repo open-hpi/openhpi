@@ -51,7 +51,7 @@ struct ohoi_handler {
     int SELs_read_done;
 	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
 	int sel_clear_done;		/* we need to wait for mc_sel_reread for clear to succeed */
-//	int FRU_done;			/* we have to track FRUs */
+	int FRU_done;			/* we have to track FRUs */
 
 	ipmi_domain_id_t domain_id;
 
@@ -97,14 +97,12 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 int ohoi_set_sensor_thresholds(ipmi_sensor_id_t                 sensor_id, 
                                const SaHpiSensorThresholdsT     *thres,
 							   void *cb_data);
-#if 0
 int ohoi_get_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
 			          SaHpiSensorEvtEnablesT        *enables,
 					  void *cb_data);
 int ohoi_set_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
 			          const SaHpiSensorEvtEnablesT  *enables,
 					  void *cb_data);
-#endif
 
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
@@ -122,7 +120,7 @@ void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id,
 void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id, 
                              ipmi_event_t *event, 
                              unsigned int *record_id);
-void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ipmi_event_t **event);
+void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_event_t **event);
 
 /* This is used to help plug-in to find resource in rptcache by entity_id */
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
@@ -185,7 +183,6 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
 /*
  * ABI stub functions
  */ 
-#if 0
 SaErrorT ohoi_get_inventory_size(void *hnd, SaHpiResourceIdT id,
                           SaHpiEirIdT num, /* yes, they don't call it a
                                             * num, but it still is one
@@ -195,7 +192,7 @@ SaErrorT ohoi_get_inventory_size(void *hnd, SaHpiResourceIdT id,
 SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
                           SaHpiEirIdT num,
                           SaHpiInventoryDataT *data);
-#endif
+
 
 int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
                      enum ipmi_hot_swap_states last_state,
@@ -219,7 +216,7 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 				  SaHpiHsIndicatorStateT state);
 
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
-                              SaHpiPowerStateT state);
+                              SaHpiHsPowerStateT state);
 	
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act);
@@ -244,6 +241,21 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                      (x).seq);                  \
         } while(0)
 
+
+static inline int is_ignored_sensor(ipmi_sensor_t *sensor)
+{
+        ipmi_entity_t *ent;
+
+        ent = ipmi_sensor_get_entity(sensor);
+
+        if (ent && ipmi_entity_is_present(ent))
+                return 0;
+        
+        if ( !ipmi_sensor_get_ignore_if_no_entity(sensor) )
+                return 0;
+
+        return 1;
+}
 
 /* dump rpttable to make debug easy 
    if you don't like it, feel free to delete it.

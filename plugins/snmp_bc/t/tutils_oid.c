@@ -33,11 +33,11 @@ int main(int argc, char **argv)
 		.Entry[0] = 
 		{
 			.EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
-			.EntityLocation = 100
+			.EntityInstance = 100
 		},
 		{
 			.EntityType = SAHPI_ENT_SUB_CHASSIS,
-			.EntityLocation = 99
+			.EntityInstance = 99
 		}
 	};
 

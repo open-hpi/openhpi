@@ -174,7 +174,7 @@ static const cMarshalType *saHpiEventLogInfoGetIn[] =
 static const cMarshalType *saHpiEventLogInfoGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiEventLogInfoType,
+  &SaHpiSelInfoType,
   0
 };
 
@@ -183,16 +183,16 @@ static const cMarshalType *saHpiEventLogEntryGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
-  &SaHpiEventLogEntryIdType,
+  &SaHpiSelEntryIdType,
   0
 };
 
 static const cMarshalType *saHpiEventLogEntryGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiEventLogEntryIdType,
-  &SaHpiEventLogEntryIdType,
-  &SaHpiEventLogEntryType,
+  &SaHpiSelEntryIdType,
+  &SaHpiSelEntryIdType,
+  &SaHpiSelEntryType,
   &SaHpiRdrType,
   &SaHpiRptEntryType,
   0
@@ -203,7 +203,7 @@ static const cMarshalType *saHpiEventLogEntryAddIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
-  &SaHpiEventLogEntryType,
+  &SaHpiSelEntryType,
   0
 };
 
@@ -218,7 +218,7 @@ static const cMarshalType *saHpiEventLogEntryDeleteIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
-  &SaHpiEventLogEntryIdType,
+  &SaHpiSelEntryIdType,
   0
 };
 
