@@ -2,7 +2,6 @@
 
 #include <snmp_bc_plugin.h>
 
-
 SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 				     SaHpiEntityPathT *ep,
 				     const struct BC_ResourceInfo *bc_res_info)

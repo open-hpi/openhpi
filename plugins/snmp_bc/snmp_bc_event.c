@@ -583,8 +583,8 @@ static int parse_threshold_str(gchar *str,
 	}
 	
 	strcpy(root_str, event_substrs[0]);
-	oh_append_textbuffer(read_value_str, thresh_substrs[0], strlen(thresh_substrs[0]));
-	oh_append_textbuffer(trigger_value_str, thresh_substrs[1], strlen(thresh_substrs[1]));
+	oh_append_textbuffer(read_value_str, thresh_substrs[0]);
+	oh_append_textbuffer(trigger_value_str, thresh_substrs[1]);
 
 	/* FIXME:: Check for non-NULL read_value_str->Data and trigger_value_str->Data values?? */
 

@@ -44,6 +44,7 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
 #if 0
         .set_control_state		= snmp_bc_set_control_state,
 #endif	
+#if 0
 	.get_idr_info			= snmp_bc_get_idr_info,
 	.get_idr_area_header		= snmp_bc_get_idr_area_header,
 	.add_idr_area			= snmp_bc_add_idr_area,
@@ -52,6 +53,7 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
 	.add_idr_field			= snmp_bc_add_idr_field,
 	.set_idr_field			= snmp_bc_set_idr_field,
 	.del_idr_field			= snmp_bc_del_idr_field,
+#endif
         .reset_watchdog			= snmp_bc_reset_watchdog,
         .get_hotswap_state		= snmp_bc_get_hotswap_state,
         .set_hotswap_state		= snmp_bc_set_hotswap_state,
@@ -88,8 +90,10 @@ int get_interface(void **pp, const uuid_t uuid)
 static int snmp_bc_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        
+
+#if 0        
 	snmp_bc_check_selcache(hnd, 1, SAHPI_NEWEST_ENTRY);
+#endif
         if(g_slist_length(handle->eventq)>0) {
                 memcpy(event, handle->eventq->data, sizeof(*event));
                 free(handle->eventq->data);
@@ -222,4 +226,3 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
         return status;
 
 }
-

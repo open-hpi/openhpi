@@ -55,27 +55,23 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		SaHpiTextBufferT build_name;
 
 		oh_init_textbuffer(&build_name);
-		oh_append_textbuffer(&build_name, snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment,
-				     strlen(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment));
+		oh_append_textbuffer(&build_name, snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment);
 		if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
-			oh_append_textbuffer(&build_name, " Integrated Chassis",
-					     strlen(" Integrated Chassis"));
+			oh_append_textbuffer(&build_name, " Integrated Chassis");
 		}
 		else {
 			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
-				oh_append_textbuffer(&build_name, " Telco Chassis",
-						     strlen(" Telco Chassis"));
+				oh_append_textbuffer(&build_name, " Telco Chassis");
 			}
 			else {
-				oh_append_textbuffer(&build_name, " Chassis",
-						     strlen(" Chassis"));
+				oh_append_textbuffer(&build_name, " Chassis");
 			}
-		}
+		
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 					   build_name.Data,
 					   ep_root->Entry[0].EntityLocation);
+		}
 	}
-
 	/* Create platform-specific info space to add to infra-structure */
 	res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info),
 				sizeof(struct BC_ResourceInfo));
