@@ -36,7 +36,7 @@
 #include <snmp_rsa_utils.h>
 #include <snmp_rsa_event.h>
 
-unsigned int str2event_use_count = 0; /* It is here for initialization */ 
+unsigned int rsa_str2event_use_count = 0; /* It is here for initialization */ 
  
 typedef enum {
 	EVENT_NOT_MAPPED,
@@ -348,7 +348,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	}
 
 	/* See if adjusted search string is a recognized RSA "alertable" event */
-	strhash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, search_str);
+	strhash_data = (Str2EventInfoT *)g_hash_table_lookup(rsa_str2event_hash, search_str);
 	if (strhash_data) {
 		
 		/* Handle strings that have multiple event numbers */
@@ -494,9 +494,9 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strha
 		}
 		
 		/* Search resource array for the duplicate string's event */
-		for (i=0; snmp_rpt_array[resinfo->rpt].rsa_res_info.event_array[i].event != NULL; i++) {
+		for (i=0; snmp_rsa_rpt_array[resinfo->rpt].rsa_res_info.event_array[i].event != NULL; i++) {
 			normalized_event = snmp_derive_objid(resinfo->ep,
-					   snmp_rpt_array[resinfo->rpt].rsa_res_info.event_array[i].event);
+					   snmp_rsa_rpt_array[resinfo->rpt].rsa_res_info.event_array[i].event);
 			if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 				g_free(normalized_event);
 				return dupstr_hash_data;
@@ -515,7 +515,7 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strha
 			strncpy(dupstr, tmpstr, RSA_SEL_ENTRY_STRING);
 			g_free(tmpstr);
 
-			dupstr_hash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, dupstr);
+			dupstr_hash_data = (Str2EventInfoT *)g_hash_table_lookup(rsa_str2event_hash, dupstr);
 			if (dupstr_hash_data == NULL) {
 				dbg("Cannot find duplicate string=%s\n", dupstr);
 			}
@@ -527,7 +527,7 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strha
 
 /*
  * This function parses RSA threshold log messages into their various 
- * sub-strings. Format is root string (in str2event_hash) followed by read threshold 
+ * sub-strings. Format is root string (in rsa_str2event_hash) followed by read threshold 
  * value string  followed by trigger threshold value string. Unfortunately can't
  * convert directly to sensor values yet because don't yet know if event mapped or
  * if it is, what the sensor's threshold data type is.
@@ -744,7 +744,7 @@ int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 	g_strfreev(src_parts);
 
 	/* Find rest of Entity Path and calculate RID */
-	if (ep_concat(&ep, &snmp_rpt_array[rpt_index].rpt.ResourceEntity)) {
+	if (ep_concat(&ep, &snmp_rsa_rpt_array[rpt_index].rpt.ResourceEntity)) {
 		dbg("ep_concat failed for RPT concat");
 		return -1;
 	}

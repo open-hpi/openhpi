@@ -32,7 +32,7 @@
 /*************************************************************************
  *                   Resource Definitions
  *************************************************************************/
-struct snmp_rpt snmp_rpt_array[] = {
+struct snmp_rpt snmp_rsa_rpt_array[] = {
 	/* Chassis */
         {
                 .rpt = {

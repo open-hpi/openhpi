@@ -74,17 +74,17 @@ struct oh_event * snmp_rsa_discover_chassis(struct oh_handler_state *handle, SaH
         memset(&working, 0, sizeof(struct oh_event));
          
         working.type = OH_ET_RESOURCE;
-        working.u.res_event.entry = snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].rpt;
+        working.u.res_event.entry = snmp_rsa_rpt_array[RSA_RPT_ENTRY_CHASSIS].rpt;
 
 	working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 	working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-	len = strlen(snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].comment);
+	len = strlen(snmp_rsa_rpt_array[RSA_RPT_ENTRY_CHASSIS].comment);
 	if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 		working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 		strcpy(working.u.res_event.entry.ResourceTag.Data,
-		       snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].comment);
+		       snmp_rsa_rpt_array[RSA_RPT_ENTRY_CHASSIS].comment);
 	} else {
-		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].comment);
+		dbg("Comment string too long - %s\n",snmp_rsa_rpt_array[RSA_RPT_ENTRY_CHASSIS].comment);
 	}
 
         working.u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
@@ -92,7 +92,7 @@ struct oh_event * snmp_rsa_discover_chassis(struct oh_handler_state *handle, SaH
 
         e = eventdup(&working);
 
-        find_res_events(handle,ep, &snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].rsa_res_info);
+        find_res_events(handle,ep, &snmp_rsa_rpt_array[RSA_RPT_ENTRY_CHASSIS].rsa_res_info);
  
 	return e;
 }
@@ -107,17 +107,17 @@ struct oh_event * snmp_rsa_discover_cpu(struct oh_handler_state *handle, SaHpiEn
         memset(&working, 0, sizeof(struct oh_event));
          
         working.type = OH_ET_RESOURCE;
-        working.u.res_event.entry = snmp_rpt_array[RSA_RPT_ENTRY_CPU].rpt;
+        working.u.res_event.entry = snmp_rsa_rpt_array[RSA_RPT_ENTRY_CPU].rpt;
 
 	working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 	working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-	len = strlen(snmp_rpt_array[RSA_RPT_ENTRY_CPU].comment);
+	len = strlen(snmp_rsa_rpt_array[RSA_RPT_ENTRY_CPU].comment);
 	if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 		working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 		strcpy(working.u.res_event.entry.ResourceTag.Data,
-		       snmp_rpt_array[RSA_RPT_ENTRY_CPU].comment);
+		       snmp_rsa_rpt_array[RSA_RPT_ENTRY_CPU].comment);
 	} else {
-		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_CPU].comment);
+		dbg("Comment string too long - %s\n",snmp_rsa_rpt_array[RSA_RPT_ENTRY_CPU].comment);
 	}
 
         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
@@ -129,7 +129,7 @@ struct oh_event * snmp_rsa_discover_cpu(struct oh_handler_state *handle, SaHpiEn
 
         e = eventdup(&working);
 
-        find_res_events(handle,ep, &snmp_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info);
+        find_res_events(handle,ep, &snmp_rsa_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info);
  
 	return e;
 }
@@ -144,17 +144,17 @@ struct oh_event * snmp_rsa_discover_dasd(struct oh_handler_state *handle, SaHpiE
         memset(&working, 0, sizeof(struct oh_event));
          
         working.type = OH_ET_RESOURCE;
-        working.u.res_event.entry = snmp_rpt_array[RSA_RPT_ENTRY_DASD].rpt;
+        working.u.res_event.entry = snmp_rsa_rpt_array[RSA_RPT_ENTRY_DASD].rpt;
 
 	working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 	working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-	len = strlen(snmp_rpt_array[RSA_RPT_ENTRY_DASD].comment);
+	len = strlen(snmp_rsa_rpt_array[RSA_RPT_ENTRY_DASD].comment);
 	if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 		working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 		strcpy(working.u.res_event.entry.ResourceTag.Data,
-		       snmp_rpt_array[RSA_RPT_ENTRY_DASD].comment);
+		       snmp_rsa_rpt_array[RSA_RPT_ENTRY_DASD].comment);
 	} else {
-		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_DASD].comment);
+		dbg("Comment string too long - %s\n",snmp_rsa_rpt_array[RSA_RPT_ENTRY_DASD].comment);
 	}
 
 
@@ -167,7 +167,7 @@ struct oh_event * snmp_rsa_discover_dasd(struct oh_handler_state *handle, SaHpiE
 
         e = eventdup(&working);
 
-        find_res_events(handle,ep, &snmp_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info);
+        find_res_events(handle,ep, &snmp_rsa_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info);
  
 	return e;
 }
@@ -240,17 +240,17 @@ struct oh_event * snmp_rsa_discover_fan(struct oh_handler_state *handle, SaHpiEn
         memset(&working, 0, sizeof(struct oh_event));
 
         working.type = OH_ET_RESOURCE;
-        working.u.res_event.entry = snmp_rpt_array[RSA_RPT_ENTRY_FAN].rpt;
+        working.u.res_event.entry = snmp_rsa_rpt_array[RSA_RPT_ENTRY_FAN].rpt;
 
 	working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 	working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-	len = strlen(snmp_rpt_array[RSA_RPT_ENTRY_FAN].comment);
+	len = strlen(snmp_rsa_rpt_array[RSA_RPT_ENTRY_FAN].comment);
 	if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 		working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 		strcpy(working.u.res_event.entry.ResourceTag.Data,
-		       snmp_rpt_array[RSA_RPT_ENTRY_FAN].comment);
+		       snmp_rsa_rpt_array[RSA_RPT_ENTRY_FAN].comment);
 	} else {
-		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_FAN].comment);
+		dbg("Comment string too long - %s\n",snmp_rsa_rpt_array[RSA_RPT_ENTRY_FAN].comment);
 	}
 
         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
@@ -262,7 +262,7 @@ struct oh_event * snmp_rsa_discover_fan(struct oh_handler_state *handle, SaHpiEn
         e = eventdup(&working);
 
         find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
-                        &snmp_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info);
+                        &snmp_rsa_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info);
 
 	return e;
 }

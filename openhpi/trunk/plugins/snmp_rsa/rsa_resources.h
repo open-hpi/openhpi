@@ -100,7 +100,7 @@ struct snmp_rpt {
         const  char *comment;
 };
 
-extern struct snmp_rpt snmp_rpt_array[];
+extern struct snmp_rpt snmp_rsa_rpt_array[];
 
 /******************************************************************************
  *                      Sensor Definitions

@@ -138,7 +138,7 @@ static int snmp_rsa_discover_resources(void *hnd)
         e = snmp_rsa_discover_chassis(handle, &entity_root);
         if(e != NULL) {
                 struct ResourceMibInfo *res_mib =
-                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].rsa_res_info.mib),
+                        g_memdup(&(snmp_rsa_rpt_array[RSA_RPT_ENTRY_CHASSIS].rsa_res_info.mib),
                                  sizeof(struct snmp_rpt));
                 oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                 tmpqueue = g_slist_append(tmpqueue, e);
@@ -165,7 +165,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                 e = snmp_rsa_discover_cpu(handle, &entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =
-                                g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info.mib),
+                                g_memdup(&(snmp_rsa_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info.mib),
                                          sizeof(struct snmp_rpt));
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                         tmpqueue = g_slist_append(tmpqueue, e);
@@ -200,7 +200,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                 e = snmp_rsa_discover_dasd(handle, &entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =
-                                g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info.mib),
+                                g_memdup(&(snmp_rsa_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info.mib),
                                          sizeof(struct snmp_rpt));
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                         tmpqueue = g_slist_append(tmpqueue, e);
@@ -235,7 +235,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                 e = snmp_rsa_discover_fan(handle, &entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =
-                                g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info.mib),
+                                g_memdup(&(snmp_rsa_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info.mib),
                                          sizeof(struct snmp_rpt));
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                         tmpqueue = g_slist_append(tmpqueue, e);
