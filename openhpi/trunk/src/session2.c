@@ -15,180 +15,245 @@
  */
 
 #include <oh_session.h>
+#include <oh_domain.h>
 #include <string.h>
 
-GHashTable *session_table = NULL;
-
-struct session_net {
-        SaHpiDomainIdT did;
-        GSList **sessions_ptr;
-};
-
-static void fetch_domain_sessions(gpointer key, gpointer value, gpointer data)
-{
-        struct oh_session *session = value;
-        struct session_net *net = data;
-
-        if (session->domain_id == net->did) {
-                *(net->sessions_ptr) =
-                        g_slist_append(*(net->sessions_ptr), session);
-        }
-}
+struct sessions sessions = {NULL, NULL};
 
 /**
  * oh_create_session
  * @did:
- * @sid:
  *
  *
  *
  * Returns:
  **/
-SaErrorT oh_create_session(SaHpiDomainIdT did, SaHpiSessionIdT *sid)
+SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
 {
-        static guint session_id = 0; /* Session ids will be > 0 */
+        static guint id = 0; /* Session ids will start at 1 */
         struct oh_session *session = NULL;
+        struct oh_domain *domain = NULL;
 
-        if (did < 1 || !sid) return SA_ERR_HPI_INVALID_PARAMS;
+        if (did < 1) return 0;
+
+        domain = oh_get_domain(did);
+        if (!domain) return 0;
 
         session = g_new0(struct oh_session, 1);
-        if (!session) return SA_ERR_HPI_OUT_OF_MEMORY;
+        if (!session) return 0;
 
-        /* Need to lock these lines -- RM */
-        session->session_id = ++session_id;
-        session->domain_id = did;
-        g_hash_table_insert(session_table, &(session->session_id), session);
-
-        *sid = session_id;
-
-        return SA_OK;
+        g_mutex_lock(sessions.lock); /* Locked session table */
+        session->id = ++id;
+        session->did = did;
+        /* TODO - Initialize GAsyncQueue here -- RM */
+        g_hash_table_insert(sessions.table, &(session->id), session);
+        g_mutex_unlock(sessions.lock); /* Unlocked session table */
+        g_array_append_val(domain->sessions, session->id);
+        oh_release_domain(domain->id);
+                
+        return session->id;
 }
 
 /**
  * oh_get_session_domain
  * @sid:
- * @did:
  *
  *
  *
  * Returns:
  **/
-SaErrorT oh_get_session_domain(SaHpiSessionIdT sid, SaHpiDomainIdT *did)
+SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
 {
         struct oh_session *session = NULL;
 
-        if (sid < 1 || !did) return SA_ERR_HPI_INVALID_PARAMS;
+        if (sid < 1) return 0;
 
-        session = g_hash_table_lookup(session_table, &sid);
-        if (!session) return SA_ERR_HPI_NOT_PRESENT;
+        g_mutex_lock(sessions.lock); /* Locked session table */
+        session = g_hash_table_lookup(sessions.table, &sid);
+        g_mutex_unlock(sessions.lock); /* Unlocked session table */
+        if (!session) return 0;
 
-        *did = session->domain_id;
-
-        return SA_OK;
-}
-
-/**
- * oh_lookup_session
- * @sid:
- * @session:
- *
- *
- *
- * Returns:
- **/
-SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session **session)
-{
-        struct oh_session *sess = NULL;
-
-        if (sid < 1 || !session) return SA_ERR_HPI_INVALID_PARAMS;
-
-        sess = g_hash_table_lookup(session_table, &sid);
-        if (!sess) return SA_ERR_HPI_NOT_PRESENT;
-
-        *session = sess;
-
-        return SA_OK;
+        return session->did;
 }
 
 /**
  * oh_list_sessions
  * @did:
- * @session_ids:
  *
  *
  *
- * Returns:
+ * Returns: A dynamically allocated array of session ids.
+ * The caller needs to free this array when he is done with it.
  **/
-SaErrorT oh_list_sessions(SaHpiDomainIdT did, GSList **session_ids)
+GArray *oh_list_sessions(SaHpiDomainIdT did)
 {
-        struct session_net net;
+        struct oh_domain *domain = NULL;
+        GArray *session_ids = NULL;
+        guint i, length;
 
-        if (did < 1 || !session_ids) return SA_ERR_HPI_INVALID_PARAMS;
+        if (did < 1) return NULL;
 
-        net.did = did;
-        net.sessions_ptr = session_ids;
+        domain = oh_get_domain(did);
+        if (!domain) return NULL;
 
-        /* Need to lock session_table here -- RM */
-        g_hash_table_foreach(session_table,
-                             fetch_domain_sessions,
-                             &net);
-        /* Need to unlock session_table here -- RM */
+        session_ids = g_array_sized_new(FALSE, TRUE,
+                                        sizeof(SaHpiSessionIdT),
+                                        domain->sessions->len);
+        length = domain->sessions->len;
+        for (i = 0; i < length; i++) {
+                g_array_append_val(session_ids,
+                                   g_array_index(domain->sessions,
+                                                 SaHpiSessionIdT,
+                                                 i)
+                                   );
+        }
+        oh_release_domain(did);
 
-        if (g_slist_length(*session_ids) < 1)
-                return SA_ERR_HPI_NOT_PRESENT;
-        else
-                return SA_OK;
+        return session_ids;
 }
 
 /**
- * oh_is_session_subscribed
+ * oh_get_session_state
  * @sid:
+ * @state:
  *
  *
  *
  * Returns:
  **/
-SaHpiBoolT oh_is_session_subscribed(SaHpiDomainIdT sid)
+SaErrorT oh_get_session_state(SaHpiDomainIdT sid, SaHpiBoolT *state)
 {
         struct oh_session *session = NULL;
 
-        if (sid < 1) return SAHPI_FALSE;
+        if (sid < 1 || !state) return SA_ERR_HPI_INVALID_PARAMS;
 
-        session = g_hash_table_lookup(session_table, &sid);
-        if (!session) return SAHPI_FALSE;
+        g_mutex_lock(sessions.lock); /* Locked session table */
+        session = g_hash_table_lookup(sessions.table, &sid);
+        if (!session) {
+                g_mutex_unlock(sessions.lock);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        *state = session->state;
+        g_mutex_unlock(sessions.lock); /* Unlocked session table */
 
-        if (session->event_state == OH_EVENT_SUBSCRIBE)
-                return SAHPI_TRUE;
-        else
-                return SAHPI_FALSE;
+        return SA_OK;
+}
+
+/**
+ * oh_set_session_state
+ * @sid:
+ * @state:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_set_session_state(SaHpiDomainIdT sid, SaHpiBoolT state)
+{
+       struct oh_session *session = NULL;
+
+       if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
+
+       g_mutex_lock(sessions.lock); /* Locked session table */
+       session = g_hash_table_lookup(sessions.table, &sid);
+       if (!session) {
+               g_mutex_unlock(sessions.lock);
+               return SA_ERR_HPI_NOT_PRESENT;
+       }
+       session->state = state;
+       g_mutex_unlock(sessions.lock); /* Unlocked session table */
+
+       return SA_OK;
+}
+
+/**
+ * oh_queue_session_event
+ * @sid:
+ * @event:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
+{      /* TODO - Will need to adjust this when the eventq's type changes -- RM */
+       struct oh_session *session = NULL;
+
+       if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
+
+       g_mutex_lock(sessions.lock); /* Locked session table */
+       session = g_hash_table_lookup(sessions.table, &sid);
+       if (!session) {
+               g_mutex_unlock(sessions.lock);
+               return SA_ERR_HPI_NOT_PRESENT;
+       }
+       g_slist_append(session->eventq, event);
+       g_mutex_unlock(sessions.lock); /* Unlocked session table */
+
+       return SA_OK;
+}
+
+/**
+ * oh_dequeue_session_event
+ * @sid:
+ * @event:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
+{      /* TODO - Will need to adjust this when the eventq's type changes -- RM */
+       struct oh_session *session = NULL;
+       struct oh_event *devent = NULL;
+
+       if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
+
+       g_mutex_lock(sessions.lock); /* Locked session table */
+       session = g_hash_table_lookup(sessions.table, &sid);
+       if (!session) {
+               g_mutex_unlock(sessions.lock);
+               return SA_ERR_HPI_NOT_PRESENT;
+       }
+       devent = (struct oh_event *)session->eventq->data;
+       memcpy(event, devent, sizeof(struct oh_event));
+       session->eventq = g_slist_remove(session->eventq, devent);
+       g_free(devent);
+       g_mutex_unlock(sessions.lock); /* Unlocked session table */
+
+       return SA_OK;       
 }
 
 /**
  * oh_destroy_session
  * @sid:
- * @session:
  *
  *
  *
  * Returns:
  **/
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
-{       /* Will need to adjust this when the eventq's type changes -- RM */
+{       /* TODO - Will need to adjust this when the eventq's type changes -- RM */
         struct oh_session *session = NULL;
         GSList *node = NULL;
 
         if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
-        session = g_hash_table_lookup(session_table, &sid);
-        if (!session) return SA_ERR_HPI_NOT_PRESENT;
-
-        /* Need locking starting here -- RM */
+        g_mutex_lock(sessions.lock); /* Locked session table */
+        session = g_hash_table_lookup(sessions.table, &sid);
+        if (!session) {
+                g_mutex_unlock(sessions.lock);
+                return SA_ERR_HPI_NOT_PRESENT;                
+        }
+        
         for (node = session->eventq; node != NULL; node = node->next) {
                 g_free(node->data);
         }
         g_slist_free(session->eventq);
-        g_hash_table_remove(session_table, &(session->session_id));
+        
+        g_hash_table_remove(sessions.table, &(session->id));
         g_free(session);
+        g_mutex_unlock(sessions.lock); /* Unlocked session table */
 
         return SA_OK;
 }

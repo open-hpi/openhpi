@@ -17,12 +17,11 @@
 #ifndef OH_EVENT_H
 #define OH_EVENT_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <SaHpi.h>
+#include <rpt_utils.h>
 
 #ifdef __cplusplus
-//extern "C" {
+/*extern "C" {*/
 #endif
 
 /*
@@ -101,8 +100,8 @@ SaErrorT harvest_events(void);
 SaErrorT process_events(RPTable *rpt);
 
 #ifdef __cplusplus
-}
+/*}*/
 #endif
         
-#endif /* OH_ERROR_H */
+#endif /* OH_EVENT_H */
 

@@ -46,7 +46,7 @@ int is_in_domain_list(SaHpiDomainIdT did)
 
         g_slist_for_each(i, global_domain_list) {
                 struct oh_domain *d = i->data;
-                if(d->domain_id == did) {
+                if(d->id == did) {
                         data_access_unlock();
                         return 1;
                 }
@@ -65,7 +65,7 @@ struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
 
         g_slist_for_each(i, global_domain_list) {
                 struct oh_domain *d = i->data;
-                if(d->domain_id == did) {
+                if(d->id == did) {
                         data_access_unlock();
                         return d;
                 }
@@ -94,8 +94,8 @@ int add_domain(SaHpiDomainIdT did)
                 return -1;
         }
         
-        d->domain_id = did;
-        d->sel = oh_sel_create(OH_SEL_MAX_SIZE);
+        d->id = did;
+        d->del = oh_sel_create(OH_SEL_MAX_SIZE);
  
         global_domain_list = g_slist_append(global_domain_list, d);
 
@@ -113,8 +113,8 @@ void oh_cleanup_domain(void)
                 struct oh_domain *d = (struct oh_domain *)global_domain_list->data;
                 global_domain_list = g_slist_remove(global_domain_list, d);
 
-                if (d->sel)
-                        oh_sel_close(d->sel);
+                if (d->del)
+                        oh_sel_close(d->del);
 
                 free(d);
         }

@@ -256,7 +256,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
 
-        *SessionId = s->session_id;
+        *SessionId = s->id;
         data_access_unlock();
 
         return SA_OK;
@@ -664,7 +664,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                rv = oh_sel_info(d->sel, Info);
+                rv = oh_sel_info(d->del, Info);
                 data_access_unlock();
 
                 return rv;
@@ -733,7 +733,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                retc = oh_sel_get(d->sel, EntryId, PrevEntryId, NextEntryId,
+                retc = oh_sel_get(d->del, EntryId, PrevEntryId, NextEntryId,
                                   &selentry);
                 if (retc != SA_OK) {
                         data_access_unlock();
@@ -828,7 +828,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                rv = oh_sel_add(d->sel, EvtEntry);
+                rv = oh_sel_add(d->del, EvtEntry);
                 data_access_unlock();
                 return rv;
         }
@@ -887,7 +887,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                rv = oh_sel_clear(d->sel);
+                rv = oh_sel_clear(d->del);
                       data_access_unlock();
                 return rv;
         }
@@ -964,7 +964,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                rv = oh_sel_timeset(d->sel, Time);
+                rv = oh_sel_timeset(d->del, Time);
                       data_access_unlock();
                 return rv;
         }
@@ -1036,7 +1036,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                d->sel->enabled = Enable;
+                d->del->enabled = Enable;
                       data_access_unlock();
 
                 return SA_OK;
@@ -1071,13 +1071,13 @@ SaErrorT SAHPI_API saHpiSubscribe (
 
         OH_SESSION_SETUP(SessionId,s);
 
-        if (s->event_state != OH_EVENT_UNSUBSCRIBE) {
+        if (s->state != OH_UNSUBSCRIBED) {
                 dbg("Cannot subscribe if session is not unsubscribed.");
                 data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
         }
 
-        s->event_state = OH_EVENT_SUBSCRIBE;
+        s->state = OH_SUBSCRIBED;
 
         data_access_unlock();
 
@@ -1094,7 +1094,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
 
         OH_SESSION_SETUP(SessionId,s);
 
-        if (s->event_state != OH_EVENT_SUBSCRIBE) {
+        if (s->state != OH_SUBSCRIBED) {
                 dbg("Cannot unsubscribe if session is not subscribed.");
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_REQUEST;
@@ -1109,7 +1109,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         g_slist_free(s->eventq);
         s->eventq = NULL;
 
-        s->event_state = OH_EVENT_UNSUBSCRIBE;
+        s->state = OH_UNSUBSCRIBED;
         data_access_unlock();
         return SA_OK;
 }
@@ -1139,7 +1139,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         OH_SESSION_SETUP(SessionId, s);
         OH_RPT_GET(SessionId, rpt);
 
-        if (s->event_state != OH_EVENT_SUBSCRIBE) {
+        if (s->state != OH_SUBSCRIBED) {
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_REQUEST;
         }

@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <SaHpi.h>
 #include <openhpi.h>
 #include <epath_utils.h>
 #include <uid_utils.h>
@@ -101,7 +100,7 @@ static SaErrorT oh_add_event_to_dsel(SaHpiDomainIdT did, struct oh_hpi_event *e)
                 struct oh_domain *d;                
                 /* yes, we need to add real domain support later here */
                 d = get_domain_by_id(did);
-                return oh_sel_add(d->sel, &(e->event));
+                return oh_sel_add(d->del, &(e->event));
         }
         return SA_OK;
 }
@@ -153,9 +152,9 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
         g_slist_for_each(i, global_session_list) {
                 struct oh_session *s = i->data;
                 /* yes, we need to add real domain support later here */
-                if (s->domain_id == SAHPI_UNSPECIFIED_DOMAIN_ID &&
-                    (s->event_state == OH_EVENT_SUBSCRIBE ||
-                     (s->event_state == OH_EVENT_UNSUBSCRIBE &&
+                if (s->did == SAHPI_UNSPECIFIED_DOMAIN_ID &&
+                    (s->state == OH_SUBSCRIBED ||
+                     (s->state == OH_UNSUBSCRIBED &&
                       (e->event.Severity == SAHPI_MINOR ||
                        e->event.Severity == SAHPI_MAJOR || e->event.Severity == SAHPI_CRITICAL)))) {
                         /*
