@@ -14,6 +14,7 @@ bin_PROGRAMS = \
 	hpisensor \
         hpipower \
 	hpitree \
+	hpisettime \
 	hpialarmpanel
 
 #bin_PROGRAMS           = hpialarmpanel \
@@ -69,9 +70,9 @@ hpiinv_SOURCES          = hpiinv.c
 hpiinv_LDADD            = $(COMMONLIBS)
 hpiinv_LDFLAGS          =
 
-#hpisettime_SOURCES      = hpisettime.c
-#hpisettime_LDADD        = $(COMMONLIBS)
-#hpisettime_LDFLAGS      =
+hpisettime_SOURCES      = hpisettime.c
+hpisettime_LDADD        = $(COMMONLIBS)
+hpisettime_LDFLAGS      =
 
 hpigetevents_SOURCES      = hpigetevents.c
 hpigetevents_LDADD        = $(COMMONLIBS)
