@@ -14,25 +14,9 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <glib.h>
-#include <SaHpi.h>
-
 #include <openhpi.h>
-#include <oh_plugin.h>
 #include <snmp_util.h>
-#include <oh_utils.h>
-#include <bc_resources.h>
-#include <snmp_bc_control.h>
-#include <snmp_bc_discover.h>
-#include <snmp_bc_hotswap.h>
-#include <snmp_bc_sel.h>
-#include <snmp_bc_sensor.h>
-#include <snmp_bc_session.h>
-#include <snmp_bc_watchdog.h>
-#include <snmp_bc_event.h>
-#include <snmp_bc_inventory.h>
-
-#include <snmp_bc.h>
+#include <snmp_bc_plugin.h>
 
 /**
  * snmp_bc_get_event:
@@ -154,7 +138,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
 				find_sensors(snmp_bc_blade_sensors);
 				find_controls(snmp_bc_blade_controls);
-				if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT)) {
+				if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 					find_controls(snmp_bct_blade_controls);
 				}
 				else {
@@ -526,9 +510,13 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .get_sensor_thresholds		= snmp_bc_get_sensor_thresholds,
         .set_sensor_thresholds		= snmp_bc_set_sensor_thresholds,
         .get_sensor_event_enables	= snmp_bc_get_sensor_event_enables,
-/*       .set_sensor_event_enables	= snmp_bc_set_sensor_event_enables, */
+#if 0
+	.set_sensor_event_enables	= snmp_bc_set_sensor_event_enables,
+#endif
         .get_control_state		= snmp_bc_get_control_state,
-/*        .set_control_state		= snmp_bc_set_control_state,       */
+#if 0
+        .set_control_state		= snmp_bc_set_control_state,
+#endif	
 	.get_idr_info			= snmp_bc_get_idr_info,
 	.get_idr_area_header		= snmp_bc_get_idr_area_header,
 	.add_idr_area			= snmp_bc_add_idr_area,

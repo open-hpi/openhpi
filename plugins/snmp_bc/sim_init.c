@@ -10,33 +10,30 @@
  * full licensing terms.
  *
  * Author(s):
- *      Steve Sherman  <stevees@us.ibm.com>
+ *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <snmp_bc_session.h>
-#include <snmp_bc.h>
+#include <openhpi.h>
+#include <snmp_util.h>
+#include <snmp_bc_plugin.h>
+#include <sim_init.h>
 
-int is_simulator(void);
-int sim_banner(struct snmp_bc_hnd *);
-int sim_init(void);
-int sim_close(void);
-
-int is_simulator()
+SaHpiBoolT is_simulator()
 {
-  return(0);
+  return(SAHPI_FALSE);
 }
 
-int sim_banner(struct snmp_bc_hnd *custom_handle) 
+SaErrorT sim_banner(struct snmp_bc_hnd *custom_handle) 
 {
-  return(0);  
+  return(SA_OK);  
 }
 
-int sim_init() 
+SaErrorT sim_init() 
 {
-  return(0);  
+  return(SA_OK);  
 }
 
-int sim_close()
+SaErrorT sim_close()
 {
-  return(0);
+  return(SA_OK);
 }

@@ -12,7 +12,8 @@
 REMOTE_SIM_SOURCES 	= bc_resources.c \
 			  snmp_bc.c \
 	     		  snmp_bc_discover.c \
-			  snmp_bc_session.c
+			  snmp_bc_session.c \
+			  stubs.c	
 
 #			  bc_str2event.c \
 #			  snmp_bc_control.c \
