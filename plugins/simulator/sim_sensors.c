@@ -35,7 +35,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
         SaHpiResourceIdT rid2 = oh_uid_from_entity_path(&res.ResourceEntity);
         new_sensor(rpt, rid2, 1);
         new_sensor(rpt, rid2, 2);
-        new_sensor(rpt, rid2, 4);
+        new_sensor(rpt, rid2, 3);
 
         /* add to third resource */
         memcpy(&res, &dummy_rpt_array[3], sizeof(SaHpiRptEntryT));
@@ -58,7 +58,7 @@ SaErrorT sim_discover_sensors(RPTable *rpt)
         memcpy(&res, &dummy_rpt_array[6], sizeof(SaHpiRptEntryT));
         SaHpiResourceIdT rid6 = oh_uid_from_entity_path(&res.ResourceEntity);
         new_sensor(rpt, rid6, 1); 
-        new_sensor(rpt, rid6, 2);
+        new_sensor(rpt, rid6, 9);
         new_sensor(rpt, rid6, 6);
         new_sensor(rpt, rid6, 7);
 
@@ -980,6 +980,104 @@ struct dummy_sensor dummy_voltage_sensors[] = {
                 },
                 .comment = "Chassis 12 volt sensor"
         },
+
+	/* CPU 1 temperature sensor */
+        {
+		.index = 1,
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_THRESHOLD,
+			.EnableCtrl = SAHPI_FALSE,
+                        .EventCtrl = SAHPI_SEC_READ_ONLY,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .BaseUnits = SAHPI_SU_DEGREES_C,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+                                        .Max = {
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
+                                                },
+                                        },
+                                        .Min = {
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+                                                },
+                                        },
+                                },
+                        },
+                        .ThresholdDefn = {
+                                .IsAccessible = SAHPI_TRUE,
+                                .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+                                .WriteThold = 0,
+                        },
+                        .Oem = 0,
+                },
+                .sensor_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
+                                .threshold_oids = {
+					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
+					.UpMajor    = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
+                                },
+				.threshold_write_oids = {},
+                        },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_enabled = SAHPI_TRUE,
+                        .events_enabled = SAHPI_TRUE,
+			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .event_array = {
+                                {
+                                        .event = "0421C401", /* EN_PROC_HOT_CPU1 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421D081", /* EN_THERM_TRIP_CPU1 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_TRUE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
+					.event_assertion = SAHPI_TRUE,
+ 					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+                                        .event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
+                                {},
+                        },
+ 			.reading2event = {},
+		},
+                .comment = "Blade CPU 1 temperature sensor"
+        }
 
 }
 
