@@ -28,7 +28,7 @@ int main (int argc, char **argv) {
 	gchar returned_string[MAX_STRING_SIZE];
 	int   err;
 
-        sprintf( test_string, "{%d,13}", SAHPI_ENT_SUBBOARD_CARRIER_BLADE + 1 );
+        sprintf( test_string, "{%d,13}", SAHPI_ENT_ROOT_VALUE*2);
 
 	err = string2entitypath(test_string, &ep);
 	if (err)
