@@ -24,6 +24,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
+#include <oh_hotswap.h>
 #include <oh_utils.h>
 
 void process_hotswap_policy()
@@ -32,7 +33,7 @@ void process_hotswap_policy()
         struct oh_event e;
 	struct oh_handler *handler;
 	struct oh_domain *domain;
-        RPTable *default_rpt;
+        RPTable *rpt;
 
         int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
@@ -40,52 +41,63 @@ void process_hotswap_policy()
         while( hotswap_pop_event(&e) > 0 ) {
                 struct oh_resource_data *rd;
                
-		if (e.type != OH_ET_HPI) {
-			dbg("Non-hpi event!");
-			return;
-		}
-
-		handler = g_hash_table_lookup(global_handler_table, &e.hid);
-		if (!handler) {
-			dbg("handler is NULL\n");
-			return;
-		}
-
 		domain = oh_get_domain(e.did);
 		if (!domain) {
 			dbg("No domain\n");
-			return;
+			continue;
 		}
 
-		/*default_rpt is impossible NULL */
-		default_rpt = &domain->rpt;
+		if (e.type != OH_ET_HPI) {
+			dbg("Non-hpi event!");
+			oh_release_domain(domain);
+			continue;
+		}
+
+		data_access_lock();
+		handler = g_hash_table_lookup(global_handler_table, &e.hid);
+		data_access_unlock();
+
+		if (!handler) {
+			dbg("handler is NULL\n");
+			oh_release_domain(domain);
+			continue;
+		}
+
+
+		/*rpt is impossible NULL */
+		rpt = &domain->rpt;
 
         	get_hotswap_state = handler->abi->get_hotswap_state;
         
         	if (!get_hotswap_state) {
                 	dbg(" Very bad thing here or hotswap not yet supported");
-                	return;
+			oh_release_domain(domain);
+                	continue;
         	}
 
                 if (e.u.hpi_event.event.EventType != SAHPI_ET_HOTSWAP) {
                         dbg("Non-hotswap event!");
-                        return;
+			oh_release_domain(domain);
+                        continue;
                 }
                 
                 if (!(e.u.hpi_event.res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                         dbg("Non-hotswapable resource?!");
-                        return;
+			oh_release_domain(domain);
+                        continue;
                 }
                 
-                rd = oh_get_resource_data(default_rpt, e.u.hpi_event.res.ResourceId);
+                rd = oh_get_resource_data(rpt, e.u.hpi_event.res.ResourceId);
                 if (!rd) {
                         dbg( "Can't find resource data for Resource %d", e.u.hpi_event.res.ResourceId);
-                        continue;
+                        oh_release_domain(domain);
+			continue;
                 }
 
                 if (rd->controlled) {
                         dbg();
-                        continue;
+                        oh_release_domain(domain);
+			continue;
                 }
 
                 oh_gettimeofday(&cur);
@@ -114,6 +126,7 @@ void process_hotswap_policy()
                 } else {
                         dbg();
                 }
+		oh_release_domain(domain);
         }
 }
 
