@@ -162,22 +162,28 @@ SaErrorT oh_harvest_events()
 
 static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 {
-        struct oh_global_param logsev_param = { .type = OPENHPI_LOG_ON_SEV };
+        struct oh_global_param param = { .type = OPENHPI_LOG_ON_SEV };
         struct oh_domain *d;
         SaErrorT rv = SA_OK;
         char del_filepath[SAHPI_MAX_TEXT_BUFFER_LENGTH*2];
 
-        oh_get_global_param(&logsev_param);
+        oh_get_global_param(&param);
 
-        if (e->event.Severity <= logsev_param.u.log_on_sev) { /* less is more */
+        if (e->event.Severity <= param.u.log_on_sev) { /* less is more */
+                param.type = OPENHPI_DEL_SAVE;
+                oh_get_global_param(&param);
                 /* yes, we need to add real domain support later here */
                 d = oh_get_domain(did);
                 if (d) {
                         rv = oh_el_append(d->del, &e->event, &e->rdr, &e->res);
-                        snprintf(del_filepath,
-                                 SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
-                                 "%s/del.%u", VARPATH, did);
-                        oh_el_map_to_file(d->del, del_filepath);
+                        if (param.u.del_save) {
+                                param.type = OPENHPI_VARPATH;
+                                oh_get_global_param(&param);
+                                snprintf(del_filepath,
+                                         SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+                                         "%s/del.%u", param.u.varpath, did);
+                                oh_el_map_to_file(d->del, del_filepath);
+                        }
                         oh_release_domain(d);
                 } else {
                         rv = SA_ERR_HPI_ERROR;

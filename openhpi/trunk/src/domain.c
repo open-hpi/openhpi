@@ -20,7 +20,6 @@
 #include <oh_config.h>
 #include <oh_error.h>
 #include <oh_utils.h>
-#include <config.h>
 #include <string.h>
 
 #define OH_FIRST_DOMAIN 1
@@ -59,8 +58,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         if (tag)
                 memcpy(&(domain->tag), tag, sizeof(SaHpiTextBufferT));
 
-        if (oh_get_global_param(&param))
-                param.u.del_size_limit = 0;
+        oh_get_global_param(&param);
 
         domain->del = oh_el_create(param.u.del_size_limit);
         domain->sessions = g_array_sized_new(FALSE, TRUE,
@@ -78,12 +76,20 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                 g_free(domain);
                 return 0;
         }
+        
+        param.type = OPENHPI_DEL_SAVE;
+        oh_get_global_param(&param);        
+        
         g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
         domain->id = id++;
-        snprintf(del_filepath,
-                 SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
-                 "%s/del.%u", VARPATH, domain->id);
-        oh_el_map_from_file(domain->del, del_filepath);
+        if (param.u.del_save) {
+                param.type = OPENHPI_VARPATH;
+                oh_get_global_param(&param);
+                snprintf(del_filepath,
+                         SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+                         "%s/del.%u", param.u.varpath, domain->id);
+                oh_el_map_from_file(domain->del, del_filepath);
+        }
         g_hash_table_insert(oh_domains.table, &(domain->id), domain);
         g_static_rec_mutex_unlock(&(oh_domains.lock));  /* Unlocked domain table */
 

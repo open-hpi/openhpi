@@ -35,6 +35,7 @@ static const char *known_globals[] = {
         "OPENHPI_LOG_ON_SEV",
         "OPENHPI_EVT_QUEUE_LIMIT",
         "OPENHPI_DEL_SIZE_LIMIT",
+        "OPENHPI_DEL_SAVE",
         "OPENHPI_DAT_SIZE_LIMIT",
         "OPENHPI_DAT_USER_LIMIT",
         //"OPENHPI_DEBUG",
@@ -42,6 +43,7 @@ static const char *known_globals[] = {
         //"OPENHPI_DEBUG_LOCK",
         "OPENHPI_THREADED",
         "OPENHPI_PATH",
+        "OPENHPI_VARPATH",
         "OPENHPI_CONF",
         NULL
 };
@@ -51,13 +53,15 @@ static struct {
         SaHpiSeverityT log_on_sev;
         SaHpiUint32T evt_queue_limit;
         SaHpiUint32T del_size_limit;
+        SaHpiBoolT del_save;
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
         //unsigned char dbg;
         //unsigned char dbg_trace;
         //unsigned char dbg_lock;
-        unsigned char threaded;
+        SaHpiBoolT threaded;
         char path[OH_GLOBAL_STR_MAX_LENGTH];
+        char varpath[OH_GLOBAL_STR_MAX_LENGTH];
         char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned char read_env;
         GStaticRecMutex lock;
@@ -66,13 +70,15 @@ static struct {
         .log_on_sev = SAHPI_MINOR,
         .evt_queue_limit = 0, /* Unlimited size */
         .del_size_limit = 0, /* Unlimited size */
+        .del_save = SAHPI_FALSE,
         .dat_size_limit = 0, /* Unlimited size */
         .dat_user_limit = 0, /* Unlimited size */
         //.dbg = 0,
         //.dbg_trace = 0,
         //.dbg_lock = 0,
-        .threaded = 0, /* Threaded mode off */
+        .threaded = SAHPI_FALSE, /* Threaded mode off */
         .path = OH_PLUGIN_PATH,
+        .varpath = VARPATH,
         .conf = OH_DEFAULT_CONF,
         .read_env = 0,
         .lock = G_STATIC_REC_MUTEX_INIT
@@ -244,6 +250,12 @@ static void process_global_param(const char *name, char *value)
                 global_params.evt_queue_limit = atoi(value);
         } else if (!strcmp("OPENHPI_DEL_SIZE_LIMIT", name)) {
                 global_params.del_size_limit = atoi(value);
+        } else if (!strcmp("OPENHPI_DEL_SAVE", name)) {
+                if (!strcmp("YES", value)) {
+                        global_params.del_save = SAHPI_TRUE;
+                } else {
+                        global_params.del_save = SAHPI_FALSE;
+                }
         } else if (!strcmp("OPENHPI_DAT_SIZE_LIMIT", name)) {
                 global_params.dat_size_limit = atoi(value);
         } else if (!strcmp("OPENHPI_DAT_USER_LIMIT", name)) {
@@ -279,6 +291,11 @@ static void process_global_param(const char *name, char *value)
                 memset(global_params.path, 0, OH_GLOBAL_STR_MAX_LENGTH);
                 strncpy(global_params.path, value, OH_GLOBAL_STR_MAX_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
+        } else if (!strcmp("OPENHPI_VARPATH", name)) {
+                g_static_rec_mutex_lock(&global_params.lock);
+                memset(global_params.varpath, 0, OH_GLOBAL_STR_MAX_LENGTH);
+                strncpy(global_params.varpath, value, OH_GLOBAL_STR_MAX_LENGTH-1);
+                g_static_rec_mutex_unlock(&global_params.lock);        
         } else if (!strcmp("OPENHPI_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
                 memset(global_params.conf, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
@@ -651,6 +668,9 @@ int oh_get_global_param(struct oh_global_param *param)
                 case OPENHPI_DEL_SIZE_LIMIT:
                         param->u.del_size_limit = global_params.del_size_limit;
                         break;
+                case OPENHPI_DEL_SAVE:
+                        param->u.del_save = global_params.del_save;
+                        break;
                 case OPENHPI_DAT_SIZE_LIMIT:
                         param->u.dat_size_limit = global_params.dat_size_limit;
                         break;
@@ -673,6 +693,13 @@ int oh_get_global_param(struct oh_global_param *param)
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.path,
                                 global_params.path,
+                                OH_GLOBAL_STR_MAX_LENGTH);
+                        g_static_rec_mutex_unlock(&global_params.lock);
+                        break;
+                case OPENHPI_VARPATH:
+                        g_static_rec_mutex_lock(&global_params.lock);
+                        strncpy(param->u.varpath,
+                                global_params.varpath,
                                 OH_GLOBAL_STR_MAX_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
@@ -721,6 +748,9 @@ int oh_set_global_param(struct oh_global_param *param)
                 case OPENHPI_DEL_SIZE_LIMIT:
                         global_params.del_size_limit = param->u.del_size_limit;
                         break;
+                case OPENHPI_DEL_SAVE:
+                        global_params.del_save = param->u.del_save;
+                        break;
                 case OPENHPI_DAT_SIZE_LIMIT:
                         global_params.dat_size_limit = param->u.dat_size_limit;
                         break;
@@ -744,6 +774,14 @@ int oh_set_global_param(struct oh_global_param *param)
                         memset(global_params.path, 0, OH_GLOBAL_STR_MAX_LENGTH);
                         strncpy(global_params.path,
                                 param->u.path,
+                                OH_GLOBAL_STR_MAX_LENGTH-1);
+                        g_static_rec_mutex_unlock(&global_params.lock);
+                        break;
+                case OPENHPI_VARPATH:
+                        g_static_rec_mutex_lock(&global_params.lock);
+                        memset(global_params.varpath, 0, OH_GLOBAL_STR_MAX_LENGTH);
+                        strncpy(global_params.varpath,
+                                param->u.varpath,
                                 OH_GLOBAL_STR_MAX_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
