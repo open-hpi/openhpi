@@ -27,7 +27,10 @@
 
 #include <snmp_client.h>
 #include <snmp_client_res.h>
+
 #include <snmp_client_utils.h>
+#include <oh_utils.h>
+
 #include <sc_sensor_data.h>
 
 /**
@@ -697,18 +700,204 @@ static int snmp_client_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
         return status;
 }
 
-static int snmp_client_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
+static int snmp_client_get_sensor_event_enables(void *hnd, 
+						SaHpiResourceIdT id,
 						SaHpiSensorNumT num,
 						SaHpiSensorEvtEnablesT *enables)
 {
-        return -1;
+	SaErrorT status = SA_OK;
+	struct snmp_value get_value;
+
+	SaHpiRdrT *rdr = NULL;
+
+	struct rdr_data *remote_rdr_data = NULL;
+        
+	oid anOID[MAX_OID_LEN];
+	oid indices[NUM_SEN_INDICES];
+
+        struct oh_handler_state *handle = 
+		(struct oh_handler_state *)hnd;
+
+        struct snmp_client_hnd *custom_handle = 
+		(struct snmp_client_hnd *)handle->data;
+
+	/* clear data for fresh information */
+	memset(enables, 0, sizeof(*enables));
+
+        if(!(rdr = 
+		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
+		dbg("ERROR finding rdr in snmp_client_get_sensor_data()");
+		return(SA_ERR_HPI_ERROR);
+	}
+
+        if (!(remote_rdr_data =
+                (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
+		dbg(" ERROR finding rdr_data in snmp_client_get_sensor_data()");
+		return(SA_ERR_HPI_ERROR);
+	}
+
+	/* INDEX   { saHpiDomainID, saHpiResourceID, saHpiSensorIndex }	*/
+	indices[0] = (oid)remote_rdr_data->index.remote_domain;
+	indices[1] = (oid)remote_rdr_data->index.remote_resource_id;
+	indices[2] = (oid)num;
+
+	/* STATUS */
+	build_res_oid(anOID, 
+		      sa_hpi_sen_status, 
+		      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+                      indices, 
+                      NUM_SEN_INDICES);
+	
+	status  = snmp_get2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &get_value);
+	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
+		enables->SensorStatus = 
+			(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(get_value.integer);
+	else
+		dbg("snmp_client_get_sensor_data: error getting VALUES_PRESENT "); 
+
+	/* ASSERTEVENTS */
+	build_res_oid(anOID, 
+		      sa_hpi_sen_assert_evts, 
+		      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+                      indices, 
+                      NUM_SEN_INDICES);
+	
+	status  = snmp_get2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &get_value);
+	if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) )
+		build_state_value(get_value.string, 
+				  get_value.str_len, 
+				  &enables->AssertEvents);
+	else
+		dbg("snmp_client_get_sensor_data: error getting ASSERTEVENTS ");
+
+	/* DEASSERTEVENTS */
+	build_res_oid(anOID, 
+		      sa_hpi_sen_deassert_evts, 
+		      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+                      indices, 
+                      NUM_SEN_INDICES);
+	
+	status  = snmp_get2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &get_value);
+	if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) )
+		build_state_value(get_value.string, 
+				  get_value.str_len,
+				  &enables->DeassertEvents);
+	else
+		dbg("snmp_client_get_sensor_data: error getting DEASSERTEVENTS ");
+
+
+        return status;
 }
 
-static int snmp_client_set_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
+static int snmp_client_set_sensor_event_enables(void *hnd, 
+						SaHpiResourceIdT id,
 						SaHpiSensorNumT num,
 						const SaHpiSensorEvtEnablesT *enables)
 {
-        return -1;
+	SaErrorT status = SA_OK;
+	struct snmp_value set_value;
+
+	SaHpiRdrT *rdr = NULL;
+
+	struct rdr_data *remote_rdr_data = NULL;
+        
+	oid anOID[MAX_OID_LEN];
+	oid indices[NUM_SEN_INDICES];
+
+        struct oh_handler_state *handle = 
+		(struct oh_handler_state *)hnd;
+
+        struct snmp_client_hnd *custom_handle = 
+		(struct snmp_client_hnd *)handle->data;
+
+        if(!(rdr = 
+		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
+		dbg("ERROR finding rdr in snmp_client_get_sensor_data()");
+		return(SA_ERR_HPI_ERROR);
+	}
+
+        if (!(remote_rdr_data =
+                (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
+		dbg(" ERROR finding rdr_data in snmp_client_get_sensor_data()");
+		return(SA_ERR_HPI_ERROR);
+	}
+
+	/* INDEX   { saHpiDomainID, saHpiResourceID, saHpiSensorIndex }	*/
+	indices[0] = (oid)remote_rdr_data->index.remote_domain;
+	indices[1] = (oid)remote_rdr_data->index.remote_resource_id;
+	indices[2] = (oid)num;
+
+	/* STATUS */
+	memset(&set_value, 0, sizeof(set_value));
+	set_value.type = ASN_INTEGER;
+//	set_value.integer = enables->SensorStatus + 1;   
+	set_value.integer = 0x7e;   
+	set_value.str_len = sizeof(unsigned int);
+
+	build_res_oid(anOID, 
+		      sa_hpi_sen_status, 
+		      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+                      indices, 
+                      NUM_SEN_INDICES);
+
+	status  = snmp_set2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &set_value);
+
+	/* ASSERTEVENTS */
+	if (status == SA_OK) {
+		memset(&set_value, 0, sizeof(set_value));
+		set_value.type = ASN_OCTET_STR;
+		build_state_string(rdr->RdrTypeUnion.SensorRec.Category,
+				    enables->AssertEvents,
+				    set_value.string, 
+				    &set_value.str_len, 			
+				    MAX_ASN_STR_LEN);
+		
+		build_res_oid(anOID, 
+			      sa_hpi_sen_assert_evts, 
+			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status  = snmp_set2(custom_handle->ss,
+				    anOID, 
+				    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				    &set_value);
+	}
+	/* DEASSERTEVENTS */
+	if (status == SA_OK) {
+		memset(&set_value, 0, sizeof(set_value));
+		set_value.type = ASN_OCTET_STR;
+		build_state_string(rdr->RdrTypeUnion.SensorRec.Category,
+				    enables->DeassertEvents,
+				    set_value.string, 
+				    &set_value.str_len, 			
+				    MAX_ASN_STR_LEN);
+
+		build_res_oid(anOID, 
+			      sa_hpi_sen_deassert_evts, 
+			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status  = snmp_set2(custom_handle->ss,
+				    anOID, 
+				    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				    &set_value);
+	}
+
+        return status;
 }
 
 static int snmp_client_get_control_state(void *hnd, 
@@ -902,8 +1091,8 @@ static int snmp_client_get_control_state(void *hnd,
 }
 
 static int snmp_client_set_control_state(void *hnd, SaHpiResourceIdT id,
-                                     SaHpiCtrlNumT num,
-                                     SaHpiCtrlStateT *state)
+					 SaHpiCtrlNumT num,
+					 SaHpiCtrlStateT *state)
 {
 
 dbg("TODO: ******************* snmp_client_set_control_state() *******************");
