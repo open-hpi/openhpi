@@ -58,7 +58,6 @@ int main(int argc, char **argv)
 
 	/************************** 
 	 * Test :
-	 **************************/
 	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	GHashTable *sav_config = handle->config;
 	handle->config = NULL;
@@ -68,6 +67,7 @@ int main(int argc, char **argv)
 	checkstatus(&err, &expected_err, &testfail);
 
 	handle->config = sav_config;
+	 **************************/
 	/************************** 
 	 * Test :
 	 * expected_err = SA_ERR_HPI_INTERNAL_ERROR;                   
