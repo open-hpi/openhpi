@@ -406,12 +406,32 @@ AC_SUBST(SNMPFLAGS)
 AC_SUBST(SNMPLIBS)
 AC_SUBST(SNMPDIR)
 
+dnl
+dnl defines OH_DEFAULT_CONF and CONFPATH
+dnl
+
+CONFPATH=${CONFPATH:=/etc/openhpi}
+
+AC_ARG_WITH(confpath,
+   [[  --with-confpath=PATH    use directory PATH to store openhpi configuration file [default=/etc/openhpi]]],
+   [CONFPATH=$withval])
+
+dnl substitute @CONFPATH@ in all Makefiles
+AC_SUBST(CONFPATH)
+
+dnl create the #define CONFPATH and #define OH_DEFAULT_CONF in config.h
+AC_DEFINE_UNQUOTED(CONFPATH, "$CONFPATH",
+                   [openhpi specific config path])
+AC_DEFINE_UNQUOTED(OH_DEFAULT_CONF,"$CONFPATH/openhpi.conf",
+                   [default configfile])
+
+
 dnl defines OH_DEFAULT_UID_MAP and VARPATH
 dnl set VARPATH only if unset or null.
 VARPATH=${VARPATH:=/var/lib/openhpi}
 
 AC_ARG_WITH(varpath,
-    [[  --with-varpath=PATH     use direcory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
+    [[  --with-varpath=PATH     use directory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
     [VARPATH=$withval])
 dnl substitute @VARPATH@ in all Makefiles
 AC_SUBST(VARPATH)
