@@ -34,13 +34,15 @@ EXTRA_DIST		=	snmp_bc.h \
 				snmp_bc_event.h \
 				snmp_bc_hotswap.h \
 				snmp_bc_inventory.h \
+				snmp_bc_plugin.h \
 				snmp_bc_resources.h \
 	     			snmp_bc_sel.h \
 				snmp_bc_sensor.h \
 				snmp_bc_session.h \
 				snmp_bc_time.h \
 				snmp_bc_watchdog.h \
-				snmp_bc_xml2event.h
+				snmp_bc_xml2event.h \
+				sim_init.h
 
 # Generated files must be listed first
 libsnmp_bc_la_SOURCES	= \

@@ -34,6 +34,19 @@ MAINTAINERCLEANFILES    = Makefile.in
 
 SAHPIFILES = sahpi_enum_utils.c sahpi_enum_utils.h 
 
+EXTRA_DIST		= $(SAHPIFILES) \
+					el_utils.h \
+					epath_utils.h \
+					event_utils.h \
+					oh_utils.h \
+					rpt_utils.h \
+					sahpi_event_encode.h \
+					sahpi_event_utils.h \
+					sahpi_struct_utils.h \
+					sahpi_time_utils.h \
+					uid_utils.h 
+
+
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 INCLUDES                = -I$(top_srcdir)/include
