@@ -187,7 +187,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
                        
                 }
 		/* display data */
-		printf("********************************************************\n");
+		printf("*** snmp_get2 ******************************************\n");
 			if (CHECK_END(vars->type)) { 
 				print_variable(vars->name, vars->name_length, vars);  
 			}  else 
@@ -262,7 +262,9 @@ SaErrorT snmp_set2(struct snmp_session *ss,
                         break;
                 default:
                         rtncode = -1;
-                        fprintf(stderr, "datatype %c not yet supported by snmp_set()\n", value->type);
+                        fprintf(stderr, 
+				"datatype %c not yet supported by snmp_set2()\n", 
+				value->type);
                         break;
         }
 
@@ -280,6 +282,15 @@ SaErrorT snmp_set2(struct snmp_session *ss,
          	* Process the response.
          	*/
         	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
+			/* display data */
+			printf("*** snmp_set2 ******************************************\n");
+				if (CHECK_END(response->variables->type)) { 
+					print_variable(response->variables->name,
+						       response->variables->name_length,
+						       response->variables);  
+				}  else 
+					fprintf(stderr,"snmp_set2(): No idea.\n");
+			printf("********************************************************\n");
                 	rtncode = 0;
                 
         	} else {
