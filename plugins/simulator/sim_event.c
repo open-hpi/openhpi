@@ -26,9 +26,11 @@
 
 #include "sim_util.h"
 #include "sim_parser.h"
+#include "sim_sensor.h"
 #include "sim_event.h"
 
-
+#define trace(x,...) printf(x, __VA_ARGS__)
+#define error(x,...) printf(x, __VA_ARGS__)
 static  void * REQ_RES = (void *)0;
 static  void * REQ_RDR = (void *)1;
 
@@ -55,6 +57,7 @@ static int str2uint32(char *str, SaHpiUint32T *val)
 
 static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *fe)
 {
+        int retval;
         FAMRequest fr;
         DIR *pdir;
         struct dirent *pd;
@@ -81,12 +84,18 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         event->type = OH_ET_RESOURCE;
         rpt = &event->u.res_event.entry;
         sprintf(path, "%s/%s/rpt", root_path, fe->filename);
-        sim_parser_get_rpt(path, rpt);
+        retval = sim_parser_get_rpt(path, rpt);
+        if (retval) {
+              g_free(path);
+              g_free(event);
+              return -1;
+        } 
         rid = oh_uid_from_entity_path(&rpt->ResourceEntity);
         rpt->ResourceId = rid;
 
         sim_util_add_resource(feh->ohh->rptcache, rpt, g_strdup(fe->filename));
         sim_util_insert_event(&feh->ohh->eventq, event);
+        trace("add resource:%x\n", rid);        
 
         for (pd = readdir(pdir); pd; pd = readdir(pdir)) {
                 DIR *tmp;
@@ -100,8 +109,11 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                 event->type = OH_ET_RDR;
                 rdr = &event->u.rdr_event.rdr;
                 sprintf(path, "%s/%s/%s/rdr", root_path, fe->filename,pd->d_name);
-                sim_parser_get_rdr(path, rdr);
-                sim_util_insert_event(&feh->ohh->eventq, event);
+                retval = sim_parser_get_rdr(path, rdr);
+                if (retval) {
+                      g_free(event);
+                      continue;
+                }
                 sprintf(path, "%s/%s/%s/sensor", root_path, res, pd->d_name); 
                 tmp = opendir(path);
                 if (tmp) {
@@ -111,8 +123,10 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                         sid->rid = rid;
                         sid->index = index;
                         sid->reqnum = fe->fr.reqnum;
-                        printf("monitor sensor:%s\n", pd->d_name);
+                        trace("monitor sensor:(%x,%s)\n", rid, pd->d_name);
                 }
+           
+                sim_util_insert_event(&feh->ohh->eventq, event);
                 sim_util_add_rdr(feh->ohh->rptcache, rid, rdr, sid);
         }
         closedir(pdir);
@@ -124,7 +138,8 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
         struct oh_event    *event;
         SaHpiResourceIdT  rid;
         int retval;
-        
+    
+        trace("remove file :%s\n", fe->filename);    
         event = g_malloc0(sizeof(*event));
      
         if (event == NULL)
@@ -137,7 +152,8 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
         event->u.res_del_event.resource_id = rid;
 
         sim_util_insert_event(&feh->ohh->eventq, event);
-        sim_util_remove_resource(feh->ohh->rptcache, rid, fe->fc);
+        sim_util_remove_resource(feh->ohh->rptcache, rid, NULL);
+        trace("remove resource :%x\n", rid);
 
         return;
 }
@@ -145,12 +161,15 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
 static void fhs_event_sensor_update(struct fe_handler *feh, FAMEvent *fe)
 {
         sim_rdr_id_t  *sid;
-        
-        sid = sim_util_get_rdr_id(feh->ohh->rptcache, fe->fr.reqnum);
 
+        trace("update sensor :%s\n", fe->filename);
+        sid = sim_util_get_rdr_id(feh->ohh->rptcache, fe->fr.reqnum);
+        if (sid) {
+                trace("update sensor(%x,%x)\n", sid->rid, sid->eid);  
+                sim_sensor_update(feh->ohh, sid->rid, sid->eid);
+        }
         return;
 }
-
 
 #define IS_DIR(name)  ((*(name)=='/')?1:0)
 static void* fhs_event_process(void *data)
@@ -184,16 +203,17 @@ static void* fhs_event_process(void *data)
                 if (1 == FAMPending(&fc)) {
                         FAMNextEvent(&fc, &fe);
                 }else  continue; 
+                printf("change file:%s\n", fe.filename);
 
                 if ((fe.userdata == REQ_RES) &&
                     ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
                         if (!IS_DIR(fe.filename))
                                 fhs_event_add_resource(feh, fe.filename, &fe);
-                }else if ((fe.userdata == REQ_RDR) && (fe.code == FAMDeleted)) {
-                     	if (!IS_DIR(fe.filename))
+                }else if ((fe.userdata == REQ_RES) && (fe.code == FAMDeleted)) {
+                     	if (!IS_DIR(fe.filename)) {
                              	fhs_event_remove_resource(feh, &fe);
-                      	else
-                  		printf("faint! why delete root path\n");
+                        } else
+                  		error("why delete root path:%s\n", fe.filename);
                 }else if (fe.userdata == REQ_RDR) {
                         if (((fe.code == FAMChanged) || (fe.code == FAMExists))&&
                             ((!strcmp(fe.filename, "reading"))||
@@ -201,9 +221,10 @@ static void* fhs_event_process(void *data)
                                 fhs_event_sensor_update(feh, &fe);
                         }
                 }
-        } 
+        }
+           
         FAMClose(&fc);
-
+        printf("event process finished\n");
         return 0;
 }
 

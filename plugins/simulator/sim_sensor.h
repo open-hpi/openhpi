@@ -1,12 +1,7 @@
 #ifndef _INC_SENSOR_H_
 #define _INC_SENSOR_H_
 
-int generate_sensor_event(SaHpiRptEntryT *rpt,
-                          SaHpiRdrT *rdr,
-                          SaHpiSensorReadingT *reading,
-                          SaHpiSensorThresholdsT *thres,
-                          SaHpiSensorEvtEnablesT *enables,
-                          SaHpiEventT *old_ev,
-                          SaHpiEventT *new_ev);
-
+int sim_sensor_update(struct oh_handler_state *inst,
+                      SaHpiResourceIdT rid,
+                      SaHpiSensorNumT num);
 #endif
