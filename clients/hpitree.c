@@ -33,13 +33,13 @@
  * Function prototypes
  */
 SaErrorT list_all(SaHpiSessionIdT sessionid);
-SaErrorT list_rpt(SaHpiSessionIdT sessionid);
+SaErrorT list_rpt(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
 SaErrorT list_inv(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
 SaErrorT list_sens(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
 SaErrorT list_ctrl(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
 SaErrorT list_wdog(SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
 SaErrorT list_ann (SaHpiSessionIdT sessionid, SaHpiResourceIdT res_id);
-SaHpiResourceIdT getid(char *optarg);
+
 
 SaErrorT walkInventory(SaHpiSessionIdT sessionid,
 		   SaHpiResourceIdT resourceid,
@@ -74,28 +74,30 @@ main(int argc, char **argv)
 	int c;
 	    
 	printf("\n\n%s ver %s\n",argv[0],progver);
-	while ( (c = getopt( argc, argv,"arsicx?")) != EOF ) {
+	while ( (c = getopt( argc, argv,"arsicn:x?")) != EOF ) {
 		switch(c) {
 			case 'a': f_listall = 1; break;
 			case 'r': f_rpt     = 1; break;
-			case 's': f_sensor  = 1; 
-				  /* resourceid = getid(optarg); */
-				  break;
-			case 'i': f_inv     = 1;
-				  /* resourceid = getid(optarg); */
-				  break;
-			case 'c': f_ctrl    = 1;
-				  /* resourceid = getid(optarg); */
-				  break;
+			case 's': f_sensor  = 1; break; 
+			case 'i': f_inv     = 1; break;
+			case 'c': f_ctrl    = 1; break;
+			case 'n':
+				if (optarg)
+					resourceid = atoi(optarg);
+				else 
+					resourceid = all_resources;
+				break;
 			case 'x': fdebug = 1; break;
 			default:
 				printf("\n\tUsage: %s [-option]\n\n", progname);
-				printf("\t      (No Option) Display all rpt's and rdr's\n");
-				printf("\t           -a     Display all rpt's and rdr's\n");
+				printf("\t      (No Option) Display all rpts and rdrs\n");
+				printf("\t           -a     Display all rpts and rdrs\n");
 				printf("\t           -c     Display only controls\n");
 				printf("\t           -i     Display only inventories\n");
-				printf("\t           -r     Display only rpt's\n");
+				printf("\t           -r     Display only rpts\n");
 				printf("\t           -s     Display only sensors\n");
+				printf("\t           -n     Select particular resource id to display\n");
+				printf("\t                  (Used with [-cirs] options)\n");
 				printf("\t           -x     Display debug messages\n");
 				printf("\n\n\n\n");
 				exit(1);
@@ -133,11 +135,10 @@ main(int argc, char **argv)
 	}
 
 	printf("Discovery done\n");
-        
 	if(f_listall) 
 		list_all(sessionid);
 	else {	
-		if(f_rpt) list_rpt(sessionid);
+		if(f_rpt) list_rpt(sessionid,resourceid);
 		if(f_sensor) list_sens(sessionid,resourceid);
 		if(f_inv) list_inv(sessionid, resourceid); 
 		if(f_ctrl) list_ctrl(sessionid, resourceid);
@@ -148,22 +149,10 @@ main(int argc, char **argv)
 	exit(0);
 }
 
-
 /*
  *
  */
-SaHpiResourceIdT getid(char *optarg) 
-{
-	if (strncmp(optarg, "all", 3)) 
-		return(atoi(optarg));
-	else 
-		return(all_resources);
-
-}
-/*
- *
- */
-SaErrorT list_rpt(SaHpiSessionIdT sessionid)
+SaErrorT list_rpt(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 {
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
@@ -180,7 +169,14 @@ SaErrorT list_rpt(SaHpiSessionIdT sessionid)
 			printf("Error getting RPT entry: rv = %s\n", oh_lookup_error(rv));
 			return (rv);
 		} else {
-			oh_print_rptentry(&rptentry, 2);
+			if (resourceid == 255) 
+				oh_print_rptentry(&rptentry, 2);
+			else {
+				if (resourceid == rptentry.ResourceId) {
+					oh_print_rptentry(&rptentry, 2);
+					nextrptentryid = SAHPI_LAST_ENTRY;
+				}	 
+			}
 		}
 
 		rptentryid = nextrptentryid;
@@ -283,7 +279,8 @@ SaErrorT list_inv(SaHpiSessionIdT sessionid,SaHpiResourceIdT resourceid)
 									l_resourceid, idrid, oh_lookup_error(rvInvent));
 							} else {
 								snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-								 	"\nIdr for ResourceId:\t%d\n", l_resourceid);
+								 	"\nIdr for %s, ResourceId: %d\n",
+									 rptentry.ResourceTag.Data,l_resourceid);
 								oh_print_text(&working);
 								oh_print_idrinfo(&idrInfo, 4);
 								walkInventory(sessionid, l_resourceid, &idrInfo);
@@ -436,7 +433,8 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
 						if (rdr.RdrType == SAHPI_SENSOR_RDR)
 						{							
 							snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-								 	"\nSensor for ResourceId:\t%d\n", l_resourceid);
+								 	"\nSensor for %s, ResourceId: %d\n",
+										rptentry.ResourceTag.Data,l_resourceid);
 							oh_print_text(&working);
 							oh_print_sensorrec(&rdr.RdrTypeUnion.SensorRec);
 						} 
