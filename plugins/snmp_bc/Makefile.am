@@ -45,6 +45,7 @@ EXTRA_DIST		= \
 				snmp_bc_sensor.h \
 				snmp_bc_session.h \
 				snmp_bc_time.h \
+				snmp_bc_utils.h \
 				snmp_bc_watchdog.h \
 				snmp_bc_xml2event.h \
 				sim_init.h
@@ -70,6 +71,7 @@ libsnmp_bc_la_SOURCES	= \
 				snmp_bc_sensor.c \
 				snmp_bc_session.c \
 	     			snmp_bc_time.c \
+	     			snmp_bc_utils.c \
 				snmp_bc_watchdog.c \
                                 snmp_bc_xml2event.c
 
