@@ -24,7 +24,7 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <oh_plugin.h>
+#include <oh_handler.h>
 #include <oh_domain.h>
 #include <oh_utils.h>
 #include <oh_error.h>

@@ -58,7 +58,7 @@ void process_hotswap_policy()
 		}
 
 		data_access_lock();
-		handler = g_hash_table_lookup(global_handler_table, &e.hid);
+		handler = g_hash_table_lookup(handler_table, &e.hid);
 		data_access_unlock();
 
 		if (!handler) {

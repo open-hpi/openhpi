@@ -43,12 +43,9 @@ SaErrorT oh_initialized()
  **/
 SaErrorT oh_initialize()
 {
-        struct oh_plugin_config *tmpp;
-        GHashTable *tmph;
-
-        unsigned int i;
+        GSList *node = NULL;
+        struct oh_parsed_config config;
         char *openhpi_conf;
-
         int rval;
 
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
@@ -58,7 +55,6 @@ SaErrorT oh_initialize()
         oh_event_init();
 
         data_access_lock();
-
 
         /* Check ready state */
         if (oh_initialized() == SA_OK) {
@@ -74,8 +70,7 @@ SaErrorT oh_initialize()
                 openhpi_conf = OH_DEFAULT_CONF;
         }
 
-        oh_init_ltdl(); /* Must initialize ltdl before loading plugins */
-        if (oh_load_config(openhpi_conf) < 0) {
+        if (oh_load_config(openhpi_conf, &config) < 0) {
                 dbg("Can not load config");
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -90,44 +85,37 @@ SaErrorT oh_initialize()
         }        
         trace("Initialized UID");
 
+        oh_init_ltdl(); /* Must initialize ltdl before loading plugins */
         /* Initialize plugins */
-        for(i = 0; i < g_slist_length(global_plugin_list); i++) {
-                tmpp = (struct oh_plugin_config *) g_slist_nth_data(
-                        global_plugin_list, i);
-                if(load_plugin(tmpp) == 0) {
-                        trace("Loaded plugin %s", tmpp->name);
-                        tmpp->refcount++;
+        for (node = config.plugin_names; node; node = node->next) {
+                char *plugin_name = (char *)node->data;
+                if (oh_load_plugin(plugin_name) == 0) {
+                        trace("Loaded plugin %s", plugin_name);
                 } else {
-                        dbg("Couldn't load plugin %s", tmpp->name);
+                        dbg("Couldn't load plugin %s", plugin_name);
+                        g_free(plugin_name);
                 }
-        }
+        }        
 
         /* Initialize handlers */
-        global_handler_table = g_hash_table_new(g_int_hash, g_int_equal);
-        for(i = 0; i < g_slist_length(global_handler_configs); i++) {
-                tmph = (GHashTable *) g_slist_nth_data(
-                        global_handler_configs, i);
-                if(plugin_refcount((char *)g_hash_table_lookup(tmph, "plugin")) > 0) {
-                        if(load_handler(tmph) == 0) {
-                                trace("Loaded handler for plugin %s",
-                                        (char *)g_hash_table_lookup(tmph, "plugin"));
-                        } else {
-                                dbg("Couldn't load handler for plugin %s",
-                                        (char *)g_hash_table_lookup(tmph, "plugin"));
-                        }
+        handler_table = g_hash_table_new(g_int_hash, g_int_equal);
+        for (node = config.handler_configs; node; node = node->next) {
+                GHashTable *handler_config = (GHashTable *)node->data;
+                if(oh_load_handler(handler_config) == 0) {
+                        trace("Loaded handler for plugin %s",
+                              (char *)g_hash_table_lookup(handler_config, "plugin"));
                 } else {
-                        dbg("Can not load handler for unknown plugin %s",
-                                (char *)g_hash_table_lookup(tmph, "plugin"));
+                        dbg("Couldn't load handler for plugin %s",
+                            (char *)g_hash_table_lookup(handler_config, "plugin"));
+                        g_hash_table_destroy(handler_config);
                 }
-        }
+        }        
 
         /* Check if we have at least one handler */
-        if (g_hash_table_size(global_handler_table) < 1 ) {
+        if (g_hash_table_size(handler_table) < 1 ) {
                 /* there is no handler => this can not work */
-                dbg("no handler found. please check %s!", openhpi_conf);
-
-                data_access_unlock();                
-
+                dbg("No handler found. please check %s!", openhpi_conf);
+                data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }        
 
@@ -149,6 +137,12 @@ SaErrorT oh_initialize()
         /* Initialize session table */        
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
         trace("Initialized session table");
+
+        /*
+         * Unload configuration lists (plugin_names and handler_configs).
+         * global_params is not touched.
+         */
+        oh_unload_config();
         
         oh_init_state = INIT;
         trace("Set init state");

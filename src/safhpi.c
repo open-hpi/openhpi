@@ -98,7 +98,7 @@ SaErrorT SAHPI_API saHpiDiscover(
         OH_GET_DID(SessionId, did);
                 
         data_access_lock();        
-        g_hash_table_foreach(global_handler_table,
+        g_hash_table_foreach(handler_table,
                               oh_handler_table_discover,
                               &rv);
         data_access_unlock();
@@ -378,7 +378,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         struct oh_domain *d = NULL;
         SaHpiEntityPathT ep;
         SaHpiRptEntryT *rptentry;
-        char *on_entitypath = getenv("OPENHPI_ON_EP");
+        char *on_entitypath = (char *)g_hash_table_lookup(global_params, "OPENHPI_ON_EP");
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
