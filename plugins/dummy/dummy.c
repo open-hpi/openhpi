@@ -1407,8 +1407,10 @@ static int dummy_get_control_state(void *hnd, SaHpiResourceIdT id,
         /* this rdr with the appropriate data                   */
         rdr = oh_get_rdr_by_type(inst->rptcache, id, SAHPI_CTRL_RDR, num);
 
-        state->StateUnion = dummy_controls.StateUnion;
-        state->Type = dummy_controls.Type;
+        if(state != NULL) {
+                state->StateUnion = dummy_controls.StateUnion;
+                state->Type = dummy_controls.Type;
+        }
 
         return 0;
 }
