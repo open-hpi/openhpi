@@ -83,9 +83,20 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 {
 	SaErrorT		rv;
 	SaHpiSensorThresholdsT	senstbuff;
+	SaHpiSensorTypeT	type;
+	SaHpiEventCategoryT	categ;
 	char			buf[SHOW_BUF_SZ];
 	int			res;
 
+	rv = saHpiSensorTypeGet(sessionid, resourceid, sensornum, &type, &categ);
+	if (rv != SA_OK) {
+		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorTypeGet error = %s\n",
+			oh_lookup_error(rv));
+		proc(buf);
+		return -1; 
+	};
+	if (categ != SAHPI_EC_THRESHOLD)
+		return(SA_OK);
 	rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff);
 	if (rv != SA_OK) {
 		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorThresholdsGet error = %s\n",
@@ -119,11 +130,36 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc)
 {
         SaHpiSensorReadingT	reading;
-	SaHpiEventStateT	status;
+	SaHpiEventStateT	status, assert, deassert;
         SaErrorT		rv;
+	SaHpiBoolT		val;
 	char			buf[SHOW_BUF_SZ];
+	char			errbuf[SHOW_BUF_SZ];
 
-        rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
+	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) ", resourceid, sensornum);
+	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &val);
+	if (rv != SA_OK) {
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"ERROR: saHpiSensorEventEnableGet: error: %s\n",
+			oh_lookup_error(rv));
+		if (proc(errbuf) != 0) return(rv);
+	} else {
+		strcat(buf, "event : ");
+		if (val) strcat(buf, "Enable ");
+		else strcat(buf, "Disable ");
+	};
+	if (proc(buf) != 0) return(SA_OK);
+	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum, &assert, &deassert);
+	if (rv != SA_OK) {
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"ERROR: saHpiSensorEventMasksGet: error: %s\n",
+			oh_lookup_error(rv));
+		if (proc(errbuf) != 0) return(rv);
+	};
+	snprintf(buf, SHOW_BUF_SZ, "   masks: assert = 0x%4.4x   deassert = 0x%4.4x\n",
+		assert, deassert);
+	if (proc(buf) != 0) return(SA_OK);
+	rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
         if (rv != SA_OK)  {
 		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorReadingGet error = %s\n",
@@ -133,9 +169,9 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         }
 
         if (reading.IsSupported) {
-		snprintf(buf, SHOW_BUF_SZ, " : Sensor status = %x", status);
+		snprintf(buf, SHOW_BUF_SZ, "     Sensor status = %x", status);
 		proc(buf);
-		print_thres_value(&reading, "  Reading Value =", proc);
+		print_thres_value(&reading, "     Reading Value =", proc);
 	};
 
 	show_threshold(sessionid, resourceid, sensornum, proc);
@@ -216,7 +252,7 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 				return -1;
 			};
 			if (show_short)
-				show_short_event(&(sel.Event));
+				show_short_event(&(sel.Event), proc);
 			else
 				oh_print_eventlogentry(&sel, 1);
 
@@ -559,54 +595,63 @@ SaErrorT show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc)
 	return(SA_OK);
 }
 
-void show_short_event(SaHpiEventT *event)
+void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 {
 	SaHpiTextBufferT	tmbuf;
 	SaHpiSensorEventT	*sen;
 	SaErrorT		rv;
+	char			buf[SHOW_BUF_SZ];
 
 	rv = oh_decode_time(event->Timestamp, &tmbuf);
 	if (rv)
-		printf("%19s ", "TIME UNSPECIFIED");
+		snprintf(buf, SHOW_BUF_SZ, "%19s ", "TIME UNSPECIFIED");
 	else
-		printf("%19s ", tmbuf.Data);
-	printf("%s ", oh_lookup_eventtype(event->EventType));
+		snprintf(buf, SHOW_BUF_SZ, "%19s ", tmbuf.Data);
+	proc(buf);
+	snprintf(buf, SHOW_BUF_SZ, "%s ", oh_lookup_eventtype(event->EventType));
+	proc(buf);
 	switch (event->EventType) {
 		case SAHPI_ET_SENSOR:
 			sen = &(event->EventDataUnion.SensorEvent);
-			printf("%s ", oh_lookup_sensortype(sen->SensorType));
-			printf("%d/%d ", event->Source, sen->SensorNum);
-			printf("%s ", oh_lookup_severity(event->Severity));
-			printf("%s ", oh_lookup_eventcategory(sen->EventCategory));
+			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s",
+				oh_lookup_sensortype(sen->SensorType),
+				event->Source, sen->SensorNum,
+				oh_lookup_severity(event->Severity),
+				oh_lookup_eventcategory(sen->EventCategory));
+			proc(buf);
 			rv = oh_decode_eventstate(sen->EventState,  sen->EventCategory,
 				   &tmbuf);
 			if (rv == SA_OK) {
-				printf("%s:", tmbuf.Data);
+				snprintf(buf, SHOW_BUF_SZ, "%s:", tmbuf.Data);
 				if (sen->Assertion == SAHPI_TRUE)
-					printf("ASSERTED ");
+					strcat(buf, "ASSERTED ");
 				else
-					printf("DEASSERTED ");
+					strcat(buf, "DEASSERTED ");
+				proc(buf);
 			};
 			break;
 		case SAHPI_ET_RESOURCE:
-			printf("%d ", event->Source);
-			printf("%s ", oh_lookup_severity(event->Severity));
-			printf("%s  ", oh_lookup_resourceeventtype(event->EventDataUnion.
-					ResourceEvent.ResourceEventType)); 
+			snprintf(buf, SHOW_BUF_SZ, "%d %s %s",
+				event->Source, oh_lookup_severity(event->Severity),
+				oh_lookup_resourceeventtype(event->EventDataUnion.
+					ResourceEvent.ResourceEventType));
+			proc(buf);
 			break;
 		case SAHPI_ET_HOTSWAP:
-			printf("%d ", event->Source);
-			printf("%s ", oh_lookup_severity(event->Severity));
-			printf("%s -> %s", oh_lookup_hsstate(
+			snprintf(buf, SHOW_BUF_SZ, "%d %s %s -> %s",
+				event->Source, oh_lookup_severity(event->Severity),
+				oh_lookup_hsstate(
 				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState),
 				oh_lookup_hsstate(
 				event->EventDataUnion.HotSwapEvent.HotSwapState));
+			proc(buf);
 			break;						 
 		default:
-			printf("%d", event->Source);
+			snprintf(buf, SHOW_BUF_SZ, "%d", event->Source);
+			proc(buf);
 			break;
 	};
-	printf("\n");
+	proc("\n");
 }
 
 SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
