@@ -194,7 +194,7 @@ struct oh_abi_v2 {
 	 */
 	SaErrorT (*set_control_state)(void *hnd, SaHpiResourceIdT id,
                                   SaHpiCtrlNumT num,
-                                  SaHpiCtrlModeT *mode,
+                                  SaHpiCtrlModeT mode,
                                   SaHpiCtrlStateT *state);
 
 #if 0
