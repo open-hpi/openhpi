@@ -219,6 +219,14 @@ static char *decode_error(SaErrorT code)
         return(str);
 }
 
+static void saftime2str(SaHpiTimeT time, char * str, size_t size) 
+{
+        struct tm t;
+        time_t tt;
+        tt = time / 1000000000;
+        localtime_r(&tt, &t);
+        strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
+}
 
 static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr, 
                      SaHpiRptEntryT *rptentry )
@@ -269,10 +277,15 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                 timestr, evtypes[evtype] );
         outlen = strlen(outbuf);
         pstr = "";
+
+        /*
+          sld: there is a lot of stuff specific to IPMI and other HPI implementations
+          here.  Scrubing for HPI 1.0 only data would be a good thing soon
+        */
         
         switch(evtype)
         {
-        case 0:   /*Sensor*/
+        case SAHPI_ET_SENSOR:   /*Sensor*/
                 /* decode event category */
                 ec = sel->Event.EventDataUnion.SensorEvent.EventCategory;
                 for (eci = 0; eci < NUM_EC; eci++) 
@@ -315,7 +328,7 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                         sel->Event.EventDataUnion.SensorEvent.SensorNum,
                         data1, data2, data3, pstr);
                 break;
-        case 4:   /*User, usu 16-byte IPMI SEL record */
+        case SAHPI_ET_USER:   /*User, usu 16-byte IPMI SEL record */
                 pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
                 /* get gen_desc from offset 7 */
                 for (ix = 0; ix < NGDESC; ix++)
@@ -352,6 +365,22 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                         pstr, gen_desc[ix].str,
                         pd[10],pd[11],pd[12],pd[13],pd[14],data3);
                 break;
+        case SAHPI_ET_OEM:
+                /* only go into this if it is IBM hardware, as others might use
+                   the Oem field differently */
+                if(sel->Event.EventDataUnion.OemEvent.MId == 2) {
+                        /* sld: I'm going to printf directly, as the output buffer isn't
+                           big enough for what I want to do */
+                        printf("Oem Event:\n");
+                        saftime2str(sel->Timestamp, timestr, 40);
+                        printf("\tTimestamp: %s\n", timestr);
+                        printf("\tSeverity: %d\n", sel->Event.Severity);
+                        printf("\tMId:%d, Data: %s\n", 
+                               sel->Event.EventDataUnion.OemEvent.MId,
+                               sel->Event.EventDataUnion.OemEvent.OemEventData);
+                }
+                break;
+                
         default:
                 pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
                 styp = pd[10];
@@ -368,15 +397,6 @@ static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                 break;
         }
         printf("%s\n",outbuf);
-}
-
-static void saftime2str(SaHpiTimeT time, char * str, size_t size) 
-{
-        struct tm t;
-        time_t tt;
-        tt = time / 1000000000;
-        localtime_r(&tt, &t);
-        strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
 }
 
 int main(int argc, char **argv)
