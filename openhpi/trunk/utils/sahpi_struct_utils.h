@@ -16,7 +16,7 @@
 #ifndef __SAHPI_STRUCT_UTILS_H
 #define __SAHPI_STRUCT_UTILS_H
 
-#ifndef OH_UTILS_H
+#ifndef __OH_UTILS_H
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 
@@ -40,6 +40,7 @@ typedef struct {
 SaErrorT oh_init_textbuffer(SaHpiTextBufferT *buffer);
 SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from);
 SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from);
+SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
 
 /* Print just the Data portions of the text structures */
 #define oh_print_text(buf_ptr)  oh_fprint_text(stdout, buf_ptr)
@@ -63,6 +64,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
 		               SaHpiTextBufferT *buffer);
 #if 0
+/* FIXME:: Add this one */
 SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
 			     SaHpiTextBufferT *buffer);
 #endif
@@ -117,7 +119,6 @@ SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate,
 
 #if 0
 /* FIXME:: Do we need these ???? */
-SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
 SaHpiBoolT oh_valid_time(SaHpiTimeT time); - move to sahpi_time_utils.c/h
 /* For EventAdd and EventLogAdd ??? */
 SaHpiBoolT oh_valid_event(SaHpiEventT event); - move to sahpi_event_utils.c/h

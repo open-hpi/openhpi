@@ -530,7 +530,7 @@ static inline SaErrorT oh_init_bigtext(oh_big_textbuffer *big_buffer)
  * @dest: SaHpiTextBufferT to copy into.
  * @from:SaHpiTextBufferT to copy from.
  *
- * Initializes an SaHpiTextBufferT. Assumes an english language set.
+ * Copies one SaHpiTextBufferT structure to another.
  * 
  * Returns:
  * SA_OK - normal operation.
@@ -544,7 +544,7 @@ SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from
 
         dest->DataType = from->DataType;
         dest->Language = from->Language;
-        dest->DataLength = from->DataLength;
+	dest->DataLength = from->DataLength;
         memcpy(dest->Data, from->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         return(SA_OK);
 }
@@ -657,7 +657,6 @@ static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpi
 
         return(SA_OK);
 }
-
 
 /* Append an arbitrary number of fixed offset strings to a big text buffer */
 static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
@@ -2608,49 +2607,50 @@ SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate,
 	rv = oh_fprint_bigtext(stream, &buffer);
 	return(rv);
 }
-#if 0
 
 /**
  * oh_valid_textbuffer:
- * @text_buffer: Pointer to space to decipher SaHpiEventT struct
+ * @buffer: Pointer to a SaHpiTextBufferT structure.
  * 
+ * Verifies @buffer is a valid SaHpiTextBufferT structure.
+ * Used in routines where the user can set SaHpiTextBufferT values.
  *
  * Returns:
- * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ * SAHPI_TRUE - if @buffer is valid.
+ * SAHPI_FALSE - if @buffer not valid.
  **/
-SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT text_buffer) {
-
-	if (!valid_SaHpiTextTypeT) { return(SAHPI_FALSE); }
-	if (!valid_SaHpiLanguageT) { return(SAHPI_FALSE); }
+SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
+{
+	if (!buffer) { return(SAHPI_FALSE); }
+	if (oh_lookup_texttype(buffer->DataType) == NULL) { return(SAHPI_FALSE); }
 	/* Compiler checks DataLength <= SAHPI_MAX_TEXT_BUFFER_LENGTH */
 
-	switch(text_buffer.DataType){
+	switch(buffer->DataType){
 	case SAHPI_TL_TYPE_UNICODE:
-		
-		/* FIXME:: Verify unicode characters in Data */
-		/* Check for even number of bytes */
+		if (oh_lookup_language(buffer->Language) == NULL) { return(SAHPI_FALSE); }
+		if (buffer->DataLength % 2 != 0) { return(SAHPI_FALSE); }
+		/* FIXME:: Verify unicode characters in Data? */
 		/* g_unichar_validate(gunichar ch); ???? */
 		break;
 	case SAHPI_TL_TYPE_BCDPLUS:
-
-		/* FIXME:: Verify BCDPLUS characters in Data */
-		/* 8-bit ASCII, '0'-'9' or space, dash, period, colon, comma, or
-		   underscore only.(*/
+		/* FIXME:: Verify BCDPLUS characters in Data? */
+		/* 8-bit ASCII, '0'-'9', space, dash, period, colon, comma, or
+		   underscore. Always encoded in HPI as 8-bit values */
 		break;
 	case SAHPI_TL_TYPE_ASCII6:
-		/* FIXME:: Verify reduced character set in Data */
-		/* reduced set, 0x20-0x5f only. */
+		/* FIXME:: Verify reduced character set in Data? */
+		/* reduced set, 0x20-0x5f only. Always encoded in HPI as 8-bit values */
 		break;
 	case SAHPI_TL_TYPE_TEXT:
-		/* FIXME:: Any check possible for 8-bit ASCII + Latin 1? */
+		if (oh_lookup_language(buffer->Language) == NULL) { return(SAHPI_FALSE); }
+		/* FIXME:: Verify 8-bit ASCII + Latin in Data? */
 		break;
 	case SAHPI_TL_TYPE_BINARY: /* No check possible */
 		break;
-	default: /* Impossible state */
-		return(SA_ERR_HPI_INTERNAL_ERROR);
+	default:
+		dbg("Invalid data type");
+		return(SAHPI_FALSE);
 	}
 
 	return(SAHPI_TRUE);
 }
-#endif
