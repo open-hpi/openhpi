@@ -22,6 +22,7 @@ set_rpt_attr
 set_rdr_attr
 get_value_as_string
 get_attr_name
+show_rdr_list
 show_rpt_list
 show_Rpt
 get_rpt
