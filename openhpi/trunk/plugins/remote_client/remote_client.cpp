@@ -196,8 +196,6 @@ RemoteClientOpen( GHashTable *handler_config )
        return false;
      }
 
-  append_root( &entity_root );
-
   char *server = (char *)g_hash_table_lookup( handler_config, "host" );
 
   if ( !server )
