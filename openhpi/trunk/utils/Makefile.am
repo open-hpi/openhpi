@@ -63,4 +63,4 @@ libopenhpiutils_la_SOURCES = \
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 
 $(SAHPIFILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
-	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h -tdir $(srcdir)/t/sahpi
+	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h
