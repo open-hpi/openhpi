@@ -211,7 +211,19 @@ struct oh_abi_v1 {
 	 */
 	int (*discover_resources)(void *hnd);
 
-	/**
+        /**
+         * set resource tag, this is passed down so the device has
+         * a chance to set it in nv storage if it likes
+         */
+        int (*set_resource_tag)(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
+        
+        /**
+         * set resource severity is pushed down so the device has
+         * a chance to set it in nv storage
+         */
+        int (*set_resource_severity)(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
+
+        /**
 	 * get the id which the caller is running
 	 */
 	int (*get_self_id)(void *hnd, SaHpiResourceIdT id);

@@ -12,7 +12,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
- *     Sean Dague <sean@dague.net>
+ *     Sean Dague <sdague@users.sf.net>
  *     Rusty Lynch
  *     David Judkovics <djudkovi@us.ibm.com>  
  */
@@ -382,7 +382,30 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                 SAHPI_IN SaHpiSeverityT Severity)
 {
         /* this requires a new abi call to push down to the plugin */
-        return SA_ERR_HPI_UNKNOWN;
+        int (*set_res_sev)(void *hnd, SaHpiResourceIdT id, 
+                             SaHpiSeverityT sev);
+        
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
+        
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        set_res_sev = h->abi->set_resource_severity;
+        
+        if (!set_res_sev)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (set_res_sev(h->hnd, ResourceId, Severity) < 0) {
+                dbg("SEL add entry failed");
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* to get rpt entry into infrastructure */
+        get_events();
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceTagSet(
@@ -390,8 +413,30 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiTextBufferT *ResourceTag)
 {
-        /* this requires a new abi call to push down to the plugin */
-        return SA_ERR_HPI_UNKNOWN;
+        int (*set_res_tag)(void *hnd, SaHpiResourceIdT id, 
+                           SaHpiTextBufferT *ResourceTag);
+        
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
+        
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        set_res_tag = h->abi->set_resource_tag;
+        
+        if (!set_res_tag)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (set_res_tag(h->hnd, ResourceId, ResourceTag) < 0) {
+                dbg("Tage set failed for Resource %d", ResourceId);
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* to get RSEL entry into infrastructure */
+        get_events();
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceIdGet(
