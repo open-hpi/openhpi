@@ -109,7 +109,7 @@ struct oh_hpi_event {
         SaHpiResourceIdT parent;
         /* struct oh_resource_id	parent; */
 	/*This is rdr id which the event relates*/
-	struct oh_rdr_id	id;
+        SaHpiEntryIdT id;
 	
 	/* XXX: upper layer will fill some fields which does not
 	 * owned by plugins (ResourceId etc.). */

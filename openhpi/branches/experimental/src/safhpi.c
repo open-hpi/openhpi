@@ -407,6 +407,7 @@ SaErrorT SAHPI_API saHpiEntitySchemaGet(
         return SA_OK;
 }
 
+#if 0
 
 SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
@@ -874,6 +875,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
         return SA_OK;
 }
 
+#endif
 SaErrorT SAHPI_API saHpiSubscribe (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiBoolT ProvideActiveAlarms)
@@ -931,6 +933,7 @@ SaErrorT SAHPI_API saHpiEventGet (
                 SAHPI_INOUT SaHpiRdrT *Rdr,
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
+        RPTable *rpt = &default_rpt;
         struct oh_session *s;
         SaHpiTimeT now, end;
         OH_STATE_READY_CHECK;
@@ -974,8 +977,8 @@ SaErrorT SAHPI_API saHpiEventGet (
         
         if (value==SA_OK) {
                 struct oh_hpi_event e;
-                struct oh_resource *res;
-                struct oh_rdr *rdr;
+                SaHpiRptEntryT *res;
+                SaHpiRdrT *rdr;
                 
                 if (session_pop_event(s, &e)<0) {
                         dbg("Empty event queue?!");
@@ -983,29 +986,31 @@ SaErrorT SAHPI_API saHpiEventGet (
                 }
 
                 memcpy(Event, &e.event, sizeof(*Event));
-
+                
                 if (Rdr)
                         Rdr->RdrType = SAHPI_NO_RECORD;
 
                 if (RptEntry)
                         RptEntry->ResourceCapabilities = 0;
 
-                res = get_res_by_oid(e.parent);
+                res = oh_get_resource_by_id(rpt,e.parent);
 
                 if (res) {
                         if (Rdr) {
-                                rdr = get_rdr_by_oid(res, e.id);
-
-                                if (rdr)
-                                        memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
-                                else
+                                rdr = oh_get_rdr_by_id(rpt,res->ResourceId,e.id);
+                                if (rdr) {
+                                        memcpy(Rdr, rdr, sizeof(*Rdr));
+                                } else {
                                         dbg("Event without resource");
+                                }
                         }
 
-                        if (RptEntry)
-                                memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
-                } else
-                        dbg("Event without resource");
+                        if (RptEntry) {
+                                memcpy(RptEntry, res, sizeof(*RptEntry));
+                        }
+                } else {
+                        dbg("Event without resource");  
+                }
         }
         
         return value;
