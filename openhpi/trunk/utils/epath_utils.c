@@ -117,7 +117,7 @@ static gchar *eshort_names[] = {
 	"SBC_SUBBOARD",
 	"ALARM_MANAGER",
 	"SHELF_MANAGER",
-       	"DISPLAY_MANAGER",
+       	"DISPLAY_PANEL",
 	"SUBBOARD_CARRIER_BLADE",
         "PHYSICAL_SLOT"
 };
@@ -191,6 +191,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		rtncode = -1;
 		goto CLEANUP;
 	}
+
 	epathdefs = g_strsplit(gstr, EPATHSTRING_END_DELIMITER, -1);
 	if (epathdefs == NULL) {
 		dbg("Could not split entity path string.");
