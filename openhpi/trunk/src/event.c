@@ -151,6 +151,11 @@ SaErrorT oh_harvest_events()
         while (next_hid) {
                 hid = next_hid;
                 h = oh_lookup_handler(hid);
+		/*
+		 * Here we want to record an error unless there is
+		 * at least one harvest_events_for_handler that
+		 * finished with SA_OK. (RM 1/6/2005)
+		 */		
                 if (harvest_events_for_handler(h) == SA_OK && error)
                         error = SA_OK;
 
