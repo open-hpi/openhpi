@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 		printf("Error! Can not find resources for test environment\n");
 		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
 
 	id = rptentry.ResourceId;

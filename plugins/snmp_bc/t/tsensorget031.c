@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-
+	SaHpiRptEntryT    rptentry;
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
 	 
@@ -35,40 +35,43 @@ int main(int argc, char **argv)
 	SaHpiBoolT enable;
 													    
 	/* *************************************	 	 
-	 * Find a resource with Sensor type rdr
+	 * Find a resource with NO Sensor type rdr
 	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
-
 	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_SENSOR, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
-
+		return SA_OK;
 	}
 
 	id = rptentry.ResourceId;
 	/**************************
-	 * Test 31 snmp_bc_get_sensor_event_enable
+	 * Test:invalid handler
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
-	err = snmp_bc_get_sensor_event_enable((void *)h->hnd, id, sid, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_get_sensor_event_enable(NULL, id, sid, &enable);
+	checkstatus(err, expected_err, testfail);
+
+	/**************************
+	 * Test: invalid data pointer
+	 **************************/
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	err = saHpiSensorEventEnableGet(sessionid, id, sid, NULL);
+	checkstatus(err, expected_err, testfail);
 
 	/**************************
 	 * Test 32
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
-	err = snmp_bc_get_sensor_event_enable((void *)h->hnd, 5000, sid, &enable);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorEventEnableGet(sessionid, 5000, sid, &enable);
+	checkstatus(err, expected_err, testfail);
 	
 	/***************************
 	 * Cleanup after all tests

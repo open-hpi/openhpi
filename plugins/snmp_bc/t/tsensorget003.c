@@ -34,27 +34,6 @@ int main(int argc, char **argv)
 	SaHpiEventStateT state;
 	SaHpiSensorReadingT reading;
 
-#if 0  													    
-	/* *************************************	 	 
-	 * Find a resource with Sensor type rdr
-	 * ************************************* */
-	SaHpiSessionIdT sessionid;
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! Can not open session for test environment\n");
-		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
-		return -1;
-
-	}
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_SENSOR, h, &rptentry);
-	if (err != SA_OK) {
-		printf("Error! Can not find resources for test environment\n");
-		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
-		err = tcleanup(&sessionid);
-		return -1;
-
-	}
-#endif
 	struct oh_handler_state handle;
 	memset(&handle, 0, sizeof(struct oh_handler_state));
 
