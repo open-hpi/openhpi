@@ -44,7 +44,10 @@ EXTRA_DIST		= openhpi.spec docs include
 
 AUTOMAKE_OPTIONS	= foreign
 
-MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub depcomp $(distdir).tar.gz
+MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub \
+			depcomp install-sh ltmain.sh missing mkinstalldirs nukem.sh \
+			stamp-h.in $(distdir).tar.gz
+MOSTLYCLEANFILES	= tags
 
 SUBDIRS			= src examples
 
