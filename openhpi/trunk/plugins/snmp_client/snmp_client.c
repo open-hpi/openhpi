@@ -204,7 +204,9 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 	SaErrorT status = SA_OK;
 	struct snmp_value get_value;
 
-	struct rdr_data *remote_rdr_data;
+	SaHpiRdrT *rdr = NULL;
+
+	struct rdr_data *remote_rdr_data = NULL;
         
 	oid anOID[MAX_OID_LEN];
 	oid indices[NUM_CTRL_INDICES];
@@ -215,11 +217,20 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
         struct snmp_client_hnd *custom_handle = 
 		(struct snmp_client_hnd *)handle->data;
 
-        SaHpiRdrT *rdr = 
-		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_CTRL_RDR, num);
+	/* clear data for fresh information */
+	memset(data, 0, sizeof(*data));
 
-        remote_rdr_data =
-                (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
+        if(!(rdr = 
+		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
+		printf("ERROR finding rdr in snmp_client_get_sensor_data()\n");
+		return(SA_ERR_HPI_ERROR);
+	}
+
+        if (!(remote_rdr_data =
+                (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
+		printf(" ERROR finding rdr_data in snmp_client_get_sensor_data()\n");
+		return(SA_ERR_HPI_ERROR);
+	}
 
 	/* INDEX   { saHpiDomainID, saHpiResourceID, saHpiSensorIndex }	*/
 	indices[0] = (oid)remote_rdr_data->index.remote_domain;
@@ -229,7 +240,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 	/* VALUES_PRESENT */
 	build_res_oid(anOID, 
 		      sa_hpi_sensor_reading_current_values_present, 
-		      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+		      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_SEN_INDICES);
 	
@@ -244,12 +255,12 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 		printf("snmp_client_get_sensor_data: error getting VALUES_PRESENT \n"); 
 
 	/* RAW_READING */
-	if ((rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats & SAHPI_SRF_RAW)
+	if ((rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_SRF_RAW)
 	    && (data->ValuesPresent & SAHPI_SRF_RAW) && (status == SA_OK) ) {
 		
 		build_res_oid(anOID, 
 			      sa_hpi_sensor_reading_current_raw, 
-			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 			      indices, 
 			      NUM_SEN_INDICES);
 	
@@ -262,21 +273,28 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 			data->Raw = (SaHpiUint32T)get_value.integer;
 		} else {
 			printf("snmp_client_get_sensor_data: error getting");
-			printf("RAW_READING \n");
+			printf(" RAW_READING \n");
 		}
 
-	} else { 
-		printf("snmp_client_get_sensor_data: rdr vs. current values");
-		printf("present RAW Flags DO NOT match\n"); 
+	} else {              
+		if ((rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_SRF_RAW)
+		    != (data->ValuesPresent & SAHPI_SRF_RAW)) {
+			printf("RAW_READING: rdr vs. current values");
+			printf("present RAW Flags DO NOT match\n"); 
+			printf("stored flags: %X, current flags: %X, status: %d\n",
+			       rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats,
+			       data->ValuesPresent,
+			       status);
+		}
 	}
 
 	/* INTERPRETED_READING */
-	if( (rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats & SAHPI_SRF_INTERPRETED)
+	if( (rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_SRF_INTERPRETED)
 	    && (data->ValuesPresent & SAHPI_SRF_INTERPRETED) 
 	    && (status == SA_OK) ) {
 		build_res_oid(anOID, 
 			      sa_hpi_sensor_reading_current_intrepreted, 
-			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 			      indices, 
 			      NUM_SEN_INDICES);
 	
@@ -284,16 +302,30 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 				    anOID, 
 				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &get_value);
-		if( (status == SA_OK) && (get_value.type == ASN_UNSIGNED) )
-			memcpy(&data->Interpreted, get_value.string, get_value.str_len);
-		else {
+		if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {
+			if (get_value.str_len <= SAHPI_SENSOR_BUFFER_LENGTH) {
+				memcpy(&data->Interpreted.Value, 
+				       get_value.string, 
+				       get_value.str_len);
+				data->Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER;
+			} else
+				printf("ERROR: interpreted buff exceeds max allowed\n");
+
+		} else {
 			printf("snmp_client_get_sensor_data: error getting");
-			printf("RAW READING \n");
+			printf(" INTERPRETED_READING \n");
 		}
 
 	} else { 
-		printf("snmp_client_get_sensor_data: rdr vs. current values");
-		printf("present RAW Flags DO NOT match\n"); 
+		if ((rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_SRF_INTERPRETED)
+		    != (data->ValuesPresent & SAHPI_SRF_INTERPRETED)) {
+			printf("INTERPRETED_READING: rdr vs. current values");
+			printf("present RAW Flags DO NOT match\n");
+			printf("stored flags: %X, current flags: %X, status: %d\n",
+			       rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats,
+			       data->ValuesPresent,
+			       status);
+		}
 	}
 
 	/* SENSOR_STATUS */
@@ -301,7 +333,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 	
 		build_res_oid(anOID, 
 			      sa_hpi_sensor_reading_current_status, 
-			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 			      indices, 
 			      NUM_SEN_INDICES);
 	
@@ -321,7 +353,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 
 		build_res_oid(anOID, 
 			      sa_hpi_sensor_reading_current_evt_status, 
-			      SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 			      indices, 
 			      NUM_SEN_INDICES);
 	
