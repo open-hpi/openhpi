@@ -31,19 +31,31 @@
  */
 #define OH_PLUGIN_PATH "/usr/lib/openhpi:/usr/local/lib/openhpi:/usr/local/lib"
 
+/* oh_plugin_config, currently with only one item.  There are thoughts of
+   having explicit path to the plugin, but I'm not sure this is a good plan */
+struct oh_plugin_config {
+        char *name;
+};
+
 struct oh_handler_config {
         char *plugin;
         char *name;
         char *address;
 };
 
-struct oh_domain_config {
-        char *domain_name;
+struct oh_config {
+        /* 
+         *  list of plugin config structures
+         */
         GSList *plugins;
+        /*
+         * list of handler config structures
+         */
+        GSList *handlers;
 };
 
-int load_domain_config(struct oh_domain_config**, SaHpiDomainIdT);
+int oh_load_config(struct oh_config*);
 
-void free_domain_config(struct oh_domain_config*);
+void oh_free_config(struct oh_config*);
 
 #endif/*__OH_CONFIG_H*/
