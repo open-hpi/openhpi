@@ -51,17 +51,17 @@
         <!-- Chapters -->
         &introduction;
         &methods_and_notations;
-        &assumptions_and_deps;
+        <!-- &assumptions_and_deps; -->
         &sahpi_breakdown;
         &design_decomposition;
-        &internel_components;
-        &internel_data_structure;
-        &internel_methods;
-        &system_deps;
-        &externel_data_structure;
-        &externel_apis;
-        &design_strategies;
-        &alternatives;
+        <!-- &internel_components; -->
+        <!-- &internel_data_structure; -->
+        <!-- &internel_methods; -->
+        <!-- &system_deps; -->
+        <!-- &externel_data_structure; -->
+        <!-- &externel_apis; -->
+        <!-- &design_strategies; -->
+        <!-- &alternatives; -->
 
         &appendix;
 </book>

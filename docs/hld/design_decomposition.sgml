@@ -13,81 +13,122 @@
 -->
 
   <chapter>
-    <title>Design Decomposition</title>
+  <title>Current Design</title>
+  <sect1>
+    <title>Guiding Principles</title>
+  </sect1>
+  <para>
+    There are a few guiding principals behind 
+    the design and implementation of the OpenHPI project. To succeed, 
+    the project must be: 
+  </para>
+  <itemizedlist mark='opencircle'>
+    <listitem>
+      <para>
+        <emphasis>Simple</emphasis> - the easier the code is to
+        follow, the easier it is to find and fix bugs.
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        <emphasis>Reliable</emphasis> - OpenHPI will be used in very
+        dynamic environments, and will need to be as robust as
+        possible.  To this end, the reliance on well known, well
+        debugged external libraries is perfered to writing our own
+        implementations of the same functions.
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        <emphasis>Efficient</emphasis> - this is both in terms of
+        performance as well as code re-use.         
+        For performance, the reasons are obvious; you don't want your management layers 
+        to bring down the performance of your system. In regard to code re-use--the more 
+        that pieces of code can be re-used the faster that others can develop hardware 
+        specific components to sit within the OpenHPI domain. 
+      </para>
+    </listitem>
+  </itemizedlist>
+  </sect1>
+  <sect1>
+    <title>Implementation</title>
     <para>
-     There are a few guiding principals behind 
-the design and implementation of the OpenHPI project. To succeed, 
-the project must be: 
+      To meet the above requirements the design is broken down into four major areas. 
+      Each of these areas will eventually be defined in detail on subsequent pages. Brief 
+      descriptions are provided below.
     </para>
-<itemizedlist mark='opencircle'>
-      <listitem>
-      <para>
-<emphasis>Simple</emphasis> - the easier the code is to follow, the easier it is to find and fix bugs.
+    <sect2>
+      <title>Application Interface Stubs</title>
+      <para>This portion deals with the code that provides the entry points into 
+        the libhpi.so. Initially this will literally just contain stubs that provide 
+        API compliance without any features. Stub APIs will output to the stderr a 
+        TODO: Implement _api_ message. As the api is implemented, these output messages 
+        will be removed.
       </para>
-      </listitem>
-      <listitem>
-      <para>
-<emphasis>Lightweight</emphasis> - targets for the project range from large servers with 
-lots of resources to embedded devices with minimal footprints. To that end, 
-the implementation must not be reliant on a lot of external libraries. 
+    </sect2>
+    <sect2>
+      <title>Infrastructure</title>
+      <para>The core library is considered infrastructure.  This is the
+        section of code which provides and internal representation of
+        resources and events, and exposes them as HPI data structures.
       </para>
-      </listitem>
-      <listitem>
+    </sect2>
+    <sect2>
+      <title>Utility Functions</title>
       <para>
-<emphasis>Efficient</emphasis> - this is both in terms of performance as well as code re-use. 
-For performance, the reasons are obvious; you don't want your management layers 
-to bring down the performance of your system. In regard to code re-use--the more 
-that pieces of code can be re-used the faster that others can develop hardware 
-specific components to sit within the OpenHPI domain. 
+        The utility functions need by OpenHPI are provided by the
+        glib utility library, this includes linked list and hash
+        implementations.  This is a well tested library used by
+        many open source projects (including gtk, gnome, and linux-ha).
+        It is thread safe, so proper utilization of the library for
+        OpenHPI data structures will ensure that OpenHPI is thread safe
+        as well.
       </para>
-      </listitem>
+    </sect2>
+    <sect2>
+      <title>OpenHPI Plugin Interface</title>
+      <para>The OpenHPI plugin interface is the method of communication
+        between the OpenHPI infrastructure and real hardware.  It is
+        designed to be abstract enough to allow communication to any
+        type of hardware over any sane interface (be that a device
+        driver or network protocol).
+      </para>
+    </sect2>
+    <sect2>
+      <title>OpenHPI Plugins</title>
+      <para>There exist a number of plugins in the OpenHPI source tree
+        to enable different types of hardware and other interfaces.  The
+        current ones are listed below:
+      </para>
+      <itemizedlist mark='opencircle'>
+        <listitem>
+        <para>
+          <emphasis>Dummy</emphasis> - a static plugin which provides
+            a number or resources statically to test the infrastructure.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>IPMI</emphasis> - an IPMI interface module based
+            on the libOpenIPMI library developed by Correy Minyard.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>Watchdog</emphasis> - an interface to the Linux
+            watchdog device.  Softdog can be used in place of a real
+            hardware watchdog.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>Text_remote</emphasis> - a remoting plugin which
+            talks to the openhpi daemon on a remote machine.  This
+            allows multiple instances of hpi to be seen together in a
+            single domain.
+          </para>
+        </listitem>
       </itemizedlist>
-    <para>
-    To meet the above requirements the design is broken down into four major areas. 
-Each of these areas will eventually be defined in detail on subsequent pages. Brief 
-descriptions are provided below.
-    </para>
-    <para>
-<mediaobject>
-  <imageobject>
-        <imagedata fileref="images/hld_diagram.gif">
-  </imageobject>
-</mediaobject>
-    </para>
-    <section>
-        <title>Application Interface Stubs</title>
-        <para>This portion deals with the code that provides the entry points into 
-the libhpi.so. Initially this will literally just contain stubs that provide 
-API compliance without any features. Stub APIs will output to the stderr a 
-TODO: Implement _api_ message. As the api is implemented, these output messages 
-will be removed.
-        </para>
-    </section>
-    <section>
-        <title>Utility Functions</title>
-        <para>The utility functions provide a lot of the reusable coding 
-components such as lists, events, hash tables, etc. In addition, it provides 
-general management and organizational functions for sessions, domains, entities,
- and resources. 
-        </para>
-    </section>
-    <section>
-        <title>Hardware Abstractions</title>
-        <para>In order to be portable to various different hardware platforms 
-there needs to be a standard set of calls to and from the hardware to the 
-utility and application interface stub modules described above. This module 
-represents that abstraction. An example of capability that this piece would 
-enable is interfacing between the hardware enumneration and discovery to the 
-above components. 
-        </para>
-    </section>
-    <section>
-        <title>Hardware Specific Components</title>
-        <para>This is the meat of what enables an HPI implementation. This 
-is the component that is custom built for each targetted hardware platform. 
-At a minimum, the OpenHPI project will provide specific components for 
-AdvancedTCA, CompactPCI, and a sample module for managing a traditional 
-development machine. 
-        </para>
-    </section>
+    </sect2>
+  </sect1>
   </chapter>
