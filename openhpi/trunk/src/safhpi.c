@@ -2597,7 +2597,60 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         SAHPI_IN SaHpiBoolT                 UnacknowledgedOnly,
         SAHPI_INOUT SaHpiAnnouncementT      *Announcement)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiSeverityT, 
+                             SaHpiBoolT, SaHpiAnnouncementT *);
+        SaErrorT rv;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiDomainIdT did;
+        struct oh_handler *h;
+        struct oh_domain *d = NULL;
+
+        if (Announcement == NULL) return SA_ERR_HPI_INVALID_PARAMS;
+
+        if (!oh_lookup_severity(Severity)) return SA_ERR_HPI_INVALID_PARAMS;
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                dbg("Resource %d in Domain %d doesn't have annunciators",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), 
+                                 ResourceId, 
+                                 SAHPI_ANNUNCIATOR_RDR, 
+                                 AnnunciatorNum);
+
+        if (!rdr) {
+                dbg("No Annunciator num %d found for Resource %d in Domain %d",
+                    AnnunciatorNum, ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+
+        /* talk to the plugin */
+        ann_func = h->abi->get_next_announce;
+        if (!ann_func) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+   
+        rv = ann_func(h->hnd, ResourceId, 
+                      AnnunciatorNum, Severity, 
+                      UnacknowledgedOnly,
+                      Announcement);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiAnnunciatorGet(
@@ -2607,7 +2660,55 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_OUT SaHpiAnnouncementT        *Announcement)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiAnnouncementT *);
+        SaErrorT rv;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiDomainIdT did;
+        struct oh_handler *h;
+        struct oh_domain *d = NULL;
+
+        if (Announcement == NULL) return SA_ERR_HPI_INVALID_PARAMS;
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                dbg("Resource %d in Domain %d doesn't have annunciators",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), 
+                                 ResourceId, 
+                                 SAHPI_ANNUNCIATOR_RDR, 
+                                 AnnunciatorNum);
+
+        if (!rdr) {
+                dbg("No Annunciator num %d found for Resource %d in Domain %d",
+                    AnnunciatorNum, ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+
+        /* talk to the plugin */
+        ann_func = h->abi->get_announce;
+        if (!ann_func) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = ann_func(h->hnd, ResourceId, 
+                      AnnunciatorNum, EntryId, 
+                      Announcement);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
@@ -2617,7 +2718,61 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_IN SaHpiSeverityT             Severity)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
+        SaErrorT rv;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiDomainIdT did;
+        struct oh_handler *h;
+        struct oh_domain *d = NULL;
+
+        if (EntryId == SAHPI_ENTRY_UNSPECIFIED) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (!oh_lookup_severity(Severity)) {
+                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                dbg("Resource %d in Domain %d doesn't have annunciators",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), 
+                                 ResourceId, 
+                                 SAHPI_ANNUNCIATOR_RDR, 
+                                 AnnunciatorNum);
+
+        if (!rdr) {
+                dbg("No Annunciator num %d found for Resource %d in Domain %d",
+                    AnnunciatorNum, ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+
+        /* talk to the plugin */
+        ann_func = h->abi->ack_announce;
+        if (!ann_func) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = ann_func(h->hnd, ResourceId, 
+                      AnnunciatorNum, EntryId, 
+                      Severity);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiAnnunciatorAdd(
@@ -2626,7 +2781,74 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_INOUT SaHpiAnnouncementT      *Announcement)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiAnnouncementT *);
+        SaErrorT rv;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiDomainIdT did;
+        SaHpiAnnunciatorModeT mode;
+        struct oh_handler *h;
+        struct oh_domain *d = NULL;
+
+        if(Announcement == NULL) return SA_ERR_HPI_INVALID_PARAMS;
+
+        /*   if(!oh_lookup_severity(Announcement->Severity) ||
+           !oh_lookup_condition(Announcement->StatusCond)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+                } */
+        /* FIXME: oh_lookup_condition doesn't exist yet */
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                dbg("Resource %d in Domain %d doesn't have annunciators",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), 
+                                 ResourceId, 
+                                 SAHPI_ANNUNCIATOR_RDR, 
+                                 AnnunciatorNum);
+
+        if (!rdr) {
+                dbg("No Annunciator num %d found for Resource %d in Domain %d",
+                    AnnunciatorNum, ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        rv = saHpiAnnunciatorModeGet(SessionId, 
+                                     ResourceId, 
+                                     AnnunciatorNum,
+                                     &mode); 
+        if(rv != SA_OK) {
+                oh_release_domain(d);
+                return rv;
+        }
+        if(mode == SAHPI_ANNUNCIATOR_MODE_AUTO) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_READ_ONLY;
+        }
+        
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+
+        /* talk to the plugin */
+        ann_func = h->abi->add_announce;
+        if (!ann_func) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = ann_func(h->hnd, ResourceId, 
+                      AnnunciatorNum, Announcement);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiAnnunciatorDelete(
@@ -2636,7 +2858,75 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_IN SaHpiSeverityT             Severity)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
+        SaErrorT rv;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiDomainIdT did;
+        SaHpiAnnunciatorModeT mode;
+        struct oh_handler *h;
+        struct oh_domain *d = NULL;
+
+        if (EntryId == SAHPI_ENTRY_UNSPECIFIED) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (!oh_lookup_severity(Severity)) {
+                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                dbg("Resource %d in Domain %d doesn't have annunciators",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), 
+                                 ResourceId, 
+                                 SAHPI_ANNUNCIATOR_RDR, 
+                                 AnnunciatorNum);
+
+        if (!rdr) {
+                dbg("No Annunciator num %d found for Resource %d in Domain %d",
+                    AnnunciatorNum, ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        rv = saHpiAnnunciatorModeGet(SessionId, 
+                                     ResourceId, 
+                                     AnnunciatorNum,
+                                     &mode); 
+        if(rv != SA_OK) {
+                oh_release_domain(d);
+                return rv;
+        }
+        if(mode == SAHPI_ANNUNCIATOR_MODE_AUTO) {
+                oh_release_domain(d);
+                return SA_ERR_HPI_READ_ONLY;
+        }
+        
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+
+        /* talk to the plugin */
+        ann_func = h->abi->del_announce;
+        if (!ann_func) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = ann_func(h->hnd, ResourceId, 
+                      AnnunciatorNum, EntryId, 
+                      Severity);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiAnnunciatorModeGet(

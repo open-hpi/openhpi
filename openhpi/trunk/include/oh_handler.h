@@ -388,7 +388,29 @@ struct oh_abi_v2 {
          * Annuciator Functions
          *
          *********************************************************************/
+
+        /* the first 5 Annunciator functions are really operating on 
+           a single Annunciator and doing things to the announcements
+           that it contains.  For this reason the functions are named
+           _announce */
+        SaErrorT (*get_next_announce)(void *, SaHpiResourceIdT, 
+                                      SaHpiAnnunciatorNumT, SaHpiSeverityT, 
+                                      SaHpiBoolT, SaHpiAnnouncementT *);
         
+        SaErrorT (*get_announce)(void *, SaHpiResourceIdT, 
+                                 SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiAnnouncementT *);
+
+        SaErrorT (*ack_announce)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
+        
+        SaErrorT (*add_announce)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiAnnouncementT *);
+
+        SaErrorT (*del_announce)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
+        
+        /* the last 2 functions deal with Annunciator mode setting */
+
         SaErrorT (*get_annunc_mode)(void *hnd, SaHpiResourceIdT id,
                                     SaHpiAnnunciatorNumT num, SaHpiAnnunciatorModeT *mode);
         SaErrorT (*set_annunc_mode)(void *hnd, SaHpiResourceIdT id,
