@@ -30,9 +30,9 @@
 #  
  
 
-MAINTAINERCLEANFILES 	= Makefile.in 
+MAINTAINERCLEANFILES 	= Makefile.in  
 
-openhpi_docsdir		= $(datadir)/openhpi/docs
+openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
 openhpi_docs_DATA	= \
 				OpenHPI_HLD/book1.html
