@@ -45,7 +45,7 @@ lib_LTLIBRARIES		= libopenhpi.la
 libopenhpi_la_SOURCES	= \
                            config.c \
                            domain.c \
-                           event.c \
+                           event2.c \
                            hotswap.c \
                            lock.c \
                            plugin.c \

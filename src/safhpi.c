@@ -237,7 +237,8 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         }
 
         OH_STATE_READY_CHECK;
-
+        
+        oh_event_init();
         data_access_lock();
         
         if(!is_in_domain_list(DomainId)) {
@@ -286,6 +287,7 @@ SaErrorT SAHPI_API saHpiDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 {
         struct oh_session *s;
         GSList *i;
+        RPTable *rpt;
         int rv = -1;
 
         OH_STATE_READY_CHECK;
@@ -293,6 +295,7 @@ SaErrorT SAHPI_API saHpiDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
         data_access_lock();
 
         OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
 
         g_slist_for_each(i, global_handler_list) {
                 struct oh_handler *h = i->data;
@@ -308,7 +311,7 @@ SaErrorT SAHPI_API saHpiDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 
         data_access_unlock();
 
-        rv = get_events();
+        rv = get_events(rpt);
         if (rv < 0) {
                 dbg("Error attempting to process resources");
                 return SA_ERR_HPI_UNKNOWN;
@@ -339,7 +342,7 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        rv = get_events();
+        rv = get_events(rpt);
 
         if (rv<0) {
                 dbg("Error attempting to process events");
@@ -545,7 +548,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
          data_access_unlock();
 
         /* to get rpt entry into infrastructure */
-        get_events();
+        get_events(rpt);
         return SA_OK;
 }
 
@@ -596,7 +599,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
          data_access_unlock();
 
         /* to get RSEL entry into infrastructure */
-        get_events();
+        get_events(rpt);
         return rv;
 }
 
@@ -856,7 +859,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         data_access_unlock();
 
         /* to get RSEL entry into infrastructure */
-        rv = get_events();
+        rv = get_events(rpt);
         if(rv != SA_OK) {
                 dbg("Event loop failed");
         }
@@ -1148,7 +1151,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         do {
                 struct oh_session_event e;
 
-                if (get_events() < 0) {
+                if (get_events(rpt) < 0) {
                         return SA_ERR_HPI_UNKNOWN;
                 } else if (session_pop_event(s, &e) < 0) {
                         switch (Timeout) {
@@ -2527,7 +2530,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         rv = request_hotswap_action(h->hnd, ResourceId, Action);
         data_access_unlock();
 
-        get_events();
+        get_events(rpt);
 
         return rv;
 }

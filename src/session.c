@@ -98,6 +98,15 @@ int session_del(struct oh_session *session)
  * needn't care about ref counter of the event.
 */
 
+int session_count ()
+{
+        int i;
+        
+        i = g_slist_length(global_session_list);
+        
+        return i;
+}
+
 int session_push_event(struct oh_session *s, struct oh_session_event *e)
 {
         struct oh_session_event *e1;

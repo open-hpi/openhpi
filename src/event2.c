@@ -49,6 +49,12 @@ int oh_event_init()
         return 1;
 }
 
+int oh_event_final()
+{
+        g_async_queue_unref(oh_process_q);
+        return 1;
+}
+
 /*
  *  Event processing is split up into 2 stages
  *
@@ -239,6 +245,23 @@ SaErrorT process_events(RPTable *rpt)
         }
         g_free(e);
         return SA_OK;
+}
+
+SaErrorT get_events(RPTable *rpt) 
+{
+        // in a thread world this becomes a noop
+        SaErrorT rv = SA_OK;
+        rv = harvest_events();
+        if(rv != SA_OK) {
+                dbg("Error on harvest of events, aborting");
+                return rv;
+        }
+        rv = process_events(rpt);
+        if(rv != SA_OK) {
+                dbg("Error on processing of events, aborting");
+                return rv;
+        }
+        return rv;
 }
 
 unsigned int get_log_severity(char *severity) 

@@ -992,47 +992,48 @@ static struct oh_event *__eventdup(const struct oh_event *event)
 
 static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 {
-	int i;
-	int id;
-	SaHpiRptEntryT res;
-	SaHpiRdrT res_rdr;
-
-	SaHpiEntityPathT root_ep;
-	char *entity_root;
-
-	entity_root = (char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
-
+        int i;
+        int id;
+        SaHpiRptEntryT res;
+        SaHpiRdrT res_rdr;
+        
+        SaHpiEntityPathT root_ep;
+        char *entity_root;
+        
+        entity_root = (char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
+        
         string2entitypath(entity_root, &root_ep);
-	
-	/* append entity root to resource entity paths */
-	for (i=0; i < NUM_RESOURCES; i++) {
-		memcpy(&res, &dummy_resources[i], sizeof(SaHpiRptEntryT));
-
-		ep_concat( &res.ResourceEntity, &root_ep);
-		
-		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
-
-		/* add the resource */
-		if (oh_add_resource(oh_hnd->rptcache, &res, NULL, 0))
-			dbg("oh_add_resource failed for resource %d", i);
-
-		/* save the resource id for tracking resource status */
-		dummy_resource_status[i].ResourceId = res.ResourceId;
-
-	}
-	/* append entity root to rdrs entity paths */
-	for (i=0; i < NUM_RDRS; i++) {
-		memcpy(&res_rdr, &dummy_rdrs[i], sizeof(SaHpiRdrT));
-
-		ep_concat( &res_rdr.Entity, &root_ep);
-
-		id = oh_uid_lookup(&res_rdr.Entity);
-
-		if( id < 0 ) { dbg("error looking up uid in dummy_open");  return(-1); }
-
-		/* add rdrs */
-		if (oh_add_rdr(oh_hnd->rptcache, id, &res_rdr, NULL, 0))
-			dbg("oh_add_resource failed for rdr %d", i);
+        
+        /* append entity root to resource entity paths */
+        for (i=0; i < NUM_RESOURCES; i++) {
+                memcpy(&res, &dummy_resources[i], sizeof(SaHpiRptEntryT));
+                
+                ep_concat( &res.ResourceEntity, &root_ep);
+                
+                res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
+                
+                /* add the resource */
+                if (oh_add_resource(oh_hnd->rptcache, &res, NULL, 0))
+                        dbg("oh_add_resource failed for resource %d", i);
+                
+                /* save the resource id for tracking resource status */
+                dummy_resource_status[i].ResourceId = res.ResourceId;
+                
+        }
+        /* append entity root to rdrs entity paths */
+        for (i=0; i < NUM_RDRS; i++) {
+                memcpy(&res_rdr, &dummy_rdrs[i], sizeof(SaHpiRdrT));
+                
+                ep_concat( &res_rdr.Entity, &root_ep);
+                
+                id = oh_uid_lookup(&res_rdr.Entity);
+                
+                if( id < 0 ) { dbg("error looking up uid in dummy_open");  return(-1); }
+                
+                /* add rdrs */
+                if (oh_add_rdr(oh_hnd->rptcache, id, &res_rdr, NULL, 0)) {
+                        dbg("oh_add_resource failed for rdr %d", i);
+                } 
 	}
 
 	return(0);
@@ -1122,7 +1123,7 @@ static struct oh_event *remove_resource(struct oh_handler_state *inst)
 	if(rpt_e_pre) {
 
 		e.type = OH_ET_RESOURCE_DEL;
-		e.u.res_del_event.resource_id = rpt_e_pre->ResourceId;
+		e.u.res_event.entry.ResourceId = rpt_e_pre->ResourceId;
 //		memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));       	
 	}
 
@@ -1234,50 +1235,52 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 
 static int dummy_discover_resources(void *hnd)
 {
-	static int done_once = FALSE;
-	struct oh_handler_state *inst = hnd;
-	struct oh_event event;
-	SaHpiRptEntryT *rpt_entry;
-	SaHpiRdrT      *rdr_entry;
-
+        static int done_once = FALSE;
+        struct oh_handler_state *inst = hnd;
+        struct oh_event event;
+        SaHpiRptEntryT *rpt_entry;
+        SaHpiRdrT      *rdr_entry;
+        
 	/* create a counter, on even remove your favorite resource
 	   on odd add it back */
-	if (!done_once) {
-
-		/* get the first rpt entry */
-
-		rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
-
-		while (rpt_entry) {
+        if (!done_once) {
+                
+                /* get the first rpt entry */
+                
+                rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
+                
+                while (rpt_entry) {
 //dbg("here resource event id %d", rpt_entry->ResourceId);
-			memset(&event, 0, sizeof(event));
-			event.type = OH_ET_RESOURCE;
-			memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-			inst->eventq = g_slist_append(inst->eventq, __eventdup(&event) );
-
-
-			/* get every resource rdr's */
-			rdr_entry = oh_get_rdr_next(inst->rptcache, 
-						    rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
-			while (rdr_entry) {
+                        memset(&event, 0, sizeof(event));
+                        event.type = OH_ET_RESOURCE;
+                        memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
+                        inst->eventq = g_slist_append(inst->eventq, __eventdup(&event) );
+                        
+                        
+                        /* get every resource rdr's */
+                        rdr_entry = oh_get_rdr_next(inst->rptcache, 
+                                                    rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
+                        while (rdr_entry) {
 //dbg("here rdr event id %d", rdr_entry->RecordId);
-				memset(&event, 0, sizeof(event));
-				event.type = OH_ET_RDR;
-				memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
-				inst->eventq = g_slist_append(inst->eventq, __eventdup(&event));
-				rdr_entry = oh_get_rdr_next(inst->rptcache, 
-							    rpt_entry->ResourceId, rdr_entry->RecordId);
-			}
-			/* get any resource rdr's end */
+                                memset(&event, 0, sizeof(event));
+                                event.type = OH_ET_RDR;
+                                event.u.rdr_event.parent = rpt_entry->ResourceId;
+                                memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
 
-
-			rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);
-		}
-		
-		done_once = TRUE;
-	}
-	
-	return 0;
+                                inst->eventq = g_slist_append(inst->eventq, __eventdup(&event));
+                                rdr_entry = oh_get_rdr_next(inst->rptcache, 
+                                                            rpt_entry->ResourceId, rdr_entry->RecordId);
+                        }
+                        /* get any resource rdr's end */
+                        
+                        
+                        rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);
+                }
+                
+                done_once = TRUE;
+        }
+        
+        return 0;
 }
 
 static int dummy_get_self_id(void *hnd, SaHpiResourceIdT id)

@@ -81,8 +81,8 @@ else
 fi
 
 exact_version=`pkg-config --modversion $GLIB`;
-GLIB_CFLAGS=`pkg-config --cflags $GLIB`
-GLIB_LIBS=`pkg-config --libs $GLIB`
+GLIB_CFLAGS=`pkg-config --cflags $GLIB gthread-2.0`
+GLIB_LIBS=`pkg-config --libs $GLIB gthread-2.0`
 
 AC_MSG_CHECKING(for GLIB - version >= $GLIB_REQUIRED_VERSION)
 AC_MSG_RESULT(yes (version $exact_version))
@@ -513,8 +513,8 @@ CFLAGS="$CFLAGS $CC_WARNINGS"
 # lastly, we add things if we are thread safe
 # (this could probably happen earlier in this file)
 if test "x$THREAD_SAFE" = "xyes" ; then
-        CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
-        CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
+        CFLAGS="$CFLAGS -D_GNU_SOURCE -fexceptions"
+        CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -fexceptions"
 fi
 
 # there are certain places we always want to turn off optimization
