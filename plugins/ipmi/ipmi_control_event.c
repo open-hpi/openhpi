@@ -158,9 +158,6 @@ void ohoi_control_event(enum ipmi_update_e op,
 	}
 
 	if (op == IPMI_ADDED) {
-		struct ohoi_resource_id *ohoi_res_id;
-		ohoi_res_id = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
-		
 		/* skip Chassis with for now since all we have in hardware
 		   is power and reset */
 		dbg("resource: %s", rpt_entry->ResourceTag.Data);
@@ -170,7 +167,6 @@ void ohoi_control_event(enum ipmi_update_e op,
 		} else {
 			rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_CONTROL; 
 				 
-			oh_add_resource(handler->rptcache, rpt_entry, ohoi_res_id, 0);
 			add_control_event(ent, control, handler, 
         	                         rpt_entry->ResourceEntity, 
                 	                 rpt_entry->ResourceId);
