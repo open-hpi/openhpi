@@ -48,4 +48,6 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
 
 int append_root(SaHpiEntityPathT *ep);
 
+int prt_ep(SaHpiEntityPathT *ep);
+
 #endif
