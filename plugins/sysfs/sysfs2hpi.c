@@ -104,6 +104,8 @@ static void *sysfs2hpi_open(GHashTable *handler_config)
 
         hnd->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
 
+	oh_init_rpt(hnd->rptcache);
+
 	sys = malloc(sizeof(*sys));
 	if (!sys) {
 		dbg("unable to allocate sysfsitems structure");
@@ -604,7 +606,7 @@ static int sysfs2hpi_discover_resources(void *hnd)
 }
 
 /**
- * sysfs2hpi_get_sensor_data:
+ * sysfs2hpi_get_sensor_reading:
  * @hnd: void pointer to handler
  * @id: ResourceId for resource with data
  * @num: Sensor number for sensor with data
@@ -628,9 +630,10 @@ static int sysfs2hpi_discover_resources(void *hnd)
  * all readings get interpreted values
  **/
 
-static int sysfs2hpi_get_sensor_data(void *hnd, SaHpiResourceIdT id,
+static int sysfs2hpi_get_sensor_reading(void *hnd, SaHpiResourceIdT id,
 					SaHpiSensorNumT num,
-				     	SaHpiSensorReadingT *data)
+				     	SaHpiSensorReadingT *reading,
+					SaHpiEventStateT *state)
 {
 	struct sensor *s;
 	char tmp[SCRATCHSIZE];
@@ -641,6 +644,7 @@ static int sysfs2hpi_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 		dbg("null handle");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
+
 
         /* sequential search of rdr list for current RDR */
         tmprdr = oh_get_rdr_next(inst->rptcache, id, 0);
@@ -666,12 +670,15 @@ static int sysfs2hpi_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 		dbg("input data for sensor not available");
 		return SA_ERR_HPI_INVALID_DATA;
 	}
+
+	*state = 0x0000;
+
 	if (sysfs_read_attribute_value(s->value->path,tmp,SCRATCHSIZE)) {
 		dbg("error attempting to read value of %s",s->name);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 
-        reading_int64_set(data, atoi(tmp));
+        reading_int64_set(reading, atoi(tmp));
 	
 	return 0;
 }
@@ -1022,7 +1029,7 @@ static struct oh_abi_v2 oh_sysfs2hpi_plugin = {
 	.close				= sysfs2hpi_close,
 	.get_event			= sysfs2hpi_get_event,
 	.discover_resources		= sysfs2hpi_discover_resources,
-	.get_sensor_data		= sysfs2hpi_get_sensor_data,
+	.get_sensor_reading		= sysfs2hpi_get_sensor_reading,
 	.get_sensor_thresholds		= sysfs2hpi_get_sensor_thresholds,
 	.set_sensor_thresholds		= sysfs2hpi_set_sensor_thresholds,
 	.get_sensor_event_enables       = sysfs2hpi_get_sensor_event_enables,
