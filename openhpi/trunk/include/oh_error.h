@@ -21,6 +21,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* this is put here intentionally as there are too many instances
+ * of unqualified sprintf calls in plugin code.  Use snprintf instead
+ * to ensure there are no buffer overruns 
+ */
+#pragma GCC poison sprintf
+
 #ifdef __cplusplus
 extern "C" {
 #endif
