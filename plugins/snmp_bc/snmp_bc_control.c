@@ -46,9 +46,14 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	SaHpiCtrlStateT working_state;
         struct ControlInfo *cinfo;
 	struct snmp_value get_value;
+	
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -188,8 +193,12 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 	struct snmp_value set_value;
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}	
+	
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
 	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
