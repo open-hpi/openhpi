@@ -169,22 +169,24 @@ extern struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[];
 /*************************************************************************
  *                   Control Definitions
  *************************************************************************/
-struct ControlMibInfo {
+struct RSA_ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
 	const char* oid;
 	int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];
 };
 
+struct RSA_ControlInfo {
+	struct RSA_ControlMibInfo mib;
+};
+
 struct snmp_rsa_control {
         SaHpiCtrlRecT control;
-        struct ControlMibInfo mib;
-        const char* comment;
+        struct RSA_ControlInfo rsa_control_info;
+        const char *comment;
 };
 
 extern struct snmp_rsa_control snmp_rsa_chassis_controls[];
-extern struct snmp_rsa_control snmp_rsa_power_controls[];
-extern struct snmp_rsa_control snmp_rsa_fan_controls[];
  
 /*************************************************************************
  *                   Inventory Definitions
@@ -201,7 +203,7 @@ struct SnmpInventoryOids {
         const char *OidAssetTag;
 };
 
-struct InventoryMibInfo {
+struct RSA_InventoryMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         SaHpiInventDataRecordTypeT  inventory_type;
@@ -209,14 +211,16 @@ struct InventoryMibInfo {
 	struct SnmpInventoryOids oid;
 };
 
+struct RSA_InventoryInfo {
+	struct RSA_InventoryMibInfo mib;
+};
+
 struct snmp_rsa_inventory {
-	SaHpiInventoryRecT  inventory;
-        struct InventoryMibInfo mib;
-        const char* comment;
+	SaHpiInventoryRecT inventory;
+        struct RSA_InventoryInfo rsa_inventory_info;
+        const char *comment;
 };
 
 extern struct snmp_rsa_inventory snmp_rsa_chassis_inventories[];
-extern struct snmp_rsa_inventory snmp_rsa_fan_inventories[];
-extern struct snmp_rsa_inventory snmp_rsa_power_inventories[];
 
 #endif  /* End __RSA_RESOURCES.H */
