@@ -120,17 +120,18 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         unsigned int i;
         char *openhpi_conf;
         
-        if (OH_STAT_UNINIT != oh_hpi_state) {
-                dbg("Cannot initialize twice");
-                return SA_ERR_HPI_DUPLICATE;
-        }
-        
         /* initialize mutex used for data locking */
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
          
         data_access_lock();
 
+
+        if (OH_STAT_UNINIT != oh_hpi_state) {
+                dbg("Cannot initialize twice");
+                return SA_ERR_HPI_DUPLICATE;
+        }
+        
         openhpi_conf = getenv("OPENHPI_CONF");
         
         if (openhpi_conf == NULL) {
