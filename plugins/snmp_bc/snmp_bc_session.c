@@ -172,14 +172,17 @@ void *snmp_bc_open(GHashTable *handler_config)
 		/* Windows32 specific net-snmp initialization (noop on unix) */
 		SOCK_STARTUP;
 
-		custom_handle->ss = snmp_open(&(custom_handle->session));
-
-		if (!custom_handle->ss) {
+		custom_handle->sessp = snmp_sess_open(&(custom_handle->session));
+		
+		if (!custom_handle->sessp) {
 			snmp_perror("ack");
 			snmp_log(LOG_ERR, "Something horrible happened!!!\n");
 		 	dbg("Unable to open SNMP session.");
 			return NULL;
 		}
+		
+		custom_handle->ss    = snmp_sess_session(custom_handle->sessp);
+
 	}
 
 	/* Determine platform type and daylight savings time */
@@ -269,7 +272,7 @@ void snmp_bc_close(void *hnd)
 	else {
 		struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-		snmp_close(custom_handle->ss);
+		snmp_sess_close(custom_handle->sessp);
 		/* Windows32 specific net-snmp cleanup (noop on unix) */
 		SOCK_CLEANUP;
 	}

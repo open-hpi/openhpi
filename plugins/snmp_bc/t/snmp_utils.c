@@ -18,7 +18,7 @@
 #include <snmp_utils.h>
 #include <sim_resources.h>
 
-int snmp_get(struct snmp_session *ss, const char *objid, struct snmp_value *value) 
+int snmp_get(void *sessp, const char *objid, struct snmp_value *value) 
 {
 	SnmpMibInfoT *hash_data;
 	
@@ -49,7 +49,7 @@ int snmp_get(struct snmp_session *ss, const char *objid, struct snmp_value *valu
 	return 0;
 }
 
-int snmp_set(struct snmp_session *ss, char *objid, struct snmp_value value) 
+int snmp_set(void *sessp, char *objid, struct snmp_value value) 
 {
 	SnmpMibInfoT *hash_data;
 	
