@@ -14,8 +14,8 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
-#ifndef dMarshal_Config_h
-#define dMarshal_Config_h
+#ifndef dMarshal_SimpleConfig_h
+#define dMarshal_SimpleConfig_h
 
 
 #ifdef __cplusplus
