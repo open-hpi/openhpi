@@ -88,7 +88,6 @@ class strmsock
 	int		domain;		// the socket domain
 	int		type;		// the socket type
 	int		protocol;	// the socket protocol
-	int		errcode;       	// errno contents
 	bool		fOpen;		// open connection indicator
 
 	public:
@@ -98,11 +97,13 @@ class strmsock
 	virtual void	SetDomain		(int);
 	virtual void	SetProtocol		(int);
 	virtual void	SetType			(int);
+	virtual void	SetReadTimeout          (int);
 	virtual void	MessageHeaderInit	(tMessageType, unsigned char,
 		   				 unsigned int, unsigned int);
         virtual bool	WriteMsg		(const void *request);
 	virtual bool	ReadMsg		        (char *);
         cMessageHeader	header;	        // message header
+	int		errcode;       	// errno contents
 };
 typedef strmsock *pstrmsock;
 

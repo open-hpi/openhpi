@@ -65,13 +65,14 @@ now use the following link flags to link the client library to your application.
 When you run your application the client library uses two environment variables
 to locate the daemon application.
 
-   OPENHPI_HOST - URL for the host running the daemon. This can be "localhost"
-		  if the daemon is running on the local host.
-   OPENHPI_PORT - The port number the host is listening on for clent connections.
+   OPENHPI_DAEMON_HOST - URL for the host running the daemon. This can be
+                         "localhost" if the daemon is running on the local host.
+   OPENHPI_DAEMON_PORT - The port number the host is listening on for clent
+                         connections.
 		  
-If the OPENHPI_HOST variable is not found the client library uses localhost as
-the default. If the OPENHPI_PORT variable is not found then the client library
-uses port 4743 as the default.
+If the OPENHPI_DAEMON_HOST variable is not found the client library uses
+localhost as the default. If the OPENHPI_DAEMON_PORT variable is not found then
+the client library uses port 4743 as the default.
 
 
 General Information
