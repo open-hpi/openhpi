@@ -27,15 +27,6 @@
 #include "resource.h"
 
 
-static void print_rpt_entry(SaHpiRptEntryT rptentry)
-{
-	printf("EntryId: %d\n",rptentry.EntryId);
-	printf("ResourceId: %d\n",rptentry.ResourceId);
-	printf("Resource Capability: %d\n",rptentry.ResourceCapabilities);
-	printf("Severity: %s\n",oh_lookup_severity(rptentry.ResourceSeverity));
-	printf("ResourceTag: %s\n", (char *)rptentry.ResourceTag.Data);
-}
-
 static void print_sensor_rdr(SaHpiSensorRecT rdr)
 {
 	printf("Sensor Num:%d",rdr.Num);
@@ -81,59 +72,6 @@ static void print_rdr(SaHpiRdrT rdr)
 			printf("Unsupported Rdr Type");
 	}
 	printf("\n");
-}
-
-int sa_list_res(void)
-{
-        SaErrorT ret = 0;
-        SaHpiRptEntryT rptentry;
-        SaHpiEntryIdT rptentryid;
-        SaHpiEntryIdT nextrptentryid;
-        SaHpiResourceIdT resourceid;
-	int astrisk = 0;
-
-        // walk the RPT list 
-        rptentryid = SAHPI_FIRST_ENTRY;
-        while ((ret == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-        {
-                ret = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                                                
-                if (ret == SA_OK) {
-			if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) &&
-					(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)){
-				astrisk = 1;
-				}
-
-                        resourceid = rptentry.ResourceId;
-			printf("Resource Id: %d, %sResource Tag: %s\n",rptentry.ResourceId, astrisk?"*":"", (char *)rptentry.ResourceTag.Data);
-			astrisk = 0;
-                        rptentryid = nextrptentryid;
-                }
-		else{
-			printf("Fail to show RPT\n");
-			return -1;
-		}
-
-        }
-
-	return 0;
-}
-
-
-int sa_show_rpt(SaHpiResourceIdT resourceid)
-{
-        SaErrorT ret;
-        SaHpiRptEntryT rptentry;
-
-        ret = saHpiRptEntryGetByResourceId(sessionid,resourceid,&rptentry);
-        if ( ret ==SA_OK ) 
-		print_rpt_entry(rptentry);
-	else{
-		printf("Fail to show RPT entry of resource %d\n",resourceid); 
-		return -1;
-	}
-
-	return SA_OK;
 }
 
 int sa_show_rdr(SaHpiResourceIdT resourceid)

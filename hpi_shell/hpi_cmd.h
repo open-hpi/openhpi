@@ -17,6 +17,7 @@
 #ifndef _INC_HPI_CMD_H
 #define _INC_HPI_CMD_H
 #include <SaHpi.h>
+#include <hpi_ui.h>
 
 #define HPI_SHELL_MAJOR	0
 #define HPI_SHELL_MINOR 2
@@ -33,12 +34,16 @@ struct command {
     const char *help;
 };
 
-extern SaHpiSessionIdT sessionid;
-extern struct command commands[];
-extern int prt_flag;
+extern SaHpiSessionIdT	sessionid;
+extern struct command	commands[];
+extern int		prt_flag;
+extern int		show_event_short;
+extern Domain_t		*Domain;
 
-extern void do_progress(char *mes);
-extern void delete_progress(void);
+extern void	delete_progress(void);
+extern void	do_progress(char *mes);
+extern int	ui_print(char *Str);
+
 void gdb(int level);
 int open_session(void);
 int close_session(void);

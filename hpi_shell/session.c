@@ -33,10 +33,12 @@ SaHpiSessionIdT		sessionid;
 static pthread_t	ge_thread;
 static pthread_t	prog_thread;
 int			prt_flag = 0;
+int			show_event_short = 0;
 static int		in_progress = 0;
 static GCond		*thread_wait = NULL;
 static GMutex		*thread_mutex = NULL;
 static char		*progress_mes;
+Domain_t		*Domain;
 
 
 #define PROGRESS_BUF_SIZE	80
@@ -109,8 +111,12 @@ static void* get_event(void *unused)
 			saHpiUnsubscribe(sessionid);
 			return (void *)1;
 		}
-		if ( prt_flag == 1 )
-			oh_print_event(&event, 1);
+		if (prt_flag == 1) {
+			if (show_event_short)
+				show_short_event(&event);
+			else
+				oh_print_event(&event, 1);
+		}
 	} /*the loop for retrieving event*/
 	return (void *)1;
 }
@@ -135,7 +141,13 @@ int open_session()
 		printf("saHpiDiscover rv = %d\n", rv);
 	delete_progress();
 
-	printf("Initial discovery done\n");	
+	printf("Initial discovery done\n");
+
+	Domain = init_resources(sessionid);
+	if (Domain == (Domain_t *)NULL) {
+     		printf("init_resources error\n");
+		return -1;
+	}
 	printf("\tEnter a command or \"help\" for list of commands\n");
 
 	pthread_create(&ge_thread, NULL, get_event, NULL);

@@ -21,30 +21,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <SaHpi.h>
-#include <oh_utils.h>
+#include <hpi_ui.h>
 #include "hpi_cmd.h"
 #include "resource.h"
 
-void time2str(SaHpiTimeT time, char * str, size_t size)
+int ui_print(char *Str)
 {
-	struct tm t;
-	time_t tt;
-	
-	if (!str) return;
-
-        if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
-                tt = time / 1000000000;
-                strftime(str, size, "%F %T", localtime(&tt));
-        } else if (time ==  SAHPI_TIME_UNSPECIFIED) { 
-                strcpy(str,"SAHPI_TIME_UNSPECIFIED     ");
-        } else if (time > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-                strcpy(str,"invalid time     ");
-        } else {   /*relative time*/
-		tt = time / 1000000000;
-		localtime_r(&tt, &t);
-		strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
-	}
+	printf("%s", Str);
+	return(0);
 }
 
 static int help(int argc, char *argv[])
@@ -93,166 +77,18 @@ static int sa_event(int argc, char *argv[])
 		} else if (strcmp(argv[1], "disable") == 0) {
 			prt_flag = 0;
 			printf("Event display disable successfully\n"); 
+		} else if (strcmp(argv[1], "short") == 0) {
+			show_event_short = 1;
+			prt_flag = 1;
+			printf("Event short display enable successfully\n"); 
+		} else if (strcmp(argv[1], "full") == 0) {
+			show_event_short = 0;
+			prt_flag = 1;
+			printf("Event full display enable successfully\n"); 
 		} else {
 			return HPI_SHELL_PARM_ERROR;
 		}
 	}
-
-	return SA_OK;
-}
-
-static int sa_list_sensor(void)
-{
-        SaErrorT rv = SA_OK;
-        SaHpiEntryIdT rptentryid;
-        SaHpiRptEntryT rptentry;
-        SaHpiEntryIdT nextrptentryid;
-        SaHpiEntryIdT entryid;
-        SaHpiEntryIdT nextentryid;
-        SaHpiResourceIdT resourceid;
-        SaHpiRdrT rdr;
-        SaHpiEntityPathT ep_target;
-        char *ep_string = NULL;
-
-        /* walk the RPT list */
-        rptentryid = SAHPI_FIRST_ENTRY;
-        while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-        {
-                rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (rv == SA_OK) {
-                        /* Walk the RDR list for this RPT entry */
-
-                        /* Filter by entity path if specified */
-                        if (ep_string && !oh_cmp_ep(&ep_target,&(rptentry.ResourceEntity))) {
-                                rptentryid = nextrptentryid;
-                                continue;
-                        }
-
-                        entryid = SAHPI_FIRST_ENTRY;
-                        resourceid = rptentry.ResourceId;
-                        rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-                        while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
-                        {
-                                rv = saHpiRdrGet(sessionid,resourceid,
-                                                 entryid,&nextentryid, &rdr);
-                                if (rv == SA_OK) {
-                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) {
-						printf("Resource Id: %d, Sensor Id: %d\n",
-							resourceid, rdr.RdrTypeUnion.SensorRec.Num);
-                                        } 
-
-                                        entryid = nextentryid;
-                                } else {
-                                        rv = SA_OK;
-                                        entryid = SAHPI_LAST_ENTRY;
-                                }
-                        }
-                        rptentryid = nextrptentryid;
-                }
-        }
-	return rv;
-}
-
-static int sa_sen_evt_get(
-	SaHpiResourceIdT resourceid,
-	SaHpiSensorNumT sensornum )
-{
-	SaErrorT		rv;
-	SaHpiEventStateT	assert;
-	SaHpiEventStateT	deassert;
-	SaHpiBoolT		status;
-
-	rv = saHpiSensorEventEnableGet(
-			sessionid, resourceid, sensornum, &status);
-	if (rv != SA_OK) {
-		printf("saHpiSensorEventEnableGet error %d\n",rv); 
-		return -1; 
-	}
-
-	rv = saHpiSensorEventMasksGet(
-			sessionid, resourceid, sensornum, &assert, &deassert);
-	if (rv != SA_OK) {
-		printf("saHpiSensorEventMasksGet error %d\n",rv); 
-		return -1; 
-	}
-
-	printf("Sensor Event Masks: \n");
-	printf("  Sensor Status: %x\n", status);
-	printf("  Assert Events: %x\n", assert);
-	printf("  Deassert Events: %x\n", deassert);
-
-        return SA_OK;
-}
-
-static void print_thres_value(SaHpiSensorReadingT *item, char *mes)
-{
-	char *val;
-
-	if (item->IsSupported != SAHPI_TRUE)
-		return;
-	switch (item->Type) {
-		case SAHPI_SENSOR_READING_TYPE_INT64:
-			printf("%s %lld\n", mes, item->Value.SensorInt64);
-			return;
-		case SAHPI_SENSOR_READING_TYPE_UINT64:
-			printf("%s %llu\n", mes, item->Value.SensorUint64);
-			return;
-		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-			printf("%s %10.3f\n", mes, item->Value.SensorFloat64);
-			return;
-		case SAHPI_SENSOR_READING_TYPE_BUFFER:
-			val = (char *)(item->Value.SensorBuffer);
-			if (val != NULL)
-				printf("%s %s\n", mes, val);
-			return;
-	}
-}
-
-static int sa_get_thres(
-	SaHpiResourceIdT resourceid,
-	SaHpiSensorNumT sensornum )
-{
-	SaErrorT rv;
-	SaHpiSensorThresholdsT senstbuff;
-
-	rv = saHpiSensorThresholdsGet(sessionid, resourceid,
-					sensornum, &senstbuff);
-	printf("Supported Thresholds:\n");
-	print_thres_value(&(senstbuff.LowCritical), "  Lower Critical Threshold(lc):");
-	print_thres_value(&(senstbuff.LowMajor), "  Lower Major Threshold(la):");
-	print_thres_value(&(senstbuff.LowMinor), "  Lower Minor Threshold(li):");
-	print_thres_value(&(senstbuff.UpCritical), "  Upper Critical Threshold(uc):");
-	print_thres_value(&(senstbuff.UpMajor), "  Upper Major Threshold(ua):");
-	print_thres_value(&(senstbuff.UpMinor), "  Upper Minor Threshold(ui):");
-	print_thres_value(&(senstbuff.PosThdHysteresis),
-		"  Positive Threshold Hysteresis(ph):");
-	print_thres_value(&(senstbuff.NegThdHysteresis),
-		"  Negative Threshold Hysteresis(nh):");
-	return SA_OK;
-}
-
-static int sa_show_sensor(
-        SaHpiResourceIdT resourceid,
-        SaHpiSensorNumT sensornum )
-{
-        SaHpiSensorReadingT	reading;
-	SaHpiEventStateT	status;
-        SaErrorT rv;
-
-        rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
-		&reading, &status);
-        if (rv != SA_OK)  {
-                printf("ReadingGet ret=%d\n", rv);
-                return rv;
-        }
-
-        if (reading.IsSupported) {
-		printf(" : status = %x", status);
-		print_thres_value(&reading, "  Value =");
-	};
-
-	sa_sen_evt_get(resourceid, sensornum);
-	sa_get_thres(resourceid, sensornum);
 
 	return SA_OK;
 }
@@ -546,72 +382,6 @@ static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
 	return SA_OK;
 }
 
-static int sa_show_evtlog(SaHpiResourceIdT resourceid)
-{
-	SaErrorT rv = SA_OK;
-	SaHpiEventLogInfoT info;
-	SaHpiRptEntryT rptentry;
-	SaHpiEntryIdT rptentryid;
-	SaHpiEntryIdT nextrptentryid;
-	SaHpiEventLogEntryIdT entryid;
-	SaHpiEventLogEntryIdT nextentryid;
-	SaHpiEventLogEntryIdT preventryid;
-	SaHpiEventLogEntryT  sel;
-	SaHpiRdrT rdr;
-	char date[30];
-
-	rptentryid = SAHPI_FIRST_ENTRY;
-	while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-	{
-		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
-			rptentryid = nextrptentryid;
-			continue;  /* no SEL here, try next RPT */
-		}
-		if (rptentry.ResourceId == resourceid) {
-			break;
-		}
-		rptentryid = nextrptentryid;
-	}
-	if ((rv != SA_OK) || (rptentryid == SAHPI_LAST_ENTRY)) {
-		printf("The designated resource hasn't SEL.\n");
-		return SA_OK;
-	}
-
-	rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
-	if (rv != SA_OK) {
-		printf("saHpiEventLogInfoGet error %d\n",rv);
-		return -1;
-	}
-	printf("EventLog entries=%d, size=%d, enabled=%d\n",
-		info.Entries,info.Size,info.Enabled);
-	time2str(info.UpdateTimestamp,date,30);
-	printf("UpdateTime = %s, ", date);
-	time2str(info.CurrentTime,date,30);
-	printf("CurrentTime = %s\n", date);
-	printf("Overflow = %d\n", info.OverflowFlag);
-
-	if (info.Entries != 0){
-		entryid = SAHPI_OLDEST_ENTRY;
-		while (entryid != SAHPI_NO_MORE_ENTRIES)
-		{
-			rv = saHpiEventLogEntryGet(sessionid,resourceid,
-					entryid,&preventryid,&nextentryid,
-					&sel,&rdr,NULL);
-			if (rv != SA_OK) {
-				printf("saHpiEventLogEntryGet error %d\n",rv);
-				return -1;
-			}
-
-			printf("ShowSel(&sel, &rdr, &rptentry);\n");
-			preventryid = entryid;
-			entryid = nextentryid;
-		}
-	} else
-		printf("SEL is empty\n");
-
-	return SA_OK;
-}
 
 #ifdef MY   // my
 
@@ -633,7 +403,7 @@ static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
 	size_t datalen;
-	
+	show_short_event
        	memset(outbuff,0,256);        
 	if (!strptr) return;
 
@@ -886,23 +656,24 @@ static int event(int argc, char *argv[])
 
 static int list_sensor(int argc, char *argv[])
 {
-	return sa_list_sensor();
+	sensor_list(sessionid, ui_print);
+	return SA_OK;
 }
 
-static int show_sensor(int argc, char *argv[])
+static int show_sensor1(int argc, char *argv[])
 {
 	if (argc < 3)
 		return HPI_SHELL_PARM_ERROR;
-	return sa_show_sensor((SaHpiResourceIdT)atoi(argv[1]),
-				(SaHpiSensorNumT)atoi(argv[2]));
+	return show_sensor(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
+				(SaHpiSensorNumT)atoi(argv[2]), ui_print);
 }
 
 static int get_thres(int argc, char *argv[])
 {
         if (argc < 3)
                 return HPI_SHELL_PARM_ERROR;
-        return sa_get_thres((SaHpiResourceIdT)atoi(argv[1]),
-                                (SaHpiSensorNumT)atoi(argv[2]));
+	return show_threshold(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
+			(SaHpiSensorNumT)atoi(argv[2]), ui_print);
 }
 
 static int set_thres(int argc, char *argv[])
@@ -916,8 +687,8 @@ static int sen_evt_get(int argc, char *argv[])
 {
         if (argc < 3)
                 return HPI_SHELL_PARM_ERROR;
-        return sa_sen_evt_get((SaHpiResourceIdT)atoi(argv[1]),
-                                (SaHpiSensorNumT)atoi(argv[2]));
+	return show_sensor_status(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
+		(SaHpiSensorNumT)atoi(argv[2]), ui_print);
 }
 
 static int sen_evt_set(int argc, char *argv[])
@@ -935,6 +706,7 @@ static int show_hs_ind(int argc, char *argv[])
 
 	return sa_show_hs_ind((SaHpiResourceIdT)atoi(argv[1]));
 }
+
 static int hotswap_stat(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -973,8 +745,8 @@ static int discovery(int argc, char *argv[])
 }
 
 static int listres(int argc, char *argv[])
-{	
-	return sa_list_res();
+{
+	return show_rpt_list(Domain, ui_print);
 }
 
 static int clear_evtlog(int argc, char *argv[])
@@ -990,7 +762,8 @@ static int show_evtlog(int argc, char *argv[])
 	if (argc < 2)
 		return HPI_SHELL_PARM_ERROR;
 			
-	return sa_show_evtlog((SaHpiResourceIdT)atoi(argv[1]));
+	return show_event_log(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
+		show_event_short, ui_print);
 }
 
 static int show_inv(int argc, char *argv[])
@@ -1009,18 +782,29 @@ static int show_inv(int argc, char *argv[])
 
 static int show_rpt(int argc, char *argv[])
 {
+	Rpt_t	*Rpt;
+
 	if (argc < 2)
 		return HPI_SHELL_PARM_ERROR;
+	Rpt = get_rpt(Domain, (SaHpiResourceIdT)atoi(argv[1]));
+	if (Rpt != (Rpt_t *)NULL)
+		show_Rpt(Rpt, ui_print);
 			
-	return sa_show_rpt((SaHpiResourceIdT)atoi(argv[1]));
+	return (SA_OK);
 }
 
 static int show_rdr(int argc, char *argv[])
-{	
-	if (argc < 2)
+{
+	Rdr_t	*Rdr;
+
+	if (argc < 3)
 		return HPI_SHELL_PARM_ERROR;
 
-	return sa_show_rdr((SaHpiResourceIdT)atoi(argv[1]));
+	Rdr = get_rdr(Domain, (SaHpiResourceIdT)atoi(argv[1]),
+		(SaHpiSensorNumT)atoi(argv[2]));
+	if (Rdr != (Rdr_t *)NULL)
+		show_Rdr(Rdr, ui_print);
+	return SA_OK;
 }
 
 static int quit(int argc, char *argv[])
@@ -1036,7 +820,7 @@ const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"    \
 const char dscvhelp[] = "dscv: discovery resources\n"                      \
 			"Usage: dscv ";
 const char eventhelp[] = "event: enable or disable event display on screen\n" \
-			"Usage: event [enable|disable] ";
+			"Usage: event [enable|disable|short|full] ";
 const char getthreshelp[] = "getthreshold: get sensor threshold values\n"  \
 			"Usage: getthreshold <resource id> <sensor id>";
 const char helphelp[] = "help: help information for OpenHPI commands\n"    \
@@ -1095,7 +879,7 @@ struct command commands[] = {
     { "showinv",	show_inv,		showinvhelp },
     { "showrdr",	show_rdr,		showrdrhelp },
     { "showrpt",	show_rpt,		showrpthelp },
-    { "showsensor",	show_sensor,		showsorhelp },
+    { "showsensor",	show_sensor1,		showsorhelp },
     { "hotswap_ind",	show_hs_ind,		NULL },
     { "?",		help,			helphelp },
     { NULL,		NULL,			NULL }
