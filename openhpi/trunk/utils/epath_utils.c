@@ -478,7 +478,8 @@ int validate_ep(const SaHpiEntityPathT *ep)
 	int i;
 
         for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (entitytype2index(ep->Entry[i].EntityType) < 0) {
+                if (   entitytype2index(ep->Entry[i].EntityType) < 0
+                    && ep->Entry[i].EntityType > 255) {
                         check = -1;
                         break;
                 } else if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
