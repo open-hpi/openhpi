@@ -136,6 +136,7 @@ typedef enum {
 #define DUMMY_SEL_CLEAR_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
 #define DUMMY_SEL_CLEAR_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
 
+#include <SaHpi.h>
 /**********************
  * Resource Definitions
  **********************/
@@ -152,7 +153,7 @@ struct ResourceMibInfo {
 #define DUMMY_MAX_EVENTS_PER_RESOURCE 10
 #define DUMMY_MAX_RESOURCE_EVENT_ARRAY_SIZE  (DUMMY_MAX_EVENTS_PER_RESOURCE + 1)
                                        /* Includes an ending NULL entry */
-struct res_event_map {
+/*struct res_event_map {
         char *event;
 	SaHpiBoolT event_res_failure;
 	SaHpiBoolT event_res_failure_unexpected;
@@ -164,7 +165,7 @@ struct ResourceInfo {
         struct ResourceMibInfo mib;
         SaHpiHsStateT cur_state;
         struct res_event_map event_array[DUMMY_MAX_RESOURCE_EVENT_ARRAY_SIZE];
-};
+};*/
 
 struct dummy_rpt {
         SaHpiRptEntryT rpt;
