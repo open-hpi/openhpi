@@ -256,7 +256,7 @@ SaHpiBoolT oh_allowed_hotswap_transition(SaHpiHsStateT from, SaHpiHsStateT to)
                 break;
         case SAHPI_HS_STATE_ACTIVE:
                 if((to == SAHPI_HS_STATE_EXTRACTION_PENDING) ||
-                   to == SAHPI_HS_STATE_INSERTION_PENDING) {
+                   to == SAHPI_HS_STATE_NOT_PRESENT) {
                         return SAHPI_TRUE;
                 } else {
                         return SAHPI_FALSE;
