@@ -13,6 +13,9 @@
  *     Sean Dague <sdague@users.sf.net>
  */
 
+#ifndef __SAHPIMACROS_H
+#define __SAHPIMACROS_H
+
 /**************************************************************
  *  
  *  These macros are defined for clarity of the sahpi.c
@@ -106,4 +109,4 @@ static enum {
                 }                                               \
         } while(0)
 
-
+#endif
