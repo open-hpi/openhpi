@@ -32,8 +32,8 @@ HS_SOURCES		= \
 			session.c
 
 hpi_cmd_SOURCES      = ${HS_SOURCES}
-hpi_cmd_LDADD        = $(COMMONLIBS)
-hpi_cmd_LDFLAGS      = 
+hpi_cmd_LDADD        = $(COMMONLIBS) -lgcc
+hpi_cmd_LDFLAGS      = -shared
 	
 $(REMOTE_LIB_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
