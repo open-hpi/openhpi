@@ -45,7 +45,7 @@ hpiwdt_SOURCES		= hpiwdt.c
 hpiwdt_LDADD		= $(COMMONLIBS)
 hpiwdt_LDFLAGS		= 
 
-hpiinv_SOURCES		= hpi_invent.c
+hpiinv_SOURCES		= hpiinv.c
 hpiinv_LDADD		= $(COMMONLIBS)
 hpiinv_LDFLAGS		= 
 
