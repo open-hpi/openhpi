@@ -131,20 +131,29 @@ struct oh_handler_state {
  * should use it
  */
 
-#if 0
 /* UUID_OH_ABI_V1 is out-of-date, keep here just for reference
  * ee778a5f-32cf-453b-a650-518814dc956c
  */
-static const uuid_t UUID_OH_ABI_V1 = {
+/* static const uuid_t UUID_OH_ABI_V1 = {
         0xee, 0x77, 0x8a, 0x5f, 0x32, 0xcf, 0x45, 0x3b,
         0xa6, 0x50, 0x51, 0x88, 0x14, 0xdc, 0x95, 0x6c
 };
-#endif
 
-/* 13adfcc7-d788-4aaf-b966-5cd30bdcd808 */
 static const uuid_t UUID_OH_ABI_V2 = {
         0x13, 0xad, 0xfc, 0xc7, 0xd7, 0x88, 0x4a, 0xaf,
         0xb9, 0x66, 0x5c, 0xd3, 0x0b, 0xdc, 0xd8, 0x08
+};
+*/
+
+/* 13adfcc7-d788-4aaf-b966-5cd30bdcd808 */
+/* regen this with via
+ * 
+ * perl -e 'use POSIX qw(strftime); my $str = strftime("%Y%m%d%H%M%S",gmtime(time)); $str .= "00"; for my $c (split(//, $str)) {print "0x0$c, "} '
+ * 
+ * any time you make a change */
+static const uuid_t UUID_OH_ABI_V2 = {
+        0x02, 0x00, 0x00, 0x04, 0x01, 0x02, 0x01, 0x05, 
+        0x01, 0x06, 0x01, 0x04, 0x01, 0x00, 0x00, 0x00, 
 };
 
 struct oh_abi_v2 {
@@ -226,6 +235,10 @@ struct oh_abi_v2 {
          */
         SaErrorT (*clear_el)(void *hnd, SaHpiResourceIdT id);
 
+        /**
+         * set the EL state (enabled/disabled)
+         */ 
+        SaErrorT (*set_el_state)(void *hnd, SaHpiResourceIdT id, SaHpiBoolT e);
 
         /**
          * reset EL overflow
