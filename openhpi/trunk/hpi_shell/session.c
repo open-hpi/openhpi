@@ -120,7 +120,7 @@ static void* get_event(void *unused)
 	return (void *)1;
 }
 
-int open_session()
+int open_session(int eflag)
 {
 	SaErrorT rv;
 
@@ -135,6 +135,11 @@ int open_session()
      		printf("saHpiSessionOpen error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
+	if (eflag) {
+		show_event_short = 1;
+		prt_flag = 1;
+		pthread_create(&ge_thread, NULL, get_event, NULL);
+	};
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) {
 		delete_progress();
@@ -152,7 +157,8 @@ int open_session()
 	}
 	printf("\tEnter a command or \"help\" for list of commands\n");
 
-	pthread_create(&ge_thread, NULL, get_event, NULL);
+	if (! eflag)
+		pthread_create(&ge_thread, NULL, get_event, NULL);
 	return 0;
 }
 

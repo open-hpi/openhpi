@@ -105,9 +105,6 @@ int sa_discover(void)
 		delete_progress();
         	return ret;
 	};
-	ret = check_resources(Domain);
-        if (SA_OK != ret)
-                printf("check_resources\n");
 	delete_progress();
         return ret;
 }

@@ -45,8 +45,7 @@ extern void	do_progress(char *mes);
 extern int	ui_print(char *Str);
 extern int	help(int argc, char *argv[]);
 
-void gdb(int level);
-int open_session(void);
+int open_session(int eflag);
 int close_session(void);
 void cmd_shell(void);
 int sa_show_rpt(SaHpiResourceIdT resourceid);  //show the rpt of a specific resource

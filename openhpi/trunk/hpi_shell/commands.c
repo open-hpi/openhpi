@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
 #include "resource.h"
@@ -33,13 +34,22 @@ int ui_print(char *Str)
 	return(0);
 }
 
-static int get_int_param(char *mes, int *val)
+static int get_int_param(char *mes, int *val, char *string, int len)
 {
 	char	buf[READ_BUF_SIZE];
+	char	*str;
 
 	printf("%s", mes);
+	memset(string,  0, len);
 	fgets(buf, READ_BUF_SIZE, stdin);
-	return(sscanf(buf, "%d", val));
+	str = buf;
+	while (isblank(*str)) str++;
+	if (*str == 0) return(-1);
+	if (isdigit(*str))
+		return(sscanf(buf, "%d", val));
+	if (string == (char *)NULL) return(-1);
+	strncpy(string, buf, len);
+	return(0);
 }
 
 int help(int argc, char *argv[])
@@ -762,7 +772,7 @@ static int dat_list(int argc, char *argv[])
 
 static int listres(int argc, char *argv[])
 {
-	return show_rpt_list(Domain, ui_print);
+	return show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
 }
 
 static int clear_evtlog(int argc, char *argv[])
@@ -798,50 +808,82 @@ static int show_inv(int argc, char *argv[])
 
 static int show_rpt(int argc, char *argv[])
 {
-	Rpt_t			*rpt_entry;
+	Rpt_t			tmp_rpt;
+	SaHpiRptEntryT		rpt_entry;
 	int			i, res;
-	SaHpiResourceIdT	resid;
+	SaErrorT		rv;
+	SaHpiResourceIdT	resid = 0;
 
 	if (argc < 2) {
-		show_rpt_list(Domain, ui_print);
-		i = get_int_param("RPT ID ==> ", &res);
+		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
 		if (i == 1) resid = (SaHpiResourceIdT)res;
-		else return HPI_SHELL_PARM_ERROR;
+		else return SA_OK;
 	} else {
 		resid = (SaHpiResourceIdT)atoi(argv[1]);
 	};
-	rpt_entry = get_rpt(Domain, resid);
-	if (rpt_entry != (Rpt_t *)NULL)
-		show_Rpt(rpt_entry, ui_print);
+	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
+	make_attrs_rpt(&tmp_rpt, &rpt_entry);
+	show_Rpt(&tmp_rpt, ui_print);
+	free_attrs(&(tmp_rpt.Attrutes));
 	return (SA_OK);
 }
 
 static int show_rdr(int argc, char *argv[])
 {
-	Rdr_t			*rdr_entry;
-	SaHpiResourceIdT	rptid;
+	Rdr_t			tmp_rdr;
+	SaHpiRdrT		rdr_entry;
+	SaHpiResourceIdT	rptid = 0;
 	SaHpiInstrumentIdT	rdrnum;
+	SaHpiRdrTypeT		type;
+	SaErrorT		rv;
 	int			res, i;
+	char			buf[10], t;
 
 	if (argc < 2) {
-		show_rpt_list(Domain, ui_print);
-		i = get_int_param("RPT ID ==> ", &res);
-		if (i != 1) return HPI_SHELL_PARM_ERROR;
+		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		i = get_int_param("RPT (ID | all) ==> ", &res, buf, 9);
+		if ((i == 0) && (strncmp(buf, "all", 3) == 0)) {
+			show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
+			return(SA_OK);
+		};
+		if (i != 1) return SA_OK;
 		rptid = (SaHpiResourceIdT)res;
 	} else {
 		rptid = (SaHpiResourceIdT)atoi(argv[1]);
 	};
 	if (argc < 3) {
-		show_rdr_list(Domain, rptid, ui_print);
-		i = get_int_param("RDR num ==> ", &res);
-		if (i != 1) return HPI_SHELL_PARM_ERROR;
+		i = get_int_param("RDR Type (s|a|c|w|i|all) ==> ", &res, buf, 9);
+		if (i != 0) return HPI_SHELL_PARM_ERROR;
+	} else {
+		memset(buf, 0, 10);
+		strncpy(buf, argv[2], 3);
+	};
+	if (strncmp(buf, "all", 3) == 0) t = 'n';
+	else t = *buf;
+	if (t == 'c') type = SAHPI_CTRL_RDR;
+	else if (t == 's') type = SAHPI_SENSOR_RDR;
+	else if (t == 'i') type = SAHPI_INVENTORY_RDR;
+	else if (t == 'w') type = SAHPI_WATCHDOG_RDR;
+	else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
+	else type = SAHPI_NO_RECORD;
+	if (argc < 4) {
+		show_rdr_list(Domain, rptid, type, ui_print);
+		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
+		if (i != 1) return SA_OK;
 		rdrnum = (SaHpiInstrumentIdT)res;
 	} else {
-		rdrnum = (SaHpiInstrumentIdT)atoi(argv[2]);
+		rdrnum = (SaHpiInstrumentIdT)atoi(argv[3]);
 	};
-	rdr_entry = get_rdr(Domain, rptid, rdrnum);
-	if (rdr_entry != (Rdr_t *)NULL)
-		show_Rdr(rdr_entry, ui_print);
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
+	if (rv != SA_OK) {
+		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
+			rptid, type, rdrnum);
+		return(rv);
+	};
+	make_attrs_rdr(&tmp_rdr, &rdr_entry);
+	show_Rdr(&tmp_rdr, ui_print);
+	free_attrs(&(tmp_rdr.Attrutes));
 	return SA_OK;
 }
 
@@ -891,8 +933,10 @@ const char setthreshelp[] = "setthreshold: set sensor threshold values\n"  \
 const char settaghelp[] = "settag: set tag for a particular resource \n"   \
 			"Usage: settag <resource id> <tag string>";
 const char showrdrhelp[] = "showrdr: show resource data record\n"
-			"Usage: showrdr [<resource id> [<rdr num>]]\n"
-			"   or  rdr [<resource id> [<rdr num>]]";
+			"Usage: showrdr [<resource id> [type [<rdr num>]]]\n"
+			"   or  rdr [<resource id> [type [<rdr num>]]]\n"
+			"	type =	c - control rdr, s - sensor, i - inventory rdr\n"
+			"		w - watchdog, a - annunciator, all - all rdr";
 const char showevtloghelp[] = "showevtlog: show system event logs\n"       \
 			"Usage: showevtlog <resource id>";
 const char showinvhelp[] = "showinv: show inventory data of a resource\n"  \

@@ -26,10 +26,19 @@
 
 int main(int argc, char **argv)
 {
-/*
-	Fix Me: parse option here
-*/
-	if (open_session() == -1)
+	int	c, eflag = 0;
+
+	while ( (c = getopt( argc, argv,"e?")) != EOF )
+		switch(c)  {
+			case 'e':
+				eflag = 1;
+				break;
+			default:
+				printf("Usage: %s [-e]\n", argv[0]);
+				printf("   -e - show short events, discover after subscribe\n");
+				return(1);
+		}
+	if (open_session(eflag) == -1)
 		return(1);
 	cmd_shell();
 	close_session();
