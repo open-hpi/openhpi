@@ -93,6 +93,9 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
 
 	entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
+	if (ipmi_entity_hot_swappable(entity)) {
+		entry->ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
+	}
 	entry->ResourceSeverity = SAHPI_OK;
 	entry->DomainId = 0;
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
