@@ -25,7 +25,7 @@ REMOTE_SIM_SOURCES 	= 	bc_resources.c \
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(REMOTE_SIM_SOURCES) 
 
-SNMPUTILSDIR            = $(top_srcdir)/src/$(SNMPDIR)
+SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
 
 INCLUDES                = -I$(top_srcdir)/include -I$(SNMPUTILSDIR) \
                           -I$(top_srcdir)/plugins/snmp_bc
