@@ -8,7 +8,7 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-REMOTE_SOURCES		= rpt_utils.c
+REMOTE_SOURCES		= rpt_utils.c epath_utils.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
