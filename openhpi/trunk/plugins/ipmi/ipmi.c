@@ -245,8 +245,7 @@ static void ipmi_close(void *hnd)
  *
  * Return value: 1 or 0
  **/
-static int ipmi_get_event(void *hnd, struct oh_event *event, 
-			  struct timeval *timeout)
+static int ipmi_get_event(void *hnd, struct oh_event *event)
 {
 		struct oh_handler_state *handler = hnd;
 		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
