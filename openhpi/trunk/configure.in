@@ -15,7 +15,7 @@ AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
-HPI_LIB_VERSION=2:0:0
+HPI_LIB_VERSION=3:0:3
 HPI_PKG=openhpi
 AC_SUBST(HPI_PKG)
 AC_SUBST(HPI_LIB_VERSION)
@@ -231,6 +231,7 @@ fi
 
 
 AC_CONFIG_FILES([openhpi.spec
+        openhpi.pc
         rt-env.sh
         Makefile
         src/Makefile
