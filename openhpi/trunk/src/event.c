@@ -293,12 +293,10 @@ static int process_resource_event(struct oh_event *e)
 
 static int process_rdr_event(struct oh_event *e)
 {
-        int rv;
+        int rv = -1;
         SaHpiResourceIdT rid = e->u.rdr_event.parent;
         RPTable *rpt = NULL;
-        struct oh_domain *d = NULL;
-        struct oh_event hpie;
-
+        struct oh_domain *d = NULL;        
 
         d = oh_get_domain(e->did);
 
@@ -307,10 +305,10 @@ static int process_rdr_event(struct oh_event *e)
                 dbg("Domain %d doesn't exist", e->did);
                 return -1;
         }
+        
         rpt = &(d->rpt);
 
-        if (e->type == OH_ET_RDR_DEL) {  /* DELETE event */
-
+        if (e->type == OH_ET_RDR_DEL) {  /* Remove RDR */
                 if (!(rv = oh_remove_rdr(rpt, rid, e->u.rdr_event.rdr.RecordId)) ) {
                         dbg("SUCCESS: RDR %x in Resource %d in Domain %d has been REMOVED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
@@ -319,65 +317,19 @@ static int process_rdr_event(struct oh_event *e)
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
                 }
 
-                /* build event for event queue */
-
-        } else { /* ADD event */
-
+        } else if (e->type == OH_ET_RDR) { /* Add/Update RDR */
                 if(!(rv = oh_add_rdr(rpt, rid, &(e->u.rdr_event.rdr), NULL, 0))) {
                         dbg("SUCCES: RDR %x in Resource %d in Domain %d has been ADDED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
                 } else {
                         dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been ADDED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
-                }
-
-                /* build event for event queue */
-                hpie.did = e->did;
-
-                //hpie.u.hpi_event.event.Severity = e->u.rdr_event.rdr.RdrType;
-                hpie.u.hpi_event.event.Source = e->u.rdr_event.parent;
-                hpie.u.hpi_event.event.EventType = e->u.rdr_event.rdr.RdrType;
-                hpie.u.hpi_event.rdr = e->u.rdr_event.rdr;
-//                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
-//                        SAHPI_RESE_RESOURCE_ADDED;
-/*
-                switch (e->u.rdr_event.rdr.RdrType) {
-                case SAHPI_NO_RECORD:
-                        dbg("SAHPI_NO_RECORD: process_rdr_event");
-                        break;
-                case SAHPI_CTRL_RDR:.
-                        break;
-                case SAHPI_SENSOR_RDR;
-                        break;
-                case SAHPI_INVENTORY_RDR;
-                        hpie.u.hpi_event
-                        break;
-                case SAHPI_WATCHDOG_RDR;
-                        break;
-                case SAHPI_ANNUNCIATOR_RDR;
-                        break;
-                default:
-                        dbg("ERROR: process_rdr_event, unknown SaHpiRdrTypeT Type");
-                        break;
-                }
-*/
+                }                
         }
 
-        oh_release_domain(d);
-
-        if (rv == SA_OK) {
-                rv = process_hpi_event(&hpie);
-                dbg("process_rdr_event,   done process_hpi_event");
-        }
+        oh_release_domain(d);        
 
         return rv;
-
-/*      need this after different type rdr events are processed above FIXME:DJ
-        otherwise rdr events are never palced on eventq
-        if(rv == SA_OK) {
-                rv = process_hpi_event(&hpie);
-        }
-*/
 }
 
 SaErrorT oh_process_events()
