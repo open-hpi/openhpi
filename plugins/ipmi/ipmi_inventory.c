@@ -85,6 +85,18 @@ static struct ohoi_field_data board_fields[] = {
 		ipmi_entity_get_board_info_fru_file_id
 	},
 };
+		
+static int _ipmi_entity_get_product_info_custom_len(ipmi_entity_t *entity,
+				      unsigned int  *len)
+{
+	return ipmi_entity_get_product_info_custom_len(entity,0,len);
+}
+
+static int _ipmi_entity_get_product_info_custom(ipmi_entity_t *entity,
+				      char *data, unsigned int  *max_len)
+{
+	return ipmi_entity_get_product_info_custom(entity,0,data,max_len);
+}
 
 static struct ohoi_field_data product_fields[] = {
 	{
@@ -111,6 +123,11 @@ static struct ohoi_field_data product_fields[] = {
 		SAHPI_IDR_FIELDTYPE_ASSET_TAG,
 		ipmi_entity_get_product_info_asset_tag_len,
 		ipmi_entity_get_product_info_asset_tag,
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_CUSTOM,
+		_ipmi_entity_get_product_info_custom_len,
+		_ipmi_entity_get_product_info_custom,
 	}
 };
 
