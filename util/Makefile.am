@@ -12,6 +12,7 @@ bin_PROGRAMS		= hpialarmpanel \
                           hpireset \
                           hpisensor \
                           hpisel \
+                          hpi_invent \
                           hpiwdt
 
 include_HEADERS		= 
@@ -43,6 +44,10 @@ hpisensor_LDFLAGS	=
 hpiwdt_SOURCES		= hpiwdt.c
 hpiwdt_LDADD		= $(COMMONLIBS)
 hpiwdt_LDFLAGS		= 
+
+hpi_invent_SOURCES		= hpi_invent.c
+hpi_invent_LDADD		= $(COMMONLIBS)
+hpi_invent_LDFLAGS		= 
 
 clean:
 	rm -f *~
