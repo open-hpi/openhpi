@@ -180,7 +180,7 @@ struct SensorMibInfo {
 	struct SnmpSensorWritableThresholdOids threshold_write_oids;
 };
 
-#define SNMP_BC_MAX_EVENTS_PER_SENSOR 15
+#define SNMP_BC_MAX_EVENTS_PER_SENSOR 24
 #define SNMP_BC_MAX_READING_MAPS_PER_SENSOR 3
 
 /* Includes an ending NULL entry */
@@ -217,16 +217,22 @@ struct SensorInfo {
 };
 
 struct snmp_bc_sensor {
-        /* Usually sensor.Num = index; index is used to search thru sensor arrays. It allows 
-           sensor.Num to be independent from array index (e.g. for aggregate sensors */
-	int index; 
+        /* Usually sensor.Num = index; index is used to search thru sensor arrays. It allows
+           sensor.Num to be independent from array index (e.g. for aggregate sensors) */
+	int index;
         SaHpiSensorRecT sensor;
         struct SensorInfo sensor_info;
         const char *comment;
 };
 
+struct snmp_bc_ipmi_sensor {
+	const char *ipmi_tag;
+	struct snmp_bc_sensor ipmi;
+};
+
 extern struct snmp_bc_sensor snmp_bc_chassis_sensors[];
 extern struct snmp_bc_sensor snmp_bc_blade_sensors[];
+extern struct snmp_bc_ipmi_sensor snmp_bc_blade_ipmi_sensors[];
 extern struct snmp_bc_sensor snmp_bc_blade_addin_sensors[];
 extern struct snmp_bc_sensor snmp_bc_mgmnt_sensors[];
 extern struct snmp_bc_sensor snmp_bc_mediatray_sensors[];

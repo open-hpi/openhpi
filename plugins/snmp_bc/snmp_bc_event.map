@@ -64,11 +64,11 @@ EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Shutoff
 EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Management Module is over recommended temperature."
 
 # 1.8V voltage sensor on Management Module
-# NOTE: BCT algorithm has 1.8v PFA events as critical; rest of PFAs are major severity; Force to major
+# Changed warnings to SAHPI_MAJOR 
 EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.8V CPU over voltage"
 EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.8V CPU under voltage"
-EN_PFA_HI_FAULT_1_8V|0x0807B400|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
-EN_PFA_LO_FAULT_1_8V|0x0807B800|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
+EN_MAJOR_HI_FAULT_1_8V|0xFF07A500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
+EN_MAJOR_LO_FAULT_1_8V|0xFF07A900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
 
 # 2.5V voltage sensor on Management Module
 EN_CUTOFF_HI_FAULT_2_5V|0x08030480|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +2.5v over voltage."
@@ -80,19 +80,19 @@ EN_PFA_LO_FAULT_2_5V|0xFF031880|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recomme
 EN_CUTOFF_HI_FAULT_3_35V|0x08032480|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +3.3v over voltage."
 EN_CUTOFF_LO_FAULT_3_35V|0x08032880|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +3.3v under voltage."
 EN_PFA_HI_FAULT_3_35V|0xFF033480|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
-EN_PFA_LO_FAULT_3_35V|0xFF033880|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
+EN_MAJOR_LO_FAULT_3_35V|0xFF032900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
 
 # 5V voltage sensor on Management Module
 EN_CUTOFF_HI_FAULT_PLANAR_5V|0x06034480|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +5v over voltage."
 EN_CUTOFF_LO_FAULT_PLANAR_5V|0x06034800|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +5v under voltage."
-EN_PFA_HI_FAULT_PLANAR_5V|0x06035500|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +5v."
+EN_MAJOR_HI_FAULT_PLANAR_5V|0x06034500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +5v."
 EN_PFA_LO_FAULT_PLANAR_5V|0x06035800|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +5v."
 
 # -5V voltage sensor on Management Module
 EN_CUTOFF_HI_FAULT_N5V|0x0803C480|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to -5v over voltage."
 EN_CUTOFF_LO_FAULT_N5V|0x0803C800|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to -5v under voltage."
 EN_PFA_HI_FAULT_N5V|0x0803D500|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for -5v."
-EN_PFA_LO_FAULT_N5V|0x0803D800|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for -5v."
+EN_MAJOR_LO_FAULT_N5V|0x803C900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for -5v."
 
 # 12V voltage sensor on Management Module
 EN_CUTOFF_HI_FAULT_12V_PLANAR|0x06036480|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +12v over voltage."
@@ -157,32 +157,38 @@ EN_CUTOFF_HI_OVER_TEMP_CPU1|0x0421C481|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System
 EN_PFA_HI_OVER_TEMP_CPU1|0x0421D501|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 1."
 EN_PROC_HOT_CPU1|0x0421C401|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 1 shut off due to over temperature"
 EN_THERM_TRIP_CPU1|0x0421D081|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 1 Over Temperature"
+EN_CUTOFF_HI_TEMP_CPU1|0xFF21DC81|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 1 over temperature."
 
 # CPU 2 thermal sensor
 EN_CUTOFF_HI_OVER_TEMP_CPU2|0x0421C482|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 2 over temperature."
 EN_PFA_HI_OVER_TEMP_CPU2|0x0421D502|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 2."
 EN_PROC_HOT_CPU2|0x0421C402|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 2 shut off due to over temperature"
 EN_THERM_TRIP_CPU2|0x0421D082|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 2 Over Temperature"
+EN_CUTOFF_HI_TEMP_CPU2|0xFF21DC82|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 2 over temperature."
 
 # CPU 3 thermal sensor
 EN_CUTOFF_HI_OVER_TEMP_CPU3|0x0421C483|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 3 over temperature."
 EN_PFA_HI_OVER_TEMP_CPU3|0x0421D503|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 3."
 EN_PROC_HOT_CPU3|0x0421C403|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 3 shut off due to over temperature"
 EN_THERM_TRIP_CPU3|0x0421D083|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 3 Over Temperature"
+EN_CUTOFF_HI_TEMP_CPU3|0xFF21DC83|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 3 over temperature."
 
 # CPU 4 thermal sensor
 EN_CUTOFF_HI_OVER_TEMP_CPU4|0x0421C484|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 4 over temperature."
 EN_PFA_HI_OVER_TEMP_CPU4|0x0421D504|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over temperature for CPU 4."
 EN_PROC_HOT_CPU4|0x0421C404|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 4 shut off due to over temperature"
 EN_THERM_TRIP_CPU4|0x0421D084|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"CPU 4 Over Temperature"
+EN_CUTOFF_HI_TEMP_CPU4|0xFF21DC84|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 4 over temperature."
 
-# ???  - Blade's 1.2V voltage sensor - NO MIB yet
-#EN_PFA_HI_FAULT_1_2V|0x08001401|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +1.2v."
-#EN_PFA_LO_FAULT_1_2V|0x08001801|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +1.2v."
+# Blade's 1.2V voltage sensor
+EN_CUTOFF_HI_FAULT_1_2V|0x08000481|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +1.2v over voltage."
+EN_CUTOFF_LO_FAULT_1_2V|0x08000881|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +1.2v under voltage."
+EN_PFA_HI_FAULT_1_2V|0x08001401|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +1.2v."
+EN_PFA_LO_FAULT_1_2V|0x08001801|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +1.2v."
 
-# Blade's 1.25V voltage sensor
-EN_PFA_HI_FAULT_1_25V|0x08001400|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +1.25v."
-EN_PFA_LO_FAULT_1_25V|0x08001800|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +1.25v."
+# Blade's 1.2V standby voltage sensor
+EN_1_2VS_WARNING_HI|0x0A00BC02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +1.2V over recommended voltage."
+EN_1_2VS_WARNING_LOW|0x0A00AC02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +1.2V under recommended voltage."
 
 # Blade's 1.5V voltage sensor
 EN_IO_1_5V_WARNING_HI|0x0A041C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.5V over recommended voltage."
@@ -190,11 +196,18 @@ EN_IO_1_5V_WARNING_LOW|0x0A040C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.5V 
 EN_PFA_HI_FAULT_1_5V|0x08041400|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +1.5v."
 EN_PFA_LO_FAULT_1_5V|0x08041800|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +1.5v."
 
-# ???  - Blade's 1.8V voltage sensor - NO MIB yet - ADD FF
-#EN_IO_1_8V_WARNING_HI|0x0A07BC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V over recommended voltage."
-#EN_IO_1_8V_WARNING_LOW|0x0A07AC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V under recommended voltage."
-#EN_PFA_HI_FAULT_1_8V|0x0807B400|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
-#EN_PFA_LO_FAULT_1_8V|0x0807B800|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
+# Blade's 1.5V standby voltage sensor
+EN_1_5VS_WARNING_HI|0x0A041C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +1.5V over recommended voltage."
+EN_1_5VS_WARNING_LOW|0x0A040C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +1.5V under recommended voltage."
+
+# Blade's 1.8V voltage sensor
+EN_IO_1_8V_WARNING_HI|0x0A07BC00|ALL|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V over recommended voltage."
+EN_IO_1_8V_WARNING_LOW|0x0A07AC00|ALL|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V under recommended voltage."
+EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
+EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
+
+# Blade's 1.8V standby sensor
+# None defined
 
 # Blade's 2.5V voltage sensor
 EN_IO_2_5V_WARNING_HI|0x0A031C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +2.5V over recommended voltage."
@@ -202,19 +215,19 @@ EN_IO_2_5V_WARNING_LOW|0x0A030C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board 2.5V u
 EN_PFA_HI_FAULT_2_5V|0x08031480|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +2.5v."
 EN_PFA_LO_FAULT_2_5V|0x08031880|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
 
-# ???  - Blade's 2.5V voltage standby sensor - NO MIB yet
-#EN_IO_2_5VS_WARNING_HI|0x0A031C01|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +2.5V Standby over recommended voltage."
-#EN_IO_2_5VS_WARNING_LOW|0x0A030C01|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +2.5V Standby under recommended voltage."
+# Blade's 2.5V standby voltage sensor
+EN_2_5VS_WARNING_HI|0x0A031C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +2.5V over recommended voltage."
+EN_2_5VS_WARNING_LOW|0x0A030C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +2.5V under recommended voltage."
 
 # Blade's 3.3V voltage sensor
 EN_IO_3_3V_WARNING_HI|0x0A02DC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +3.3V over recommended voltage."
 EN_IO_3_3V_WARNING_LOW|0x0A02CC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +3.3V under recommended voltage."
 EN_PFA_HI_FAULT_3_35V|0x08033480|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
-EN_PFA_LO_FAULT_3_35V|0x08033880|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
+EN_MAJOR_LO_FAULT_3_35V|0x08032900|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
 
-# ???  - Blade's 3.3V voltage standby sensor - NO MIB yet
-#EN_IO_3_3VS_WARNING_HI|0x0A02DC01|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +3.3V Standby over recommended voltage."
-#EN_IO_3_3VS_WARNING_LOW|0x0A02CC01|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +3.3V Standby under recommended voltage."
+# Blade's 3.3V standby voltage sensor
+EN_3_3VS_WARNING_HI|0x0A02DC02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +3.3V over recommended voltage."
+EN_3_3VS_WARNING_LOW|0x0A02CC02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +3.3V under recommended voltage."
 
 # Blade's 5V voltage sensor
 EN_IO_5V_WARNING_HI|0x0A035C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +5V over recommended voltage."
@@ -222,9 +235,9 @@ EN_IO_5V_WARNING_LOW|0x0A034C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +5V unde
 EN_PFA_HI_FAULT_5V|0x08035500|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended 5V Fault."
 EN_PFA_LO_FAULT_5V|0x08035800|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended 5V Fault."
 
-# ???  - Blade's -5V voltage sensor NO MIB yet
-#EN_IO_N5V_WARNING_HI|0x0A03DC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board -5V over recommended voltage."
-#EN_IO_N5V_WARNING_LOW|0x0A03CC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board -5V under recommended voltage."
+# Blade's 5V standby voltage sensor
+EN_5VS_WARNING_HI|0x0A035C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +5V over recommended voltage."
+EN_5VS_WARNING_LOW|0x0A034C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +5V under recommended voltage."
 
 # Blade's 12V voltage sensor
 EN_IO_12V_WARNING_HI|0x0A037C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +12V over recommended voltage."
@@ -232,9 +245,9 @@ EN_IO_12V_WARNING_LOW|0x0A036C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +12V un
 EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +12v."
 EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
 
-# ???  - Blade's 12V voltage standby sensor - NO MIB yet
-#EN_IO_12VS_WARNING_HI|0x0A037C01|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +12V Standby over recommended voltage."
-#EN_IO_12VS_WARNING_LOW|0x0A036C01|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +12V Standby under recommended voltage."
+# Blade's 12V standby voltage sensor
+EN_12VS_WARNING_HI|0x0A037C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +12V over recommended voltage."
+EN_12VS_WARNING_LOW|0x0A036C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +12V under recommended voltage."
 
 # Blade's VRM 1 voltage sensor
 EN_CUTOFF_HI_FAULT_VRM1|0x04400481|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to VRM 1 over voltage."
@@ -292,26 +305,38 @@ EN_FAULT_POWER_GOOD|0x00028000|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV|"Power Good Fau
 ########################
 # Expansion Card Sensors
 ########################
-
 # Blade Expansion Card (DASD 1) thermal sensor
-EN_CUTOFF_HI_OVER_TEMP_DASD1|0x0681C481|BCT,BC,RSA|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to BSE Option temperature."
-EN_PFA_HI_OVER_TEMP_DASD1|0x0681D481|BCT,BC,RSA|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE Option over recommended temperature."
+EN_CUTOFF_HI_OVER_TEMP_DASD1_2|0x0681C482|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to DASD Option temperature."
+EN_CUTOFF_HI_OVER_TEMP_BEM|0x0621C481|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to BEM Option temperature."
+EN_OVER_TEMP_BEM|0x0621C081|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM 1 Over Temperature"
+#EN_CUTOFF_LO_OVER_TEMP_BEM|0x0621C801|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"System shutoff due to BEM 1 temperature."
+EN_PFA_HI_OVER_TEMP_DASD1_4|0x0681C404|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"DASD Option over recommended temperature."
+EN_PFA_HI_OVER_TEMP_BEM|0x0621D481|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM Option over recommended temperature."
+#EN_PFA_LO_OVER_TEMP_BEM|0x0621D801|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM 1 under recommended temperature."
 
-# Look like just IPMI card events
 # Changed all warnings below to SAHPI_MAJOR
-#EN_FAULT_DASD|0x06800000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BSE Option failure"
-EN_BUST_1_8V_WARNING_HI|0x0E87A402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +1.8V over recommended voltage."
-EN_BUST_1_8V_WARNING_LOW|0x0E87A802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +1.8V under recommended voltage."
-EN_BUST_2_5V_WARNING_HI|0x0E830402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +2.5V over recommended voltage."
-EN_BUST_2_5V_WARNING_LOW|0x0E830802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +2.5V under recommended voltage."
-EN_BUST_3_3V_WARNING_HI|0x0E832402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +3.3V over recommended voltage."
-EN_BUST_3_3V_WARNING_LOW|0x0E832802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +3.3V under recommended voltage."
-EN_BUST_5V_WARNING_HI|0x0E834402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +5V over recommended voltage."
-EN_BUST_5V_WARNING_LOW|0x0E834802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +5V under recommended voltage."
-EN_BUST_12V_WARNING_HI|0x0E836402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +12V over recommended voltage."
-EN_BUST_12V_WARNING_LOW|0x0E836802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +12V under recommended voltage."
-EN_BUST_18V_WARNING_HI|0x0E83C402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +18V over recommended voltage."
-EN_BUST_18V_WARNING_LOW|0x0E83C802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BSE +18V under recommended voltage."
+EN_FAULT_DASD|0x06800000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM Option failure"
+EN_BUST_1_5V_FAULT|0x0E840002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +1.5V Fault."
+EN_BUST_1_5V_WARNING_HI|0x0E840402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.5V over recommended voltage."
+EN_BUST_1_5V_WARNING_LOW|0x0E840802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.5V under recommended voltage."
+EN_BUST_1_8V_FAULT|0x0E87A002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +1.8V Fault."	
+EN_BUST_1_8V_WARNING_HI|0x0E87A402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.8V over recommended voltage."
+EN_BUST_1_8V_WARNING_LOW|0x0E87A802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +1.8V under recommended voltage."
+EN_BUST_2_5V_FAULT|0x0E830002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +2.5V Fault."
+EN_BUST_2_5V_WARNING_HI|0x0E830402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +2.5V over recommended voltage."
+EN_BUST_2_5V_WARNING_LOW|0x0E830802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +2.5V under recommended voltage."
+EN_BUST_3_3V_FAULT|0x0E832002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +3.3V Fault."
+EN_BUST_3_3V_WARNING_HI|0x0E832402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +3.3V over recommended voltage."
+EN_BUST_3_3V_WARNING_LOW|0x0E832802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +3.3V under recommended voltage."
+EN_BUST_5V_FAULT|0x0E834002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +5V Fault."
+EN_BUST_5V_WARNING_HI|0x0E834402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +5V over recommended voltage."
+EN_BUST_5V_WARNING_LOW|0x0E834802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +5V under recommended voltage."
+EN_BUST_12V_FAULT|0x0E836002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +12V Fault."
+EN_BUST_12V_WARNING_HI|0x0E836402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +12V over recommended voltage."
+EN_BUST_12V_WARNING_LOW|0x0E836802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +12V under recommended voltage."
+EN_BUST_18V_FAULT|0x0E83C002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_EXP|"BEM +18V Fault."
+EN_BUST_18V_WARNING_HI|0x0E83C402|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V over recommended voltage."
+EN_BUST_18V_WARNING_LOW|0x0E83C802|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_EXP|"BEM +18V under recommended voltage."
 
 #####################
 # Media Tray Resource
@@ -597,15 +622,13 @@ EN_CUTOFF_HI_OVER_TEMP_CPU5|0x0421C485|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutof
 EN_CUTOFF_HI_OVER_TEMP_CPU6|0x0421C486|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 6 over temperature."
 EN_CUTOFF_HI_OVER_TEMP_CPU7|0x0421C487|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 7 over temperature."
 EN_CUTOFF_HI_OVER_TEMP_CPU8|0x0421C488|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 8 over temperature."
-EN_CUTOFF_HI_TEMP_CPU1|0xFF21DC81|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 1 over temperature."
-EN_CUTOFF_HI_TEMP_CPU2|0xFF21DC82|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 2 over temperature."
-EN_CUTOFF_HI_TEMP_CPU3|0xFF21DC83|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 3 over temperature."
-EN_CUTOFF_HI_TEMP_CPU4|0xFF21DC84|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 4 over temperature."
 EN_CUTOFF_HI_TEMP_CPU5|0xFF21DC85|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 5 over temperature."
 EN_CUTOFF_HI_TEMP_CPU6|0xFF21DC86|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 6 over temperature."
 EN_CUTOFF_HI_TEMP_CPU7|0xFF21DC87|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 7 over temperature."
 EN_CUTOFF_HI_TEMP_CPU8|0xFF21DC88|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to CPU 8 over temperature."
 EN_CUTOFF_LO_1_5V_CPU|0x04240880|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.5V CPU under voltage"
+EN_CUTOFF_LO_OVER_TEMP_CPU1|0x0421C801|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to  CPU 1 temperature under min value."
+EN_CUTOFF_LO_OVER_TEMP_CPU2|0x0421C802|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to  CPU 2 temperature under min value."
 EN_CUTOFF_LO_OVER_TEMP_CPU3|0x0421C803|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to  CPU 3 temperature under min value."
 EN_CUTOFF_LO_OVER_TEMP_CPU4|0x0421C804|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to  CPU 4 temperature under min value."
 EN_CUTOFF_LO_OVER_TEMP_CPU5|0x0421C805|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to  CPU 5 temperature under min value."
@@ -758,6 +781,7 @@ EN_FAULT_DASD1_SCSI_ID_13|0x0680100D|RSA|SAHPI_CRITICAL|OVR_SEV|"Hard Drive Faul
 EN_FAULT_DASD1_SCSI_ID_14|0x0680100E|RSA|SAHPI_CRITICAL|OVR_SEV|"Hard Drive Fault (SCSI ID 14)"
 EN_FAULT_DASD1_SCSI_ID_15|0x0680100F|RSA|SAHPI_CRITICAL|OVR_SEV|"Hard Drive Fault (SCSI ID 15)"
 EN_OVER_TEMP_DASD1|0x0681C081|RSA|SAHPI_CRITICAL|OVR_SEV|"DASD 1 Over Temperature"
+EN_PFA_HI_OVER_TEMP_DASD1|0x0681D481|RSA|SAHPI_MAJOR|OVR_SEV|"DASD 1 over recommended temperature."
 EN_PFA_HI_OVER_TEMP_DASD1_2|0x0681C402|RSA|SAHPI_MAJOR|OVR_SEV|"DASD 2 over recommended temperature."
 EN_PFA_HI_OVER_TEMP_DASD1_3|0x0681C403|RSA|SAHPI_MAJOR|OVR_SEV|"DASD 3 over recommended temperature."
 EN_PFA_HI_OVER_TEMP_DASD1_4|0x0681C404|RSA|SAHPI_MAJOR|OVR_SEV|"DASD 4 over recommended temperature."
@@ -768,6 +792,7 @@ EN_PFA_LO_OVER_TEMP_DASD1_3|0x0681C803|RSA|SAHPI_MAJOR|OVR_SEV|"DASD 3 under rec
 EN_PFA_LO_OVER_TEMP_DASD1_4|0x0681C804|RSA|SAHPI_MAJOR|OVR_SEV|"DASD 4 under recommended temperature."
 EN_PFA_LO_OVER_TEMP_DASD2|0x0681D811|RSA|SAHPI_MAJOR|OVR_SEV|"DASD bank 17 under recommended temperature."
 EN_OVER_TEMP_DASD2|0x0681C091|RSA|SAHPI_CRITICAL|OVR_SEV|"DASD bank 17 Over Temperature"
+EN_CUTOFF_HI_OVER_TEMP_DASD1|0x0681C481|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to DASD 1 temperature."
 EN_CUTOFF_HI_OVER_TEMP_DASD1_2|0x0681C882|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to DASD 2 temperature."
 EN_CUTOFF_HI_OVER_TEMP_DASD1_3|0x0681C483|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to DASD 3 temperature."
 EN_CUTOFF_HI_OVER_TEMP_DASD1_4|0x0681C484|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to DASD 4 temperature."
@@ -1166,7 +1191,6 @@ EN_VRM_NP_4|0x0441E003|RSA|SAHPI_CRITICAL|OVR_SEV|"VRM 4 on I/O planar not prese
 ########
 # Planar
 ########
-
 EN_CUTOFF_HI_OVER_TEMP_PLANAR|0x0601C480|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to board over temperature."
 EN_CUTOFF_LO_OVER_TEMP_PLANAR|0x0601C800|RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to system board under temperature."
 EN_FAULT_12V_PLANAR|0x06036000|RSA|SAHPI_CRITICAL|OVR_SEV|"12V Planar Fault"
@@ -1209,7 +1233,10 @@ EN_IO_PB64_GTL_REF_PFA_HI|0x06019504|RSA|SAHPI_CRITICAL|OVR_SEV|"System over rec
 EN_IO_PB64_GTL_REF_PFA_LOW|0x06019904|RSA|SAHPI_CRITICAL|OVR_SEV|"System under recommended voltage on PB64 GTL (I/O Planar)."
 EN_IO_PLANAR_NP|0x0601E000|RSA|SAHPI_MAJOR|OVR_SEV|"I/O planar not seated properly."
 EN_OVER_TEMP_PLANAR|0x0601C080|RSA|SAHPI_CRITICAL|OVR_SEV|"PLANAR Over Temperature"
+EN_PFA_HI_FAULT_PLANAR_5V|0x06035500|RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +5v."
 EN_PFA_HI_OVER_TEMP_PLANAR|0x0601D500|RSA|SAHPI_MAJOR|OVR_SEV|"System board is over recommended temperature."
+EN_PFA_LO_FAULT_3_35V|0x08033880|RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
+EN_PFA_LO_FAULT_N5V|0x0803D800|RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for -5v."
 EN_PFA_LO_OVER_TEMP_PLANAR|0x0601D800|RSA|SAHPI_MAJOR|OVR_SEV|"System board is under recommended temperature."
 EN_PLANAR_3_3V|0x00032000|RSA|SAHPI_MAJOR|OVR_SEV|"Planar voltage over/under 3.3V"
 EN_PROCESSOR_PLANAR_POWER_GOOD_FAULT|0x04028000|RSA|SAHPI_MAJOR|OVR_SEV|"Processor Power Fault."
@@ -1377,8 +1404,10 @@ EN_PFA_HI_EXCEDED_CUR_3V_SHARED_MAX|0x0801B407|RSA|SAHPI_MAJOR|OVR_SEV|"System o
 EN_PFA_HI_EXCEDED_CUR_335V_MAX|0x0801B401|RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended 3.3V current."
 EN_PFA_HI_EXCEDED_CUR_5V_A_MAX|0x0801B405|RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended 5V_A  current."
 EN_PFA_HI_EXCEDED_CUR_5V_SHARED_MAX|0x0801B408|RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended 5V_SHARED current."
+EN_PFA_HI_FAULT_1_8V|0x0807B400|RSA|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
 EN_PFA_HI_FAULT_3_35V_CONT|0x0002D400|RSA|SAHPI_MAJOR|OVR_SEV|"Continuous 3.3V over recommended value."
 EN_PFA_HI_FAULT_N12V|0x0803F500|RSA|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for -12v."
+EN_PFA_LO_FAULT_1_8V|0x0807B800|RSA|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
 EN_PFA_LO_FAULT_3_35V_CONT|0x0002D800|RSA|SAHPI_MAJOR|OVR_SEV|"Continuous 3.3V under recommended value."
 EN_PFA_LO_FAULT_N12V|0x0803F800|RSA|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for -12v."
 EN_VOLT|0x00000065|RSA|SAHPI_CRITICAL|OVR_SEV|"System cutoff voltage exceed"
