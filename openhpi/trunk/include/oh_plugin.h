@@ -259,6 +259,23 @@ struct oh_abi_v2 {
                                     SaHpiSensorNumT num,
                                     const SaHpiBoolT enables);
 
+	/**
+	 * get sensor event masks
+	 */
+
+	SaErrorT (*get_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
+				    SaHpiSensorNumT   num,
+				    SaHpiEventStateT    *AssertEventMask,
+				    SaHpiEventStateT    *DeassertEventMask);
+	/**
+	 * set sensor event masks
+	 */
+
+	SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
+				    SaHpiSensorNumT   num,
+				    SaHpiEventStateT    *AssertEventMask,
+				    SaHpiEventStateT    *DeassertEventMask);
+
         /* SLD - 6/8/2004 we might want to change the names of these calls
            as control calls also get mode now */
 
