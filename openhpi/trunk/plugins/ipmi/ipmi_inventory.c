@@ -295,7 +295,7 @@ static struct ohoi_area_data {
 	}
 };
 
-#define OHOI_AREA_NUM        (sizeof(areas)/sizeof(areas[0]))
+#define OHOI_AREA_NUM        (int)(sizeof(areas)/sizeof(areas[0]))
 #define OHOI_AREA_EMPTY_ID   0
 #define OHOI_AREA_FIRST_ID   1
 #define OHOI_AREA_LAST_ID    OHOI_AREA_NUM
@@ -479,6 +479,7 @@ static unsigned char get_area_presence(struct ohoi_inventory_info *i_info,
 		return (unsigned char)0;
 	}
 }
+
 
 #if 0
 static SaHpiBoolT valid_area_type(SaHpiIdrAreaTypeT areatype)
@@ -739,7 +740,7 @@ static SaErrorT get_custom_field(struct oh_handler_state  *handler,
 	struct ohoi_custom_field cf;
 	int rv;
 	
-	switch(areas[field->AreaId -1].areatype) {
+	switch(areas[field->AreaId - 1].areatype) {
 	case SAHPI_IDR_AREATYPE_CHASSIS_INFO:
 		cf.get_len = ipmi_fru_get_chassis_info_custom_len;
 		cf.get_data = ipmi_fru_get_chassis_info_custom;
@@ -1220,6 +1221,15 @@ struct ohoi_mod_field {
 	int done;
 };
 
+struct ohoi_del_field {
+	SaHpiEntryIdT fieldid;
+	SaHpiEntryIdT areaid;
+	struct ohoi_resource_info *res_info;
+	struct oh_handler_state  *hnd;
+	SaErrorT rv;
+	int done;
+};
+
 struct ohoi_fru_write {
 	int done;
 	SaErrorT rv;
@@ -1316,10 +1326,98 @@ SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 
 }
 
+
+static void delete_inventoty_field_cb(ipmi_entity_t *ent, void *cbdata)
+{
+	struct ohoi_del_field *df = cbdata;
+	int rv;
+	struct ohoi_fru_write fw;
+	SaHpiIdrFieldT field;
+	
+	field.FieldId = df->fieldid;
+	field.AreaId = df->areaid;
+	field.Type = areas[df->areaid - 1].fields[df->fieldid - 1].fieldtype;
+	field.Field.DataLength = 0;
+	field.Field.DataType = SAHPI_TL_TYPE_BINARY;
+	
+	df->rv = modify_inventory(&field, ent, df->res_info);
+	df->done = 1;
+	if (df->rv != SA_OK) {
+		dbg("modify_inventory failed. return %d", df->rv);
+		return;
+	}
+	if (((struct ohoi_handler *)df->hnd->data)->real_write_fru) {
+		fw.done = 0;
+		fw.rv = SA_OK;
+		rv = ipmi_fru_write(ipmi_entity_get_fru(ent),
+					fru_write_done_cb, &fw);
+		if (rv) {
+			dbg("ipmi_fru_write failed. return = %d", rv);
+			df->rv = SA_ERR_HPI_INTERNAL_ERROR;
+		} else {
+			df->rv = ohoi_loop(&fw.done, df->hnd->data);
+		}
+	}
+}
+
 SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                             SaHpiEntryIdT areaid, SaHpiEntryIdT fieldid)
 {
-	return SA_ERR_HPI_INVALID_REQUEST;
+	struct oh_handler_state  *handler = hnd;
+	struct ohoi_resource_info   *ohoi_res_info;
+	struct ohoi_inventory_info *fru;
+	struct ohoi_del_field df;
+	int rv;
+	SaErrorT ret;
+
+	OHOI_CHECK_RPT_CAP_IDR();
+
+	ohoi_res_info = oh_get_resource_data(handler->rptcache, rid);
+	if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+		dbg("Bug: try to get fru in unsupported resource");
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+	fru = ohoi_res_info->fru;
+	if (fru == NULL) {
+		dbg("bug: resource without fru?");
+		return SA_ERR_HPI_CAPABILITY;
+	}
+	if (areaid > OHOI_AREA_LAST_ID || areaid < 1) {
+		dbg("areaid(%d) > OHOI_AREA_LAST_ID(%d) || areaid < 1",
+			areaid, OHOI_AREA_LAST_ID);
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if (!get_area_presence(fru, areas[areaid - 1].areatype)) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	df.fieldid = fieldid;
+	df.areaid = areaid;
+	df.res_info = ohoi_res_info;
+	df.hnd = hnd;
+	df.rv = SA_OK;
+	df.done = 0;
+
+	g_mutex_lock(fru->mutex);
+	rv = ipmi_entity_pointer_cb(ohoi_res_info->u.entity_id,
+					delete_inventoty_field_cb, &df);
+	if (rv) {
+		dbg("ipmi_entity_pointer_cb returned %d", rv);
+		g_mutex_unlock (fru->mutex);
+		df.rv = SA_ERR_HPI_INTERNAL_ERROR;
+	} else {
+		ret = ohoi_loop(&df.done, handler->data);
+		if (ret != SA_OK) {
+			df.rv = ret;
+		}
+	}
+	if (df.rv != SA_OK) {
+		dbg("ohoi_del_idr_field failed. rv = %d", df.rv);
+	} else {
+		ohoi_res_info->fru->update_count++;
+	}
+	g_mutex_unlock (fru->mutex);
+	return df.rv; 
+
 }
  
   
@@ -1426,7 +1524,7 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 	int (* len_func)(ipmi_fru_t *fru, unsigned int *length) = NULL;
 
 
-	if (areaid > OHOI_AREA_LAST_ID && areaid < 1) {
+	if (areaid > OHOI_AREA_LAST_ID || areaid < 1) {
 		dbg("areaid(%d) > OHOI_AREA_LAST_ID(%d) && areaid < 1",
 			areaid, OHOI_AREA_LAST_ID);
 		return SA_ERR_HPI_NOT_PRESENT;
@@ -1451,6 +1549,8 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	switch (a_type) {
+	case SAHPI_IDR_AREATYPE_INTERNAL_USE:
+		return SA_ERR_HPI_READ_ONLY;
 	case SAHPI_IDR_AREATYPE_CHASSIS_INFO:
 		if (i_info->ci == 0) {
 			dbg("CHASSIS_INFO area not present");
@@ -1461,8 +1561,9 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 		switch (f_type) {
 		case SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE:
 			if ((tb->DataType != SAHPI_TL_TYPE_BINARY) ||
-					(tb->DataLength != 1)) {
-				dbg("CHASSIS_TYPE: DataType = %d; DataLength = %d",
+			    ((tb->DataLength != 1) && (tb->DataLength != 0))) {
+				dbg("CHASSIS_TYPE: DataType = %d; "
+					"DataLength = %d",
 					tb->DataType, tb->DataLength);
 				return SA_ERR_HPI_INVALID_DATA;
 			}
@@ -1495,14 +1596,19 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 		switch (f_type) {
 		case SAHPI_IDR_FIELDTYPE_MFG_DATETIME:
 			if ((tb->DataType != SAHPI_TL_TYPE_BINARY) ||
-					(tb->DataLength != sizeof(time_t))) {
+					((tb->DataLength != sizeof(time_t)) &&
+					(tb->DataLength != 0))) {
 				dbg("BOARD_INFO/MFG_DATETIME: DataType = %d; "
 					"DataLength = %d",
 					tb->DataType, tb->DataLength);	
 				return SA_ERR_HPI_INVALID_DATA;
 			}
-			rv = ipmi_fru_set_board_info_mfg_time(fru,
-				*(time_t *)tb->Data);
+			if (tb->DataLength == 0) {
+				rv = ipmi_fru_set_board_info_mfg_time(fru, 0);
+			} else {
+				rv = ipmi_fru_set_board_info_mfg_time(fru,
+					*(time_t *)tb->Data);
+			}
 			break;
 		case SAHPI_IDR_FIELDTYPE_MANUFACTURER:
 			set_func = ipmi_fru_set_board_info_board_manufacturer;
@@ -1575,6 +1681,8 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 			goto out;
 		}
 		break;
+	case SAHPI_IDR_AREATYPE_OEM :
+		return SA_ERR_HPI_UNSUPPORTED_API;
 	default:
 		dbg("Unknown area type = 0x%x", areas[areaid].areatype);
 		ret = SA_ERR_HPI_INVALID_PARAMS;
