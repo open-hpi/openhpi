@@ -156,7 +156,12 @@ TESTS = tevent \
 	thotswap001   \
 	thotswap002   \
 	thotswap003   \
-	thotswap004
+	thotswap004   \
+	thotswap005   \
+	thotswap006   \
+	thotswap007   \
+	thotswap008   \
+	thotswap009
 #	thotswap_state_err \
 #	thotswap_reset \
 #	thotswap_reset_err \
@@ -595,6 +600,36 @@ thotswap004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
+# 
+thotswap005_SOURCES = thotswap005.c
+thotswap005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+thotswap006_SOURCES = thotswap006.c
+thotswap006_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+thotswap007_SOURCES = thotswap007.c
+thotswap007_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+
+# 
+thotswap008_SOURCES = thotswap008.c
+thotswap008_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+thotswap009_SOURCES = thotswap009.c
+thotswap009_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 # Unit tests with IF and snmp calls stubbed out
 #testxml_SOURCES = testxml.c
 #testxml_LDADD   = com_xml2event.c
