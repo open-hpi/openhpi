@@ -962,13 +962,15 @@ static char *get_thres_value(SaHpiSensorReadingT *item, char *buf, int len)
 }
 
 
-static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
+static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiRdrT *rdr)
 {
 	SaErrorT		rv;
 	SaHpiSensorTypeT	type;
 	SaHpiEventCategoryT	categ;
 	SaHpiSensorThresholdsT	senstbuff;
+	SaHpiSensorRangeT	*range;
 	float			f;
+	SaHpiSensorNumT		num = rdr->RdrTypeUnion.SensorRec.Num;
 	int			res, modify = 0;
 	char			tmp[256];
 
@@ -986,8 +988,16 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		return -1; 
 	};
 
+	printf("Range (");
+	range = &(rdr->RdrTypeUnion.SensorRec.DataFormat.Range);
+	if ((range->Flags & SAHPI_SRF_MIN) == 0) printf("-");
+	else printf("%s", get_thres_value(&(range->Min), tmp, 256));
+	printf(":");
+	if ((range->Flags & SAHPI_SRF_MAX) == 0) printf("-)\n");
+	else printf("%s)\n", get_thres_value(&(range->Max), tmp, 256));
 	if (senstbuff.LowCritical.IsSupported) {
-		printf("lc(%s) ==> ", get_thres_value(&(senstbuff.LowCritical), tmp, 256));
+		printf("Lower Critical(%s) ==> ",
+			get_thres_value(&(senstbuff.LowCritical), tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
 		if (res == 1) {
@@ -996,7 +1006,8 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		}
 	};
 	if (senstbuff.LowMajor.IsSupported) {
-		printf("la(%s) ==> ", get_thres_value(&(senstbuff.LowMajor), tmp, 256));
+		printf("Lower Major(%s) ==> ",
+			get_thres_value(&(senstbuff.LowMajor), tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
 		if (res == 1) {
@@ -1005,7 +1016,8 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		}
 	};
 	if (senstbuff.LowMinor.IsSupported) {
-		printf("li(%s) ==> ", get_thres_value(&(senstbuff.LowMinor), tmp, 256));
+		printf("Lower Minor(%s) ==> ",
+			get_thres_value(&(senstbuff.LowMinor), tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
 		if (res == 1) {
@@ -1014,7 +1026,8 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		}
 	};
 	if (senstbuff.UpCritical.IsSupported) {
-		printf("uc(%s) ==> ", get_thres_value(&(senstbuff.UpCritical), tmp, 256));
+		printf("Upper Critical(%s) ==> ",
+			get_thres_value(&(senstbuff.UpCritical), tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
 		if (res == 1) {
@@ -1023,7 +1036,8 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		}
 	};
 	if (senstbuff.UpMajor.IsSupported) {
-		printf("ua(%s) ==> ", get_thres_value(&(senstbuff.UpMajor), tmp, 256));
+		printf("Upper Major(%s) ==> ",
+			get_thres_value(&(senstbuff.UpMajor), tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
 		if (res == 1) {
@@ -1032,7 +1046,8 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		}
 	};
 	if (senstbuff.UpMinor.IsSupported) {
-		printf("ui(%s) ==> ", get_thres_value(&(senstbuff.UpMinor), tmp, 256));
+		printf("Upper Minor(%s) ==> ",
+			get_thres_value(&(senstbuff.UpMinor), tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
 		if (res == 1) {
@@ -1041,7 +1056,8 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		}
 	};
 	if (senstbuff.PosThdHysteresis.IsSupported) {
-		printf("ph(%s) ==> ", get_thres_value(&(senstbuff.PosThdHysteresis),
+		printf("Positive Hysteresis(%s) ==> ",
+			get_thres_value(&(senstbuff.PosThdHysteresis),
 			tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
@@ -1051,7 +1067,8 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 		}
 	};
 	if (senstbuff.NegThdHysteresis.IsSupported) {
-		printf("nh(%s) ==> ", get_thres_value(&(senstbuff.NegThdHysteresis),
+		printf("Negative Threshold Hysteresis(%s) ==> ",
+			get_thres_value(&(senstbuff.NegThdHysteresis),
 			tmp, 256));
 		fgets(tmp, 256, stdin);
 		res = sscanf(tmp, "%f", &f);
@@ -1063,18 +1080,16 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 
 	if (modify == 0) return(SA_OK);
 		
-	print_thres_value(&(senstbuff.LowCritical), "Lower Critical Threshold(lc):",
-		NULL, 0, ui_print);
-	print_thres_value(&(senstbuff.LowMajor), "Lower Major Threshold(la):", NULL, 0, ui_print);
-	print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold(li):", NULL, 0, ui_print);
-	print_thres_value(&(senstbuff.UpCritical), "Upper Critical Threshold(uc):",
-		NULL, 0, ui_print);
-	print_thres_value(&(senstbuff.UpMajor), "Upper Major Threshold(ua):", NULL, 0, ui_print);
-	print_thres_value(&(senstbuff.UpMinor), "Upper Minor Threshold(ui):", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.LowCritical), "Lower Critical:", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.LowMajor), "Lower Major:", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.LowMinor), "Lower Minor:", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.UpCritical), "Upper Critical:", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.UpMajor), "Upper Major:", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.UpMinor), "Upper Minor:", NULL, 0, ui_print);
 	print_thres_value(&(senstbuff.PosThdHysteresis),
-		"Positive Threshold Hysteresis(ph):", NULL, 0, ui_print);
+		"Positive Hysteresis:", NULL, 0, ui_print);
 	print_thres_value(&(senstbuff.NegThdHysteresis),
-		"Negative Threshold Hysteresis(nh):", NULL, 0, ui_print);
+		"Negative Hysteresis:", NULL, 0, ui_print);
 	printf("Set new threshold (yes|no) : ");
 	fgets(tmp, 256, stdin);
 	if (strncmp(tmp, "yes", 3) != 0) {
@@ -1154,7 +1169,7 @@ static int sen_block(int argc, char *argv[])
 			continue;
 		};
 		if (strcmp(buf, "setthres") == 0) {
-			set_sensor_threshold(rptid, rdrnum);
+			set_sensor_threshold(rptid, &rdr_entry);
 			continue;
 		};
 		if ((strcmp(buf, "enable") == 0) || (strcmp(buf, "disable") == 0)) {
