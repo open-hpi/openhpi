@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2004
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
 #include <snmp_bc_utils.h>
 
 SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
-                          char *oid,
+                          const char *oid,
                           SaHpiGuidT *guid)
 {
         SaErrorT status;
@@ -40,8 +40,9 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         }
         status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
-                dbg("Error: snmp_get failed rc=%x oid=%s type=%d.\n", 
+                dbg("Error: snmp_get failed rc=%d oid=%s type=%d.\n", 
                         status, oid, get_value.type);
+                if ( status != SA_ERR_HPI_BUSY)  status = SA_ERR_HPI_NO_RESPONSE;
                 goto CLEANUP;
         }
 
@@ -141,7 +142,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         g_free(UUID);
         g_free(BC_UUID);
         g_strfreev(tmpstr);
-
+                                                                                             
+        dbg("get_guid exit status %d\n",status);
         return(status);
-}
+} /* End of snmp_bc_get_guid */
 
