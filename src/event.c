@@ -119,6 +119,7 @@ static void process_rsel_event(struct oh_handler *h, struct oh_rsel_event *e)
 {
 	struct oh_resource *res;
 	
+	dbg("RSEL event!");
 	res = get_res_by_oid(e->parent);
 	if (!res) {
 		dbg("Cannot find corresponding resource");

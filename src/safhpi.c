@@ -416,6 +416,7 @@ static SaErrorT process_sel_entry(
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 	GSList *pi, *i, *ni;
+	SaHpiSelEntryT entry;
 
 	if (sel_list==NULL) {
 		return SA_ERR_HPI_INVALID;
@@ -444,6 +445,7 @@ static SaErrorT process_sel_entry(
 	if (!i)
 		return SA_ERR_HPI_INVALID;
 	
+	ops->get_entry(i->data, EventLogEntry);
 	res = ops->get_res(i->data);
 	
 	if (RptEntry) {
@@ -464,14 +466,16 @@ static SaErrorT process_sel_entry(
 			Rdr->RdrType = SAHPI_NO_RECORD;
 	}
 	
-	if (pi) 
-		*PrevEntryId = ((struct oh_sel*)(pi->data))->entry.EntryId;
-	else 
+	if (pi) {
+		ops->get_entry(pi->data, &entry);
+		*PrevEntryId = entry.EntryId;
+	} else 
 		*PrevEntryId = SAHPI_NO_MORE_ENTRIES;
 
-	if (ni) 
-		*NextEntryId = ((struct oh_sel*)(ni->data))->entry.EntryId;
-	else
+	if (ni) {
+		ops->get_entry(ni->data, &entry);
+		*NextEntryId = entry.EntryId;
+	} else
 		*NextEntryId = SAHPI_NO_MORE_ENTRIES;
 	
 	return SA_OK;
@@ -523,6 +527,7 @@ static void rsel_get_entry(void *ptr,
 	res->handler->abi->get_sel_entry(
 			res->handler->hnd,
 			rsel->oid, entry);
+	entry->EntryId = rsel->entry_id;
 }
 
 static struct oh_resource *rsel_get_res(void *ptr)
@@ -622,10 +627,14 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 			return SA_OK;
 	}
 	
+	/* rsel_add will make plug-in send a RSEL event 
+	 * for the entry */
 	if (rsel_add(ResourceId, EvtEntry)<0)
 		return SA_ERR_HPI_UNKNOWN;
-	else 
-		return SA_OK;
+	
+	/* to get RSEL evtry into infrastructure */
+	get_events();
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryDelete (

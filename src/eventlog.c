@@ -193,6 +193,12 @@ int dsel_clr(SaHpiDomainIdT domain_id)
 	return 0;
 }
 
+/* here is a little tricky. rsel_add doesn't add the event into
+ * sel_list in resource. Instead, it is plug-in's repository to
+ * construct a RSEL event and send the event into infrastruture
+ * so that infrastructure can get the entry into resource's 
+ * sel_list
+ */
 int rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
 {
 	struct oh_resource *res;
@@ -202,9 +208,7 @@ int rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
 		dbg("Invalid resource id");
 		return -1;
 	}
-
-	res->sel_counter++;
-	sel_add(&res->sel_list, entry, res->sel_counter);
+	
 	if (!res->handler->abi->add_sel_entry) {
 		dbg("No such function");
 		return -1;
@@ -229,7 +233,7 @@ int rsel_add2(struct oh_resource *res, struct oh_rsel_event *e)
 	memset(rsel, 0, sizeof(*rsel));
 
 	*rsel = e->rsel;
-	
+        rsel->entry_id = res->sel_counter++;	
 	res->sel_list = g_slist_append(res->sel_list, rsel);
 	return 0;
 }

@@ -107,6 +107,8 @@ struct oh_rsel {
 	
 	/* This is rdr id which the entry relates */
 	struct oh_rdr_id	rdr_id;
+
+	SaHpiEntryIdT		entry_id;
 };
 
 /*
