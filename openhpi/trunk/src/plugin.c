@@ -61,6 +61,15 @@ int init_plugin()
         return -1;
 }
 
+void uninit_plugin(void)
+{
+        int rv;
+
+        rv = lt_dlexit();
+        if (rv < 0)
+                dbg("Can not exit ltdl right");
+}
+
 /*******************************************************************************
  * load_plugin - loads a plugin by name
  *
@@ -71,7 +80,6 @@ extern struct oh_static_plugin static_plugins[];
 
 int load_plugin(struct oh_plugin_config *config)
 {
-        lt_dlhandle h = 0;
         int (*get_interface) (struct oh_abi_v2 ** pp, const uuid_t uuid);
         int err;
         struct oh_static_plugin *p = static_plugins;
@@ -88,19 +96,21 @@ int load_plugin(struct oh_plugin_config *config)
 
                         dbg( "found static plugin %s", p->name );
 
+                        config->dl_handle = 0;
+
                         return 0;
                 }
 
                 p++;
         }
 
-        h = lt_dlopenext(config->name);
-        if (h == NULL) {
+        config->dl_handle = lt_dlopenext(config->name);
+        if (config->dl_handle == NULL) {
                 dbg("Can not find %s plugin", config->name);
                 goto err1;
         }
 
-        get_interface = lt_dlsym(h, "get_interface");
+        get_interface = lt_dlsym(config->dl_handle, "get_interface");
         if (!get_interface) {
                 dbg("Can not get 'get_interface' symbol, is it a plugin?!");
                 goto err1;
@@ -114,21 +124,31 @@ int load_plugin(struct oh_plugin_config *config)
         
         return 0;
  err1:
-        lt_dlclose(h);
+        if (config->dl_handle) {
+                lt_dlclose(config->dl_handle);
+                config->dl_handle = 0;
+        }
+
         return -1;
 }
 
-int uninit_plugin(void)
-{
-        int rv;
 
-        rv = lt_dlexit();
-        if (rv < 0) {
-                dbg("Can not exit ltdl right");
-                return -1;
+void unload_plugin(struct oh_plugin_config *config)
+{
+        if (config->dl_handle)
+        {
+                lt_dlclose(config->dl_handle);
+                config->dl_handle = 0;
         }
-        return 0;
+
+        global_plugin_list = g_slist_remove(global_plugin_list, config);
+
+        if (config->name)
+                free(config->name);
+
+        free(config);
 }
+
 
 int load_handler (GHashTable *handler_config)
 {
@@ -192,10 +212,23 @@ struct oh_handler *new_handler(GHashTable *handler_config)
                 dbg("The plugin can not work");
                 goto err;
         }
-        
+
         return handler;
 err:
         free(handler);
         return NULL;
 }
 
+
+void unload_handler(struct oh_handler *handler)
+{
+        if (handler->abi && handler->abi->close)
+                handler->abi->close(handler->hnd);
+
+        global_handler_list = g_slist_remove(
+                global_handler_list,
+                (gpointer) handler
+                );
+
+        free(handler);
+}
