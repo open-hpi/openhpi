@@ -217,7 +217,7 @@ int get_events(void)
         g_slist_for_each(i, global_handler_list) {
                 do {
                         got_event = get_handler_event(i->data, rpt);
-                } while (got_event);
+                } while (got_event > 0);
         }
         
         process_hotswap_policy();
