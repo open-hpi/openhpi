@@ -204,7 +204,7 @@ SaErrorT SAHPI_API saHpiFinalize(void)
         OH_STATE_READY_CHECK;
 
         /* free mutex */
-	/* TODO: this wasn't here in bracnk, need to resolve history */
+	/* TODO: this wasn't here in branch, need to resolve history */
         data_access_lock();
 
 	/* TODO: realy should have a oh_uid_finalize() that */
@@ -635,8 +635,29 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         if(rv != SA_OK) {
                 dbg("SEL entry get failed");
         }
+
+        if (RptEntry) *RptEntry = *res;
+        if (Rdr) {
+                SaHpiRdrT *tmprdr = NULL;
+                SaHpiUint8T num;
+                switch (EventLogEntry->Event.EventType) {
+                        case SAHPI_ET_SENSOR:
+                                num = EventLogEntry->Event.EventDataUnion.SensorEvent.SensorNum;
+                                tmprdr = oh_get_rdr_by_type(rpt,ResourceId,SAHPI_SENSOR_RDR,num);
+                                if (tmprdr) memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
+                                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
+                                break;
+                        case SAHPI_ET_WATCHDOG:
+                                num = EventLogEntry->Event.EventDataUnion.WatchdogEvent.WatchdogNum;
+                                tmprdr = oh_get_rdr_by_type(rpt,ResourceId,SAHPI_WATCHDOG_RDR,num);
+                                if (tmprdr) memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
+                                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
+                                break;
+                        default:
+                                ;                                
+                }                
+        }
         
-        /* TODO: pull RDR and RPTEntry from EventLogEntry for return */
         return rv;
 }
 
