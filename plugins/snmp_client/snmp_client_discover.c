@@ -40,7 +40,7 @@ static int rpt_cache_resources_add(RPTable *temp_rptable,
 				   struct resource_data *remote_res_data,
 				   int num_entries);
 
-
+#if 0
 int snmp_get_bulk( struct snmp_session *ss, 
 		   const char *bulk_objid, 
 		   struct snmp_pdu *bulk_pdu, 
@@ -68,7 +68,7 @@ int snmp_get_bulk( struct snmp_session *ss,
 	return(status);
 
 }
-
+#endif
 static int rpt_cache_resources_add( RPTable *temp_rptable,
 				    SaHpiRptEntryT *rpt_cache_buff,
 				    struct resource_data *remote_res_data,
