@@ -830,6 +830,10 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         struct oh_handler *h;
         struct oh_domain *d;
 
+	if (EvtEntry == NULL) {
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
         data_access_lock();
 
         OH_STATE_READY_CHECK;
