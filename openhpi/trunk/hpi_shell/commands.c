@@ -191,46 +191,6 @@ static ret_code_t debugset(void)
 	return HPI_SHELL_OK;
 }
 
-static ret_code_t hotswap_stat(void)
-{
-	SaHpiResourceIdT	resourceid;
-	SaErrorT		rv;
-	SaHpiHsStateT		state;
-	ret_code_t		ret;
-
-	ret = ask_rpt(&resourceid);
-	if (ret != HPI_SHELL_OK) return(ret);
-
-	rv = saHpiHotSwapStateGet(Domain->sessionId, resourceid, &state);
-	if (rv != SA_OK) { 
-		printf("saHpiHotSwapStateGet error %s\n", oh_lookup_error(rv));
-		return HPI_SHELL_CMD_ERROR;
-	}
-
-	printf("Current hot swap state of resource %d is:", resourceid);
-	switch (state) {
-	case SAHPI_HS_STATE_INACTIVE:
-		printf("  Inactive.\n");
-		break;
-	case SAHPI_HS_STATE_INSERTION_PENDING:
-		printf("  Insertion Pending.\n");
-		break;
-	case SAHPI_HS_STATE_ACTIVE:
-		printf("  Active.\n");
-		break;
-	case SAHPI_HS_STATE_EXTRACTION_PENDING:
-		printf("  Extraction Pending.\n");
-		break;
-	case SAHPI_HS_STATE_NOT_PRESENT:
-		printf("  Not Present.\n");
-		break;
-	default:
-		printf("  Unknown.\n");
-	}
-
-	return HPI_SHELL_OK;
-}
-
 static ret_code_t power(void)
 {
 	SaErrorT		rv;
@@ -349,56 +309,6 @@ static ret_code_t clear_evtlog(void)
 	}
 
 	printf("EventLog successfully cleared\n");
-	return HPI_SHELL_OK;
-}
-
-static ret_code_t show_hs_ind(void)
-{
-	SaErrorT		rv;
-	SaHpiHsIndicatorStateT	state = 0;
-	SaHpiResourceIdT	rid;
-	int			do_set = 0;
-	term_def_t		*term;
-	ret_code_t		ret;
-
-	ret = ask_rpt(&rid);
-	if (ret != HPI_SHELL_OK) return(ret);
-	term = get_next_term();
-	if (term != NULL) {
-		do_set = 1;
-		if (strcmp(term->term, "on") == 0) state = SAHPI_HS_INDICATOR_ON;
-		else if (strcmp(term->term, "off") == 0)
-			state = SAHPI_HS_INDICATOR_OFF;
-		else return HPI_SHELL_PARM_ERROR;
-	};
-	if (do_set) {
-		rv = saHpiHotSwapIndicatorStateSet(Domain->sessionId, rid, state);
-		if (rv != SA_OK) { 
-			printf("saHpiHotSwapIndicatorStateSet error %s\n",
-				oh_lookup_error(rv));
-			return HPI_SHELL_CMD_ERROR;
-		};
-		return(HPI_SHELL_OK);
-	};
-
-	rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId, rid, &state);
-	if (rv != SA_OK) { 
-		printf("saHpiHotSwapIndicatorStateGet error %s\n",
-			oh_lookup_error(rv));
-		return HPI_SHELL_CMD_ERROR;
-	}
-
-	printf("Current HS Indicator for resource %d is:", rid);
-	switch(state) {
-		case SAHPI_HS_INDICATOR_OFF:
-			printf(" OFF.\n");
-			break;
-		case SAHPI_HS_INDICATOR_ON:
-			printf(" ON.\n");
-			break;
-		default:
-			printf(" Unknown.\n");
-	}
 	return HPI_SHELL_OK;
 }
 
@@ -1220,6 +1130,8 @@ const char evtlogtimehelp[] = "evtlogtime: show the event log's clock\n"
 			"Usage: evtlogtime [<resource id>]";
 const char helphelp[] = "help: help information for OpenHPI commands\n"
 			"Usage: help [optional commands]";
+const char hsblockhelp[] = "hs: hot swap command block\n"
+			"Usage: hs <resourceId>\n";
 const char hsindhelp[] = "hotswap_ind: show hot swap indicator state\n"
 			"Usage: hotswap_ind <resource id>";
 const char hsstathelp[] = "hotswapstat: retrieve hot swap state of a resource\n"
@@ -1321,6 +1233,23 @@ const char ann_msethelp[] = "modeset: set annunciator mode\n"
 			"Usage: modeset <mode>";
 const char ann_showhelp[] = "show: show annunciator or condition\n"
 			"Usage: show [num]";
+//  Hot swap command block
+const char hs_actionhelp[] = "action: set action process\n"
+			"Usage: action insert|extract";
+const char hs_activehelp[] = "active: set active state\n"
+			"Usage: active";
+const char hs_gettohelp[] = "gettimeout: show timeout\n"
+			"Usage: gettimeout insert|extract";
+const char hs_inactivehelp[] = "inactive: set inactive state\n"
+			"Usage: inactive";
+const char hs_indhelp[] = "ind: set and show indicator state\n"
+			"Usage: ind get|on|off";
+const char hs_policyhelp[] = "policycancel: set default policy\n"
+			"Usage: policycancel";
+const char hs_settohelp[] = "settimeout: set timeout\n"
+			"Usage: settimeout insert|extract <value>";
+const char hs_statehelp[] = "state: show hot swap state\n"
+			"Usage: state";
 
 command_def_t commands[] = {
     { "addcfg",		add_config,	addcfghelp,	MAIN_COM },
@@ -1338,8 +1267,7 @@ command_def_t commands[] = {
     { "evtlogreset",	evtlog_reset,	evtlresethelp,	MAIN_COM },
     { "evtlogstate",	evtlog_state,	evtlstatehelp,	MAIN_COM },
     { "help",		help_cmd,	helphelp,	UNDEF_COM },
-    { "hotswap_ind",	show_hs_ind,	hsindhelp,	MAIN_COM },
-    { "hotswapstat",	hotswap_stat,	hsstathelp,	MAIN_COM },
+    { "hs",		hs_block,	hsblockhelp,	MAIN_COM },
     { "inv",		inv_block,	invhelp,	MAIN_COM },
     { "lsres",		listres,	lreshelp,	MAIN_COM },
     { "lsensor",	list_sensor,	lsorhelp,	MAIN_COM },
@@ -1390,5 +1318,14 @@ command_def_t commands[] = {
     { "modeget",	unget_term,	ann_mgethelp,	ANN_COM },
     { "modeset",	unget_term,	ann_msethelp,	ANN_COM },
     { "show",		unget_term,	ann_showhelp,	ANN_COM },
+//  Hot swap command block
+    { "action",		unget_term,	hs_actionhelp,	HS_COM },
+    { "active",		unget_term,	hs_activehelp,	HS_COM },
+    { "gettimeout",	unget_term,	hs_gettohelp,	HS_COM },
+    { "inactive",	unget_term,	hs_inactivehelp,HS_COM },
+    { "ind",		unget_term,	hs_indhelp,	HS_COM },
+    { "policycancel",	unget_term,	hs_policyhelp,	HS_COM },
+    { "settimeout",	unget_term,	hs_settohelp,	HS_COM },
+    { "state",		unget_term,	hs_statehelp,	HS_COM },
     { NULL,		NULL,		NULL,		MAIN_COM }
 };

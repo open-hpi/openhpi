@@ -804,6 +804,8 @@ static int add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
 		return(HPI_SHELL_CMD_ERROR);
 	};
 	announ.StatusCond.Type = type;
+	// EntityPath:  is needed ???
+	// oh_encode_entitypath(char *str, SaHpiEntityPathT *ep);   convert string into ep.
 
 	i = get_int_param("DomainId: ", &did);
 	if (i != 1) did = SAHPI_UNSPECIFIED_DOMAIN_ID;

@@ -35,7 +35,8 @@ typedef enum {
 	SEN_COM,
 	ANN_COM,
 	CTRL_COM,
-	INV_COM
+	INV_COM,
+	HS_COM
 } com_enum_t;
 
 typedef struct {
@@ -90,6 +91,7 @@ extern int		get_string_param(char *mes, char *string, int len);
 extern term_def_t	*get_next_term(void);
 extern int		get_sessionId(Domain_t *domain);
 extern void		help(int as);
+extern ret_code_t	hs_block(void);
 extern ret_code_t	inv_block(void);
 extern ret_code_t	list_sensor(void);
 extern ret_code_t	open_file(char *path);
