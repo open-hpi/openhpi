@@ -77,19 +77,7 @@ int main(int argc, char **argv)
 	 * Test :
 	 **************************/
 	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
-	expected_err = SA_OK;      
-	err = snmp_bc_get_hotswap_state(handle, id, &state);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 **************************/
-	struct ResourceInfo *s =
-		(struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
-	if (s != NULL)
-		s->mib.OidHealth = NULL;
-
-	expected_err = SA_ERR_HPI_INVALID_CMD;      
+	expected_err = SA_ERR_HPI_CAPABILITY;      
 	err = snmp_bc_get_hotswap_state(handle, id, &state);
 	checkstatus(&err, &expected_err, &testfail);
 

@@ -15,297 +15,220 @@
 
 #include <snmp_bc_plugin.h>
 
-SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
+/**
+ * snmp_bc_get_hotswap_state:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @state: Location to store resource's hotswap state.
+ *
+ * Retrieves a resource's hotswap state.
+ * 
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_MANAGED_HOTSWAP.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_get_hotswap_state(void *hnd,
+				   SaHpiResourceIdT rid,
 				   SaHpiHsStateT *state)
 {
-	gchar *oid;
-        struct snmp_value get_value;
-	SaErrorT status;
-
-	if (!hnd || !state){
-		dbg("Missing handle\n");
+	if (!hnd || !state) {
+		dbg("Invalid parameter.");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-        SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
-	if(res == NULL) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-        struct ResourceInfo *s =
-                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
-	if(s == NULL) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	if(s->mib.OidHealth == NULL) { 
-		return SA_ERR_HPI_INVALID_CMD;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	oid = oh_derive_string(&(res->ResourceEntity), s->mib.OidHealth);
-	if(oid == NULL) {
-		dbg("NULL SNMP OID returned for %s\n",s->mib.OidHealth);
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) return(SA_ERR_HPI_CAPABILITY);
 
-	status = snmp_bc_snmp_get(custom_handle,oid,&get_value);
-	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
-		if(get_value.integer == s->mib.HealthyValue) { 
-			*state = SAHPI_HS_STATE_ACTIVE;
-		}
-		else { 
-			*state = SAHPI_HS_STATE_NOT_PRESENT;
-		}
-        } else {
-		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
-		g_free(oid);
-		return status;
-	}
-
-	g_free(oid);
-        return SA_OK;
+	dbg("Managed Hotswap is not supported by platform");
+	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
-SaErrorT snmp_bc_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
+/**
+ * snmp_bc_set_hotswap_state:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @state: Hotswap state to set.
+ *
+ * Sets a resource's hotswap state.
+ * 
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_MANAGED_HOTSWAP.
+ * SA_ERR_HPI_INVALID_REQUEST - @state invalid.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_set_hotswap_state(void *hnd,
+				   SaHpiResourceIdT rid,
 				   SaHpiHsStateT state)
 {
-        return SA_ERR_HPI_INVALID_CMD;
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	if (NULL == oh_lookup_hsstate(state)) {
+		dbg("Invalid hotswap state.");
+		return(SA_ERR_HPI_INVALID_REQUEST);
+	}
+
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) return(SA_ERR_HPI_CAPABILITY);
+
+	dbg("Managed Hotswap is not supported by platform");
+	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
-SaErrorT snmp_bc_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
+/**
+ * snmp_bc_request_hotswap_action:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @act: Hotswap state to set.
+ *
+ * Sets a resource insertion or extraction action.
+ * 
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_MANAGED_HOTSWAP.
+ * SA_ERR_HPI_INVALID_REQUEST - @act invalid.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_request_hotswap_action(void *hnd,
+					SaHpiResourceIdT rid,
 					SaHpiHsActionT act)
 {
-        return SA_ERR_HPI_INVALID_CMD;
-}
-
-SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
-				 SaHpiResetActionT *act)
-{
-
-	if (!hnd || !act){
-		dbg("Missing handle\n");
-		return SA_ERR_HPI_INVALID_PARAMS;
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
-	if(res == NULL) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
+	if (NULL == oh_lookup_hsaction(act)) {
+		dbg("Invalid hotswap action.");
+		return(SA_ERR_HPI_INVALID_REQUEST);
 	}
 
-        struct ResourceInfo *s =
-                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
-	if(s == NULL) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	if(s->mib.OidReset == NULL) { 
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-
-	*act = SAHPI_RESET_DEASSERT;
-
-	return SA_OK;
-}
-
-SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
-				 SaHpiResetActionT act)
-{
-	if (!hnd){
-		dbg("Missing handle\n");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-
-	gchar *oid;
-	SaErrorT status;
-        struct snmp_value set_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-        SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
-	if(res == NULL) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-        struct ResourceInfo *s =
-                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
-	if(s == NULL) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	if(s->mib.OidReset == NULL) { 
-		return SA_ERR_HPI_INVALID_CMD;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	switch (act) {
-	case SAHPI_RESET_ASSERT: /* RESET_ASSERT = RESET_DEASSERT Action */
-	case SAHPI_RESET_DEASSERT:
-		return SA_ERR_HPI_INVALID_CMD;
-	case SAHPI_COLD_RESET: /* COLD = WARM Reset Action */
-	case SAHPI_WARM_RESET:
-		oid = oh_derive_string(&(res->ResourceEntity), s->mib.OidReset);
-		if(oid == NULL) {
-			dbg("NULL SNMP OID returned for %s\n",s->mib.OidReset);
-			return SA_ERR_HPI_INTERNAL_ERROR;
-		}
-		
-		set_value.type = ASN_INTEGER;
-		set_value.str_len = 1;
-		set_value.integer = 1;
-		
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
-		if (status != SA_OK) {
-			dbg("SNMP could not set %s; Type=%d.\n",oid,set_value.type);
-			g_free(oid);
-			if (status == SA_ERR_HPI_BUSY) return status;
-			else return SA_ERR_HPI_NO_RESPONSE;
-		}
-		g_free(oid);
-		break;
-	default:
-		dbg("Invalid Reset Action Type - %d\n", act);
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) return(SA_ERR_HPI_CAPABILITY);
 
-        return SA_OK;
+	dbg("Managed Hotswap is not supported by platform");
+	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
-SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
-				 SaHpiPowerStateT *state)
-{
-	if (!hnd || !state){
-		dbg("Missing handle\n");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-
-	gchar *oid;
-	int rtn_code = SA_OK;
-        struct snmp_value get_value;
-	SaErrorT status;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
-        SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
-	if(res == NULL) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-         struct ResourceInfo *s =
-                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
-	if(s == NULL) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	if(s->mib.OidPowerState == NULL) { 
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-
-	oid = oh_derive_string(&(res->ResourceEntity), s->mib.OidPowerState);
-	if(oid == NULL) {
-		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerState);
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
-
-
-	status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
-	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
-		switch (get_value.integer) {
-		case 0:
-			*state = SAHPI_POWER_OFF;
-			break;
-		case 1:
-			*state = SAHPI_POWER_ON;
-			break;
-		default:
-			dbg("Invalid power state read for oid=%s\n",oid);
-			rtn_code = SA_ERR_HPI_INTERNAL_ERROR;
-		}
-        } else {
-		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
-		rtn_code = status;
-	}
-
-	g_free(oid);
-        return rtn_code;
-}
-
-SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
-				 SaHpiPowerStateT state)
-{
-	if (!hnd){
-		dbg("Missing handle\n");
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
-
-	gchar *oid;
-	int rtn_code = SA_OK;
-	SaErrorT status;
-
-        struct snmp_value set_value;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
-        SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
-	if(res == NULL) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-        struct ResourceInfo *s =
-                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
-	if(s == NULL) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	if(s->mib.OidPowerOnOff == NULL) { 
-		return SA_ERR_HPI_INVALID_CMD; 
-	}
-
-	oid = oh_derive_string(&(res->ResourceEntity), s->mib.OidPowerOnOff);
-	if(oid == NULL) {
-		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerOnOff);
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
-
-	set_value.type = ASN_INTEGER;
-	set_value.str_len = 1;
-	switch (state) {
-	case SAHPI_POWER_OFF:
-		set_value.integer = 0;
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
-		if (status != SA_OK) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
-			if (status == SA_ERR_HPI_BUSY) return status;
-			else return SA_ERR_HPI_NO_RESPONSE;
-		}
-		break;
-		
-	case SAHPI_POWER_ON:
-		set_value.integer = 1;
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
-		if (status != SA_OK) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
-			if (status == SA_ERR_HPI_BUSY) return status;
-			else return SA_ERR_HPI_NO_RESPONSE;
-		}
-		break;
-		
-	case SAHPI_POWER_CYCLE:
-	        {
-			SaHpiResetActionT act = SAHPI_COLD_RESET;
-			rtn_code=snmp_bc_set_reset_state(hnd, id, act);
-	        }
-		break;
-	default:
-		dbg("Invalid Power Action Type - %d\n", state);
-		rtn_code = SA_ERR_HPI_INVALID_PARAMS;
-	}
-
-	g_free(oid);
-        return rtn_code;
-}
-
-SaErrorT snmp_bc_get_indicator_state(void *hnd, SaHpiResourceIdT id,
+/**
+ * snmp_bc_get_indicator_state:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @state: Location to store the hotswap indicator state.
+ *
+ * Gets a resource's hotswap indicator state.
+ * 
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_MANAGED_HOTSWAP.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_get_indicator_state(void *hnd,
+				     SaHpiResourceIdT rid,
 				     SaHpiHsIndicatorStateT *state)
 {
-        return SA_ERR_HPI_INVALID_CMD;
+	if (!hnd || !state) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) return(SA_ERR_HPI_CAPABILITY);
+
+	dbg("Managed Hotswap is not supported by platform");
+	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
-SaErrorT snmp_bc_set_indicator_state(void *hnd, SaHpiResourceIdT id,
+/**
+ * snmp_bc_set_indicator_state:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @state: Hotswap indicator state to set.
+ *
+ * Sets a resource's hotswap indicator.
+ * 
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_MANAGED_HOTSWAP.
+ * SA_ERR_HPI_INVALID_REQUEST - @state invalid.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
+SaErrorT snmp_bc_set_indicator_state(void *hnd,
+				     SaHpiResourceIdT rid,
 				     SaHpiHsIndicatorStateT state)
 {
-        return SA_ERR_HPI_INVALID_CMD;
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	if (NULL == oh_lookup_hsindicatorstate(state)) {
+		dbg("Invalid hotswap indicator state.");
+		return(SA_ERR_HPI_INVALID_REQUEST);
+	}
+
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	/* Check if resource exists and has managed hotswap capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) return(SA_ERR_HPI_CAPABILITY);
+
+	dbg("Managed Hotswap is not supported by platform");
+	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
