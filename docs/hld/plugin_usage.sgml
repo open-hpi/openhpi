@@ -216,6 +216,7 @@ plugin libwatchdog
 handler libwatchdog {
           name="0"
           addr="/dev/watchdog"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
 }
         </programlisting>
       </para>
@@ -235,7 +236,7 @@ handler libwatchdog {
     </para>
     <para>
       The sysfs plugin code can be tested using <literal>examples/list_resources.c
-      </literal>.
+      </literal> and <literal>examples/set_resources.c</literal>.
     </para>
     <sect2>
       <title>Prerequisites</title>
@@ -245,16 +246,26 @@ handler libwatchdog {
         --enable-sysfs</literal> when running ./configure.
       </para>
       <para>
+        The sysfs plugin in release 0.4 and later relies on libsysfs 0.3.0
+        (found in sysutils 0.2.0) 
+        <ulink
+          url="http://linux-diag.sourceforge.net/Sysfsutils.html"
+          >on the Linux Diagnostic Tools project page</ulink>.
+      </para>
+      <para>
+        The sysfs plugin in release 0.3 relies on libsysfs 0.2.0* (found
+        in sysutils 0.2.0).  Source code can be retrieved from cvs using
+        the tag libsysfs0_2_0.
         The sysfs plugin relies on libsysfs 0.2.0* (found in sysutils 0.2.0)
         <ulink
           url="http://linux-diag.sourceforge.net/Sysfsutils.html"
           >on the Linux Diagnostic Tools project page</ulink>.
-        The 0.2.0 release has two bugs that need to be fixed before using
+        The libsysfs0.2.0 has two bugs that need to be fixed before using
 	this plugin.  Applying the two patches (separate, sorry!) will
 	fix these:
 	</para>
 	<para>
-	The functionality of this first patch is also found in libsysfs 0.3.0.
+        This issue is fixed with libsysfs 0.3.0.
 	</para>
         <programlisting role="C">
 --- sysfsutils-0_2_0/lib/sysfs_device.c.orig    2003-10-17 11:25:37.000000000 -0
@@ -268,7 +279,7 @@ handler libwatchdog {
         dlist_for_each_data(dev->directory->attributes, cur,
         </programlisting>
 	<para>
-	The second patch may be found in libsysfs 0.3.0; it is not known.
+        This issue is fixed with libsysfs 0.3.0.
 	</para>
         <programlisting role="C">
 --- sysfs_dir.c.orig    2003-08-29 04:43:27.000000000 -0700
@@ -283,8 +294,7 @@ handler libwatchdog {
              dprintf("Error write to attribute %s\n", attrpath)
         </programlisting>
       <para>
-        Follow the libsysfs instructions for installing libsysfs and also copy
-        libsysfs.h and dlist.h to /usr/include.
+        Follow the libsysfs instructions for installing libsysfs.
       </para>
     </sect2>
     <sect2>
@@ -299,6 +309,7 @@ plugin libsysfs
 handler libsysfs {
           name="0"
           addr="0"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
 }
         </programlisting>
       </para>
