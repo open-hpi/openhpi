@@ -11,7 +11,7 @@ plugin	libdummy
 #plugin libipmi
 
 #Depends on net-snmp being installed on the system:
-plugin libsnmp_bc
+#plugin libsnmp_bc
 
 #############################################################################
 ##**WARNING** System administrators have to make sure that entity paths are
