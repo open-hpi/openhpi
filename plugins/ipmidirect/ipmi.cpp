@@ -55,7 +55,7 @@ VerifyIpmi( void *hnd )
 
 static cIpmiSensor *
 VerifySensorAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiSensorNumT num,
-		      cIpmi *&ipmi )
+                      cIpmi *&ipmi )
 {
   ipmi = VerifyIpmi( hnd );
 
@@ -160,8 +160,9 @@ VerifyFruAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiEirIdT num,
   return fru;
 }
 
-static cIpmiResource *
-VerifyResourceAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
+
+static cIpmiEntity *
+VerifyEntityAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
 {
   ipmi = VerifyIpmi( hnd );
 
@@ -173,46 +174,15 @@ VerifyResourceAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
 
   ipmi->IfEnter();
 
-  cIpmiResource *res = (cIpmiResource *)oh_get_resource_data( ipmi->GetHandler()->rptcache, rid );
+  cIpmiEntity *ent = (cIpmiEntity *)oh_get_resource_data( ipmi->GetHandler()->rptcache, rid );
 
-  if ( !ipmi->VerifyResource( res ) )
+  if ( !ipmi->VerifyEntity( ent ) )
      {
        ipmi->IfLeave();
        return 0;
      }
 
-  return res;
-}
-
-
-static cIpmiSel *
-VerifySelAndEnter( void *hnd, SaHpiResourceIdT rid, cIpmi *&ipmi )
-{
-  ipmi = VerifyIpmi( hnd );
-
-  if ( !ipmi )
-     {
-       assert( 0 );
-       return 0;
-     }
-
-  ipmi->IfEnter();
-
-  cIpmiResource *res = (cIpmiResource *)oh_get_resource_data( ipmi->GetHandler()->rptcache, rid );
-
-  if ( !ipmi->VerifyResource( res ) )
-     {
-       ipmi->IfLeave();
-       return 0;
-     }
-
-  if ( res->FruId() || !res->Mc()->SelDeviceSupport() )
-     {
-       ipmi->IfLeave();
-       return 0;
-     }
-
-  return res->Mc()->Sel();
+  return ent;
 }
 
 
@@ -375,12 +345,12 @@ static SaErrorT
 IpmiSetResourceSeverity( void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfSetResourceSeverity( res, sev );
+  SaErrorT rv = ipmi->IfSetResourceSeverity( ent, sev );
 
   ipmi->IfLeave();
 
@@ -581,12 +551,12 @@ IpmiGetSelInfo( void *hnd,
                 SaHpiSelInfoT   *info )
 {
   cIpmi *ipmi = 0;
-  cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !sel )
+  if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sel->GetSelInfo( *info );
+  SaErrorT rv = ent->Sel()->GetSelInfo( *info );
 
   ipmi->IfLeave();
 
@@ -598,12 +568,12 @@ static SaErrorT
 IpmiSetSelTime( void *hnd, SaHpiResourceIdT id, SaHpiTimeT t )
 {
   cIpmi *ipmi = 0;
-  cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !sel )
+  if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sel->SetSelTime( t );
+  SaErrorT rv = ent->Sel()->SetSelTime( t );
 
   ipmi->IfLeave();
 
@@ -616,12 +586,12 @@ IpmiAddSelEntry( void *hnd, SaHpiResourceIdT id,
                  const SaHpiSelEntryT *Event )
 {
   cIpmi *ipmi = 0;
-  cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !sel )
+  if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sel->AddSelEntry( *Event );
+  SaErrorT rv = ent->Sel()->AddSelEntry( *Event );
 
   ipmi->IfLeave();
 
@@ -634,12 +604,12 @@ IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
                  SaHpiSelEntryIdT sid )
 {
   cIpmi *ipmi = 0;
-  cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !sel )
+  if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sel->DeleteSelEntry( sid );
+  SaErrorT rv = ent->Sel()->DeleteSelEntry( sid );
 
   ipmi->IfLeave();
 
@@ -654,12 +624,12 @@ IpmiGetSelEntry( void *hnd, SaHpiResourceIdT id,
                  SaHpiSelEntryT *entry )
 {
   cIpmi *ipmi = 0;
-  cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !sel )
+  if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sel->GetSelEntry( current, *prev, *next, *entry );
+  SaErrorT rv = ent->Sel()->GetSelEntry( current, *prev, *next, *entry );
 
   ipmi->IfLeave();
 
@@ -671,13 +641,13 @@ static SaErrorT
 IpmiClearSel( void *hnd, SaHpiResourceIdT id )
 {
   cIpmi *ipmi = 0;
-  cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !sel )
+  if ( !ent || ent->Sel() == 0 )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sel->ClearSel();
-
+  SaErrorT rv = ent->Sel()->ClearSel();
+  
   ipmi->IfLeave();
 
   return rv;
@@ -689,12 +659,12 @@ IpmiGetHotswapState( void *hnd, SaHpiResourceIdT id,
                      SaHpiHsStateT *state )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetHotswapState( res, *state );
+  SaErrorT rv = ipmi->IfGetHotswapState( ent, *state );
 
   ipmi->IfLeave();
 
@@ -707,12 +677,12 @@ IpmiSetHotswapState( void *hnd, SaHpiResourceIdT id,
                      SaHpiHsStateT state )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfSetHotswapState( res, state );
+  SaErrorT rv = ipmi->IfSetHotswapState( ent, state );
 
   ipmi->IfLeave();
 
@@ -725,12 +695,12 @@ IpmiRequestHotswapAction( void *hnd, SaHpiResourceIdT id,
                           SaHpiHsActionT act )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfRequestHotswapAction( res, act );
+  SaErrorT rv = ipmi->IfRequestHotswapAction( ent, act );
 
   ipmi->IfLeave();
 
@@ -743,12 +713,12 @@ IpmiGetPowerState( void *hnd, SaHpiResourceIdT id,
                    SaHpiHsPowerStateT *state )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetPowerState( res, *state );
+  SaErrorT rv = ipmi->IfGetPowerState( ent, *state );
 
   ipmi->IfLeave();
 
@@ -761,12 +731,12 @@ IpmiSetPowerState( void *hnd, SaHpiResourceIdT id,
                    SaHpiHsPowerStateT state )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfSetPowerState( res, state );
+  SaErrorT rv = ipmi->IfSetPowerState( ent, state );
 
   ipmi->IfLeave();
 
@@ -779,12 +749,12 @@ IpmiGetIndicatorState( void *hnd, SaHpiResourceIdT id,
                        SaHpiHsIndicatorStateT *state )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetIndicatorState( res, *state );
+  SaErrorT rv = ipmi->IfGetIndicatorState( ent, *state );
 
   ipmi->IfLeave();
 
@@ -797,12 +767,12 @@ IpmiSetIndicatorState( void *hnd, SaHpiResourceIdT id,
                        SaHpiHsIndicatorStateT state )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfSetIndicatorState( res, state );
+  SaErrorT rv = ipmi->IfSetIndicatorState( ent, state );
 
   ipmi->IfLeave();
 
@@ -816,12 +786,12 @@ IpmiControlParm( void *hnd,
                  SaHpiParmActionT act )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfControlParm( res, act );
+  SaErrorT rv = ipmi->IfControlParm( ent, act );
 
   ipmi->IfLeave();
 
@@ -834,12 +804,12 @@ IpmiGetResetState( void *hnd, SaHpiResourceIdT id,
                    SaHpiResetActionT *act )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetResetState( res, *act );
+  SaErrorT rv = ipmi->IfGetResetState( ent, *act );
 
   ipmi->IfLeave();
 
@@ -853,12 +823,12 @@ IpmiSetResetState( void *hnd,
                    SaHpiResetActionT act )
 {
   cIpmi *ipmi = 0;
-  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+  cIpmiEntity *ent = VerifyEntityAndEnter( hnd, id, ipmi );
 
-  if ( !res )
+  if ( !ent )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfSetResetState( res, act );
+  SaErrorT rv = ipmi->IfSetResetState( ent, act );
 
   ipmi->IfLeave();
 
@@ -1416,7 +1386,7 @@ cIpmi::IfDiscoverResources()
 
 
 SaErrorT
-cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
+cIpmi::IfSetResourceSeverity( cIpmiEntity *ent, SaHpiSeverityT sev )
 {
   // TODO: add real functionality
 
@@ -1447,7 +1417,7 @@ cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
 
 
 SaErrorT
-cIpmi::IfControlParm( cIpmiResource * /*res*/, SaHpiParmActionT act )
+cIpmi::IfControlParm( cIpmiEntity * /*ent*/, SaHpiParmActionT act )
 {
   // TODO: implementation
   switch( act )

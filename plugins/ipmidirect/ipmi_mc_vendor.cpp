@@ -79,7 +79,7 @@ cIpmiMcVendorFactory::CleanupFactory()
        delete m_factory;
        m_factory = 0;
      }
-
+  
   lock.Unlock();
 }
 
@@ -92,7 +92,7 @@ cIpmiMcVendorFactory::Register( cIpmiMcVendor *mv )
        assert( 0 );
        return false;
      }
-
+  
   m_mc_vendors = g_list_append( m_mc_vendors, mv );
 
   return true;
@@ -119,11 +119,11 @@ cIpmiMcVendorFactory::Find( unsigned int manufacturer_id,
                             unsigned int product_id )
 {
   GList *list = m_mc_vendors;
-
+  
   while( list )
      {
        cIpmiMcVendor *mv = (cIpmiMcVendor *)list->data;
-
+       
        if (    mv->m_manufacturer_id == manufacturer_id
             && mv->m_product_id == product_id )
             return mv;
@@ -180,9 +180,6 @@ cIpmiMcVendor::CleanupMc( cIpmiMc * /*mc*/ )
 bool
 cIpmiMcVendor::CreateRdrs( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
 {
-  if ( CreateResources( domain, source_mc, sdrs ) == false )
-       return false;
-
   if ( CreateSensors( domain, source_mc, sdrs ) == false )
        return false;
 
@@ -199,180 +196,105 @@ cIpmiMcVendor::CreateRdrs( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
 }
 
 
-bool
-cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
-{
-  bool found = false;
-
-  // create one resource per mcdlr and fdlr
-  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
-     {
-       cIpmiSdr *sdr = sdrs->Sdr( i );
-
-       cIpmiAddr addr;
-       unsigned int fru_id = 0;
-
-       if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
-	  {
-	    addr.m_slave_addr = sdr->m_data[5];
-	    addr.m_channel    = sdr->m_data[6] & 0xf;
-
-	    found = true;
-	  }
-/*
-       else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord )
-	  {
-	    if ( (sdr->m_data[7] & 0x80) == 0 )
-		 // only logical frus are supported
-		 continue;
-
-	    addr = source_mc->Addr();
-	    fru_id = sdr->m_data[6];
-	  }
-*/
-       else
-	    continue;
-
-       cIpmiMc *mc = domain->FindMcByAddr( addr );
-
-       // TODO: create mc !!!
-       assert( mc );
-
-       if ( !mc )
-	    // read mcdlr for other mc than source_mc
-	    return false;
-
-       if ( FindOrCreateResource( domain, mc, fru_id, sdr, sdrs ) == false )
-	    return false;
-     }
-
-  // there must be a mcdlr !
-  if ( !found )
-     {
-       assert( found );
-
-       if ( FindOrCreateResource( domain, source_mc, 0, 0, sdrs ) == false )
-	    return false;
-     }
-
-  return true;
-}
-
-
-cIpmiResource *
-cIpmiMcVendor::FindOrCreateResource( cIpmiDomain *domain, cIpmiMc *mc,
-				     unsigned int fru_id,
-				     cIpmiSdr *sdr, cIpmiSdrs *sdrs )
+cIpmiEntity *
+cIpmiMcVendor::FindOrCreateEntity( cIpmiDomain *domain, cIpmiMc *mc, int lun,
+                                   tIpmiEntityId entity_id, unsigned int entity_instance,
+                                   bool came_from_sdr, cIpmiSdr *sdr )
 {
   assert( mc );
 
-  cIpmiResource *res = mc->FindResource( fru_id );
+  tIpmiDeviceNum device_num;
 
-  if ( res )
-       return res;
+  if ( mc && entity_instance >= 0x60 )
+     {
+       device_num.channel = mc->GetChannel();
+       device_num.address = mc->GetAddress();
+       entity_instance   -= 0x60;
+     }
+  else
+     {
+       device_num.channel = 0;
+       device_num.address = 0;
+     }
 
-  return CreateResource( domain, mc, fru_id, sdr, sdrs );
+  cIpmiEntity *ent = domain->FindEntity( device_num, entity_id, entity_instance );
+
+  if ( ent )
+     {
+       // If it came from an SDR, it always will have come from an SDR.
+       if ( !ent->CameFromSdr() )
+	    ent->CameFromSdr() = came_from_sdr;
+
+       ent->AccessAddress() = mc->GetAddress();
+       ent->Channel()       = mc->GetChannel();
+       ent->Lun()           = lun;
+
+       return ent;
+    }
+
+  return CreateEntity( domain, mc, device_num, lun, entity_id, entity_instance,
+                       came_from_sdr, sdr );
 }
 
 
-cIpmiResource *
-cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
-			       unsigned int fru_id, cIpmiSdr *sdr, cIpmiSdrs *sdrs )
+cIpmiEntity *
+cIpmiMcVendor::CreateEntity( cIpmiDomain *domain, cIpmiMc *mc,
+                             tIpmiDeviceNum device_num, int lun,
+                             tIpmiEntityId entity_id, unsigned int entity_instance,
+                             bool came_from_sdr, cIpmiSdr *sdr )
 {
-  // create a new resource
-  cIpmiResource *res = new cIpmiResource( mc, fru_id );
-  assert( res );
+  // create a new entity
+  cIpmiEntity *ent = new cIpmiEntity( domain, device_num, entity_id, entity_instance, came_from_sdr );
+  assert( ent );
 
-  if ( CreateResourceEntityPath( res, sdr, sdrs ) == false )
-     {
-       delete res;
-       return 0;
-     }
+  domain->AddEntity( ent );
 
-  if (    sdr
-       && (    sdr->m_type == eSdrTypeMcDeviceLocatorRecord 
-            || sdr->m_type == eSdrTypeFruDeviceLocatorRecord ) )
+  ent->AccessAddress() = mc->GetAddress();
+  ent->Channel()       = mc->GetChannel();
+  ent->Lun()           = lun;
+
+  if ( sdr && sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
      {
        // set mc id string
-       res->ResourceTag().SetIpmi( sdr->m_data + 15 );
-       res->Oem() = sdr->m_data[14];
+       ent->IdString().SetIpmi( sdr->m_data + 15 );
+       ent->Oem() = sdr->m_data[14];
 
        // TODO: additional fields like m_acpi_system_power_notify_required ...
      }
 
   // create rpt entry
-  stdlog << "adding resource: " << res->EntityPath() << ".\n";
+  stdlog << "adding entity: " << ent->EntityId() << "." << ent->EntityInstance()
+	 << " (" << IpmiEntityIdToString( entity_id ) << ").\n";
 
   struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
   if ( !e )
      {
        stdlog << "out of space !\n";
-       delete res;
        return 0;
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
   e->type = oh_event::OH_ET_RESOURCE;
 
-  if ( res->Create( e->u.res_event.entry ) == false )
+  if ( ent->CreateResource( e->u.res_event.entry ) == false )
      {
        g_free( e );
-       delete res;
        return 0;
      }
 
-  // add res to mc
-  mc->AddResource( res );
-
   // assign the hpi resource id to ent, so we can find
   // the resource for a given entity
-  res->m_resource_id = e->u.res_event.entry.ResourceId;
+  ent->m_resource_id = e->u.res_event.entry.ResourceId;
 
   // add the entity to the resource cache
   int rv = oh_add_resource( domain->GetHandler()->rptcache,
-			    &(e->u.res_event.entry), res, 1 );
+			    &(e->u.res_event.entry), ent, 1 );
   assert( rv == 0 );
 
   domain->AddHpiEvent( e );
 
-  return res;
-}
-
-
-bool
-cIpmiMcVendor::CreateResourceEntityPath( cIpmiResource *res, cIpmiSdr *sdr,
-					 cIpmiSdrs * /*sdrs*/ )
-{
-  SaHpiEntityPathT &ep = res->EntityPath().m_entity_path;
-  int idx = 0;
-
-  if ( sdr )
-     {
-       ep.Entry[idx].EntityType     = (SaHpiEntityTypeT)sdr->m_data[12];
-       ep.Entry[idx].EntityInstance = (SaHpiEntityInstanceT)sdr->m_data[13];
-       idx++;
-     }
-  else
-     {
-       ep.Entry[idx].EntityType     = SAHPI_ENT_SYSTEM_BOARD;
-       ep.Entry[idx].EntityInstance = 0;
-       idx++;
-     }
-
-  ep.Entry[idx].EntityType     = SAHPI_ENT_UNSPECIFIED;
-  ep.Entry[idx].EntityInstance = 0;
-
-  // let's append entity_root from config
-  const char *entity_root = res->Domain()->EntityRoot();
-
-  SaHpiEntityPathT entity_ep;
-  string2entitypath( entity_root, &entity_ep );
-  append_root( &entity_ep );
-
-  ep_concat( &ep, &entity_ep );
-
-  return true;
+  return ent;
 }
 
 
@@ -382,7 +304,7 @@ FindSensor( GList *list, unsigned int num, unsigned char lun )
   for( ; list; list = g_list_next( list ) )
      {
        cIpmiSensor *sensor = (cIpmiSensor *)list->data;
-
+       
        if (    sensor->Num() == num
             && sensor->Lun() == lun )
             return sensor;
@@ -420,7 +342,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
           {
             // remove the old sensor
             old_sensors = g_list_remove( old_sensors, old_sensor );
-            old_sensor->Resource()->Rem( old_sensor );
+            old_sensor->Entity()->Rem( old_sensor );
             delete old_sensor;
           }
 
@@ -434,13 +356,15 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
 
        cIpmiSdr *mcdlr = sdrs->FindSdr( sensor->Mc() );
 
-       // create resource
-       cIpmiResource *res = FindOrCreateResource( domain, sensor->Mc(), 0, mcdlr, sdrs );
+       // create entity
+       cIpmiEntity *ent = FindOrCreateEntity( domain, sensor->Mc(), sensor->Lun(),
+                                              sensor->EntityId(), sensor->EntityInstance(),
+                                              true, mcdlr );
 
-       assert( res );
+       assert( ent );
        new_sensors = g_list_append( new_sensors, sensor );
        sensor->HandleNew( domain );
-       res->Add( sensor );
+       ent->Add( sensor );
      }
 
   // destry old sensors
@@ -448,7 +372,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
      {
        cIpmiSensor *sensor = (cIpmiSensor *)old_sensors->data;
        old_sensors = g_list_remove( old_sensors, sensor );
-       sensor->Resource()->Rem( sensor );
+       sensor->Entity()->Rem( sensor );
        delete sensor;
      }
 
@@ -734,18 +658,21 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *
        return true;
      }
 
-  // find resource
-  cIpmiResource *res = FindOrCreateResource( domain, mc, 0, 
-					     mcdlr, sdrs );
+  // find entity
+  tIpmiEntityId ent_id       = (tIpmiEntityId)mcdlr->m_data[12];
+  unsigned int  ent_instance =  mcdlr->m_data[13];
+
+  cIpmiEntity *ent = FindOrCreateEntity( domain, mc, 0, ent_id, 
+                                         ent_instance, true, mcdlr );
 
   // cannot find or create ent
-  if ( res == 0 )
+  if ( ent == 0 )
        return true;
 
   // create ATCA fan
   if ( mc_type & dIpmiMcTypeBitFan )
      {
-       if ( CreateControlAtcaFan( domain, res, sdrs ) == false )
+       if ( CreateControlAtcaFan( domain, mc, sdrs, ent ) == false )
             return false;
      }
 
@@ -754,8 +681,8 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *
 
 
 bool
-cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res,
-				     cIpmiSdrs *sdrs )
+cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
+                                     cIpmiEntity *ent )
 {
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetFanSpeedProperties );
   msg.m_data[0] = dIpmiPigMgId;
@@ -764,7 +691,7 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res,
 
   cIpmiMsg rsp;
 
-  int rv = res->SendCommand( msg, rsp );
+  int rv = mc->SendCommand( msg, rsp );
 
   if (    rv
        || rsp.m_data_len < 6
@@ -780,13 +707,13 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res,
   unsigned int def      = rsp.m_data[4];
   bool         auto_adj = rsp.m_data[5] & 0x80;
 
-  cIpmiControlFan *f = new cIpmiControlFan( res->Mc(), res->GetControlNum(),
+  cIpmiControlFan *f = new cIpmiControlFan( mc, ent->GetControlNum(),
                                             min, max, def,
                                             auto_adj );
 
   f->IdString().SetAscii( "ATCA-Fan", SAHPI_TL_TYPE_LANGUAGE, SAHPI_LANG_ENGLISH );
 
-  res->Add( f );
+  ent->Add( f );
 
   return true;
 }
@@ -828,10 +755,13 @@ cIpmiMcVendor::CreateFrus( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
 
 
 bool
-cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmiSdrs *sdrs )
+cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
 {
   unsigned int fru_id;
   unsigned int lun;
+
+  tIpmiEntityId id       = (tIpmiEntityId)sdr->m_data[12];
+  unsigned int  instance = sdr->m_data[13];
 
   if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
      {
@@ -848,10 +778,10 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
   cIpmiMc *m = FindMcBySdr( domain, sdr );
   assert( m );
 
-  cIpmiResource *res = FindOrCreateResource( domain, m, 0 /*fru_id*/, sdr, sdrs );
-  assert( res );
+  cIpmiEntity *ent = FindOrCreateEntity( domain, m, lun, id, instance, true, sdr );
+  assert( ent );
 
-  cIpmiFru *fru = (cIpmiFru *)res->Find( m, SAHPI_INVENTORY_RDR, fru_id );
+  cIpmiFru *fru = (cIpmiFru *)ent->Find( m, SAHPI_INVENTORY_RDR, fru_id );
   bool need_add = false;
 
   if ( fru == 0 )
@@ -861,7 +791,7 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
        fru->IdString().SetIpmi( sdr->m_data + 15 );
        fru->Oem() = sdr->m_data[14];
 
-       fru->Resource() = res;
+       fru->Entity() = ent;
        need_add = true;
      }
 
@@ -880,7 +810,7 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
   if ( !need_add )
        return true;
 
-  res->Add( fru );
+  ent->Add( fru );
 
   return true;
 }
@@ -900,14 +830,36 @@ cIpmiMcVendor::CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
   if ( mcdlr == 0 )
        return true;
 
-  cIpmiResource *res = FindOrCreateResource( domain, source_mc, 0, mcdlr, sdrs );
-  assert( res );
+  tIpmiEntityId id       = (tIpmiEntityId)mcdlr->m_data[12];
+  unsigned int  instance = mcdlr->m_data[13];
+
+  cIpmiEntity *ent = FindOrCreateEntity( domain, source_mc, 0, id, instance, true, mcdlr );
+  assert( ent );
+
+  cIpmiSel *sel = source_mc->Sel();
+
+  // check this
+  if ( ent->Sel() != 0 )
+     {
+       stdlog << "ups: only one SEL per entity allowd !\n";
+       return true;
+     }
+  
+  assert( ent->Sel() == 0 );
+  ent->Sel() = sel;
+
+  assert( sel->Entity() == 0 );
+  sel->Entity() = ent;
 
   // create hpi sel
-  stdlog << "adding SEL " << res->EntityPath() << "\n";
+  stdlog << "adding SEL\n";
+
+  dbg( "adding SEL %d.%d (%s)",
+       ent->EntityId(), ent->EntityInstance(),
+       IpmiEntityIdToString( ent->EntityId() ) );
 
    // find resource
-  SaHpiRptEntryT *resource = domain->FindResource( res->m_resource_id );
+  SaHpiRptEntryT *resource = ent->Domain()->FindResource( ent->m_resource_id );
 
   if ( !resource )
      {
@@ -932,7 +884,7 @@ cIpmiMcVendor::CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
   e->type               = oh_event::OH_ET_RESOURCE;
   e->u.res_event.entry = *resource;
 
-  domain->AddHpiEvent( e );
+  ent->Domain()->AddHpiEvent( e );
 
   return true;
 }

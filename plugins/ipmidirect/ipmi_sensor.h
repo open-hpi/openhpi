@@ -44,8 +44,8 @@ __END_DECLS
 #include "ipmi_sdr.h"
 #endif
 
-#ifndef dIpmiRdr_h
-#include "ipmi_rdr.h"
+#ifndef dIpmiEntity_h
+#include "ipmi_entity.h"
 #endif
 
 

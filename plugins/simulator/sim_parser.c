@@ -868,7 +868,6 @@ static int node2entitypath(GSList *node, SaHpiEntityPathT *path)
     int retval = 0;
     int i, len;
 
-    memset(path, 0, sizeof(*path));
     len = g_slist_length(node)/2;
 
     if (len > SAHPI_MAX_ENTITY_PATH)
@@ -1631,6 +1630,9 @@ int sim_parser_rpt_set_tag(char *filename, SaHpiTextBufferT *tag)
     return 0;
 }
 
+
+
+
 int sim_parser_get_rdr(char *filename, SaHpiRdrT *rdr)
 {
     GSList *fhs;
@@ -1734,7 +1736,6 @@ int sim_parser_set_sensor_enables(char *filename, const SaHpiSensorEvtEnablesT *
     GSList *fhs = NULL;
     fhs = sensor_enable2node(enables);
     sim_generate(filename, fhs);
-    free_fhs_node(fhs);
     return 0;
 }
 int sim_parser_get_sensor_reading(char *filename, SaHpiSensorReadingT *reading)
@@ -1757,7 +1758,6 @@ int sim_parser_set_sensor_reading(char *filename, const SaHpiSensorReadingT *rea
 
     fhs = sensor_reading2node(reading);
     sim_generate(filename, fhs);
-    free_fhs_node(fhs);
     return 0;
 }
 
@@ -1856,7 +1856,6 @@ int sim_parser_set_sensor_thres(char *filename, const SaHpiSensorThresholdsT *th
     fhs = g_slist_append(fhs, (gpointer)tmp);
 
     sim_generate(filename, fhs);
-    free_fhs_node(fhs);
     return 0;
 }
 

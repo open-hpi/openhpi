@@ -128,7 +128,7 @@ struct SnmpSensorThresholdOids {
 	struct SNMPInterpretedThresholdsOIDs InterpretedThresholds;
 };
 
-struct RSA_SensorMibInfo {
+struct SensorMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
 	int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
 	int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorInterpretedTypeT values */
@@ -136,35 +136,17 @@ struct RSA_SensorMibInfo {
         struct SnmpSensorThresholdOids threshold_oids;
 };
 
-#define MAX_EVENTS_PER_SENSOR 3 
-#define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1) 
-                                     /* Includes an ending NULL entry */
-
-struct sensor_event_map {
-        char *event;
-	SaHpiEventStateT event_state;
-};
-
-/* 
- * Don't need a default state for sensors, since sensor code never
- * sets state back to default - just define cur_state to the "default"
- * in bc_resources.c 
-*/
-struct RSA_SensorInfo {
-	struct RSA_SensorMibInfo mib;
-        SaHpiEventStateT cur_state;
-        struct sensor_event_map event_array[MAX_SENSOR_EVENT_ARRAY_SIZE];
-};
-
 struct snmp_rsa_sensor {
         SaHpiSensorRecT sensor;
-	struct RSA_SensorInfo rsa_sensor_info;
+	struct SensorMibInfo mib;
         const char* comment;
 };
 
 extern struct snmp_rsa_sensor snmp_rsa_chassis_sensors[];
-extern struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[];
-extern struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[];
+extern struct snmp_rsa_sensor snmp_rsa_power_sensors[];
+extern struct snmp_rsa_sensor snmp_rsa_cpu_sensors[];
+extern struct snmp_rsa_sensor snmp_rsa_dasd_sensors[];
+extern struct snmp_rsa_sensor snmp_rsa_fan_sensors[];
 
 /*************************************************************************
  *                   Control Definitions

@@ -77,6 +77,12 @@ static void *sim_open(GHashTable *handler_config)
 	i->rptcache = (RPTable *)g_malloc0(sizeof(RPTable)); 
         
         i->data = fhs_event_init(i);
+/*     
+        wait for fhs to insert event
+        I will use another approach to wait for fhs to insert 
+        event
+*/
+	sleep(1);
 
         return( (void *)i );
 }

@@ -55,19 +55,16 @@ public:
   // called after reading an SDR to create sensors, controls, frus, sel
   virtual bool CreateRdrs( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
 
-  // create resources from sdr
-  virtual bool CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs );
-
-  // find or create resource
-  virtual cIpmiResource *FindOrCreateResource( cIpmiDomain *domain, cIpmiMc *mc, unsigned int fru_id,
-					       cIpmiSdr *sdr, cIpmiSdrs *sdrs );
+  // find or create entity
+  virtual cIpmiEntity *FindOrCreateEntity( cIpmiDomain *domain, cIpmiMc *mc, int lun,
+                                        tIpmiEntityId entity_id, unsigned int entity_instance,
+                                        bool came_from_sdr, cIpmiSdr *sdr );
 
 protected:
   // create a new entity
-  virtual cIpmiResource *CreateResource( cIpmiDomain *domain, cIpmiMc *mc, unsigned int fru_id,
-					 cIpmiSdr *sdr, cIpmiSdrs *sdrs );
-  virtual bool CreateResourceEntityPath( cIpmiResource *res, cIpmiSdr *sdr,
-					 cIpmiSdrs *sdrs );
+  virtual cIpmiEntity *CreateEntity( cIpmiDomain *domain, cIpmiMc *mc, tIpmiDeviceNum devive_num, int lun,
+                                     tIpmiEntityId entity_id, unsigned int entity_instance,
+                                     bool came_from_sdr, cIpmiSdr *sdr );
 
 public:
   // create sensors
@@ -101,7 +98,8 @@ public:
 protected:
   virtual bool CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
                                    unsigned int mc_type );
-  virtual bool CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res, cIpmiSdrs *sdrs );
+  virtual bool CreateControlAtcaFan( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
+                                     cIpmiEntity *ent );
 
 public:
   // create FRUs

@@ -420,7 +420,6 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
        return;
      }
 
-  // BUG: this is totaty wrong !!!
   cIpmiMc     *mc = 0;
   cIpmiAddr    addr;
 

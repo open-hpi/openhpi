@@ -75,7 +75,7 @@ AddOrStr( char *str, const char *s )
   if ( *str )
        strcat( str, " | " );
 
-  strcat( str, s );
+  strcpy( str, s );
 }
 
 
@@ -862,10 +862,10 @@ cIpmiSensorThreshold::GetDefaultThresholds( SaHpiSensorThresholdsT &thres )
 SaErrorT
 cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 {
-  cIpmiResource *res = Resource();
+  cIpmiEntity *ent = Entity();
 
-  stdlog << "read thresholds for sensor " << EntityPath() << " num " 
-         << m_num << " " << IdString() << ".\n";
+  stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor "
+         << m_num << " (" << IdString() << ") get thresholds.\n";
 
   if ( m_threshold_access == eIpmiThresholdAccessSupportFixed )
        // Thresholds are fixed, pull them from the SDR.
@@ -877,11 +877,11 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  int rv = res->SendCommand( msg, rsp, m_lun );
+  int rv = m_mc->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
      {
-       stdlog << "error getting thresholds: " << rv << " !\n";
+       stdlog << "Error getting thresholds: " << rv << " !\n";
 
        return SA_ERR_HPI_INVALID_DATA;
      }
@@ -918,10 +918,10 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 SaErrorT
 cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
 {
-  cIpmiResource *res = Resource();
+  cIpmiEntity *ent = Entity();
 
-  stdlog << "read hysteresis for sensor " << EntityPath() << " num " << m_num 
-         << " " << IdString() << ".\n";
+  stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor " << m_num 
+         << " (" << IdString() << ") get hysteresis.\n";
 
   if (    m_hysteresis_support != eIpmiHysteresisSupportReadable
        && m_hysteresis_support != eIpmiHysteresisSupportSettable)
@@ -934,7 +934,7 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
   msg.m_data[0]  = m_num;
   msg.m_data[1]  = 0xff;
 
-  int rv = res->SendCommand( msg, rsp, m_lun );
+  int rv = m_mc->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
      {
@@ -1206,7 +1206,7 @@ cIpmiSensorThreshold::GetEventEnables( SaHpiSensorEvtEnablesT &enables )
 
        if ( (amask & b1) || (amask & b2) )
             enables.AssertEvents |= (1 << i);
-
+       
        if ( (dmask & b1) || (dmask & b2) )
             enables.DeassertEvents |= (1 << i);
      }
@@ -1222,20 +1222,13 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
   unsigned int amask = 0;
   unsigned int dmask = 0;
 
-  if ( enables.AssertEvents == 0xffff )
-       amask = m_assertion_event_mask;
-  
-  if ( enables.DeassertEvents == 0xffff )
-       dmask = m_deassertion_event_mask;
-
   for( int i = 0; i < 6; i++ )
      {
        unsigned int b1 = 1 << (2*i);
        unsigned int b2 = 1 << (2*i + 1);
        unsigned int b  = b1 | b2; // this is 3 << (2*i)
 
-       if (    enables.AssertEvents != 0xffff
-            && (enables.AssertEvents & ( 1 << i )) )
+       if ( enables.AssertEvents & ( 1 << i ) )
           {
             if ( (m_assertion_event_mask & b) == 0 )
                {
@@ -1244,14 +1237,13 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
                         << IpmiThresToString( (tIpmiThresh)i )
                         << " not allowed !\n";
 
-                 return SA_ERR_HPI_INVALID_CMD;
+                 return SA_ERR_HPI_INVALID_CMD; 
                }
 
             amask |= (m_assertion_event_mask & b);
           }
 
-       if (    enables.DeassertEvents != 0xffff
-            && (enables.DeassertEvents & ( 1 << i )) )
+       if ( enables.DeassertEvents & ( 1 << i ) )
           {
             if ( (m_deassertion_event_mask & b) == 0 )
                {

@@ -41,6 +41,7 @@ __BEGIN_DECLS
 __END_DECLS
 
 
+class cIpmiEntity;
 class cIpmiDomain;
 class cIpmiSdrs;
 
@@ -51,7 +52,7 @@ class cIpmiSdrs;
 class cIpmiSel
 {
 protected:
-  cIpmiMc      *m_mc;
+  cIpmiMc     *m_mc;
 
   // LUN we are attached with.
   int           m_lun;
@@ -66,6 +67,9 @@ protected:
   bool          m_supports_partial_add_sel;
   bool          m_supports_reserve_sel;
   bool          m_supports_get_sel_allocation;
+
+  // entity of SEL
+  cIpmiEntity  *m_entity;
 
 public:
   bool          m_fetched;
@@ -133,6 +137,7 @@ public:
   // get SEL time
   SaErrorT GetSelTime( SaHpiTimeT &t );
 
+  cIpmiEntity *&Entity() { return m_entity; }
   cIpmiMc      *Mc() { return m_mc; }
   int           Lun() { return m_lun; }
 
