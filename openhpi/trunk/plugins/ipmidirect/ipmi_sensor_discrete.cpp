@@ -101,7 +101,7 @@ cIpmiSensorDiscrete::GetData( SaHpiSensorReadingT &data )
        data.EventStatus.SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
 
   if ( (rsp.m_data[2] & 0x40) != 0 )
-       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
+       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_SCAN_ENABLED;
 
   if ( rsp.m_data[2] & 0x20 )
        data.EventStatus.SensorStatus |= SAHPI_SENSTAT_BUSY;
