@@ -39,4 +39,4 @@ pkglib_LTLIBRARIES	= libdummy.la
 
 libdummy_la_SOURCES	= dummy.c
 libdummy_la_LIBADD	= -luuid
-libdummy_la_LDFLAGS	= -avoid-version
+libdummy_la_LDFLAGS	= -module -avoid-version -export-dynamic
