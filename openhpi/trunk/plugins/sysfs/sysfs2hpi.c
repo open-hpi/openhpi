@@ -13,6 +13,7 @@
  *     Rusty Lynch <rusty.lynch@linux.intel.com>
  *     Julie Fleischer <julie.n.fleischer@intel.com>
  *     Tariq Shureih <tariq.shureih@intel.com>
+ *     Racing Guo <racing.guo@intel.com>
  */
 
 #include <stdlib.h>
@@ -20,6 +21,7 @@
 #include <libsysfs.h>
 
 #include <SaHpi.h>
+#include <oh_utils.h>
 #include <openhpi.h>
 #include <oh_utils.h>
 
@@ -42,7 +44,7 @@ struct sensor {
 	struct sysfs_attribute *min;
 	struct sysfs_attribute *value;
 	struct sysfs_attribute *div;
-	SaHpiSensorEvtEnablesT enables;
+	SaHpiBoolT evt_enable;
 };
 
 struct resource {
@@ -50,6 +52,15 @@ struct resource {
 	char name[SYSFS_NAME_LEN];
 	GSList *sensors;
 };
+
+
+static inline void reading_int64_set(SaHpiSensorReadingT *reading, int value)
+{
+        reading->IsSupported = SAHPI_TRUE;
+        reading->Type = SAHPI_SENSOR_READING_TYPE_INT64;
+        reading->Value.SensorInt64 = value;
+}
+
 
 /**
  * *sysfs2hpi_open:
@@ -203,6 +214,7 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 	struct oh_event *e;
 	unsigned char strinput[SYSFS_NAME_LEN];
 	int puid;
+        SaHpiSensorDataFormatT *frmt;
 
 	if ((type != SAHPI_TEMPERATURE) && (type != SAHPI_VOLTAGE) &&
        		(type != SAHPI_CURRENT) && (type != SAHPI_FAN))	{
@@ -292,7 +304,41 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
         ep_concat( &e->u.rdr_event.rdr.Entity, &g_epbase);
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num_sensors;
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Type = type;
+
 	/* Ignoring .Category, .EventCtrl, and .Events b/c sysfs has no events */
+        frmt = &e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.DataFormat;
+        frmt->IsSupported = SAHPI_TRUE;
+        frmt->ReadingType = SAHPI_SENSOR_READING_TYPE_INT64;
+
+	switch(type) {
+		case SAHPI_TEMPERATURE:
+			/* Interpreted temperature is in degrees Celcius */
+			frmt->BaseUnits = SAHPI_SU_DEGREES_C;
+			break;
+		case SAHPI_VOLTAGE:
+			/* Interpreted voltage is in Volts */
+			frmt->BaseUnits = SAHPI_SU_VOLTS;
+			break;
+		case SAHPI_CURRENT:
+			/* Interpreted current is in Amps */
+			frmt->BaseUnits = SAHPI_SU_AMPS;
+			break;
+		case SAHPI_FAN:
+			/* Interpreted fan is in RPMs */
+			frmt->BaseUnits = SAHPI_SU_RPM;
+			break;
+		default: /* should never be executed */
+			return SA_ERR_HPI_INVALID_PARAMS;
+        }
+       
+        frmt->ModifierUnits = 0;
+        frmt->ModifierUse = 0;
+        frmt->Percentage = 0;
+/* Fix Me : I don't know range*/
+        //frmt->Range = 0;
+        frmt->AccuracyFactor = 0;
+
+#if 0
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Ignore = FALSE;
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.DataFormat.ReadingFormats = 
 		SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED;
@@ -329,6 +375,7 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 	e->u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
 	e->u.rdr_event.rdr.IdString.DataLength = strlen(s->name);
 	strcpy(e->u.rdr_event.rdr.IdString.Data, s->name);
+#endif
 
 	inst->eventq = g_slist_append(inst->eventq, e);
 
@@ -577,6 +624,12 @@ static int sysfs2hpi_discover_resources(void *hnd)
  *
  * Return value: 0 for success | Error code
  **/
+
+/**
+ * Change:
+ * all readings get interpreted values
+ **/
+
 static int sysfs2hpi_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 					SaHpiSensorNumT num,
 				     	SaHpiSensorReadingT *data)
@@ -611,11 +664,6 @@ static int sysfs2hpi_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 		dbg("could not get sensor data");
 		return SA_ERR_HPI_INVALID_DATA;
 	}
-
-	data->ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED;
-	data->EventStatus.SensorStatus = s->enables.SensorStatus;
-	data->EventStatus.EventStatus = s->enables.AssertEvents;
-
 	if (!s->value) {
 		dbg("input data for sensor not available");
 		return SA_ERR_HPI_INVALID_DATA;
@@ -624,18 +672,9 @@ static int sysfs2hpi_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 		dbg("error attempting to read value of %s",s->name);
 		return SA_ERR_HPI_INVALID_DATA;
 	}
-	data->Raw = atoi(tmp);
+
+        reading_int64_set(data, atoi(tmp));
 	
-	data->Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_UINT32;
-	if (!s->div) { /* assume not a fan sensor */
-		data->Interpreted.Value.SensorUint32 = (SaHpiUint32T) data->Raw/1000;
-	} else { /* fan sensor */
-		if (sysfs_read_attribute_value(s->div->path,tmp,SCRATCHSIZE)) {
-			dbg("error attempting to read value of %s",s->name);
-			return SA_ERR_HPI_INVALID_DATA;
-		}
-		data->Interpreted.Value.SensorUint32 = (SaHpiUint32T) data->Raw/atoi(tmp);
-	}
 	return 0;
 }
 
@@ -702,10 +741,26 @@ static int sysfs2hpi_get_sensor_thresholds(void *hnd,
 	 * Setting ValuesPresent for all other items to 0.
 	 */
 	/* get min values */
-	if (sysfs_read_attribute_value(s->min->path,tmp,SCRATCHSIZE)) {
-		dbg("error attempting to read value of %s",s->name);
-		return SA_ERR_HPI_INVALID_DATA;
-	}
+        if (sysfs_read_attribute_value(s->min->path,tmp,SCRATCHSIZE)) {
+                dbg("error attempting to read value of %s",s->name);
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+        reading_int64_set(&thres->LowCritical, atoi(tmp));
+
+        if (sysfs_read_attribute_value(s->max->path,tmp,SCRATCHSIZE)) {
+                dbg("error attempting to read value of %s",s->name);
+                return SA_ERR_HPI_INVALID_DATA;
+        }
+        reading_int64_set(&thres->UpCritical, atoi(tmp));
+
+        thres->LowMajor.IsSupported = SAHPI_FALSE;
+        thres->LowMinor.IsSupported = SAHPI_FALSE;
+        thres->UpMajor.IsSupported = SAHPI_FALSE;
+        thres->UpMinor.IsSupported = SAHPI_FALSE;
+        thres->PosThdHysteresis.IsSupported = SAHPI_FALSE;
+        thres->NegThdHysteresis.IsSupported = SAHPI_FALSE;
+
+#if 0
 	thres->LowCritical.Raw = atoi(tmp);
 	thres->LowCritical.ValuesPresent = SAHPI_SRF_RAW;
 	thres->LowCritical.EventStatus.SensorStatus = s->enables.SensorStatus;
@@ -754,7 +809,7 @@ static int sysfs2hpi_get_sensor_thresholds(void *hnd,
 	thres->UpMinor.ValuesPresent = 0;
 	thres->PosThdHysteresis.ValuesPresent = 0;
 	thres->NegThdHysteresis.ValuesPresent = 0;
-
+#endif
 	return 0;
 }
 
@@ -772,46 +827,19 @@ static int sysfs2hpi_get_sensor_thresholds(void *hnd,
  **/
 static int sysfs2hpi_set_sensor_reading(SaHpiRdrT *rdr,
 		struct sysfs_attribute *attr,
-		struct sysfs_attribute *div,
 		SaHpiSensorReadingT reading)
 {
-	char tmp[SCRATCHSIZE], tmprd[SCRATCHSIZE];
+	
+        char tmp[SCRATCHSIZE];
 
-	/* try to set raw values first, per SAF HPI spec */
-	if ((reading.ValuesPresent & SAHPI_SRF_RAW) &&
-		(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities
-		& SAHPI_STC_RAW))	{
-		sprintf(tmp, "%d", reading.Raw);
+        if (reading.Type == SAHPI_SENSOR_READING_TYPE_INT64) {
+		sprintf(tmp, "%lld", reading.Value.SensorInt64);
 		if (sysfs_write_attribute(attr,tmp,SCRATCHSIZE)) {
 			dbg("error attempting to write value");
 			return SA_ERR_HPI_INVALID_DATA;
 		}
 		return 0;
 	}
-
-	if ((reading.ValuesPresent & SAHPI_SRF_INTERPRETED) &&
-		(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities 
-		& SAHPI_STC_INTERPRETED) &&
-		(reading.Interpreted.Type & SAHPI_SENSOR_INTERPRETED_TYPE_UINT32)) {
-		if (!div) { /* assume not a fan sensor */
-			sprintf(tmp, "%d", 
-				reading.Interpreted.Value.SensorUint32*1000);
-		} else { /* fan sensor */
-			if (sysfs_read_attribute_value(div->path,tmprd,SCRATCHSIZE)) {
-				dbg("error attempting to read value");
-				return SA_ERR_HPI_INVALID_DATA;
-			}
-			sprintf(tmp, "%d", 
-				reading.Interpreted.Value.SensorUint32*
-				atoi(tmprd));
-		}
-		if (sysfs_write_attribute(attr,tmp,SCRATCHSIZE)) {
-			dbg("error attempting to write value");
-			return SA_ERR_HPI_INVALID_DATA;
-		}
-		return 0;
-	}
-
 	dbg("No values were set");
 	return SA_ERR_HPI_INVALID_REQUEST;
 }
@@ -868,21 +896,22 @@ static int sysfs2hpi_set_sensor_thresholds(void *hnd,
 	 * to LowCritical and UpCritical, respectively, so all other input
 	 * will be ignored
 	 */
-	if ((0 == thres->LowCritical.ValuesPresent) && 
-			(0 == thres->UpCritical.ValuesPresent)) {
+
+	if ((SAHPI_TRUE != thres->LowCritical.IsSupported) && 
+			(SAHPI_TRUE != thres->UpCritical.IsSupported)) {
 		/* if no LowCritical or UpCritical values are sent, return error */
 		dbg("No LowCritical or UpCritical values were sent");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
 	/* set min value */
-	if (thres->LowCritical.ValuesPresent) {
-		ret = sysfs2hpi_set_sensor_reading(tmprdr, s->min, s->div, thres->LowCritical);
+	if (SAHPI_TRUE == thres->LowCritical.IsSupported) {
+		ret = sysfs2hpi_set_sensor_reading(tmprdr, s->min, thres->LowCritical);
 	}
 
 	/* set max values */
-	if (thres->UpCritical.ValuesPresent) {
-		ret = sysfs2hpi_set_sensor_reading(tmprdr, s->max, s->div, thres->UpCritical);
+	if (SAHPI_TRUE == thres->UpCritical.IsSupported) {
+		ret = sysfs2hpi_set_sensor_reading(tmprdr, s->max, thres->UpCritical);
 	}
 
 	return ret;
@@ -902,7 +931,7 @@ static int sysfs2hpi_set_sensor_thresholds(void *hnd,
 static int sysfs2hpi_get_sensor_event_enables(void *hnd, 
 						SaHpiResourceIdT id,
 						SaHpiSensorNumT num,
-					      	SaHpiSensorEvtEnablesT *enables)
+					      	SaHpiBoolT *enable)
 {
 	struct sensor *s;
 	struct oh_handler_state *inst = (struct oh_handler_state *)hnd;
@@ -933,8 +962,9 @@ static int sysfs2hpi_get_sensor_event_enables(void *hnd,
 		dbg("could not get sensor data for event enables");
 		return SA_ERR_HPI_INVALID_DATA;
 	}
-
-	memcpy(enables,&s->enables,sizeof(*enables));
+	
+	*enable = s->evt_enable;
+	
 	return 0;
 }
 
@@ -952,7 +982,7 @@ static int sysfs2hpi_get_sensor_event_enables(void *hnd,
 static int sysfs2hpi_set_sensor_event_enables(void *hnd, 
 						SaHpiResourceIdT id,
 						SaHpiSensorNumT num,
-					      	const SaHpiSensorEvtEnablesT *enables)
+					      	SaHpiBoolT enable)
 {
 	struct sensor *s;
 	struct oh_handler_state *inst = (struct oh_handler_state *)hnd;
@@ -984,7 +1014,7 @@ static int sysfs2hpi_set_sensor_event_enables(void *hnd,
 		return SA_ERR_HPI_INVALID_DATA;
 	}
 
-	memcpy(&s->enables,enables,sizeof(*enables));
+	s->evt_enable = enable;
 	return 0;
 }
 
