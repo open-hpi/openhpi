@@ -23,12 +23,12 @@
 #include <epath_utils.h>
 
 #include <rsa_resources.h>
-#include <snmp_rsa_control.h>
+// #include <snmp_rsa_control.h>
 #include <snmp_rsa_discover.h>
-#include <snmp_rsa_sel.h>
-#include <snmp_rsa_sensor.h>
+// #include <snmp_rsa_sel.h>
+// #include <snmp_rsa_sensor.h>
 #include <snmp_rsa_session.h>
-#include <snmp_rsa_watchdog.h>
+// #include <snmp_rsa_watchdog.h>
 
 #include <snmp_rsa.h>
 
@@ -50,11 +50,11 @@ static int snmp_rsa_get_event(void *hnd, struct oh_event *event, struct timeval 
 static int snmp_rsa_discover_resources(void *hnd)
 {
         SaHpiEntityPathT entity_root;        
-        guint i;
+//      guint i;
         struct oh_event *e;
-	struct snmp_value get_value, get_active;
+//	struct snmp_value get_value, get_active;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+//      struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
         RPTable *tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
         GSList *tmpqueue = NULL;
         char *root_tuple = (char *)g_hash_table_lookup(handle->config,"entity_root");        
@@ -66,12 +66,12 @@ static int snmp_rsa_discover_resources(void *hnd)
         e = snmp_rsa_discover_chassis(&entity_root);
         if(e != NULL) {
                 struct ResourceMibInfo *res_mib =
-                        g_memdup(&(snmp_rpt_array[rsa_RPT_ENTRY_CHASSIS].mib),
+                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].mib),
                                  sizeof(struct snmp_rpt));
                 oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                 tmpqueue = g_slist_append(tmpqueue, e);
-                SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-                SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+//              SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+//              SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
 //		find_sensors(snmp_rsa_chassis_sensors);                        
 //		find_controls(snmp_rsa_chassis_controls);
 //		find_inventories(snmp_rsa_chassis_inventories);
@@ -80,12 +80,12 @@ static int snmp_rsa_discover_resources(void *hnd)
         e = snmp_rsa_discover_cpu(&entity_root);
         if(e != NULL) {
                 struct ResourceMibInfo *res_mib =
-                        g_memdup(&(snmp_rpt_array[rsa_RPT_ENTRY_CPU].mib),
+                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CPU].mib),
                                  sizeof(struct snmp_rpt));
                 oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                 tmpqueue = g_slist_append(tmpqueue, e);
-                SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-                SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+//              SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+//              SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
 //		find_sensors(snmp_rsa_cpu_sensors);                        
 //		find_inventories(snmp_rsa_cpu_inventories);
         }
@@ -93,12 +93,12 @@ static int snmp_rsa_discover_resources(void *hnd)
         e = snmp_rsa_discover_dasd(&entity_root);
         if(e != NULL) {
                 struct ResourceMibInfo *res_mib =
-                        g_memdup(&(snmp_rpt_array[rsa_RPT_ENTRY_DASD].mib),
+                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_DASD].mib),
                                  sizeof(struct snmp_rpt));
                 oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                 tmpqueue = g_slist_append(tmpqueue, e);
-                SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-                SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+//              SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+//              SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
 //		find_sensors(snmp_rsa_dasd_sensors);                        
 //		find_inventories(snmp_rsa_dasd_inventories);
         }
