@@ -1,0 +1,72 @@
+<!-- ...................................................................... -->
+<!-- File introduction.dtd ................................................ -->
+<!-- 
+        This material may be distributed only subject to the terms and 
+        conditions set forth in the Open Publication License, v1.0 or later 
+        (the latest version is currently available at 
+        http://www.opencontent.org/openpub/).  Distribution of substantively 
+        modified version of this document is prohibited without the explicit 
+        permission of the copyright holder.
+
+        Other company, product, or service names may be trademarks or service 
+        marks of others.
+-->
+
+<chapter>
+  <title>Introduction</title>
+  <para>
+
+OpenHPI is an open source project created with the intent of providing
+an implementation of the Service Availability Forum's Hardware Platform 
+Interface (HPI).  HPI provides a universal interface for creating resource 
+system models, typically for chassis and rack based servers, but extendable 
+for other problem domains such as clustering, virtualization and simulation.
+
+  </para>
+  <sect1>
+    <title>Purpose of this Document</title>
+    <para>
+
+This document is intended to combine collaborated design effort into a single
+location.  This HLD should specify the implementation, including 
+inter-component dependencies, providing sufficient design detail to correctly 
+implement the SA Forum's HPI for multiple platforms.
+
+    </para>
+  </sect1>
+  <sect1>
+    <title>Document Scope</title>
+    <para>
+
+This high-level design covers all levels of design and may evolve into a 
+low-level design as the document matures. Anyone interested in understanding 
+the OpenHPI internal design should read this document.
+
+    </para>
+  </sect1>
+  <sect1>
+    <title>Terminology</title>
+    <para>
+      <informaltable frame="all">
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry>Acronym</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>HPI</entry>
+              <entry>Hardware Platform Interface</entry>
+            </row>
+            <row>
+              <entry>SA Forum</entry>
+              <entry>Service Availability Forum</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </para>
+  </sect1>
+</chapter>
