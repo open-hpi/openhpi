@@ -2,6 +2,9 @@
 #define _INC_HPI_CMD_H
 #include <SaHpi.h>
 
+#define HPI_SHELL_MAJOR	0
+#define HPI_SHELL_MINOR 2
+
 enum error_type{
 	HPI_SHELL_OK = 0,
 	HPI_SHELL_PARM_ERROR,
