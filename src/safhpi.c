@@ -25,7 +25,6 @@
 static enum {
 	OH_STAT_UNINIT,
 	OH_STAT_READY,
-	OH_STAT_FINAL
 } oh_hpi_state = OH_STAT_UNINIT;
 static const int entry_id_offset = 1000;
 static struct oh_config config;
@@ -117,7 +116,7 @@ SaErrorT SAHPI_API saHpiFinalize(void)
 	/*
           we should be doing handler shutdown here.
         */
-        oh_hpi_state = OH_STAT_FINAL;
+        oh_hpi_state = OH_STAT_UNINIT;
 	return SA_OK;
 }
 
