@@ -11,7 +11,6 @@
  *
  * Authors:
  *      David Judkovics <djudkovi@us.ibm.com>
- *
  */
  
 #include <stdio.h>
@@ -20,15 +19,12 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <rpt_utils.h>
-#include <uid_utils.h>
+#include <oh_utils.h>
 #include <snmp_util.h>
 
 #include <snmp_client.h>
 #include <snmp_client_res.h>
 #include <snmp_client_utils.h>
-#include <oh_utils.h>
 #include <sc_sensor_data.h>
 
 #include <netinet/in.h>
