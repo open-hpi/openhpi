@@ -23,6 +23,8 @@
 #include <bc_resources.h>
 #include <bc_str2event.h>
 
+GHashTable * str2event_hash;
+
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 
 int str2event_hash_init() {

@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,7 +9,7 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
@@ -31,8 +31,7 @@ struct snmp_bc_data {
 	SnmpMibInfoT mib;
 };
 
-GHashTable * sim_hash;
-
+extern GHashTable * sim_hash;
 extern struct snmp_bc_data sim_resource_array[];
 
 #define SNMP_FORCE_ERROR -9999
