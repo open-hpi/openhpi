@@ -32,6 +32,7 @@ void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 	  	dbg("Resource %d not present", rid);
 		res_info->presence = 0;
 	}
+	res_info->updated = 1;
 }
 
 static void entity_presence(ipmi_entity_t	*entity,
@@ -196,66 +197,33 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 		ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
 		ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
 		ohoi_res_info->presence = 0;
+		ohoi_res_info->updated = 1;
 
 		get_entity_event(entity, &entry, ipmi_handler);	
 
 		oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
-
-		
-
-		
-		
-
-		
-		
-		
-		
-
-		
-		
-		
-		
-
-		
-		
-		
-		
-
-		
-
-		
-
-		
-                
-                
-        	
-
-		
-
-		
-		
-		
-		
-		
-
 }
 
 void ohoi_remove_entity(struct oh_handler_state *handler,
 			SaHpiResourceIdT res_id)
 {
-  	struct oh_event *e;
+	  	struct oh_event *e;
+		struct ohoi_resource_info *res_info;
 
-  	dbg("Entity (%d) removed", res_id);
+		res_info = oh_get_resource_data(handler->rptcache, res_id);
 
-	/* Now put an event for the resource to DEL */
-	e = g_malloc0(sizeof(*e));
-	memset(e, 0, sizeof(*e));
+  		dbg("Entity (%d) removed", res_id);
 
-	e->did = oh_get_default_domain_id();
-	e->type = OH_ET_RESOURCE_DEL;
-	e->u.res_event.entry.ResourceId = res_id;
+		/* Now put an event for the resource to DEL */
+		e = g_malloc0(sizeof(*e));
+		memset(e, 0, sizeof(*e));
 
-	handler->eventq = g_slist_append(handler->eventq, e);
+		e->did = oh_get_default_domain_id();
+		e->type = OH_ET_RESOURCE_DEL;
+		e->u.res_event.entry.ResourceId = res_id;
+
+		handler->eventq = g_slist_append(handler->eventq, e);
+		res_info->updated = 1;
 }
 
 void ohoi_entity_event(enum ipmi_update_e       op,

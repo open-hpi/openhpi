@@ -328,7 +328,8 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
  **/
 int ipmi_discover_resources(void *hnd)
 {
-	int rv = 1;
+      	
+  	int rv = 1;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	struct oh_event *event;
@@ -336,81 +337,82 @@ int ipmi_discover_resources(void *hnd)
 	SaHpiRdrT	*rdr_entry;
 	time_t		tm, tm1;
 	int		SDR_done = 0, scan_done = 0, mc_count = 0;
-
+	
 	struct ohoi_resource_info	*res_info;
 
 	dbg("ipmi discover_resources");
 	
 	time(&tm);
 	while ((0 == ipmi_handler->SDRs_read_done
-			|| 0 == ipmi_handler->bus_scan_done
-			|| 0 != ipmi_handler->mc_count)
-	      		|| (rv == 1)) {
-			
-		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
+					|| 0 == ipmi_handler->bus_scan_done
+					|| 0 != ipmi_handler->mc_count)
+					|| (rv == 1)) {
+	      	rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv < 0) {
 			dbg("error on waiting for discovery");
 			return SA_ERR_HPI_ERROR;
 		};
 		if ((rv == 1) || (SDR_done != ipmi_handler->SDRs_read_done)
-			|| (scan_done != ipmi_handler->bus_scan_done)
-			|| (mc_count != ipmi_handler->mc_count)) {
-			/* get new timeout for sel_select loop */
+							|| (scan_done != ipmi_handler->bus_scan_done)
+							|| (mc_count != ipmi_handler->mc_count)) {
+		      	/* get new timeout for sel_select loop */
 			time(&tm);
 			SDR_done = ipmi_handler->SDRs_read_done;
 			scan_done = ipmi_handler->bus_scan_done;
 			mc_count = ipmi_handler->mc_count;
-		} else {
-			time(&tm1);
-			/* OpenIPMI takes about 10 seconds to timeout */
-			if ((tm1 - tm) > 30) {
-				dbg("timeout on waiting for discovery");
+			} else {
+			  	time(&tm1);
+				/* OpenIPMI takes about 10 seconds to timeout */
+				if ((tm1 - tm) > 30) {
+					dbg("timeout on waiting for discovery");
+					return SA_ERR_HPI_NO_RESPONSE;
+				}
+			}
+			if (!ipmi_handler->connected) {
+				fprintf(stderr, "IPMI connection is down\n");
 				return SA_ERR_HPI_NO_RESPONSE;
 			}
-		}
-		if (!ipmi_handler->connected) {
-			fprintf(stderr, "IPMI connection is down\n");
-			return SA_ERR_HPI_NO_RESPONSE;
-		}
 	}
-
-	dbg("ipmi discover_resources, MC count: %d", ipmi_handler->mc_count);
+	dbg("Discovery::MC count: %d", ipmi_handler->mc_count);
+	
         rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
-
+	
         while (rpt_entry) {
-	  	res_info = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
+		res_info = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
+
 		dbg("res: %d presence: %d", rpt_entry->ResourceId, res_info->presence);
-		if (res_info->presence == 1) {
-			event = g_malloc0(sizeof(*event));
+		if (res_info->presence == 1 && res_info->updated) {
+		      	event = g_malloc0(sizeof(*event));
 			memset(event, 0, sizeof(*event));
 			event->type = OH_ET_RESOURCE;
-
+	
 			memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
 			handler->eventq = g_slist_append(handler->eventq, event);
-
+	
 			rdr_entry = oh_get_rdr_next(handler->rptcache,
-						    rpt_entry->ResourceId,
-						    SAHPI_FIRST_ENTRY);
+						    	rpt_entry->ResourceId,
+							SAHPI_FIRST_ENTRY);
                 	while (rdr_entry) {
 			  	event = g_malloc0(sizeof(*event));
 				memset(event, 0, sizeof(*event));
 				event->type = OH_ET_RDR;
 				event->u.rdr_event.parent = rpt_entry->ResourceId;
-
+	
 				memcpy(&event->u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
 				handler->eventq = g_slist_append(handler->eventq, event);
-				
+					
 				rdr_entry = oh_get_rdr_next(handler->rptcache,
-							    rpt_entry->ResourceId,
-							    rdr_entry->RecordId);
+		    							rpt_entry->ResourceId,
+		    							rdr_entry->RecordId);
 			}
+				
 			rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
-                } else {
+		}else {
 		  	dbg("Resource %d not present, skipping", rpt_entry->ResourceId);
 			rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
 		}
-        }
-
+		res_info->updated = 0;
+	}
 	return 0;
 }
 
@@ -432,40 +434,41 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 {
         unsigned int count;
         unsigned int size;
-	int rv;
-	char del_support;
+		int rv;
+		char del_support;
 
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
         const struct ohoi_resource_info *ohoi_res_info;
 
-	dbg("starting wait for sel retrieval");
+		dbg("starting wait for sel retrieval");
 
-	while (0 == ipmi_handler->SELs_read_done) {
-		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
-		if (rv<0) {
-			dbg("error on waiting for SEL");
-			return -1;
+		while (0 == ipmi_handler->SELs_read_done) {
+			  	rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
+
+				if (rv<0) {
+					  	dbg("error on waiting for SEL");
+						return -1;
+				}
 		}
-	}
 
-	dbg("done retrieving sel");
+		dbg("done retrieving sel");
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
-                dbg("BUG: try to get sel in unsupported resource");
+			  	dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 	
         ohoi_get_sel_count(ohoi_res_info->u.mc_id, &count);
 	
-	if (count == 0)
-		info->Entries = 0;
-	else
-		info->Entries = count;
-	dbg("sel count: %d", count);
+		if (count == 0)
+			  	info->Entries = 0;
+		else
+				info->Entries = count;
+		dbg("sel count: %d", count);
 
-	ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
+		ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
         info->Size              = size / 16;
         ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id, &info->UpdateTimestamp);
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime, ipmi_handler);

@@ -71,11 +71,12 @@ struct ohoi_handler {
 };
 
 struct ohoi_resource_info {
-
-	int presence;	/* entity presence from OpenIPMI to determine
-			   to push RPT to domain RPTable or not */
-	
-        SaHpiUint8T  sensor_count; 
+	  	
+  	int presence;	/* entity presence from OpenIPMI to determine
+			   	to push RPT to domain RPTable or not */
+	int updated;	/* refcount of resource add/update from
+			   	rptcache to domain RPT */
+	SaHpiUint8T  sensor_count; 
         SaHpiUint8T  ctrl_count; 
 
         enum {
