@@ -56,7 +56,8 @@ struct snmp_bc_data sim_resource_array[] = {
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
-                                .integer = SA_ERR_SNMP_NOSUCHOBJECT,
+				/* .integer = 1, */
+				.integer = SA_ERR_SNMP_NOSUCHOBJECT,
                         },
                 },
         },

@@ -158,13 +158,16 @@ static void event_start_element(GMarkupParseContext *context,
 			/* See if event is for this platform */
 			switch (hash_info->platform) {
 			case SNMP_BC_PLATFORM_BCT:
-				if (strcmp(attribute_values[i], "BCT") != 0) return;
+				if (!(strcmp(attribute_values[i], "BCT") == 0 ||
+				      strcmp(attribute_values[i], "ALL") == 0)) return;
 				break;
 			case SNMP_BC_PLATFORM_BC:
-				if (strcmp(attribute_values[i], "BC") != 0) return;
+				if (!(strcmp(attribute_values[i], "BC") == 0 ||
+				      strcmp(attribute_values[i], "ALL") == 0)) return;
 				break;
 			case SNMP_BC_PLATFORM_RSA:
-				if (strcmp(attribute_values[i], "RSA") != 0) return;
+				if (!(strcmp(attribute_values[i], "RSA") == 0 ||
+				      strcmp(attribute_values[i], "ALL") == 0)) return;
 				break;
 			default:
 				return;
