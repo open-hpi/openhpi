@@ -28,6 +28,7 @@
 #include <pthread.h>
 
 
+
 static enum {
         OH_STAT_UNINIT,
         OH_STAT_READY,
@@ -106,6 +107,13 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
         data_access_lock();
+        
+        /* setup our global rpt_table */
+        default_rpt = calloc(1,sizeof(RPTable));
+        if(!default_rpt) {
+                dbg("Couldn't allocate RPT for Default Domain");
+                return SA_ERR_HPI_ERROR;
+        }
 
 	/* initialize uid_utils, and load uid map file if present */
 	if( oh_uid_initialize() ) {
@@ -288,8 +296,8 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
         
         /* FIXME: we should really be getting event default_rpt from 
            a domain or session keyed hash */
-        RptInfo->UpdateCount = default_rpt.rpt_info.UpdateCount;
-        RptInfo->UpdateTimestamp= default_rpt.rpt_info.UpdateTimestamp;
+        RptInfo->UpdateCount = default_rpt->rpt_info.UpdateCount;
+        RptInfo->UpdateTimestamp= default_rpt->rpt_info.UpdateTimestamp;
         return SA_OK;
 }
 
@@ -302,7 +310,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         struct oh_session *s;
 
         /* determine the right pointer later when we do multi domains */
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *req_entry;
         SaHpiRptEntryT *next_entry;
         
@@ -350,7 +358,7 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *req_entry;
 
         OH_STATE_READY_CHECK;
@@ -933,7 +941,7 @@ SaErrorT SAHPI_API saHpiEventGet (
                 SAHPI_INOUT SaHpiRdrT *Rdr,
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_session *s;
         SaHpiTimeT now, end;
         OH_STATE_READY_CHECK;
@@ -1025,7 +1033,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 SAHPI_OUT SaHpiEntryIdT *NextEntryId,
                 SAHPI_OUT SaHpiRdrT *Rdr)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRdrT *rdr_cur;
         SaHpiRdrT *rdr_next;
 
@@ -1067,7 +1075,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
 
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1095,7 +1103,7 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
                 SAHPI_IN SaHpiSensorReadingT *ReadingInput,
                 SAHPI_OUT SaHpiSensorReadingT *ConvertedReading)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRdrT *rdr;
         SaHpiSensorRecT *sensor;
         SaHpiSensorReadingFormatsT format;
@@ -1164,7 +1172,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 {
         int (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, const SaHpiSensorThresholdsT *);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
 
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1193,7 +1201,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorThresholdsT *);
 
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
 
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1225,7 +1233,7 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
                 SAHPI_OUT SaHpiSensorTypeT *Type,
                 SAHPI_OUT SaHpiEventCategoryT *Category)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRdrT *rdr;
 
         rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
@@ -1255,7 +1263,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
                                         SaHpiSensorNumT,
                                         SaHpiSensorEvtEnablesT *enables);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
 
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1284,7 +1292,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
                                         SaHpiSensorNumT,
                                         const SaHpiSensorEvtEnablesT *enables);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1313,7 +1321,7 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
                 SAHPI_OUT SaHpiCtrlTypeT *Type)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRdrT *rdr;
         
         rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_CTRL_RDR, CtrlNum);
@@ -1334,7 +1342,7 @@ SaErrorT SAHPI_API saHpiControlStateGet (
                 SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
 {
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1361,7 +1369,7 @@ SaErrorT SAHPI_API saHpiControlStateSet (
                 SAHPI_IN SaHpiCtrlStateT *CtrlState)
 {
         int (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1398,7 +1406,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
         int (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, size_t *);
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiInventoryDataT *);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1433,7 +1441,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
 {
         int (*set_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, const SaHpiInventoryDataT *);
 
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1461,7 +1469,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
 {
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1489,7 +1497,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
 {
         int (*set_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
 
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1516,7 +1524,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
 {
         int (*reset_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT);
 
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1540,7 +1548,7 @@ SaErrorT SAHPI_API saHpiHotSwapControlRequest (
         SAHPI_IN SaHpiSessionIdT SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         
         res = oh_get_resource_by_id(rpt, ResourceId);
@@ -1565,7 +1573,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT,
                         SaHpiHsStateT state);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         
@@ -1607,7 +1615,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT state);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         
@@ -1683,7 +1691,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiTimeoutT *Timeout)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         
         res = oh_get_resource_by_id(rpt, ResourceId);
@@ -1707,7 +1715,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         SAHPI_IN SaHpiResourceIdT ResourceId,
         SAHPI_IN SaHpiTimeoutT Timeout)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         
         res = oh_get_resource_by_id(rpt, ResourceId);
@@ -1733,7 +1741,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
 {
         int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         
@@ -1771,7 +1779,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         int (*request_hotswap_action)(void *hnd, SaHpiResourceIdT rid,
                         SaHpiHsActionT act);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         
@@ -1810,7 +1818,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
 {
         int (*get_power_state)(void *hnd, SaHpiResourceIdT id,
                                SaHpiHsPowerStateT *state);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1837,7 +1845,7 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
 {
         int (*set_power_state)(void *hnd, SaHpiResourceIdT id,
                                SaHpiHsPowerStateT state);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         
@@ -1871,7 +1879,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
 {
         int (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
                                    SaHpiHsIndicatorStateT *state);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1898,7 +1906,7 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
 {
         int (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
                                    SaHpiHsIndicatorStateT state);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1925,7 +1933,7 @@ SaErrorT SAHPI_API saHpiParmControl (
 {
         int (*control_parm)(void *, SaHpiResourceIdT, SaHpiParmActionT);
         
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         
@@ -1961,7 +1969,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
 {
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiResetActionT *);
 
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -1987,7 +1995,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
                 SAHPI_IN SaHpiResetActionT ResetAction)
 {
         int (*set_func)(void *, SaHpiResourceIdT, SaHpiResetActionT);
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         struct oh_handler *h;
         
         h = oh_get_resource_data(rpt, ResourceId);

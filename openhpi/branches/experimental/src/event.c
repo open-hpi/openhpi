@@ -208,7 +208,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
  **/
 int get_events(void)
 {
-        RPTable *rpt = &default_rpt;
+        RPTable *rpt = default_rpt;
         GSList *i;
         int has_event;
         

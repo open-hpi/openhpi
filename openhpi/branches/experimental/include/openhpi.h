@@ -319,7 +319,8 @@ extern GSList *global_session_list;
  * 
  *  This list is populated by calls to saHpiDiscoverResources()
  */
-extern RPTable default_rpt;
+
+extern RPTable *default_rpt;
 
 struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);

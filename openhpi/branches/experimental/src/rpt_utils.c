@@ -20,10 +20,10 @@
 #include <openhpi.h>
 
 /* declare Rptable object */		     
-RPTable default_rpt; 
+RPTable *default_rpt = NULL; 
 
 /* declare hotswap state list */
-GSList *managed_hs_resources;
+GSList *managed_hs_resources = NULL;
 
 static inline RPTEntry *get_rptentry_by_rid( RPTable *table, SaHpiResourceIdT rid)
 {
