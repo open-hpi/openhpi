@@ -530,6 +530,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         }
 
         string2entitypath(on_entitypath, &ep);
+        append_root(&ep);
         rptentry = oh_get_resource_by_ep(rpt, &ep);
         if (!rptentry) {
                 return SA_ERR_HPI_NOT_PRESENT;
