@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
 	 
-	SaHpiSensorNumT sid = 0;
+	SaHpiSensorNumT sid = 1;
 	SaHpiEventStateT assertMask       = SAHPI_ES_UPPER_MINOR;
 	SaHpiEventStateT deassertMask      = SAHPI_ES_UPPER_CRIT;
 	
