@@ -14,6 +14,7 @@
  *     Andy Cress <arcress@users.sourceforge.net>
  *     Peter D. Phan <pdphan@users.sourceforge.net>
  *     Renier Morales <renierm@users.sf.net>
+ *     Tariq Shureih <tariq.shureih@intel.com?
  *
  * Log: 
  *     Copied from hpifru.c and modified for general use
