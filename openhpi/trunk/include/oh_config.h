@@ -16,6 +16,7 @@
 #ifndef __OH_CONFIG_H
 #define __OH_CONFIG_H
 
+#include <openhpi.h>
 #include <glib.h>
 #include <SaHpi.h>
 
@@ -30,6 +31,8 @@
  * search path for plugins
  */
 #define OH_PLUGIN_PATH "/usr/lib/openhpi:/usr/local/lib/openhpi:/usr/local/lib"
+
+#define OH_DEFAULT_CONF "/etc/openhpi.conf"
 
 /* oh_plugin_config, currently with only one item.  There are thoughts of
    having explicit path to the plugin, but I'm not sure this is a good plan */
@@ -56,6 +59,8 @@ struct oh_config {
 
 int oh_load_config(struct oh_config*);
 
-void oh_free_config(struct oh_config*);
+GTokenType get_next_token_if (GScanner*, GTokenType);
+
+int process_handler_token(GScanner*);
 
 #endif/*__OH_CONFIG_H*/

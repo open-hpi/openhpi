@@ -66,7 +66,7 @@ int load_plugin(const char *plugin_name)
         int err;
         
         h = lt_dlopenext(plugin_name);
-        if (!h) {
+        if (h == NULL) {
                 dbg("Can not find %s plugin", plugin_name);
                 goto err1;
         }
@@ -123,7 +123,7 @@ struct oh_handler *new_handler(const char *plugin_name, const char *name, const 
 {
         lt_dlhandle h;
         int (*get_interface) (struct oh_abi_v1 ** pp, const uuid_t uuid);
-	struct oh_handler *handler;
+        struct oh_handler *handler;
         int err;
         
         handler = malloc(sizeof(*handler));
@@ -133,9 +133,11 @@ struct oh_handler *new_handler(const char *plugin_name, const char *name, const 
 	}
 	
         h = lt_dlopenext(plugin_name);
-        if (!h) {
+        if (h == NULL) {
                 dbg("Can not find %s plugin", plugin_name);
                 goto err1;
+        } else {
+                dbg("Loaded %s plugin", plugin_name);
         }
 
         get_interface = lt_dlsym(h, "get_interface");
