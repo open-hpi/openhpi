@@ -27,6 +27,7 @@
 #include <snmp_bc_utils.h>
 #include <snmp_bc_event.h>
 #include <snmp_bc_discover.h>
+#include <string.h>
 
 static inline struct oh_event *eventdup(const struct oh_event *event) 
 {

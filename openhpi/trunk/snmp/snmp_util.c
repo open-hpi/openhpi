@@ -15,6 +15,7 @@
  */
 
 #include <snmp_util.h>
+#include <string.h>
 
 /**
  * snmp_get

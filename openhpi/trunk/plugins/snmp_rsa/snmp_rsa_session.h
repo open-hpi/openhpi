@@ -19,8 +19,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
+#include <snmp_util.h>
 
 /**
  * This handle will be unique per instance of

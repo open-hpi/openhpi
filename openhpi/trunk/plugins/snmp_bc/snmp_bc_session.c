@@ -28,6 +28,7 @@
 #include <bc_resources.h>
 #include <bc_str2event.h>
 #include <snmp_bc_event.h>
+#include <string.h>
 
 /**
  * snmp_bc_open: open snmp blade center plugin

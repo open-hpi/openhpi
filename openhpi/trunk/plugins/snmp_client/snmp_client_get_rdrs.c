@@ -26,9 +26,6 @@
 #include <uid_utils.h>
 #include <snmp_util.h>
 
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
-
 #include <snmp_client.h>
 #include <snmp_client_res.h>
 #include <snmp_client_utils.h>
