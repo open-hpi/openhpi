@@ -127,10 +127,10 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                 printf("Domain ID: %d\n", (int) entry.DomainId);
                 printf("Revision: %c\n", entry.ResourceInfo.ResourceRev);
                 printf("Version: %c\n", entry.ResourceInfo.SpecificVer);
-		printf("Device Support: %c\n", entry.ResourceInfo.DeviceSupport);
+		printf("Device Support: %d\n", entry.ResourceInfo.DeviceSupport);
 		printf("Manufacturer ID: %d\n", (int) entry.ResourceInfo.ManufacturerId);
 		printf("Product ID: %d\n", (int) entry.ResourceInfo.ProductId);
-		printf("Firmware Major, Minor, Aux: %c %c %c\n", 
+		printf("Firmware Major, Minor, Aux: %d %d %d\n", 
 		       entry.ResourceInfo.FirmwareMajorRev, 
 		       entry.ResourceInfo.FirmwareMinorRev,
 		       entry.ResourceInfo.AuxFirmwareRev);
