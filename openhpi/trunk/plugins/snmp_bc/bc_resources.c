@@ -3687,7 +3687,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
 			.mib = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
-				.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.x",
+				.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.x.3",
 			},
 		},
                 .comment = "Blade number of restarts counter"
