@@ -363,14 +363,11 @@ dnl     NEED_MARSHAL="yes"])
 
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator       build simulator plugin [default=no]],
+    [  --enable-simulator       build simulator plugin [default=yes]],
     [if test "x$enableval" = "xyess"; then
-		if test "x$have_fam" = "xyes"; then
-                        AC_SUBST(SIMULATOR,simulator)
-                else
-			OH_CHECK_FAIL(FAM packages are missing, install fam and fam-devel to build simulator plug-in)
-		fi
-    fi])
+        AC_SUBST(SIMULATOR,simulator)
+    fi],
+    [AC_SUBST(SIMULATOR,simulator)])
 
 dnl	[if test "x$have_fam" = "xyes"; then
 dnl    	AC_SUBST(SIMULATOR,simulator)
