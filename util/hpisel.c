@@ -452,7 +452,7 @@ int main(int argc, char **argv)
         
         /* walk the RPT list */
         rptentryid = SAHPI_OLDEST_ENTRY;
-        while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
+        while ((rv == SA_OK) && (rptentryid != SAHPI_FIRST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
                 if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
