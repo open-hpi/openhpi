@@ -288,7 +288,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
         }
 
 	if ((strncmp(buffer->Data,"(No temperature)", sizeof("(No temperature)")) == 0) ||
-		(strncmp(buffer->Data,"Not Readable!", sizeof("Not Readable!")) == 0))					 
+	    (strncmp(buffer->Data,"Not Readable!", sizeof("Not Readable!")) == 0))					 
 	{
 		reading->IsSupported = SAHPI_TRUE;
 		reading->Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
@@ -577,14 +577,14 @@ static inline SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_tex
 SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 {
         SaHpiUint8T *p;
-	size_t size;
+	uint size;
 
 	if (!buffer || !from) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 	size = strlen(from);
         if ((size + buffer->DataLength) >= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
-		dbg("Cannot append to text buffer. Bufsize=%d, size=%d",
+		dbg("Cannot append to text buffer. Bufsize=%d, size=%u",
 		    buffer->DataLength, size);
                 return(SA_ERR_HPI_OUT_OF_SPACE);
         }
@@ -601,7 +601,7 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
 {
         SaHpiUint8T *p;
-	size_t size;
+	uint size;
 
 	if (!big_buffer || !from) {
 		dbg("Invalid parameters");
@@ -609,7 +609,7 @@ static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const ch
 	}
 	size = strlen(from);
         if ((size + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
-		dbg("Cannot append to buffer. Bufsize=%d, size=%d",
+		dbg("Cannot append to buffer. Bufsize=%d, size=%u",
 		    big_buffer->DataLength, size);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
@@ -1009,7 +1009,6 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
 
 	return(SA_OK);
 }
-
 
 static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
 					const SaHpiSensorThdMaskT tmask, 
@@ -1869,9 +1868,7 @@ SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselin
 	
 	err = oh_fprint_bigtext(stream, &mybuf);
 	return(err);
-	
 }
-
 
 /**
  * oh_fprint_eventlogentry:
@@ -1888,7 +1885,6 @@ SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselin
  **/
 SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thiseventlog, int offsets)
 {	
-
 	int err;
 	oh_big_textbuffer mybuf, mybufX;
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
@@ -1917,7 +1913,6 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 	
 	err = oh_fprint_bigtext(stream, &mybuf);
 	return(err);
-
 }
 
 /**
@@ -2034,14 +2029,13 @@ static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *eve
 	return(SA_OK);
 }
 
-
-
 /**
  * oh_build_event_resource:
  * @buffer: Pointer to space to decipher SaHpiEventT struct
  * @event: Pointer to the event to be deciphered
  * @offset: Number of offsets to start printing structure.
  * 
+ * Build ResourceEventTypeT value into string buffer.
  *
  * Returns:
  * SA_OK - normal operation.
@@ -2052,14 +2046,14 @@ static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEv
 
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
-	if ( !buffer || !event)
+	if (!buffer || !event)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceEvent: \n"); 
 	oh_append_bigtext(buffer, str);
 
-	oh_append_offset(buffer, 4+offsets);
+	oh_append_offset(buffer, 1+offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceEventType: %s\n", 
 		 	oh_lookup_resourceeventtype(event->EventDataUnion.ResourceEvent.ResourceEventType));
 	oh_append_bigtext(buffer, str);
@@ -2067,13 +2061,13 @@ static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEv
 	return(SA_OK);
 }
 
-
 /**
  * oh_build_event_domain:
  * @buffer: Pointer to space to decipher SaHpiEventT struct
  * @event: Pointer to the event to be deciphered
  * @offset: Number of offsets to start printing structure.
  * 
+ * Build event domain value structure values into string buffer.
  *
  * Returns:
  * SA_OK - normal operation.
@@ -2083,7 +2077,7 @@ static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEven
 {
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
-	if ( !buffer || !event)
+	if (!buffer || !event)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 
 	oh_append_offset(buffer, offsets);
@@ -2110,6 +2104,7 @@ static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEven
  * @event: Pointer to the event to be deciphered
  * @offset: Number of offsets to start printing structure.
  * 
+ *
  *
  * Returns:
  * SA_OK - normal operation.
