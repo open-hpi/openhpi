@@ -306,9 +306,9 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	for (i = (SAHPI_MAX_ENTITY_PATH - 1); i >= 0; i--) {
                 guint num_digits, work_instance_num;
 
-		/* Find last element of structure; Current choice not good,
-		   since type=instance=0 is valid */
-		if (epathptr->Entry[i].EntityType == 0) {
+		/* Find last element of structure. Instance 0 is invalid. */
+		if (epathptr->Entry[i].EntityInstance == 0 &&
+                    epathptr->Entry[i].EntityType != SAHPI_ENT_ROOT) {                        
 			continue;
 		}
 
@@ -392,19 +392,18 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
         if(!append) return 0;
 
         for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(dest->Entry[i].EntityType == SAHPI_ENT_ROOT) {
+                if(dest->Entry[i].EntityInstance == 0) {
                         break;
                 }
         }
 
         for (j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(append->Entry[j].EntityType == SAHPI_ENT_ROOT) {
-                        dest->Entry[i].EntityInstance = append->Entry[j].EntityInstance;
-                        dest->Entry[i].EntityType = append->Entry[j].EntityType;
-                        break;
-                }
+                if(append->Entry[j].EntityInstance == 0 &&
+                   append->Entry[j].EntityType != SAHPI_ENT_ROOT)
+                           break;
                 dest->Entry[i].EntityInstance = append->Entry[j].EntityInstance;
                 dest->Entry[i].EntityType = append->Entry[j].EntityType;
+                if (append->Entry[j].EntityType == SAHPI_ENT_ROOT) break;
                 j++;
         }
 
@@ -455,23 +454,20 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
 int append_root(SaHpiEntityPathT *ep)
 {
         unsigned int i;
-        int rc = -1;
 
-	if (!ep) return rc;
+	if (!ep) return -1;
 
         for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
 		if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
-			rc = 0;
 			break;
-		} else if (ep->Entry[i].EntityType == 0) {
+		} else if (ep->Entry[i].EntityInstance == 0) {
 		        ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
                         ep->Entry[i].EntityInstance = 0;
-			rc = 0;
 			break;
 		}
         }
 
-        return rc;
+        return 0;
 }
 
 static unsigned int index2entitytype(unsigned int i)
@@ -530,36 +526,48 @@ int prt_ep(const SaHpiEntityPathT *ep)
 int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
 {
         unsigned int i, j;
-        int mydebug = 0;
-
+        
         if ((!ep1) || (!ep2)) {
-                if (mydebug) printf ("ep_cmp error - null pointer\n");
-                return 1;
+                dbg("ep_cmp error - null pointer\n");
+                return -1;
         }
-        for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
-                if (ep1->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+
+        for ( i = 0; i < SAHPI_MAX_ENTITY_PATH; i++ ) {
+                if (ep1->Entry[i].EntityInstance == 0) {
+                        if (ep1->Entry[i].EntityType == SAHPI_ENT_ROOT)
+                                i++;
+                        break;                                
+                }
         }
-        if (mydebug) printf ("ep1 has %d elements    ", i);
-        for ( j=0; j<SAHPI_MAX_ENTITY_PATH; j++ ) {
-                if (ep2->Entry[j].EntityType == SAHPI_ENT_ROOT) break;
+
+        for ( j = 0; j < SAHPI_MAX_ENTITY_PATH; j++ ) {
+                if (ep2->Entry[j].EntityInstance == 0) {
+                        if (ep2->Entry[j].EntityType == SAHPI_ENT_ROOT)
+                                j++;
+                        break;
+                }
         }
-        if (mydebug) printf ("ep2 has %d elements\n", j);
+
         if ( i != j ) {
-                if (mydebug) printf ("ep1 element count %d != ep2 %d\n", i, j);
-                return 1;
+                dbg("ep1 element count %d != ep2 %d\n", i, j);
+                return -1;
         }
-        for ( i=0; i<j; i++ ) {
+
+        for ( i = 0; i < j; i++ ) {
                 if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType) {
-                        if (mydebug) printf ("ep1 element%d EntityType %d != ep2 %d\n", i, 
-                                ep1->Entry[i].EntityType, ep2->Entry[i].EntityType); 
-                        return 1;
+                        dbg("ep1 element%d EntityType %d != ep2 %d\n", i, 
+                            ep1->Entry[i].EntityType,
+                            ep2->Entry[i].EntityType);
+                        return -1;
                 }
+
                 if (ep1->Entry[i].EntityInstance != ep2->Entry[i].EntityInstance) {
-                        if (mydebug) printf ("ep1 element %d EntityInstance %d != ep2 %d\n", i,
-                                ep1->Entry[i].EntityInstance, ep2->Entry[i].EntityInstance); 
-                        return 1;
+                        dbg("ep1 element %d EntityInstance %d != ep2 %d\n", i,
+                            ep1->Entry[i].EntityInstance,
+                            ep2->Entry[i].EntityInstance);
+                        return -1;
                 }
         }
-        if (mydebug) printf ("ep1 = ep2\n");
+        
         return 0;
 }

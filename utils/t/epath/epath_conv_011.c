@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 {
         char new[255];
         SaHpiEntityPathT tmp_ep;
-        char *entity_root = "{POWER_DISTRIBUTION_UNIT,0}{PROCESSOR,21}";
+        char *entity_root = "{POWER_DISTRIBUTION_UNIT,1}{PROCESSOR,21}";
         
         string2entitypath(entity_root, &tmp_ep);
          
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_POWER_DISTRIBUTION_UNIT)
                 return 1;
         
-        if(tmp_ep.Entry[1].EntityInstance != 0)
+        if(tmp_ep.Entry[1].EntityInstance != 1)
                 return 1;
 
         if(entitypath2string(&tmp_ep, new, 255) < 0) 

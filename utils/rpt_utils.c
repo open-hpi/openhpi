@@ -96,13 +96,15 @@ static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
 
 static int check_ep(SaHpiEntityPathT ep)
 {
-        int check = -1; 
+        int check = 0; 
 	int i;
 
         for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (ep.Entry[i].EntityType == SAHPI_ENT_ROOT) {
-                        check = 0;
-                        break;
+                if (ep.Entry[i].EntityInstance == 0) {                        
+                        if (ep.Entry[i].EntityType != SAHPI_ENT_ROOT) {
+                                check = -1;
+                                break;
+                        } else break;
                 }
         }
 
