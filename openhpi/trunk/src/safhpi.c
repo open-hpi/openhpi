@@ -314,7 +314,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         OH_STATE_READY_CHECK;
 
         data_access_lock();
-
+        
         if(!is_in_domain_list(DomainId)) {
                 dbg("domain does not exist!");
                 data_access_unlock();

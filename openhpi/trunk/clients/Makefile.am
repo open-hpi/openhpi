@@ -7,21 +7,23 @@ COMMONLIBS		= $(top_builddir)/src/libopenhpi.la @STATIC_PLUGIN_LIBS@ @STATIC_PLU
 
 AM_CFLAGS 		= @CFLAGS@
 
-bin_PROGRAMS		= hpialarmpanel \
-                          hpithres \
-                          hpifan \
-	                  hpifru \
-                          hpireset \
-			  hpireset2 \
-                          hpisensor \
-                          hpisel \
-                          hpiinv \
-                          hpisettime \
-                          hpiwdt \
-			  hpigetevents \
-                          hpipower \
-			  hpipower2 \
-			  hpievent
+bin_PROGRAMS    = hpisensor
+
+#bin_PROGRAMS		= hpialarmpanel \
+#                          hpithres \
+#                          hpifan \
+#	                  hpifru \
+#                          hpireset \
+#			  hpireset2 \
+#                          hpisensor \
+#                          hpisel \
+#                          hpiinv \
+#                          hpisettime \
+#                          hpiwdt \
+#			  hpigetevents \
+#                          hpipower \
+#			  hpipower2 \
+#			  hpievent
 
 include_HEADERS		= 
 
