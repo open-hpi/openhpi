@@ -39,7 +39,7 @@ openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/mars
 openhpid_LDFLAGS        = -static
 else
 openhpid_LDADD          = $(top_builddir)/marshal/libohtcpconnx.la -L$(top_builddir)/src -lopenhpi
-openhpid_LDFLAGS        = -shared
+openhpid_LDFLAGS        =
 endif
 
 
