@@ -22,33 +22,9 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-/* sd: I think we need global mappings here, we'll need to 
-   address this issue later */
-#if 0
-static SaHpiDomainIdT dcounter = SAHPI_DEFAULT_DOMAIN_ID;
-#endif
-
-#if 0
-int reset_domain_list(void) 
-{
-        SaHpiDomainIdT *temp;
-        int i;
-
-        for (i = 0; i < g_slist_length(global_domain_list); i++) {
-                temp = (SaHpiDomainIdT*) g_slist_nth_data(global_domain_list, i);
-                free(temp);
-        }
-        g_slist_free(global_domain_list);
-        global_domain_list = NULL;
-
-        return 0;
-}
-
-#endif
-
 GSList *global_domain_list = NULL;
 
-int domain_exists(SaHpiDomainIdT did) 
+int is_in_domain_list(SaHpiDomainIdT did) 
 {
         int i;
         
@@ -62,9 +38,16 @@ int domain_exists(SaHpiDomainIdT did)
         return 0;
 }
 
-int domain_add(SaHpiDomainIdT did)
+#define MAX_GLOBAL_DOMAIN 10000
+#define MIN_DYNAMIC_DOMAIN (MAX_GLOBAL_DOMAIN+1)
+
+int add_domain(SaHpiDomainIdT did)
 {
-        if(domain_exists(did) > 0) {
+	if (did>MAX_GLOBAL_DOMAIN) {
+		dbg("Could not add so large domain, it is kept for dymanic domain");
+		return -1;
+	}
+        if(is_in_domain_list(did) > 0) {
                 dbg("Domain %d exists already, something is fishy", did);
                 return -1;
         }
@@ -75,11 +58,16 @@ int domain_add(SaHpiDomainIdT did)
         return 0;
 }
 
-#if 0
-int domain_del(SaHpiDomainIdT did)
+SaHpiDomainIdT new_domain() 
 {
-	/* FIXME cleaup resources in domain */
-        return 0;
+	static SaHpiDomainIdT dcounter = MIN_DYNAMIC_DOMAIN;
+        
+	if(is_in_domain_list(dcounter) > 0) {
+                dbg("Domain %d exists already, something is fishy", dcounter);
+                return -1;
+        }
+	global_domain_list
+		= g_slist_append(global_domain_list,
+				GUINT_TO_POINTER(dcounter));
+	return dcounter++;
 }
-
-#endif

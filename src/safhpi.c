@@ -131,7 +131,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         
         OH_STATE_READY_CHECK;
 	
-	if(!domain_exists(DomainId)) {
+	if(!is_in_domain_list(DomainId)) {
 		dbg("domain does not exist!");
 		return SA_ERR_HPI_INVALID_DOMAIN;
 	}
