@@ -94,7 +94,7 @@ void display_help(void)
         printf("                 This option is required.\n");
         printf("   -v            This option causes the daemon to display verbose\n");
         printf("                 messages. This option is optional.\n");
-        printf("   -p port       This overrides the default listening port (4743)of.\n");
+        printf("   -p port       This overrides the default listening port (4743) of\n");
         printf("                 the daemon. This option is optional.\n");
         printf("   -f pidfile    This overrides the default name/location for the daemon.\n");
         printf("                 pid file. This option is optional.\n\n");
