@@ -38,7 +38,7 @@ cMarshalType SaHpiTextBufferType = dStruct( SaHpiTextBufferT, SaHpiTextBufferEle
 
 
 // oHpi text buffer
-static cMarshalType oHpiTextBufferDataArray = dArray( SaHpiUint8Type, OH_GLOBAL_STR_MAX_LENGTH );
+static cMarshalType oHpiTextBufferDataArray = dArray( SaHpiUint8Type, OH_MAX_TEXT_BUFFER_LENGTH );
 
 static cMarshalType oHpiTextBufferElements[] =
 {
