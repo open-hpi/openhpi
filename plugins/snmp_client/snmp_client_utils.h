@@ -23,6 +23,7 @@
 /* +1, this requires -1 when data is received		   */			     
 #define SNMP_ENUM_ADJUST(x) x - 1
 
+#if 0
 void sc_free_pdu(struct snmp_pdu **p);
 
 SaErrorT snmp_get2(struct snmp_session *ss, 
@@ -41,6 +42,7 @@ int snmp_getn_bulk( struct snmp_session *ss,
 		    struct snmp_pdu *bulk_pdu, 
 		    struct snmp_pdu **bulk_response,
 		    int num_repetitions );
+#endif
 
 void build_res_oid(oid *d, oid *s, int s_len, oid *indices, int num_indices); 
 
