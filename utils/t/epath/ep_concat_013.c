@@ -27,9 +27,9 @@
  **/
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep1 = {{{0}}};
-        SaHpiEntityPathT ep2 = {{{0}}};
-        SaHpiEntityPathT ep3 = {{{0}}};
+        SaHpiEntityPathT ep1 = {{{SAHPI_ENT_ROOT,0}}};
+        SaHpiEntityPathT ep2 = {{{SAHPI_ENT_ROOT,0}}};
+        SaHpiEntityPathT ep3 = {{{SAHPI_ENT_ROOT,0}}};
         int mydebug = 0;
 
         if (ep_concat(&ep1, &ep2)) {

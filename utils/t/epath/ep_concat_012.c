@@ -34,7 +34,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,5},
                                  {SAHPI_ENT_BOARD_SET_SPECIFIC,6},
                                  {SAHPI_ENT_OEM_SYSINT_SPECIFIC,7},
-                                 {SAHPI_ENT_ROOT,8},
+                                 {SAHPI_ENT_FAN,8},
                                  {SAHPI_ENT_RACK,9},
                                  {SAHPI_ENT_SUBRACK,10},
                                  {SAHPI_ENT_COMPACTPCI_CHASSIS,11},
@@ -42,8 +42,8 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SYSTEM_SLOT,13},
                                  {SAHPI_ENT_SBC_BLADE,14},
                                  {SAHPI_ENT_IO_BLADE,15},
-                                 {0}}};
-        SaHpiEntityPathT ep2 = {{{0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
+        SaHpiEntityPathT ep2 = {{{SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep3 = {{{SAHPI_ENT_GROUP,1},
                                  {SAHPI_ENT_REMOTE,2},
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,3},
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,5},
                                  {SAHPI_ENT_BOARD_SET_SPECIFIC,6},
                                  {SAHPI_ENT_OEM_SYSINT_SPECIFIC,7},
-                                 {SAHPI_ENT_ROOT,8},
+                                 {SAHPI_ENT_FAN,8},
                                  {SAHPI_ENT_RACK,9},
                                  {SAHPI_ENT_SUBRACK,10},
                                  {SAHPI_ENT_COMPACTPCI_CHASSIS,11},
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_SYSTEM_SLOT,13},
                                  {SAHPI_ENT_SBC_BLADE,14},
                                  {SAHPI_ENT_IO_BLADE,15},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         int mydebug = 0;
 
         if (ep_concat(&ep1, &ep2)) {

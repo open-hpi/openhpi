@@ -28,9 +28,9 @@
 int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep1 = {{{SAHPI_ENT_ADD_IN_CARD,1111},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT, 0}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_ADD_IN_CARD,1111},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT, 0}}};
         int mydebug = 0;
 
         if (ep_cmp(&ep1, &ep2)) {

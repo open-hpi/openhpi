@@ -41,6 +41,10 @@ int main(int argc, char **argv)
                 ep3.Entry[i].EntityType = SAHPI_ENT_GROUP;
                 ep3.Entry[i].EntityInstance = 202;
         }
+        ep1.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType = SAHPI_ENT_ROOT;
+        ep1.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityInstance = 0;
+        ep2.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType = SAHPI_ENT_ROOT;
+        ep2.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityInstance = 0;
         ep3.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType = SAHPI_ENT_BATTERY;
         ep3.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityInstance = 404;
         if (ep_concat(&ep1, &ep2)) {

@@ -31,7 +31,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD,202},
                                  {SAHPI_ENT_SYSTEM_CHASSIS,211},
                                  {SAHPI_ENT_SUB_CHASSIS,222},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep2 = {{{SAHPI_ENT_OTHER_CHASSIS_BOARD,233},
                                  {SAHPI_ENT_DISK_DRIVE_BAY,244},
                                  {SAHPI_ENT_PERIPHERAL_BAY_2,255},
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_BIOS,322},
                                  {SAHPI_ENT_OPERATING_SYSTEM,333},
                                  {SAHPI_ENT_SYSTEM_BUS,344},
-                                 {0}}};
+                                 {SAHPI_ENT_ROOT,0}}};
         SaHpiEntityPathT ep3 = {{{SAHPI_ENT_POWER_UNIT,199},
                                  {SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD,202},
                                  {SAHPI_ENT_SYSTEM_CHASSIS,211},
