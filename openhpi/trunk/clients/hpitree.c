@@ -17,6 +17,8 @@
  * Log: 
  *     Copied from hpifru.c and modified for general use
  *
+ * Changes:
+ *     11/03/2004  kouzmich   Fixed Bug #1057934
  *
  */
 
@@ -367,6 +369,7 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 					   &nextareaId,
 					   &areaHeader);
 		if (rv == SA_OK) {
+			countFields = 0;	/* Bug #1057934 */
 			countAreas++;
 			oh_print_idrareaheader(&areaHeader, 8);
 
@@ -391,7 +394,7 @@ SaErrorT walkInventory(	SaHpiSessionIdT sessionid,
 				if (fdebug) printf("saHpiIdrFieldGet  error %s\n",oh_lookup_error(rvField));
 				fieldId = nextFieldId;
 			} while ((rvField == SA_OK) && (fieldId != SAHPI_LAST_ENTRY));
-			
+		
 			if ( countFields != areaHeader.NumFields) 
 				printf("Area Header error! areaHeader.NumFields %d, countFields %d\n",
 					areaHeader.NumFields, countFields);
