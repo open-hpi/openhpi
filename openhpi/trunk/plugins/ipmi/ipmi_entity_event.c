@@ -19,8 +19,6 @@
 #include <string.h>
 
 
-
-
 void entity_rpt_set_updated(struct ohoi_resource_info *res_info,
 		struct ohoi_handler *ipmi_handler)
 {
@@ -141,7 +139,6 @@ static void get_entity_event(ipmi_entity_t	*entity,
 
 	entry->EntryId = 0;
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
-
 	entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
 	
 	entry->HotSwapCapabilities = 0;
@@ -187,7 +184,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	    || (!strcmp(entry->ResourceTag.Data, "invalid"))
 	    || ((ipmi_entity_get_entity_id(entity) == 7 || 15))) {
 
-			char *str;
+			const char *str;
 			char *str2;
 
 			str = ipmi_entity_get_entity_id_string(entity);
@@ -325,7 +322,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 			break;
 			
 		case IPMI_CHANGED:
-			add_entity_event(entity, handler);
+//			add_entity_event(entity, handler);
 
 			dbg("Entity changed: %d.%d",
 						ipmi_entity_get_entity_id(entity), 
