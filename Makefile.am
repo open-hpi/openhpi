@@ -63,6 +63,7 @@ includedir=$(base_includedir)/openhpi
 
 # These are the only headers that users should have any access to
 include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
+		  $(top_srcdir)/include/oHpi.h \
 		  $(top_srcdir)/utils/el_utils.h \
 		  $(top_srcdir)/utils/epath_utils.h \
 		  $(top_srcdir)/utils/oh_utils.h \
