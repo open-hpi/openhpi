@@ -24,15 +24,25 @@
 #include <getopt.h>
 #include "hpi_cmd.h"
 
+int	debug_flag = 0;
+
 int main(int argc, char **argv)
 {
-	int	c, eflag = 0;
+	int	c, eflag = 0, fflag = 0;
+	char	file[1024];
 	char	*val;
 
-	while ( (c = getopt( argc, argv,"e?")) != EOF )
+	while ( (c = getopt( argc, argv,"ef:x?")) != EOF )
 		switch(c)  {
 			case 'e':
 				eflag = 1;
+				break;
+			case 'f':
+				fflag = 1;
+				strcpy(file, optarg);
+				break;
+			case 'x':
+				debug_flag = 1;
 				break;
 			default:
 				printf("Usage: %s [-e]\n", argv[0]);
@@ -47,6 +57,8 @@ int main(int argc, char **argv)
 	domainlist = (GSList *)NULL;
 	if (open_session(eflag) == -1)
 		return(1);
+	if (fflag)
+		open_file(file);
 	cmd_shell();
 	close_session();
 	return 0;

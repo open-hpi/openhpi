@@ -20,218 +20,341 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "hpi_cmd.h"
 
-/* functions prototype */
-static char *get_input_line(char *buf, int buflen);
-static void cmd_parser(void);
-static struct command *get_cmd(const char *name);
-static char **make_argv(int *pargc, char **parg);
-static char *parse_string(void);
+term_def_t	*terms;
+int		read_stdin = 1;
+int		read_file = 0;
+com_enum_t	block_type = MAIN_COM;
+FILE		*input_file = (FILE *)NULL;
+ret_code_t	shell_error = HPI_SHELL_OK;
 
 /* local variables */
-static char line[200];
-static char argbuf[200];
-char *strbase;
-char *argbase;
-char *altarg;
-int parseflag;
+static char	input_buffer[READ_BUF_SIZE];	// command line buffer
+static char	*input_buf_ptr = input_buffer;	// current pointer in input_buffer
+static char	input_line[READ_BUF_SIZE];	// current input line
+static int	max_term_count = 0;
+static int	term_count = 0;
+static int	current_term = 0;
 
-/* main line */
-static char *get_input_line(char *buf, int buflen)
+static void new_command(void)
 {
-	printf("OpenHPI> ");
-	fflush(stdout);
-	return fgets(buf, buflen, stdin);
+	term_count = 0;
+	current_term = 0;
 }
 
-static void cmd_parser(void)
+static void go_to_dialog(void)
 {
-	int largc, rv;
-	char *larg;
-	char **largv;
-	register struct command *c;
-	register int ch;
-	register int l;
+	if (read_stdin) return;
+	read_stdin = 1;
+	read_file = 0;
+	fclose(input_file);
+	new_command();
+}
+
+static void add_term(char *term, term_t type)
+{
+	term_def_t	*tmp_terms;
+
+	if (term_count >= max_term_count) {
+		max_term_count += 5;
+		tmp_terms = (term_def_t *)malloc(max_term_count * sizeof(term_def_t));
+		memset(tmp_terms, 0, max_term_count * sizeof(term_def_t));
+		if (term_count > 0) {
+			memcpy(tmp_terms, terms, term_count * sizeof(term_def_t));
+			free(terms);
+		};
+		terms = tmp_terms;
+	};
+	tmp_terms = terms + term_count;
+	tmp_terms->term_type = type;
+	tmp_terms->term = term;
+	if (debug_flag) printf("add_term: term = %s  type = %d\n", term, type);
+	term_count++;
+}
+
+static char *find_cmd_end(char *str)
+{
+	while (*str != 0) {
+		if (*str == '\"') {
+			str++;
+			while ((*str != 0) && (*str != '\"')) str++;
+			if (*str == 0) return(str);
+		};
+		if (*str == ';') return(str + 1);
+		str++;
+	};
+	return(str);
+}
+
+static char *get_input_line(char *mes)
+{
+	FILE	*f = stdin;
+	char	*res;
+	int	len;
+
+	if (strlen(input_buf_ptr) > 0) {
+		res = input_buf_ptr;
+		input_buf_ptr = find_cmd_end(input_buf_ptr);
+		return(res);
+	};
+	input_buf_ptr = input_buffer;
+	fflush(stdout);
+	if (read_stdin) {
+		if (mes != (char *)NULL) printf("%s", mes);
+		else printf("OpenHPI> ");
+		f = stdin;
+	} else if (read_file) {
+		f = input_file;
+	} else {
+		printf("Internal error: get_input_line:\n"
+			" No input file\n");
+		exit(1);
+	};
+	memset(input_buffer, 0, READ_BUF_SIZE);
+	res = fgets(input_buffer, READ_BUF_SIZE - 1, f);
+	if (res != (char *)NULL) {
+		len = strlen(res);
+		if ((len > 0) && (res[len - 1] == '\n'))
+			res[len - 1] = 0;
+		input_buf_ptr = find_cmd_end(input_buf_ptr);
+	};
+	return(res);
+}
+
+static command_def_t *get_cmd(char *name)
+{
+	const char	*p;
+	command_def_t	*c, *res = (command_def_t *)NULL;
+	int		len = strlen(name);
+	int		n = 0;
+
+	if (debug_flag) printf("get_cmd: block_type = %d\n", block_type);
+	for (c = commands; (p = c->cmd) != NULL; c++) {
+		if ((c->type != MAIN_COM) && (c->type != block_type) &&
+			(c->type != UNDEF_COM))
+			continue;
+		if (strncmp(p, name, len) == 0) {
+			if (n == 0) res = c;
+			n++;
+		};
+		if (strcmp(p, name) == 0) {
+			return(c);
+		}
+	};
+	if (n == 1) return(res);
+	return((command_def_t *)NULL);
+}
+
+void cmd_parser(char *mes, int as)
+// as = 0  - get command
+// as = 1  - may be exit with empty command
+{
+	char		*cmd, *str, *beg;
 
 	for (;;) {
-		if (!get_input_line(line, sizeof(line))) {
-			break;
-		}
-		l = strlen(line);
-		if (l == 0)
-			break;
-		if (line[--l] == '\n') {
-			if (l == 0)
-				break;
-			line[l] = '\0';
-		}
-		else if (l == sizeof(line) - 2) {
-			printf("sorry, input line too long\n");
-			while ((ch = getchar()) != '\n' && ch != EOF)
-				/* void */;
-			break;
-		}
-		largv = make_argv(&largc, &larg);
-		if (largc == 0) {
+		new_command();
+		cmd = get_input_line(mes);
+		if (cmd == (char *)NULL) {
+			go_to_dialog();
 			continue;
-		}
-		c = get_cmd(largv[0]);
-		if (c == (struct command *)-1) {
-			printf("Ambiguous command\n");
+		};
+		strcpy(input_line, cmd);
+		str = cmd;
+		while (isspace(*str)) str++;
+		if (strlen(str) == 0) {
+			if (as) return;
 			continue;
-		}
-		if (c == NULL) {
-			printf("Invalid command\n");
-			continue;
-		}
-		if (c->fun) {
-			rv = c->fun(largc, largv);
-			if (rv == HPI_SHELL_PARM_ERROR) {
-				printf("%s\n", c->help);
-			} 
-			else if (rv == -1) {
-				printf("Command failed.\n");
-			}
-		}
+		};
+		beg = str;
+		if (*beg == '#') continue;
+		while (*str != 0) {
+			if (isspace(*str)) {
+				*str++ = 0;
+				if (strlen(beg) > 0)
+					add_term(beg, ITEM_TERM);
+				while (isspace(*str)) str++;
+				beg = str;
+				continue;
+			};
+			if (*str == '\"') {
+				str++;
+				while ((*str != 0) && (*str != '\"')) str ++;
+				if (*str == 0) {
+					add_term(beg, ITEM_TERM);
+					return;
+				};
+				if (*beg == '\"') {
+					beg++;
+					*str = 0;
+					add_term(beg, ITEM_TERM);
+					beg = str + 1;
+				};
+				str++;
+				continue;
+			};
+			if (*str == 0) {
+				if (strlen(beg) > 0)
+					add_term(beg, ITEM_TERM);
+				return;
+			};
+			if (*str == ';') {
+				*str++ = 0;
+				if (strlen(beg) > 0)
+					add_term(beg, ITEM_TERM);
+				add_term(";", CMD_END_TERM);
+				return;
+			};
+			str++;
+		};
+		if (strlen(beg) > 0)
+			add_term(beg, ITEM_TERM);
+		return;
 	}
 }
 
-static struct command *get_cmd(const char *name)
+int run_command(void)
+//  returned:	-1  - command not found
+//		0   - command found and ran
+//		1   - no command
+//		2   - other block command (do not run command)
+//		3   - get new command
 {
-	const char *p, *q;
-	struct command *c, *found;
-	int nmatches, longest;
+	term_def_t	*term;
+	command_def_t	*c;
+	int		rv;
 
-	longest = 0;
-	nmatches = 0;
-	found = 0;
-	for (c = commands; (p = c->cmd) != NULL; c++) {
-		for (q = name; *q == *p++; q++)
-			if (*q == 0)        /* exact match? */
- 				return (c);
-			if (!*q) {          /* the name was a prefix */
-				if (q - name > longest) {
-					longest = q - name;
-					nmatches = 1;
-					found = c;
-				} else if (q - name == longest)
-					nmatches++;
-			}
-	}
-	if (nmatches > 1)
-		return ((struct command *)-1);
-	return (found);
-}
-
-char **make_argv(int *pargc, char **parg)
-{
-	static char *rargv[20];
-	int rargc = 0;
-	char **argp;
-
-	argp = rargv;
-	strbase = line;      /* scan from first of buffer */
-	argbase = argbuf;       /* store from first of buffer */
-	parseflag = 0;
-	while ((*argp++ = parse_string())!=NULL)
-		rargc++;
-
-	*pargc = rargc;
-	if (parg) *parg = altarg;
-	return rargv;
-}
-
-static char *parse_string(void)
-{
-	int gotted = 0;
-	register char *sb = strbase;
-	register char *ap = argbase;
-	char *tmp = argbase;        /* will return this if token found */
-	int quota = 0;
-
-S0:
-	switch (*sb) {
-	case '\0':
-		goto OUT;
-
-	case ' ':
-	case '\t':
-		sb++; goto S0;
-	default:
-		if (*sb == '"') {
-			quota = 1;
-			sb++;
-		}	
-		switch (parseflag) {
-		case 0:
-			parseflag++;
-			break;
-		case 1:
-			parseflag++;
-			altarg = sb;
-			break;
-		default:
-			break;
+	if (debug_flag) printf("run_command:\n");
+	term = get_next_term();
+	if (term == NULL) return(1);
+	if (term->term_type != ITEM_TERM) return(1);
+	c = get_cmd(term->term);
+	if (c == (command_def_t *)NULL) {
+		printf("Invalid command:\n%s\n", input_line);
+		go_to_dialog();
+		help(0);
+		shell_error = HPI_SHELL_CMD_ERROR;
+		return(-1);
+	};
+	if (c->fun) {
+		term->term = c->cmd;
+		if ((block_type != c->type) && (c->type != UNDEF_COM)) {
+			block_type = c->type;
+			return(2);
+		};
+		rv = c->fun();
+		if (rv == HPI_SHELL_PARM_ERROR) {
+			printf("Invalid parameters:\n%s\n", input_line);
+			printf("%s\n", c->help);
+			go_to_dialog();
+			shell_error = HPI_SHELL_PARM_ERROR;
+			return(3);
+		} else if (rv == HPI_SHELL_CMD_ERROR) {
+			printf("Command failed:\n%s\n", input_line);
+			go_to_dialog();
+			shell_error = HPI_SHELL_CMD_ERROR;
+			return(3);
+		} else if (rv == -1) {
+			printf("Command failed:\n%s\n", input_line);
+			go_to_dialog();
+			shell_error = HPI_SHELL_CMD_ERROR;
+			return(3);
 		}
-		goto S1;
-	}
-
-S1:
-	switch (*sb) {
-	case '\0':
-		goto OUT;
-	case ' ':
-	case '\t':
-		if (quota) {
-			if (gotted) {
-				*ap++ = *sb++;
-			} else {
-				sb++;
-			}
-			goto S1;   /* end of token */
-		} else {
-			goto OUT;
-		}
-	case '"':
-		if (quota) {
-			quota = 0;
-			sb++;
-			goto OUT;
-		}
-	default:
-		*ap++ = *sb++;  /* add character to token */
-		gotted = 1;
-		goto S1;
-	}
-
-OUT:
-	if (gotted) { 
-		*ap++ = '\0';
-	}
-	argbase = ap;           /* update storage pointer */
-	strbase = sb;        /* update scan pointer */
-	if (gotted && !quota) {
-		return(tmp);
-	}
-	switch (parseflag) {
-	case 0:
-		parseflag++;
-		break;
-	case 1:
-		parseflag++;
-		altarg = NULL;
-		break;
-	default:
-		break;
-	}
-	return NULL;
+	} else {
+		printf("Unimplemented command:\n%s\n", input_line);
+		go_to_dialog();
+		shell_error = HPI_SHELL_CMD_ERROR;
+		return(3);
+	};
+	shell_error = HPI_SHELL_OK;
+	return(0);
 }
 
 void cmd_shell(void)
 {
-	help(1, (char **)NULL);
+	int	i;
+
+	help(0);
 	for (;;) {
-		cmd_parser();
+		if (current_term >= term_count)
+			cmd_parser((char *)NULL, 0);
+		shell_error = HPI_SHELL_OK;
+		i = run_command();
+		if ((shell_error != HPI_SHELL_OK) && read_file) {
+			go_to_dialog();
+			cmd_parser((char *)NULL, 0);
+			continue;
+		};
+		if (i == 3)
+			cmd_parser((char *)NULL, 0);
 	}
-};
+}
+
+int get_int_param(char *mes, int *val)
+{
+	int		res;
+	char		*str;
+	term_def_t	*term;
+
+	term = get_next_term();
+	if (term == NULL) {
+		cmd_parser(mes, 1);
+		term = get_next_term();
+	};
+	if (term == NULL) {
+		go_to_dialog();
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	str = term->term;
+	if (isdigit(*str)) {
+		res = sscanf(str, "%d", val);
+		return(res);
+	};
+	return(0);
+}
+
+int get_string_param(char *mes, char *val, int len)
+{
+	term_def_t	*term;
+	int		i;
+
+	term = get_next_term();
+	if (term == NULL) {
+		cmd_parser(mes, 1);
+		term = get_next_term();
+	};
+	if (term == NULL) {
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	memset(val, 0, len);
+	strncpy(val, term->term, len);
+	for (i = 0; i < len; i++)
+		if (val[i] == '\n') val[i] = 0;
+	return(0);
+}
+
+term_def_t *get_next_term(void)
+{
+	term_def_t	*res;
+
+	if (current_term >= term_count){
+		if (debug_flag) printf("get_next_term: term = (NULL)\n");
+		return((term_def_t *)NULL);
+	};
+	res = terms + current_term;
+	current_term++;
+	if (res->term_type != ITEM_TERM) {
+		if (debug_flag) printf("get_next_term: type != ITEM_TERM\n");
+		return((term_def_t *)NULL);
+	};
+	if (debug_flag) printf("get_next_term: term = %s\n", res->term);
+	return(res);
+}
+
+ret_code_t unget_term(void)
+{
+	if (current_term > 0)
+		current_term--;
+	return (current_term);
+}
