@@ -120,9 +120,6 @@ int session_push_event(struct oh_session *s, struct oh_hpi_event *e)
 
 /*
  * session_pop_event - pops events off the session.  
- *
- * return codes are left as was, but it seems that return 1 for success
- * here doesn't jive with the rest of the exit codes
  */
 
 int session_pop_event(struct oh_session *s, struct oh_hpi_event *e) 
@@ -133,7 +130,7 @@ int session_pop_event(struct oh_session *s, struct oh_hpi_event *e)
         
         if (g_slist_length(s->eventq) == 0) {
                 data_access_unlock();
-                return 0;
+                return -1;
         }
        
         head = s->eventq;
@@ -146,7 +143,7 @@ int session_pop_event(struct oh_session *s, struct oh_hpi_event *e)
         
         data_access_unlock();
 
-        return 1;
+        return 0;
 }
 
 /*
