@@ -1386,8 +1386,10 @@ static SaErrorT dummy_get_idr_area_header( void *hnd,
 		
 			thisAreaId = s->my_idr_area[i].idrareas.AreaId;
 			thisAreaType = s->my_idr_area[i].idrareas.Type;
-			if (((thisAreaId == AreaId) || (AreaId == SAHPI_FIRST_ENTRY))
-				 			&& (thisAreaType == AreaType)) {	 
+			if ( ((AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) && (AreaId == SAHPI_FIRST_ENTRY)) ||
+			     ((thisAreaType == AreaType) && ((AreaId == SAHPI_FIRST_ENTRY) || (AreaId == thisAreaId))) || 
+			     ((AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) && (thisAreaId == AreaId)) )
+			{
 				memcpy(Header, &(s->my_idr_area[i].idrareas) , sizeof(SaHpiIdrInfoT));
 				foundArea = SAHPI_TRUE;
 				break;
@@ -1395,26 +1397,29 @@ static SaErrorT dummy_get_idr_area_header( void *hnd,
 			i++;
 		} while (i < num_areas);
 		
-		
+		i++;
 		if (foundArea) {
 			foundArea = SAHPI_FALSE;
-			do { 
-				thisAreaType = s->my_idr_area[i].idrareas.Type;
-				if ((thisAreaId == AreaId) && (thisAreaType == AreaType)) {	 
-					*NextAreaId = s->my_idr_area[i].idrareas.AreaId;
-					foundArea = SAHPI_TRUE;
-					break;
-				}
-				i++;
-			} while (i < num_areas);
+			if (i < num_areas) {
+				do { 
+					thisAreaType = s->my_idr_area[i].idrareas.Type;
+					if ((thisAreaId == AreaId) && (thisAreaType == AreaType)) {	 
+						*NextAreaId = s->my_idr_area[i].idrareas.AreaId;
+						foundArea = SAHPI_TRUE;
+						break;
+					}
+					i++;
+				} while (i < num_areas);
 
-			if (!foundArea) {
+				if (!foundArea) 
+					*NextAreaId = SAHPI_LAST_ENTRY; 
+
+			} else  {
 				*NextAreaId = SAHPI_LAST_ENTRY;
 			}
-									
-		} else {
+			
+		} else 
 			rv = SA_ERR_HPI_NOT_PRESENT;			
-		}
 		
 	} else {
 		rv = SA_ERR_HPI_NOT_PRESENT;
@@ -1496,21 +1501,27 @@ static SaErrorT dummy_get_idr_field( void *hnd,
 				field_index++;
 			} while (field_index < num_fields);
 			
+			field_index++;
 			if (foundField) {
 				foundField = SAHPI_FALSE;
-				do { 
-					thisFieldType = thisArea->idrfields[field_index].Type;
-					if ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
-					{	
-						*NextFieldId = thisArea->idrfields[field_index].FieldId; 					 
-						foundField = SAHPI_TRUE;
-						break;
-					}
-					field_index++;
-				} while (field_index < num_fields);
+				if (field_index < num_fields) {
+					do { 
+						thisFieldType = thisArea->idrfields[field_index].Type;
+						if ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
+						{	
+							*NextFieldId = thisArea->idrfields[field_index].FieldId; 					 
+							foundField = SAHPI_TRUE;
+							break;
+						}
+						field_index++;
+					} while (field_index < num_fields);
 				
-				if (!foundField) 
+					if (!foundField) {
+						*NextFieldId = SAHPI_LAST_ENTRY;
+					}
+				} else 
 					*NextFieldId = SAHPI_LAST_ENTRY;
+
 			} else {
 				rv = SA_ERR_HPI_NOT_PRESENT;			
 			}
