@@ -131,8 +131,7 @@ protected:
   cIpmiSdrs    *m_main_sdrs;
 
   // The sensors that came from the main SDR.
-  cIpmiSensor **m_sensors_in_main_sdr;
-  unsigned int  m_sensors_in_main_sdr_count;
+  GList        *m_sensors_in_main_sdr;
 
   // Major and minor versions of the connection.
   unsigned int  m_major_version;
@@ -241,9 +240,8 @@ public:
   cIpmiMc *FindOrCreateMcBySlaveAddr( unsigned int slave_addr );
   int      SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
                         int retries = dIpmiDefaultRetries );
-  cIpmiSensor **GetSdrSensors( cIpmiMc *mc, unsigned int &count );
-  void          SetSdrSensors( cIpmiMc *mc, cIpmiSensor **sensors,
-                               unsigned int count );
+  GList *GetSdrSensors( cIpmiMc *mc );
+  void   SetSdrSensors( cIpmiMc *mc, GList *sensors );
   cIpmiMc *GetEventRcvr();
 
   // called from cIpmiCon to handle async events
@@ -270,10 +268,6 @@ public:
   // called from IPMI framework to create/destroy HPI resources
   virtual void IfEntityAdd( cIpmiEntity *ent ) = 0;
   virtual void IfEntityRem( cIpmiEntity *ent ) = 0;
-
-  // called from IPMI framework to create/destroy HPI rdr
-  virtual void IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor ) = 0;
-  virtual void IfSensorRem( cIpmiEntity *ent, cIpmiSensor *sensor ) = 0;
 
   // called from IPMI framwork to create SEL
   virtual void IfSelAdd( cIpmiEntity *ent, cIpmiSel *sel ) = 0;

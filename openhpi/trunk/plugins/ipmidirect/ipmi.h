@@ -102,9 +102,6 @@ public:
   virtual void IfEntityAdd( cIpmiEntity *ent );
   virtual void IfEntityRem( cIpmiEntity *ent );
 
-  virtual void IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor );
-  virtual void IfSensorRem( cIpmiEntity *ent, cIpmiSensor *sensor );
-
   virtual void IfSelAdd( cIpmiEntity *ent, cIpmiSel *sel );
 
   virtual void AddHpiEvent( oh_event *event );

@@ -83,12 +83,7 @@ protected:
   cIpmiSdrs     *m_sdrs;
 
   // The sensors that came from the device SDR on this MC.
-  cIpmiSensor  **m_sensors_in_my_sdr;
-  unsigned int   m_sensors_in_my_sdr_count;
-
-  // Sensors that this MC owns (you message this MC to talk to this
-  // sensor, and events report the MC as the owner.
-  cIpmiSensorInfo *m_sensors;
+  GList *m_sensors_in_my_sdr;
 
   // The system event log, for querying and storing events.
   cIpmiSel      *m_sel;
@@ -158,7 +153,6 @@ public:
   ~cIpmiMc();
 
   cIpmiDomain *Domain() const { return m_domain; }
-  cIpmiSensorInfo *Sensors() const { return m_sensors; }
 
   unsigned char MajorFwRevision() const { return m_major_fw_revision; }
   unsigned char MinorFwRevision() const { return m_minor_fw_revision; }
@@ -184,17 +178,14 @@ public:
 
   cIpmiSensorHotswap *FindHotswapSensor();
 
-  cIpmiSensor **GetSdrSensors( unsigned int &count ) const
+  GList *GetSdrSensors() const
   {
-    count = m_sensors_in_my_sdr_count;
     return m_sensors_in_my_sdr;
   }
 
-  void SetSdrSensors( cIpmiSensor **sensors,
-                      unsigned int  count )
+  void SetSdrSensors( GList *sensors )
   {
-    m_sensors_in_my_sdr_count = count;
-    m_sensors_in_my_sdr       = sensors;
+    m_sensors_in_my_sdr = sensors;
   }
 
   bool ProvidesDeviceSdrs() { return m_provides_device_sdrs; }

@@ -219,17 +219,9 @@ protected:
   int           m_presence_possibly_changed;
 
   cIpmiEntityInfo *m_ents;
-
-  // list of sensors in this entity
-  GList *m_sensors;
-
   cIpmiSensorHotswap *m_hotswap_sensor;
 
 public:
-  cIpmiSensor *VerifySensor( cIpmiSensor *s );
-  void AddSensor( cIpmiSensor *sensor );
-  void RemoveSensor( cIpmiSensor *sensor );
-
   // return hotswap sensor if there is one
   cIpmiSensorHotswap *GetHotswapSensor() { return m_hotswap_sensor; }
  

@@ -19,7 +19,7 @@
 #include "ipmi_sensor_threshold.h"
 #include "ipmi_utils.h"
 
-
+/*
 void
 cIpmi::IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor )
 {
@@ -74,8 +74,10 @@ cIpmi::IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor )
 
   sensor->EventState() = SAHPI_ES_UNSPECIFIED;
 }
+*/
 
 
+/*
 void
 cIpmi::IfSensorRem( cIpmiEntity *ent, cIpmiSensor *sensor )
 {
@@ -100,3 +102,4 @@ cIpmi::IfSensorRem( cIpmiEntity *ent, cIpmiSensor *sensor )
 
   sensor->m_record_id = 0xfffffff4;
 }
+*/

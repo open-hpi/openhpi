@@ -58,9 +58,8 @@ public:
 protected:
   virtual GList *CreateSensorFromFullSensorRecord( cIpmiMc *source_mc, cIpmiSdr *sdr );
   virtual GList *ConvertToFullSensorRecords( cIpmiMc *source_mc, cIpmiSdr *sdr );
-  virtual cIpmiSensor **GetSensorsFromSdrs( cIpmiMc *source_mc,
-                                            cIpmiSdrs    *sdrs,
-                                            unsigned int &sensor_count );
+  virtual GList *GetSensorsFromSdrs( cIpmiMc *source_mc,
+                                     cIpmiSdrs    *sdrs );
 
   virtual GList *CreateSensorHotswap( cIpmiMc *mc, cIpmiSdr *sdr );
   virtual GList *CreateSensorThreshold( cIpmiMc *mc, cIpmiSdr *sdr );

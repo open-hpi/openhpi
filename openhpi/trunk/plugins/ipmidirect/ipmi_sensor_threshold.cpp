@@ -862,7 +862,7 @@ cIpmiSensorThreshold::GetDefaultThresholds( SaHpiSensorThresholdsT &thres )
 SaErrorT
 cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 {
-  cIpmiEntity *ent = GetEntity();
+  cIpmiEntity *ent = Entity();
 
   stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor "
          << m_num << " (" << IdString() << ") get thresholds.\n";
@@ -918,7 +918,7 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
 SaErrorT
 cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
 {
-  cIpmiEntity *ent = GetEntity();
+  cIpmiEntity *ent = Entity();
 
   stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor " << m_num 
          << " (" << IdString() << ") get hysteresis.\n";

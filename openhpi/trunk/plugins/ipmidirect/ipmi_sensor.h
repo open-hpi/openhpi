@@ -149,26 +149,18 @@ enum tIpmiValuePresent
 class cIpmiSensor : public cIpmiRdr
 {
 protected:
-  cIpmiMc     *m_source_mc; // If the sensor came from the main SDR,
-                            // this will be NULL.  Otherwise, it
-                            // will be the MC that owned the device
-                            // SDR this came from.
+  cIpmiMc      *m_source_mc; // If the sensor came from the main SDR,
+                             // this will be NULL.  Otherwise, it
+                             // will be the MC that owned the device
+                             // SDR this came from.
 
-  int          m_source_idx; // The index into the source array where
-                             // this is stored.  This will be -1 if
-                             // it does not have a source index (ie
-                             // it's a non-standard sensor)
-  cIpmiSensor **m_source_array; // This is the source array where
-                                // the sensor is stored.
-
-  unsigned int m_event_state; // HPI current event state
+  SaHpiEventStateT m_event_state; // HPI current event state
 
   bool          m_destroyed;
   int           m_use_count;
 
   unsigned char m_owner;
   unsigned char m_channel;
-  unsigned char m_lun;
   unsigned char m_num;
 
   tIpmiEntityId m_entity_id;
@@ -196,26 +188,13 @@ protected:
   const char *m_base_unit_string;
   const char *m_modifier_unit_string;
 
-  void FinalDestroy();
-
 public:
   cIpmiSensor( cIpmiMc *mc );
   virtual ~cIpmiSensor();
 
-  unsigned char Lun() const { return m_lun; }
-
   virtual unsigned int Num() const { return m_num; }
 
-  int &SourceIdx() { return m_source_idx; }
-  cIpmiSensor **SourceArray() const { return m_source_array; }
-  void SetSourceArray( cIpmiSensor **array ) { m_source_array = array; }
-  void SetSourceArray( int idx, cIpmiSensor *sensor )
-  {
-    assert( idx >= 0 );
-    m_source_array[idx] = sensor;
-  }
-
-  unsigned int &EventState() { return m_event_state; }
+  SaHpiEventStateT &EventState() { return m_event_state; }
 
   tIpmiEntityId EntityId() const { return m_entity_id; }
   unsigned char EntityInstance() const { return m_entity_instance; }
@@ -228,13 +207,10 @@ public:
   tIpmiEventSupport EventSupport() const { return m_event_support; }
 
   virtual void HandleNew( cIpmiDomain *domain );
-  virtual bool Destroy();
 
   virtual bool Cmp( const cIpmiSensor &s2 ) const;
 
   unsigned char GetOem() { return m_oem; }
-
-  cIpmiEntity *GetEntity();
 
   // create an HPI event from ipmi event
   virtual SaErrorT CreateEvent( cIpmiEvent *event, SaHpiEventT &h );
@@ -245,9 +221,6 @@ public:
   bool Ignore();
 
   virtual void Log();
-
-  // HPI record id to find the rdr
-  SaHpiEntryIdT m_record_id;
 
   // read sensor parameter from Full Sensor Record
   virtual bool GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr );
@@ -273,30 +246,6 @@ public:
 protected:
   virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
                                     cIpmiMsg &msg );
-};
-
-
-class cIpmiSensorInfo
-{
-public:
-  cIpmiMc *m_mc;
-  bool m_destroyed;
-
-  // Indexed by LUN and sensor # 
-  cIpmiSensor **(m_sensors_by_idx[5]);
-  // Size of above sensor array, per LUN.  This will be 0 if the
-  // LUN has no sensors.
-  int            m_idx_size[5];
-  // In the above two, the 5th index is for non-standard sensors.
-  
-  // Total number of sensors we have in this.
-  unsigned int   m_sensor_count;
-
-public:
-  cIpmiSensorInfo( cIpmiMc *mc );
-  ~cIpmiSensorInfo();
-
-  cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_num );
 };
 
 

@@ -66,7 +66,7 @@ cIpmiEntityInfo::VerifySensor( cIpmiSensor *s )
      {
        cIpmiEntity *ent = (cIpmiEntity *)list->data;
        
-       if ( ent->VerifySensor( s ) )
+       if ( ent->Find( s ) )
             return s;
      }
 
@@ -256,7 +256,7 @@ cIpmiEntity::cIpmiEntity( cIpmiEntityInfo *ents, tIpmiDeviceNum device_num,
     m_entity_id_string( 0 ),
     m_presence_possibly_changed( true ),
     m_ents( ents ),
-    m_sensors( 0 ), m_hotswap_sensor( 0 ),
+    m_hotswap_sensor( 0 ),
     m_current_control_id( 0 ),
     m_sel( 0 )
 {
@@ -268,30 +268,12 @@ cIpmiEntity::cIpmiEntity( cIpmiEntityInfo *ents, tIpmiDeviceNum device_num,
 
 cIpmiEntity::~cIpmiEntity()
 {
-  while( m_sensors )
-       m_sensors = g_list_remove( m_sensors, m_sensors->data );
-
   if ( m_sel )
      {
        // remove connection
        m_sel->Entity() = 0;
        m_sel = 0;
      }
-}
-
-
-cIpmiSensor *
-cIpmiEntity::VerifySensor( cIpmiSensor *s )
-{
-  for( GList *list = m_sensors; list; list = g_list_next( list ) )
-     {
-       cIpmiSensor *sensor = (cIpmiSensor *)list->data;
-
-       if ( s == sensor )
-            return s;
-     }
-
-  return 0;
 }
 
 
@@ -380,7 +362,7 @@ IpmiEntityIdToString( tIpmiEntityId val )
 
        case eIpmiEntityIdAtcaShelfManager:
             return "AtcaShelfManager";
-            
+
        case eIpmiEntityIdAtcaFiltrationUnit:
             return "AtcaFiltrationUnit";
 
@@ -390,59 +372,6 @@ IpmiEntityIdToString( tIpmiEntityId val )
 
   // not reached
   return "Invalid";
-}
-
-
-void
-cIpmiEntity::AddSensor( cIpmiSensor *sensor )
-{
-  cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( sensor );
-  
-  if ( hs )
-     {
-       if ( m_hotswap_sensor )
-            stdlog << "ups: found a second hotswap sensor !\n";
-
-       m_hotswap_sensor = hs;
-     }
-
-  m_sensors = g_list_append( m_sensors, sensor );
-
-  // XXXX add a rdr
-  m_domain->IfSensorAdd( this, sensor );
-}
-
-
-void
-cIpmiEntity::RemoveSensor( cIpmiSensor *sensor )
-{
-  GList *item = g_list_find( m_sensors, sensor );
-
-  if ( item == 0 )
-     {
-       stdlog << "User requested removal of a sensor"
-                " from an entity, but the sensor was not there !\n";
-       return;
-     }
-
-  cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( sensor );
-
-  if ( hs )
-     {
-       if ( hs != m_hotswap_sensor )
-            stdlog << "ups: remove second hotswap sensor !\n";
-
-       m_hotswap_sensor = 0;
-     }
-  
-  m_sensors = g_list_remove( m_sensors, sensor );
-
-  // XXXX remove rdr
-  m_domain->IfSensorRem( this, sensor );
-
-  if (    (!m_came_from_sdr )
-       && m_sensors == 0 )
-       Destroy();
 }
 
 
@@ -521,6 +450,17 @@ cIpmiEntity::Add( cIpmiRdr *rdr )
 
   m_domain->AddHpiEvent( e );
 
+  // check for hotswap sensor
+  cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( rdr );
+
+  if ( hs )
+     {
+       if ( m_hotswap_sensor )
+            stdlog << "ups: found a second hotswap sensor !\n";
+
+       m_hotswap_sensor = hs;
+     }
+
   return true;
 }
 
@@ -530,10 +470,13 @@ cIpmiEntity::Rem( cIpmiRdr *rdr )
 {
   if ( Find( rdr ) == false )
      {
-       stdlog << "User requested removal of a control"
-                " from an entity, but the control was not there";
+       stdlog << "user requested removal of a control"
+                " from an entity, but the control was not there !\n";
        return false;
      }
+
+  if ( rdr == m_hotswap_sensor )
+       m_hotswap_sensor = 0;
 
   // this is for testing, because at the moment
   // rdrs cannot exits without an mc

@@ -37,8 +37,8 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   : m_addr( addr ), m_active( true ),
     m_fru_state( eIpmiFruStateNotInstalled ),
     m_domain( domain ), m_sdrs( 0 ),
-    m_sensors_in_my_sdr( 0 ), m_sensors_in_my_sdr_count( 0 ),
-    m_sensors( 0 ), m_sel( 0 ),
+    m_sensors_in_my_sdr( 0 ),
+    m_sel( 0 ),
     m_device_id( 0 ), m_device_revision( 0 ), 
     m_provides_device_sdrs( false ), m_device_available( false ),
     m_chassis_support( false ), m_bridge_support( false ), 
@@ -77,9 +77,6 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   m_sdrs = new cIpmiSdrs( this, 0, true );
   assert( m_sdrs );
 
-  m_sensors = new cIpmiSensorInfo( this );
-  assert( m_sensors );
-
   m_sel = new cIpmiSel( this, 0 );
   assert( m_sel );
 }
@@ -89,12 +86,6 @@ cIpmiMc::~cIpmiMc()
 {
   assert( m_domain );
   assert( !m_active );
-
-  if ( m_sensors )
-     {
-       delete m_sensors;
-       m_sensors = 0;
-     }
 
   if ( m_sdrs )
      {
@@ -116,19 +107,12 @@ cIpmiMc::Cleanup()
   assert( m_domain );
 
   // First the device SDR sensors, since they can be there for any MC.
-
-  if ( m_sensors_in_my_sdr )
+  while( m_sensors_in_my_sdr )
      {
-       unsigned int i;
-
-       for( i = 0; i < m_sensors_in_my_sdr_count; i++ )
-	    if ( m_sensors_in_my_sdr[i] )
-                 m_sensors_in_my_sdr[i]->Destroy();
-
-       delete [] m_sensors_in_my_sdr;
-
-       m_sensors_in_my_sdr       = 0;
-       m_sensors_in_my_sdr_count = 0;
+       cIpmiSensor *sensor = (cIpmiSensor *)m_sensors_in_my_sdr->data;
+       m_sensors_in_my_sdr = g_list_remove( m_sensors_in_my_sdr, sensor );
+       sensor->Entity()->Rem( sensor );
+       delete sensor;
      }
 
   // remove rdrs found in MC
@@ -140,12 +124,9 @@ cIpmiMc::Cleanup()
 
   m_active = false;
 
-  if ( m_sensors == 0 || m_sensors->m_sensor_count == 0 )
-       return true;
-
   stdlog << "removing MC: " << m_addr.m_channel << " " << m_addr.m_slave_addr << "\n";
 
-  return false;
+  return true;
 }
 
 
@@ -518,20 +499,18 @@ cIpmiMc::GetAddress()
 cIpmiSensor *
 cIpmiMc::FindSensor( unsigned int lun, unsigned int sensor_id )
 {
-  return m_sensors->FindSensor( lun, sensor_id );
+  return (cIpmiSensor *)Find( this, SAHPI_SENSOR_RDR, sensor_id, lun );
 }
 
 
 cIpmiSensorHotswap *
 cIpmiMc::FindHotswapSensor()
 {
-  for( unsigned int i = 0; i < m_sensors_in_my_sdr_count; i++ )
+  for( GList *list = m_rdrs; list; list = g_list_next( list ) )
      {
-       if ( m_sensors_in_my_sdr[i] == 0 )
-            continue;
+       cIpmiRdr *rdr = (cIpmiRdr *)list->data;
+       cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( rdr );
 
-       cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( m_sensors_in_my_sdr[i] );
-       
        if ( hs )
             return hs;
      }

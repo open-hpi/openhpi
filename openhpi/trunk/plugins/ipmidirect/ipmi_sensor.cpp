@@ -140,7 +140,7 @@ IpmiEventReadingTypeToString( tIpmiEventReadingType val )
 {
   if ( val == eIpmiEventReadingTypeSensorSpecific )
        return "SensorSpecific";
-  
+
   if ( val > eIpmiEventReadingTypeDiscreteAcpiPower )
        return "Invalid";
 
@@ -148,55 +148,12 @@ IpmiEventReadingTypeToString( tIpmiEventReadingType val )
 }
 
 
-cIpmiSensorInfo::cIpmiSensorInfo( cIpmiMc *mc )
-  : m_mc( mc ), m_destroyed( false ), 
-    m_sensor_count( 0 )
-{
-  for( int i = 0; i < 5; i++ )
-     {
-       m_sensors_by_idx[i] = NULL;
-       m_idx_size[i] = 0;
-     }
-}
-
-
-cIpmiSensorInfo::~cIpmiSensorInfo()
-{
-  for( int i = 0; i <= 4; i++ )
-     {
-       for( int j = 0; j < m_idx_size[i]; j++ )
-	    if ( m_sensors_by_idx[i][j] )
-                 m_sensors_by_idx[i][j]->Destroy();
-
-       if ( m_sensors_by_idx[i] )
-	    delete [] m_sensors_by_idx[i];
-     }
-}
-
-
-cIpmiSensor *
-cIpmiSensorInfo::FindSensor( unsigned int lun, unsigned int sensor_num )
-{
-  if ( lun > 4 )
-     {
-       assert( 0 );
-       return 0;
-     }
-
-  if ( sensor_num > (unsigned int)m_idx_size[lun] )
-       return 0;
-
-  return m_sensors_by_idx[lun][sensor_num];
-}
-
-
 cIpmiSensor::cIpmiSensor( cIpmiMc *mc )
   : cIpmiRdr( mc, SAHPI_SENSOR_RDR ), m_source_mc( 0 ),
-    m_source_idx( 0 ), m_source_array( 0 ),
-    m_event_state( 0 ), m_destroyed( false ),
+    m_event_state( SAHPI_ES_UNSPECIFIED ), m_destroyed( false ),
     m_use_count( 0 ),
     m_owner( 0 ), m_channel( 0 ),
-    m_lun( 0 ), m_num( 0 ),
+     m_num( 0 ),
     m_entity_id( eIpmiEntityInvalid ), m_entity_instance( 0 ),
     m_entity_instance_logical( false ),
     m_sensor_init_scanning( false ),
@@ -229,7 +186,7 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 {
   m_source_mc = mc;
 
-  m_use_count = 1;  
+  m_use_count = 1;
   m_destroyed = false;
 
   m_mc = mc->Domain()->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
@@ -264,7 +221,7 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 
   IdString().SetIpmi( sdr->m_data+47 );
 
-  return true;  
+  return true;
 }
 
 
@@ -273,11 +230,6 @@ cIpmiSensor::HandleNew( cIpmiDomain *domain )
 {
   m_sensor_type_string        = IpmiSensorTypeToString( m_sensor_type );
   m_event_reading_type_string = IpmiEventReadingTypeToString( m_event_reading_type );
-
-  cIpmiEntityInfo &ents = domain->Entities();
-  cIpmiEntity *ent = ents.Find( m_mc, m_entity_id, m_entity_instance );
-
-  ent->AddSensor( this );
 }
 
 
@@ -324,57 +276,6 @@ cIpmiSensor::Cmp( const cIpmiSensor &s2 ) const
        return false;
 
   return true;
-}
-
-
-void
-cIpmiSensor::FinalDestroy()
-{
-  cIpmiDomain     *domain = m_mc->Domain();
-  cIpmiEntityInfo &ents   = domain->Entities();
-  cIpmiSensorInfo *sensors = m_mc->Sensors();
-
-  assert( sensors->m_sensors_by_idx[m_lun][m_num] == this );
-
-  if ( m_source_array )
-       m_source_array[m_source_idx] = 0;
-
-  sensors->m_sensor_count--;
-  sensors->m_sensors_by_idx[m_lun][m_num] = 0;
-
-  cIpmiEntity *ent = ents.Find( m_mc, m_entity_id, m_entity_instance );
-
-  if ( ent )
-       ent->RemoveSensor( this );
-
-  delete this;
-}
-
-
-bool
-cIpmiSensor::Destroy()
-{
-  cIpmiSensorInfo *sensors = m_mc->Sensors();
-
-  if ( sensors->m_sensors_by_idx[m_lun][m_num] != this )
-     {
-       assert( 0 );
-       return false;
-     }
-
-  FinalDestroy();
-
-  return true;
-}
-
-
-cIpmiEntity *
-cIpmiSensor::GetEntity()
-{
-  cIpmiDomain *domain = m_mc->Domain();
-
-  return domain->Entities().Find( m_mc, m_entity_id,
-                                  m_entity_instance );
 }
 
 
@@ -559,7 +460,7 @@ cIpmiSensor::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 {
   memset( &h, 0, sizeof( SaHpiEventT ) );
 
-  cIpmiEntity *ent = GetEntity();
+  cIpmiEntity *ent = Entity();
   assert( ent );
 
   h.Source    = ent->m_resource_id;
@@ -584,7 +485,7 @@ cIpmiSensor::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 void
 cIpmiSensor::HandleEvent( cIpmiEvent *event )
 {
-  cIpmiEntity *ent = GetEntity();
+  cIpmiEntity *ent = Entity();
   assert( ent );
 
   stdlog << "reading event.\n";

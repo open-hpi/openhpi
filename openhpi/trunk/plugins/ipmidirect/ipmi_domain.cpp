@@ -28,7 +28,7 @@
 
 cIpmiDomain::cIpmiDomain()
   : m_con( 0 ), m_is_atca( false ), m_main_sdrs( 0 ),
-    m_sensors_in_main_sdr( 0 ), m_sensors_in_main_sdr_count( 0 ), 
+    m_sensors_in_main_sdr( 0 ),
     m_major_version( 0 ), m_minor_version( 0 ), m_sdr_repository_support( false ),
     m_si_mc( 0 ), m_mcs( 0 ),
     m_initial_discover( 0 ),
@@ -320,14 +320,13 @@ cIpmiDomain::Cleanup()
        m_con->Close();
 
   // Delete the sensors from the main SDR repository.
-  if ( m_sensors_in_main_sdr )
+  while( m_sensors_in_main_sdr )
      {
-       for( i = 0; i < m_sensors_in_main_sdr_count; i++ )
-	    if ( m_sensors_in_main_sdr[i] )
-                 m_sensors_in_main_sdr[i]->Destroy();
-
-       delete [] m_sensors_in_main_sdr;
-    }
+       cIpmiSensor *sensor = (cIpmiSensor *)m_sensors_in_main_sdr->data;
+       m_sensors_in_main_sdr = g_list_remove( m_sensors_in_main_sdr, sensor );
+       sensor->Entity()->Rem( sensor );
+       delete sensor;
+     }
 
   // cleanup all MCs
   GList *l = g_list_first( m_mcs );
@@ -571,30 +570,24 @@ cIpmiDomain::FindOrCreateMcBySlaveAddr( unsigned int slave_addr )
 }
 
 
-cIpmiSensor **
-cIpmiDomain::GetSdrSensors( cIpmiMc  *mc,
-                            unsigned int &count )
+GList *
+cIpmiDomain::GetSdrSensors( cIpmiMc *mc )
 {
   if ( mc )
-       return mc->GetSdrSensors( count );
+       return mc->GetSdrSensors();
 
-  count = m_sensors_in_main_sdr_count;
   return m_sensors_in_main_sdr;
 }
 
 
 void
-cIpmiDomain::SetSdrSensors( cIpmiMc      *mc,
-                            cIpmiSensor **sensors,
-                            unsigned int  count )
+cIpmiDomain::SetSdrSensors( cIpmiMc *mc,
+                            GList   *sensors )
 {
   if ( mc )
-       mc->SetSdrSensors( sensors, count );
+       mc->SetSdrSensors( sensors );
   else
-     {
-       m_sensors_in_main_sdr       = sensors;
-       m_sensors_in_main_sdr_count = count;
-     }
+       m_sensors_in_main_sdr = sensors;
 }
 
 
@@ -773,9 +766,9 @@ cIpmiDomain::Dump( cIpmiLog &dump )
 
 	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
 		 dump.Entry( "AtcaBoard" );
-	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
+	    else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
 		 dump.Entry( "PowerUnit" );
-	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
+	    else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
 		 dump.Entry( "FanTray" );
 	    else
                {
@@ -817,9 +810,9 @@ cIpmiDomain::Dump( cIpmiLog &dump )
 
 		 if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
 		      dump << "AtcaBoard";
-		 if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
+		 else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
 		      dump << "PowerUnit";
-		 if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
+		 else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
 		      dump << "FanTray";
 		 else
 		      assert( 0 );

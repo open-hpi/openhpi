@@ -42,6 +42,7 @@ protected:
   SaHpiEntryIdT   m_record_id;
   SaHpiRdrTypeT   m_type;
   cIpmiTextBuffer m_id_string;
+  unsigned int    m_lun;
 
 public:
   cIpmiRdr( cIpmiMc *mc, SaHpiRdrTypeT type );
@@ -59,6 +60,7 @@ public:
 
   // sensor num, control num, fru device id
   virtual unsigned int Num() const = 0;
+  virtual unsigned int Lun() const { return m_lun; }
 
   //virtual void Dump( cIpmiLog &dump ) = 0;
 };
@@ -74,7 +76,9 @@ public:
   virtual ~cIpmiRdrContainer();
 
   // find a specific rdr
-  virtual cIpmiRdr *Find( cIpmiMc *mc, SaHpiRdrTypeT type, unsigned int num );
+  virtual cIpmiRdr *Find( cIpmiMc *mc, SaHpiRdrTypeT type, unsigned int num, unsigned int lun = 0 );
+  virtual GList *GetRdrList( cIpmiMc *mc, SaHpiRdrTypeT type );
+
   virtual bool Find( cIpmiRdr *rdr );
   virtual bool Add( cIpmiRdr *rdr );
   virtual bool Rem( cIpmiRdr *rdr );
