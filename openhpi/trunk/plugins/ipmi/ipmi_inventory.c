@@ -91,6 +91,41 @@ static struct ohoi_field_data product_fields[] = {
 		SAHPI_IDR_FIELDTYPE_MANUFACTURER, 
 		ipmi_entity_get_product_info_manufacturer_name_len, 
 		ipmi_entity_get_product_info_manufacturer_name
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
+		ipmi_entity_get_product_info_product_name_len,
+		ipmi_entity_get_product_info_product_name,
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
+		ipmi_entity_get_product_info_product_serial_number_len,
+		ipmi_entity_get_product_info_product_serial_number,
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_FILE_ID,
+		ipmi_entity_get_product_info_fru_file_id_len,
+		ipmi_entity_get_product_info_fru_file_id
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_ASSET_TAG,
+		ipmi_entity_get_product_info_asset_tag_len,
+		ipmi_entity_get_product_info_asset_tag,
+	}
+};
+
+static int _ipmi_entity_get_internal_use_data(ipmi_entity_t *entity,
+					      char *data,
+					      unsigned int  *max_len)
+{
+	return ipmi_entity_get_internal_use_data(entity, data, max_len);
+}
+
+static struct ohoi_field_data internal_fields[] = {
+	{
+		SAHPI_IDR_FIELDTYPE_CUSTOM,
+		ipmi_entity_get_internal_use_length,
+		_ipmi_entity_get_internal_use_data,
 	}
 };
 
@@ -113,6 +148,11 @@ static struct ohoi_area_data {
 		SAHPI_IDR_AREATYPE_BOARD_INFO,
 		product_fields
 	},
+	{
+		sizeof(internal_fields)/sizeof(internal_fields[0]),
+		SAHPI_IDR_AREATYPE_INTERNAL_USE,
+		internal_fields
+	}
 };
 
 #define OHOI_AREA_NUM        (sizeof(areas)/sizeof(areas[0]))
