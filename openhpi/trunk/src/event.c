@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003-2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,6 +13,8 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     David Judkovics <djudkovi@us.ibm.com>
+ *     Sean Dague <http://dague.net/sean>
+ *     Renier Morales <renierm@users.sourceforge.net>
  */
 
 #include <unistd.h>
@@ -26,29 +28,39 @@
 
 #define OH_THREAD_SLEEP_TIME 2 * G_USEC_PER_SEC
 
-/* This is a short term hack to get this running properly.  Will 
-   be changed to more robust mechanisms later */
-// #define OPENHPI_RUN_THREADED
-//#ifdef OPENHPI_RUN_THREADED
-//#define oh_run_threaded() 1
-//#else
-//#define oh_run_threaded() 0
-//#endif
-
 GAsyncQueue *oh_process_q = NULL;
 GCond *oh_thread_wait = NULL;
 GThread *oh_event_thread = NULL;
 GError *oh_event_thread_error = NULL;
 GMutex *oh_thread_mutex = NULL;
 
+
+static gpointer oh_event_thread_loop(gpointer data) {
+        GTimeVal time;
+
+        while(oh_run_threaded()) {
+                dbg("About to run through the event loop");
+
+		get_events();
+
+                g_get_current_time(&time);
+                g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
+                dbg("Going to sleep");
+
+                if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
+			dbg("SIGNALED: Got signal from plugin");
+		else
+			dbg("TIMEDOUT: Woke up, am looping again");
+        }
+        g_thread_exit(0);
+        return 0;
+}
+
 /*
  *  The following is required to set up the thread state for
  *  the use of async queues.  This is true even if we aren't
  *  using live threads.
  */
-
-gpointer oh_event_thread_loop(gpointer);
-
 int oh_event_init()
 {
         trace("Attempting to init event");
@@ -181,7 +193,7 @@ static int process_hpi_event(struct oh_event *full_event)
         
         /* FIXME: yes, we need to figure out the real domain at some point */
         trace("About to get session list");
-        sessions = oh_list_sessions(1);
+        sessions = oh_list_sessions(oh_get_default_domain_id());
 
         /* multiplex event to the appropriate sessions */
         for(i = 0; i < sessions->len; i++) {
@@ -217,6 +229,9 @@ static int process_resource_event(struct oh_event *e)
         memset(&hpie, 0, sizeof(hpie));
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_event.entry.ResourceId);
+                trace("Resource %d in Domain %d has been REMOVED.",
+                      e->u.res_event.entry.ResourceId,
+                      e->did);
                 
                 hpie.did = e->did;
                 hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
@@ -224,13 +239,13 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
                         SAHPI_RESE_RESOURCE_FAILURE;
-		dbg("************************ process_resource_event REMOVE\n");                
+                
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
                 if (!rd) {
                         dbg("Couldn't allocate resource data");
-                        return SA_ERR_HPI_ERROR;
+                        return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
 
                 rd->handler = e->from;
@@ -238,6 +253,9 @@ static int process_resource_event(struct oh_event *e)
                 rd->auto_extract_timeout = get_default_hotswap_auto_extract_timeout();
 
                 rv = oh_add_resource(rpt,&(e->u.res_event.entry),rd,0);
+                trace("Resource %d in Domain %d has been ADDED.",
+                      e->u.res_event.entry.ResourceId,
+                      e->did);
                 
                 hpie.did = e->did;
                 hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
@@ -245,11 +263,10 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
                         SAHPI_RESE_RESOURCE_ADDED;
-		dbg("************************ process_resource_event ADD\n");
         }
         oh_release_domain(d);
         
-        if(rv == SA_OK) {
+        if (rv == SA_OK) {
                 rv = process_hpi_event(&hpie);
         }
 
@@ -272,22 +289,17 @@ static int process_rdr_event(struct oh_event *e)
 			     
         if (e->type == OH_ET_RDR_DEL) {
                 rv = oh_remove_rdr(rpt,rid,e->u.rdr_event.rdr.RecordId);
-		dbg("************************ process_rdr_event REMOVE\n");
+                trace("RDR %x in Resource %d in Domain %d has been REMOVED.",
+                      e->u.rdr_event.rdr.RecordId, rid, e->did);
         } else {
                 rv = oh_add_rdr(rpt,rid,&(e->u.rdr_event.rdr),NULL,0);
-		dbg("************************ process_rdr_event ADD\n");
+                trace("RDR %x in Resource %d in Domain %d has been ADDED.",
+                      e->u.rdr_event.rdr.RecordId, rid, e->did);
         }
+        oh_release_domain(d);
 
         if (rv) dbg("Could not process rdr event. Parent resource not found.");
 
-        oh_release_domain(d);
-
-/*	need this after different type rdr events are processed above FIXME:DJ
-	otherwise rdr events are never palced on eventq
-        if(rv == SA_OK) {
-                rv = process_hpi_event(&hpie);
-        }
-*/        
         return rv;
 }
 
@@ -299,7 +311,7 @@ SaErrorT process_events()
 
                 /* FIXME: add real check if handler is allowed to push event 
                    to the domain id in the event */
-                if(e->did != 1) { // add use of real domain checker once renier provides
+                if(e->did != oh_get_default_domain_id()) {                        
                         dbg("Domain Id %d not valid for event", e->did);
                         g_free(e);
                         return SA_ERR_HPI_INVALID_DATA;
@@ -351,32 +363,5 @@ SaErrorT get_events()
                 return rv;
         }
 
-                return rv;
-}
-
-
-gpointer oh_event_thread_loop(gpointer data) {
-
-//        SaErrorT rv = SA_OK;
-
-        GTimeVal time;
-        
-        while(oh_run_threaded()) {
-                dbg("About to run through the event loop");
-
-		get_events();
-
-                g_get_current_time(&time);
-                g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
-                dbg("Going to sleep");
-
-                if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-			dbg("SIGNALED: Got signal from plugin");
-		else
-			dbg("TIMEOUT: Woke up, am looping again");
-        }
-
-        g_thread_exit(0);
-
-        return 0;
+        return rv;
 }
