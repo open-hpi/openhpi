@@ -418,14 +418,20 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
  * Returns: void.
  **/
  void ep_init(SaHpiEntityPathT *ep) {
-         int i;
+	 /*   int i; */
 
          if (!ep) return;
          
+	 memset(ep, 0 , sizeof(SaHpiEntityPathT));
+	 ep->Entry[0].EntityType = SAHPI_ENT_ROOT;
+	 ep->Entry[0].EntityInstance = 0;
+
+#if 0
          for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                  ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
                  ep->Entry[i].EntityInstance = 0;
          }
+#endif
  }
 
 /**
@@ -554,18 +560,18 @@ int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
         }
 
         if ( i != j ) {
-                dbg("ep1 element count %d != ep2 %d\n", i, j);
+                /* dbg("ep1 element count %d != ep2 %d\n", i, j); */
                 return -1;
         }
 
         for ( i = 0; i < j; i++ ) {
                 if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType ||
                     ep1->Entry[i].EntityInstance != ep2->Entry[i].EntityInstance) {
-                        dbg("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
+                        /* dbg("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
                             ep1->Entry[i].EntityType,
                             ep1->Entry[i].EntityInstance,
                             ep2->Entry[i].EntityType,
-                            ep2->Entry[i].EntityInstance);
+                            ep2->Entry[i].EntityInstance); */
                         return -1;
                 }
         }
