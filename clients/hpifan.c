@@ -251,7 +251,7 @@ discover_domain( SaHpiSessionIdT session_id )
                         continue;
 
                 /* walk the RDR list for this RPT entry */
-                SaHpiEntryIdT next_rdr;
+                SaHpiEntryIdT next_rdr = SAHPI_FIRST_ENTRY;
                 SaHpiResourceIdT resource_id = entry.ResourceId;
                 int epath_out = 1;
 
