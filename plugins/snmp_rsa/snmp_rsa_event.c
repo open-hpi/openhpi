@@ -244,7 +244,10 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 		dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
 		return -1;
 	}
-	
+
+	/* Assume event is enabled; unless we find out differently below */
+	*event_enabled = 1;
+
 	/* Fill-in HPI event time */
 	working.Timestamp = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 

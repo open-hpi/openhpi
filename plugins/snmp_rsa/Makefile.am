@@ -39,6 +39,7 @@ EXTRA_DIST		=	rsa_resources.h \
 
 libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
 	     			rsa_str2event.c \
+				sim_init.c \
 	     			snmp_rsa.c \
 	     			snmp_rsa_control.c \
 	     			snmp_rsa_discover.c \
