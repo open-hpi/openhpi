@@ -33,7 +33,7 @@
  *
  * Returns: 0 if successful, -1 if there was an error.
  **/
-int snmp_get(struct snmp_session *ss, const char *objid, 
+SaErrorT snmp_get(struct snmp_session *ss, const char *objid, 
              struct snmp_value *value) 
 {
         struct snmp_pdu *pdu;
@@ -100,7 +100,7 @@ int snmp_get(struct snmp_session *ss, const char *objid,
  *
  * Returns: 0 if Success, less than 0 if Failure.
  **/
-int snmp_set(
+SaErrorT snmp_set(
         struct snmp_session *ss,
         char *objid,
         struct snmp_value value) 
@@ -173,63 +173,6 @@ int snmp_set(
 
         return rtncode;
 }
-
-#if 0
-int snmp_get_bulk(struct snmp_session *ss, const char *objid, 
-                struct snmp_value *value) 
-{
-        struct snmp_pdu *pdu;
-        struct snmp_pdu *response;
-        
-        oid anOID[MAX_OID_LEN];
-        size_t anOID_len = MAX_OID_LEN;
-        struct variable_list *vars;
-        int status;
-        
-        /*
-         * Create the PDU for the data for our request.
-         */
-        pdu = snmp_pdu_create(SNMP_MSG_GETNEXT);
-        read_objid(objid, anOID, &anOID_len);
-        snmp_add_null_var(pdu, anOID, anOID_len);
-        /*
-         * Send the Request out.
-         */
-        status = snmp_synch_response(ss, pdu, &response);
-        /*
-         * Process the response.
-         */
-        if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                vars = response->variables;
-                value->type = vars->type;
-                if (vars->next_variable != NULL) {
-                        value->type = ASN_NULL;
-                }/* If there are more values, set return type to null. */
-                else if (vars->type == ASN_INTEGER) {
-                        value->integer = *(vars->val.integer);
-                } else {
-                        unsigned int str_len = vars->val_len;
-                        strncpy(value->string,
-                                (char *)vars->val.string,
-                                MAX_ASN_STR_LEN);
-                        if (str_len < MAX_ASN_STR_LEN) value->string[str_len] = '\0';
-                        else value->string[MAX_ASN_STR_LEN-1] = '\0';
-                }
-        } else {
-                value->type = (u_char)0x00; /* Set return type to 0 in case of error. */
-                if (status == STAT_SUCCESS)
-                        fprintf(stderr, "Error in packet %s\nReason: %s\n",
-                                objid, snmp_errstring(response->errstat));
-                else
-                        snmp_sess_perror("snmpget", ss);
-        }
-
-        /* Clean up: free the response */
-        if (response) snmp_free_pdu(response);
-
-        return value->type? 0 : -1;
-}
-#endif
 
 /**
  * snmp_get2: Gets a single value indicated by the objectid
@@ -437,7 +380,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 
 }
 
-int snmp_getn_bulk( struct snmp_session *ss, 
+SaErrorT snmp_getn_bulk( struct snmp_session *ss, 
 		    oid *bulk_objid, 
 		    size_t bulk_objid_len,
 		    struct snmp_pdu *bulk_pdu, 

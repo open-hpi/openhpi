@@ -486,12 +486,12 @@ struct snmp_value {
         long integer;
 };
 
-int snmp_get(
+SaErrorT snmp_get(
         struct snmp_session *ss,
         const char *objid,
         struct snmp_value *value);
 
-int snmp_set(
+SaErrorT snmp_set(
         struct snmp_session *ss,
         char *objid,
         struct snmp_value value);
@@ -506,7 +506,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 	           size_t objid_len,
                    struct snmp_value *value);
 
-int snmp_getn_bulk( struct snmp_session *ss, 
+SaErrorT snmp_getn_bulk( struct snmp_session *ss, 
 		    oid *bulk_objid, 
 		    size_t bulk_objid_len,
 		    struct snmp_pdu *bulk_pdu, 
