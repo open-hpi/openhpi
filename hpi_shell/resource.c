@@ -90,6 +90,7 @@ int sa_list_res(void)
         SaHpiEntryIdT rptentryid;
         SaHpiEntryIdT nextrptentryid;
         SaHpiResourceIdT resourceid;
+	int astrisk = 0;
 
         // walk the RPT list 
         rptentryid = SAHPI_FIRST_ENTRY;
@@ -98,10 +99,14 @@ int sa_list_res(void)
                 ret = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
                                                 
                 if (ret == SA_OK) {
-                        
+			if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) &&
+					(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)){
+				astrisk = 1;
+				}
+
                         resourceid = rptentry.ResourceId;
-			printf("Resource Id: %d, Resource Tag: %s\n", 
-					rptentry.ResourceId, (char *)rptentry.ResourceTag.Data);
+			printf("Resource Id: %d, %sResource Tag: %s\n",rptentry.ResourceId, astrisk?"*":"", (char *)rptentry.ResourceTag.Data);
+			astrisk = 0;
                         rptentryid = nextrptentryid;
                 }
 		else{

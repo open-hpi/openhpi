@@ -87,6 +87,28 @@ static void get_entity_event(ipmi_entity_t	*entity,
                 = ipmi_entity_get_entity_instance(entity);
 	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
 	entry->ResourceEntity.Entry[1].EntityLocation = 0;
+	    /* AdvancedTCA fixe-up */
+
+        if (ipmi_entity_get_entity_instance(entity) >= 96) {
+                        entry->ResourceEntity.Entry[0].EntityLocation -= 96;
+                                //|ipmi_entity_get_device_channel(entity)
+                                //|ipmi_entity_get_device_address(entity);
+        }
+
+        if ((ipmi_entity_get_entity_id(entity) == 160) &&
+                        (ipmi_entity_get_entity_instance(entity) == 96)) {
+                dbg("SBC_Blade");
+               entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SBC_BLADE;
+        }
+
+        if ((ipmi_entity_get_entity_id(entity) == 160) &&
+                        (ipmi_entity_get_entity_instance(entity) == 102)) {
+                dbg("DISK Blade");
+               entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_DISK_BLADE;
+        }
+
+        /* End AdvancedTCA Fix-ups */
+
 	
 	/* let's append entity_root from config */
 
@@ -124,10 +146,16 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 	ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-	if ((strlen(entry->ResourceTag.Data) == 0) || (!strcmp(entry->ResourceTag.Data, "invalid"))) {
+	if ((strlen(entry->ResourceTag.Data) == 0)
+	    || (!strcmp(entry->ResourceTag.Data, "invalid"))
+	    || ((ipmi_entity_get_entity_id(entity) == 7 || 15))) {
+
 			char *str;
 			str = ipmi_entity_get_entity_id_string(entity);
-			memcpy(entry->ResourceTag.Data, str, strlen(str) + 1);
+			if (!(strcmp(str, "invalid"))) {
+				dbg("entity_id_string is invlaid, bad SDR..stick to entity_id");
+			} else
+				memcpy(entry->ResourceTag.Data, str, strlen(str) + 1);
 	}
 	entry->ResourceTag.DataLength = (SaHpiUint32T)strlen(entry->ResourceTag.Data);
 }
