@@ -14,6 +14,8 @@ MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
+EXTRA_DIST        = rpt_resources.h
+
 AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
 $(REMOTE_SOURCES):
@@ -89,7 +91,7 @@ TESTS = rpt_utils_000 \
         rpt_utils_065 \
         rpt_utils_066 \
         rpt_utils_1000
-        
+
 
 check_PROGRAMS = rpt_utils_000 \
 		 rpt_utils_001 \
@@ -153,10 +155,10 @@ check_PROGRAMS = rpt_utils_000 \
                  rpt_utils_059 \
                  rpt_utils_060 \
                  rpt_utils_061 \
-        	 rpt_utils_062 \
-        	 rpt_utils_063 \
-        	 rpt_utils_064 \
-        	 rpt_utils_065 \
+		 rpt_utils_062 \
+	    	 rpt_utils_063 \
+		 rpt_utils_064 \
+		 rpt_utils_065 \
                  rpt_utils_066 \
                  rpt_utils_1000
 
