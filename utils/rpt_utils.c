@@ -78,7 +78,7 @@ static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
                         num = rdr->RdrTypeUnion.SensorRec.Num;
                         break;
                 case SAHPI_INVENTORY_RDR:
-                        num = rdr->RdrTypeUnion.InventoryRec.EirId;
+                        num = rdr->RdrTypeUnion.InventoryRec.IdrId;
                         break;
                 case SAHPI_WATCHDOG_RDR:
                         num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;
@@ -267,8 +267,8 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
         } else if (entry->ResourceId == SAHPI_FIRST_ENTRY) {
                 dbg("Failed to add. RPT entry needs a resource id before being added");
                 return -3;
-        } else if (entry->ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
-                dbg("Failed to add. RPT entry has an invalid/reserved id assigned. (SAHPI_DOMAIN_CONTROLLER_ID)");
+        } else if (entry->ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
+                dbg("Failed to add. RPT entry has an invalid/reserved id assigned. (SAHPI_UNSPECIFIED_DOMAIN_ID)");
                 return -4;
         } else if (validate_ep(&(entry->ResourceEntity))) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element.");

@@ -33,7 +33,7 @@ int main(int argc, char **argv)
                                 {SAHPI_ENT_POWER_MGMNT, 30303},
                                 {SAHPI_ENT_SUB_CHASSIS, 404040},
                                 {0}}};
-        SaHpiEntityInstanceT x = 555555;
+        SaHpiEntityLocationT x = 555555;
         int mydebug = 0;
          
         if (mydebug) printf(" test8\n");
@@ -41,9 +41,9 @@ int main(int argc, char **argv)
                 if (mydebug) printf("set_ep_inst test8 checkpoint 1 failed\n");
                 return 1;
         }
-        if (ep.Entry[0].EntityInstance != x) {
+        if (ep.Entry[0].EntityLocation != x) {
                 if (mydebug) printf("set_ep_inst test8 failed, entInst %d != %d\n",
-                                   ep.Entry[0].EntityInstance, x);
+                                   ep.Entry[0].EntityLocation, x);
                 return 1;
         }
         if (ep.Entry[0].EntityType != SAHPI_ENT_ADD_IN_CARD) {
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
                                    ep.Entry[0].EntityType);
                 return 1;
         }
-        if (ep.Entry[1].EntityInstance != 2020) {
+        if (ep.Entry[1].EntityLocation != 2020) {
                 if (mydebug) printf("set_ep_inst test8 failed, entInst %d != 2020\n",
-                                   ep.Entry[1].EntityInstance);
+                                   ep.Entry[1].EntityLocation);
                 return 1;
         }
         if (ep.Entry[1].EntityType != SAHPI_ENT_POWER_MODULE) {
@@ -61,9 +61,9 @@ int main(int argc, char **argv)
                                    ep.Entry[1].EntityType);
                 return 1;
         }
-        if (ep.Entry[2].EntityInstance != 30303) {
+        if (ep.Entry[2].EntityLocation != 30303) {
                 if (mydebug) printf("set_ep_inst test8 failed, entInst %d != 30303\n",
-                                   ep.Entry[2].EntityInstance);
+                                   ep.Entry[2].EntityLocation);
                 return 1;
         }
         if (ep.Entry[2].EntityType != SAHPI_ENT_POWER_MGMNT) {
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
                                    ep.Entry[2].EntityType);
                 return 1;
         }
-        if (ep.Entry[3].EntityInstance != 404040) {
+        if (ep.Entry[3].EntityLocation != 404040) {
                 if (mydebug) printf("set_ep_inst test8 failed, entInst %d != 404040\n",
-                                   ep.Entry[3].EntityInstance);
+                                   ep.Entry[3].EntityLocation);
                 return 1;
         }
         if (ep.Entry[3].EntityType != SAHPI_ENT_SUB_CHASSIS) {

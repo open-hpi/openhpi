@@ -40,13 +40,13 @@ int main(int argc, char **argv)
         if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_IO_SUBBOARD)
                 return 1;
                 
-        if(tmp_ep.Entry[0].EntityInstance != 82)
+        if(tmp_ep.Entry[0].EntityLocation != 82)
                 return 1;
         
         if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_COOLING_DEVICE)
                 return 1;
         
-        if(tmp_ep.Entry[1].EntityInstance != 84)
+        if(tmp_ep.Entry[1].EntityLocation != 84)
                 return 1;
 
         if(entitypath2string(&tmp_ep, new, 255) < 0) 

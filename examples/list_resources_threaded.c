@@ -57,7 +57,7 @@ int main(int arc, const char *argv[])
         SaErrorT 		err;
         SaHpiSessionIdT 	session_id = 0;
         SaHpiRptEntryT		entry;
-        //SaHpiSelInfoT		Info;
+        //SaHpiEventLogInfoT		Info;
 	SaHpiVersionT		version;
 
 	int i;	   
@@ -303,7 +303,7 @@ void *discover_domain(void *arg)
 				if (tmp.EntityType <= SAHPI_ENT_UNSPECIFIED)
 					break;
 
-				printf("\t{%s, %i}\n", type2string(tmp.EntityType),tmp.EntityInstance);
+				printf("\t{%s, %i}\n", type2string(tmp.EntityType),tmp.EntityLocation);
 			}
 
 			if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
@@ -665,7 +665,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                                 break;
                                 printf("\t\t{%s, %i}\n", 
                                 type2string(tmp.EntityType),
-                                tmp.EntityInstance);
+                                tmp.EntityLocation);
                 }
                 printf("\tIdString: ");
                        display_id_string(rdr.IdString);

@@ -337,7 +337,7 @@ static int ipmi_discover_resources(void *hnd)
  **/
 static SaErrorT ipmi_get_sel_info(void               *hnd,
                              SaHpiResourceIdT   id,
-                             SaHpiSelInfoT      *info)
+                             SaHpiEventLogInfoT      *info)
 {
         unsigned int count;
         unsigned int size;
@@ -443,7 +443,7 @@ static int ipmi_set_sel_state(void      *hnd,
  * ipmi_add_sel_entry: add an entry to system sel from user
  * @hnd: pointer to handler
  * @id: resource id with SEL capability
- * @Event: SaHpiSelEntryT pointer to event to be added
+ * @Event: SaHpiEventLogEntryT pointer to event to be added
  *
  *
  *
@@ -451,7 +451,7 @@ static int ipmi_set_sel_state(void      *hnd,
  **/
 static int ipmi_add_sel_entry(void      *hnd, 
                 SaHpiResourceIdT   id, 
-                const SaHpiSelEntryT    *Event)
+                const SaHpiEventLogEntryT    *Event)
 {
         //ipmi_mc_t *mc = id.ptr; 
         ipmi_msg_t msg;
@@ -476,7 +476,7 @@ static int ipmi_add_sel_entry(void      *hnd,
 
 static int ipmi_del_sel_entry(void      *hnd,
         		        SaHpiResourceIdT id,
-				SaHpiSelEntryIdT sid)
+				SaHpiEventLogEntryIdT sid)
 {
         //struct ohoi_sel_entry *entry = id.ptr;
         //ipmi_event_t event;
@@ -493,7 +493,7 @@ static int ipmi_del_sel_entry(void      *hnd,
  * @current: SaHpiEntryIdT of entry to retrieve
  * @prev: previous entry in log relative to current
  * @next: next entry in log
- * @entry: [out]SaHpiSelEntryT entry requested
+ * @entry: [out]SaHpiEventLogEntryT entry requested
  *
  * This function will get event(s) from SEL capable IPMI device
  * one at a time by the record id starting with HPI's
@@ -502,10 +502,10 @@ static int ipmi_del_sel_entry(void      *hnd,
  * Return value: 0 for success -1 for failure
  **/
 static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
-				SaHpiSelEntryIdT current,
-				SaHpiSelEntryIdT *prev,
-				SaHpiSelEntryIdT *next,
-				SaHpiSelEntryT *entry)
+				SaHpiEventLogEntryIdT current,
+				SaHpiEventLogEntryIdT *prev,
+				SaHpiEventLogEntryIdT *next,
+				SaHpiEventLogEntryT *entry)
 {
         struct ohoi_resource_info *ohoi_res_info;
 		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -561,7 +561,7 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 		memcpy (&entry->Event.Timestamp, &event_timestamp, sizeof(event_timestamp));
 
 		/* get record id */
-		 SaHpiSelEntryIdT event_record_id;
+		 SaHpiEventLogEntryIdT event_record_id;
 
 		 event_record_id = ipmi_event_get_record_id(event);
 		 event_record_id = event_record_id;

@@ -43,8 +43,8 @@ int main(int argc, char **argv)
         SaErrorT err;
 	SaHpiRdrT rdr;
 	SaHpiRptEntryT rpt;
-	SaHpiSelEntryT logentry;
-	SaHpiSelEntryIdT prev_logid, next_logid;
+	SaHpiEventLogEntryT logentry;
+	SaHpiEventLogEntryIdT prev_logid, next_logid;
         SaHpiSessionIdT sessionid;
         SaHpiVersionT hpiVer;
 	char *hash_key, *logstr;
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
 	 ************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to Continuous 3.3V over max allowed.";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 	 * TestCase - Non-mapped Event (Severity=INFO)
 	 *************************************************************/
 	logstr = "Severity:INFO  Source:RSA  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus message not in string to event table";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 	 * TestCase - Non-mapped Login Event (Severity=WARN)
 	 *************************************************************/
 	logstr = "Severity:WARN  Source:SWITCH_4  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus login message Login ID:\'\'myid\' @ someaddress\'";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 	 * TestCase - Bogus threshold strings
  	 ******************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Bogus Read value 3.5 Bogus Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
          * (blank is first character). Should not treat as a recovery event
 	 ******************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text: Recovery System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
          * Uses special defined Test event in rsa_str2event.c
 	 ******************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus Test Event.";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 

@@ -40,13 +40,13 @@ int main(int argc, char **argv)
         if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_COMPACTPCI_CHASSIS)
                 return 1;
                 
-        if(tmp_ep.Entry[0].EntityInstance != 85)
+        if(tmp_ep.Entry[0].EntityLocation != 85)
                 return 1;
         
         if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_SBC_SUBBOARD)
                 return 1;
         
-        if(tmp_ep.Entry[1].EntityInstance != 62)
+        if(tmp_ep.Entry[1].EntityLocation != 62)
                 return 1;
 
         if(entitypath2string(&tmp_ep, new, 255) < 0) 

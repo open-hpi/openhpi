@@ -33,7 +33,7 @@ typedef struct COMPUTER_DATA_
 {
         SaHpiResourceIdT     ResID;
         SaHpiInt32T          number;     //Enumeration of which computer or blade
-        SaHpiEntityInstanceT Instance;
+        SaHpiEntityLocationT Instance;
         SaHpiRdrT            ResDataRec;  
         char                 NameStr[80];//Text Name for the computer or plade
 } COMPUTER_DATA;
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
                         ComputerPtr->number = ComputerNumber;
                         ComputerNumber++;
                         ComputerPtr->Instance = 
-                                Report.ResourceEntity.Entry[EntityElement].EntityInstance;
+                                Report.ResourceEntity.Entry[EntityElement].EntityLocation;
                         // find a Name string for this blade
                         sprintf(ComputerPtr->NameStr,
                                 "%s %d",

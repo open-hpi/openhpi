@@ -655,10 +655,10 @@ SaErrorT SAHPI_API saHpiEntitySchemaGet(
 SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_OUT SaHpiSelInfoT *Info)
+                SAHPI_OUT SaHpiEventLogInfoT *Info)
 {
         SaErrorT rv;
-        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
+        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiEventLogInfoT *);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -675,7 +675,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         OH_STATE_READY_CHECK;
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+        if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 rv = oh_sel_info(d->sel, Info);
                 data_access_unlock();
@@ -714,22 +714,22 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiSelEntryIdT EntryId,
-                SAHPI_OUT SaHpiSelEntryIdT *PrevEntryId,
-                SAHPI_OUT SaHpiSelEntryIdT *NextEntryId,
-                SAHPI_OUT SaHpiSelEntryT *EventLogEntry,
+                SAHPI_IN SaHpiEventLogEntryIdT EntryId,
+                SAHPI_OUT SaHpiEventLogEntryIdT *PrevEntryId,
+                SAHPI_OUT SaHpiEventLogEntryIdT *NextEntryId,
+                SAHPI_OUT SaHpiEventLogEntryT *EventLogEntry,
                 SAHPI_INOUT SaHpiRdrT *Rdr,
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
         SaErrorT rv;
-        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
-                                  SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
+        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
+                                  SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT *entry);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
-        SaHpiSelEntryT *selentry;
+        SaHpiEventLogEntryT *selentry;
         SaErrorT retc;
         
         /* Test pointer parameters for invalid pointers */
@@ -744,7 +744,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         OH_STATE_READY_CHECK;
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+        if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 retc = oh_sel_get(d->sel, EntryId, PrevEntryId, NextEntryId,
                                   &selentry);
@@ -753,7 +753,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                         return retc;
                 }
 
-                memcpy(EventLogEntry, selentry, sizeof(SaHpiSelEntryT));
+                memcpy(EventLogEntry, selentry, sizeof(SaHpiEventLogEntryT));
                 data_access_unlock();
                 return SA_OK;
         }
@@ -819,11 +819,11 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiSelEntryT *EvtEntry)
+                SAHPI_IN SaHpiEventLogEntryT *EvtEntry)
 {
         SaErrorT rv;
         SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id,
-                                  const SaHpiSelEntryT *Event);
+                                  const SaHpiEventLogEntryT *Event);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -839,7 +839,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         OH_STATE_READY_CHECK;
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+        if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 rv = oh_sel_add(d->sel, EvtEntry);
                 data_access_unlock();
@@ -884,11 +884,11 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 SaErrorT SAHPI_API saHpiEventLogEntryDelete (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiSelEntryIdT EntryId)
+                SAHPI_IN SaHpiEventLogEntryIdT EntryId)
 {
         SaErrorT rv;
         SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiSelEntryIdT sid);
+                                  SaHpiEventLogEntryIdT sid);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -899,7 +899,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
         OH_STATE_READY_CHECK;
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+        if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 dbg("SEL does not support delete");
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
@@ -951,7 +951,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         OH_STATE_READY_CHECK;
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+        if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 rv = oh_sel_clear(d->sel);
                       data_access_unlock();
@@ -991,7 +991,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiTimeT *Time)
 {
-        SaHpiSelInfoT info;
+        SaHpiEventLogInfoT info;
         SaErrorT rv;
         
         /* Test pointer parameters for invalid pointers */
@@ -1028,7 +1028,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         OH_STATE_READY_CHECK;
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+        if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 rv = oh_sel_timeset(d->sel, Time);
                       data_access_unlock();
@@ -1069,7 +1069,7 @@ SaErrorT SAHPI_API saHpiEventLogStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiBoolT *Enable)
 {
-        SaHpiSelInfoT info;
+        SaHpiEventLogInfoT info;
         SaErrorT rv;
         
         /* Test pointer parameters for invalid pointers */
@@ -1100,7 +1100,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 
         OH_STATE_READY_CHECK;
         /* test for special domain case */
-        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+        if (ResourceId == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 d->sel->enabled = Enable;
                       data_access_unlock();

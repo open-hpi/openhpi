@@ -41,8 +41,8 @@ int main(int argc, char **argv)
 	SaHpiEntryIdT rptid, next_rptid;
 	SaHpiRptEntryT rpt;
 	SaHpiResourceIdT chassis_rid=0;
-	SaHpiSelEntryT logentry;
-	SaHpiSelEntryIdT prev_logid, next_logid;
+	SaHpiEventLogEntryT logentry;
+	SaHpiEventLogEntryIdT prev_logid, next_logid;
         SaHpiSessionIdT sessionid;
         SaHpiVersionT hpiVer;
 	char *hash_key, *logstr;
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
          * Event recovered in next testcase
 	 ************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
          * Recover event in previous testcase
 	 *************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
          * Previous state check depends on previous testcase!
 	 *************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
          * Same as previous testcase only for the blade not chassis
 	 *************************************************************/
 	logstr = "Severity:INFO  Source:BLADE_11  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -284,7 +284,7 @@ int main(int argc, char **argv)
 	 * TestCase - Non-mapped Event (Severity=INFO)
 	 *************************************************************/
 	logstr = "Severity:INFO  Source:BLADE_01  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus message not in string to event table";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 	 * TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)
 	 *************************************************************/
 	logstr = "Severity:INFO  Source:BLADE_07  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BSE Option over recommended temperature. Read value 87 Threshold value 75";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
 	 * TestCase - Non-mapped Login Event (Severity=WARN)
 	 *************************************************************/
 	logstr = "Severity:WARN  Source:SWITCH_4  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus login message Login ID:\'\'myid\' @ someaddress\'";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -383,7 +383,7 @@ int main(int argc, char **argv)
 	 * TestCase - Power over temperature (EN_FAULT_PSx_OVR_TEMP)
 	 ***********************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Power Supply 1 Temperature Fault";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -417,7 +417,7 @@ int main(int argc, char **argv)
 	 * TestCase - Hot-swap switch installed (EN_SWITCH_3_INSTALLED) 
 	 *************************************************************/
 	logstr = "Severity:INFO  Source:SWITCH_3  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:I/O module 3 was installed.";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
          * This event is recovered in the next testcase
 	 ****************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:The media tray was removed.";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -483,7 +483,7 @@ int main(int argc, char **argv)
          * Recovery of previous event
 	 ****************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Recovery The media tray was removed.";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -519,7 +519,7 @@ int main(int argc, char **argv)
 	 * TestCase - Bogus threshold strings
  	 ******************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System shutoff due to +3.3v over voltage. Bogus Read value 3.5 Bogus Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -550,7 +550,7 @@ int main(int argc, char **argv)
          * (blank is first character). Should not treat as a recovery event
 	 ******************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text: Recovery System shutoff due to +3.3v over voltage. Read value 3.5 Threshold value 3.4";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
@@ -581,7 +581,7 @@ int main(int argc, char **argv)
          * Uses special defined Test event in bc_str2event.c
 	 ******************************************************************/
 	logstr = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:Bogus Test Event.";
-	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	memset(&logentry, 0 , sizeof(SaHpiEventLogEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 

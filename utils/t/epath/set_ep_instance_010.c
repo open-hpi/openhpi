@@ -39,7 +39,7 @@ int main(int argc, char **argv)
                                 {SAHPI_ENT_RACK, 900},
                                 {SAHPI_ENT_SUBRACK, 1000},
                                 {0}}};
-        SaHpiEntityInstanceT x = 11000;
+        SaHpiEntityLocationT x = 11000;
         int mydebug = 0;
          
         if (mydebug) printf(" test10\n");
@@ -47,25 +47,25 @@ int main(int argc, char **argv)
                 if (mydebug) printf("set_ep_inst test10 checkpoint 1 failed\n");
                 return 1;
         }
-        if((ep.Entry[0].EntityInstance != 100) ||
+        if((ep.Entry[0].EntityLocation != 100) ||
            (ep.Entry[0].EntityType != SAHPI_ENT_GROUP) ||
-           (ep.Entry[1].EntityInstance != 200) ||
+           (ep.Entry[1].EntityLocation != 200) ||
            (ep.Entry[1].EntityType != SAHPI_ENT_REMOTE) ||
-           (ep.Entry[2].EntityInstance != 300) ||
+           (ep.Entry[2].EntityLocation != 300) ||
            (ep.Entry[2].EntityType != SAHPI_ENT_EXTERNAL_ENVIRONMENT) ||
-           (ep.Entry[3].EntityInstance != 400) ||
+           (ep.Entry[3].EntityLocation != 400) ||
            (ep.Entry[3].EntityType != SAHPI_ENT_BATTERY) ||
-           (ep.Entry[4].EntityInstance != 500) ||
+           (ep.Entry[4].EntityLocation != 500) ||
            (ep.Entry[4].EntityType != SAHPI_ENT_CHASSIS_SPECIFIC) ||
-           (ep.Entry[5].EntityInstance != 600) ||
+           (ep.Entry[5].EntityLocation != 600) ||
            (ep.Entry[5].EntityType != SAHPI_ENT_BOARD_SET_SPECIFIC) ||
-           (ep.Entry[6].EntityInstance != 700) ||
+           (ep.Entry[6].EntityLocation != 700) ||
            (ep.Entry[6].EntityType != SAHPI_ENT_OEM_SYSINT_SPECIFIC) ||
-           (ep.Entry[7].EntityInstance != 800) ||
+           (ep.Entry[7].EntityLocation != 800) ||
            (ep.Entry[7].EntityType != SAHPI_ENT_ROOT) ||
-           (ep.Entry[8].EntityInstance != 900) ||
+           (ep.Entry[8].EntityLocation != 900) ||
            (ep.Entry[8].EntityType != SAHPI_ENT_RACK) ||
-           (ep.Entry[9].EntityInstance != 1000) ||
+           (ep.Entry[9].EntityLocation != 1000) ||
            (ep.Entry[9].EntityType != SAHPI_ENT_SUBRACK)) {
                 if (mydebug) printf("set_ep_inst test10 checkpoint 2 failed\n");
                 return 1;

@@ -130,8 +130,6 @@ build_state_string (SaHpiEventCategoryT category,
 	  return SA_ERR_HPI_ERROR;
   }
 
-  if (category == SAHPI_EC_USER)
-    category = SAHPI_EC_GENERIC;
   for (i = 0; i < STATESTRING_MAX_ENTRIES; i++)
     {
       /* snmp_log (LOG_INFO, "How about this one? : %d %d\n", state_string[i].category,
@@ -245,6 +243,8 @@ build_state_value (unsigned char *str, size_t len, SaHpiEventStateT * state)
 }
 
 
+#if 0
+
 int
 build_reading_strings (SaHpiSensorReadingT * reading,
 		       SaHpiEventCategoryT sensor_category,
@@ -266,24 +266,13 @@ build_reading_strings (SaHpiSensorReadingT * reading,
       !event_status_len)
 	  return SA_ERR_HPI_ERROR;
   
-  if (values_present) {
-    *values_present = reading->ValuesPresent + 1;
-    if (*values_present == 1) 
-	*values_present = 0;
-  }
-  if (raw_reading) {
-    if (reading->ValuesPresent & SAHPI_SRF_RAW)
-      *raw_reading = reading->Raw;
-    else
-      *raw_reading = 0;
-  }
   if (interpreted_reading_len) 
-    *interpreted_reading_len = 0;
-
+          *interpreted_reading_len = 0;
+  
   if (event_status_len)
-    *event_status_len = 0;
+          *event_status_len = 0;
   if (event_status)
-    *event_status = 0;
+          *event_status = 0;
   
 
   /* 
@@ -291,30 +280,27 @@ build_reading_strings (SaHpiSensorReadingT * reading,
    * is always converted to a string buffer.
    */
 
-  if (reading->ValuesPresent & SAHPI_SRF_INTERPRETED)
-    {
-
-      if (reading->Interpreted.Type == SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER)
-	{
-	  if (interpreted_reading) {
-	    memcpy (interpreted_reading,
-		    &reading->Interpreted.Value.SensorBuffer,
-		    SAHPI_SENSOR_BUFFER_LENGTH);
+  if (reading->Interpreted.Type == SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER)
+  {
+          if (interpreted_reading) {
+                  memcpy (interpreted_reading,
+                          &reading->Interpreted.Value.SensorBuffer,
+                          SAHPI_SENSOR_BUFFER_LENGTH);
 	    /*
 	     * Old code: 
-	    *interpreted_reading_len = SAHPI_SENSOR_BUFFER_LENGTH;
+         *interpreted_reading_len = SAHPI_SENSOR_BUFFER_LENGTH;
 	     * Check to see how much of the string is actually 0x00 and 
 	     * do not count those
 	     */
-	    len = strlen(reading->Interpreted.Value.SensorBuffer);
-	    *interpreted_reading_len = ( len < SAHPI_SENSOR_BUFFER_LENGTH ) ? len : SAHPI_SENSOR_BUFFER_LENGTH;
-	  }
-	}
-
-      else
-	{
+                  len = strlen(reading->Interpreted.Value.SensorBuffer);
+                  *interpreted_reading_len = ( len < SAHPI_SENSOR_BUFFER_LENGTH ) ? len : SAHPI_SENSOR_BUFFER_LENGTH;
+          }
+  }
+  
+  else
+  {
 //	  memset (&format, 0x00, SENSOR_READING_MAX_LEN);
-	  /* Setting up the format  - %d or %u or %f .. etc */
+          /* Setting up the format  - %d or %u or %f .. etc */
 /*	  switch (reading->Interpreted.Type)
 	    {
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_INT8:
@@ -348,7 +334,7 @@ build_reading_strings (SaHpiSensorReadingT * reading,
 	   *
 	   * Any ideas?
 	   */
-	  if (interpreted_reading) {
+          if (interpreted_reading) {
 	    switch (reading->Interpreted.Type)
 	      {
 	      case SAHPI_SENSOR_INTERPRETED_TYPE_INT8:
@@ -424,3 +410,4 @@ build_reading_strings (SaHpiSensorReadingT * reading,
     }
   return SA_OK;
 } 
+#endif

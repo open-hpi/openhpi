@@ -69,12 +69,12 @@ gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
         if (!oid_nodes) {dbg("Out of memory"); goto CLEANUP;}
         total_num_digits = 0;
         for (i = 0; i < num_blanks; i++) {
-                work_instance_num = ep.Entry[num_blanks-1-i].EntityInstance;
+                work_instance_num = ep.Entry[num_blanks-1-i].EntityLocation;
                 for (num_digits = 1;
                      (work_instance_num = work_instance_num/10) > 0; num_digits++);
                 oid_nodes[i] = g_malloc0((num_digits+1)*sizeof(gchar));
                 if (!oid_nodes[i]) {dbg("Out of memory"); goto CLEANUP;}
-                sprintf(oid_nodes[i], "%d", ep.Entry[num_blanks-1-i].EntityInstance);\
+                sprintf(oid_nodes[i], "%d", ep.Entry[num_blanks-1-i].EntityLocation);\
                 /*dbg("Instance number: %s", oid_nodes[i]);*/
                 total_num_digits = total_num_digits + num_digits;
         }

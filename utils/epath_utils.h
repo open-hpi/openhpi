@@ -54,7 +54,7 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append);
 
 int validate_ep(const SaHpiEntityPathT *ep);
 
-int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
+int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityLocationT ei);
 
 int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2);
 

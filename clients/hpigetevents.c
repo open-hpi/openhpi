@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
 	SaHpiResourceIdT resourceid;
-	SaHpiSelInfoT info;
+	SaHpiEventLogInfoT info;
 	SaHpiRdrT rdr;
 	SaHpiTimeoutT timeout; 
 	SaHpiEventT event;

@@ -41,7 +41,7 @@ cMarshalType SaHpiTextBufferType = dStruct( SaHpiTextBufferT, SaHpiTextBufferEle
 static cMarshalType SaHpiEntityElements[] =
 {
   dStructElement( SaHpiEntityT, EntityType, SaHpiEntityTypeType ),
-  dStructElement( SaHpiEntityT, EntityInstance, SaHpiEntityInstanceType ),
+  dStructElement( SaHpiEntityT, EntityLocation, SaHpiEntityLocationType ),
   dStructElementEnd()
 };
 
@@ -1068,28 +1068,28 @@ static cMarshalType SaHpiRptEntryElements[] =
 cMarshalType SaHpiRptEntryType = dStruct( SaHpiRptEntryT, SaHpiRptEntryElements );
 
 
-static cMarshalType SaHpiSelInfoTElements[] =
+static cMarshalType SaHpiEventLogInfoTElements[] =
 {
-  dStructElement( SaHpiSelInfoT, Entries, SaHpiUint32Type ),
-  dStructElement( SaHpiSelInfoT, Size, SaHpiUint32Type ),
-  dStructElement( SaHpiSelInfoT, UpdateTimestamp, SaHpiTimeType ),
-  dStructElement( SaHpiSelInfoT, CurrentTime, SaHpiTimeType ),
-  dStructElement( SaHpiSelInfoT, Enabled, SaHpiBoolType ),
-  dStructElement( SaHpiSelInfoT, OverflowFlag, SaHpiBoolType ),
-  dStructElement( SaHpiSelInfoT, OverflowAction, SaHpiSelOverflowActionType ),
-  dStructElement( SaHpiSelInfoT, DeleteEntrySupported, SaHpiBoolType ),
+  dStructElement( SaHpiEventLogInfoT, Entries, SaHpiUint32Type ),
+  dStructElement( SaHpiEventLogInfoT, Size, SaHpiUint32Type ),
+  dStructElement( SaHpiEventLogInfoT, UpdateTimestamp, SaHpiTimeType ),
+  dStructElement( SaHpiEventLogInfoT, CurrentTime, SaHpiTimeType ),
+  dStructElement( SaHpiEventLogInfoT, Enabled, SaHpiBoolType ),
+  dStructElement( SaHpiEventLogInfoT, OverflowFlag, SaHpiBoolType ),
+  dStructElement( SaHpiEventLogInfoT, OverflowAction, SaHpiSelOverflowActionType ),
+  dStructElement( SaHpiEventLogInfoT, DeleteEntrySupported, SaHpiBoolType ),
   dStructElementEnd()
 };
 
-cMarshalType SaHpiSelInfoType = dStruct( SaHpiSelInfoT, SaHpiSelInfoTElements );
+cMarshalType SaHpiEventLogInfoType = dStruct( SaHpiEventLogInfoT, SaHpiEventLogInfoTElements );
 
 
-static cMarshalType SaHpiSelEntryElements[] =
+static cMarshalType SaHpiEventLogEntryElements[] =
 {
-  dStructElement( SaHpiSelEntryT, EntryId, SaHpiSelEntryIdType ),
-  dStructElement( SaHpiSelEntryT, Timestamp, SaHpiTimeType ),
-  dStructElement( SaHpiSelEntryT, Event, SaHpiEventType ),
+  dStructElement( SaHpiEventLogEntryT, EntryId, SaHpiEventLogEntryIdType ),
+  dStructElement( SaHpiEventLogEntryT, Timestamp, SaHpiTimeType ),
+  dStructElement( SaHpiEventLogEntryT, Event, SaHpiEventType ),
   dStructElementEnd()
 };
 
-cMarshalType SaHpiSelEntryType = dStruct( SaHpiSelEntryT, SaHpiSelEntryElements );
+cMarshalType SaHpiEventLogEntryType = dStruct( SaHpiEventLogEntryT, SaHpiEventLogEntryElements );

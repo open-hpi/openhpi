@@ -40,13 +40,13 @@ int main(int argc, char **argv)
         if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_DISK_DRIVE_BAY)
                 return 1;
                 
-        if(tmp_ep.Entry[0].EntityInstance != 72)
+        if(tmp_ep.Entry[0].EntityLocation != 72)
                 return 1;
         
         if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_OPERATING_SYSTEM)
                 return 1;
         
-        if(tmp_ep.Entry[1].EntityInstance != 34)
+        if(tmp_ep.Entry[1].EntityLocation != 34)
                 return 1;
 
         if(entitypath2string(&tmp_ep, new, 255) < 0) 

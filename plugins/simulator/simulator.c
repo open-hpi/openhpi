@@ -134,7 +134,7 @@ static int sim_get_self_id(void *hnd, SaHpiResourceIdT id)
 }
 
 
-static int sim_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
+static int sim_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
 {
 	return -1;
 }
@@ -144,22 +144,22 @@ static int sim_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	return -1;
 }
 
-static int sim_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event)
+static int sim_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
 {
 	return -1;
 }
 
-static int sim_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
+static int sim_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
 {
 	return -1;
 }
 
 static int sim_get_sel_entry(void *hnd, 
 			       SaHpiResourceIdT id, 
-			       SaHpiSelEntryIdT current,
-			       SaHpiSelEntryIdT *prev, 
-			       SaHpiSelEntryIdT *next, 
-			       SaHpiSelEntryT *entry)
+			       SaHpiEventLogEntryIdT current,
+			       SaHpiEventLogEntryIdT *prev, 
+			       SaHpiEventLogEntryIdT *next, 
+			       SaHpiEventLogEntryT *entry)
 {       
 	return -1;
 }

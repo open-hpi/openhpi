@@ -95,7 +95,7 @@ struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char
 			dbg("Cannot allocate memory for instance string");
 			return e;
 		}
-                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", ep->Entry[0].EntityInstance);
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", ep->Entry[0].EntityLocation);
 
 		/* Find BladeCenter type */
 		if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BC)) {

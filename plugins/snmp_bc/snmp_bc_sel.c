@@ -88,7 +88,7 @@ static int get_bc_sel_size_from_hardware(struct snmp_session *ss)
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info) 
+int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info) 
 {
         struct snmp_value first_value;
         struct oh_handler_state *handle = hnd;
@@ -98,7 +98,7 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
         char oid[50];
         int i = 1;
         
-        SaHpiSelInfoT sel = {
+        SaHpiEventLogInfoT sel = {
                 .Size = 512, /* this is clearly a guess but looks about right 
                               * from the 75% full errors I've seen */
                 .Enabled = SAHPI_TRUE,
@@ -144,11 +144,11 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
-                          SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
-                          SaHpiSelEntryT *entry)
+int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
+                          SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
+                          SaHpiEventLogEntryT *entry)
 {
-        SaHpiSelEntryT tmpentry, *tmpentryptr;
+        SaHpiEventLogEntryT tmpentry, *tmpentryptr;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	tmpentryptr = &tmpentry; 
 	SaErrorT rc;
@@ -159,7 +159,7 @@ int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 		if (rc != SA_OK) {
 			dbg("Error fetching entry number %d from cache, errnum %d  >>>\n", current, rc);
 		} else {
-			memcpy(entry, tmpentryptr, sizeof(SaHpiSelEntryT));
+			memcpy(entry, tmpentryptr, sizeof(SaHpiEventLogEntryT));
 		}
 	} else {
 		dbg("Missing handle->selcache");
@@ -202,7 +202,7 @@ SaErrorT snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id)
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId)
+int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
 {
         struct oh_handler_state *handle = hnd;
 	SaErrorT rv;
@@ -224,16 +224,16 @@ int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entr
  * 
  * Return value: 0 on success, < 0 on error
  **/
-int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId)
+int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
 {
-	SaHpiSelEntryIdT current;
-	SaHpiSelEntryIdT prev;
-	SaHpiSelEntryIdT next;
+	SaHpiEventLogEntryIdT current;
+	SaHpiEventLogEntryIdT prev;
+	SaHpiEventLogEntryIdT next;
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
         bc_sel_entry sel_entry;
-        SaHpiSelEntryT  *fetchentry;
+        SaHpiEventLogEntryT  *fetchentry;
         SaHpiTimeT new_timestamp;
 	char oid[50];
 	SaErrorT rv;
@@ -351,7 +351,7 @@ int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
  * 
  * Return value: -1
  **/
-int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event)
+int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
 {
         return SA_ERR_HPI_INVALID_CMD;
 }
@@ -366,7 +366,7 @@ int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *
  * 
  * Return value: -1
  **/
-int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
+int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
 {
         return SA_ERR_HPI_INVALID_CMD;
 }
@@ -381,12 +381,12 @@ int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
  * 
  * Return value: -1 if fails. 0 SA_OK
  **/
-int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current)
+int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current)
 {
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
-        SaHpiSelEntryT tmpentry;
+        SaHpiEventLogEntryT tmpentry;
         char oid[50];
         SaErrorT rv;
 	int isdst = 0;

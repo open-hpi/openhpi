@@ -120,7 +120,7 @@ void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id,
 void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id, 
                              ipmi_event_t *event, 
                              unsigned int *record_id);
-void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_event_t **event);
+void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ipmi_event_t **event);
 
 /* This is used to help plug-in to find resource in rptcache by entity_id */
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,

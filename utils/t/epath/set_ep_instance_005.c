@@ -33,7 +33,7 @@ int main(int argc, char **argv)
                                 {SAHPI_ENT_BATTERY, 33333},
                                 {SAHPI_ENT_IO_SUBBOARD, 444444},
                                 {0}}};
-        SaHpiEntityInstanceT x = 10101010;
+        SaHpiEntityLocationT x = 10101010;
         int mydebug = 0;
          
         if (mydebug) printf(" test5\n");
@@ -41,9 +41,9 @@ int main(int argc, char **argv)
                 if (mydebug) printf("set_ep_inst test5 checkpoint 1 failed\n");
                 return 1;
         }
-        if (ep.Entry[3].EntityInstance != x) {
+        if (ep.Entry[3].EntityLocation != x) {
                 if (mydebug) printf("set_ep_inst test5 failed, entInst %d != %d\n",
-                                   ep.Entry[3].EntityInstance, x);
+                                   ep.Entry[3].EntityLocation, x);
                 return 1;
         }
         if (ep.Entry[3].EntityType != SAHPI_ENT_IO_SUBBOARD) {
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
                                    ep.Entry[3].EntityType);
                 return 1;
         }
-        if (ep.Entry[0].EntityInstance != 111) {
+        if (ep.Entry[0].EntityLocation != 111) {
                 if (mydebug) printf("set_ep_inst test5 failed, entInst %d != 111\n",
-                                   ep.Entry[0].EntityInstance);
+                                   ep.Entry[0].EntityLocation);
                 return 1;
         }
         if (ep.Entry[0].EntityType != SAHPI_ENT_PROCESSOR) {
@@ -61,9 +61,9 @@ int main(int argc, char **argv)
                                    ep.Entry[0].EntityType);
                 return 1;
         }
-        if (ep.Entry[1].EntityInstance != 2222) {
+        if (ep.Entry[1].EntityLocation != 2222) {
                 if (mydebug) printf("set_ep_inst test5 failed, entInst %d != 2222\n",
-                                   ep.Entry[1].EntityInstance);
+                                   ep.Entry[1].EntityLocation);
                 return 1;
         }
         if (ep.Entry[1].EntityType != SAHPI_ENT_DISK_BAY) {
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
                                    ep.Entry[1].EntityType);
                 return 1;
         }
-        if (ep.Entry[2].EntityInstance != 33333) {
+        if (ep.Entry[2].EntityLocation != 33333) {
                 if (mydebug) printf("set_ep_inst test5 failed, entInst %d != 33333\n",
-                                   ep.Entry[2].EntityInstance);
+                                   ep.Entry[2].EntityLocation);
                 return 1;
         }
         if (ep.Entry[2].EntityType != SAHPI_ENT_BATTERY) {

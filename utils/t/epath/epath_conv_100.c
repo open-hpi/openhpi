@@ -39,13 +39,13 @@ int main(int argc, char **argv)
         if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_BOARD_SET_SPECIFIC)
                 return 1;
         
-        if(tmp_ep.Entry[0].EntityInstance != -5)
+        if(tmp_ep.Entry[0].EntityLocation != -5)
                 return 1;
         
         if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_CHASSIS_SPECIFIC)
                 return 1;
         
-        if(tmp_ep.Entry[1].EntityInstance != 97)
+        if(tmp_ep.Entry[1].EntityLocation != 97)
                 return 1;
         
         return 0;

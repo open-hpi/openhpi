@@ -51,7 +51,7 @@ int main(int arc, const char *argv[])
         SaHpiVersionT		version;
         SaHpiSessionIdT 	session_id;
         SaHpiRptEntryT		entry;
-        //SaHpiSelInfoT		Info;
+        //SaHpiEventLogInfoT		Info;
         
 	
 	/* First step in HPI and openhpi */

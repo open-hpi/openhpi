@@ -22,7 +22,7 @@
 
 /**
  * main: Starting with an empty RPTable, adds 1 resource to it
- * that has an invalid Resource Id like SAHPI_DOMAIN_CONTROLLER_ID.
+ * that has an invalid Resource Id like SAHPI_UNSPECIFIED_DOMAIN_ID.
  * Passes the test if the interface returns an error, else it fails.
  *
  * Return value: 0 on success, 1 on failure
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
 
-        rptentries[0].ResourceId = SAHPI_DOMAIN_CONTROLLER_ID;
+        rptentries[0].ResourceId = SAHPI_UNSPECIFIED_DOMAIN_ID;
 
         if (!oh_add_resource(rptable, rptentries, NULL, 0))
                 return 1;

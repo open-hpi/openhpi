@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
         for (i = 1; i <= 10000; i++) {
                 rptentries[0].ResourceId = i;
-                rptentries[0].ResourceEntity.Entry[0].EntityInstance = i;
+                rptentries[0].ResourceEntity.Entry[0].EntityLocation = i;
                 oh_add_resource(rptable, rptentries, NULL, 0);
         }
 

@@ -44,7 +44,7 @@ struct { int val; char *str;
 { /*0x09*/ SAHPI_EC_ENABLE,       "DevEnable"},
 { /*0x0a*/ SAHPI_EC_AVAILABILITY, "Availabil"},
 { /*0x0b*/ SAHPI_EC_REDUNDANCY,   "Redundanc"},
-{ /*0x7e*/ SAHPI_EC_USER,         "UserDefin"},
+// { /*0x7e*/ SAHPI_EC_USER,         "UserDefin"},
 { /*0x7f*/ SAHPI_EC_GENERIC,      "OemDefin " }};
 
 /**
@@ -230,8 +230,8 @@ struct code2string watchdogpint [NUM_WD_INT] = {
 struct code2string hotswapstate [NUM_HS] = {
 	{SAHPI_HS_STATE_INACTIVE, "Hotswap State: Inactive"},   
 	{SAHPI_HS_STATE_INSERTION_PENDING, "Hotswap State: Insertion Pending"},
-	{SAHPI_HS_STATE_ACTIVE_HEALTHY, "Hotswap State: Active - Healthy"},
-	{SAHPI_HS_STATE_ACTIVE_UNHEALTHY, "Hotswap State: Active - Unhealthy" },
+//	{SAHPI_HS_STATE_ACTIVE_HEALTHY, "Hotswap State: Active - Healthy"},
+//	{SAHPI_HS_STATE_ACTIVE_UNHEALTHY, "Hotswap State: Active - Unhealthy" },
 	{SAHPI_HS_STATE_EXTRACTION_PENDING, "Hotswap State: Extraction Pending"},
 	{SAHPI_HS_STATE_NOT_PRESENT, "Hotswap State:  Not Present"}
 };
@@ -321,6 +321,7 @@ struct code2string severity[NUM_SEV] = {
  * Return value: none 
  * Exported: 	no
  **/
+#if 0
 static void printInterpretedSensor(SaHpiSensorInterpretedT *interpreted_value)
 {
         if (!interpreted_value) return;
@@ -367,6 +368,8 @@ static void printInterpretedSensor(SaHpiSensorInterpretedT *interpreted_value)
 
 }
 
+#endif
+
 /**
  * showOemEvent: Parse and printf information of an OEM event
  * @thisEvent: Pointer to a SaHpiEventT structure 
@@ -379,7 +382,7 @@ static void showOemEvent(SaHpiEventT *thisEvent)
 	if (!thisEvent) return;
 	
 	printf("Manufacturing Id: %i\n", thisEvent->EventDataUnion.OemEvent.MId);
-	printf("OEM Event Data: \n\t%s\n", thisEvent->EventDataUnion.OemEvent.OemEventData);
+	printf("OEM Event Data: \n\t%s\n", thisEvent->EventDataUnion.OemEvent.OemEventData.Data);
 	return;
 }
 
@@ -415,6 +418,7 @@ static void showWatchdogEvent(SaHpiEventT *thisEvent)
  * Return value: none 
  * Exported: 	no
  **/
+#if 0
 static void showSensorEvent(SaHpiEventT *thisEvent)
 {
 	char *str = NULL;
@@ -432,10 +436,11 @@ static void showSensorEvent(SaHpiEventT *thisEvent)
 	/*
 	 * printTriggerReading(thisSensorEvent->TriggerReading);
 	*/
-	printf("TriggerReading.ValuesPresent %d\n",thisSensorEvent->TriggerReading.ValuesPresent);
-	printf("Sensor Raw value %d\n",thisSensorEvent->TriggerReading.Raw);
-	printInterpretedSensor(&thisSensorEvent->TriggerReading.Interpreted);
-	printf("Sensor Event Status - Sensor Status %x\n", thisSensorEvent->TriggerReading.EventStatus.SensorStatus);
+	
+       printf("TriggerReading.ValuesPresent %d\n",thisSensorEvent->TriggerReading.ValuesPresent);
+       printf("Sensor Raw value %d\n",thisSensorEvent->TriggerReading.Raw);
+       printInterpretedSensor(&thisSensorEvent->TriggerReading.Interpreted);
+       printf("Sensor Event Status - Sensor Status %x\n", thisSensorEvent->TriggerReading.EventStatus.SensorStatus);
 	printf("Sensor Event Status - Event Status  %x\n", thisSensorEvent->TriggerReading.EventStatus.EventStatus);
  	/* 
 	 * printTriggerReading(thisSensorEvent->TriggerThreshold);
@@ -452,6 +457,8 @@ static void showSensorEvent(SaHpiEventT *thisEvent)
 	
 	return;
 }
+
+#endif
 
 /**
  * showHotswapEvent: Parse and printf information of a Hotswap event
@@ -514,6 +521,8 @@ char *decode_enum(struct code2string *code_array, int NUM_MAX, int code)
  * Return value: none
  * Exported: yes
  **/
+
+#if 0
 void print_event(SaHpiEventT *thisEvent)
 {
 
@@ -555,6 +564,8 @@ void print_event(SaHpiEventT *thisEvent)
         }
 }
 
+#endif
+
 /**
  * saftime2str: Convert sahpi time to calendar date/time string        
  * @time : sahpi time to be converted                     
@@ -576,7 +587,7 @@ void saftime2str(SaHpiTimeT time, char * str, size_t size)
 	strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
 }
 
-void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
+void ShowSel( SaHpiEventLogEntryT  *sel, SaHpiRdrT *rdr,
                      SaHpiRptEntryT *rptentry )
 {
         unsigned char evtype;
@@ -680,7 +691,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                         data1, data2, data3, pstr);
                 break;
         case SAHPI_ET_USER:   /*User, usu 16-byte IPMI SEL record */
-                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
+                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData.Data[0];
                 /* get gen_desc from offset 7 */
                 for (ix = 0; ix < NGDESC; ix++)
                         if (gen_desc[ix].val == pd[7]) break;
@@ -728,11 +739,11 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                         printf("\tSeverity: %d\n", sel->Event.Severity);
                         printf("\tMId:%d, Data: %s\n",
                                sel->Event.EventDataUnion.OemEvent.MId,
-                               sel->Event.EventDataUnion.OemEvent.OemEventData);
+                               sel->Event.EventDataUnion.OemEvent.OemEventData.Data);
                 }
                 break;
         default:
-                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
+                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData.Data[0];
                 styp = pd[10];
                 data3 = pd[15];
                 /* *sel->Event.EventDataUnion.SensorEvent.SensorSpecific+1 */

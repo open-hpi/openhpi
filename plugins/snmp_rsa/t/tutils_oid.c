@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 		.Entry[0] = 
 		{
 			.EntityType = SAHPI_ENT_PROCESSOR,
-			.EntityInstance = 100
+			.EntityLocation = 100
 		},
 	};
 

@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
 	SaHpiResourceIdT resourceid;
-	SaHpiSelEntryIdT entryid;
+	SaHpiEventLogEntryIdT entryid;
 	SaHpiTimeT oldtime;
 	SaHpiTimeT newtime;
 	SaHpiTimeT readbacktime;

@@ -37,12 +37,12 @@ int main(int argc, char **argv)
 	ep_init(&ep);
 
         for (i = 0; i < 10; i++) {
-                ep.Entry[0].EntityInstance = i;
+                ep.Entry[0].EntityLocation = i;
                 id[i] = oh_uid_from_entity_path(&ep);
         }
 
         for (i = 0; i < 10; i++) {
-                ep.Entry[0].EntityInstance = i;
+                ep.Entry[0].EntityLocation = i;
                 rid = oh_uid_lookup(&ep);
                 if (rid != id[i])
                         return 1;

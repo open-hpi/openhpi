@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 
         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 ep1.Entry[i].EntityType = SAHPI_ENT_IO_SUBBOARD;
-                ep1.Entry[i].EntityInstance = i+10;
+                ep1.Entry[i].EntityLocation = i+10;
                 ep2.Entry[i].EntityType = SAHPI_ENT_IO_SUBBOARD;
-                ep2.Entry[i].EntityInstance = i+10;
+                ep2.Entry[i].EntityLocation = i+10;
         }
         if (ep_cmp(&ep1, &ep2)) {
                 if (mydebug) printf("ep_cmp test1 failed\n");
