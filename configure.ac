@@ -587,6 +587,7 @@ AC_CONFIG_FILES([openhpi.spec
         docs/Makefile
         docs/hld/Makefile
 	openhpid2/Makefile
+	openhpid2/t/Makefile
         examples/Makefile
 	clients/Makefile])
 
