@@ -437,16 +437,11 @@ SaErrorT snmp_rsa_set_sensor_event_enables(void *hnd,
 	}
 
 	/* 
-	 * Ignore the assertion/deassert event states in enables, since RSA does not
-         * support enabling/disabling individual events - just the entire sensor
+	 * RSA currently does not support enabling/disabling individual events - 
+         * just the entire sensor
          */
 
-	if (!(enables->SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED)) {
-		/* turn off events in RDR's data */
-		((struct RSA_SensorInfo *)rsa_data)->sensor_evt_enablement.SensorStatus =
-			((struct RSA_SensorInfo *)rsa_data)->sensor_evt_enablement.SensorStatus
-			& ~SAHPI_SENSTAT_EVENTS_ENABLED;
-	}
+	((struct RSA_SensorInfo *)rsa_data)->sensor_evt_enablement = *enables;
 
         return SA_OK;
 }
