@@ -55,7 +55,7 @@ static int str2uint32(char *str, SaHpiUint32T *val)
         return 0;
 }
 
-static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *fe)
+static int fhs_event_add_resource(struct fe_handler *feh, char *res)
 {
         int retval;
         FAMRequest fr;
@@ -69,10 +69,10 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         
  
         root_path = g_hash_table_lookup(feh->ohh->config, "root_path");
-        len = strlen(root_path) + strlen(fe->filename) + 30;
+        len = strlen(root_path) + strlen(res) + 30;
         path = g_malloc(len);
 
-        sprintf(path, "%s/%s", root_path, fe->filename);
+        sprintf(path, "%s/%s", root_path, res);
         pdir = opendir(path);
         if (!pdir) {
             error("%s is not directory\n", path);
@@ -83,7 +83,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         event = g_malloc0(sizeof(*event));
         event->type = OH_ET_RESOURCE;
         rpt = &event->u.res_event.entry;
-        sprintf(path, "%s/%s/rpt", root_path, fe->filename);
+        sprintf(path, "%s/%s/rpt", root_path, res);
         retval = sim_parser_get_rpt(path, rpt);
         if (retval) {
               g_free(path);
@@ -93,7 +93,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         rid = oh_uid_from_entity_path(&rpt->ResourceEntity);
         rpt->ResourceId = rid;
 
-        retval = sim_util_add_resource(feh->ohh->rptcache, rpt, g_strdup(fe->filename));
+        retval = sim_util_add_resource(feh->ohh->rptcache, rpt, g_strdup(res));
         if (retval) {
               g_free(path);
               g_free(event);
@@ -114,7 +114,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                 event = g_malloc0(sizeof(*event));
                 event->type = OH_ET_RDR;
                 rdr = &event->u.rdr_event.rdr;
-                sprintf(path, "%s/%s/%s/rdr", root_path, fe->filename,pd->d_name);
+                sprintf(path, "%s/%s/%s/rdr", root_path, res, pd->d_name);
                 retval = sim_parser_get_rdr(path, rdr);
                 if (retval) {
                       g_free(event);
@@ -124,7 +124,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                 tmp = opendir(path);
                 if (tmp) {
                         closedir(tmp);
-                        FAMMonitorDirectory(fe->fc, path, &fr, REQ_RDR);
+                        FAMMonitorDirectory(&feh->fc, path, &fr, REQ_RDR);
                         sid = g_malloc0(sizeof(*sid));
                         sid->rid = rid;
                         sid->index = index;
@@ -140,7 +140,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         g_free(path);
         return 0;
 }
-static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
+static void fhs_event_remove_resource(struct fe_handler *feh, char *res)
 {
         struct oh_event    *event;
         SaHpiResourceIdT  rid;
@@ -150,7 +150,7 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
      
         if (event == NULL)
                 return;
-        retval = sim_util_get_res_id(feh->ohh->rptcache, fe->filename, &rid);
+        retval = sim_util_get_res_id(feh->ohh->rptcache, res, &rid);
         if (retval)
                 return;
 
@@ -164,11 +164,11 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
         return;
 }
 
-static void fhs_event_sensor_update(struct fe_handler *feh, FAMEvent *fe)
+static void fhs_event_sensor_update(struct fe_handler *feh, int reqnum)
 {
         sim_rdr_id_t  *sid;
 
-        sid = sim_util_get_rdr_id(feh->ohh->rptcache, fe->fr.reqnum);
+        sid = sim_util_get_rdr_id(feh->ohh->rptcache, reqnum);
         if (sid) {
                 trace("update sensor(%x,%x)\n", sid->rid, sid->eid);  
                 sim_sensor_update(feh->ohh, sid->rid, sid->eid);
@@ -182,13 +182,12 @@ static void* fhs_event_process(void *data)
         struct fe_handler *feh = (struct fe_handler*)data;
         FAMEvent fe;
         FAMRequest fr;
-        FAMConnection fc;
         char*  root_path;
 
         root_path = g_hash_table_lookup(feh->ohh->config, "root_path");
 
-        FAMOpen(&fc);
-        FAMMonitorDirectory(&fc, root_path, &fr, REQ_RES);
+        FAMOpen(&feh->fc);
+        FAMMonitorDirectory(&feh->fc, root_path, &fr, REQ_RES);
 
         while(!feh->closing) { 
 /*
@@ -205,29 +204,29 @@ static void* fhs_event_process(void *data)
         (polling call) though I don't like this mode.
  
 */  
-                if (1 == FAMPending(&fc)) {
-                        FAMNextEvent(&fc, &fe);
+                if (1 == FAMPending(&feh->fc)) {
+                        FAMNextEvent(&feh->fc, &fe);
                 }else  continue; 
 
                 if ((fe.userdata == REQ_RES) &&
                     ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
                         if (!IS_DIR(fe.filename))
-                                fhs_event_add_resource(feh, fe.filename, &fe);
+                                fhs_event_add_resource(feh, fe.filename);
                 }else if ((fe.userdata == REQ_RES) && (fe.code == FAMDeleted)) {
                      	if (!IS_DIR(fe.filename)) {
-                             	fhs_event_remove_resource(feh, &fe);
+                             	fhs_event_remove_resource(feh, fe.filename);
                         } else
                   		error("why delete root path:%s\n", fe.filename);
                 }else if (fe.userdata == REQ_RDR) {
                         if (((fe.code == FAMChanged) || (fe.code == FAMExists))&&
                             ((!strcmp(fe.filename, "reading"))||
                              (!strcmp(fe.filename, "thres")))) {
-                                fhs_event_sensor_update(feh, &fe);
+                                fhs_event_sensor_update(feh, fe.fr.reqnum);
                         }
                 }
         }
            
-        FAMClose(&fc);
+        FAMClose(&feh->fc);
         return 0;
 }
 
