@@ -96,7 +96,8 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         SaErrorT rv = SA_OK;        
 
         /* FIXME: this needs to be locked at boot time */
-        strncpy(buffer.Data, getenv("OPENHPI_LOG_SEV"), SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	if (getenv("OPENHPI_LOG_SEV")) 
+		strncpy(buffer.Data, getenv("OPENHPI_LOG_SEV"), SAHPI_MAX_TEXT_BUFFER_LENGTH);
         if (oh_encode_severity(&buffer, &log_severity) != SA_OK) {
                 log_severity = SAHPI_MINOR;
         }
