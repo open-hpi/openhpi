@@ -75,13 +75,22 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 	ipmi_control_id_t *ctrl;
 	SaHpiRdrT * rdr;
 	SaHpiUint8T val, mask, idx, i;
+	SaHpiCtrlStateT localstate;
+	SaHpiCtrlModeT  localmode;
 
 	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
 	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
         rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl);
         if (rv!=SA_OK) return rv;
 
+	if (state == NULL) {
+		state = &localstate;
+	}
+	if (mode == NULL) {
+		mode = &localmode;
+	}
 	memset(state, 0, sizeof(*state));
+	memset(mode, 0, sizeof(*mode));
 	
         info.done  = 0;
         info.state = state;
