@@ -74,6 +74,6 @@ publish: openhpi-manual/book1.html
 	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -exec chmod g+w {} \;"
 	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -type d -exec chmod g+s {} \;"
 
-clean:
+clean-local:
 	rm -fR openhpi-manual
 	rm -f *~ *.tex *.aux *.log *.out
