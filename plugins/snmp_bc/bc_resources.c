@@ -15,10 +15,6 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-/**************************************************************************
- * This source file defines the resource arrays declared in bc_resources.h
- *************************************************************************/
-
 #include <SaHpi.h>
 #include <bc_resources.h>
 
@@ -45,17 +41,19 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
                         },
+			/* FIXME:: Add SAHPI_CAPABILITY_ANNUNCIATOR | support */
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_RESOURCE |
-                                                SAHPI_CAPABILITY_SEL |
+                                                SAHPI_CAPABILITY_EVENT_LOG |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_CRITICAL,
+			.ResourceFailed = SAHPI_FALSE,
                 },
                 .bc_res_info = {
                         .mib = {
@@ -64,6 +62,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
                         },
                         .event_array = {
                                 {},
@@ -81,19 +80,21 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_SYS_MGMNT_MODULE,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_FRU |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_RESET |
                                                 SAHPI_CAPABILITY_RESOURCE,
                         .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
                 },
                 .bc_res_info = {
                         .mib = {
@@ -102,17 +103,18 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.7.4.0",
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.6.x",
                         },
                         .event_array = {
                                 {
                                         .event = "0028200x", /* EN_MM_x_INSTALLED */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
                                         .event = "0028400x", /* EN_MM_x_REMOVED */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
                         },
@@ -129,19 +131,22 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_INTERCONNECT,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
+			                        SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_RESET |
                                                 SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
                 },
                 .bc_res_info = {
                         .mib = {
@@ -150,32 +155,33 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.x",
                                 .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x",
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.x",
                         },
                         .event_array = {
                                 {
                                         .event = "0EA0200x", /* EN_SWITCH_x_INSTALLED */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
                                         .event = "0EA0400x", /* EN_SWITCH_x_REMOVED */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "0EA0600x", /* EN_SWITCH_x_POWERED_OFF */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "0EA0800x", /* EN_SWITCH_x_POWERED_ON */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
                                         .event = "0EA0000x", /* EN_FAULT_SWITCH_x */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_UNHEALTHY,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
                         },
@@ -192,21 +198,25 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_SBC_BLADE,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
-                        },
+                        }
+			,/* FIXME:: Add SAHPI_CAPABILITY_ANNUNCIATOR | support */
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_FRU |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
+			                        SAHPI_CAPABILITY_POWER |
                                                 SAHPI_CAPABILITY_RDR |
+			                        SAHPI_CAPABILITY_RESET |
                                                 SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
                 },
                 .bc_res_info = {
                         .mib = {
@@ -215,37 +225,38 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.8.x",
                                 .OidPowerState = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.4.x",
                                 .OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.1.6.1.1.7.x",
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.x",
                         },
                         .event_array = {
                                 {
                                         .event = "0E00200x", /* EN_BLADE_x_INSTALLED */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
                                         .event = "0E00400x", /* EN_BLADE_x_REMOVED */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "1C000001", /* EN_BLADE_PWR_DWN */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "1C000002",/* EN_BLADE_PWR_UP */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
                                         .event = "06026080", /* EN_BLADE_PWR_DN_FAN_FAIL */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "0821C080", /* EN_BLADE_PWR_DN_PM_TEMP */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
                         },
@@ -262,15 +273,15 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_ADD_IN_CARD,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_SBC_BLADE,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
@@ -278,6 +289,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_RESOURCE |
 			                        SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
                 },
                 .bc_res_info = {
                         .mib = {
@@ -286,6 +298,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
                         },
                         .event_array = {
                                 {},
@@ -303,11 +316,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_PERIPHERAL_BAY,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
@@ -315,6 +328,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_RESOURCE |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
                 },
                 .bc_res_info = {
                         .mib = {
@@ -323,17 +337,18 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.9.8.0",
                         },
                         .event_array = {
                                 {
                                         .event = "06A1E001", /* EN_MEDIA_TRAY_REMOVED */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {
                                         .event = "09020000", /* EN_FAULT_FP_R */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_UNHEALTHY,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_NOT_PRESENT,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
                         },
@@ -350,11 +365,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_FAN,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
@@ -363,6 +378,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
                  },
                 .bc_res_info = {
                         .mib = {
@@ -371,6 +387,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				.OidUuid = '\0',
                         },
                         .event_array = {
                                 {},
@@ -388,11 +405,11 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry[0] =
                                 {
                                         .EntityType = SAHPI_ENT_POWER_SUPPLY,
-                                        .EntityLocation = BC_HPI_INSTANCE_BASE
+                                        .EntityLocation = BC_HPI_INSTANCE_BASE,
                                 },
                                 {
                                         .EntityType = SAHPI_ENT_ROOT,
-                                        .EntityLocation = 0
+                                        .EntityLocation = 0,
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_FRU |
@@ -401,6 +418,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
+			.ResourceFailed = SAHPI_FALSE,
                  },
                 .bc_res_info = {
                         .mib = {
@@ -409,17 +427,18 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidReset = '\0',
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.x",
                         },
                         .event_array = {
                                 {
                                         .event = "0821600x", /* EN_PSx_INSTALLED */
-                                        .event_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .event_state = SAHPI_HS_STATE_ACTIVE,
                                         .recovery_state = SAHPI_HS_STATE_NOT_PRESENT,
                                 },
                                 {
                                         .event = "0821E00x", /* EN_PSx_REMOVED */
                                         .event_state = SAHPI_HS_STATE_NOT_PRESENT,
-                                        .recovery_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                                        .recovery_state = SAHPI_HS_STATE_ACTIVE,
                                 },
                                 {},
                         },
@@ -430,218 +449,72 @@ struct snmp_rpt snmp_rpt_array[] = {
         {} /* Terminate array with a null element */
 };
 
-/******************************************************************************
+/*************************************************************************
  *                      Sensor Definitions
- ******************************************************************************/
+ *************************************************************************/
 
 /*****************
  * Chassis Sensors
  *****************/
 
 struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
-
-        /* System Error LED on chassis */
-        {
-                .sensor = {
-                        .Num = 1,
-                        .Type = SAHPI_PLATFORM_VIOLATION,
-                        .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_CRITICAL,
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_OK,
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_OK,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .DeassertEvents = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.1.0",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Front Panel LED - System Error"
-        },
-        /* Temperature LED on the chassis */
-        {
-                .sensor = {
-                        .Num = 2,
-                        .Type = SAHPI_TEMPERATURE,
-                        .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_CRITICAL
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_OK
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_OK,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .DeassertEvents = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.3.0",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                 .comment = "Front Panel LED - Temperature"
-        },
         /* Ambient air thermal sensor on Control Panel/Media Tray */
         {
                 .sensor = {
-                        .Num = 3,
+                        .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_UPPER_MINOR |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_DEGREES_C,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 125,
-                                                        }
-                                                },
-                                        },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
+						},
+					},
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+						},
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
-                                .ReadThold = 0, /* No Readable thresholds */
+				.IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+				.WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning=60; Warning Reset=55 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.5.1.0",
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0001C480", /* EN_CUTOFF_HI_OVER_TEMP_AMBIENT */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                          SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
@@ -657,73 +530,60 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Thermal sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 4,
+                        .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_UPPER_MINOR |
-                                  SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+			.EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_DEGREES_C,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
+				.IsSupported = SAHPI_TRUE,
+				.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+				.BaseUnits = SAHPI_SU_DEGREES_C,
+				.ModifierUnits = SAHPI_SU_UNSPECIFIED,
+				.ModifierUse = SAHPI_SMUU_NONE,
+				.Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 125,
-                                                        }
-                                                },
-                                        },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
+						},
+					},
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+						},
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
-                                .ReadThold = 0, /* No Readable thresholds */
+				.IsAccessible = SAHPI_FALSE,
+                                .ReadThold = 0,
+				.WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning=60; Warning Reset=55 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.1.2.0",
                         },
-                        .event_array = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+                        .assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+                        .deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.event_array = {
                                 {
                                         .event = "0001C500", /* EN_CUTOFF_HI_OVER_TEMP_SP_CARD */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
@@ -739,82 +599,60 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* 1.8V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 5,
+                        .Num = 3,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
-                                .Range = {
+				.Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 4.4,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 4.4,
+						},
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 1.8,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 1.8,
+						},
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+						},
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
-                                /* Default HDW thresholds:
-                                   Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
+				.WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
+                                /* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
                          },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -825,17 +663,20 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0807A480", /* EN_CUTOFF_HI_FAULT_1_8V */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0807A880", /* EN_CUTOFF_LO_FAULT_1_8V */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -856,82 +697,61 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* 2.5V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 6,
+                        .Num = 4,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 4.4,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 4.4,
+						},
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 2.5,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 2.5,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning 2.25<>2.63; Warning Reset 2.58<>2.42 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
-                .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
+		.bc_sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -942,17 +762,20 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "08030480", /* EN_CUTOFF_HI_FAULT_2_5V */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "08030880", /* EN_CUTOFF_LO_FAULT_2_5V */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -971,84 +794,63 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .comment = "Chassis 2.5 volt sensor"
         },
         /* 3.3V voltage sensor on Management Module */
-        {
+	{
                 .sensor = {
-                        .Num = 7,
+                        .Num = 5,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			          SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
-                                .Range = {
+				.Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 3.6,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 3.6,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 3.3,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 3.3,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning 3.00<>3.47; Warning Reset 3.40<>3.20 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
-                .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
+		.bc_sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -1059,17 +861,20 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
-                        .event_array = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.event_array = {
                                 {
                                         .event = "08032480", /* EN_CUTOFF_HI_FAULT_3_35V */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "08032880", /* EN_CUTOFF_LO_FAULT_3_35V */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -1085,87 +890,65 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 {},
                         },
                 },
-                .comment = "Chassis 3.3 volt sensor"
-        },
+		.comment = "Chassis 3.3 volt sensor"
+	},
         /* 5V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 8,
+                        .Num = 6,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+			.DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
-                                .Range = {
+				.Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 6.7,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 6.7,
+						},
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 5,
-                                                        }
-                                                },
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 5,
+						},
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
-                                },
-                        },
+				},
+			},
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                .IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+                                .WriteThold = 0,
                                 /* Default HDW thresholds:
                                    Warning 4.50<>5.25; Warning Reset 5.15<>4.85 */
                          },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -1176,6 +959,11 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "06034480", /* EN_CUTOFF_HI_FAULT_PLANAR_5V */
@@ -1205,82 +993,61 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* -5V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 9,
+                        .Num = 7,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = -6.7,
-                                                        }
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = -6.7,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = -5,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = -5,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                .IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning -5.50<>-4.75; Warning Reset -4.85<>-5.15 */
                          },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -1291,17 +1058,20 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0803C480", /* EN_CUTOFF_HI_FAULT_N5V */
-                                        .event_state = SAHPI_ES_UPPER_CRIT| SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT| SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0803C800", /* EN_CUTOFF_LO_FAULT_N5V */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -1322,82 +1092,61 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* 12V voltage sensor on Management Module */
         {
                 .sensor = {
-                        .Num = 10,
+                        .Num = 8,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 16,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 16,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 12,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 12,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
-                                                },
+ 						.IsSupported = SAHPI_TRUE,
+						.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
+						},
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
-                                              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds:
                                    Warning 10.80<>12.60; Warning Reset 12.34<>11.64 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -1408,17 +1157,20 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "06036480", /* EN_CUTOFF_HI_FAULT_12V_PLANAR */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "06036800", /* EN_CUTOFF_LO_FAULT_12V_PLANAR */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -1439,28 +1191,24 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Management module redundancy sensor */
         {
                 .sensor = {
-                        .Num = 11,
+                        .Num = 9,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_REDUNDANCY_LOST,
-                                .DeassertEvents = SAHPI_ES_REDUNDANCY_LOST,
-                        },
+			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
+			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
                         .event_array = {
                                 {
                                         .event = "00284000", /* EN_MM_NON_REDUNDANT */
@@ -1475,28 +1223,24 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Switch module redundancy sensor */
         {
                 .sensor = {
-                        .Num = 12,
+                        .Num = 10,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_REDUNDANCY_LOST,
-                                .DeassertEvents = SAHPI_ES_REDUNDANCY_LOST,
-                        },
+			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
+			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
                         .event_array = {
                                 {
                                         .event = "0EA16000", /* EN_SWITCH_NON_REDUNDANT */
@@ -1511,28 +1255,24 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Power module redundancy sensor */
         {
                 .sensor = {
-                        .Num = 13,
+                        .Num = 11,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_FULLY_REDUNDANT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_REDUNDANCY_LOST,
-                                .DeassertEvents = SAHPI_ES_REDUNDANCY_LOST,
-                        },
+			.assert_mask   = SAHPI_ES_REDUNDANCY_LOST,
+			.deassert_mask = SAHPI_ES_REDUNDANCY_LOST,
                         .event_array = {
                                 {
                                         .event = "08080001", /* EN_NR_PWR_SUPPLY */
@@ -1553,284 +1293,53 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
  ***************/
 
 struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
-
-        /* Blade Error LED */
-        {
-                .sensor = {
-                        .Num = 1,
-                        .Type = SAHPI_PLATFORM_VIOLATION,
-                        .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_CRITICAL,
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_OK,
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_OK,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .DeassertEvents = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.7.x",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Blade LED - Error"
-        },
-        /*  Blade KVM Usage LED */
-        {
-                .sensor = {
-                        .Num = 2,
-                        .Type = SAHPI_BUTTON,
-                        .Category = SAHPI_EC_USAGE,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL |SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 2,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_BUSY
-                                                }
-                                        },
-                                        .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_ACTIVE
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_IDLE
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                                .DeassertEvents = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.9.x",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Blade LED - KVM usage"
-        },
-        /*  Blade Media Tray Usage LED */
-        {
-                .sensor = {
-                        .Num = 3,
-                        .Type = SAHPI_BUTTON,
-                        .Category = SAHPI_EC_USAGE,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL |SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 2,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_BUSY
-                                                }
-                                        },
-                                        .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_ACTIVE
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_IDLE
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                                .DeassertEvents = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.10.x",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Blade LED - Media Tray usage"
-        },
         /* CPU 1 thermal sensor */
         {
                 .sensor = {
-                        .Num = 4,
+                        .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.DataFormat = {
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_DEGREES_C,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 125,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+                                .IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-                                .FixedThold = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -1839,11 +1348,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
@@ -1853,14 +1364,12 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {
                                         .event = "0421C401", /* EN_PROC_HOT_CPU1 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0421D081", /* EN_THERM_TRIP_CPU1 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {},
@@ -1871,66 +1380,50 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* CPU 2 thermal sensor */
         {
                 .sensor = {
-                        .Num = 5,
+                        .Num = 2,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+ 			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_DEGREES_C,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 125,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-                                .FixedThold = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.7.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -1939,6 +1432,9 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
@@ -1971,66 +1467,50 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* CPU 3 thermal sensor */
         {
                 .sensor = {
-                        .Num = 6,
+                        .Num = 3,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_DEGREES_C,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 125,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-                                .FixedThold = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2039,11 +1519,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
@@ -2053,14 +1535,12 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {
                                         .event = "0421C403", /* EN_PROC_HOT_CPU3 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0421D083", /* EN_THERM_TRIP_CPU3 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {},
@@ -2071,66 +1551,50 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* CPU 4 thermal sensor */
         {
                 .sensor = {
-                        .Num = 7,
+                        .Num = 4,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_DEGREES_C,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
-                                .Range = {
+				.Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 125,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-                                .FixedThold = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2139,11 +1603,13 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
@@ -2153,14 +1619,12 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 },
                                 {
                                         .event = "0421C404", /* EN_PROC_HOT_CPU4 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0421D084", /* EN_THERM_TRIP_CPU4 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {},
@@ -2171,79 +1635,59 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's 1.25V voltage sensor */
         {
                 .sensor = {
-                        .Num = 8,
+                        .Num = 5,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 3.3,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 3.3,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 1.25,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 1.25,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 1.10<>1.4 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.12.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2252,6 +1696,11 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR,
                         .event_array = {
                                 {
                                         .event = "08001400", /* EN_PFA_HI_FAULT_1_25V */
@@ -2271,79 +1720,59 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's 1.5V voltage sensor */
         {
                 .sensor = {
-                        .Num = 9,
+                        .Num = 6,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 4.4,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 4.4,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 1.5,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 1.5,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 1.32<>1.68 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2352,17 +1781,20 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 }
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0A041C00", /* EN_IO_1_5V_WARNING_HI */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0A040C00", /* EN_IO_1_5V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -2383,79 +1815,59 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's 2.5V voltage sensor */
         {
                 .sensor = {
-                        .Num = 10,
+                        .Num = 7,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 4.4,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 4.4,
                                                 },
                                         },
-                                        .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 2.5,
-                                                        }
+					.Nominal = {
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 2.5,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 2.25<>2.75 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.10.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2464,17 +1876,20 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0A031C00", /* EN_IO_2_5V_WARNING_HI */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0A030C00", /* EN_IO_2_5V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -2495,79 +1910,59 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's 3.3V voltage sensor */
         {
                 .sensor = {
-                        .Num = 11,
+                        .Num = 8,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 4.4,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 4.4,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 3.3,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 3.3,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 2.97<>3.63 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.7.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2576,17 +1971,20 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0A02DC00", /* EN_IO_3_3V_WARNING_HI */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0A02CC00", /* EN_IO_3_3V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -2607,79 +2005,59 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's 5V voltage sensor */
         {
                 .sensor = {
-                        .Num = 12,
+                        .Num = 9,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 6.7,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 6.7,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 5,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 5,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 4.40<>5.50 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.6.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2688,17 +2066,20 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0A035C00", /* EN_IO_5V_WARNING_HI */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0A034C00", /* EN_IO_5V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -2719,79 +2100,59 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's 12V voltage sensor */
         {
                 .sensor = {
-                        .Num = 13,
+                        .Num = 10,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
                                   SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 16,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 16,
                                                 },
                                         },
                                         .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 12,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 12,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-                                .FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                                 /* Default HDW thresholds: Warning 10.8<>13.2 */
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
-                                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.8.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -2800,17 +2161,20 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+			                 SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+                                         SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0A037C00", /* EN_IO_12V_WARNING_HI */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
                                         .event = "0A036C00", /* EN_IO_12V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR |
-                                                       SAHPI_ES_LOWER_MINOR,
+                                        .event_state = SAHPI_ES_LOWER_CRIT | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                         .recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
                                 },
                                 {
@@ -2831,72 +2195,59 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's VRM 1 voltage sensor */
         {
                 .sensor = {
-                        .Num = 14,
+                        .Num = 11,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_VOLTS,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 3.6,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 3.6,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
-                                .ReadThold  = 0, /* No readable thresholds */
+				.IsAccessible = SAHPI_FALSE,
+                                .ReadThold  = 0,
+				.WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.13.x",
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "04400481", /* EN_CUTOFF_HI_FAULT_VRM1 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
                                 {},
@@ -2907,29 +2258,25 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
         /* Blade's global operational sensor */
         {
                 .sensor = {
-                        .Num = 16,
+                        .Num = 12,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE |
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE |
                                   SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
-                                .DeassertEvents = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
-                        },
+			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
+			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
                                 {
                                         .event = "0E00800x", /* EN_BLADE_x_COMM_FAIL */
@@ -2996,7 +2343,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 },
                 .comment = "Blade global operational sensor"
         },
-
+	
         {} /* Terminate array with a null element */
 };
 
@@ -3011,63 +2358,47 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED |
-                                  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_DEGREES_C,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_FALSE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 125,
-                                                        }
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 125,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+ 						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_TRUE,
-                                .TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.IsAccessible = SAHPI_TRUE,
                                 .ReadThold  = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
-                                .FixedThold = SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT,
+                                .WriteThold = 0,
+				.Nonlinear = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                                .DeassertEvents = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x",
                                 .threshold_oids = {
                                         .InterpretedThresholds = {
@@ -3076,11 +2407,13 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                         },
                                 },
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
+			.deassert_mask = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                         .event_array = {
                                 {
                                         .event = "0681C481", /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
-                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
-                                                       SAHPI_ES_UPPER_MINOR,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                 },
                                 {
@@ -3098,25 +2431,21 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_VOLTAGE,
                         .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_OK,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_MAJOR_FROM_LESS,
-                                .DeassertEvents = SAHPI_ES_MAJOR_FROM_LESS,
-                        },
+			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS,
+			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS,
                         .event_array = {
                                 {
                                         .event = "0E87A402", /* EN_BUST_1_8V_WARNING_HI */
@@ -3207,26 +2536,21 @@ struct snmp_bc_sensor snmp_bc_mediatray_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_RUNNING |
-                                  SAHPI_ES_DEGRADED,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_DEGRADED,
-                                .DeassertEvents = SAHPI_ES_DEGRADED,
-                        },
+			.assert_mask   = SAHPI_ES_DEGRADED,
+			.deassert_mask = SAHPI_ES_DEGRADED,
                         .event_array = {
                                 {
                                         .event = "09020000", /* EN_FAULT_FP_R */
@@ -3253,61 +2577,49 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_FAN,
                         .Category = SAHPI_EC_PRED_FAIL,
-                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
                         .Events = SAHPI_ES_PRED_FAILURE_ASSERT | SAHPI_ES_PRED_FAILURE_DEASSERT,
-                        .Ignore = SAHPI_FALSE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .IsSupported = SAHPI_TRUE,
+                                .ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .BaseUnits = SAHPI_SU_RPM,
                                 .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                 .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .Linearization = SAHPI_SL_LINEAR,
-                                },
                                 .Percentage = SAHPI_TRUE,
                                 .Range = {
                                         .Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
                                         .Max = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 100,
-                                                        }
+  						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 100,
                                                 },
                                         },
                                         .Min = {
-                                                .ValuesPresent = SAHPI_SRF_INTERPRETED,
-                                                .Interpreted = {
-                                                        .Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-                                                        .Value = {
-                                                                .SensorFloat32 = 0,
-                                                        }
+						.IsSupported = SAHPI_TRUE,
+                                                .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+						.Value = {
+							.SensorFloat64 = 0,
                                                 },
                                         },
                                 },
                         },
-                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
+			.ThresholdDefn = {
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_PRED_FAILURE_ASSERT,
-                                .DeassertEvents = SAHPI_ES_PRED_FAILURE_ASSERT,
-                        },
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
                         },
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+			.assert_mask   = SAHPI_ES_PRED_FAILURE_ASSERT,
+			.deassert_mask = SAHPI_ES_PRED_FAILURE_ASSERT,
                         .event_array = {
                                 {
                                         .event = "000A600x", /* EN_FAN1_PFA */
@@ -3325,26 +2637,21 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_RUNNING |
-                                  SAHPI_ES_OFF_LINE,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_OFF_LINE,
-                                .DeassertEvents = SAHPI_ES_OFF_LINE,
-                        },
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
                                         .event = "0002680x", /* EN_FAN1_SPEED */
@@ -3376,25 +2683,21 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+ 			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
                         .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                         .DataFormat = {
+                                 .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_OK,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                                .DeassertEvents = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                        },
+			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                         .event_array = {
                                 {
                                         .event = "0821C08x", /* EN_FAULT_PSx_OVR_TEMP */
@@ -3417,25 +2720,21 @@ struct snmp_bc_sensor snmp_bc_power_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.Events = SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_OFF_LINE,
-                                .DeassertEvents = SAHPI_ES_OFF_LINE,
-                        },
+			.assert_mask   = SAHPI_ES_OFF_LINE,
+			.deassert_mask = SAHPI_ES_OFF_LINE,
                         .event_array = {
                                 {
                                         .event = "0820000x", /* EN_FAULT_PSx */
@@ -3491,25 +2790,21 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_SEVERITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+			.Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.DataFormat = {
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_OK,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                                .DeassertEvents = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
-                        },
+			.assert_mask   = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
+			.deassert_mask = SAHPI_ES_MAJOR_FROM_LESS | SAHPI_ES_CRITICAL,
                         .event_array = {
                                 {
                                         .event = "0EA1C40x", /* EN_OVER_TEMP_SWITCH_x */
@@ -3532,26 +2827,21 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
                         .Num = 2,
                         .Type = SAHPI_OPERATIONAL,
                         .Category = SAHPI_EC_AVAILABILITY,
-                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_RUNNING |
-                                  SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
-                        .Ignore = SAHPI_FALSE,
+			.EnableCtrl = SAHPI_TRUE,
+                        .EventCtrl = SAHPI_SEC_PER_EVENT,
+                        .Events = SAHPI_ES_RUNNING | SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
-                                .IsNumeric = SAHPI_FALSE,
+                                .IsSupported = SAHPI_FALSE,
                         },
                         .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE,
+                                .IsAccessible = SAHPI_FALSE,
                         },
-                        .Oem = 0
+                        .Oem = 0,
                 },
                 .bc_sensor_info = {
                         .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
-                                .DeassertEvents = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
-                        },
+			.assert_mask   = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
+			.deassert_mask = SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
                         .event_array = {
                                 {
                                         .event = "0EA0C00x", /* EN_SWITCH_x_CFG_ERROR */
@@ -3592,15 +2882,20 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
 
 struct snmp_bc_control snmp_bc_chassis_controls[] = {
 
+	/* FIXME:: user can clear this - does this make this mode user; but box sets it ???? */
         /* Front Panel Information R/W LED */
         {
                 .control = {
                         .Num = 1,
-                        .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-                        .Oem = 0
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_AUTO,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+                        .Oem = 0,
                 },
                 .bc_control_info = {
                         .mib = {
@@ -3612,26 +2907,30 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                                 .digitalmap[1] =  1, /* On */
                                 .digitalmap[2] = -1, /* Not applicable */
                                 .digitalmap[3] = -1, /* Not applicable */
-                                .digitalmap[4] = -1, /* Not applicable */
                                 /* Write values */
                                 .digitalwmap[0] =  0, /* Off */
                                 .digitalwmap[1] = -1, /* Cannot write this value */
                                 .digitalwmap[2] = -1, /* Not applicable */
                                 .digitalwmap[3] = -1, /* Not applicable */
-                                .digitalwmap[4] = -1, /* Not applicable */
                         },
                 },
                 .comment = "Front Panel LED - Information."
         },
+
+        /* FIXME:: No blinking anymore in B.1.1 */
         /* Front Panel Identify R/W LED */
         {
                 .control = {
                         .Num = 2,
-                        .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-                        .Oem = 0
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+                        .Oem = 0,
                 },
                 .bc_control_info = {
                         .mib = {
@@ -3643,13 +2942,11 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                                 .digitalmap[1] =  1, /* On */
                                 .digitalmap[2] = -1, /* Not applicable */
                                 .digitalmap[3] =  2, /* Blinking */
-                                .digitalmap[4] = -1, /* Not applicable */
 				/* Write values */
                                 .digitalwmap[0] =  0, /* Off */
                                 .digitalwmap[1] =  1, /* On */
                                 .digitalwmap[2] = -1, /* Not applicable */
                                 .digitalwmap[3] =  2, /* Blinking */
-                                .digitalwmap[4] = -1, /* Not applicable */
                         },
                 },
                 .comment = "Front Panel LED - Identify."
@@ -3662,17 +2959,22 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
  ****************/
 #define LAST_COMMON_BLADE_CONTROL_NUM 1
 
+/* FIXME:: same problem as chassis info LED */
 struct snmp_bc_control snmp_bc_blade_controls[] = {
 
         /* Blade Information R/W LED */
         {
                 .control = {
                         .Num = 1,
-                        .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-                        .Oem = 0
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_AUTO,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+                        .Oem = 0,
                 },
                 .bc_control_info = {
                         .mib = {
@@ -3684,13 +2986,11 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                                 .digitalmap[1] =  1, /* On */
                                 .digitalmap[2] = -1, /* Not applicable */
                                 .digitalmap[3] = -1, /* Not applicable */
-                                .digitalmap[4] = -1, /* Not applicable */
 				/* Write values */
                                 .digitalwmap[0] =  0, /* Off */
                                 .digitalwmap[1] = -1, /* Cannot write this value */
                                 .digitalwmap[2] = -1, /* Not applicable */
                                 .digitalwmap[3] = -1, /* Not applicable */
-                                .digitalwmap[4] = -1, /* Not applicable */
                         },
                 },
                 .comment = "Blade LED - Information."
@@ -3699,21 +2999,27 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
         {} /* Terminate array with a null element */
 };
 
-/* BladeCenter code 59x contain a bug, which makes writing to this LED impossible thru
+/* BladeCenter code 59x contains a bug, which makes writing to this LED impossible thru
  * SNMP. LED works fine with BladeCenter Telco. When this bug is fixed on BladeCenter,
  * this LED can be moved back to the common control arrary and snmp_bci_blade_controls
  * can be deleted.
- */
+ */       
+
+/* FIXME:: No blinking anymore in B.1.1 */
 struct snmp_bc_control snmp_bci_blade_controls[] = {
         /* Blade Identify R/W LED */
         {
                 .control = {
                         .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
-                        .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-                        .Oem = 0
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+                        .Oem = 0,
                 },
                 .bc_control_info = {
                         .mib = {
@@ -3725,13 +3031,11 @@ struct snmp_bc_control snmp_bci_blade_controls[] = {
                                 .digitalmap[1] =  1, /* On */
                                 .digitalmap[2] = -1, /* Not applicable */
                                 .digitalmap[3] =  2, /* Blinking */
-                                .digitalmap[4] = -1, /* Not applicable */
 				/* Write values */
                                 .digitalwmap[0] = -1, /* Cannot write this value */
                                 .digitalwmap[1] = -1, /* Cannot write this value */
                                 .digitalwmap[2] = -1, /* Not applicable */
                                 .digitalwmap[3] = -1, /* Cannot write this value */
-                                .digitalwmap[4] = -1, /* Not applicable */
                         },
                 },
                 .comment = "Blade LED - Identify."
@@ -3745,11 +3049,15 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
         {
                 .control = {
                         .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
-                        .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-                        .Oem = 0
+ 			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+                       .Oem = 0,
                 },
                 .bc_control_info = {
                         .mib = {
@@ -3761,13 +3069,11 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                                 .digitalmap[1] =  1, /* On */
                                 .digitalmap[2] = -1, /* Not applicable */
                                 .digitalmap[3] =  2, /* Blinking */
-                                .digitalmap[4] = -1, /* Not applicable */
 				/* Write values */
                                 .digitalwmap[0] =  0, /* Off */
                                 .digitalwmap[1] =  1, /* On */
                                 .digitalwmap[2] = -1, /* Not applicable */
                                 .digitalwmap[3] =  2, /* Blinking */
-                                .digitalwmap[4] = -1, /* Not applicable */
                         },
                 },
                 .comment = "Blade LED - Identify."
@@ -3776,10 +3082,14 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
         {
                 .control = {
                         .Num = LAST_COMMON_BLADE_CONTROL_NUM + 2,
-                        .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_GENERIC,
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,
                         .TypeUnion.Discrete.Default = 0,
+  			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_AUTO,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
                         .Oem = 0,
                 },
                 .bc_control_info = {
@@ -3860,26 +3170,24 @@ struct snmp_bc_control snmp_bc_switch_controls[] = {
 struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
         {
                 .inventory = {
-                        .EirId = 1,
+                        .IdrId = 1,
                         .Oem = 0,
                 },
                 .bc_inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .inventory_type = SAHPI_INVENT_RECTYPE_CHASSIS_INFO,
-                                .chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
+                                .area_type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
                                 .oid = {
+                                        .OidChassisType = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.2.0",
                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.5.0",
                                         .OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.1.0",
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.6.0",
-                                        .OidModelNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.2.0",
                                         .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.3.0",
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.7.0",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
-                                        /* UUID .1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0  */
                                 }
                         },
                 },
@@ -3905,26 +3213,24 @@ struct snmp_bc_inventory snmp_bc_fan_inventories[] = {
 struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
         {
                 .inventory = {
-                        .EirId = 4,
+                        .IdrId = 4,
                         .Oem = 0,
                 },
                 .bc_inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .inventory_type = SAHPI_INVENT_RECTYPE_BOARD_INFO,
-                                .chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
+                                        .OidChassisType = '\0',
                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.3.x",
                                         .OidProductName = '\0',
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.5.x",
-                                        .OidModelNumber = '\0',
                                         .OidSerialNumber = '\0',
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
-                                        /* UUID .1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.6.x */
                                 }
                         },
                 },
@@ -3941,26 +3247,24 @@ struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
 struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
         {
                 .inventory = {
-                        .EirId = 5,
+                        .IdrId = 5,
                         .Oem = 0,
                 },
                 .bc_inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .inventory_type = SAHPI_INVENT_RECTYPE_BOARD_INFO,
-                                .chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
+                                        .OidChassisType = '\0',
                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.3.x",
                                         .OidProductName = '\0',
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.5.x",
-                                        .OidModelNumber = '\0',
                                         .OidSerialNumber = '\0',
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
-                                        /* UUID .1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.x */
                                 }
                         },
                 },
@@ -3977,26 +3281,24 @@ struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
 struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
         {
                 .inventory = {
-                        .EirId = 6,
+                        .IdrId = 6,
                         .Oem = 0,
                 },
                 .bc_inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .inventory_type = SAHPI_INVENT_RECTYPE_BOARD_INFO,
-                                .chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
+                                        .OidChassisType = '\0',
                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.3.x",
                                         .OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.7.x",
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.5.x",
-                                        .OidModelNumber = '\0',
                                         .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.6.x",
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
-                                        /* UUID .1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.x */
                                 }
                         },
                 },
@@ -4022,26 +3324,24 @@ struct snmp_bc_inventory snmp_bc_blade_addin_inventories[] = {
 struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
         {
                 .inventory = {
-                        .EirId = 8,
+                        .IdrId = 8,
                         .Oem = 0,
                 },
                 .bc_inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .inventory_type = SAHPI_INVENT_RECTYPE_BOARD_INFO,
-                                .chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
+                                        .OidChassisType = '\0',
                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.9.3.0",
                                         .OidProductName = '\0',
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.9.5.0",
-                                        .OidModelNumber = '\0',
                                         .OidSerialNumber = '\0',
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.9.4.0",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
-                                        /* UUID .1.3.6.1.4.1.2.3.51.2.2.21.9.8.0 */
                                 }
                         },
                 },
@@ -4058,26 +3358,24 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
 struct snmp_bc_inventory snmp_bc_power_inventories[] = {
         {
                 .inventory = {
-                        .EirId = 9,
+                        .IdrId = 9,
                         .Oem = 0,
                 },
                 .bc_inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = 0,
-                                .inventory_type = SAHPI_INVENT_RECTYPE_BOARD_INFO,
-                                .chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
+                                .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
+                                        .OidChassisType = '\0',
                                         .OidMfgDateTime = '\0',   /* Set to SAHPI_TIME_UNSPECIFIED */
                                         .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.3.x",
                                         .OidProductName = '\0',
                                         .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.5.x",
-                                        .OidModelNumber = '\0',
                                         .OidSerialNumber = '\0',
                                         .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.4.x",
                                         .OidFileId = '\0',
                                         .OidAssetTag = '\0',
-                                        /* UUID .1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.x  */
                                 }
                         },
                 },
@@ -4086,3 +3384,353 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
+
+/* FIXME: Support LEDs as annuniators ???? */
+#if 0
+        /* System Error LED on chassis */
+        {
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_PLATFORM_VIOLATION,
+                        .Category = SAHPI_EC_SEVERITY,
+                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
+                                        .Max = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 1,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_CRITICAL,
+                                                }
+                                        },
+                                        .Min = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 0,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_OK,
+                                                }
+                                        }
+                                }
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+                .bc_sensor_info = {
+                        .cur_state = SAHPI_ES_OK,
+                        .sensor_evt_enablement = {
+                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                                .deassert_mask = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                        },
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = 0,
+                                .convert_snmpstr = -1,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.1.0",
+                        },
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Front Panel LED - System Error"
+        },
+        /* Temperature LED on the chassis */
+        {
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_TEMPERATURE,
+                        .Category = SAHPI_EC_SEVERITY,
+                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
+                                        .Max = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 1,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_CRITICAL
+                                                }
+                                        },
+                                        .Min = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 0,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_OK
+                                                }
+                                        }
+                                }
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+                .bc_sensor_info = {
+                        .cur_state = SAHPI_ES_OK,
+                        .sensor_evt_enablement = {
+                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                                .deassert_mask = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                        },
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = 0,
+                                .convert_snmpstr = -1,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.3.0",
+                        },
+                        .event_array = {
+                                {},
+                        },
+                },
+                 .comment = "Front Panel LED - Temperature"
+        },
+        /* Blade Error LED */
+        {
+                .sensor = {
+                        .Num = 1,
+                        .Type = SAHPI_PLATFORM_VIOLATION,
+                        .Category = SAHPI_EC_SEVERITY,
+                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
+                                        .Max = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 1,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_CRITICAL,
+                                                }
+                                        },
+                                        .Min = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 0,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_OK,
+                                                }
+                                        }
+                                }
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+                .bc_sensor_info = {
+                        .cur_state = SAHPI_ES_OK,
+                        .sensor_evt_enablement = {
+                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                                .deassert_mask = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
+                        },
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = 0,
+                                .convert_snmpstr = -1,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.7.x",
+                        },
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Blade LED - Error"
+        },
+        /*  Blade KVM Usage LED */
+        {
+                .sensor = {
+                        .Num = 2,
+                        .Type = SAHPI_BUTTON,
+                        .Category = SAHPI_EC_USAGE,
+                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL |SAHPI_SRF_MAX,
+                                        .Max = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 2,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_BUSY
+                                                }
+                                        },
+                                        .Nominal = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 1,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_ACTIVE
+                                                }
+                                        },
+                                        .Min = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 0,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_IDLE
+                                                }
+                                        }
+                                }
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+                .bc_sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_evt_enablement = {
+                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                .assert_mask   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
+                                .deassert_mask = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
+                        },
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = 0,
+                                .convert_snmpstr = -1,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.9.x",
+                        },
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Blade LED - KVM usage"
+        },
+        /*  Blade Media Tray Usage LED */
+        {
+                .sensor = {
+                        .Num = 3,
+                        .Type = SAHPI_BUTTON,
+                        .Category = SAHPI_EC_USAGE,
+                        .EventCtrl = SAHPI_SEC_NO_EVENTS,
+                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .M_Factor = 1,
+                                        .Linearization = SAHPI_SL_NONLINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL |SAHPI_SRF_MAX,
+                                        .Max = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 2,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_BUSY
+                                                }
+                                        },
+                                        .Nominal = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 1,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_ACTIVE
+                                                }
+                                        },
+                                        .Min = {
+                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
+                                                .Raw = 0,
+                                                .EventStatus = {
+                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                                        .EventStatus = SAHPI_ES_IDLE
+                                                }
+                                        }
+                                }
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE
+                        },
+                        .Oem = 0
+                },
+                .bc_sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_evt_enablement = {
+                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                .assert_mask   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
+                                .deassert_mask = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
+                        },
+                        .mib = {
+                                .not_avail_indicator_num = 0,
+                                .write_only = 0,
+                                .convert_snmpstr = -1,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.10.x",
+                        },
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "Blade LED - Media Tray usage"
+        },
+#endif
