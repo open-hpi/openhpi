@@ -1641,9 +1641,12 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
         
+
+dbg("TODO: with removal of oh_resource struture we need to support this another way");
         /*
           I think we need to push this down to the plugin
           *Timeout = res->auto_extract_timeout;
+	   this was maintain in process_hotswap_policy() 	  
           */
         return SA_OK;
 }
@@ -1665,9 +1668,12 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
         
+dbg("TODO: with removal of oh_resource struture we need to support this another way");
         /* 
            I think we need to push this down to the plugin
            res->auto_extract_timeout = Timeout;
+	   this was maintain in process_hotswap_policy() 
+	   
         */
         return SA_OK;
 }
