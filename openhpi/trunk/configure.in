@@ -119,6 +119,10 @@ AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     OH_CHECK_FAIL(libuuid,e2fsprogs-devel)
     ])
 
+AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
+AC_SUBST(SSL_LIB)
+AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h])
+
 dnl Extra goodies enablement stanzas
 
 AC_ARG_ENABLE([thread],
@@ -178,7 +182,9 @@ AC_ARG_ENABLE([snmp_client],
         STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
         STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
     fi],
-    [AC_SUBST(SNMP_CLIENT,snmp_client)])
+    [if test "x$have_netsnmp" = "xyes"; then
+        AC_SUBST(SNMP_CLIENT,snmp_client)
+     fi])
 
 AC_ARG_ENABLE([dummy],
     [  --enable-dummy          build dummy plugin [default=yes]],
@@ -258,7 +264,7 @@ AC_ARG_ENABLE([ipmidirect],
      elif test "x$enableval" = "xstatic"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmidirect"
-            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid -lm -lstdc++"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
      fi],
     [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
