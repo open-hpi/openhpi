@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
+#include <config.h>
 #include <oh_error.h>
 #include <uid_utils.h>
 
@@ -181,7 +182,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         g_hash_table_insert(resource_id_hash_table, key, value);
 
         /* save newly created ep xref (iud/resource_id)to map file */
-        uid_map_file = (char *)getenv("UID_MAP");
+        uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
         if (uid_map_file == NULL) {
                 uid_map_file = OH_DEFAULT_UID_MAP;
         }
@@ -311,7 +312,7 @@ guint oh_uid_map_to_file(void)
 //        int i;
         int file;
 
-        uid_map_file = (char *)getenv("UID_MAP");
+        uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
         
         if (uid_map_file == NULL) {
                 uid_map_file = OH_DEFAULT_UID_MAP;
@@ -368,7 +369,7 @@ static int uid_map_from_file(void)
         int rval;
 
          /* initialize uid map file */
-         uid_map_file = (char *)getenv("UID_MAP");
+         uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
          if (uid_map_file == NULL) {
                  uid_map_file = OH_DEFAULT_UID_MAP;
          }
