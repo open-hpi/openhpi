@@ -22,7 +22,6 @@
 #define TSTUBS_SNMP_H
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
-                          struct snmp_session *ss,
                           const char *objid,
                           struct snmp_value *value);
 

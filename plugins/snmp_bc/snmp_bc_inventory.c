@@ -438,7 +438,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			strcpy(thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED");
 		
 		} else {
-                        rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
+                        rv = snmp_bc_snmp_get(custom_handle, oid, &get_value);
                         if((rv != SA_OK) ||
                           	!((get_value.type == ASN_INTEGER) ||
                            			(get_value.type == ASN_OCTET_STR))) {
@@ -631,7 +631,7 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle, gchar *oid,
 	memset(thisField->Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 	thisField->Field.DataLength = 0; /* SaHpiUint8T  */	
 
-        rv = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
+        rv = snmp_bc_snmp_get(custom_handle, oid, &get_value);
 	if((rv != SA_OK) ||
 		!((get_value.type == ASN_INTEGER) ||
 			(get_value.type == ASN_OCTET_STR))) {

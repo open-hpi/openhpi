@@ -52,7 +52,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		return -1;
 	}
 	
-	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
+	status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
 	if(( status != SA_OK) | (get_value.type != ASN_INTEGER)) {
 		dbg("SNMP could not read %s; Type=%d.\n", oid, get_value.type);
 		g_free(oid);
@@ -189,7 +189,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		set_value.str_len = 1;
 		set_value.integer = value;
 
-		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Value=%d.\n", oid, value);
 			g_free(oid);
@@ -210,7 +210,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		set_value.str_len = 1;
 		set_value.integer = state->StateUnion.Discrete;
 
-		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Value=%d.\n", oid, (int)set_value.integer);
 			g_free(oid);
