@@ -58,6 +58,6 @@ libopenhpi_la_SOURCES	= \
 			   uid_utils.c
  
 libopenhpi_la_LIBADD    = -lltdl
-libopenhpi_la_LDFLAGS	= -version-info 0:0:0
+libopenhpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
 
 
