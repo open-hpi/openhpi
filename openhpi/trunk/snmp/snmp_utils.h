@@ -34,10 +34,17 @@
 #include <winsock.h>
 #endif
 
-#define NETSNMP_IMPORT extern
-#define NETSNMP_INLINE
-#define RETSIGTYPE void
-#define NET_SNMP_CONFIG_H
+/* 
+ * This was added to deal with net-snmp 5.1 originally, but
+ * it appears to break SuSE, so trying another way.
+ * 
+ * #define NETSNMP_IMPORT extern
+ * #define NETSNMP_INLINE
+ * #define RETSIGTYPE void
+ * #define NET_SNMP_CONFIG_H
+ *
+ */
+
 /* Added this to avoid redefinition conflict
  * in opteron based platforms between the linux headers
  * and the net-snmp headers. -- Renier 9/27/04
@@ -46,6 +53,7 @@
 #define HAVE_SSIZE_T 1
 #endif
 /**************************************/
+#include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/library/transform_oids.h>
 
@@ -54,6 +62,7 @@
 #define SA_ERR_SNMP_BASE - 10000
 #define SA_ERR_SNMP_NOSUCHOBJECT	(SaErrorT)(SA_ERR_SNMP_BASE - SNMP_NOSUCHOBJECT)
 #define SA_ERR_SNMP_NOSUCHINSTANCE	(SaErrorT)(SA_ERR_SNMP_BASE - SNMP_NOSUCHINSTANCE)
+#define SA_ERR_SNMP_NOSUCHNAME   (SaErrorT)(SA_ERR_SNMP_BASE - SNMP_ERR_NOSUCHNAME)
 #define SA_ERR_SNMP_ENDOFMIBVIEW	(SaErrorT)(SA_ERR_SNMP_BASE - SNMP_ENDOFMIBVIEW)
 #define SA_ERR_SNMP_ERROR	 	(SaErrorT)(SA_ERR_SNMP_BASE - STAT_ERROR)
 #define SA_ERR_SNMP_TIMEOUT             (SaErrorT)(SA_ERR_SNMP_BASE - STAT_TIMEOUT)
