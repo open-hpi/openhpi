@@ -12,7 +12,7 @@
 #include <openhpi.h>
 
 #ifndef BOOTSTRAP_PLUGIN
-#define BOOTSTRAP_PLUGIN "dummy"
+#define BOOTSTRAP_PLUGIN "libdummy"
 #endif
 
 int init_plugin()
