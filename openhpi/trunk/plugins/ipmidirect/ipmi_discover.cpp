@@ -365,7 +365,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
 void
 cIpmiMcThread::HandleEvents()
 {
-  m_domain->ReadLock();
+  m_domain->WriteLock();
 
   bool loop = true;
 
@@ -397,7 +397,7 @@ cIpmiMcThread::HandleEvents()
           }
      }
 
-  m_domain->ReadUnlock();
+  m_domain->WriteUnlock();
 }
 
 

@@ -168,37 +168,42 @@ cIpmiDomain::Init( cIpmiCon *con )
        return false;
      }
 
-  // Check the number of outstanding requests.
-  // This is fine tuning if the BMC/ShMc has
-  // a block transfer interface.
-  // If not supported use the defaults
-  // given in openhpi.conf.
-  msg.m_netfn = eIpmiNetfnApp;
-  msg.m_cmd   = eIpmiCmdGetBtInterfaceCapabilities;
-  msg.m_data_len = 0;
+  int num = m_max_outstanding;
 
-  rv = m_si_mc->SendCommand( msg, rsp, 0, 1 );
-
-  // ignore on error
-  if ( !rv && rsp.m_data[0] == 0 && rsp.m_data_len >= 6 )
+  if ( m_max_outstanding == 0 )
      {
-       int num = rsp.m_data[1];
+       // Check the number of outstanding requests.
+       // This is fine tuning if the BMC/ShMc has
+       // a block transfer interface.
+       // If not supported use the defaults
+       // given in openhpi.conf.
+       msg.m_netfn = eIpmiNetfnApp;
+       msg.m_cmd   = eIpmiCmdGetBtInterfaceCapabilities;
+       msg.m_data_len = 0;
 
-       stdlog << "reading bt capabilities: max outstanding " << num 
-              << ", input " << (int)rsp.m_data[2]
-              << ", output " << (int)rsp.m_data[3]
-              << ", retries " << (int)rsp.m_data[5] << ".\n";
+       rv = m_si_mc->SendCommand( msg, rsp, 0, 1 );
 
-       // check
-       if ( num < 1 )
-            num = 1;
+       // ignore on error
+       if ( !rv && rsp.m_data[0] == 0 && rsp.m_data_len >= 6 )
+          {
+            num = rsp.m_data[1];
 
-       if ( num > 32 )
-            num = 32;
+            stdlog << "reading bt capabilities: max outstanding " << num 
+                   << ", input " << (int)rsp.m_data[2]
+                   << ", output " << (int)rsp.m_data[3]
+                   << ", retries " << (int)rsp.m_data[5] << ".\n";
 
-       stdlog << "max number of outstanding = " << num << ".\n";
-       m_con->SetMaxOutstanding( num );
+            // check
+            if ( num < 1 )
+                 num = 1;
+
+            if ( num > 32 )
+                 num = 32;
+          }
      }
+
+  stdlog << "max number of outstanding = " << num << ".\n";
+  m_con->SetMaxOutstanding( num );
 
   // check for ATCA an modify m_mc_to_check
   CheckAtca();
@@ -445,7 +450,8 @@ cIpmiDomain::CheckAtca()
   stdlog << "found an ATCA system.\n";
 
   // use atca timeout
-  m_con->m_timeout = m_con->m_default_atca_timeout;
+  stdlog << "set timeout to " << m_con_atca_timeout << ".\n";
+  m_con->m_timeout = m_con_atca_timeout;
 
   m_is_atca = true;
 

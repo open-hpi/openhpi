@@ -297,6 +297,8 @@ IpmiClose( void *hnd )
   ipmi->IfClose();
   ipmi->IfLeave();
 
+  assert( ipmi->CheckLock() );
+
   delete ipmi;
 
   oh_handler_state *handler = (oh_handler_state *)hnd;
@@ -904,10 +906,10 @@ GetIntNotNull( GHashTable *handler_config, const char *str, unsigned int def = 0
        return def;
 
   unsigned int v = strtol( value, 0, 0 );
-  
+
   if ( v == 0 )
        return def;
-  
+
   return v;
 }
 
@@ -940,13 +942,11 @@ class cIpmiConLanDomain : public cIpmiConLan
 
 public:
   cIpmiConLanDomain( cIpmiDomain *domain, 
-                     unsigned int timeout, unsigned int atca_timeout,
-                     unsigned int max_outstanding, 
+                     unsigned int timeout,
                      struct in_addr addr, int port,
                      tIpmiAuthType auth, tIpmiPrivilege priv, 
                      char *user, char *passwd )
-    : cIpmiConLan( timeout, atca_timeout, max_outstanding, 
-                   addr, port, auth, priv, 
+    : cIpmiConLan( timeout, addr, port, auth, priv, 
                    user, passwd ),
       m_domain( domain )
   {
@@ -970,10 +970,8 @@ class cIpmiConSmiDomain : public cIpmiConSmi
 
 public:
   cIpmiConSmiDomain( cIpmiDomain *domain, 
-                     unsigned int timeout, unsigned int atca_timeout,
-                     unsigned int max_outstanding, int if_num )
-    : cIpmiConSmi( timeout, atca_timeout,
-                   max_outstanding, if_num )
+                     unsigned int timeout, int if_num )
+    : cIpmiConSmi( timeout, if_num ), m_domain( domain )
   {
   }
 
@@ -992,23 +990,21 @@ cIpmiCon *
 cIpmi::AllocConnection( GHashTable *handler_config )
 {
   // default is 5s for IPMI
-  unsigned int ipmi_timeout = GetIntNotNull( handler_config, "IpmiConnectionTimeout", 5000 );
-  stdlog << "AllocConnection: IPMITimeout " << ipmi_timeout << " ms.\n";
+  m_con_ipmi_timeout = GetIntNotNull( handler_config, "IpmiConnectionTimeout", 5000 );
+  stdlog << "AllocConnection: IPMITimeout " << m_con_ipmi_timeout << " ms.\n";
 
    // default is 1s for ATCA systems
-  unsigned int atca_timeout = GetIntNotNull( handler_config, "AtcaConnectionTimeout", 1000 );
-  stdlog << "AllocConnection: AtcaTimeout " << atca_timeout << " ms.\n";
+  m_con_atca_timeout = GetIntNotNull( handler_config, "AtcaConnectionTimeout", 1000 );
+  stdlog << "AllocConnection: AtcaTimeout " << m_con_atca_timeout << " ms.\n";
 
-  // default 8 outstanding messages
-  unsigned int max_outstanding = GetIntNotNull( handler_config, "MaxOutstanding", 3 );
+  // outstanding messages 0 => read from BMC/ShMc
+  m_max_outstanding = GetIntNotNull( handler_config, "MaxOutstanding", 0 );
 
-  if ( max_outstanding < 1 )
-       max_outstanding = 1;
-  else if ( max_outstanding > 256 )
-       max_outstanding = 256;
+  if ( m_max_outstanding > 256 )
+       m_max_outstanding = 256;
 
   stdlog << "AllocConnection: Max Outstanding IPMI messages "
-         << max_outstanding << ".\n";
+         << m_max_outstanding << ".\n";
 
   const char *name = (const char *)g_hash_table_lookup(handler_config, "name");
 
@@ -1138,9 +1134,8 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        stdlog << "IpmiAllocConnection: password = " << user << ".\n";
 
-       return new cIpmiConLanDomain( this, ipmi_timeout, atca_timeout, max_outstanding, 
-                               lan_addr, lan_port, auth, priv,
-                               user, passwd );
+       return new cIpmiConLanDomain( this, m_con_ipmi_timeout, lan_addr, lan_port, auth, priv,
+                                     user, passwd );
      }
   else if ( !strcmp( name, "smi" ) )
      {
@@ -1153,7 +1148,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        stdlog << "IpmiAllocConnection: interface number = " << if_num << ".\n";
 
-       return new cIpmiConSmiDomain( this, ipmi_timeout, atca_timeout, max_outstanding, if_num );
+       return new cIpmiConSmiDomain( this, m_con_ipmi_timeout, if_num );
      }
 /*
   else if ( !strcmp( name, "file" ) )
@@ -1212,14 +1207,14 @@ cIpmi::FindResource( SaHpiResourceIdT rid )
 void
 cIpmi::IfEnter()
 {
-  m_lock.ReadLock();
+  ReadLock();
 }
 
 
 void
 cIpmi::IfLeave()
 {
-  m_lock.ReadUnlock();
+  ReadUnlock();
 }
 
 

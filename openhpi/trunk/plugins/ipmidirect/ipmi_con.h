@@ -95,7 +95,7 @@ protected:
 
   // max seq number
   int           m_max_seq; // must be <= dMaxSeq
-  
+
   // lock for m_queue and m_outstanding
   cThreadLock   m_queue_lock;
   GList        *m_queue;
@@ -122,16 +122,11 @@ protected:
   bool m_exit;
 
 public:
-  // default timeouts in ms
-  unsigned int m_default_ipmi_timeout; // for IPMI
-  unsigned int m_default_atca_timeout; // for ATCA
-
   // current timeout in ms
   unsigned int m_timeout;
 
 public:
-  cIpmiCon( unsigned int ipmi_timeout, unsigned int atca_timeout,
-            unsigned int max_outstanding );
+  cIpmiCon( unsigned int timeout );
   virtual ~cIpmiCon();
 
   bool IsOpen() { return m_is_open; }

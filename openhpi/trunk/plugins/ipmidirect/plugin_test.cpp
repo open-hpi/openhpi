@@ -38,6 +38,7 @@ static const char *plugin_params_lan_local[] =
   "logfile_max", "1",
   "IpmiConnectionTimeout", "500",
   "AtcaConnectionTimeout", "500",
+  //  "MaxOutstanding", "2",
   0
 };
 
