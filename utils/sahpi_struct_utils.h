@@ -112,6 +112,9 @@ SaErrorT oh_fprint_eventloginfo(FILE *stream, const SaHpiEventLogInfoT *thiselin
 #define oh_print_eventlogentry(eventlog_ptr, offsets) oh_fprint_eventlogentry(stdout, eventlog_ptr, offsets)
 SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thiseventlog, int offsets);
 
+#define oh_print_ctrlstate(ctrlstate_ptr, offsets) oh_fprint_ctrlstate(stdout, ctrlstate_ptr, offsets)
+SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate, int offsets);
+
 #if 0
 /* FIXME:: Do we need these ???? */
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);

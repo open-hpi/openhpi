@@ -47,6 +47,8 @@ SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
   return(SA_ERR_HPI_UNSUPPORTED_API);
 }
 
+
+#if 0
 SaErrorT snmp_bc_get_control_state(void *hnd, 
 				   SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
@@ -56,6 +58,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
   return(SA_ERR_HPI_UNSUPPORTED_API);
 }
 
+
 SaErrorT snmp_bc_set_control_state(void *hnd,
 				   SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
@@ -64,6 +67,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 {
   return(SA_ERR_HPI_UNSUPPORTED_API);
 }
+#endif
 
 #if 0
 SaErrorT snmp_bc_get_watchdog_info(void *hnd,

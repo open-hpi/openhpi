@@ -25,7 +25,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 SaErrorT snmp_bc_set_control_state(void *hnd,
 				   SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
-				   SaHpiCtrlModeT *mode,
+				   SaHpiCtrlModeT mode,
 				   SaHpiCtrlStateT *state);
 
 #endif /* SNMP_BC_CONTROL_H */

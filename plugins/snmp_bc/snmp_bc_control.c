@@ -36,20 +36,20 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
         struct BC_ControlInfo *s =
                 (struct BC_ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
 	if(s == NULL) {
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}	
-
-	if (rdr->RdrTypeUnion.CtrlRec.Ignore == SAHPI_TRUE) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
 
 	memset(&working, 0, sizeof(SaHpiCtrlStateT));
 	working.Type = rdr->RdrTypeUnion.CtrlRec.Type;
 
+	/* FIXME: */
+	/* Special consideration for SAHPI_CTRL_TYPE_TEXT */
+	/* Do we have any control of this type?           */
+	
 	oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 	
 	status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
@@ -90,11 +90,11 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 				break;
 			default:
 				dbg("Invalid Case=%d", i);
-				return -1;
+				return SA_ERR_HPI_INTERNAL_ERROR;
 			}
 		} else {
 			dbg("Control's value not defined\n");
-			return -1;
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 		break;
 	case SAHPI_CTRL_TYPE_DISCRETE:
@@ -114,17 +114,22 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		return SA_ERR_HPI_INVALID_CMD;
         default:
 		dbg("%s has invalid control state=%d\n", s->mib.oid,working.Type);
-                return -1;
+                return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-	memcpy(state,&working,sizeof(SaHpiCtrlStateT));
+	/* state & mode can be NULL, need check before use */
+	if (state) memcpy(state,&working,sizeof(SaHpiCtrlStateT));
+	
+	if(mode) 
+		*mode = rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode;
+		
 	return SA_OK;
 }
 
 SaErrorT snmp_bc_set_control_state(void *hnd, 
 				   SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
-				   SaHpiCtrlModeT *mode,
+				   SaHpiCtrlModeT mode,
 				   SaHpiCtrlStateT *state)
 {
         gchar *oid;
@@ -142,11 +147,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
         struct BC_ControlInfo *s =
                 (struct BC_ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
 	if(s == NULL) {
-		return -1;
-	}
-
-	if (rdr->RdrTypeUnion.CtrlRec.Ignore == SAHPI_TRUE) {
-		return SA_ERR_HPI_INVALID_CMD;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	if(state->Type != rdr->RdrTypeUnion.CtrlRec.Type) {
@@ -154,6 +155,9 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
+	/* FIXME: */
+	/* Need to revisit spec. Not sure what to do for  */
+	/* mode == SAHPI_CTRL_MODE_AUTO                   */
 	switch (state->Type) {
 	case SAHPI_CTRL_TYPE_DIGITAL:
 		switch (state->StateUnion.Digital) {
@@ -171,7 +175,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			break;
 		default:
 			dbg("Invalid Case=%d", state->StateUnion.Digital);
-			return -1;
+			return SA_ERR_HPI_INVALID_PARAMS;
 		}
 
 		if(value < 0) {
@@ -182,7 +186,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-			return -1;
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 
 		set_value.type = ASN_INTEGER;
@@ -203,7 +207,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-			return -1;
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 
 		set_value.type = ASN_INTEGER;
