@@ -33,7 +33,7 @@ static int rpt_cache_resources_add(RPTable *temp_rptable,
 				   int num_entries);
 
 #if 0
-int snmp_get_bulk( struct snmp_session *ss, 
+int snmp_get_bulk( void *sessp, 
 		   const char *bulk_objid, 
 		   struct snmp_pdu *bulk_pdu, 
 		   struct snmp_pdu **bulk_response )
@@ -55,7 +55,7 @@ int snmp_get_bulk( struct snmp_session *ss,
 	snmp_add_null_var(bulk_pdu, anOID, anOID_len);
 	
 	/* Send the Request out.*/
-	status = snmp_synch_response(ss, bulk_pdu, bulk_response);
+	status = snmp_sess_synch_response(sessp, bulk_pdu, bulk_response);
 
 	return(status);
 
@@ -134,7 +134,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 	}
 
 	/* SA_HPI_DOMAIN_ID */
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     sa_hpi_entry, 
 				     SA_HPI_ENTRY_OID_LEN, 
 				     pdu, 
@@ -177,7 +177,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 	
 	/* SA_HPI_ENTRY_ID */
 	build_res_oid(anOID, sa_hpi_domain_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -202,7 +202,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_RESOURCE_ID */
 	build_res_oid(anOID, sa_hpi_entry_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -227,7 +227,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_RESOURCE_ENTITY_PATH */
 	build_res_oid(anOID, sa_hpi_resource_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -256,7 +256,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_RESOURCE_CAPABILITIES */
 	build_res_oid(anOID, sa_hpi_resource_entity_path, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -281,7 +281,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_RESOURCE_SEVERITY */
 	build_res_oid(anOID, sa_hpi_resource_capabilities, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -306,7 +306,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_RESOURCE_INFO_RESOURCE_REV */
 	build_res_oid(anOID, sa_hpi_resource_severity, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -331,7 +331,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_SPECIFIC_VER */
 	build_res_oid(anOID, sa_hpi_resource_info_resource_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -356,7 +356,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_DEVICE_SUPPORT */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_specific_ver, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -381,7 +381,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_MANUFACTUER_ID */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_device_support, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -406,7 +406,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_PRODUCT_ID */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_manufactuer_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -431,7 +431,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MAJOR_REV */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_product_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -456,7 +456,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MINOR_REV */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_firmware_major_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -481,7 +481,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_AUX_FIRMWARE_REV */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_firmware_minor_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -506,7 +506,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_TYPE */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_aux_firmware_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -531,7 +531,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_LANGUAGE */
 	build_res_oid(anOID, sa_hpi_domain_resource_tag_text_type, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 
@@ -556,7 +556,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 	/* SA_HPI_DOMAIN_RESOURCE_TAG */
 	build_res_oid(anOID, sa_hpi_domain_resource_tag_text_language, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
-	snmp_status = snmp_getn_bulk(custom_handle->ss, 
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, 
 				     anOID, 
 				     SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
 				     pdu, 

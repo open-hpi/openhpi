@@ -179,9 +179,9 @@ static void *snmp_client_open(GHashTable *handler_config)
         /* windows32 specific net-snmp initialization (is a noop on unix) */
         SOCK_STARTUP;
 
-        custom_handle->ss = snmp_open(&(custom_handle->session));
+        custom_handle->sessp = snmp_sess_open(&(custom_handle->session));
 
-        if(!custom_handle->ss) {
+        if(!custom_handle->sessp) {
                 snmp_perror("ack");
                 snmp_log(LOG_ERR, "something horrible happened!!!");
                 dbg("Unable to open snmp session.");
@@ -205,7 +205,7 @@ static void snmp_client_close(void *hnd)
         struct snmp_client_hnd *custom_handle =
                 (struct snmp_client_hnd *)handle->data;
 
-        snmp_close(custom_handle->ss);
+        snmp_close(custom_handle->sessp);
         /* Should we free handle->config? */
 
 	snmp_shutdown("oh_snmp_client");
@@ -253,7 +253,7 @@ static int snmp_client_discover_resources(void *hnd)
 	RPTable *diff_rptable = g_malloc0(sizeof(*diff_rptable));
 
 	/* Get the saHpiEntryCount */
-	status = snmp_get2(custom_handle->ss,
+	status = snmp_get2(custom_handle->sessp,
 			   sa_hpi_entry_count,
 			   SA_HPI_ENTRY_COUNT_OID_LEN, 
 			   &get_value);    
@@ -262,7 +262,7 @@ static int snmp_client_discover_resources(void *hnd)
 	status = get_sahpi_table_entries(diff_rptable, handle, get_value.integer);
 
 	/* Get the saHpiRdrCount */
-	status = snmp_get2(custom_handle->ss,
+	status = snmp_get2(custom_handle->sessp,
 			   sa_hpi_rdr_count,
 			   SA_HPI_RDR_ENTRY_COUNT_OID_LEN, 
 			   &get_value); 
@@ -340,7 +340,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
                       indices, 
                       NUM_SEN_INDICES);
 	
-	status  = snmp_get2(custom_handle->ss,
+	status  = snmp_get2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
@@ -360,7 +360,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status  = snmp_get2(custom_handle->ss,
+		status  = snmp_get2(custom_handle->sessp,
 				    anOID, 
 				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &get_value);
@@ -393,7 +393,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status  = snmp_get2(custom_handle->ss,
+		status  = snmp_get2(custom_handle->sessp,
 				    anOID, 
 				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &get_value);
@@ -432,7 +432,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status = snmp_get2(custom_handle->ss,
+		status = snmp_get2(custom_handle->sessp,
 				   anOID, 
 				   SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				   &get_value);
@@ -452,7 +452,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status = snmp_get2(custom_handle->ss,
+		status = snmp_get2(custom_handle->sessp,
 				   anOID, 
 				   SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				   &get_value);
@@ -754,7 +754,7 @@ static int snmp_client_get_sensor_event_enables(void *hnd,
                       indices, 
                       NUM_SEN_INDICES);
 	
-	status  = snmp_get2(custom_handle->ss,
+	status  = snmp_get2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
@@ -771,7 +771,7 @@ static int snmp_client_get_sensor_event_enables(void *hnd,
                       indices, 
                       NUM_SEN_INDICES);
 	
-	status  = snmp_get2(custom_handle->ss,
+	status  = snmp_get2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
@@ -800,7 +800,7 @@ static int snmp_client_get_sensor_event_enables(void *hnd,
                       indices, 
                       NUM_SEN_INDICES);
 	
-	status  = snmp_get2(custom_handle->ss,
+	status  = snmp_get2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
@@ -876,7 +876,7 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
                       indices, 
                       NUM_SEN_INDICES);
 
-	status  = snmp_set2(custom_handle->ss,
+	status  = snmp_set2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &set_value);
@@ -907,7 +907,7 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status  = snmp_set2(custom_handle->ss,
+		status  = snmp_set2(custom_handle->sessp,
 				    anOID, 
 				    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &set_value);
@@ -939,7 +939,7 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status  = snmp_set2(custom_handle->ss,
+		status  = snmp_set2(custom_handle->sessp,
 				    anOID, 
 				    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &set_value);
@@ -987,7 +987,7 @@ static int snmp_client_get_control_state(void *hnd,
                       indices, 
                       NUM_CTRL_INDICES);
 
-	if( !snmp_get2(custom_handle->ss,
+	if( !snmp_get2(custom_handle->sessp,
 		  anOID, 
 		  SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 		  &get_value) ) {
@@ -1001,7 +1001,7 @@ static int snmp_client_get_control_state(void *hnd,
 			      indices, 
 			      NUM_CTRL_INDICES);
 
-		if( !snmp_get2(custom_handle->ss,
+		if( !snmp_get2(custom_handle->sessp,
 			  anOID, 
 			  SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			  &get_value) ) {
@@ -1049,7 +1049,7 @@ static int snmp_client_get_control_state(void *hnd,
 					      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 					      indices, 
 					      NUM_CTRL_INDICES);
-				status = snmp_get2(custom_handle->ss,
+				status = snmp_get2(custom_handle->sessp,
 					       anOID, 
 					       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 					       &get_value);
@@ -1066,7 +1066,7 @@ static int snmp_client_get_control_state(void *hnd,
 					      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 					      indices, 
 					      NUM_CTRL_INDICES);
-				status = snmp_get2(custom_handle->ss,
+				status = snmp_get2(custom_handle->sessp,
 					       anOID, 
 					       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 					       &get_value);
@@ -1082,7 +1082,7 @@ static int snmp_client_get_control_state(void *hnd,
 					      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 					      indices, 
 					      NUM_CTRL_INDICES);
-				status = snmp_get2(custom_handle->ss,
+				status = snmp_get2(custom_handle->sessp,
 					       anOID, 
 					       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 					       &get_value);
@@ -1108,7 +1108,7 @@ static int snmp_client_get_control_state(void *hnd,
 				      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 				      indices, 
 				      NUM_CTRL_INDICES);
-				status = snmp_get2(custom_handle->ss,
+				status = snmp_get2(custom_handle->sessp,
 				       anOID, 
 				       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				       &get_value);

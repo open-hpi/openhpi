@@ -209,14 +209,14 @@ SaErrorT snmp_set(
  *
  * Return value: Returns 0 if successful, <0 if there was an error.
  **/
-SaErrorT snmp_get2(struct snmp_session *ss, 
+SaErrorT snmp_get2(void *sessp, 
 	           oid *objid,
 	           size_t objid_len,
                    struct snmp_value *value) 
 {
         struct snmp_pdu *pdu;
         struct snmp_pdu *response;
-        
+        struct snmp_session *session;
         struct variable_list *vars;
 	SaErrorT returncode = SA_OK;
 	int i;
@@ -232,7 +232,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
         /*
          * Send the Request out.
          */
-        status = snmp_synch_response(ss, pdu, &response);
+        status = snmp_sess_synch_response(sessp, pdu, &response);
 
         /*
          * Process the response.
@@ -296,7 +296,8 @@ SaErrorT snmp_get2(struct snmp_session *ss,
 			fprintf(stderr, "\n");
 			returncode = errstat2hpi(response->errstat);		}
         } else {
-		snmp_sess_perror("snmpget", ss);
+		session = snmp_sess_session(sessp);
+		snmp_sess_perror("snmpget", session);
 		returncode = snmpstat2hpi(status);
 
         }
@@ -322,7 +323,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
  *
  * Return value: Returns 0 if successful, -1 if there was an error.
  **/
-SaErrorT snmp_set2(struct snmp_session *ss, 
+SaErrorT snmp_set2(void *sessp, 
 	           oid *objid,
 	           size_t objid_len,
                    struct snmp_value *value) 
@@ -330,7 +331,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 	struct snmp_pdu *pdu;
 	struct snmp_pdu *response;
         struct variable_list *vars;
-
+	struct snmp_session *session;
         void *dataptr = NULL;
         int status = 0;
 	SaErrorT rtncode = SA_OK; /* Default - All is OK */
@@ -369,7 +370,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
         	/*
          	* Send the Request out.
          	*/
-        	status = snmp_synch_response(ss, pdu, &response);
+        	status = snmp_sess_synch_response(sessp, pdu, &response);
         	/*
          	* Process the response.
          	*/
@@ -400,7 +401,8 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 
 			}                
         	} else {
-                       	snmp_sess_perror("snmpset", ss);
+			session = snmp_sess_session(sessp);
+                       	snmp_sess_perror("snmpset", session);
                        	rtncode = snmpstat2hpi(status);
 
         	}
@@ -414,7 +416,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 
 }
 
-SaErrorT snmp_getn_bulk( struct snmp_session *ss, 
+SaErrorT snmp_getn_bulk( void *sessp, 
 		    oid *bulk_objid, 
 		    size_t bulk_objid_len,
 		    struct snmp_pdu *bulk_pdu, 
@@ -434,7 +436,7 @@ SaErrorT snmp_getn_bulk( struct snmp_session *ss,
 	snmp_add_null_var(bulk_pdu, bulk_objid, bulk_objid_len);
 	
 	/* Send the Request out.*/
-	status = snmp_synch_response(ss, bulk_pdu, bulk_response);
+	status = snmp_sess_synch_response(sessp, bulk_pdu, bulk_response);
 
 	/*
 	 * Process the response.

@@ -107,7 +107,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
         }
 
         /* SA_HPI_RDR_RECORD_ID */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                              sa_hpi_rdr_entry, 
                              SA_HPI_RDR_ENTRY_OID_LEN, 
                              pdu, 
@@ -160,7 +160,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                       SA_HPI_RDR_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_RES_INDICES); 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                              anOID, 
                              SA_HPI_RDR_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
                              pdu, 
@@ -192,7 +192,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                       SA_HPI_RDR_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_RES_INDICES); 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                              anOID, 
                              SA_HPI_RDR_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
                              pdu, 
@@ -310,7 +310,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
         oid *indices;
 
         /* make sure present ctrl cap count marches discovered */
-        status = snmp_get2(custom_handle->ss,
+        status = snmp_get2(custom_handle->sessp,
                            sa_hpi_ctrl_count,
                            SA_HPI_CTRL_COUNT_OID_LEN, 
                            &get_value);
@@ -334,7 +334,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
         }
         
         /* SA_HPI_CTRL_NUM */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      sa_hpi_ctrl_entry, 
                                      SA_HPI_CTRL_ENTRY_OID_LEN, 
                                      get_cap_pdu, 
@@ -367,7 +367,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_CTRL_INDICES); 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
                                      get_cap_pdu, 
@@ -396,7 +396,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_CTRL_INDICES); 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
                                      get_cap_pdu, 
@@ -425,7 +425,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_CTRL_INDICES); 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
                                      get_cap_pdu, 
@@ -456,7 +456,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_CTRL_INDICES); 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
                                      get_cap_pdu, 
@@ -605,7 +605,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                       SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
                       indices, 
                       NUM_CTRL_INDICES); 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_CTRL_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, 
                                      get_cap_pdu, 
@@ -670,7 +670,7 @@ do{ \
 			SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH, \
 			indices, \
 			NUM_SEN_INDICES); \
-	snmp_status = snmp_getn_bulk(custom_handle->ss, \
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, \
 					anOID, \
 					SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, \
 					get_cap_pdu, \
@@ -702,7 +702,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 	int num_sen_rdrs_has_thold;
         
         /* make sure present ctrl cap count marches discovered */
-        status = snmp_get2(custom_handle->ss,
+        status = snmp_get2(custom_handle->sessp,
                            sa_hpi_sen_count,
                            SA_HPI_SEN_COUNT_OID_LEN, 
                            &get_value); 
@@ -720,7 +720,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 
         /* get SAHPI_SENSOR_RDR data */
         /* SA_HPI_SENSOR_INDEX */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      sa_hpi_sen_entry, 
                                      SA_HPI_SEN_ENTRY_OID_LEN, 
                                      get_cap_pdu, 
@@ -1348,7 +1348,7 @@ do{ \
 			SA_HPI_INV_ENTRY_TABLE_VARIABLE_OID_LENGTH, \
 			indices, \
 			NUM_INV_INDICES); \
-	snmp_status = snmp_getn_bulk(custom_handle->ss, \
+	snmp_status = snmp_getn_bulk(custom_handle->sessp, \
 					anOID, \
 					SA_HPI_INV_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH, \
 					get_cap_pdu, \
@@ -1377,7 +1377,7 @@ static SaErrorT get_inventory_capabilities(struct snmp_client_hnd *custom_handle
 dbg("***** get_inventory_capabilities *****");
 
         /* make sure present inventory cap count marches discovered */
-        status = snmp_get2(custom_handle->ss,
+        status = snmp_get2(custom_handle->sessp,
                            sa_hpi_inv_count,
                            SA_HPI_INV_COUNT_OID_LEN, 
                            &get_value);
@@ -1406,7 +1406,7 @@ dbg("***** get_inventory_capabilities:snmp_get2 *****");
 
         /* get SAHPI_INVENTORY_RDR data */
         /* SA_HPI_INVENTORY_EIRID */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      sa_hpi_inv_entry, 
                                      SA_HPI_INV_ENTRY_OID_LEN, 
                                      get_cap_pdu, 
@@ -1509,7 +1509,7 @@ static SaErrorT get_watchdog_capabilities(struct snmp_client_hnd *custom_handle,
         SaHpiRdrTypeUnionT *sahpi_watchdog_cap = NULL;
 
         /* make sure present wd cap count marches discovered */
-        status = snmp_get2(custom_handle->ss,
+        status = snmp_get2(custom_handle->sessp,
                            sa_hpi_wd_count,
                            SA_HPI_WD_COUNT_OID_LEN, 
                            &get_value);
@@ -1526,7 +1526,7 @@ static SaErrorT get_watchdog_capabilities(struct snmp_client_hnd *custom_handle,
         }
 
         /* get SAHPI_WATCHDOG_RDR data */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      sa_hpi_wd_entry, 
                                      SA_HPI_WD_ENTRY_OID_LEN, 
                                      get_cap_pdu, 

@@ -61,7 +61,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
 	dbg("**** # of range readings of type max, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_MAX_VALUE_PRESENT */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      sa_hpi_sensor_reading_max_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -97,7 +97,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -127,7 +127,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -159,7 +159,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -189,7 +189,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -290,7 +290,7 @@ SaErrorT populate_range_min(struct snmp_client_hnd *custom_handle,
 dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_MIN_VALUE_PRESENT */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      sa_hpi_sensor_reading_min_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -326,7 +326,7 @@ dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -356,7 +356,7 @@ dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -388,7 +388,7 @@ dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -418,7 +418,7 @@ dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -518,7 +518,7 @@ SaErrorT populate_range_nominal(struct snmp_client_hnd *custom_handle,
 dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_NOMINAL_VALUE_PRESENT */
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      sa_hpi_sensor_reading_nominal_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -554,7 +554,7 @@ dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -584,7 +584,7 @@ dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -616,7 +616,7 @@ dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -646,7 +646,7 @@ dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -746,7 +746,7 @@ SaErrorT populate_range_normal_max(struct snmp_client_hnd *custom_handle,
 dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_NORMAL_MAX_VALUE_PRESENT */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_reading_normal_max_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -782,7 +782,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -812,7 +812,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -844,7 +844,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -874,7 +874,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -974,7 +974,7 @@ SaErrorT populate_range_normal_min(struct snmp_client_hnd *custom_handle,
 dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_NORMAL_MIN_VALUE_PRESENT */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_reading_normal_min_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -1010,7 +1010,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1040,7 +1040,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1072,7 +1072,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1102,7 +1102,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1202,7 +1202,7 @@ SaErrorT populate_thld_low_crit(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_low_crit, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_low_critical_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -1238,7 +1238,7 @@ dbg("**** # entrys for populate_thld_low_crit, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1267,7 +1267,7 @@ dbg("**** # entrys for populate_thld_low_crit, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1359,7 +1359,7 @@ SaErrorT populate_thld_low_major(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_low_major, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_low_major_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -1395,7 +1395,7 @@ dbg("**** # entrys for populate_thld_low_major, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1424,7 +1424,7 @@ dbg("**** # entrys for populate_thld_low_major, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1516,7 +1516,7 @@ SaErrorT populate_thld_low_minor(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_low_minor, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_low_minor_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -1552,7 +1552,7 @@ dbg("**** # entrys for populate_thld_low_minor, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1581,7 +1581,7 @@ dbg("**** # entrys for populate_thld_low_minor, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1674,7 +1674,7 @@ SaErrorT populate_thld_up_critical(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_up_critical, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_up_critical_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -1710,7 +1710,7 @@ dbg("**** # entrys for populate_thld_up_critical, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1739,7 +1739,7 @@ dbg("**** # entrys for populate_thld_up_critical, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1831,7 +1831,7 @@ SaErrorT populate_thld_up_major(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_up_major, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_up_major_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -1867,7 +1867,7 @@ dbg("**** # entrys for populate_thld_up_major, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1896,7 +1896,7 @@ dbg("**** # entrys for populate_thld_up_major, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -1989,7 +1989,7 @@ SaErrorT populate_thld_up_minor(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_up_minor, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_up_minor_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -2025,7 +2025,7 @@ dbg("**** # entrys for populate_thld_up_minor, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -2054,7 +2054,7 @@ dbg("**** # entrys for populate_thld_up_minor, thd_num %d *****" ,thd_num);
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -2146,7 +2146,7 @@ SaErrorT populate_thld_pos_hysteresis(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_pos_hysteresis_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -2182,7 +2182,7 @@ dbg("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****" ,thd_num)
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -2211,7 +2211,7 @@ dbg("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****" ,thd_num)
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -2304,7 +2304,7 @@ SaErrorT populate_thld_neg_hysteresis(struct snmp_client_hnd *custom_handle,
 dbg("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_READABLE */
-        snmp_status = snmp_getn_bulk(custom_handle->ss,
+        snmp_status = snmp_getn_bulk(custom_handle->sessp,
                                      sa_hpi_sensor_thd_neg_hysteresis_entry, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_OID_LEN,
                                      get_cap_pdu, 
@@ -2340,7 +2340,7 @@ dbg("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****" ,thd_num)
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -2369,7 +2369,7 @@ dbg("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****" ,thd_num)
 		      indices, 
 		      NUM_SEN_INDICES);
 
-        snmp_status = snmp_getn_bulk(custom_handle->ss, 
+        snmp_status = snmp_getn_bulk(custom_handle->sessp, 
                                      anOID, 
                                      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
                                      get_cap_pdu, 
@@ -2540,7 +2540,7 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 		      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 		      indices, 
 		      NUM_SEN_INDICES);	
-	status  = snmp_get2(custom_handle->ss,
+	status  = snmp_get2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
@@ -2562,7 +2562,7 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 		      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 		      indices, 
 		      NUM_SEN_INDICES);	
-	status  = snmp_get2(custom_handle->ss,
+	status  = snmp_get2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
@@ -2582,7 +2582,7 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status  = snmp_get2(custom_handle->ss,
+		status  = snmp_get2(custom_handle->sessp,
 				    anOID, 
 				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &get_value);
@@ -2604,7 +2604,7 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status  = snmp_get2(custom_handle->ss,
+		status  = snmp_get2(custom_handle->sessp,
 				    anOID, 
 				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &get_value);
@@ -2644,7 +2644,7 @@ SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 		      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
 		      indices, 
 		      NUM_SEN_INDICES);	
-	status  = snmp_get2(custom_handle->ss,
+	status  = snmp_get2(custom_handle->sessp,
 			    anOID, 
 			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
@@ -2675,7 +2675,7 @@ SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 			      indices, 
 			      NUM_SEN_INDICES);
 
-		status  = snmp_set2(custom_handle->ss,
+		status  = snmp_set2(custom_handle->sessp,
 				    anOID, 
 				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				    &set_value);
@@ -2698,7 +2698,7 @@ SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 			      indices, 
 			      NUM_SEN_INDICES);
 	
-		status  = snmp_set2(custom_handle->ss,
+		status  = snmp_set2(custom_handle->sessp,
 				   anOID, 
 				   SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				   &set_value);

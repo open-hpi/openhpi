@@ -92,17 +92,17 @@ SaErrorT snmp_set(
         char *objid,
         struct snmp_value value);
 
-SaErrorT snmp_get2(struct snmp_session *ss, 
+SaErrorT snmp_get2(void *sessp, 
 		   oid *objid, 
 		   size_t objid_len,
 		   struct snmp_value *value);
 
-SaErrorT snmp_set2(struct snmp_session *ss, 
+SaErrorT snmp_set2(void *sessp, 
 	           oid *objid,
 	           size_t objid_len,
                    struct snmp_value *value);
 
-SaErrorT snmp_getn_bulk( struct snmp_session *ss, 
+SaErrorT snmp_getn_bulk( void *sessp, 
 		    oid *bulk_objid, 
 		    size_t bulk_objid_len,
 		    struct snmp_pdu *bulk_pdu, 
