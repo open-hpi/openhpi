@@ -85,11 +85,12 @@ install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@H
 %config /etc/@HPI_PKG@/*
 %dir /var/lib/@HPI_PKG@
 %{prefix}/lib/libopen*
-%{prefix}/lib/@HPI_PKG@/libdummy*
-%{prefix}/lib/@HPI_PKG@/libsysfs*
-%{prefix}/lib/@HPI_PKG@/libsnmp_bc*
-%{prefix}/lib/@HPI_PKG@/libwatchdog*
-%{prefix}/lib/@HPI_PKG@/libipmi*
+%{prefix}/lib/@HPI_PKG@/lib*
+# dummy*
+#%{prefix}/lib/@HPI_PKG@/libsysfs*#
+#%{prefix}/lib/@HPI_PKG@/libsnmp_bc*
+#%{prefix}/lib/@HPI_PKG@/libwatchdog*
+#%{prefix}/lib/@HPI_PKG@/libipmi*
 
 ###################################################
 %files devel
