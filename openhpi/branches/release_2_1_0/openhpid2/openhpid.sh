@@ -17,9 +17,9 @@
 prog="openhpid"
 
 start() {
-        export `openhpi-switcher --env=standard` || return 1
+        export `/usr/local/bin/openhpi-switcher --env=standard` || return 1
 	echo -n $"Starting $prog: "
-	daemon openhpid
+	daemon /usr/local/bin/openhpid -c /etc/openhpi/openhpiclient.conf
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/openhpid
@@ -36,7 +36,7 @@ stop() {
 }	
 
 rhstatus() {
-	status openhpid
+	status /usr/local/bin/openhpid
 }	
 
 restart() {
