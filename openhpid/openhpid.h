@@ -100,6 +100,7 @@ public:
   bool        m_daemon;
   int         m_debug;
   const char *m_config;
+  bool        m_interactive;
 
   // connection
   int         m_daemon_port;
@@ -113,6 +114,7 @@ public:
   void NewConnection( cServerConnection *c );
   void CloseConnection( int id );
 
+  bool HandleInteractive();
   bool HandleData( cConnection *c );
   void HandlePong( cConnection *c, const cMessageHeader &header );
 
