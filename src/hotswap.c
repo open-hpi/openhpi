@@ -229,3 +229,55 @@ void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to)
 {
         hotswap_auto_extract_timeout = to;
 }
+
+/*
+ * this function determines whether a hotswap transition is allowed
+ */
+
+SaHpiBoolT oh_allowed_hotswap_transition(SaHpiHsStateT from, SaHpiHsStateT to)
+{
+        switch(from) {
+        case SAHPI_HS_STATE_INACTIVE:
+                if((to == SAHPI_HS_STATE_INSERTION_PENDING) ||
+                   (to == SAHPI_HS_STATE_NOT_PRESENT)) {
+                        return SAHPI_TRUE;
+                } else {
+                        return SAHPI_FALSE;
+                }
+                break;
+        case SAHPI_HS_STATE_INSERTION_PENDING:
+                if((to == SAHPI_HS_STATE_INACTIVE) ||
+                   (to == SAHPI_HS_STATE_NOT_PRESENT) ||
+                   (to == SAHPI_HS_STATE_ACTIVE)) {
+                        return SAHPI_TRUE;
+                } else {
+                        return SAHPI_FALSE;
+                }
+                break;
+        case SAHPI_HS_STATE_ACTIVE:
+                if((to == SAHPI_HS_STATE_EXTRACTION_PENDING) ||
+                   to == SAHPI_HS_STATE_NOT_PRESENT) {
+                        return SAHPI_TRUE;
+                } else {
+                        return SAHPI_FALSE;
+                }
+                break;
+        case SAHPI_HS_STATE_EXTRACTION_PENDING:
+                if((to == SAHPI_HS_STATE_ACTIVE) ||
+                   (to == SAHPI_HS_STATE_NOT_PRESENT)) {
+                        return SAHPI_TRUE;
+                } else {
+                        return SAHPI_FALSE;
+                }
+                break;
+        case SAHPI_HS_STATE_NOT_PRESENT:
+                if(to == SAHPI_HS_STATE_INSERTION_PENDING) {
+                        return SAHPI_TRUE;
+                } else {
+                        return SAHPI_FALSE;
+                }
+                break;
+        default:
+                return SAHPI_FALSE;
+        }
+}

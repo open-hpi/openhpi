@@ -42,6 +42,8 @@ SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
 void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
 SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
 void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
+SaHpiBoolT oh_allowed_hotswap_transition(SaHpiHsStateT from, SaHpiHsStateT to);
+
 
 #ifdef __cplusplus
 }
