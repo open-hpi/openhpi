@@ -39,7 +39,7 @@ static inline int __dsel_add(GSList **sel_list,
 	return 0;
 }
 
-static inline void sel_clr(GSList **sel_list) 
+static inline void __dsel_clr(GSList **sel_list) 
 {
 	GSList *i, *i2;
 
@@ -48,6 +48,19 @@ static inline void sel_clr(GSList **sel_list)
 		sel = i->data;
 		*sel_list = g_slist_remove_link(*sel_list, i);
 		free(sel);			
+	}
+}
+
+static inline void __rsel_clr(struct oh_resource *res, GSList **sel_list)
+{
+	GSList *i, *i2;
+
+	g_slist_for_each_safe(i, i2, *sel_list) {
+		struct oh_rsel *rsel;
+		rsel = i->data;
+		*sel_list = g_slist_remove_link(*sel_list, i);
+		res->handler->abi->del_sel_entry(res->handler->hnd, rsel->oid);
+		free(rsel);			
 	}
 }
 
@@ -190,7 +203,7 @@ int dsel_clr(SaHpiDomainIdT domain_id)
 		return -1;
 	}
 
-	sel_clr(&d->sel_list);
+	__dsel_clr(&d->sel_list);
 	return 0;
 }
 
@@ -283,5 +296,5 @@ void rsel_clr(SaHpiResourceIdT res_id)
 		return;
 	}
 
-	sel_clr(&res->sel_list);
+	__rsel_clr(res, &res->sel_list);
 }
