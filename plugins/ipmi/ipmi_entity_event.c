@@ -107,7 +107,6 @@ static void entity_presence(ipmi_entity_t	*entity,
 static void get_entity_event(ipmi_entity_t	*entity,
 			     SaHpiRptEntryT	*entry, void *cb_data)
 {
-	char	*str;
 	SaHpiEntityPathT entity_ep;
 
 	struct ohoi_handler *ipmi_handler = cb_data;
@@ -152,12 +151,15 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->DomainId = 0;
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	
-	str = ipmi_entity_get_entity_id_string(entity);
-	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
-	entry->ResourceTag.DataLength = strlen(str); 
+	entry->ResourceTag.DataLength = (SaHpiUint32T) ipmi_entity_get_id_length(entity); 
 
-	memcpy(entry->ResourceTag.Data, str, strlen(str) + 1);
+	ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	if ((strlen(entry->ResourceTag.Data) == 0) || (!strcmp(entry->ResourceTag.Data, "invalid"))) {
+			char *str;
+			str = ipmi_entity_get_entity_id_string(entity);
+			memcpy(entry->ResourceTag.Data, str, strlen(str) + 1);
+	}
 }
 
 static void add_entity_event(ipmi_entity_t	        *entity,
