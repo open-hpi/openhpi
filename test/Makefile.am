@@ -44,6 +44,8 @@ AM_CFLAGS 		= @CFLAGS@
 
 bin_PROGRAMS		= hpitestapp hashtest listtest
 
+include_HEADERS		= hpitestapp.h
+
 hpitestapp_SOURCES	= hpitestapp.c
 hpitestapp_LDADD	= $(COMMONLIBS)
 hpitestapp_LDFLAGS	= -export-dynamic -dlpreopen force -dlopen self
