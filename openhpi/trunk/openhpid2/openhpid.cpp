@@ -56,7 +56,8 @@ enum tResult
 static bool morph2daemon(bool runasdaemon);
 static void service_thread(gpointer data, gpointer user_data);
 static void HandleInvalidRequest(psstrmsock thrdinst);
-static tResult HandleMsg(psstrmsock thrdinst, char *buf);
+static tResult HandleMsg(psstrmsock thrdinst, char *buf, GHashTable **ht);
+static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 
 }
 
@@ -291,6 +292,7 @@ static void service_thread(gpointer data, gpointer user_data)
         bool stop = false;
 	char buf[dMaxMessageLength];
         tResult result;
+        GHashTable *thrdhashtable = NULL;
 
 	PVERBOSE1("Servicing connection.\n");
 
@@ -309,7 +311,7 @@ static void service_thread(gpointer data, gpointer user_data)
                 else {
                         switch( thrdinst->header.m_type ) {
                         case eMhMsg:
-                                result = HandleMsg(thrdinst, buf);
+                                result = HandleMsg(thrdinst, buf, &thrdhashtable);
                                 // marshal error ?
                                 if (result == eResultError) {
                                         PVERBOSE1("Invalid API found.\n");
@@ -355,7 +357,7 @@ void HandleInvalidRequest(psstrmsock thrdinst) {
 /* Function: HandleMsg                                                */
 /*--------------------------------------------------------------------*/
 
-static tResult HandleMsg(psstrmsock thrdinst, char *data)
+static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
 {
   cHpiMarshal *hm;
   SaErrorT ret;
@@ -1921,7 +1923,150 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               retbuf.Language = SAHPI_LANG_ENGLISH;
               // the real data
               retbuf.DataLength = strlen((char *)retbuf.Data);
+
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &retbuf );
+       }
+       break;
+
+       case eFoHpiHandlerCreateInit: {
+
+              PVERBOSE1("Processing oHpiHandlerCreateInit.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &ret ) < 0 )
+                   return eResultError;
+
+              if (*ht) {
+                      // first free the table entries
+                      g_hash_table_foreach(*ht, hashtablefreeentry, NULL);
+                      // now destroy the table
+                      g_hash_table_destroy(*ht);
+                      *ht = NULL;
+              }
+              *ht = g_hash_table_new(g_str_hash, g_str_equal);
+              if (*ht == NULL) {
+                      ret = SA_ERR_HPI_OUT_OF_MEMORY;
+              }
+              else {
+                      ret = SA_OK;
+              }
+
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+       }
+       break;
+
+       case eFoHpiHandlerCreateAddTEntry: {
+              SaHpiTextBufferT key, value;
+              char *newkey, *newvalue;
+
+              PVERBOSE1("Processing oHpiHandlerCreateAddTEntry.\n");
+
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &key, &value ) < 0 )
+                   return eResultError;
+
+              newkey = (char *)g_malloc(key.DataLength + 1);
+              newvalue = (char *)g_malloc(value.DataLength + 1);
+              if (newkey == NULL || newvalue == NULL) {
+                      ret = SA_ERR_HPI_OUT_OF_MEMORY;
+              }
+              else {
+                      g_hash_table_insert(*ht, newkey, newvalue);
+                      ret = SA_OK;
+              }
+
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+       }
+       break;
+
+       case eFoHpiHandlerCreate: {
+              oHpiHandlerIdT id;
+
+              PVERBOSE1("Processing oHpiHandlerCreate.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &id ) < 0 )
+                   return eResultError;
+
+              ret = oHpiHandlerCreate(*ht, &id);
+
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &id );
+       }
+       break;
+
+       case eFoHpiHandlerDestroy: {
+              oHpiHandlerIdT id;
+
+              PVERBOSE1("Processing oHpiHandlerDestroy.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &id ) < 0 )
+                   return eResultError;
+
+              ret = oHpiHandlerDestroy(id);
+
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+       }
+       break;
+
+       case eFoHpiHandlerInfo: {
+              oHpiHandlerIdT id;
+              oHpiHandlerInfoT info;
+
+              PVERBOSE1("Processing oHpiHandlerInfo.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &id ) < 0 )
+                   return eResultError;
+
+              ret = oHpiHandlerInfo(id, &info);
+
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
+       }
+       break;
+
+       case eFoHpiHandlerGetNext: {
+              oHpiHandlerIdT id, next_id;
+
+              PVERBOSE1("Processing oHpiHandlerGetNext.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &id ) < 0 )
+                   return eResultError;
+
+              ret = oHpiHandlerGetNext(id, &next_id);
+
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &next_id );
+       }
+       break;
+
+       case eFoHpiGlobalParamGet: {
+              oHpiGlobalParamT param;
+
+              PVERBOSE1("Processing oHpiGlobalParamGet.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &param ) < 0 )
+                   return eResultError;
+
+              ret = oHpiGlobalParamGet(&param);
+
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &param );
+       }
+       break;
+
+       case eFoHpiGlobalParamSet: {
+              oHpiGlobalParamT param;
+
+              PVERBOSE1("Processing oHpiGlobalParamSet.\n");
+
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &param ) < 0 )
+                   return eResultError;
+
+              ret = oHpiGlobalParamSet(&param);
+
+              thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1941,4 +2086,17 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
        return result;
 }
+
+
+static void hashtablefreeentry(gpointer key, gpointer value, gpointer data) {
+        g_free(key);
+        g_free(value);
+}
+
+
+
+
+
+
+
 

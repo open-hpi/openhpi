@@ -233,11 +233,19 @@ extern cMarshalType SaHpiEventLogInfoType;
 #define SaHpiEventLogEntryIdType SaHpiUint32Type
 extern cMarshalType SaHpiEventLogEntryType;
 
+//----------------------------------------------------------------------------
+// The following support the oHpi dynamic configuration APIs
+//----------------------------------------------------------------------------
+
 // plugin stuff
 #define refcountType SaHpiInt32Type
 extern cMarshalType oHpiPluginInfoType;
 
-
+// handler stuff
+#define oHpiHandlerIdType SaHpiUint32Type
+extern cMarshalType oHpiHandlerInfoType;
+#define oHpiGlobalParamTypeType SaHpiUint32Type
+extern cMarshalType oHpiGlobalParamType;
 
 
 

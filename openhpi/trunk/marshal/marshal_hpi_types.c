@@ -774,6 +774,7 @@ static cMarshalType SaHpiEventLogEntryElements[] =
 cMarshalType SaHpiEventLogEntryType = dStruct( SaHpiEventLogEntryT, SaHpiEventLogEntryElements );
 
 
+// plugin info
 static cMarshalType oHpiPluginInfoElements[] =
 {
   dStructElement( oHpiPluginInfoT, refcount, refcountType ),
@@ -781,4 +782,51 @@ static cMarshalType oHpiPluginInfoElements[] =
 };
 
 cMarshalType oHpiPluginInfoType = dStruct( oHpiPluginInfoT, oHpiPluginInfoElements );
+
+
+// handler info
+static cMarshalType plugin_nameBufferArray = dArray( SaHpiUint8Type, MAX_PLUGIN_NAME_LENGTH );
+
+static cMarshalType oHpiHandlerInfoElements[] =
+{
+  dStructElement( oHpiHandlerInfoT, plugin_name, plugin_nameBufferArray ),
+  dStructElementEnd()
+};
+
+cMarshalType oHpiHandlerInfoType = dStruct( oHpiPluginInfoT, oHpiHandlerInfoElements );
+
+
+// global param
+static cMarshalType GlobalParamPathArray = dArray( SaHpiUint8Type, OH_GLOBAL_STR_MAX_LENGTH );
+static cMarshalType GlobalParamVarPathArray = dArray( SaHpiUint8Type, OH_GLOBAL_STR_MAX_LENGTH );
+static cMarshalType GlobalParamConfArray = dArray( SaHpiUint8Type, SAHPI_MAX_TEXT_BUFFER_LENGTH );
+
+static cMarshalType oHpiGlobalParamUnionTypeElements[] =
+{
+  dUnionElement( OHPI_ON_EP,            SaHpiEntityPathType ),
+  dUnionElement( OHPI_LOG_ON_SEV,       SaHpiSeverityType ),
+  dUnionElement( OHPI_EVT_QUEUE_LIMIT,  SaHpiUint32Type ),
+  dUnionElement( OHPI_DEL_SIZE_LIMIT,   SaHpiUint32Type ),
+  dUnionElement( OHPI_DEL_SAVE,         SaHpiBoolType ),
+  dUnionElement( OHPI_DAT_SIZE_LIMIT,   SaHpiUint32Type ),
+  dUnionElement( OHPI_DAT_USER_LIMIT,   SaHpiUint32Type ),
+  dUnionElement( OHPI_THREADED,         SaHpiBoolType ),
+  dUnionElement( OHPI_PATH,             GlobalParamPathArray ),
+  dUnionElement( OHPI_VARPATH,          GlobalParamVarPathArray ),
+  dUnionElement( OHPI_CONF,             GlobalParamConfArray ),
+  dUnionElementEnd()
+};
+
+static cMarshalType oHpiGlobalParamUnionType = dUnion( 0,
+				        	  oHpiGlobalParamUnionT,
+                                                  oHpiGlobalParamUnionTypeElements );
+
+static cMarshalType oHpiGlobalParamTypeElements[] =
+{
+  dStructElement( oHpiGlobalParamT, Type, oHpiGlobalParamTypeType ),
+  dStructElement( oHpiGlobalParamT, u,    oHpiGlobalParamUnionType ),
+  dStructElementEnd()
+};
+
+cMarshalType oHpiGlobalParamType = dStruct( oHpiGlobalParamT, oHpiGlobalParamTypeElements );
 
