@@ -316,6 +316,7 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
                              SaHpiSelInfoT      *info)
 {
         unsigned int count;
+        unsigned int size;
 		int rv;
 
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -348,7 +349,8 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
 				info->Entries = count;
 		dbg("sel count: %d", count);
 
-        info->Size              = -1; /* FIXME: how to get total size in OpenIPMI? */
+		ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
+        info->Size              = size / 16;
         ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id, &info->UpdateTimestamp);
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime, ipmi_handler);
         info->Enabled           = 1; /* FIXME: how to disable SEL in OpenIPMI */
