@@ -87,6 +87,9 @@ clean: am_config_clean
 am_config_clean:
 	rm -fr $(PACKAGE)-*.tar.gz
 
+report:
+	$(MAKE) -C test report
+
 tags:   FORCE
 	@echo making tags		
 	$(ALLSOURCES) |xargs ctags
