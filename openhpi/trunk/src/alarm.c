@@ -20,6 +20,17 @@
 #include <oh_error.h>
 #include <oh_utils.h>
 
+static void __update_dat(struct oh_domain *d)
+{
+        struct timeval tv;        
+        
+        if (!d) return;
+        
+        gettimeofday(&tv, NULL);        
+        
+        d->dat.update_count++;
+        d->dat.update_timestamp = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+}
 
 static GSList *__get_alarm_node(struct oh_domain *d,
                                SaHpiAlarmIdT *aid,
@@ -99,6 +110,8 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
                 alarm->AlarmId = a->AlarmId;
                 alarm->Timestamp = a->Timestamp;
         }
+        
+        __update_dat(d);
         
         return a;
 }
@@ -185,6 +198,8 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
                 alarm = NULL;
         } while (multi);
         
+        __update_dat(d);
+        
         return SA_OK;
 }
 
@@ -203,6 +218,8 @@ SaErrorT oh_close_alarmtable(struct oh_domain *d)
         error = oh_remove_alarm(d, NULL, NULL, NULL, NULL,
                                 NULL, NULL, NULL, 1);
         d->dat.next_id = 0;
+        d->dat.update_count = 0;
+        d->dat.update_timestamp = SAHPI_TIME_UNSPECIFIED;
                 
         return error;
 }
