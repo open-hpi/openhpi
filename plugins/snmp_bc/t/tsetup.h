@@ -26,4 +26,7 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
 			
 SaErrorT tcleanup(SaHpiSessionIdT *sessionid_ptr);
 
+void 
+checkstatus(SaErrorT *err, SaErrorT *expected_err, int *testfail);
+
 #endif
