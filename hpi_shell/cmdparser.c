@@ -156,6 +156,7 @@ void cmd_parser(char *mes, int as, int new_cmd)
 {
 	char	*cmd, *str, *beg;
 	term_t	type;
+	int	len;
 
 	if (debug_flag) printf("cmd_parser:\n");
 	for (;;) {
@@ -168,8 +169,8 @@ void cmd_parser(char *mes, int as, int new_cmd)
 			go_to_dialog();
 			continue;
 		};
-		snprintf(cmd_line, LINE_BUF_SIZE - strlen(cmd_line),
-			" %s",cmd);
+		len = strlen(cmd_line);
+		snprintf(cmd_line + len, LINE_BUF_SIZE - len, " %s",cmd);
 		str = cmd;
 		while (isspace(*str)) str++;
 		if (strlen(str) == 0) {
