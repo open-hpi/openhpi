@@ -3449,7 +3449,7 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET(d, ResourceId, res);
 
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
