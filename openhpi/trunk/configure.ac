@@ -348,7 +348,7 @@ fi
 
 AC_ARG_ENABLE([remote_client],
     [  --enable-remote_client     build remote client plugin [default=yes]],
-    [if test "x$enableval" = "xyess"; then
+    [if test "x$enableval" = "xyes"; then
             AC_SUBST(REMOTE_CLIENT,remote_client)
 	    NEED_MARSHAL="yes"
      elif test "x$enableval" = "xstatic"; then
@@ -363,11 +363,12 @@ dnl     NEED_MARSHAL="yes"])
 
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator       build simulator plugin [default=yes]],
-    [if test "x$enableval" = "xyess"; then
+    [  --enable-simulator       build simulator plugin [default=no]],
+    [if test "x$enableval" = "xyes"; then
         AC_SUBST(SIMULATOR,simulator)
-    fi],
-    [AC_SUBST(SIMULATOR,simulator)])
+    fi])
+
+#    [AC_SUBST(SIMULATOR,simulator)])
 
 dnl	[if test "x$have_fam" = "xyes"; then
 dnl    	AC_SUBST(SIMULATOR,simulator)
