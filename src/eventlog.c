@@ -166,3 +166,88 @@ void dsel_clr(SaHpiDomainIdT domain_id)
 		free(sel);			
 	}
 }
+
+void rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
+{
+	struct oh_resource *res;
+	struct oh_sel *sel;
+	
+	res = get_resource(res_id);
+	if (!res) {
+		dbg("Invalid resource id");
+		return;
+	}
+	
+	sel = malloc(sizeof(*sel));
+	if (!sel) {
+		dbg("Out of memory");
+		return;
+	}
+	memset(sel, 0, sizeof(*sel));
+
+	memcpy(&sel->entry, entry, sizeof(*entry));
+	sel->entry.EntryId = res->sel_counter++;
+	res->sel_list = g_slist_append(res->sel_list, sel);
+}
+
+void rsel_add2(struct oh_resource *res, struct oh_event *e)
+{
+	struct oh_sel *sel;
+	
+	sel = malloc(sizeof(*sel));
+	if (!sel) {
+		dbg("Out of memory");
+		return;
+	}
+	memset(sel, 0, sizeof(*sel));
+
+	sel->res_id		= e->u.hpi_event.parent;
+	sel->rdr_id		= e->u.hpi_event.id;
+	sel->entry.EntryId	= res->sel_counter++;
+	gettimeofday1(&sel->entry.Timestamp);
+	
+	memcpy(&sel->entry.Event, &e->u.hpi_event.event, sizeof(sel->entry.Event));
+	
+	res->sel_list = g_slist_append(res->sel_list, sel);
+}
+
+void rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
+{
+	struct oh_resource *res;
+	GSList *i;
+	
+	res = get_resource(res_id);
+	if (!res) {
+		dbg("Invalid resource id");
+		return;
+	}
+
+	g_slist_for_each(i, res->sel_list) {
+		struct oh_sel *sel;
+		sel = i->data;
+		if (sel->entry.EntryId == id) {
+			res->sel_list = g_slist_remove_link(res->sel_list, i);
+			free(sel);
+			break;
+		}
+	}
+}
+
+void rsel_clr(SaHpiResourceIdT res_id) 
+{
+	struct oh_resource *res;
+	GSList *i, *i2;
+	
+	res = get_resource(res_id);
+	if (!res) {
+		dbg("Invalid resource id");
+		return;
+	}
+	
+	g_slist_for_each_safe(i, i2, res->sel_list) {
+		struct oh_sel *sel;
+		sel = i->data;
+		res->sel_list = g_slist_remove_link(res->sel_list, i);
+		free(sel);			
+	}
+}
