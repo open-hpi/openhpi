@@ -163,6 +163,11 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	char			errbuf[SHOW_BUF_SZ];
 	SaHpiCtrlTypeT		type;
 	SaHpiCtrlRecDigitalT	*digit;
+	SaHpiCtrlRecDiscreteT	*discr;
+	SaHpiCtrlRecAnalogT	*analog;
+	SaHpiCtrlRecStreamT	*stream;
+	SaHpiCtrlRecTextT	*text;
+	SaHpiCtrlRecOemT	*oem;
 
 	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR, num, &rdr);
 	if (rv != SA_OK) {
@@ -195,7 +200,98 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 					digit->Default);
 				str = errbuf;
 			};
-			snprintf(buf, SHOW_BUF_SZ, "\tSTATE: %s\n", str);
+			snprintf(buf, SHOW_BUF_SZ, "\tDefault: %s\n", str);
+			break;
+		case SAHPI_CTRL_TYPE_DISCRETE:
+			discr = &(ctrl->TypeUnion.Discrete);
+			snprintf(buf, SHOW_BUF_SZ, "\tDefault: %d\n", discr->Default);
+			break;
+		case SAHPI_CTRL_TYPE_ANALOG:
+			analog = &(ctrl->TypeUnion.Analog);
+			snprintf(buf, SHOW_BUF_SZ, "\tDefault: %d  (min = %d  max = %d)\n",
+				analog->Default, analog->Min, analog->Max);
+			break;
+		case SAHPI_CTRL_TYPE_STREAM:
+			stream = &(ctrl->TypeUnion.Stream);
+			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Repeat = %d  lendth = %d  stream = %s\n",
+				stream->Default.Repeat, stream->Default.StreamLength, stream->Default.Stream);
+			break;
+		case SAHPI_CTRL_TYPE_TEXT:
+			text = &(ctrl->TypeUnion.Text);
+			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Line # = %d  text = %s\n",
+				text->Default.Line, text->Default.Text.Data);
+			break;
+		case SAHPI_CTRL_TYPE_OEM:
+			oem = &(ctrl->TypeUnion.Oem);
+			snprintf(buf, SHOW_BUF_SZ, "\tMId = %d  Config data = %s\n\tDefault: MId = %d  Body = %s\n",
+				oem->MId, oem->ConfigData, oem->Default.MId, oem->Default.Body);
+			break;
+		default: strcpy(buf, "Unknown control type\n");
+	};
+	proc(buf);
+	return SA_OK;
+}
+
+SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+	SaHpiCtrlNumT num, hpi_ui_print_cb_t proc)
+{
+        SaErrorT		rv;
+	char			*str;
+	char			buf[SHOW_BUF_SZ];
+	char			errbuf[SHOW_BUF_SZ];
+	SaHpiCtrlModeT		mode;
+	SaHpiCtrlStateT		state;
+	SaHpiCtrlTypeT		type;
+	SaHpiCtrlStateDigitalT	digit;
+	SaHpiCtrlStateDiscreteT	discr;
+	SaHpiCtrlStateAnalogT	analog;
+	SaHpiCtrlStateStreamT	*stream;
+	SaHpiCtrlStateTextT	*text;
+	SaHpiCtrlStateOemT	*oem;
+
+	rv = saHpiControlGet(sessionid, resourceid, num, &mode, &state);
+	if (rv != SA_OK) {
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"\nERROR: saHpiControlGet: error: %s\n", oh_lookup_error(rv));
+		proc(errbuf);
+		return(rv);
+	};
+	type = state.Type;
+	snprintf(buf, SHOW_BUF_SZ, "Control(%d/%d) %s State: ",
+		resourceid, num, oh_lookup_ctrlmode(mode));
+	if (proc(buf) != 0) return(SA_OK);
+
+	switch (type) {
+		case SAHPI_CTRL_TYPE_DIGITAL:
+			digit = state.StateUnion.Digital;
+			str = oh_lookup_ctrlstatedigital(digit);
+			if (str == (char *)NULL) {
+				snprintf(errbuf, SHOW_BUF_SZ, "Invalid value (0x%x)", digit);
+				str = errbuf;
+			};
+			snprintf(buf, SHOW_BUF_SZ, "%s\n", str);
+			break;
+		case SAHPI_CTRL_TYPE_DISCRETE:
+			discr = state.StateUnion.Discrete;
+			snprintf(buf, SHOW_BUF_SZ, "%d\n", discr);
+			break;
+		case SAHPI_CTRL_TYPE_ANALOG:
+			analog = state.StateUnion.Analog;
+			snprintf(buf, SHOW_BUF_SZ, "%d\n", analog);
+			break;
+		case SAHPI_CTRL_TYPE_STREAM:
+			stream = &(state.StateUnion.Stream);
+			snprintf(buf, SHOW_BUF_SZ, "Repeat = %d  lendth = %d  stream = %s\n",
+				stream->Repeat, stream->StreamLength, stream->Stream);
+			break;
+		case SAHPI_CTRL_TYPE_TEXT:
+			text = &(state.StateUnion.Text);
+			snprintf(buf, SHOW_BUF_SZ, "Line # = %d  text = %s\n",
+				text->Line, text->Text.Data);
+			break;
+		case SAHPI_CTRL_TYPE_OEM:
+			oem = &(state.StateUnion.Oem);
+			snprintf(buf, SHOW_BUF_SZ, "MId = %d  Body = %s\n", oem->MId, oem->Body);
 			break;
 		default: strcpy(buf, "Unknown control type\n");
 	};
@@ -223,7 +319,11 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		proc(errbuf);
 		return(rv);
 	};
-	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) ", resourceid, sensornum);
+	if (rdr.IdString.DataLength > 0)
+		snprintf(errbuf, SHOW_BUF_SZ, "tag=%s", rdr.IdString.Data);
+	else *errbuf = 0;
+	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) %s  %s\n", resourceid, sensornum,
+		oh_lookup_sensortype(rdr.RdrTypeUnion.SensorRec.Type), errbuf);
 	rv = saHpiSensorEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
@@ -248,16 +348,18 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	strcat(buf, "\n");
 	if (proc(buf) != 0) return(SA_OK);
 	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum, &assert, &deassert);
-	if (rv != SA_OK)
+	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
 			"\nERROR: saHpiSensorEventMasksGet: error: %s\n",
 			oh_lookup_error(rv));
-	else
+		if (proc(errbuf) != 0) return(rv);
+	} else {
 		snprintf(buf, SHOW_BUF_SZ,
 			"   supported: 0x%4.4x  masks: assert = 0x%4.4x"
 			"   deassert = 0x%4.4x\n",
 			rdr.RdrTypeUnion.SensorRec.Events, assert, deassert);
-	if (proc(buf) != 0) return(rv);
+		if (proc(buf) != 0) return(rv);
+	};
 	rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
         if (rv != SA_OK) return rv;
@@ -703,8 +805,10 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
 		if (proc(buf) != 0)
 			return(-1);
 	};
-	if (rv == SA_ERR_HPI_NOT_PRESENT)
+	if (rv == SA_ERR_HPI_NOT_PRESENT) {
+		proc("No alarms in DAT.\n");
 		return(SA_OK);
+	};
 	return(rv);
 }
 
