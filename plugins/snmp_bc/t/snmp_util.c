@@ -29,7 +29,7 @@ int snmp_get(struct snmp_session *ss, const char *objid, struct snmp_value *valu
 		case ASN_INTEGER:
 			value->integer = hash_data->value.integer;
 			if (value->integer == SNMP_FORCE_ERROR) { return -1; }
-			if (value->integer == SA_SNMP_NOSUCHOBJECT) { return SA_SNMP_NOSUCHOBJECT; }
+			if (value->integer == SA_ERR_SNMP_NOSUCHOBJECT) { return SA_ERR_SNMP_NOSUCHOBJECT; }
 			break;
 		case ASN_OCTET_STR:
 			strcpy(value->string, hash_data->value.string); 

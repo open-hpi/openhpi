@@ -36,13 +36,13 @@ struct snmp_bc_data sim_resource_array[] = {
                 /* BCT System Health Status
                  *
                  * This OID is used to determine if the system is a BCT or not
-                 * If integer == SA_SNMP_NOSUCHOBJECT, system is BC; else its BCT
+                 * If integer == SA_ERR_SNMP_NOSUCHOBJECT, system is BC; else its BCT
                  */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.9.1.0",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
-                                .integer = SA_SNMP_NOSUCHOBJECT, /* 255 = BCT */
+                                .integer = SA_ERR_SNMP_NOSUCHOBJECT, /* 255 = BCT */
                         },
                 },
         },

@@ -217,7 +217,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		rc = snmp_get(custom_handle->ss, BC_TELCO_SYSTEM_HEALTH_STAT_OID, &get_value); 
 		if (rc == SA_OK) {
 			strcpy(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT);
-		} else if (( rc == SA_SNMP_NOSUCHOBJECT) || (rc == SA_SNMP_NOSUCHINSTANCE)) { 
+		} else if (( rc == SA_ERR_SNMP_NOSUCHOBJECT) || (rc == SA_ERR_SNMP_NOSUCHINSTANCE)) { 
 			strcpy(custom_handle->bc_type, SNMP_BC_PLATFORM_BC);
 		} else {		 
 
