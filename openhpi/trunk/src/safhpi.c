@@ -170,9 +170,20 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                         dbg("load handler for unknown plugin %s",
                                 (char *)g_hash_table_lookup(tmph, "plugin"));
                 }
-        } 
-        
+        }
+
         oh_hpi_state = OH_STAT_READY;
+
+        /* check if we have at least one handler */
+        if ( global_handler_list == 0 ) {
+                /* there is no handler => this can not work */
+                dbg("no handler found. please check /etc/openhpi/openhpi.conf !");
+
+                data_access_unlock();
+                saHpiFinalize();
+
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
         data_access_unlock();
 
