@@ -80,8 +80,6 @@ AC_OUTPUT(openhpi.spec 		         \
 	Makefile 	 	         \
 	src/Makefile		         \
 	src/plugins/Makefile             \
-	src/plugins/ipmi/Makefile        \
-	src/plugins/dummy/Makefile       \
 	docs/Makefile		         \
 	docs/hld/Makefile	         \
         docs/test_specification/Makefile \

@@ -109,7 +109,8 @@ int absent_entity(struct oh_domain *d, struct oh_id *oid);
 int present_entity(struct oh_domain *d, struct oh_id *oid);
 
 
-extern struct oh_abi_v1 *oh_plugins[];
+int init_plugin(void);
+int uninit_plugin(void);
 
 #define dbg(format, arg...)                                     \
         do {							\
