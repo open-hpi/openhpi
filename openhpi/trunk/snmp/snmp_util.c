@@ -17,7 +17,7 @@
 
 #include <string.h>
 
-#include <openhpi.h> /* Replace with new error.h */
+#include <oh_error.h>
 #include <snmp_util.h>
 
 /**

@@ -4,15 +4,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <glib.h>
-
 #include <openhpi.h>
-		     
+
 #include <pthread.h>
 #include <wait.h>
 		     
 /* debug macros */
 #define warn(str) fprintf(stderr,"%s: " str "\n", __FUNCTION__)
-#define error(str, e) fprintf(stderr,str ": %s\n", get_error_string(e))
+#define myerror(str, e) fprintf(stderr,str ": %s\n", get_error_string(e))
 
 /* Function prototypes */
 void *discover_domain(void *arg);
@@ -76,7 +75,7 @@ int main(int arc, const char *argv[])
 			/* First step in HPI and openhpi */
         err = saHpiInitialize(&version);
         if (SA_OK != err) {
-                error("saHpiInitialize", err);
+                myerror("saHpiInitialize", err);
                 exit(-1);
         }
 
@@ -84,7 +83,7 @@ int main(int arc, const char *argv[])
 	/* This example is for one domain, one session */
         err = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID, &session_id, NULL);
         if (SA_OK != err) {
-                error("saHpiSessionOpen", err);
+                myerror("saHpiSessionOpen", err);
                 return -1;
         }
 
@@ -121,7 +120,7 @@ int main(int arc, const char *argv[])
  	
         err = saHpiFinalize();
         if (SA_OK != err) {
-                error("saHpiFinalize", err);
+                myerror("saHpiFinalize", err);
                 exit(-1);
 
 	}
@@ -256,14 +255,14 @@ void *discover_domain(void *arg)
 
 		err = saHpiResourcesDiscover(session_id);
 		if (SA_OK != err) {
-			error("saHpiResourcesDiscover", err);
+			myerror("saHpiResourcesDiscover", err);
 			break;
 		}
        
 		/* grab copy of the update counter before traversing RPT */
 		err = saHpiRptInfoGet(session_id, &rpt_info_before);
 		if (SA_OK != err) {
-			error("saHpiRptInfoGet", err);
+			myerror("saHpiRptInfoGet", err);
 			break;
 		}
             
@@ -275,7 +274,7 @@ void *discover_domain(void *arg)
 			err = saHpiRptEntryGet(session_id, current, &next, &entry);
 			if (SA_OK != err) {
 				if (current != SAHPI_FIRST_ENTRY) {
-					error("saHpiRptEntryGet", err);
+					myerror("saHpiRptEntryGet", err);
                              	   return NULL;
 				} else {
 					warn("Empty RPT\n");
@@ -620,7 +619,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                         if (current_rdr == SAHPI_FIRST_ENTRY)
                                 printf("Empty RDR table\n");
                         else
-                                error("saHpiRdrGet", err);
+                                myerror("saHpiRdrGet", err);
                         return;                        
                 }
                 

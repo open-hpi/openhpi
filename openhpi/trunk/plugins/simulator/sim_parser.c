@@ -25,7 +25,7 @@
 
 #include "sim_parser.h"
 
-#define trace(f, ...) do {;} while(0)
+/*#define trace(f, ...) do {;} while(0)*/
 #ifdef UNIT_TEST
 #define dbg(format, ...)                                        \
         do {                                                    \

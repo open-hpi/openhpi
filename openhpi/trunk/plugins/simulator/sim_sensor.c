@@ -23,9 +23,9 @@
 #include "sim_parser.h"
 #include "sim_sensor.h"
 
-#define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
-#define error(f, ...) perror("ERROR: " f, ## __VA_ARGS__)
-#define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)
+/*#define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)*/
+/*#define error(f, ...) perror("ERROR: " f, ## __VA_ARGS__)*/
+/*#define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)*/
 
 
 static int get_sensor_event_state(SaHpiSensorThdDefnT *def,

@@ -32,9 +32,9 @@
 #include "sim_parser.h"
 #include "sim_event.h"
 
-#define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
-#define error(f, ...) perror("ERROR: " f, ## __VA_ARGS__)
-#define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)
+/*#define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)*/
+/*#define error(f, ...) perror("ERROR: " f, ## __VA_ARGS__)*/
+/*#define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)*/
 #define ELEMENT_NUM(x) (sizeof(x)/sizeof(x[0]))
 
 
