@@ -623,20 +623,35 @@ int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent)
         struct oh_event working;
         struct oh_event *e = NULL;
         struct oh_handler_state *handle = hnd;
-        SaHpiRptEntryT *rptentry;
 
         memset(&working, 0, sizeof(struct oh_event));
 
-        rptentry = oh_get_resource_by_id(handle->rptcache, thisEvent->Source);
-        if (!rptentry) {
-                dbg("Warning: RPT entry not found. Cannot find RDR.\n");
-                return -1; /*  No resource found by that id */
-        }
-
+	/* Setting rdr id to event struct */	
+	switch (thisEvent->EventType == SAHPI_ET_OEM)
+	{
+		case SAHPI_ET_OEM:
+		case SAHPI_ET_HOTSWAP:
+		case SAHPI_ET_USER:
+			working.u.hpi_event.id = 0;	/* There is no rdr associated to OEM event */
+			break;			/* Set rdrid to invalid value of 0         */
+		case SAHPI_ET_SENSOR:
+			working.u.hpi_event.id = 
+				get_rdr_uid(SAHPI_SENSOR_RDR,
+						thisEvent->EventDataUnion.SensorEvent.SensorNum);
+			break;
+		case SAHPI_ET_WATCHDOG:
+			working.u.hpi_event.id = 
+				get_rdr_uid(SAHPI_WATCHDOG_RDR,
+						thisEvent->EventDataUnion.WatchdogEvent.WatchdogNum);
+			break;			
+		default:
+			dbg("Something is wrong mapping BC SNMP log entry into HPI Event\n");
+			return -1;
+			break;
+	} 
+	
         working.type = OH_ET_HPI;
-        working.u.hpi_event.parent  = rptentry->ResourceId;
-	/* TODO:  working.u.hpi_event.id = rdrId, not to rptId*/
-        working.u.hpi_event.id = rptentry->EntryId;
+        working.u.hpi_event.parent  = thisEvent->Source;       
         memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
 
         /* 
