@@ -308,14 +308,8 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 					
 		rv = ipmi_sensor_get_hysteresis_support(sensor);
 		if (rv == IPMI_HYSTERESIS_SUPPORT_NONE) {
-#if 0
-			/* I'm zeroing them so we return but invalid data FIXME? */
-			thres_data->sensor_thres->PosThdHysteresis.ValuesPresent = 0;
-			thres_data->sensor_thres->NegThdHysteresis.ValuesPresent = 0;
-#else
 			thres_data->sensor_thres.PosThdHysteresis.IsSupported = SAHPI_FALSE;
 			thres_data->sensor_thres.NegThdHysteresis.IsSupported = SAHPI_FALSE;
-#endif
                         thres_data->hyster_done = 1; /* read no more */
 			return;
 		} else {
@@ -392,28 +386,6 @@ static int thres_cpy(ipmi_sensor_t			*sensor,
 	if (!val)
 	       return 0;
 	
-#if 0
-	if (reading.ValuesPresent & SAHPI_SRF_RAW) {
-		rv = ipmi_sensor_convert_from_raw(sensor, reading.Raw, &tmp);
-		if (rv < 0) {
-			dbg("Invalid raw value");
-			return -1;
-		}
-		info->vals[event].status = 1;
-		info->vals[event].val = tmp;
-	}
-	else if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED) {
-		if (reading.Interpreted.Type ==
-		    SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32) {
-		info->vals[event].status = 1;
-		info->vals[event].val = reading.Interpreted.Value.SensorFloat32;
-		}
-		else {
-			dbg("Invalid input thresholds");
-			return -1;
-		}
-	}
-#else
 	info->vals[event].status = 1;
 	switch (reading.Type) {
 		/*Fix Me* case...*/
@@ -426,7 +398,6 @@ static int thres_cpy(ipmi_sensor_t			*sensor,
 				reading.Value.SensorFloat64;
 			break;
 	}
-#endif
 	return 0;
 }
 

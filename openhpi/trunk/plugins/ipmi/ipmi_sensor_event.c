@@ -506,12 +506,6 @@ static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 	rec->Events = 0xffff;
 
 	ent = ipmi_sensor_get_entity(sensor);
-#if 0
-	if (ipmi_entity_is_present(ent)) 
-		rec->Ignore = SAHPI_FALSE;
-	else
-		rec->Ignore = SAHPI_TRUE;
-#endif
 
 	add_sensor_event_data_format(sensor, rec);
 
@@ -554,18 +548,6 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 		case IPMI_EVENT_SUPPORT_PER_STATE:
 			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_PER_EVENT;
 			break;
-/*Fix Me*/
-#if 0
-		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
-		 	rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_ENTIRE_SENSOR;
-			break;
-		case IPMI_EVENT_SUPPORT_GLOBAL_ENABLE:
-			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_GLOBAL_DISABLE;
-			break;
-		case IPMI_EVENT_SUPPORT_NONE:
-			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_NO_EVENTS;
-			break;
-#else
 		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
                 case IPMI_EVENT_SUPPORT_GLOBAL_ENABLE:
                         rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY_MASKS;
@@ -573,7 +555,6 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
                 case IPMI_EVENT_SUPPORT_NONE:
                         rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY;
                         break;
-#endif
 	}
 	
 	memcpy(rdr->IdString.Data,name, strlen(name) + 1);
