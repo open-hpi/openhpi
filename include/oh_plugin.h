@@ -120,6 +120,7 @@ struct oh_handler_state {
         GSList 		*eventq;
         GAsyncQueue 	*eventq_async;
         GStaticRecMutex	*handler_lock;
+	GThread 	*thread_handle;
         GHashTable 	*config;
         void 		*data;
 };
