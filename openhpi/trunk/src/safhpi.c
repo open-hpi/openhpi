@@ -24,6 +24,28 @@ static const int entry_id_offset = 1000;
 		}						\
 	}while(0)						
 
+#define OH_GET_RESOURCE						\
+	do {							\
+		struct oh_session *s;				\
+		struct oh_domain  *d;				\
+								\
+		OH_STATE_READY_CHECK;				\
+								\
+		s = session_get(SessionId);			\
+		if (!s) {					\
+			dbg("Invalid session");			\
+			return SA_ERR_HPI_INVALID_SESSION;	\
+		}						\
+								\
+		d   = s->domain;				\
+								\
+		res = get_resource(d, ResourceId);		\
+		if (!res) {					\
+			dbg("Invalid resource");		\
+			return SA_ERR_HPI_INVALID_RESOURCE;	\
+		}						\
+	}while(0)
+
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
         const char *plugin_name = "libdummy";
@@ -223,26 +245,10 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-	struct oh_session *s;
-	struct oh_domain  *d;
 	struct oh_resource *res;
-	
-	OH_STATE_READY_CHECK;
 
-	s = session_get(SessionId);
-	if (!s) {
-		dbg("Invalid session");
-		return SA_ERR_HPI_INVALID_SESSION;
-	}
+	OH_GET_RESOURCE;
 	
-	d   = s->domain;
-	
-	res = get_resource(d, ResourceId);
-	if (!res) {
-		dbg("Invalid resource");
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-
 	memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
 
 	return SA_OK;
@@ -253,25 +259,9 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiSeverityT Severity)
 {
-	struct oh_session *s;
-	struct oh_domain  *d;
 	struct oh_resource *res;
-	
-	OH_STATE_READY_CHECK;
 
-	s = session_get(SessionId);
-	if (!s) {
-		dbg("Invalid session");
-		return SA_ERR_HPI_INVALID_SESSION;
-	}
-	
-	d   = s->domain;
-	
-	res = get_resource(d, ResourceId);
-	if (!res) {
-		dbg("Invalid resource");
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
+	OH_GET_RESOURCE;
 	
 	res->entry.ResourceSeverity = Severity;	
 	return SA_OK;
@@ -282,25 +272,9 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiTextBufferT *ResourceTag)
 {
-	struct oh_session *s;
-	struct oh_domain  *d;
 	struct oh_resource *res;
 	
-	OH_STATE_READY_CHECK;
-
-	s = session_get(SessionId);
-	if (!s) {
-		dbg("Invalid session");
-		return SA_ERR_HPI_INVALID_SESSION;
-	}
-	
-	d   = s->domain;
-	
-	res = get_resource(d, ResourceId);
-	if (!res) {
-		dbg("Invalid resource");
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
+	OH_GET_RESOURCE;
 	
 	memcpy(&res->entry.ResourceTag, ResourceTag, sizeof(res->entry.ResourceTag));	
 	return SA_OK;
@@ -428,8 +402,6 @@ SaErrorT SAHPI_API saHpiRdrGet (
 		SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		SAHPI_OUT SaHpiRdrT *Rdr)
 {
-	struct oh_session *s;
-	struct oh_domain  *d;
 	struct oh_resource *res;
 	struct oh_rdr	  *rdr;
 	
@@ -437,22 +409,8 @@ SaErrorT SAHPI_API saHpiRdrGet (
 	int i;
 	struct list_head  *tmp;
 	
-	OH_STATE_READY_CHECK;
+	OH_GET_RESOURCE;
 
-	s = session_get(SessionId);
-	if (!s) {
-		dbg("Invalid session");
-		return SA_ERR_HPI_INVALID_SESSION;
-	}
-	
-	d = s->domain;
-	
-	res = get_resource(d, ResourceId);
-	if (!res) {
-		dbg("Invalid resource");
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-	
 	switch (EntryId) {
 	case SAHPI_FIRST_ENTRY:
 		n = 0;
