@@ -390,7 +390,8 @@ SaErrorT sensor_convert_to_raw(SaHpiSensorRecT *sensor,
                                SaHpiUint32T *result);
 
 
-static inline void gettimeofday1(SaHpiTimeT *t)
+static __inline__
+ void gettimeofday1(SaHpiTimeT *t)
 {
         struct timeval now;
         gettimeofday(&now, NULL);

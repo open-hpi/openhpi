@@ -20,6 +20,8 @@
  * use configure --with-varpath=/usr/var/lib/openhpi
  * to change the path.
  */
+#define OH_DEFAULT_UID_MAP "/var/lib/openhpi/uid_map"
+
 
 /* hpi internal apis */
 SaErrorT oh_uid_initialize(void); 
