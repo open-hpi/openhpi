@@ -31,12 +31,12 @@ int get_sahpi_table_entries(RPTable *temp_rptable,
 int get_sahpi_rdr_table( RPTable *temp_rptable,
                          struct oh_handler_state *handle, 
                          int num_entries );
-
+#if 0
 int snmp_get_bulk( struct snmp_session *ss, 
                           const char *bulk_objid, 
                           struct snmp_pdu *bulk_pdu, 
                           struct snmp_pdu **bulk_response );
-
+#endif
 
 
 // New Mib 02/09/04
@@ -226,6 +226,14 @@ oid sa_hpi_sen_has_thresholds[] =       { HPI_MIB, 3, 6, 1, 21 };
 oid sa_hpi_sen_thd_cap[] =             	{ HPI_MIB, 3, 6, 1, 22 };
 oid sa_hpi_sen_oem[] =               	{ HPI_MIB, 3, 6, 1, 23 };
 
+/* saHpiSensorReadingCurrentTable */
+oid sa_hpi_sensor_reading_current_entry[] =		{ HPI_MIB, 3, 7, 1, 1 };
+oid sa_hpi_sensor_reading_current_values_present[] =	{ HPI_MIB, 3, 7, 1, 1, 1 };
+oid sa_hpi_sensor_reading_current_raw[] =		{ HPI_MIB, 3, 7, 1, 1, 2 };
+oid sa_hpi_sensor_reading_current_intrepreted[] =	{ HPI_MIB, 3, 7, 1, 1, 3 };
+oid sa_hpi_sensor_reading_current_status[] =		{ HPI_MIB, 3, 7, 1, 1, 4 };
+oid sa_hpi_sensor_reading_current_evt_status[] =	{ HPI_MIB, 3, 7, 1, 1, 5 };
+
 /* saHpiSensorReadingMaxTable */
 oid sa_hpi_sensor_reading_max_entry[] =		{ HPI_MIB, 3, 7, 2, 1 };
 oid sa_hpi_sensor_reading_max_values_present[] ={ HPI_MIB, 3, 7, 2, 1, 1 };
@@ -364,6 +372,14 @@ extern oid sa_hpi_sen_range_flags[];
 extern oid sa_hpi_sen_has_thresholds[];
 extern oid sa_hpi_sen_thd_cap[];
 extern oid sa_hpi_sen_oem[]; 
+
+/* saHpiSensorReadingCurrentTable */
+extern oid sa_hpi_sensor_reading_current_entry[];             
+extern oid sa_hpi_sensor_reading_current_values_present[];    
+extern oid sa_hpi_sensor_reading_current_raw[];               
+extern oid sa_hpi_sensor_reading_current_intrepreted[];       
+extern oid sa_hpi_sensor_reading_current_status[];           
+extern oid sa_hpi_sensor_reading_current_evt_status[];        
 
 /* saHpiSensorReadingMaxTable */
 extern oid sa_hpi_sensor_reading_max_entry[];		
