@@ -74,6 +74,7 @@ void *snmp_rsa_open(GHashTable *handler_config)
         /* Initialize SEL cache */
         /* note that 512 entries is just an informed guess */
         handle->selcache =  oh_sel_create(512);
+	handle->selcache->gentimestamp = FALSE;
 
 	/* Initialize String-to-Event hash table */
 	if (rsa_str2event_use_count == 0) {  
@@ -200,6 +201,18 @@ void *snmp_rsa_open(GHashTable *handler_config)
 			return NULL;
 		}
 	}
+
+	struct snmp_value get_value;
+
+	if (snmp_get(custom_handle->ss,SNMP_RSA_TIME_DST,&get_value) == SA_OK) 
+		strcpy(custom_handle->handler_timezone, get_value.string);
+	else { 
+	
+		dbg("SNMP could not read RSA DST %s; Type=%d.\n", 
+		    SNMP_RSA_TIME_DST, get_value.type);
+		return NULL;
+	}
+		
 
 	if (is_simulator) {
 		sim_banner();
