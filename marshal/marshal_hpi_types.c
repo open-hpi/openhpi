@@ -1031,17 +1031,31 @@ static cMarshalType SaHpiRptEntryElements[] =
 cMarshalType SaHpiRptEntryType = dStruct( SaHpiRptEntryT, SaHpiRptEntryElements );
 
 
+#if 0
+typedef struct {
+    SaHpiUint32T                   Entries;        
+    SaHpiUint32T                   Size;      
+    SaHpiUint32T                   UserEventMaxSize;
+    SaHpiTimeT                     UpdateTimestamp;
+    SaHpiTimeT                     CurrentTime;
+    SaHpiBoolT                     Enabled;
+    SaHpiBoolT                     OverflowFlag;
+    SaHpiBoolT                     OverflowResetable;
+    SaHpiEventLogOverflowActionT   OverflowAction;
+} SaHpiEventLogInfoT;
+#endif
 static cMarshalType SaHpiEventLogInfoTElements[] =
 {
-  dStructElement( SaHpiEventLogInfoT, Entries, SaHpiUint32Type ),
-  dStructElement( SaHpiEventLogInfoT, Size, SaHpiUint32Type ),
-  dStructElement( SaHpiEventLogInfoT, UpdateTimestamp, SaHpiTimeType ),
-  dStructElement( SaHpiEventLogInfoT, CurrentTime, SaHpiTimeType ),
-  dStructElement( SaHpiEventLogInfoT, Enabled, SaHpiBoolType ),
-  dStructElement( SaHpiEventLogInfoT, OverflowFlag, SaHpiBoolType ),
-  dStructElement( SaHpiEventLogInfoT, OverflowAction, SaHpiSelOverflowActionType ),
-  dStructElement( SaHpiEventLogInfoT, DeleteEntrySupported, SaHpiBoolType ),
-  dStructElementEnd()
+	dStructElement( SaHpiEventLogInfoT, Entries, SaHpiUint32Type ),
+	dStructElement( SaHpiEventLogInfoT, Size, SaHpiUint32Type ),
+	dStructElement( SaHpiEventLogInfoT, UserEventMaxSize, SaHpiUint32Type ),
+	dStructElement( SaHpiEventLogInfoT, UpdateTimestamp, SaHpiTimeType ),
+	dStructElement( SaHpiEventLogInfoT, CurrentTime, SaHpiTimeType ),
+	dStructElement( SaHpiEventLogInfoT, Enabled, SaHpiBoolType ),
+	dStructElement( SaHpiEventLogInfoT, OverflowFlag, SaHpiBoolType ),
+	dStructElement( SaHpiEventLogInfoT, OverflowResetable, SaHpiBoolType ),
+	dStructElement( SaHpiEventLogInfoT, OverflowAction, SaHpiSelOverflowActionType ),
+	dStructElementEnd()
 };
 
 cMarshalType SaHpiEventLogInfoType = dStruct( SaHpiEventLogInfoT, SaHpiEventLogInfoTElements );
