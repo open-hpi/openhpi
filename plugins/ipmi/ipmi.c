@@ -541,7 +541,8 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 	
-	rdr->RdrType = SAHPI_NO_RECORD;
+	if (rdr)
+		rdr->RdrType = SAHPI_NO_RECORD;
 	if (rptentry)
 		memcpy(rptentry, rpt, sizeof(rptentry));
 		switch (current) {
@@ -595,13 +596,13 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
 		 memcpy(&entry->EntryId, &event_record_id, sizeof(event_record_id));
 
+	entry->Event.Source = id;
         entry->Event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_BINARY;
         entry->Event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_UNDEF;
         entry->Event.EventDataUnion.UserEvent.UserEventData.DataLength = ipmi_event_get_data_len(event);
         memcpy(entry->Event.EventDataUnion.UserEvent.UserEventData.Data,
                ipmi_event_get_data_ptr(event), 
                ipmi_event_get_data_len(event));	
-
 out:
 		
 	return 0;		
