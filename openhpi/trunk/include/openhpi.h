@@ -80,6 +80,7 @@ int session_add(SaHpiDomainIdT, struct oh_session**);
 int session_del(struct oh_session*);
 int session_count(void);
 /* malloc/copy/add event into the tail of event_list */
+#define oh_session_event oh_hpi_event
 int session_push_event(struct oh_session*, struct oh_session_event*);
 /* del/copy/free event from the head of event_list */
 int session_pop_event(struct oh_session*, struct oh_session_event*);

@@ -105,22 +105,14 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 
 static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
 {
-        SaHpiRptEntryT *res;
         int i;
         GArray *sessions = NULL;
         SaHpiSessionIdT sid;
-        SaHpiRdrT *rdr;
         struct oh_hpi_event *e = NULL;
 
         e = &(full_event->u.hpi_event);
 
-        res = oh_get_resource_by_id(rpt, e->parent);
-        if (res == NULL) {
-                dbg("No resource");
-                return -1;
-        }
-
-        if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
+        if (e->res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
                 hotswap_push_event(e);
                 dbg("Pushed hotswap event");

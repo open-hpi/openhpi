@@ -28,49 +28,37 @@
 
 void process_hotswap_policy(struct oh_handler *handler)
 {
-		SaHpiTimeT cur, est;	   
+        SaHpiTimeT cur, est;	   
         struct oh_hpi_event e;
-
-		SaHpiRptEntryT *entry;
-
-		int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+        
+        SaHpiRptEntryT *entry;
+        
+        int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
-
+        
         get_hotswap_state = handler->abi->get_hotswap_state;
         
-		if (!get_hotswap_state) {
-				dbg(" Very bad thing here or hotswap not yet supported");
-				return;
-		}
-
-
+        if (!get_hotswap_state) {
+                dbg(" Very bad thing here or hotswap not yet supported");
+                return;
+        }
+        
         while( hotswap_pop_event(&e) > 0 ) {
-				struct oh_resource_data *rd;
-
+                struct oh_resource_data *rd;
+                
                 if (e.event.EventType != SAHPI_ET_HOTSWAP) {
-						dbg("Non-hotswap event!");
+                        dbg("Non-hotswap event!");
                         return;
-				}
-
-				entry = oh_get_resource_by_id(default_rpt, e.parent);
-
-                /* if the hotswap state goes to inactive,
-                   it is possible that the resource
-                   is already removed. */
-                if (!entry) {
-						
-                        dbg( "Can't find resource for Resource %d", e.parent);
-                        continue;
                 }
-
-                if (!(entry->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                
+                if (!(e.res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                         dbg("Non-hotswapable resource?!");
                         return;
                 }
-
-                rd = oh_get_resource_data(default_rpt, e.parent);
+                
+                rd = oh_get_resource_data(default_rpt, e.res.ResourceId);
                 if (!rd) {
-                        dbg( "Can't find resource data for Resource %d", e.parent);
+                        dbg( "Can't find resource data for Resource %d", e.res.ResourceId);
                         continue;
                 }
 
@@ -82,20 +70,20 @@ void process_hotswap_policy(struct oh_handler *handler)
                 gettimeofday1(&cur);
 
                 if (e.event.EventDataUnion.HotSwapEvent.HotSwapState 
-                                == SAHPI_HS_STATE_INSERTION_PENDING) {
+                    == SAHPI_HS_STATE_INSERTION_PENDING) {
                         est = e.event.Timestamp + get_hotswap_auto_insert_timeout();
-						
+                        
                         if (cur>=est) {
-								handler->abi->set_hotswap_state( handler->hnd, e.parent,
-												SAHPI_HS_STATE_ACTIVE);
+                                handler->abi->set_hotswap_state( handler->hnd, e.res.ResourceId,
+                                                                 SAHPI_HS_STATE_ACTIVE);
                         }
                 } else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
-                                == SAHPI_HS_STATE_EXTRACTION_PENDING) {
+                           == SAHPI_HS_STATE_EXTRACTION_PENDING) {
                         est = e.event.Timestamp + rd->auto_extract_timeout;
                         if (cur>=est) {
-                               handler->abi->set_hotswap_state(handler->hnd, e.parent,
-											   SAHPI_HS_STATE_INACTIVE);
-						}
+                                handler->abi->set_hotswap_state(handler->hnd, e.res.ResourceId,
+                                                                SAHPI_HS_STATE_INACTIVE);
+                        }
                 } else {
                         dbg();
                 }

@@ -16,6 +16,9 @@
  * 
  */
 
+#ifndef __EVENT_UTILS_H
+#define __EVENT_UTILS_H
+
 #include <oh_event.h>
 #include <glib.h>
 
@@ -29,6 +32,7 @@
         } while(0)
 
 struct oh_event* oh_new_oh_event(oh_event_type);
+
 #define oh_dup_oh_event(old) g_memdup(old, sizeof(*old))
 
 #define oh_copy_oh_event(new, old)                 \
@@ -37,3 +41,4 @@ struct oh_event* oh_new_oh_event(oh_event_type);
                 memcpy(new, old, sizeof(*new));  \
         } while(0)
 
+#endif
