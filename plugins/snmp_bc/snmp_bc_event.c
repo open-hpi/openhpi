@@ -479,7 +479,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
 				/* Convert threshold strings into event values */
 				if (is_threshold_event) {
-					/* FIXME:: Do we need to check mib.convert_snmpstr >= 0 */
+					/* FIXME:: Do we need to check mib.convert_snmpstr */
 					/* FIXME:: Need to check IsSupported??? */
 					if (oh_encode_sensorreading(&thresh_read_value,
 								    working.EventDataUnion.SensorEvent.TriggerReading.Type,

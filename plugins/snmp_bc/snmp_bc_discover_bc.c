@@ -47,7 +47,14 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 	e->type = OH_ET_RESOURCE;
 	e->did = oh_get_default_domain_id();
-	e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;
+
+	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
+		e->u.res_event.entry = snmp_rpt_array_bct[BCT_RPT_ENTRY_CHASSIS].rpt;
+	}
+	else {
+		e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;	
+	}
+
 	e->u.res_event.entry.ResourceEntity = *ep_root;
 	e->u.res_event.entry.ResourceId = 
 		oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
@@ -144,9 +151,6 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_discover_controls(handle, snmp_bc_blade_controls, e);
 			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 				snmp_bc_discover_controls(handle, snmp_bct_blade_controls, e);
-			}
-			else {
-				snmp_bc_discover_controls(handle, snmp_bci_blade_controls, e);
 			}
 			snmp_bc_discover_inventories(handle, snmp_bc_blade_inventories, e);
 			

@@ -26,6 +26,52 @@
 /**************************************************************************
  *                        Resource Definitions
  **************************************************************************/
+
+/* Unfortunately, BCT has different OID for System Health */
+struct snmp_rpt snmp_rpt_array_bct[] = {
+        /* Chassis */
+        {
+                .rpt = {
+                        .ResourceInfo = {
+                                .ManufacturerId = IBM_MANUFACTURING_ID,
+                        },
+                        .ResourceEntity = {
+                                .Entry[0] =
+                                {
+                                        .EntityType = SAHPI_ENT_ROOT,
+                                        .EntityLocation = 0,
+                                }
+                        },
+			/* FIXME:: Add SAHPI_CAPABILITY_ANNUNCIATOR | support */
+                        .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
+                                                SAHPI_CAPABILITY_EVT_DEASSERTS |
+                                                SAHPI_CAPABILITY_INVENTORY_DATA |
+                                                SAHPI_CAPABILITY_RDR |
+                                                SAHPI_CAPABILITY_RESOURCE |
+                                                SAHPI_CAPABILITY_EVENT_LOG |
+                                                SAHPI_CAPABILITY_SENSOR,
+                        .ResourceSeverity = SAHPI_CRITICAL,
+			.ResourceFailed = SAHPI_FALSE,
+                },
+                .res_info = {
+                        .mib = {
+                                .OidHealth = ".1.3.6.1.4.1.2.3.51.2.2.9.1.0",
+                                .HealthyValue = 255,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+				.OidUuid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
+                        },
+                        .event_array = {
+                                {},
+                        },
+                },
+                .comment = "BladeCenter"
+        },
+
+        {} /* Terminate array with a null element */	
+};
+
 struct snmp_rpt snmp_rpt_array[] = {
         /* Chassis */
         {
@@ -498,8 +544,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.5.1.0",
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -595,8 +640,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.1.1.2.0",
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -701,8 +745,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
 				/* Default HDW thresholds: Warning 1.62<>1.89; Warning Reset 1.86<>1.74 */
                                 .threshold_oids = {
@@ -806,8 +849,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 		.sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
@@ -910,8 +952,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 		.sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
@@ -1014,8 +1055,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
@@ -1118,8 +1158,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
@@ -1222,8 +1261,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
@@ -1432,8 +1470,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
@@ -1521,8 +1558,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.7.x",
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.9.x",
@@ -1613,8 +1649,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.x",
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.x",
@@ -1702,8 +1737,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.x",
                                 .threshold_oids = {
 					.UpCritical = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.x",
@@ -1800,8 +1834,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.12.x",
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.x",
@@ -1888,8 +1921,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.x",
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
@@ -1988,8 +2020,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.10.x",
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.x",
@@ -2088,8 +2119,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.7.x",
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.x",
@@ -2188,8 +2218,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.6.x",
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.x",
@@ -2288,8 +2317,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.8.x",
                                 .threshold_oids = {
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.x",
@@ -2379,8 +2407,7 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.13.x",
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -2557,8 +2584,7 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x",
                                 .threshold_oids = {
 					/* FIXME:: Get Not Readable if expansion card; else
@@ -2799,8 +2825,7 @@ struct snmp_bc_sensor snmp_bc_fan_sensors[] = {
                 .sensor_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.3.x.0",
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -3122,7 +3147,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                 .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.2.0",
 				/* Read values */
                                 .digitalmap[0] =  0, /* Off */
@@ -3157,7 +3182,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                 .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 3,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.4.0",
 				/* Read values */
                                 .digitalmap[0] =  0, /* Off */
@@ -3179,7 +3204,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
 /****************
  * Blade Controls
  ****************/
-#define LAST_COMMON_BLADE_CONTROL_NUM 1
+#define LAST_COMMON_BLADE_CONTROL_NUM 2
 
 /* FIXME:: same problem as chassis info LED */
 struct snmp_bc_control snmp_bc_blade_controls[] = {
@@ -3201,7 +3226,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                 .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.8.x",
 				/* Read values */
                                 .digitalmap[0] =  0, /* Off */
@@ -3217,60 +3242,10 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                 },
                 .comment = "Blade LED - Information"
         },
-
-        {} /* Terminate array with a null element */
-};
-
-/* BladeCenter code 59x contains a bug, which makes writing to this LED impossible thru
- * SNMP. LED works fine with BladeCenter Telco. When this bug is fixed on BladeCenter,
- * this LED can be moved back to the common control array and snmp_bci_blade_controls
- * can be deleted.
- */       
-
-/* FIXME:: No blinking anymore in B.1.1 */
-struct snmp_bc_control snmp_bci_blade_controls[] = {
         /* Blade Identify R/W LED */
         {
                 .control = {
-                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
-                        .OutputType = SAHPI_CTRL_LED,
-                        .Type = SAHPI_CTRL_TYPE_DIGITAL,
-                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_MANUAL,
-				.ReadOnly = SAHPI_TRUE,
-			},
-			.WriteOnly = SAHPI_FALSE,
-                        .Oem = 0,
-                },
-                .control_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.11.x",
-				/* Read values */
-                                .digitalmap[0] =  0, /* Off */
-                                .digitalmap[1] =  1, /* On */
-                                .digitalmap[2] = -1, /* Not applicable */
-                                .digitalmap[3] =  2, /* Blinking */
-				/* Write values */
-                                .digitalwmap[0] = -1, /* Cannot write this value */
-                                .digitalwmap[1] = -1, /* Cannot write this value */
-                                .digitalwmap[2] = -1, /* Not applicable */
-                                .digitalwmap[3] = -1, /* Cannot write this value */
-                        },
-                },
-                .comment = "Blade LED - Identify"
-        },
-
-        {} /* Terminate array with a null element */
-};
-
-struct snmp_bc_control snmp_bct_blade_controls[] = {
-        /* Blade Identify R/W LED */
-        {
-                .control = {
-                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
+                        .Num = 2,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
@@ -3284,7 +3259,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                 .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.11.x",
 				/* Read values */
                                 .digitalmap[0] =  0, /* Off */
@@ -3300,10 +3275,15 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                 },
                 .comment = "Blade LED - Identify"
         },
+
+        {} /* Terminate array with a null element */
+};
+
+struct snmp_bc_control snmp_bct_blade_controls[] = {
         /* Blade's number of restarts counter */
         {
                 .control = {
-                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 2,
+                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
                         .OutputType = SAHPI_CTRL_GENERIC,
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,
                         .TypeUnion.Discrete.Default = 0,
@@ -3317,7 +3297,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                 .control_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.x", 
                         },
                 },
@@ -3398,7 +3378,7 @@ struct snmp_bc_inventory snmp_bc_chassis_inventories[] = {
                 .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
                                 .oid = {
                                         .OidChassisType = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.2.0",
@@ -3441,7 +3421,7 @@ struct snmp_bc_inventory snmp_bc_mgmnt_inventories[] = {
                 .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
@@ -3475,7 +3455,7 @@ struct snmp_bc_inventory snmp_bc_switch_inventories[] = {
                 .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
@@ -3509,7 +3489,7 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
                 .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
@@ -3552,7 +3532,7 @@ struct snmp_bc_inventory snmp_bc_mediatray_inventories[] = {
                 .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
@@ -3586,7 +3566,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                 .inventory_info = {
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
+                                .write_only = SAHPI_FALSE,
                                 .area_type = SAHPI_IDR_AREATYPE_BOARD_INFO,
                                 .oid = {
                                         .OidChassisType = '\0',
@@ -3662,14 +3642,13 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         .cur_state = SAHPI_ES_OK,
                         .events_enabled = SAHPI_TRUE,
                         .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                .SensorStatus  = SAHPI_SENSTAT_EVENTS_ENABLED,
                                 .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
                                 .deassert_mask = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
                         },
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.1.0",
                         },
                         .event_array = {
@@ -3737,8 +3716,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.3.0",
                         },
                         .event_array = {
@@ -3806,8 +3784,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.7.x",
                         },
                         .event_array = {
@@ -3883,8 +3860,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.9.x",
                         },
                         .event_array = {
@@ -3960,8 +3936,7 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
                         },
                         .mib = {
                                 .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .convert_snmpstr = -1,
+                                .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.10.x",
                         },
                         .event_array = {

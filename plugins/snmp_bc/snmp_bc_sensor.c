@@ -165,12 +165,6 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 		return(SA_OK);
 	}
 	
-	/* If sensor is readable, but doesn't support any events */
-	if (rdr->RdrTypeUnion.SensorRec.Events == SAHPI_ES_UNSPECIFIED) {
-		*state = SAHPI_ES_UNSPECIFIED;
-		return(SA_OK);
-	}
-	
 	/***************************************************************************
 	 * Translate reading into event state. Algorithm is:
 	 * - If sensor is a threshold and has readable thresholds.
@@ -181,7 +175,6 @@ SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 	 *   - Max && Min - min value <= reading <= max value
 	 *   - Max only - reading > max value 
 	 *   - Min only - reading < min value
-	 *   - any other combination = internal error
 	 * - else SAHPI_ES_UNSPECIFIED
 	 ***************************************************************************/
 	if (rdr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_THRESHOLD &&
@@ -610,72 +603,19 @@ do { \
         } \
 } while(0)
 
-/* Unfortunately, need thdoid for total hysteresis settings */
-#define write_valid_threshold(thdname, thdoid) \
+#define write_valid_threshold(thdname) \
 do { \
 	if (thres->thdname.IsSupported) { \
-		if (sinfo->mib.threshold_write_oids.thdoid == NULL || \
-		    sinfo->mib.threshold_oids.thdoid[0] == '\0') { \
+		if (sinfo->mib.threshold_write_oids.thdname == NULL || \
+		    sinfo->mib.threshold_oids.thdname[0] == '\0') { \
 			dbg("No writable threshold OID defined for thdname."); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
 		err = snmp_bc_set_threshold_reading(hnd, rid, sid, \
-					            sinfo->mib.threshold_write_oids.thdoid, \
+					            sinfo->mib.threshold_write_oids.thdname, \
 						    &(working.thdname)); \
 		if (err) return(err); \
 	} \
-} while(0)
-
-#define find_total_neg_hysteresis(thdname) \
-do { \
-       SaHpiSensorReadingT reading; \
-       SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, \
-                      sinfo->mib.threshold_oids.thdname, &reading); \
-       if (err) return(err); \
-       switch(working.thdname.Type) { \
-       case SAHPI_SENSOR_READING_TYPE_INT64: \
-	        working.NegThdHysteresis.Value.SensorInt64 = \
-                reading.Value.SensorInt64 + (thres->NegThdHysteresis.Value.SensorInt64 + 1); \
-       		break; \
-       	case SAHPI_SENSOR_READING_TYPE_FLOAT64: \
-	        working.NegThdHysteresis.Value.SensorFloat64 = \
-                reading.Value.SensorFloat64 + (thres->NegThdHysteresis.Value.SensorFloat64 + 1); \
-       		break; \
-       	case SAHPI_SENSOR_READING_TYPE_UINT64: \
-	        working.NegThdHysteresis.Value.SensorUint64 = \
-                reading.Value.SensorUint64 + (thres->NegThdHysteresis.Value.SensorUint64 + 1); \
-       		break; \
-        case SAHPI_SENSOR_READING_TYPE_BUFFER: \
-        default: \
-        	dbg("Invalid threshold reading type."); \
-        	return(SA_ERR_HPI_INVALID_CMD); \
-        } \
-} while(0)
-
-#define find_total_pos_hysteresis(thdname) \
-do { \
-       SaHpiSensorReadingT reading; \
-       SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, \
-                      sinfo->mib.threshold_oids.thdname, &reading); \
-       if (err) return(err); \
-       switch(working.thdname.Type) { \
-       case SAHPI_SENSOR_READING_TYPE_INT64: \
-	        working.PosThdHysteresis.Value.SensorInt64 = \
-                reading.Value.SensorInt64 - (thres->PosThdHysteresis.Value.SensorInt64 + 1); \
-       		break; \
-       	case SAHPI_SENSOR_READING_TYPE_FLOAT64: \
-	        working.PosThdHysteresis.Value.SensorFloat64 = \
-                reading.Value.SensorFloat64 - (thres->PosThdHysteresis.Value.SensorFloat64 + 1); \
-       		break; \
-       	case SAHPI_SENSOR_READING_TYPE_UINT64: \
-	        working.PosThdHysteresis.Value.SensorUint64 = \
-                reading.Value.SensorUint64 - (thres->PosThdHysteresis.Value.SensorUint64 + 1); \
-       		break; \
-        case SAHPI_SENSOR_READING_TYPE_BUFFER: \
-        default: \
-        	dbg("Invalid threshold reading type."); \
-        	return(SA_ERR_HPI_INVALID_CMD); \
-        } \
 } while(0)
 
 /**
@@ -748,97 +688,16 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 	/************************ 
 	 * Write valid thresholds
          ************************/
-	write_valid_threshold(UpCritical, UpCritical);
-	write_valid_threshold(UpMajor, UpMajor);
-	write_valid_threshold(UpMinor, UpMinor);
-	write_valid_threshold(LowCritical, LowCritical);
-	write_valid_threshold(LowMajor, LowMajor);
-	write_valid_threshold(LowMinor, LowMinor);
+	write_valid_threshold(UpCritical);
+	write_valid_threshold(UpMajor);
+	write_valid_threshold(UpMinor);
+	write_valid_threshold(LowCritical);
+	write_valid_threshold(LowMajor);
+	write_valid_threshold(LowMinor);
 
-	/* Hysteresis can be a delta or a total value */
-	if (thres->NegThdHysteresis.IsSupported) {
-		if (sinfo->mib.threshold_write_oids.NegThdHysteresis != NULL &&
-		    sinfo->mib.threshold_write_oids.TotalNegThdHysteresis != NULL) {
-			dbg("Cannot define both delta and total negative writable hysteresis. Sensor=%s",
-			    rdr->IdString.Data);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
-		if (sinfo->mib.threshold_write_oids.NegThdHysteresis != NULL) {
-			write_valid_threshold(NegThdHysteresis, NegThdHysteresis);
-		}
-		else {
-			/* Find the highest lower threshold defined - only one can be defined */
-			if (sinfo->mib.threshold_write_oids.TotalNegThdHysteresis != NULL) {
-				if (working.LowCritical.IsSupported == SAHPI_TRUE) {
-					find_total_neg_hysteresis(LowCritical);
-					write_valid_threshold(NegThdHysteresis, TotalNegThdHysteresis);
-				}
-				else {
-					if (working.LowMajor.IsSupported == SAHPI_TRUE) {
-						find_total_neg_hysteresis(LowMajor);
-						write_valid_threshold(NegThdHysteresis, TotalNegThdHysteresis);
-					}
-					else {
-						if (working.LowMinor.IsSupported == SAHPI_TRUE) {
-							find_total_neg_hysteresis(LowMinor);
-							write_valid_threshold(NegThdHysteresis, TotalNegThdHysteresis);
-						}
-						else {
-							dbg("No lower thresholds defined for total negative hysteresis");
-							return(SA_ERR_HPI_INTERNAL_ERROR);
-						}
-					}
-				}
-			}
-			else {
-				dbg("Writable negative hysteresis OID not defined. Sensor=%s",
-				    rdr->IdString.Data);
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
-		}
-	}
-
-	if (thres->PosThdHysteresis.IsSupported) {
-		if (sinfo->mib.threshold_write_oids.PosThdHysteresis != NULL &&
-		    sinfo->mib.threshold_write_oids.TotalPosThdHysteresis != NULL) {
-			dbg("Cannot define both delta and total positive writable hysteresis. Sensor=%s",
-			    rdr->IdString.Data);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
-		if (sinfo->mib.threshold_write_oids.PosThdHysteresis != NULL) {
-			write_valid_threshold(PosThdHysteresis, PosThdHysteresis);
-		}
-		else {
-			/* Find the highest upper threshold defined - only one can be defined */
-			if (sinfo->mib.threshold_write_oids.TotalPosThdHysteresis != NULL) {
-				if (working.UpCritical.IsSupported == SAHPI_TRUE) {
-					find_total_pos_hysteresis(UpCritical);
-					write_valid_threshold(PosThdHysteresis, TotalPosThdHysteresis);
-				}
-				else {
-					if (working.UpMajor.IsSupported == SAHPI_TRUE) {
-						find_total_pos_hysteresis(UpMajor);
-						write_valid_threshold(PosThdHysteresis, TotalPosThdHysteresis);
-					}
-					else {
-						if (working.UpMinor.IsSupported == SAHPI_TRUE) {
-							find_total_pos_hysteresis(UpMinor);
-							write_valid_threshold(PosThdHysteresis, TotalPosThdHysteresis);
-						}
-						else {
-							dbg("No upper thresholds defined for total positive hysteresis");
-							return(SA_ERR_HPI_INTERNAL_ERROR);
-						}
-					}
-				}
-			}
-			else {
-				dbg("Writable positive hysteresis OID not defined. Sensor=%s",
-				    rdr->IdString.Data);
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
-		}
-	}
+	/* We don't support writing total value hysteresis only deltas */
+	write_valid_threshold(NegThdHysteresis);
+	write_valid_threshold(PosThdHysteresis);
 
 	return(SA_OK);
 }
@@ -884,24 +743,17 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 		working.Value.SensorInt64 = (SaHpiInt64T)get_value.integer;
 	} 
 	else {
-		if (sinfo->mib.convert_snmpstr >= 0) {
-			SaHpiTextBufferT buffer;
-			oh_init_textbuffer(&buffer);
-			oh_append_textbuffer(&buffer, get_value.string);
-			
-			SaErrorT err = oh_encode_sensorreading(&buffer,
-							       rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType,
-							       &working);
-			if (err) {
-				dbg("Cannot convert sensor OID=%s value=%s. Error=%s",
-				    sinfo->mib.oid, buffer.Data, oh_lookup_error(err));
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
-		}
-		else {
-			trace("Sensor %s is SAHPI_SENSOR_READING_TYPE_BUFFER", sinfo->mib.oid);
-			working.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
-			strncpy(working.Value.SensorBuffer, get_value.string, SAHPI_SENSOR_BUFFER_LENGTH);
+		SaHpiTextBufferT buffer;
+		oh_init_textbuffer(&buffer);
+		oh_append_textbuffer(&buffer, get_value.string);
+		
+		SaErrorT err = oh_encode_sensorreading(&buffer,
+						       rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType,
+						       &working);
+		if (err) {
+			dbg("Cannot convert sensor OID=%s value=%s. Error=%s",
+			    sinfo->mib.oid, buffer.Data, oh_lookup_error(err));
+			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
 	
@@ -944,13 +796,13 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 
 	switch (reading->Type) {
 	case SAHPI_SENSOR_READING_TYPE_INT64:
-		tmp_num = reading->Value.SensorInt64;
+		tmp_num = (SaHpiFloat64T)reading->Value.SensorInt64;
 		break;
 	case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 		tmp_num = reading->Value.SensorFloat64;
 		break;
 	case SAHPI_SENSOR_READING_TYPE_UINT64:
-		tmp_num = reading->Value.SensorUint64;
+		tmp_num = (SaHpiFloat64T)reading->Value.SensorUint64;
 		break;
 	case SAHPI_SENSOR_READING_TYPE_BUFFER:
 		default:
@@ -958,31 +810,10 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	/*********************************************************************************
-	 * NOTE! Assuming max format is ddd.dd; Always assume 2 digits after decimal point
-         * NOTE! Assuming significant digits are the same for all of a sensor's writable
-	 * thresholds. Different sensors may have different significant digits, however.
-         *********************************************************************************/
+	/*************************************************************
+	 * NOTE! Assuming max format for writable thresholds is ddd.dd
+         *************************************************************/
  	snprintf(buffer.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%'+3.2f", tmp_num);
-
-	/* Add leading zeros, if needed to string */
-	if (sinfo->mib.threshold_write_oids.sig_digits < 0) {
-		dbg("Invalid sig_digits for sensor=%s", rdr->IdString.Data);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
- 	err = snmp_bc_addzeros(&buffer, sinfo->mib.threshold_write_oids.sig_digits);
-	if (err) return(err);
-
-	/* Add tag to SNMP value - check for no tag */
-	if (sinfo->mib.threshold_write_oids.Tag == NULL ||
-	    sinfo->mib.threshold_write_oids.Tag[0] == '\0') {
-		dbg("Invalid threshold tag for sensor=%s", rdr->IdString.Data);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
- 	err = oh_append_textbuffer(&buffer, " ");
-	if (err) return(err);
- 	err = oh_append_textbuffer(&buffer, sinfo->mib.threshold_write_oids.Tag);
-	if (err) return(err);
 
 	/* Copy string to SNMP structure */
 	set_value.type = ASN_OCTET_STR;
@@ -1003,37 +834,6 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	}
 	g_free(oid);
 		
-	return(SA_OK);
-}
-
-SaErrorT snmp_bc_addzeros(SaHpiTextBufferT *buffer, int max_sig_digits) 
-{
-	SaHpiTextBufferT working;
-	char sign[2];
-	int sig_digits, needed_zeros, i;
-
-	if (!buffer || max_sig_digits < 0) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-	
-	oh_init_textbuffer(&working);
-	memset(sign, 0, 2); 
-	strncpy(sign, buffer->Data, 1);
-	oh_append_textbuffer(&working, sign); /* Sign character */
-
-        /* -1 for sign character */
-	sig_digits = buffer->DataLength - strlen(strchr(buffer->Data, '.')) - 1; 
-	needed_zeros = max_sig_digits - sig_digits;
-
-	for (i=1; needed_zeros > 0; i++) {
-		oh_append_textbuffer(&working, "0");
-		needed_zeros--;
-	}
-
-	oh_append_textbuffer(&working, &(buffer->Data[1]));
-	oh_copy_textbuffer(buffer, &working);
-
 	return(SA_OK);
 }
 
