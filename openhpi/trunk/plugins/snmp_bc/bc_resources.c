@@ -3616,6 +3616,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
 /****************
  * Blade Controls
  ****************/
+#define LAST_COMMON_BLADE_CONTROL_NUM 2
 
 struct snmp_bc_control snmp_bc_blade_controls[] = {
 
@@ -3646,7 +3647,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
         /* Blade Identify R/W LED */
         {
                 .control = {
-                        .Num = 2,
+                        .Num = LAST_COMMON_BLADE_CONTROL_NUM,
                         .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_LED,
 			.Type = SAHPI_CTRL_TYPE_DIGITAL,
@@ -3667,16 +3668,20 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
 		},
                 .comment = "Blade LED - Identify."
 	},
-#if 0
+
+        {} /* Terminate array with a null element */
+};
+
+struct snmp_bc_control snmp_bct_blade_controls[] = {
         /* Blade's number of restarts counter */
         {
                 .control = {
-                        .Num = 3,
+                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
                         .Ignore = SAHPI_FALSE,
                         .OutputType = SAHPI_CTRL_GENERIC,
 			.Type = SAHPI_CTRL_TYPE_DISCRETE,
 			.TypeUnion.Discrete.Default = 0,
-                        .Oem = 0
+                        .Oem = 0,
                 },
 		.bc_control_info = {
 			.mib = {
@@ -3687,7 +3692,6 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
 		},
                 .comment = "Blade number of restarts counter"
 	},
-#endif
 
         {} /* Terminate array with a null element */
 };

@@ -153,6 +153,9 @@ static int snmp_bc_discover_resources(void *hnd)
                                 SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
 				find_sensors(snmp_bc_blade_sensors);
 				find_controls(snmp_bc_blade_controls);
+				if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT)) {
+					find_controls(snmp_bct_blade_controls);
+				}
 				find_inventories(snmp_bc_blade_inventories);
                         }
 			
