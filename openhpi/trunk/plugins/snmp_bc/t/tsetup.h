@@ -31,8 +31,9 @@ SaErrorT tcleanup(SaHpiSessionIdT *sessionid_ptr);
 #define checkstatus(err, expected_err, testfail) 				\
 {										\
     if (err != expected_err) {							\
-	printf("Error! Test fails: returned err=%s, expected=%s, Line=%d\n",	\
-	oh_lookup_error(err), oh_lookup_error(expected_err), __LINE__);	\
+	printf("Error! Test fails: File=%s, Line=%d\n", __FILE__, __LINE__);	\
+	printf("Returned err=%s, expected=%s\n",				\
+		oh_lookup_error(err), oh_lookup_error(expected_err));		\
 	testfail = -1;								\
     }										\
 }

@@ -36,16 +36,17 @@ int main(int argc, char **argv)
 	 * Find a resource with Control type rdr
 	 * ***********************/
         SaHpiRptEntryT rptentry;
-	
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_control_parm, can not setup test environment\n");
+		printf("Error! Can not setup session for test environment.\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 
 	}
 	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_CONTROL, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_control_parm, can not setup test environment\n");
+		printf("Error! Can not find resource for test environment.\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return -1;
 
