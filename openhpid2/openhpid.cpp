@@ -65,6 +65,8 @@ static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 #define PID_FILE "/var/run/openhpid.pid"
 
 static bool stop_server = FALSE;
+static int sock_timeout = CLIENT_TIMEOUT;
+static int max_threads = -1;  // unlimited
 
 /* options set by the command line */
 static char *pid_file = NULL;
@@ -74,6 +76,7 @@ static struct option long_options[] = {
         {"config",  required_argument, NULL, 'c'},
         {"port",    required_argument, NULL, 'p'},
         {"pidfile", required_argument, NULL, 'f'},
+        {"timeout", required_argument, NULL, 's'},
         {0, 0, 0, 0}
 };
 
@@ -98,6 +101,10 @@ void display_help(void)
         printf("                 the daemon. This option is optional.\n");
         printf("   -f pidfile    This overrides the default name/location for the daemon.\n");
         printf("                 pid file. This option is optional.\n\n");
+        printf("   -s seconds    This overrides the default socket read timeout of 30\n");
+        printf("                 minutes. This option is optional.\n\n");
+        printf("   -t threads    This sets the maximum number of connection threads.\n");
+        printf("                 The default is umlimited. This option is optional.\n\n");
         printf("A typical invocation might be\n\n");
         printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
 }
@@ -119,7 +126,7 @@ int main (int argc, char *argv[])
 
         /* get the command line options */
         while (1) {
-                c = getopt_long(argc, argv, "c:p:f:v", long_options, &option_index);
+                c = getopt_long(argc, argv, "c:p:f:v:s:t", long_options, &option_index);
                 /* detect when done scanning options */
                 if (c == -1) {
                         break;
@@ -140,6 +147,18 @@ int main (int argc, char *argv[])
                 case 'f':
                         pid_file = (char *)malloc(strlen(optarg) + 1);
                         strcpy(pid_file, optarg);
+                        break;
+                case 's':
+                        sock_timeout = atoi(optarg);
+                        if (sock_timeout < 0) {
+                                sock_timeout = CLIENT_TIMEOUT;
+                        }
+                        break;
+                case 't':
+                        max_threads = atoi(optarg);
+                        if (max_threads < -1 || max_threads == 0) {
+                                max_threads = -1;
+                        }
                         break;
                 case '?':
                         display_help();
@@ -229,7 +248,8 @@ int main (int argc, char *argv[])
         }
 
         // become a daemon
-	if (!morph2daemon(FALSE)) {	// this is an error condition
+//	if (!morph2daemon(FALSE)) {	// this is an error condition
+        if (!morph2daemon(TRUE)) {	// this is an error condition
 		exit(8);
 	}
 
@@ -238,7 +258,7 @@ int main (int argc, char *argv[])
 
         // create the thread pool
 	g_thread_init(NULL);
-	thrdpool = g_thread_pool_new(service_thread, NULL, -1, FALSE, NULL);
+	thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
 
         // create the server socket
 	psstrmsock servinst = new sstrmsock;
@@ -348,7 +368,7 @@ static void service_thread(gpointer data, gpointer user_data)
 	PVERBOSE1("Servicing connection.\n");
 
         /* set the read timeout for the socket */
-        thrdinst->SetReadTimeout(CLIENT_TIMEOUT);
+        thrdinst->SetReadTimeout(sock_timeout);
 
 	while (stop == false) {
                 if (thrdinst->ReadMsg(buf)) {
