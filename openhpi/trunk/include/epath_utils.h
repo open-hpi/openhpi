@@ -18,6 +18,7 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
+#include <oh_plugin.h>
 /******************************************************************************
  * DESCRIPTION:
  * Header file for epath_utils.c
