@@ -76,7 +76,9 @@ static void oh_detect_oem_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
         oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);        
         a->AlarmCond.ResourceId = event->Source;
         a->AlarmCond.Mid = event->EventDataUnion.OemEvent.MId;
-        memcpy(&a->AlarmCond.Data, &event->EventDataUnion.OemEvent.OemEventData, sizeof(SaHpiTextBufferT));
+        memcpy(&a->AlarmCond.Data,
+               &event->EventDataUnion.OemEvent.OemEventData,
+               sizeof(SaHpiTextBufferT));
         d->dat.list = g_list_append(d->dat.list, a);
         
         oh_release_domain(d);
@@ -126,6 +128,45 @@ static void oh_detect_resource_event_alarm(SaHpiDomainIdT did, SaHpiEventT *even
 
 static void oh_detect_sensor_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
 {
+        struct oh_domain *d = NULL;
+        GList *alarms = NULL;
+        SaHpiAlarmT *a = NULL;
+        
+        d = oh_get_domain(did);
+        if (!d) {
+                dbg("Domain not found! Can't process alarm trigger.");
+                return;
+        }
+        
+        if (!event->EventDataUnion.SensorEvent.Assertion) {
+                /* Check for possible sensor alarm removals,
+                   since sensor is not asserted. */
+                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                        SaHpiAlarmT *alarm = alarms->data;
+                        if (alarm &&
+                            alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_SENSOR &&
+                            alarm->AlarmCond.ResourceId == event->Source &&
+                            alarm->AlarmCond.SensorNum == event->EventDataUnion.SensorEvent.SensorNum &&
+                            alarm->AlarmCond.EventState == event->EventDataUnion.SensorEvent.EventState) {
+                                /* Found. Remove alarm */
+                                oh_delete_alarm_and_continue();
+                        }
+                }
+        } else if (event->Severity <= SAHPI_MINOR &&
+                   event->EventDataUnion.SensorEvent.Assertion) {
+                /* Add sensor alarm to dat, since event is severe
+                   enough and is asserted. */
+                oh_create_alarm();
+                a->Severity = event->Severity;
+                a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_SENSOR;
+                oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);                
+                a->AlarmCond.ResourceId = event->Source;
+                a->AlarmCond.SensorNum = event->EventDataUnion.SensorEvent.SensorNum;
+                a->AlarmCond.EventState = event->EventDataUnion.SensorEvent.EventState;
+                d->dat.list = g_list_append(d->dat.list, a);
+        }
+        
+        oh_release_domain(d);
         return;
 }
 
@@ -143,12 +184,15 @@ static void oh_remove_resource_alarms(SaHpiDomainIdT did, SaHpiResourceIdT rid, 
         for (alarms = d->dat.list; alarms; alarms = alarms->next) {
                 SaHpiAlarmT *alarm = alarms->data;
                 if (alarm &&                    
-                    ((all) ? alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER : alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE) &&
+                    (all ?
+                        alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER :
+                        alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE) &&
                     alarm->AlarmCond.ResourceId == rid) {
                         /* Found. Remove alarm */
                         oh_delete_alarm_and_continue();
                 }
         }
+        
         oh_release_domain(d);
         return;
 }
