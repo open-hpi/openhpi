@@ -85,7 +85,11 @@ cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
   SaErrorT rv = hs->GetState( current );
 
   if ( rv != SA_OK )
-       return rv;
+     {
+       // use the old stored state
+       stdlog << "cIpmi::IfSetHotswapState: cannot read hotswap state !\n";
+       current = cIpmiSensorHotswap::ConvertIpmiToHpiHotswapState( hs->Resource()->FruState() );
+     }
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
   msg.m_data_len = 3;

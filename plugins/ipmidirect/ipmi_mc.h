@@ -78,7 +78,7 @@ protected:
 
   // state only to create state change Mx -> M0
   // where Mx is m_fru_state
-  tIpmiFruState  m_fru_state;
+  //  tIpmiFruState  m_fru_state;
 
   cIpmiDomain   *m_domain;
 
@@ -150,7 +150,7 @@ public:
     return m_aux_fw_revision[v];
   }
 
-  tIpmiFruState &FruState() { return m_fru_state; }
+  //tIpmiFruState &FruState() { return m_fru_state; }
 
   const cIpmiAddr &Addr() { return m_addr; }
 

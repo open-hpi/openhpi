@@ -35,7 +35,7 @@
 
 cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   : m_addr( addr ), m_active( true ),
-    m_fru_state( eIpmiFruStateNotInstalled ),
+    //    m_fru_state( eIpmiFruStateNotInstalled ),
     m_domain( domain ),
     m_sensors_in_my_sdr( 0 ),
     m_sel( 0 ),
@@ -145,7 +145,7 @@ void
 cIpmiMc::RemResource( cIpmiResource *res )
 {
   cIpmiResource *r = FindResource( res->EntityPath() );
-  
+
   if ( r == 0 || r != res )
      {
        assert( 0 );
@@ -172,12 +172,14 @@ cIpmiMc::Cleanup()
        delete sensor;
      }
 
+/*
   // remove rdrs found in MC
   while( m_rdrs )
      {
        cIpmiRdr *rdr = (cIpmiRdr *)m_rdrs->data;
        rdr->Resource()->Rem( rdr );
      }
+*/
 
   while( m_resources )
      {
@@ -239,6 +241,9 @@ cIpmiMc::HandleNew()
 
        if ( rv )
             return rv;
+
+       if ( m_vendor->ProcessSdr( Domain(), this, m_sdrs ) == false )
+            return SA_ERR_HPI_INVALID_PARAMS;
 
        if ( m_vendor->CreateRdrs( Domain(), this, m_sdrs ) == false )
             return SA_ERR_HPI_INVALID_PARAMS;
@@ -593,7 +598,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
      }
 
   if (    rsp.m_data_len != 2
-       || rsp.m_data[0] != eIpmiCcOk 
+       || rsp.m_data[0] != eIpmiCcOk
        || rsp.m_data[1] != dIpmiPigMgId )
        stdlog << "cannot set power level: " << rsp.m_data[0] << " !\n";
 
@@ -684,7 +689,7 @@ cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
        return false;
 
   char control_device_name[80];
-  sprintf(  control_device_name, "ControlDevice%02x_", GetAddress() );
+  sprintf( control_device_name, "ControlDevice%02x_", GetAddress() );
 
   // dump controls
   for( list = controls; list; list = g_list_next( list ) )

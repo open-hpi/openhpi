@@ -99,6 +99,12 @@ protected:
   // ipmi connection
   cIpmiCon     *m_con;
 
+public:
+  bool ConLogLevel( int v )
+  {
+    return m_con->LogLevel( v );
+  }
+
   // true => ATCA
   int           m_is_atca;
 

@@ -215,21 +215,208 @@ public:
 };
 
 
-class cIpmiInventoryRecordMultiRecord : public cIpmiInventoryRecord
+enum tIpmiMultiRecordType
+{
+  tIpmiMultiRecordTypeBackplanePointToPointConnectivity = 0x04,
+  //  tIpmiMultiRecordTypeAddressTable                      = 0x10,
+  tIpmiMultiRecordTypeShelfPowerDistribution            = 0x11,
+  tIpmiMultiRecordTypeShelfActivationAndPowerManagement = 0x12,
+  //tIpmiMultiRecordTypeShelfManagerIpConnection          = 0x13,
+  //tIpmiMultiRecordTypeBoardPointToPointConnectivity     = 0x14,
+  //tIpmiMultiRecordTypeRadialIpmb0LinkMap                = 0x15,
+};
+
+
+class cIpmiInventoryMultiRecord 
+{
+  tIpmiMultiRecordType m_type;
+  unsigned char        m_version;
+
+public:
+  cIpmiInventoryMultiRecord( tIpmiMultiRecordType type )
+    : m_type( type ) {}
+  virtual ~cIpmiInventoryMultiRecord() {}
+
+  tIpmiMultiRecordType Type() { return m_type; }
+  unsigned char &Version() { return m_version; }
+
+  virtual SaErrorT     IpmiRead( const unsigned char *data, unsigned int size ) = 0;
+  virtual unsigned int IpmiSize() const = 0;
+  virtual unsigned int IpmiWrite( unsigned char *data, unsigned int size ) const = 0;
+
+  virtual unsigned int HpiSize() const = 0;
+  virtual void         HpiRead( SaHpiInventDataRecordT *r ) const = 0;
+  virtual void         HpiWrite( SaHpiInventDataRecordT *r ) = 0;
+
+  virtual void Dump( cIpmiLog &dump, const char *name ) const = 0;
+};
+
+
+class cIpmiInventoryPointToPointChannel
+{
+public:
+  unsigned char m_local_channel;
+  unsigned char m_remote_channel;
+  unsigned char m_remote_slot;
+
+  cIpmiInventoryPointToPointChannel()
+    : m_local_channel( 0 ),
+      m_remote_channel( 0 ),
+      m_remote_slot( 0 )
+  {}
+};
+
+
+enum tIpmiPointToPointChannelType
+{
+  eIpmiPointToPointChannelTypeSinglePortFabric  = 0x08,
+  eIpmiPointToPointChannelTypeDoublePortFabric  = 0x09,
+  eIpmiPointToPointChannelTypeFullChannleFabric = 0x0a,
+  eIpmiPointToPointChannelTypeBase              = 0x0b,
+  eIpmiPointToPointChannelTypeUpdateChannel     = 0x0c,
+};
+
+
+class cIpmiInventoryPointToPointSlot : public cArray<cIpmiInventoryPointToPointChannel>
+{
+public:
+  tIpmiPointToPointChannelType m_type;
+  unsigned char                m_slot_address;
+
+  cIpmiInventoryPointToPointSlot()
+    : m_type( eIpmiPointToPointChannelTypeSinglePortFabric ),
+      m_slot_address( 0 )
+  {}
+};
+
+
+class cIpmiInventoryBackplanePointToPointConnectivity : public cIpmiInventoryMultiRecord,
+							public cArray<cIpmiInventoryPointToPointSlot>
+{
+public:
+  cIpmiInventoryBackplanePointToPointConnectivity();
+  virtual ~cIpmiInventoryBackplanePointToPointConnectivity();
+  
+  virtual SaErrorT     IpmiRead( const unsigned char *data, unsigned int size );
+  virtual unsigned int IpmiSize() const;
+  virtual unsigned int IpmiWrite( unsigned char *data, unsigned int size ) const;
+
+  virtual unsigned int HpiSize() const;
+  virtual void         HpiRead( SaHpiInventDataRecordT *r ) const;
+  virtual void         HpiWrite( SaHpiInventDataRecordT *r );
+
+  virtual void Dump( cIpmiLog &dump, const char *name ) const;
+};
+
+
+class cIpmiInventoryFeedToFru
+{
+public:
+  unsigned char m_hardware_address;
+  unsigned char m_fru_device_id;
+
+  cIpmiInventoryFeedToFru()
+    : m_hardware_address( 0 ),
+      m_fru_device_id( 0 )
+  {}
+};
+
+
+class cIpmiInventoryPowerMap : public cArray<cIpmiInventoryFeedToFru>
+{
+public:
+  unsigned short m_maximum_external_current;
+  unsigned short m_maximum_internal_current;
+  unsigned char  m_minimum_expected_voltage;
+
+  cIpmiInventoryPowerMap()
+    : m_maximum_external_current( 0 ),
+      m_maximum_internal_current( 0 ),
+      m_minimum_expected_voltage( 0 )
+  {}
+};
+
+
+class cIpmiInventoryShelfPowerDistribution : public cIpmiInventoryMultiRecord,
+					     public cArray<cIpmiInventoryPowerMap>
+{
+public:
+  cIpmiInventoryShelfPowerDistribution();
+  virtual ~cIpmiInventoryShelfPowerDistribution();
+
+  virtual SaErrorT     IpmiRead( const unsigned char *data, unsigned int size );
+  virtual unsigned int IpmiSize() const;
+  virtual unsigned int IpmiWrite( unsigned char *data, unsigned int size ) const;
+
+  virtual unsigned int HpiSize() const;
+  virtual void         HpiRead( SaHpiInventDataRecordT *r ) const;
+  virtual void         HpiWrite( SaHpiInventDataRecordT *r );
+
+  virtual void Dump( cIpmiLog &dump, const char *name ) const;
+};
+
+
+class cIpmiInventoryActivationAndPower
+{
+public:
+  unsigned char  m_hardware_address;
+  unsigned char  m_fru_device_id;
+  unsigned short m_maximum_fru_power;
+  bool           m_activation; 
+  unsigned char  m_delay;
+
+  cIpmiInventoryActivationAndPower()
+    : m_hardware_address( 0 ),
+      m_fru_device_id( 0 ),
+      m_maximum_fru_power( 0 ),
+      m_activation( false ),
+      m_delay( 0 )
+    {}
+};
+
+
+class cIpmiInventoryShelfActivationAndPower : public cIpmiInventoryMultiRecord,
+					     public cArray<cIpmiInventoryActivationAndPower>
+{
+public:
+  cIpmiInventoryShelfActivationAndPower();
+  virtual ~cIpmiInventoryShelfActivationAndPower();
+
+  unsigned char m_allowance;
+
+  virtual SaErrorT     IpmiRead( const unsigned char *data, unsigned int size );
+  virtual unsigned int IpmiSize() const;
+  virtual unsigned int IpmiWrite( unsigned char *data, unsigned int size ) const;
+
+  virtual unsigned int HpiSize() const;
+  virtual void         HpiRead( SaHpiInventDataRecordT *r ) const;
+  virtual void         HpiWrite( SaHpiInventDataRecordT *r );
+
+  virtual void Dump( cIpmiLog &dump, const char *name ) const;
+};
+
+
+class cIpmiInventoryRecordMultiRecord : public cIpmiInventoryRecord,
+					public cArray<cIpmiInventoryMultiRecord>
 {
 public:
   cIpmiInventoryRecordMultiRecord();
   virtual ~cIpmiInventoryRecordMultiRecord();
 
-  virtual int          IpmiNumRecords() const { return 0; }
+  cIpmiInventoryMultiRecord *GetRecord( tIpmiMultiRecordType type ) const;
+  void                  SetRecord( tIpmiMultiRecordType type, cIpmiInventoryMultiRecord *record );
+
+  static cIpmiInventoryMultiRecord *AllocRecord( tIpmiMultiRecordType type );
+
+  virtual int          IpmiNumRecords() const { return Num(); }
   virtual SaErrorT     IpmiRead( const unsigned char *data, unsigned int size );
   virtual unsigned int IpmiSize() const;
   virtual unsigned int IpmiWrite( unsigned char *data, unsigned int size ) const;
 
-  virtual int          HpiNumRecords() const { return 0; }
-  virtual unsigned int HpiSize( int record_id ) const { return 0; }
-  virtual void         HpiRead( int record_id, SaHpiInventDataRecordT * /*r*/ ) const { assert( 0 ); }
-  virtual void         HpiWrite( int record_id, SaHpiInventDataRecordT * /*r*/ ) { assert( 0 ); }
+  virtual int          HpiNumRecords() const { return 0; /*Num();*/ }
+  virtual unsigned int HpiSize( int record_id ) const;
+  virtual void         HpiRead( int record_id, SaHpiInventDataRecordT *r ) const;
+  virtual void         HpiWrite( int record_id, SaHpiInventDataRecordT *r );
 
   virtual void Dump( cIpmiLog &dump, int record_id, const char *name ) const;
 };
@@ -251,7 +438,6 @@ public:
 
   void Clear();
   static cIpmiInventoryRecord *AllocRecord( tIpmiInventoryRecordType type );
-
 
   virtual SaErrorT     IpmiRead( const unsigned char *data, unsigned int size );
   virtual unsigned int IpmiSize() const;

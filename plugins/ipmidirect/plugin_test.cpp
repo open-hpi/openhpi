@@ -30,10 +30,11 @@ static const char *plugin_params_lan_local[] =
   "name",       "lan",
   "addr",       "localhost",
   "port",       "4711",
-  "auth_type",  "md5",
+  "auth_type",  "md2",
   "auth_level", "admin",
   "username",   "kanne",
   "password",   "kanne",
+  "logflags",   "file",
   "logfile",    "log",
   "logfile_max", "1",
   "IpmiConnectionTimeout", "500",
@@ -245,7 +246,7 @@ main( int argc, char *argv[] )
   if ( argc > 2 )
        return usage( argv[0] );
 
-  const char *config_name = "lan_local";
+  const char *config_name = "lan_remote";
 
   if ( argc == 2 )
        config_name = argv[1];

@@ -51,6 +51,10 @@ extern "C" {
 
 #include <glib.h>
 
+#define dIpmiConLogCmd   1
+#define dIpmiConLogEvent 2
+#define dIpmiConLogAll   0xffff
+
 
 // default retries for an IPMI command before timeoue
 #define dIpmiDefaultRetries 3
@@ -126,12 +130,20 @@ protected:
   // signal the exit of the thread
   bool m_exit;
 
+  // log output
+  int m_log_level;
+
 public:
+  bool LogLevel( int v )
+  {
+    return m_log_level & v;
+  }
+  
   // current timeout in ms
   unsigned int m_timeout;
 
 public:
-  cIpmiCon( unsigned int timeout );
+  cIpmiCon( unsigned int timeout, int log_level );
   virtual ~cIpmiCon();
 
   bool IsOpen() { return m_is_open; }

@@ -129,12 +129,18 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 
   h.Source    = res->m_resource_id;
   h.EventType = SAHPI_ET_HOTSWAP;
+
+/*
   h.Timestamp = (SaHpiTimeT)IpmiGetUint32( event->m_data );
 
   if ( h.Timestamp == 0 )
        h.Timestamp = SAHPI_TIME_UNSPECIFIED;
   else
        h.Timestamp *= 1000000000;
+*/
+  // hotswap event needs exact time, because
+  // of auto extraction/insertion
+  gettimeofday1( &h.Timestamp );
 
   // Do not find the severity of hotswap event
   h.Severity = SAHPI_MAJOR;
@@ -163,6 +169,12 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
      {
        stdlog << "cannot get hotswap state !\n";
        return rv;
+     }
+
+  if ( rsp.m_data[2] != 0 )
+     {
+       stdlog << "cannot read hotswap sensor " << rsp.m_data[2] << " !\n";
+       return SA_ERR_HPI_INVALID_SENSOR_CMD;
      }
 
   unsigned int value = rsp.m_data[3];
