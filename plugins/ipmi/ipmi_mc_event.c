@@ -70,7 +70,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 		dbg("MC does not support SEL");
 	}
 	entry->ResourceSeverity = SAHPI_OK;
-	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
+	entry->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
 	entry->ResourceTag.DataLength = strlen(mc_name); 
 	memcpy(entry->ResourceTag.Data, mc_name, strlen(mc_name)+1);
