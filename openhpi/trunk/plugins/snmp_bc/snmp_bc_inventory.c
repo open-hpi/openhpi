@@ -36,9 +36,9 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 		SaHpiIdrInfoT          *IdrInfo)
 {
 	SaErrorT  rv = SA_OK;
-	void *i_record;
+	struct bc_inventory_record *i_record;
 
-	i_record = (void *)g_malloc0(SIZE_OF_WORKING_SPACE * sizeof(guint));
+	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
 		rv = SA_ERR_HPI_OUT_OF_MEMORY;
@@ -48,7 +48,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 		rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
-		memcpy(IdrInfo, i_record, sizeof(SaHpiIdrInfoT));
+		memcpy(IdrInfo, &(i_record->idrinfo), sizeof(SaHpiIdrInfoT));
 	}
 
 	g_free(i_record);
@@ -73,10 +73,10 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 {
 
 	SaErrorT rv = SA_OK;
-	void *i_record;
-	struct bc_inventory_record * thisInventoryRecordPtr;
+	struct bc_inventory_record *i_record;
 	
-	i_record = (void *)g_malloc0(SIZE_OF_WORKING_SPACE *  sizeof(guint));
+	
+	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
 		rv = SA_ERR_HPI_OUT_OF_MEMORY;
@@ -86,9 +86,9 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 		rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
-		thisInventoryRecordPtr = (struct bc_inventory_record *) i_record;
-		if (thisInventoryRecordPtr->areaptr[0]->idrareas.AreaId == AreaId) {
-			memcpy(Header, &(thisInventoryRecordPtr->areaptr[0]->idrareas), sizeof(SaHpiIdrAreaHeaderT));
+		
+		if (i_record->area[0].idrareas.AreaId == AreaId) {
+			memcpy(Header, &(i_record->area[0].idrareas), sizeof(SaHpiIdrAreaHeaderT));
 			*NextAreaId = SAHPI_LAST_ENTRY;
 		} else {
 			rv = SA_ERR_HPI_NOT_PRESENT;
@@ -155,12 +155,12 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 		SaHpiIdrFieldT         *Field)
 {
 	SaErrorT rv = SA_OK;
-	void *i_record;
+	struct bc_inventory_record *i_record;
 	int i;
 	SaHpiBoolT foundit = SAHPI_FALSE;
-	struct bc_inventory_record * thisInventoryRecordPtr;
 	
-	i_record = (void *)g_malloc0(SIZE_OF_WORKING_SPACE *  sizeof(guint));
+	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
+	
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
 		rv = SA_ERR_HPI_OUT_OF_MEMORY;
@@ -170,20 +170,36 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 		rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
-		thisInventoryRecordPtr = (struct bc_inventory_record *) i_record;
-		if (thisInventoryRecordPtr->areaptr[0]->idrareas.AreaId == AreaId) {
-		
+		if (i_record->area[0].idrareas.AreaId == AreaId) {
 			/* Search for fieldId here */
-			for (i=0; i < thisInventoryRecordPtr->areaptr[0]->idrareas.NumFields; i++) {
-				if ((thisInventoryRecordPtr->areaptr[0]->fieldptr[i]->FieldId == FieldId) && 
-					(thisInventoryRecordPtr->areaptr[0]->fieldptr[i]->Type == FieldType)){
+			for (i=0; i < i_record->area[0].idrareas.NumFields; i++) {
+				if (((i_record->area[0].field[i].FieldId == FieldId) || (FieldId == SAHPI_FIRST_ENTRY)) 
+                                   && ((i_record->area[0].field[i].Type == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED)))
+				{
+					memcpy(Field, &(i_record->area[0].field[i]), sizeof(SaHpiIdrFieldT));
+					foundit = SAHPI_TRUE;
 					break;
 				}
 			}
-			
+			i++;
 			if (foundit) {
-				memcpy(Field, thisInventoryRecordPtr->areaptr[0]->fieldptr[i], sizeof(SaHpiIdrFieldT));
-				*NextFieldId = SAHPI_LAST_ENTRY;
+                                foundit = SAHPI_FALSE;
+                                if (i < i_record->area[0].idrareas.NumFields) {
+                                        do { 
+                                                if ((i_record->area[0].field[i].Type == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
+                                                {       
+                                                        *NextFieldId = i_record->area[0].field[i].FieldId;                                         
+                                                        foundit= SAHPI_TRUE;
+                                                        break;
+                                                }
+                                                i++;
+                                        } while (i < i_record->area[0].idrareas.NumFields);
+                                
+                                        if (!foundit) {
+                                                *NextFieldId = SAHPI_LAST_ENTRY;
+                                        }
+                                } else 
+                                        *NextFieldId = SAHPI_LAST_ENTRY;
 			} else {
 				rv = SA_ERR_HPI_NOT_PRESENT;
 			} 
@@ -274,9 +290,9 @@ SaErrorT snmp_bc_del_idr_field( void *hnd,
  *		SA_ERR_TIMEOUT <-- pdp check
  **/
 SaErrorT snmp_bc_build_idr( void *hnd, 
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		void *		         i_record)
+		SaHpiResourceIdT        ResourceId,
+		SaHpiIdrIdT             IdrId,
+		struct bc_inventory_record 	*i_record)
 {
 	SaErrorT rv = SA_OK;
 	struct oh_handler_state *handle = (struct oh_handler_state *) hnd;
@@ -287,11 +303,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	struct snmp_value get_value;
 	
 	/* Local work spaces */
-	struct bc_inventory_record thisInventoryRecord;
-	struct bc_idr_area	   thisInventoryArea;
-	struct bc_idr_area *       inventoryAreaPtr;
-	SaHpiIdrFieldT *           inventoryFieldPtr;
-
+	struct bc_idr_area	thisInventoryArea;
 	SaHpiIdrFieldT		thisField;
 	
 	
@@ -301,22 +313,15 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                         (struct BC_InventoryInfo *)oh_get_rdr_data(handle->rptcache, ResourceId, rdr->RecordId);
 
 		
-		thisInventoryRecord.idrinfo.IdrId = IdrId;
-		thisInventoryRecord.idrinfo.UpdateCount = 0;
-		thisInventoryRecord.idrinfo.ReadOnly = SAHPI_TRUE;
-		thisInventoryRecord.idrinfo.NumAreas = 1; /* pdp - expand to 2 for chassis HW & Firmware */
+		i_record->idrinfo.IdrId = IdrId;
+		i_record->idrinfo.UpdateCount = 0;
+		i_record->idrinfo.ReadOnly = SAHPI_TRUE;
+		i_record->idrinfo.NumAreas = 1; /* pdp - expand to 2 for chassis HW & Firmware */
 		
 		thisInventoryArea.idrareas.AreaId = 1;
 		thisInventoryArea.idrareas.Type = s->mib.area_type;
 		thisInventoryArea.idrareas.ReadOnly = SAHPI_TRUE;
-		thisInventoryArea.idrareas.NumFields = 0; /* Increment it as we find field */
-		
-		inventoryAreaPtr = (struct bc_idr_area *)i_record + sizeof(struct bc_inventory_record);
-		thisInventoryRecord.areaptr[0] = inventoryAreaPtr;
-		memcpy((struct bc_inventory_record *)i_record, &thisInventoryRecord, sizeof(struct bc_inventory_record));
-		memcpy((struct bc_idr_area *)inventoryAreaPtr, &thisInventoryRecord, sizeof(struct bc_idr_area));
-		inventoryFieldPtr = (SaHpiIdrFieldT *) (inventoryAreaPtr + sizeof(struct bc_idr_area));
-		
+		thisInventoryArea.idrareas.NumFields = 0; /* Increment it as we find field */		
 				
 		thisField.AreaId = thisInventoryArea.idrareas.AreaId;
 		thisField.ReadOnly = SAHPI_TRUE;
@@ -324,7 +329,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 		thisField.FieldId = 1;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -353,15 +359,14 @@ SaErrorT snmp_bc_build_idr( void *hnd,
         	}
 		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 		
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 		thisField.FieldId = 2;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -395,16 +400,16 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	/*(SaHpiTimeT) thisField.Field.Data =  SAHPI_TIME_UNSPECIFIED;*/
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 		
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 		thisField.FieldId = 3;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -432,16 +437,16 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	g_free(oid);
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 		
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);			
 		thisField.FieldId = 4;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -469,16 +474,16 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	g_free(oid);
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 						
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);			
 		thisField.FieldId = 5;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -499,6 +504,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 					thisField.Field.DataLength = get_value.str_len;
 					thisField.Field.DataType = SAHPI_TL_TYPE_TEXT;
 					memcpy(thisField.Field.Data, get_value.string, get_value.str_len); 
+                        	} else if((rv == SA_OK) && (get_value.type == ASN_INTEGER )) {
+					thisField.Field.DataLength = get_value.str_len;
+					thisField.Field.DataType = SAHPI_TL_TYPE_TEXT;
+					memcpy(thisField.Field.Data, (char *)&get_value.integer, get_value.str_len); 
                         	} else {
                                 	dbg("%s Invalid data type for ProductVersion data\n",oid);
                         	}
@@ -506,16 +515,16 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	g_free(oid);
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 		thisField.FieldId = 6;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -543,16 +552,16 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	g_free(oid);
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);			
 		thisField.FieldId = 7;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -580,16 +589,16 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	g_free(oid);
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);			
 		thisField.FieldId = 8;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_FILE_ID;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -617,16 +626,16 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	g_free(oid);
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
-			inventoryAreaPtr->idrareas.NumFields++;
-			inventoryFieldPtr+= sizeof(SaHpiIdrFieldT);
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
 
 		/**
 		 *
-		 */ 		
+		 */
+		memset(thisField.Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);			
 		thisField.FieldId = 9;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */	
@@ -654,10 +663,13 @@ SaErrorT snmp_bc_build_idr( void *hnd,
                 	g_free(oid);
         	}
 		
+		
 		if (thisField.Field.DataLength != 0) {
-			memcpy(inventoryFieldPtr, &thisField, sizeof(SaHpiIdrFieldT));
-			inventoryAreaPtr->fieldptr[inventoryAreaPtr->idrareas.NumFields] = inventoryFieldPtr;
+			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
+			thisInventoryArea.idrareas.NumFields++;
 		}
+
+		memcpy( &(i_record->area[0]), &thisInventoryArea, sizeof(struct bc_idr_area));
 
 	} else {
 		rv = SA_ERR_HPI_NOT_PRESENT;
