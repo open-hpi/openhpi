@@ -23,6 +23,7 @@
 
 #include <sys/time.h>
 #include <SaHpi.h>
+#include <rpt_utils.h>
 
 /* 
  * struct oh_domain_id is filled by plugin.
@@ -161,6 +162,13 @@ struct oh_event {
 		struct oh_hpi_event	 hpi_event;
 		struct oh_rsel_event	 rsel_event;
 	} u;		    
+};
+
+struct oh_handler_state {
+        RPTable *rptcache;
+        GSList *eventq;
+        GHashTable *config;
+        void *data;
 };
 
 /* UUID is ee778a5f-32cf-453b-a650-518814dc956c */
