@@ -29,7 +29,7 @@
 int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep = {{{SAHPI_ENT_INTERCONNECT, 1515},
-                                {SAHPI_ENT_SYSTEM_SLOT, 2525},
+                                {SAHPI_ENT_PHYSICAL_SLOT, 2525},
                                 {SAHPI_ENT_SUBRACK, 3535},
                                 {SAHPI_ENT_IO_SUBBOARD, 4545},
                                 {0}}};
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
         int mydebug = 0;
          
         if (mydebug) printf(" test7\n");
-        if(set_ep_instance(&ep, SAHPI_ENT_SYSTEM_SLOT, x)) {
+        if(set_ep_instance(&ep, SAHPI_ENT_PHYSICAL_SLOT, x)) {
                 if (mydebug) printf("set_ep_inst test7 checkpoint 1 failed\n");
                 return 1;
         }
@@ -46,8 +46,8 @@ int main(int argc, char **argv)
                                    ep.Entry[1].EntityLocation, x);
                 return 1;
         }
-        if (ep.Entry[1].EntityType != SAHPI_ENT_SYSTEM_SLOT) {
-                if (mydebug) printf("set_ep_inst test7 failed, entType %d != SAHPI_ENT_SYSTEM_SLOT\n",
+        if (ep.Entry[1].EntityType != SAHPI_ENT_PHYSICAL_SLOT) {
+                if (mydebug) printf("set_ep_inst test7 failed, entType %d != SAHPI_ENT_PHYSICAL_SLOT\n",
                                    ep.Entry[1].EntityType);
                 return 1;
         }
