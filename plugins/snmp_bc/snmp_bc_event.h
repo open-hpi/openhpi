@@ -28,11 +28,21 @@ typedef struct {
 int event2hpi_hash_init(struct oh_handler_state *handle);
 int event2hpi_hash_free(struct oh_handler_state *handle);
 
-int find_res_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_info);
-int find_sensor_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor);
+int find_res_events(struct oh_handler_state *handle,
+		    SaHpiEntityPathT *ep, 
+		    const struct BC_ResourceInfo *bc_res_info);
 
-int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled_ptr);
-int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo);
+int find_sensor_events(struct oh_handler_state *handle,
+		       SaHpiEntityPathT *ep, 
+		       SaHpiSensorNumT sid, 
+		       const struct snmp_bc_sensor *rpt_sensor);
+
+int log2event(void *hnd, 
+	      gchar *logstr, 
+	      SaHpiEventT *event, 
+	      int isdst, 
+	      int *event_enabled_ptr);
 
 int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent);
+
 #endif

@@ -310,6 +310,44 @@ int main(int argc, char **argv)
 		return -1;
         }
 
+	/*************************************************************
+	 * TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)
+	 *************************************************************/
+	logstr = "Severity:INFO  Source:BLADE_07  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:BSE Option over recommended temperature. Read value 87 Threshold value 75";
+	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
+	strcpy(hash_value->value.string, logstr);
+	g_hash_table_insert(sim_hash, hash_key, hash_value);
+
+        err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
+				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+	
+	/* Check expected values */
+	if (!((!(logentry.Event.Source == chassis_rid)) &&
+	      (logentry.Event.EventType == SAHPI_ET_SENSOR) &&
+	      (logentry.Event.Severity == SAHPI_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.SensorType == SAHPI_TEMPERATURE) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
+	      (!(logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_CRIT)) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)87) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)75))) {
+		printf("Error! TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)\n");
+		print_event(&(logentry.Event));
+		return -1;
+	}
+
+	err = saHpiEventLogClear(sessionid, chassis_rid);
+	if (err != SA_OK) {
+		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		return -1;
+        }
+
 	/* Better to test a mapped login event - don't have one yet */
 	/*************************************************************
 	 * TestCase - Non-mapped Login Event (Severity=WARN)
@@ -568,6 +606,12 @@ int main(int argc, char **argv)
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
         }
+
+
+
+
+
+
 	
 	/****************** 
 	 * End of testcases 
