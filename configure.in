@@ -34,6 +34,7 @@ AC_CHECK_LIB([glib], [g_slist_alloc],
     echo "************************************************************"
     echo "* glib not found!"
     echo "* this is require for openhpi internals"
+    echo "* please ensure glib-devel package is installed
     echo "************************************************************"
     exit 1
     ])
