@@ -118,7 +118,6 @@ static gchar *eshort_names[] = {
 };
 
 #define ESHORTNAMES_ARRAY_SIZE 61
-#define MAX_INSTANCE_DIGITS 6
 #define ELEMENTS_IN_SaHpiEntityT 2
 #define EPATHSTRING_START_DELIMITER "{"
 #define EPATHSTRING_END_DELIMITER "}"
@@ -280,7 +279,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
   
 		/* Validate and convert data */
                 work_instance_num = epathptr->Entry[i].EntityInstance;
-                for (num_digits = 1; (work_instance_num/10) > 0; num_digits++);
+                for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
 		
 		if (num_digits > MAX_INSTANCE_DIGITS) { 
                         g_free(instance_str); 
