@@ -21,7 +21,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 #include "hpi_cmd.h"
+
+#define MAX_IN_FILES	10
+
 
 term_def_t	*terms;
 int		read_stdin = 1;
@@ -29,6 +33,8 @@ int		read_file = 0;
 com_enum_t	block_type = MAIN_COM;
 FILE		*input_file = (FILE *)NULL;
 ret_code_t	shell_error = HPI_SHELL_OK;
+int		in_files_count = 0;
+FILE		*input_files[MAX_IN_FILES];
 
 /* local variables */
 static char	input_buffer[READ_BUF_SIZE];	// command line buffer
@@ -37,6 +43,19 @@ static char	cmd_line[LINE_BUF_SIZE];	// current command line
 static int	max_term_count = 0;
 static int	term_count = 0;
 static int	current_term = 0;
+
+static int delete_input_file(void)
+{
+	FILE		*f;
+
+	if (in_files_count < 1) return(-1);
+	in_files_count--;
+	f = input_files[in_files_count];
+	fclose(f);
+	if (in_files_count == 0) return(-1);
+	input_file = input_files[in_files_count - 1];
+	return(0);
+}
 
 static void new_command(void)
 {
@@ -48,9 +67,9 @@ static void new_command(void)
 static void go_to_dialog(void)
 {
 	if (read_stdin) return;
+	if (delete_input_file() == 0) return;
 	read_stdin = 1;
 	read_file = 0;
-	fclose(input_file);
 	new_command();
 }
 
@@ -401,4 +420,26 @@ ret_code_t unget_term(void)
 	if (current_term > 0)
 		current_term--;
 	return (current_term);
+}
+
+int add_input_file(char *path)
+{
+	int		i;
+	FILE		*f;
+
+	if (in_files_count >= MAX_IN_FILES) return(-1);
+	i = access(path, R_OK | F_OK);
+	if (i != 0) {
+		printf("Can not access file: %s\n", path);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	f = fopen(path, "r");
+	if (f == (FILE *)NULL) {
+		printf("Can not open file: %s\n", path);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	input_files[in_files_count] = f;
+	in_files_count++;
+	input_file = f;
+	return(0);
 }

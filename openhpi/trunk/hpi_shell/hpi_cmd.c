@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <getopt.h>
 #include "hpi_cmd.h"
 
@@ -111,16 +110,8 @@ ret_code_t ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type, SaHpiInstrumentId
 
 ret_code_t open_file(char *path)
 {
-	int		i;
-
-	i = access(path, R_OK | F_OK);
-	if (i != 0) {
-		printf("Can not access file: %s\n", path);
-		return(HPI_SHELL_PARM_ERROR);
-	};
-	input_file = fopen(path, "r");
-	if (input_file == (FILE *)NULL) {
-		printf("Can not open file: %s\n", path);
+	if (add_input_file(path) != 0) {
+		printf("Can not run file: %s\n", path);
 		return(HPI_SHELL_PARM_ERROR);
 	};
 	read_file = 1;
