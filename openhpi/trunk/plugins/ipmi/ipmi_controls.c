@@ -30,7 +30,7 @@ static void get_control_state(ipmi_control_t	*control,
 }
 #endif
 
-struct ohoi_control_read_info {
+struct ohoi_control_info {
         int done;
         SaHpiCtrlStateT *state;
 };
@@ -40,7 +40,7 @@ static void __get_control_state(ipmi_control_t *control,
                                 int            *val,
                                 void           *cb_data)
 {
-        struct ohoi_control_read_info *info = cb_data;
+        struct ohoi_control_info *info = cb_data;
 
         info->done = 1;
         if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
@@ -67,7 +67,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        struct ohoi_control_read_info info;
+        struct ohoi_control_info info;
 	SaErrorT         rv;
 	ipmi_control_id_t *ctrl;
 
@@ -87,16 +87,64 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_ERROR;
 	}
 
-        ohoi_loop(&info.done, ipmi_handler);
+        return ohoi_loop(&info.done, ipmi_handler);
+}
 
-	return SA_OK;
+static void __set_control_state(ipmi_control_t *control,
+                                int            err,
+                                void           *cb_data)
+{
+       struct ohoi_control_info *info = cb_data;
+       info->done = 1;
+}
+
+static void _set_control_state(ipmi_control_t *control,
+                                void           *cb_data)
+{
+        struct ohoi_control_info *info = cb_data;
+        
+        if (info->state->StateUnion.Oem.BodyLength 
+                        != ipmi_control_get_num_vals(control)) {
+                dbg("control number is not equal to supplied data");
+                info->done = -1;
+                return;
+        }
+                        
+        ipmi_control_set_val(control, 
+                             (int *)&info->state->StateUnion.Oem.Body[0],
+                             __set_control_state, info);
 }
 
 SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlStateT *state)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+        struct ohoi_control_info info;
+	SaErrorT         rv;
+	ipmi_control_id_t *ctrl;
+
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl);
+        if (rv!=SA_OK)
+                return rv;
+	
+        info.done  = 0;
+        info.state = state;
+        if (info.state->Type != SAHPI_CTRL_TYPE_OEM) {
+                dbg("IPMI only support OEM control");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+        
+        rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+	if (rv) {
+		dbg("Unable to retrieve control state");
+		return SA_ERR_HPI_ERROR;
+	}
+
+        ohoi_loop(&info.done, ipmi_handler);
+
+	return SA_OK;
 }
 
 static void set_reset_state(ipmi_control_t *control,
