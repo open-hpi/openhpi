@@ -83,7 +83,10 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
 
         g_mutex_lock(domains.lock); /* Locked domain table */
         domain = g_hash_table_lookup(domains.table, &did);
-        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
+        if (!domain) {
+                g_mutex_unlock(domains.lock);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
 
         g_mutex_lock(domain->lock);
         oh_flush_rpt(&(domain->rpt));
@@ -115,7 +118,10 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
 
         g_mutex_lock(domains.lock); /* Locked domain table */
         domain = g_hash_table_lookup(domains.table, &did);
-        if (!domain) return NULL;
+        if (!domain) {
+                g_mutex_unlock(domains.lock);
+                return NULL;
+        }
 
         g_mutex_lock(domain->lock);
         g_mutex_unlock(domains.lock); /* Unlocked domain table */
