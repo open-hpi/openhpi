@@ -72,6 +72,9 @@ struct ohoi_handler {
 
 struct ohoi_resource_info {
 
+	int presence;	/* entity presence from OpenIPMI to determine
+			   to push RPT to domain RPTable or not */
+	
         SaHpiUint8T  sensor_count; 
         SaHpiUint8T  ctrl_count; 
 
@@ -84,8 +87,6 @@ struct ohoi_resource_info {
                 ipmi_mcid_t      mc_id;
         } u;
 
-	int present;
-	
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
 };

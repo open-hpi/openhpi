@@ -362,6 +362,8 @@ static int ipmi_discover_resources(void *hnd)
 	time_t		tm, tm1;
 	int		SDR_done = 0, scan_done = 0, mc_count = 0;
 
+	struct ohoi_resource_info	*res_info;
+
 	dbg("ipmi discover_resources");
 	
 	time(&tm);
@@ -394,28 +396,39 @@ static int ipmi_discover_resources(void *hnd)
 
 	dbg("ipmi discover_resources, MC count: %d", ipmi_handler->mc_count);
         rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
-        while (rpt_entry) {
-                event = g_malloc0(sizeof(*event));
-                memset(event, 0, sizeof(*event));
-                event->type = OH_ET_RESOURCE;
-                memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-                handler->eventq = g_slist_append(handler->eventq, event);
 
-                dbg("Now adding rdr for resource: %d", event->u.res_event.entry.ResourceId);
-                rdr_entry = oh_get_rdr_next(handler->rptcache,rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
-                
-                while (rdr_entry) {
-                        event = g_malloc0(sizeof(*event));
-                        memset(event, 0, sizeof(*event));
-                        event->type = OH_ET_RDR;
-			event->u.rdr_event.parent = rpt_entry->ResourceId;
-                        memcpy(&event->u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
-                        handler->eventq = g_slist_append(handler->eventq, event);
-                        
-                        rdr_entry = oh_get_rdr_next(handler->rptcache, rpt_entry->ResourceId, rdr_entry->RecordId);
-                }
-                
-                rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
+        while (rpt_entry) {
+	  	res_info = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
+		dbg("res: %d presence: %d", rpt_entry->ResourceId, res_info->presence);
+		if (res_info->presence) {
+			event = g_malloc0(sizeof(*event));
+			memset(event, 0, sizeof(*event));
+			event->type = OH_ET_RESOURCE;
+
+			memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
+			handler->eventq = g_slist_append(handler->eventq, event);
+
+			rdr_entry = oh_get_rdr_next(handler->rptcache,
+						    rpt_entry->ResourceId,
+						    SAHPI_FIRST_ENTRY);
+                	while (rdr_entry) {
+			  	event = g_malloc0(sizeof(*event));
+				memset(event, 0, sizeof(*event));
+				event->type = OH_ET_RDR;
+				event->u.rdr_event.parent = rpt_entry->ResourceId;
+
+				memcpy(&event->u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
+				handler->eventq = g_slist_append(handler->eventq, event);
+				
+				rdr_entry = oh_get_rdr_next(handler->rptcache,
+							    rpt_entry->ResourceId,
+							    rdr_entry->RecordId);
+			}
+			rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
+                } else {
+		  	dbg("Resource %d not present, skipping", rpt_entry->ResourceId);
+			rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
+		}
         }
 
 	return 0;
