@@ -1055,17 +1055,17 @@ static int set_sensor_threshold(SaHpiResourceIdT rptid, SaHpiSensorNumT num)
 	if (modify == 0) return(SA_OK);
 		
 	print_thres_value(&(senstbuff.LowCritical), "Lower Critical Threshold(lc):",
-		ui_print);
-	print_thres_value(&(senstbuff.LowMajor), "Lower Major Threshold(la):", ui_print);
-	print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold(li):", ui_print);
+		NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.LowMajor), "Lower Major Threshold(la):", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold(li):", NULL, 0, ui_print);
 	print_thres_value(&(senstbuff.UpCritical), "Upper Critical Threshold(uc):",
-		ui_print);
-	print_thres_value(&(senstbuff.UpMajor), "Upper Major Threshold(ua):", ui_print);
-	print_thres_value(&(senstbuff.UpMinor), "Upper Minor Threshold(ui):", ui_print);
+		NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.UpMajor), "Upper Major Threshold(ua):", NULL, 0, ui_print);
+	print_thres_value(&(senstbuff.UpMinor), "Upper Minor Threshold(ui):", NULL, 0, ui_print);
 	print_thres_value(&(senstbuff.PosThdHysteresis),
-		"Positive Threshold Hysteresis(ph):", ui_print);
+		"Positive Threshold Hysteresis(ph):", NULL, 0, ui_print);
 	print_thres_value(&(senstbuff.NegThdHysteresis),
-		"Negative Threshold Hysteresis(nh):", ui_print);
+		"Negative Threshold Hysteresis(nh):", NULL, 0, ui_print);
 	printf("Set new threshold (yes|no) : ");
 	fgets(tmp, 256, stdin);
 	if (strncmp(tmp, "yes", 3) != 0) {
