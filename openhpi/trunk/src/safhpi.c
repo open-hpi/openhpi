@@ -20,12 +20,9 @@
  *     Renier Morales <renierm@users.sf.net>
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <oh_init.h>
-#include <oh_plugin.h>
 #include <sahpimacros.h>
 #include <epath_utils.h>
 
