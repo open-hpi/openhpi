@@ -128,30 +128,28 @@ SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm)
 
         if (param.u.dat_size_limit != OH_MAX_DAT_SIZE_LIMIT &&
             g_slist_length(d->dat.list) >= param.u.dat_size_limit) {
-                if (!alarm || alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER) {
-                        d->dat.overflow = SAHPI_TRUE;
-                }
+                dbg("DAT for domain %d is overflowed", d->id);
+                d->dat.overflow = SAHPI_TRUE;
                 return NULL;
         } else if (alarm && alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_USER) {
-                SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_USER;
-
                 param.type = OPENHPI_DAT_USER_LIMIT;
                 if (oh_get_global_param(&param))
                         param.u.dat_user_limit = OH_MAX_DAT_USER_LIMIT;
 
                 if (param.u.dat_user_limit != OH_MAX_DAT_USER_LIMIT &&
-                    __count_alarms(d, &type, SAHPI_ALL_SEVERITIES) >= param.u.dat_user_limit)
+                    __count_alarms(d,
+                                   &alarm->AlarmCond.Type,
+                                   SAHPI_ALL_SEVERITIES) >= param.u.dat_user_limit) {
+                        dbg("DAT for domain %d has reached its user alarms limit", d->id);
                         return NULL;
+                }
         }
 
         a = g_new0(SaHpiAlarmT, 1);
         /* Is this 'if' below needed? g_new will stop program
          * on a failed malloc anyway. Just in case...
          */
-        if (!a) {
-                d->dat.overflow = SAHPI_TRUE;
-                return NULL;
-        }
+        if (!a) return NULL;
 
         if (alarm) /* Copy contents of optional alarm reference */
                 memcpy(a, alarm, sizeof(SaHpiAlarmT));
@@ -235,6 +233,7 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
 {
         GSList *alarm_node = NULL;
         SaHpiAlarmT *alarm = NULL;
+        struct oh_global_param param = { .type = OPENHPI_DAT_SIZE_LIMIT };
 
         if (!d) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -255,6 +254,11 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
         } while (multi);
 
         __update_dat(d);
+        if (!oh_get_global_param(&param)) { /* Reset overflow flag if not overflowed */
+                if (param.u.dat_size_limit != OH_MAX_DAT_SIZE_LIMIT &&
+                    g_slist_length(d->dat.list) < param.u.dat_size_limit)
+                        d->dat.overflow = SAHPI_FALSE;
+        }
 
         return SA_OK;
 }

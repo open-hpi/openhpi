@@ -29,7 +29,7 @@
  */
 struct oh_session_table {
         GHashTable *table;
-        GStaticRecMutex lock;                
+        GStaticRecMutex lock;
 };
 
 extern struct oh_session_table oh_sessions;
@@ -58,10 +58,10 @@ struct oh_session {
           each session could receive different events depending on what
           events the caller signs up for.
 
-          This is the session specific event queue          
+          This is the session specific event queue
         */
         GAsyncQueue *eventq;
-        
+
 };
 
 SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did);

@@ -70,7 +70,7 @@ static gpointer oh_event_thread_loop(gpointer data)
 int oh_event_init()
 {
         struct oh_global_param threaded_param = { .type = OPENHPI_THREADED };
-        
+
         trace("Attempting to init event");
         if (!g_thread_supported()) {
                 trace("Initializing thread support");
@@ -80,7 +80,7 @@ int oh_event_init()
         }
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
-        
+
         oh_get_global_param(&threaded_param);
         if (threaded_param.u.threaded) {
                 oh_is_threaded = TRUE;
@@ -89,7 +89,7 @@ int oh_event_init()
                 oh_event_thread = g_thread_create(oh_event_thread_loop,
                                                   NULL, FALSE, &oh_event_thread_error);
         }
-        
+
         return 1;
 }
 
@@ -113,13 +113,21 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
 {
         struct oh_event event;
         struct oh_event *e2;
+        struct oh_global_param param = { .type = OPENHPI_EVT_QUEUE_LIMIT };
 
         SaErrorT error = SA_OK;
 
+        if (oh_get_global_param(&param))
+                param.u.evt_queue_limit = OH_MAX_EVT_QUEUE_LIMIT;
+
         do {
                 error = h->abi->get_event(h->hnd, &event);
-                if(error < 1) {
+                if (error < 1) {
                         trace("Handler is out of Events");
+                } else if (param.u.evt_queue_limit != OH_MAX_EVT_QUEUE_LIMIT &&
+                           g_async_queue_length(oh_process_q) >= param.u.evt_queue_limit) {
+                        dbg("Process queue is out of space");
+                        error = SA_ERR_HPI_OUT_OF_SPACE;
                 } else {
                         trace("Found event for handler %p", h);
                         e2 = oh_dup_oh_event(&event);
@@ -157,7 +165,7 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         struct oh_global_param logsev_param = { .type = OPENHPI_LOG_ON_SEV };
         struct oh_domain *d;
         SaErrorT rv = SA_OK;
-        
+
         oh_get_global_param(&logsev_param);
 
         if (e->event.Severity <= logsev_param.u.log_on_sev) { /* less is more */
@@ -301,7 +309,7 @@ static int process_rdr_event(struct oh_event *e)
         int rv = -1;
         SaHpiResourceIdT rid = e->u.rdr_event.parent;
         RPTable *rpt = NULL;
-        struct oh_domain *d = NULL;        
+        struct oh_domain *d = NULL;
 
         d = oh_get_domain(e->did);
 
@@ -310,7 +318,7 @@ static int process_rdr_event(struct oh_event *e)
                 dbg("Domain %d doesn't exist", e->did);
                 return -1;
         }
-        
+
         rpt = &(d->rpt);
 
         if (e->type == OH_ET_RDR_DEL) {  /* Remove RDR */
@@ -328,10 +336,10 @@ static int process_rdr_event(struct oh_event *e)
                 } else {
                         dbg("FAILED: RDR %x in Resource %d in Domain %d has NOT been ADDED.",
                             e->u.rdr_event.rdr.RecordId, rid, e->did);
-                }                
+                }
         }
 
-        oh_release_domain(d);        
+        oh_release_domain(d);
 
         return rv;
 }
@@ -345,7 +353,7 @@ SaErrorT oh_process_events()
                 /* FIXME: add real check if handler is allowed to push event
                    to the domain id in the event */
                 if((e->did != oh_get_default_domain_id()) &&
-		   (e->did != SAHPI_UNSPECIFIED_DOMAIN_ID)) {
+                   (e->did != SAHPI_UNSPECIFIED_DOMAIN_ID)) {
                         dbg("Domain Id %d not valid for event", e->did);
                         g_free(e);
                         continue;
