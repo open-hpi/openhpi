@@ -439,8 +439,67 @@ static int snmp_rsa_get_inventory_info(void *hnd, SaHpiResourceIdT id,
                                       SaHpiEirIdT num,
                                       SaHpiInventoryDataT *data)
 {
+        SaHpiInventDataRecordTypeT l_recordtype;
+        SaErrorT return_status = SA_OK;
+        SaHpiInventGeneralDataT *working;
+        SaHpiInventoryDataT *l_data;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_INVENTORY_RDR, num);
 
-        return(0);
+        l_data = data;
+        l_data->Validity =  SAHPI_INVENT_DATA_INVALID;
+        l_data->DataRecords[0] = (SaHpiInventDataRecordT *)l_data + sizeof(SaHpiInventoryDataT) +
+                                        sizeof(l_data->DataRecords[0])+  sizeof(SaHpiInventDataRecordT);
+        l_data->DataRecords[1] = NULL;
+
+        if(rdr != NULL) {
+
+                struct RSA_InventoryInfo *s =
+                        (struct RSA_InventoryInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
+                l_recordtype = s->mib.inventory_type;
+
+                 switch (l_recordtype) {
+                         case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
+                                dbg("Not yet implemented SAHPI_INVENT_RECTYPE_INTERNAL_USE\n");
+                                l_data->DataRecords[0]->DataLength = 0;
+                                return_status = SA_ERR_HPI_UNKNOWN;
+                                break;
+                        case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
+                        case SAHPI_INVENT_RECTYPE_BOARD_INFO:
+                                working = (SaHpiInventGeneralDataT *)&l_data->DataRecords[0]->RecordData.ProductInfo;
+                                get_inventory_data(hnd, rdr, s, l_data, working, &l_data->DataRecords[0]->DataLength);
+                                l_data->Validity =  SAHPI_INVENT_DATA_VALID;
+                                return_status = SA_OK;
+                                break;
+                        case SAHPI_INVENT_RECTYPE_CHASSIS_INFO:
+                                working = (SaHpiInventGeneralDataT *)&l_data->DataRecords[0]->RecordData.ChassisInfo.GeneralData;
+                                get_inventory_data(hnd, rdr, s, l_data, working, &l_data->DataRecords[0]->DataLength);
+                                l_data->DataRecords[0]->RecordData.ChassisInfo.Type = s->mib.chassis_type;
+                                l_data->Validity =  SAHPI_INVENT_DATA_VALID;
+                                return_status = SA_OK;
+                                break;
+                        case SAHPI_INVENT_RECTYPE_OEM:
+                                dbg("Not yet implemented SAHPI_INVENT_RECTYPE_OEM\n");
+                                l_data->DataRecords[0]->DataLength = 0;
+                                return_status = SA_ERR_HPI_UNKNOWN;
+                                break;
+                        default:
+                                dbg("Invalid inventory type %x in RDR\n", l_recordtype);
+                                l_data->DataRecords[0]->DataLength = 0;
+                                return_status = SA_ERR_HPI_UNKNOWN;
+                                break;
+                    }
+
+                l_data->DataRecords[0]->RecordType = l_recordtype;
+
+                /* FIXME:: Do we need to add events as well? */
+
+        } else {
+                dbg("No Inventory RDR found for ResourceId %x, EirId %x\n", id, num);
+                return_status = SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        return(return_status);
 
 }
 
@@ -451,7 +510,24 @@ static int snmp_rsa_get_inventory_size(void *hnd, SaHpiResourceIdT id,
                                                         */
                                       SaHpiUint32T *size)
 {
-        return 0;
+        SaErrorT rc, return_status = SA_OK;
+        SaHpiInventoryDataT *l_inventdata;
+        l_inventdata =g_malloc(1024 *  sizeof(guint));
+        if (l_inventdata != NULL) {
+                rc = snmp_rsa_get_inventory_info(hnd, id, num, (SaHpiInventoryDataT *)l_inventdata);
+               *size = (l_inventdata->DataRecords[0]->DataLength +
+                          sizeof(SaHpiInventoryDataT) +
+                          sizeof(l_inventdata->DataRecords[0]) +
+                           sizeof(SaHpiInventDataRecordT));
+
+                g_free(l_inventdata);
+                return_status = SA_OK;
+        } else {
+                dbg("No space available ");
+                return_status = SA_ERR_HPI_OUT_OF_SPACE ;
+        }
+
+        return return_status;
 }
 
 
@@ -459,13 +535,22 @@ static int snmp_rsa_set_inventory_info(void *hnd, SaHpiResourceIdT id,
                                       SaHpiEirIdT num,
                                       const SaHpiInventoryDataT *data)
 {
-        return -1;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 
 static int snmp_rsa_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act)
 {
-        return -1;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
+	
+	if (res->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
+		dbg("ERROR: RSA does not yet support Resource Configuration saving");
+		return -1;
+	}
+	else {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
 }
 
 struct oh_abi_v2 oh_snmp_rsa_plugin = {
