@@ -10,13 +10,10 @@
  * full licensing terms.
  *
  * Author(s):
+ *      Renier Morales <renierm@users.sf.net>
+ *      Steve Sherman  <stevees@us.ibm.com>
  *      W. David Ashley<dashley@us.ibm.com>
  */
-
-/************************************************************************
- * Warning! If you change this file, please make the corresponding change
- *          t/snmp_rsa_session.c to keep the simulator code in sync.
- ************************************************************************/
 
 #include <SaHpi.h>
 
@@ -30,6 +27,11 @@
 #include <rsa_str2event.h>
 #include <snmp_rsa_event.h>
 
+int is_simulator(void);
+int sim_banner(void);
+int sim_init(void);
+int sim_close(void);
+
 /**
  * snmp_rsa_open: open RSA plugin
  * @handler_config: hash table passed by infrastructure
@@ -39,6 +41,7 @@ void *snmp_rsa_open(GHashTable *handler_config)
 {
         struct oh_handler_state *handle;
         struct snmp_rsa_hnd *custom_handle;
+        char *hostname, *version, *sec_level, *authtype, *user, *pass, *community;
         char *root_tuple;
 
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
@@ -46,7 +49,13 @@ void *snmp_rsa_open(GHashTable *handler_config)
                 dbg("ERROR: Cannot open snmp_rsa plugin. No entity root found in configuration.");
                 return NULL;
         }
-        
+
+        hostname = (char *)g_hash_table_lookup(handler_config, "host");
+        if (!hostname) {
+                dbg("ERROR: Cannot open snmp_rsa plugin. No hostname found in configuration.");
+                return NULL;
+        }
+
         handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
         custom_handle =
                 (struct snmp_rsa_hnd *)g_malloc0(sizeof(struct snmp_rsa_hnd));
@@ -54,8 +63,8 @@ void *snmp_rsa_open(GHashTable *handler_config)
                 dbg("Could not allocate memory for handle or custom_handle.");
                 return NULL;
         }
-        handle->data = custom_handle;
         
+        handle->data = custom_handle;
         handle->config = handler_config;
 
         /* Initialize RPT cache */
@@ -76,31 +85,118 @@ void *snmp_rsa_open(GHashTable *handler_config)
 		dbg("Couldn't initialize event2hpi hash table.");
 		return NULL;
 	}
-        
-        /* Initialize snmp library */
-        init_snmp("oh_snmp_rsa");
-        
-        snmp_sess_init(&(custom_handle->session)); /* Setting up all defaults for now. */
-        custom_handle->session.peername = (char *)g_hash_table_lookup(handle->config, "host");
+       
+	/* Initialize simulator tables */
+	if (is_simulator()) {
+		custom_handle->ss = NULL;
+		sim_init();
+	}
+	else {
+		/* Initialize snmp library */
+		init_snmp("oh_snmp_rsa");        
+		snmp_sess_init(&(custom_handle->session)); /* Setting up all defaults for now. */
+		/* Set snmp agent's hostname */
+		custom_handle->session.peername = hostname;
 
-        /* set the SNMP version number */
-        custom_handle->session.version = SNMP_VERSION_1;
+		/* Get config parameters */
+		version = (char *)g_hash_table_lookup(handle->config, "version");
+		if (!version) {
+			dbg("Cannot open snmp_rsa. Need version configuration parameter.");
+			return NULL;
+		}
+		sec_level = (char *)g_hash_table_lookup(handle->config, "security_level");
+		authtype = (char *)g_hash_table_lookup(handle->config, "auth_type");
+		user = (char *)g_hash_table_lookup(handle->config, "security_name");
+		pass = (char *)g_hash_table_lookup(handle->config, "passphrase");
+		community = (char *)g_hash_table_lookup(handle->config, "community");
+		
+		/* Configure snmp session */
+		if (!strcmp(version,"3")) { /* if snmp version 3*/
+			if (!user) {
+				dbg("Cannot open snmp_rsa. Need security_name configuration parameter.");
+				return NULL;
+			}
+			custom_handle->session.version = SNMP_VERSION_3;
+			custom_handle->session.securityName = user;
+			custom_handle->session.securityNameLen = strlen(user);
+			custom_handle->session.securityLevel = SNMP_SEC_LEVEL_NOAUTH;
+			
+			if (!strncmp(sec_level,"auth",4)) { /* if using password */
+				if (!pass) {
+					dbg("Cannot open snmp_rsa. Need passphrase configuration parameter.");
+					return NULL;
+				}
+				
+				custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
+				if (!authtype || !strcmp(authtype,"MD5")) {
+					custom_handle->session.securityAuthProto = usmHMACMD5AuthProtocol;
+					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_MD5_LEN;
+				} else if (!strcmp(authtype,"SHA")) {
+					custom_handle->session.securityAuthProto = usmHMACSHA1AuthProtocol;
+					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_SHA_LEN;
+				} else {dbg("Cannot open snmp_rsa. Wrong auth_type."); return NULL;}
+				
+				custom_handle->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
+				if (generate_Ku(custom_handle->session.securityAuthProto,
+						custom_handle->session.securityAuthProtoLen,
+						(u_char *) pass, strlen(pass),
+						custom_handle->session.securityAuthKey,
+						&(custom_handle->session.securityAuthKeyLen)) != SNMPERR_SUCCESS) {
+					snmp_perror("snmp_rsa");
+					snmp_log(LOG_ERR,
+						 "Error generating Ku from authentication passphrase.\n");
+					dbg("Unable to establish snmp authnopriv session.");
+					return NULL;
+				}
+				
+				if (!strcmp(sec_level,"authPriv")) { /* if using encryption */
+					custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
+					custom_handle->session.securityPrivProto = usmDESPrivProtocol;
+					custom_handle->session.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
+					custom_handle->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
+					if (generate_Ku(custom_handle->session.securityAuthProto,
+							custom_handle->session.securityAuthProtoLen,
+							(u_char *) pass, strlen(pass),
+							custom_handle->session.securityPrivKey,
+							&(custom_handle->session.securityPrivKeyLen)) != SNMPERR_SUCCESS) {
+						snmp_perror("snmp_rsa");
+						snmp_log(LOG_ERR,
+							 "Error generating Ku from private passphrase.\n");
+						dbg("Unable to establish snmp authpriv session.");
+						return NULL;
+					}
+					
+				}
+			}                                
+		} else if (!strcmp(version,"1")) { /* if using snmp version 1 */
+			if (!community) {
+				dbg("Cannot open snmp_rsa. Need community configuration parameter.");
+				return NULL;
+			}
+			custom_handle->session.version = SNMP_VERSION_1;
+			custom_handle->session.community = community;
+			custom_handle->session.community_len = strlen(community);
+		} else {
+			dbg("Cannot open snmp_rsa. Unrecognized version parameter %s",version);
+			return NULL;
+		}
+                
+		/* windows32 specific net-snmp initialization (is a noop on unix) */
+		SOCK_STARTUP;
 
-        /* set the SNMPv1 community name used for authentication */
-        custom_handle->session.community = (char *)g_hash_table_lookup(handle->config, "community");
-        custom_handle->session.community_len = strlen(custom_handle->session.community);
+		custom_handle->ss = snmp_open(&(custom_handle->session));
 
-        /* windows32 specific net-snmp initialization (is a noop on unix) */
-        SOCK_STARTUP;
+		if(!custom_handle->ss) {
+			snmp_perror("ack");
+			snmp_log(LOG_ERR, "something horrible happened!!!\n");
+			dbg("Unable to open snmp session.");
+			return NULL;
+		}
+	}
 
-        custom_handle->ss = snmp_open(&(custom_handle->session));
-
-        if(!custom_handle->ss) {
-                snmp_perror("ack");
-                snmp_log(LOG_ERR, "something horrible happened!!!\n");
-                dbg("Unable to open snmp session.");
-                return NULL;
-        }
+	if (is_simulator) {
+		sim_banner();
+	}
 
         return handle;
 }
@@ -115,15 +211,20 @@ void *snmp_rsa_open(GHashTable *handler_config)
 void snmp_rsa_close(void *hnd)
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_rsa_hnd *custom_handle =
-                (struct snmp_rsa_hnd *)handle->data;
 
         oh_sel_close(handle->selcache);
-        snmp_close(custom_handle->ss);
-        /* Should we free handle->config? */
 
-        /* windows32 specific net-snmp cleanup (is a noop on unix) */
-        SOCK_CLEANUP;
+	if (is_simulator()) {
+		sim_close();
+	}
+	else {
+		struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+
+		/* Should we free handle->config? */
+		/* windows32 specific net-snmp cleanup (is a noop on unix) */
+		snmp_close(custom_handle->ss);
+		SOCK_CLEANUP;
+	}
 
 	/* Cleanup str2event hash table */
 	str2event_hash_free();
