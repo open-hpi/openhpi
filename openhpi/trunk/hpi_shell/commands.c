@@ -39,6 +39,11 @@
 			"	help	 - command list\n" \
 			"	q | quit - exit"
 
+#define CTRL_AV_COM 	"   Available commands:\n" \
+			"	show     - show control status\n" \
+			"	help	 - command list\n" \
+			"	q | quit - exit"
+
 static char	input_buffer[READ_BUF_SIZE];	// command line buffer
 static char	*input_buf_ptr = input_buffer;	// current pointer in input_buffer
 
@@ -1263,6 +1268,72 @@ static int sen_block(int argc, char *argv[])
 	return SA_OK;
 }
 
+static int ctrl_block(int argc, char *argv[])
+{
+	SaHpiRdrT			rdr_entry;
+	SaHpiResourceIdT		rptid = 0;
+	SaHpiInstrumentIdT		rdrnum;
+	SaHpiRdrTypeT			type;
+	SaErrorT			rv;
+	int				res, i, first = 1;
+	char				buf[256];
+
+	clear_input();
+	if (argc < 2) {
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
+		i = get_int_param("RPT ID ==> ", &res, buf, 9);
+		if (i != 1) return SA_OK;
+		rptid = (SaHpiResourceIdT)res;
+	} else {
+		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+	type = SAHPI_CTRL_RDR;
+	if (argc < 3) {
+		i = show_rdr_list(Domain, rptid, type, ui_print);
+		if (i == 0) {
+			printf("No rdr for rpt: %d\n", rptid);
+			return(SA_OK);
+		};
+		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
+		if (i != 1) return SA_OK;
+		rdrnum = (SaHpiInstrumentIdT)res;
+	} else {
+		rdrnum = (SaHpiInstrumentIdT)atoi(argv[2]);
+	};
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
+	if (rv != SA_OK) {
+		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
+			rptid, type, rdrnum);
+		return(rv);
+	};
+	show_control(Domain->sessionId, rptid, rdrnum, ui_print);
+	for (;;) {
+		clear_input();
+		if (first) {
+			printf("%s\n", CTRL_AV_COM);
+			first = 0;
+		};
+		i = get_int_param("command? ==> ", &res, buf, 9);
+		if (i != 0) continue;
+		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
+		if (strcmp(buf, "help") == 0) {
+			first = 1;
+			continue;
+		};
+		if (strcmp(buf, "show") == 0) {
+			show_control(Domain->sessionId, rptid, rdrnum, ui_print);
+			continue;
+		};
+		printf("Invalid command\n");
+		first = 1;
+	};
+	return SA_OK;
+}
+
 static int show_inv(int argc, char *argv[])
 {
 	SaHpiResourceIdT	resid = 0;
@@ -1409,6 +1480,10 @@ static int quit(int argc, char *argv[])
 /* command table */
 const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"    \
 			"Usage: clearevtlog [<resource id>]";
+const char ctrlhelp[] =	"ctrl: control command block\n"
+			"Usage: ctrl [<ctrlId>]\n"
+			"	ctrlId:: <resourceId> <num>\n"
+			CTRL_AV_COM;
 const char dathelp[] = "dat: domain alarm table list\n"
 			"Usage: dat";
 const char debughelp[] = "debug: set or unset OPENHPI_DEBUG environment\n"
@@ -1460,6 +1535,7 @@ const char showrpthelp[] = "showrpt: show resource information\n"
 
 struct command commands[] = {
     { "clearevtlog",	clear_evtlog,		clearevtloghelp },
+    { "ctrl",		ctrl_block,		ctrlhelp },
     { "dat",		dat_list,		dathelp },
     { "debug",		debugset,		debughelp },
     { "dscv",		discovery,		dscvhelp },
