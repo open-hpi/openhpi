@@ -790,13 +790,10 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         res = NULL;
 	if ((RptEntry != NULL) && 
             (EventLogEntry != NULL)) {
-	    	trace("EventLogEntry's Source ID is %d", EventLogEntry->Event.Source);
 		if (EventLogEntry->Event.Source)	
 	                res = oh_get_resource_by_id(rpt, EventLogEntry->Event.Source);
 
-                if (res != NULL) {
-                        *RptEntry = *res;
-                }
+                if (res != NULL) *RptEntry = *res;
         }
 
         if ((EventLogEntry != NULL) &&
