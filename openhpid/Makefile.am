@@ -47,13 +47,13 @@ libopenhpiclient_la_SOURCES = \
 	simple_config.c
 
 libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libmarshal.a
+libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libmarshal.la
 
 noinst_PROGRAMS         = event_get
 
 # check saHpiEventGet function of the daemon
 event_get_SOURCES     = event_get.c
-event_get_LDADD       = libopenhpiclient.la $(top_builddir)/marshal/libmarshal.a $(top_builddir)/utils/libopenhpiutils.la
+event_get_LDADD       = libopenhpiclient.la $(top_builddir)/marshal/libmarshal.la $(top_builddir)/utils/libopenhpiutils.la
 event_get_LDFLAGS     = -static
 
 
