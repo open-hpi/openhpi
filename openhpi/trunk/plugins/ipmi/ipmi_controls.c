@@ -36,11 +36,6 @@ struct ohoi_reset_info {
 	SaErrorT err;
 	SaHpiResetActionT *state;
 };
-/* struct for power cycle */
-struct ohoi_power_cycle {
-  	struct ohoi_power_info *cycle_power_info;
-	struct oh_handler_state *handler;
-};
 
 static void __get_control_state(ipmi_control_t *control,
                                 int            err,
@@ -348,45 +343,6 @@ static void set_power_state_off(ipmi_control_t *control,
 	  	power_info->err = SA_OK;
 }
 
-static void cycle_power_state(ipmi_control_t *control,
-			      void	*cb_data)
-{
-  	struct ohoi_power_cycle *cycle_info = cb_data;
-
-  	struct ohoi_power_info *power_info = cycle_info->cycle_power_info;
-	struct oh_handler_state *handler = cycle_info->handler;
-	struct ohoi_handler *ipmi_handler = handler->data;
-
-	set_power_state_off(control, &power_info);
-
-	ohoi_loop(&power_info->done, ipmi_handler);
-	
-	if (power_info->done) {
-	  	dbg("power_cycle[stage 1]: OFF....OK");
-		power_info->done = 0;
-
-		set_power_state_on(control, &power_info);
-		ohoi_loop(&power_info->done, ipmi_handler);
-
-		/*FIXME: maybe we have to sleep for a bit?
-		 * HPI Spec does not specify time between states
-		 * of power cycle
-		 */
-
-		if (power_info->done) {
-	  		dbg("power_cycle[stage 2]: OFF....OK");
-			power_info->err = SA_OK;
-		} else {
-		  	dbg("power_cycle[stage 2]: OFF....Failed!");
-			power_info->err = SA_ERR_HPI_INTERNAL_ERROR;
-		}
-		
-	} else {
-	  	dbg("power_cycle: OFF....Failed!");
-		power_info->err = SA_ERR_HPI_INTERNAL_ERROR;
-	}
-}
-
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiPowerStateT state)
 {
@@ -395,7 +351,6 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	struct ohoi_power_info power_info;
-	struct ohoi_power_cycle *cycle_info;	/*special struct for POWER_CYCLE */
 
         int rv;
 	power_info.done = 0;
@@ -425,14 +380,32 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
                 	}
 			break;
 		case SAHPI_POWER_CYCLE:
-			cycle_info->cycle_power_info->done = 0;
-			cycle_info->handler = handler;
-
-			rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl,
-						     cycle_power_state, &cycle_info);
+			dbg("CYCLE power");
+			SaHpiPowerStateT	cy_state = 0;
+			cy_state = SAHPI_POWER_OFF;
+			power_info.state = &cy_state;
+			rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
+						    set_power_state_off, &power_info);
 			if (rv) {
-			  	dbg("cycle_power failed");
+				dbg("set_power_state_off failed");
 				return SA_ERR_HPI_INTERNAL_ERROR;
+			}
+			ohoi_loop(&power_info.done, ipmi_handler);
+			dbg("CYCLE Stage 1: OK");
+
+			if ((power_info.done) && (power_info.err == SA_OK)) {
+			      dbg("CYCLE: done = %d , err = %d",
+				  				power_info.done,
+								power_info.err);
+			      	cy_state = SAHPI_POWER_ON;
+				power_info.state = &cy_state;
+			      	power_info.done = 0;
+			      	rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
+							    set_power_state_on, &power_info);
+				if (rv) {
+				      	dbg("set_power_state_on failed");
+					return SA_ERR_HPI_INTERNAL_ERROR;
+				}
 			}
 			break;
 		default:
@@ -442,7 +415,7 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 
         ohoi_loop(&power_info.done, ipmi_handler);
         
-        return power_info.done;
+        return power_info.err;
 }
 
 static void get_power_control_val (ipmi_control_t *control,
