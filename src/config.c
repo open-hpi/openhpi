@@ -13,6 +13,9 @@
  * Authors:
  *     Sean Dague <sean@dague.net>
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ * Contributors:
+ *     Thomas Kangieser <Thomas.Kanngieser@ex-deu-munich02.force.de>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #include <openhpi.h>
@@ -380,6 +383,17 @@ void free_hash_table (gpointer key, gpointer value, gpointer user_data)
         free(value);
 }
 
+static void scanner_msg_handler (GScanner		*scanner,
+                                 gchar		*message,
+                                 gboolean		is_error)
+{
+  g_return_if_fail (scanner != NULL);
+
+  dbg("%s:%d: %s%s\n",
+	      scanner->input_name ? scanner->input_name : "<memory>",
+	      scanner->line, is_error ? "error: " : "", message );
+}
+
 /**
  * oh_load_config:
  * @filename: 
@@ -403,6 +417,9 @@ int oh_load_config (char *filename)
                 dbg("Couldn't allocate g_scanner for file parsing");
                 return -1;
         }
+
+        oh_scanner->msg_handler = scanner_msg_handler;
+        oh_scanner->input_name = filename;
 
         oh_conf_file = open(filename, O_RDONLY);
         if(oh_conf_file < 0) {
@@ -435,6 +452,8 @@ int oh_load_config (char *filename)
                 default:
                         /* need to advance it */
                         my_token = g_scanner_get_next_token(oh_scanner);
+                        g_scanner_unexp_token(oh_scanner, G_TOKEN_SYMBOL,
+                                              NULL, "\"handle\" or \"plugin\"", NULL, NULL, 1);
                         break;
                 }
         }
@@ -443,8 +462,11 @@ int oh_load_config (char *filename)
                 dbg("Couldn't close file '%s'.", filename);
                 return -2;
         }
+
+        done = oh_scanner->parse_errors;
+
         g_scanner_destroy(oh_scanner);
-        dbg("Done processing conf file");
+        dbg("Done processing conf file.\nNumber of parse errors:%d", done);
         
         return 0;
 }
