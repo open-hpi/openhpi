@@ -20,29 +20,28 @@ posix_vlog(char *format, enum ipmi_log_type_e log_type, va_list ap)
      int do_nl = 1;
      char *dstr = getenv("OPENHPI_DEBUG");
      
-     if (((log_type <= IPMI_LOG_WARNING) || (log_type == IPMI_LOG_ERR_INFO))
-		     && (!dstr || !strcmp("YES",getenv("OPENHPI_DEBUG"))))
+     if (!dstr || strcmp("YES", getenv("OPENHPI_DEBUG")))
 	     return;
     switch(log_type)
     {
 	case IPMI_LOG_INFO:
 	    printf("INFO: ");
-	    do_nl = 0;
+	    do_nl = 1;
 	    break;
 
 	case IPMI_LOG_WARNING:
 	    printf("WARN: ");
-	    do_nl = 0;
+	    do_nl = 1;
 	    break;
 
 	case IPMI_LOG_SEVERE:
 	    printf("SEVR: ");
-	    do_nl = 0;
+	    do_nl = 1;
 	    break;
 
 	case IPMI_LOG_FATAL:
 	    printf("FATL: ");
-	    do_nl = 0;
+	    do_nl = 1;
 	    break;
 
 	case IPMI_LOG_ERR_INFO:
