@@ -49,6 +49,7 @@ static int snmp_bc_get_event(void *hnd, struct oh_event *event, struct timeval *
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         
+	snmp_bc_check_selcache(hnd, 1, SAHPI_NEWEST_ENTRY);
         if(g_slist_length(handle->eventq)>0) {
                 memcpy(event, handle->eventq->data, sizeof(*event));
                 free(handle->eventq->data);
