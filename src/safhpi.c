@@ -1515,6 +1515,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         SaErrorT rv;
         SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT,
                                            SaHpiSensorNumT,
+					   SaHpiSensorEventMaskActionT   Action,
                                            SaHpiEventStateT   AssertEventMask,
                                            SaHpiEventStateT   DeassertEventMask);
         SaHpiRptEntryT *res;
@@ -1543,6 +1544,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         }
 
         rv = set_sensor_event_masks(h->hnd, ResourceId, SensorNum,
+				    Action,
                                     AssertEventMask,
                                     DeassertEventMask);
         return rv;
