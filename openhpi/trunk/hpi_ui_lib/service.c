@@ -32,6 +32,8 @@
 #define CATEGORY_PROC	8
 #define CTRLTYPE_PROC	9
 #define CTRLMODE_PROC	10
+#define CTRLOUTPUT_PROC	11
+#define CTRLDIGIT_PROC	12
 
 //	function numbers for decode_proc
 
@@ -105,6 +107,10 @@ char *lookup_proc(int num, int val)
 			string = oh_lookup_ctrltype(val); break;
 		case CTRLMODE_PROC:
 			string = oh_lookup_ctrlmode(val); break;
+		case CTRLOUTPUT_PROC:
+			string = oh_lookup_ctrloutputtype(val); break;
+		case CTRLDIGIT_PROC:
+			string = oh_lookup_ctrlstatedigital(val); break;
 	};
 	if (string == (char *)NULL)
 		return("");
@@ -430,11 +436,11 @@ static Attributes_t *make_attrs_sensor(SaHpiSensorRecT *sensor)
 attr_t	Def_ctrl_rdr[] = {
 	{ "Num",		INT_TYPE,	0, { .d = 0} },	//  0
 	{ "Type",		LOOKUP_TYPE,	CTRLTYPE_PROC, { .d = 0} }, //  1
-	{ "OutputType",		NO_TYPE,	0, { .d = 0} }, //  2
-	{ "TypeUnion",		NO_TYPE,	0, { .d = 0} },	//  3
+	{ "OutputType",		LOOKUP_TYPE,	CTRLOUTPUT_PROC, { .d = 0} }, //  2
+	{ "TypeUnion",		STRUCT_TYPE,	0, { .d = 0} },	//  3
 	{ "DefaultMode",	STRUCT_TYPE,	0, { .d = 0} },	//  4
 	{ "WriteOnly",		INT_TYPE,	0, { .d = 0} },	//  5
-	{ "Oem",		NO_TYPE,	0, { .d = 0} }	//  6
+	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  6
 };
 
 #define ATTRS_CTRL_MODE		2
@@ -444,10 +450,53 @@ attr_t	Def_ctrl_mode[] = {
 	{ "ReadOnly",		INT_TYPE,	0, { .d = 0} } //  1
 };
 
+#define ATTRS_CTRL_DIGITAL	1
+
+attr_t	Def_ctrl_digital[] = {
+	{ "Default",		LOOKUP_TYPE,	CTRLDIGIT_PROC, { .d = 0} }	//  0
+};
+
+#define ATTRS_CTRL_DISCRETE	1
+
+attr_t	Def_ctrl_discrete[] = {
+	{ "Default",		INT_TYPE,	0, { .d = 0} }	//  0
+};
+
+#define ATTRS_CTRL_ANALOG	3
+
+attr_t	Def_ctrl_analog[] = {
+	{ "Min",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Max",		INT_TYPE,	0, { .d = 0} },	//  1
+	{ "Default",		INT_TYPE,	0, { .d = 0} }  //  2
+};
+
+#define ATTRS_CTRL_STREAM	3
+
+attr_t	Def_ctrl_stream[] = {
+	{ "Repeat",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Length",		INT_TYPE,	0, { .d = 0} },	//  1
+	{ "Stream",		STR_TYPE,	0, { .d = 0} }  //  2
+};
+
+#define ATTRS_CTRL_TEXT		5
+
+attr_t	Def_ctrl_text[] = {
+	{ "MaxChars",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "MaxLines",		INT_TYPE,	0, { .d = 0} },	//  1
+	{ "Language",		LOOKUP_TYPE,	LANG_PROC, { .d = 0} },	//  2
+	{ "DataType",		LOOKUP_TYPE,	TAGTYPE_PROC, { .d = 0} },	//  3
+	{ "Default",		NO_TYPE,	0, { .d = 0} }  //  4
+};
+
 static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 {
-	attr_t		*att1, *att2;
-	Attributes_t	*at, *at2;
+	attr_t			*att1, *att2;
+	Attributes_t		*at, *at2;
+	SaHpiCtrlRecDigitalT	*digital;
+	SaHpiCtrlRecDiscreteT	*discrete;
+	SaHpiCtrlRecAnalogT	*analog;
+	SaHpiCtrlRecStreamT	*stream;
+	SaHpiCtrlRecTextT	*text;
 
 	at = (Attributes_t *)malloc(sizeof(Attributes_t));
 	at->n_attrs = RDR_ATTRS_CTRL_NUM;
@@ -456,6 +505,79 @@ static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 	at->Attrs = att1;
 	att1[0].value.i = ctrl->Num;
 	att1[1].value.i = ctrl->Type;
+	att1[2].value.i = ctrl->OutputType;
+
+	switch (ctrl->Type) {
+		case SAHPI_CTRL_TYPE_DIGITAL:
+			digital = &(ctrl->TypeUnion.Digital);
+			att1[3].name = "Digital";
+			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at2->n_attrs = ATTRS_CTRL_DIGITAL;
+			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_DIGITAL);
+			memcpy(att2, Def_ctrl_digital, sizeof(attr_t) * ATTRS_CTRL_DIGITAL);
+			at2->Attrs = att2;
+			att2[0].value.i = digital->Default;
+			att1[3].value.a = at2;
+			break;
+		case SAHPI_CTRL_TYPE_DISCRETE:
+			discrete = &(ctrl->TypeUnion.Discrete);
+			att1[3].name = "Discrete";
+			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at2->n_attrs = ATTRS_CTRL_DISCRETE;
+			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_DISCRETE);
+			memcpy(att2, Def_ctrl_discrete,
+				sizeof(attr_t) * ATTRS_CTRL_DISCRETE);
+			at2->Attrs = att2;
+			att2[0].value.i = discrete->Default;
+			att1[3].value.a = at2;
+			break;
+		case SAHPI_CTRL_TYPE_ANALOG:
+			analog = &(ctrl->TypeUnion.Analog);
+			att1[3].name = "Analog";
+			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at2->n_attrs = ATTRS_CTRL_ANALOG;
+			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_ANALOG);
+			memcpy(att2, Def_ctrl_analog,
+				sizeof(attr_t) * ATTRS_CTRL_ANALOG);
+			at2->Attrs = att2;
+			att2[0].value.i = analog->Min;
+			att2[1].value.i = analog->Max;
+			att2[2].value.i = analog->Default;
+			att1[3].value.a = at2;
+			break;
+		case SAHPI_CTRL_TYPE_STREAM:
+			stream = &(ctrl->TypeUnion.Stream);
+			att1[3].name = "Stream";
+			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at2->n_attrs = ATTRS_CTRL_STREAM;
+			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_STREAM);
+			memcpy(att2, Def_ctrl_stream,
+				sizeof(attr_t) * ATTRS_CTRL_STREAM);
+			at2->Attrs = att2;
+			att2[0].value.i = stream->Default.Repeat;
+			att2[1].value.i = stream->Default.StreamLength;
+			att2[2].value.s = stream->Default.Stream;
+			att1[3].value.a = at2;
+			break;
+		case SAHPI_CTRL_TYPE_TEXT:
+			text = &(ctrl->TypeUnion.Text);
+			att1[3].name = "Text";
+			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at2->n_attrs = ATTRS_CTRL_TEXT;
+			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_TEXT);
+			memcpy(att2, Def_ctrl_text,
+				sizeof(attr_t) * ATTRS_CTRL_TEXT);
+			at2->Attrs = att2;
+			att2[0].value.i = text->MaxChars;
+			att2[1].value.i = text->MaxLines;
+			att2[2].value.i = text->Language;
+			att2[3].value.i = text->DataType;
+			att1[3].value.a = at2;
+			break;
+		default:
+			att1[3].name = "Digital";
+			att1[3].type = NO_TYPE;
+	};
 
 	at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
 	at2->n_attrs = ATTRS_CTRL_MODE;
@@ -464,20 +586,69 @@ static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 	at2->Attrs = att2;
 	att2[0].value.i = ctrl->DefaultMode.Mode;
 	att2[1].value.i = ctrl->DefaultMode.ReadOnly;
-
 	att1[4].value.a = at2;
+	
 	att1[5].value.i = ctrl->WriteOnly;
+	att1[6].value.i = ctrl->Oem;
+	return(at);
+}
+
+#define RDR_ATTRS_INV_NUM	3
+
+attr_t	Def_inv_rdr[] = {
+	{ "IdrId",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Persistent",		INT_TYPE,	0, { .d = 0} }, //  1
+	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  2
+};
+
+static Attributes_t *make_attrs_inv(SaHpiInventoryRecT *inv)
+{
+	attr_t			*att1;
+	Attributes_t		*at;
+
+	at = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at->n_attrs = RDR_ATTRS_INV_NUM;
+	att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_INV_NUM);
+	memcpy(att1, Def_inv_rdr, sizeof(attr_t) * RDR_ATTRS_INV_NUM);
+	at->Attrs = att1;
+	att1[0].value.i = inv->IdrId;
+	att1[1].value.i = inv->Persistent;
+	att1[2].value.i = inv->Oem;
+	return(at);
+}
+
+#define RDR_ATTRS_WDOG_NUM	2
+
+attr_t	Def_wdog_rdr[] = {
+	{ "Num",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  1
+};
+
+static Attributes_t *make_attrs_wdog(SaHpiWatchdogRecT *wdog)
+{
+	attr_t			*att1;
+	Attributes_t		*at;
+
+	at = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at->n_attrs = RDR_ATTRS_WDOG_NUM;
+	att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_WDOG_NUM);
+	memcpy(att1, Def_wdog_rdr, sizeof(attr_t) * RDR_ATTRS_WDOG_NUM);
+	at->Attrs = att1;
+	att1[0].value.i = wdog->WatchdogNum;
+	att1[1].value.i = wdog->Oem;
 	return(at);
 }
 
 void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 {
-	attr_t		*att;
-	int		len, i = 0;
-	Attributes_t	*at;
-	SaHpiRdrT	*obj;
-	SaHpiSensorRecT	*sensor;
-	SaHpiCtrlRecT	*ctrl;
+	attr_t			*att;
+	int			len, i = 0;
+	Attributes_t		*at;
+	SaHpiRdrT		*obj;
+	SaHpiSensorRecT		*sensor;
+	SaHpiCtrlRecT		*ctrl;
+	SaHpiInventoryRecT	*inv;
+	SaHpiWatchdogRecT	*wdog;
 
 	Rdr->Record = *rdrentry;
 	obj = &(Rdr->Record);
@@ -490,6 +661,7 @@ void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 	att[i++].value.a = &(obj->Entity);
 	att[i++].value.i = obj->IsFru;
 	len = obj->IdString.DataLength;
+
 	switch (obj->RdrType) {
 		case SAHPI_SENSOR_RDR:
 			sensor = &(obj->RdrTypeUnion.SensorRec);
@@ -501,6 +673,18 @@ void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 			ctrl = &(obj->RdrTypeUnion.CtrlRec);
 			at = make_attrs_ctrl(ctrl);
 			att[i].name = "Control";
+			att[i++].value.a = at;
+			break;
+		case SAHPI_INVENTORY_RDR:
+			inv = &(obj->RdrTypeUnion.InventoryRec);
+			at = make_attrs_inv(inv);
+			att[i].name = "Inventory";
+			att[i++].value.a = at;
+			break;
+		case SAHPI_WATCHDOG_RDR:
+			wdog = &(obj->RdrTypeUnion.WatchdogRec);
+			at = make_attrs_wdog(wdog);
+			att[i].name = "Watchdog";
 			att[i++].value.a = at;
 			break;
 		default: break;
