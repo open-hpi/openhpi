@@ -70,19 +70,40 @@ int domain_del(struct oh_domain *domain)
 
 int domain_process_event(struct oh_domain *d, struct oh_event *e)
 {
-	struct oh_resource *r;
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+
 	switch (e->type) {
 	case OH_ET_RESOURCE:
-		r = insert_resource(d, &e->oid);
-		e->u.res_event.entry.ResourceId = r->entry.ResourceId;
-		memcpy(&r->entry, &e->u.res_event.entry, sizeof(r->entry));
+		res = insert_resource(d, &e->oid);
+		memcpy(&res->entry, &e->u.res_event.entry, sizeof(res->entry));
+		res->entry.ResourceId = d->res_counter++;
+
+		/* resource with domain cap needs openhpi to call abi->open_domain
+		 * to extend the domain into global domain table.
+		 */
+		if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN) {
+			dbg("FIXME: we do not handle domain now");
+		}
+
 		break;
 
-	case OH_ET_RDR:		
-	/* FIXME: there are controls/sensors/event logs etc 
-	 * need to be processed
-	 */
-		dbg("FIXME: there are controls/sensors/event logs etc");
+	case OH_ET_RDR:
+		res = get_res_by_oid(d, &e->u.rdr_event.parent);
+		if (!res) {
+			dbg("Cannot find corresponding resource");
+			break;
+		}
+		rdr = insert_rdr(res, &e->oid);
+		memcpy(&rdr->rdr, &e->u.rdr_event.rdr, sizeof(rdr->rdr));
+		switch (rdr->rdr.RdrType) {
+		case SAHPI_SENSOR_RDR: 
+			rdr->rdr.RdrTypeUnion.SensorRec.Num = res->sensor_counter++;
+			break;
+		default:
+			dbg("FIXME: Cannot process such RDR type ");
+			break;
+		}
 		break;
 	default:
 		dbg("Error! Should not touch here!");

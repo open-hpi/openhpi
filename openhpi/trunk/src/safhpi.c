@@ -159,7 +159,6 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-
 	int n;
 	int i;
 	struct list_head  *tmp;
@@ -216,9 +215,9 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-	struct list_head  *tmp;
 	struct oh_session *s;
 	struct oh_domain  *d;
+	struct oh_resource *res;
 	
 	OH_STATE_READY_CHECK;
 
@@ -229,18 +228,16 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 	}
 	
 	d   = s->domain;
-
-	list_for_each(tmp, &d->res_list) {
-		struct oh_resource *r;
-		r = list_container(tmp, struct oh_resource, node);
-		if (r->entry.ResourceId == ResourceId) {
-			memcpy(RptEntry, &r->entry, sizeof(*RptEntry));
-			return SA_OK;
-		}
-	}
 	
-	dbg("Cannot find resource");
-	return SA_ERR_HPI_INVALID_RESOURCE;
+	res = get_resource(d, ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+
+	memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceSeveritySet(
@@ -248,7 +245,28 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiSeverityT Severity)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	struct oh_domain  *d;
+	struct oh_resource *res;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	d   = s->domain;
+	
+	res = get_resource(d, ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+	
+	res->entry.ResourceSeverity = Severity;	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceTagSet(
@@ -256,7 +274,28 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiTextBufferT *ResourceTag)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	struct oh_domain  *d;
+	struct oh_resource *res;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	d   = s->domain;
+	
+	res = get_resource(d, ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+	
+	memcpy(&res->entry.ResourceTag, ResourceTag, sizeof(res->entry.ResourceTag));	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceIdGet(
@@ -381,7 +420,63 @@ SaErrorT SAHPI_API saHpiRdrGet (
 		SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		SAHPI_OUT SaHpiRdrT *Rdr)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	struct oh_domain  *d;
+	struct oh_resource *res;
+	struct oh_rdr	  *rdr;
+	
+	int n;
+	int i;
+	struct list_head  *tmp;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	d = s->domain;
+	
+	res = get_resource(d, ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}
+	
+	switch (EntryId) {
+	case SAHPI_FIRST_ENTRY:
+		n = 0;
+		break;
+	default:
+		n = EntryId - entry_id_offset;
+		break;
+	}
+	
+	i = 0;
+	rdr = NULL;
+	list_for_each(tmp, &res->rdr_list) {
+		if (i==n) {
+			rdr = list_container(tmp, struct oh_rdr, node);
+			break;
+		}
+		i++;
+	}
+	
+	if (!rdr) {
+		dbg("Invalid EntryId");
+		return SA_ERR_HPI_INVALID;
+	}
+	
+	memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
+
+	if (rdr->node.next == &res->rdr_list) { //last entry
+		*NextEntryId = SAHPI_LAST_ENTRY;
+	} else {
+		*NextEntryId = n+1+entry_id_offset;
+	}
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiSensorReadingGet (
