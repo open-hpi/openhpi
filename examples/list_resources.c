@@ -15,11 +15,13 @@ const char * get_error_string(SaErrorT);
 void display_entity_capabilities(SaHpiCapabilitiesT);
 const char * severity2str(SaHpiSeverityT);
 const char * rdrtype2str(SaHpiRdrTypeT type);
+char * interpreted2str (SaHpiSensorInterpretedT interpreted);
 char * rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
 const char * get_sensor_type(SaHpiSensorTypeT type);
 const char * get_sensor_category(SaHpiEventCategoryT category);
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
 void display_id_string(SaHpiTextBufferT string);
+void printreading (SaHpiSensorReadingT reading);
 
 /**
  * main: main program loop
@@ -305,6 +307,47 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 					printf("\t\tRaw value: %d\n", reading.Raw);
 					
 					err = saHpiSensorThresholdsGet(session_id, resource_id, num, &thres);
+
+					if (thres.LowCritical.ValuesPresent) {
+						printf("\t\tThreshold:  Low Critical Values\n");
+						printreading(thres.LowCritical);
+					}
+
+					if (thres.LowMajor.ValuesPresent) {
+						printf("\t\tThreshold:  Low Major Values\n");
+						printreading(thres.LowMajor);
+					}
+
+					if (thres.LowMinor.ValuesPresent) {
+						printf("\t\tThreshold:  Low Minor Values\n");
+						printreading(thres.LowMinor);
+					}
+
+					if (thres.UpCritical.ValuesPresent) {
+						printf("\t\tThreshold:  Up Critical Values\n");
+						printreading(thres.UpCritical);
+					}
+
+					if (thres.UpMajor.ValuesPresent) {
+						printf("\t\tThreshold:  Up Major Values\n");
+						printreading(thres.UpMajor);
+					}
+
+					if (thres.UpMinor.ValuesPresent) {
+						printf("\t\tThreshold:  Up Minor Values\n");
+						printreading(thres.UpMinor);
+					}
+
+					if (thres.PosThdHysteresis.ValuesPresent) {
+						printf("\t\tThreshold:  Pos Threshold Hysteresis Values\n");
+						printreading(thres.PosThdHysteresis);
+					}
+
+					if (thres.NegThdHysteresis.ValuesPresent) {
+						printf("\t\tThreshold:  Neg Threshold Hysteresis Values\n");
+						printreading(thres.NegThdHysteresis);
+					}
+
 					if (err != SA_OK &&
                                             rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
 						printf("Error reading sensor thresholds {sensor, %d}\n", num);
@@ -315,6 +358,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 				
 				if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED)
 					printf("\tValues Present: Interpreted\n");
+				printf("\t\tInterpreted value: %s\n", interpreted2str(reading.Interpreted));
+
 				if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE)
 					printf("\tValues Present: Event State\n");
 					
@@ -344,6 +389,50 @@ void display_id_string(SaHpiTextBufferT string)
                 printf("Unsupported string type");
         }
         printf("\n");
+}
+
+/**
+ * interpreted2str:
+ * @interpreted: structure with interpreted data for sensor
+ *
+ * Return a string containing the interpreted data from the
+ * interpreted data structure given.
+ **/
+
+char * interpreted2str (SaHpiSensorInterpretedT interpreted)
+{
+        char *str = calloc(1,10);  /* max size is 10 b/c 10 digits in 2^32 */
+                
+	switch (interpreted.Type) {
+		case SAHPI_SENSOR_INTERPRETED_TYPE_UINT8:
+			sprintf(str, "%d", interpreted.Value.SensorUint8);
+			break;
+		case SAHPI_SENSOR_INTERPRETED_TYPE_UINT16:
+			sprintf(str, "%d", interpreted.Value.SensorUint16);
+			break;
+		case SAHPI_SENSOR_INTERPRETED_TYPE_UINT32:
+			sprintf(str, "%d", interpreted.Value.SensorUint32);
+			break;
+		case SAHPI_SENSOR_INTERPRETED_TYPE_INT8:
+			sprintf(str, "%d", interpreted.Value.SensorInt8);
+			break;
+		case SAHPI_SENSOR_INTERPRETED_TYPE_INT16:
+			sprintf(str, "%d", interpreted.Value.SensorInt16);
+			break;
+		case SAHPI_SENSOR_INTERPRETED_TYPE_INT32:
+			sprintf(str, "%d", interpreted.Value.SensorInt32);
+			break;
+		case SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32:
+			sprintf(str, "%6.2f", interpreted.Value.SensorFloat32);
+			break;
+		case SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER:
+			sprintf(str, "%s", interpreted.Value.SensorBuffer);
+			break;
+		default:
+			break;
+	}
+        
+	return str;
 }
 
 char * rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
@@ -513,4 +602,28 @@ const char * get_sensor_category (SaHpiEventCategoryT category)
 			
 	}
 	return("\0");
+}
+
+/**
+ * printreading:
+ * @reading: structure with data to print
+ *
+ * Print out data from a sensor reading (used when
+ * printing out threshold data).
+ **/
+
+void printreading (SaHpiSensorReadingT reading)
+{
+	if (reading.ValuesPresent & SAHPI_SRF_RAW) {
+		printf("\t\t\tValues Present: RAW\n");
+		printf("\t\t\t\tRaw value: %d\n", reading.Raw);
+	}
+	
+	
+	if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED)
+		printf("\t\t\tValues Present: Interpreted\n");
+	printf("\t\t\t\tInterpreted value: %s\n", interpreted2str(reading.Interpreted));
+
+	if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE)
+		printf("\t\t\tValues Present: Event State\n");
 }
