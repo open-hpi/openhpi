@@ -15,6 +15,10 @@
  */
 
 #include <oh_domain.h>
+#include <sel_utils.h>
+#include <string.h>
+
+GHashTable *domain_table = NULL;
 
 /**
  * oh_create_domain
@@ -29,10 +33,29 @@
  **/
 SaErrorT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                           SaHpiBoolT isPeer,
-                          SaHpiTextBufferT tag,
+                          SaHpiTextBufferT *tag,
                           SaHpiDomainIdT *did)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        static guint domain_id = 0;
+        struct oh_domain *domain = NULL;
+
+        if (!did || !tag) return SA_ERR_HPI_INVALID_PARAMS;
+
+        domain = g_new0(struct oh_domain,1);
+        if (!domain) return SA_ERR_HPI_OUT_OF_MEMORY;
+
+        /* Need to lock these lines -- RM */
+        domain->domain_id = ++domain_id;
+        domain->domain_info.DomainCapabilities = capabilities;
+        domain->domain_info.IsPeer = isPeer;
+        memcpy(&(domain->domain_info.DomainTag),tag,sizeof(SaHpiTextBufferT));
+        domain->sel = oh_sel_create(0);
+        /* Will I need to create DRT and DAT? -- RM */
+        g_hash_table_insert(domain_table, &(domain->domain_id), domain);
+
+        *did = domain->domain_id;
+
+        return SA_OK;
 }
 
 /**
@@ -44,9 +67,18 @@ SaErrorT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
  *
  * Returns:
  **/
-SaErrorT oh_get_domain_rpt(SaHpiDomainIdT did, RPTable *rptable)
+SaErrorT oh_get_domain_rpt(SaHpiDomainIdT did, RPTable **rptable)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        struct oh_domain *domain = NULL;
+
+        if (did < 1 || !rptable) return SA_ERR_HPI_INVALID_PARAMS;
+
+        domain = g_hash_table_lookup(domain_table, &did);
+        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
+
+        *rptable = &(domain->rptable);
+
+        return SA_OK;
 }
 
 /**
@@ -58,9 +90,18 @@ SaErrorT oh_get_domain_rpt(SaHpiDomainIdT did, RPTable *rptable)
  *
  * Returns:
  **/
-SaErrorT oh_get_domain_dat(SaHpiDomainIdT did, void *datable)
+SaErrorT oh_get_domain_dat(SaHpiDomainIdT did, void **datable)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        struct oh_domain *domain = NULL;
+
+        if (did < 1 || !datable) return SA_ERR_HPI_INVALID_PARAMS;
+
+        domain = g_hash_table_lookup(domain_table, &did);
+        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
+
+        *datable = domain->alarm_table;
+
+        return SA_OK;
 }
 
 /**
@@ -72,9 +113,18 @@ SaErrorT oh_get_domain_dat(SaHpiDomainIdT did, void *datable)
  *
  * Returns:
  **/
-SaErrorT oh_get_domain_drt(SaHpiDomainIdT did, void *drtable)
+SaErrorT oh_get_domain_drt(SaHpiDomainIdT did, void **drtable)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        struct oh_domain *domain = NULL;
+
+        if (did < 1 || !drtable) return SA_ERR_HPI_INVALID_PARAMS;
+
+        domain = g_hash_table_lookup(domain_table, &did);
+        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
+
+        *drtable = domain->reference_table;
+
+        return SA_OK;
 }
 
 /**
@@ -86,9 +136,18 @@ SaErrorT oh_get_domain_drt(SaHpiDomainIdT did, void *drtable)
  *
  * Returns:
  **/
-SaErrorT oh_get_domain_del(SaHpiDomainIdT did, oh_sel *delog)
+SaErrorT oh_get_domain_del(SaHpiDomainIdT did, oh_sel **delog)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        struct oh_domain *domain = NULL;
+
+        if (did < 1 || !delog) return SA_ERR_HPI_INVALID_PARAMS;
+
+        domain = g_hash_table_lookup(domain_table, &did);
+        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
+
+        *delog = domain->sel;
+
+        return SA_OK;
 }
 
 /**
@@ -100,7 +159,16 @@ SaErrorT oh_get_domain_del(SaHpiDomainIdT did, oh_sel *delog)
  *
  * Returns:
  **/
-SaErrorT oh_get_domain_info(SaHpiDomainIdT did, SaHpiDomainInfoT *info)
+SaErrorT oh_get_domain_info(SaHpiDomainIdT did, SaHpiDomainInfoT **info)
 {
-        return SA_ERR_HPI_INTERNAL_ERROR;
+        struct oh_domain *domain = NULL;
+
+        if (did < 1 || !info) return SA_ERR_HPI_INVALID_PARAMS;
+
+        domain = g_hash_table_lookup(domain_table, &did);
+        if (!domain) return SA_ERR_HPI_NOT_PRESENT;
+
+        *info = &(domain->domain_info);
+
+        return SA_OK;
 }
