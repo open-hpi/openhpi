@@ -91,6 +91,8 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 
 	memset(&working_reading, 0, sizeof(SaHpiSensorReadingT));
 	working_state = SAHPI_ES_UNSPECIFIED;
+
+	trace("Sensor Reading: Resource=%s; RDR=%s", rpt->ResourceTag.Data, rdr->IdString.Data);
 	
 	/************************************************************
 	 * Get sensor's reading.
@@ -787,6 +789,7 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 					SaHpiSensorReadingT *reading)
 {
 	SaHpiSensorReadingT working;
+	SaErrorT err;
 	struct SensorInfo *sinfo;
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -801,9 +804,10 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	}
 
 	/* Normalize and read sensor's raw SNMP OID */
-	if (snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), raw_oid, &get_value, SAHPI_TRUE) != 0) {
+	err = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), raw_oid, &get_value, SAHPI_TRUE);
+	if (err) {
 		dbg("SNMP cannot read sensor OID=%s. Type=%d", raw_oid, get_value.type);
-		return(SA_ERR_HPI_NO_RESPONSE);
+		return(err);
 	}
 		
 	/* Convert SNMP value to HPI reading value */
@@ -817,9 +821,9 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 		oh_init_textbuffer(&buffer);
 		oh_append_textbuffer(&buffer, get_value.string);
 		
-		SaErrorT err = oh_encode_sensorreading(&buffer,
-						       rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType,
-						       &working);
+		err = oh_encode_sensorreading(&buffer,
+					      rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingType,
+					      &working);
 		if (err) {
 			dbg("Cannot convert sensor OID=%s value=%s. Error=%s",
 			    sinfo->mib.oid, buffer.Data, oh_lookup_error(err));
