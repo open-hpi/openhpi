@@ -109,7 +109,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         data_access_lock();
         
         /* setup our global rpt_table */
-        default_rpt = calloc(1,sizeof(RPTable));
+        default_rpt = g_malloc0(sizeof(RPTable));
         if(!default_rpt) {
                 dbg("Couldn't allocate RPT for Default Domain");
                 return SA_ERR_HPI_ERROR;
