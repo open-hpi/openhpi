@@ -239,7 +239,7 @@ static void hysteresis_read(ipmi_sensor_t	*sensor,
 	p->sensor_thres->PosThdHysteresis.Raw = positive_hysteresis;
 	p->sensor_thres->NegThdHysteresis.ValuesPresent =
 		SAHPI_SRF_RAW;
-	p->sensor_thres->PosThdHysteresis.Raw = negative_hysteresis;
+	p->sensor_thres->NegThdHysteresis.Raw = negative_hysteresis;
 	p->hyster_done = 1;
 }
 
