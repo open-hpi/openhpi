@@ -2475,6 +2475,94 @@ static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT
 	return(SA_OK);
 }
 
+/**
+ * oh_fprint_ctrlstate:
+ * @stream: File handle.
+ * @event: Pointer to SaHpitrlStateT to be printed.
+ * @offsets: Number of offsets to start printing structure.
+ * 
+ * Prints the member data contained in SaHpiCtrlStateT struct to a file.
+ * The MACRO oh_print_ctrlstate(), uses this function to print to STDOUT. 
+ *
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
+ **/
+
+SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate, int offsets)
+{
+
+	SaErrorT rv = SA_OK;
+	oh_big_textbuffer buffer;
+	SaHpiTextBufferT smallbuf;
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	
+	if (!stream || !thisctrlstate) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_bigtext(&buffer);
+	oh_append_offset(&buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s\n",
+				oh_lookup_ctrltype(thisctrlstate->Type));
+	oh_append_bigtext(&buffer, str);
+	oh_append_offset(&buffer, offsets);
+	
+	switch(thisctrlstate->Type) {
+		case SAHPI_CTRL_TYPE_DIGITAL:
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "State: %s\n",
+				oh_lookup_ctrlstatedigital(thisctrlstate->StateUnion.Digital));
+			break;
+		case SAHPI_CTRL_TYPE_DISCRETE:
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "State: %d\n",
+							thisctrlstate->StateUnion.Discrete);
+			break;
+		case SAHPI_CTRL_TYPE_ANALOG:
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Analog: %d\n",
+							thisctrlstate->StateUnion.Analog);
+			break;
+		case SAHPI_CTRL_TYPE_STREAM:
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Stream:\n");
+			oh_append_bigtext(&buffer, str);
+			oh_append_offset(&buffer, 4+offsets);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Repeat: %s\n",
+				(thisctrlstate->StateUnion.Stream.Repeat == SAHPI_TRUE) ? "TRUE" : "FALSE");
+			oh_append_bigtext(&buffer, str);
+			oh_append_offset(&buffer, 4+offsets);
+			snprintf(str, thisctrlstate->StateUnion.Stream.StreamLength, "%s\n",
+				 			thisctrlstate->StateUnion.Stream.Stream);
+					
+			break;
+		case SAHPI_CTRL_TYPE_TEXT:
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Line: %d\n", 
+						thisctrlstate->StateUnion.Text.Line);
+			oh_append_bigtext(&buffer, str);
+			oh_append_offset(&buffer, offsets);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%s\n", 
+						thisctrlstate->StateUnion.Text.Text.Data);		
+			break;
+		case SAHPI_CTRL_TYPE_OEM:
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Oem:\n");
+			oh_append_bigtext(&buffer, str);
+			oh_append_offset(&buffer, 4+offsets);
+			rv = oh_decode_manufacturerid(thisctrlstate->StateUnion.Oem.MId, &smallbuf);
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId: %s\n",
+										 smallbuf.Data);
+			oh_append_bigtext(&buffer, str);
+			oh_append_offset(&buffer, 4+offsets);
+			snprintf(str, thisctrlstate->StateUnion.Oem.BodyLength, "%s\n",
+							thisctrlstate->StateUnion.Oem.Body);
+			
+			break;
+		default:
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Invalid Control Type\n");
+			rv = SA_ERR_HPI_INVALID_DATA;
+			break;
+	} 
+	oh_append_bigtext(&buffer, str);
+	rv = oh_fprint_bigtext(stream, &buffer);
+	return(rv);
+}
 #if 0
 
 /**

@@ -60,12 +60,12 @@ libsnmp_bc_la_SOURCES	= \
 	     			snmp_bc_sel.c \
 				snmp_bc_session.c \
 	     			snmp_bc_time.c \
+				snmp_bc_control.c \
                                 snmp_bc_xml2event.c \
 				snmp_bc_sensor.c \
 				stubs.c
 
 # FIXME:: Add these when ported over
-#				snmp_bc_control.c \
 #				snmp_bc_hotswap.c \
 #				snmp_bc_watchdog.c
 

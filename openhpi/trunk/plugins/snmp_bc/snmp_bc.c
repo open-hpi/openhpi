@@ -41,9 +41,7 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
 	.set_sensor_event_enables	= snmp_bc_set_sensor_event_enables,
 #endif
         .get_control_state		= snmp_bc_get_control_state,
-#if 0
         .set_control_state		= snmp_bc_set_control_state,
-#endif	
 	.get_idr_info			= snmp_bc_get_idr_info,
 	.get_idr_area_header		= snmp_bc_get_idr_area_header,
 	.add_idr_area			= snmp_bc_add_idr_area,
