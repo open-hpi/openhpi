@@ -68,6 +68,13 @@ int main(int argc, char **argv)
 
 	/************************** 
 	 * Test :
+	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;      
+	 **************************/
+	err = snmp_bc_get_reset_state((void *)h->hnd, id, NULL);   
+	checkstatus(&err, &expected_err, &testfail);
+
+	/************************** 
+	 * Test :
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_CMD;      
 	err = snmp_bc_get_reset_state((void *)h->hnd, 5000, &act);   
