@@ -41,25 +41,6 @@ static const int entry_id_offset = 1000;
                 }                                               \
         }while(0)                                               
 
-#define OH_GET_RESOURCE                                         \
-        do {                                                    \
-                struct oh_session *s;                           \
-                                                                \
-                OH_STATE_READY_CHECK;                           \
-                                                                \
-                s = session_get(SessionId);                     \
-                if (!s) {                                       \
-                        dbg("Invalid session");                 \
-                        return SA_ERR_HPI_INVALID_SESSION;      \
-                }                                               \
-                                                                \
-                res = get_resource(ResourceId);                 \
-                if (!res) {                                     \
-                        dbg("Invalid resource");                \
-                        return SA_ERR_HPI_INVALID_RESOURCE;     \
-                }                                               \
-        }while(0)
-
 static inline struct oh_rdr * get_rdr(
         struct oh_resource *res, 
         SaHpiRdrTypeT type, 
@@ -291,8 +272,10 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
                 return SA_ERR_HPI_UNKNOWN;
         }
         
-        RptInfo->UpdateCount    = global_rpt_counter;
-        RptInfo->UpdateTimestamp= (SaHpiTimeT)global_rpt_timestamp.tv_sec*1000000000 + global_rpt_timestamp.tv_usec*1000;
+        /* FIXME: we should really be getting event default_rpt from 
+           a domain or session keyed hash */
+        RptInfo->UpdateCount = default_rpt.rpt_info.UpdateCount;
+        RptInfo->UpdateTimestamp= default_rpt.rpt_info.UpdateTimestamp;
         return SA_OK;
 }
 
@@ -303,9 +286,11 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
         struct oh_session *s;
-        
-        int no;
-        GSList *i;
+
+        /* determine the right pointer later when we do multi domains */
+        RPTable *rpt = &default_rpt;
+        SaHpiRptEntryT *req_entry;
+        SaHpiRptEntryT *next_entry;
         
         OH_STATE_READY_CHECK;
 
@@ -319,46 +304,24 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         }
         
         if (EntryId == SAHPI_FIRST_ENTRY) {
-                no = 0;
-                g_slist_for_each(i, global_rpt) {
-                        if (resource_is_in_domain(i->data, s->domain_id)) 
-                                break;
-                        no++;
-                }
-                if (!i) {
-                        dbg("Invalid EntryId");
-                        data_access_unlock();
-                        return SA_ERR_HPI_INVALID;
-                }                       
-        }else {
-                no = EntryId - entry_id_offset;
-                if (no < 0 || (unsigned int)no>=g_slist_length(global_rpt)) {
-                        dbg("Invalid EntryId");
-                        data_access_unlock();
-                        return SA_ERR_HPI_INVALID;
-                }
-        
-                i = g_slist_nth(global_rpt, no);
-                if (!resource_is_in_domain(i->data, s->domain_id)) {
-                        dbg("Invalid EntryId");
-                        data_access_unlock();
-                        return SA_ERR_HPI_INVALID;
-                }
+                req_entry = oh_get_resource_next(rpt, RPT_ENTRY_FIRST);
+        } else {
+                req_entry = oh_get_resource_by_id(rpt, EntryId);
         }
 
-                        
-        memcpy(RptEntry, &((struct oh_resource *)(i->data))->entry, 
-                        sizeof(*RptEntry));
-        i = g_slist_next(i);
-        no++;
-        g_slist_for_each(i, i) {
-                if (resource_is_in_domain(i->data, s->domain_id)) 
-                        break;
-                no++;
+        /* if the entry was NULL, clearly have an issue */
+        if(req_entry == NULL) {
+                dbg("Invalid EntryId");
+                data_access_unlock();
+                return SA_ERR_HPI_INVALID;
         }
         
-        if (no < 0 || (unsigned int)no<g_slist_length(global_rpt)) {
-                *NextEntryId = no+entry_id_offset;
+        memcpy(RptEntry, req_entry, sizeof(RptEntry));
+
+        next_entry = oh_get_resource_next(rpt, req_entry->EntryId);
+        
+        if(next_entry != NULL) {
+                *NextEntryId = next_entry->EntryId;
         } else {
                 *NextEntryId = SAHPI_LAST_ENTRY;
         }
@@ -373,11 +336,15 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-        struct oh_resource *res;
-
-        OH_GET_RESOURCE;
+        struct oh_session *s;
         
-        memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+        RPTable *rpt = &default_rpt;
+        
+        OH_STATE_READY_CHECK;
+        
+        req_entry = oh_get_resource_by_id(rpt, ResourceId);
+        
+        memcpy(RptEntry, req_entry, sizeof(*RptEntry));
 
         return SA_OK;
 }
@@ -387,12 +354,8 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSeverityT Severity)
 {
-        struct oh_resource *res;
-
-        OH_GET_RESOURCE;
-        
-        res->entry.ResourceSeverity = Severity; 
-        return SA_OK;
+        /* this requires a new abi call to push down to the plugin */
+        return SA_ERR_HPI_UNKNOWN;
 }
 
 SaErrorT SAHPI_API saHpiResourceTagSet(
@@ -400,18 +363,15 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiTextBufferT *ResourceTag)
 {
-        struct oh_resource *res;
-        
-        OH_GET_RESOURCE;
-        
-        memcpy(&res->entry.ResourceTag, ResourceTag, sizeof(res->entry.ResourceTag));   
-        return SA_OK;
+        /* this requires a new abi call to push down to the plugin */
+        return SA_ERR_HPI_UNKNOWN;
 }
 
 SaErrorT SAHPI_API saHpiResourceIdGet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_OUT SaHpiResourceIdT *ResourceId)
 {
+        /* this is going to be an interesting call to figure out */
         return SA_ERR_HPI_UNKNOWN;
 }
 
@@ -419,8 +379,9 @@ SaErrorT SAHPI_API saHpiEntitySchemaGet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_OUT SaHpiUint32T *SchemaId)
 {
-        /*FIXME: how to determine schema is ongoing*/
-        *SchemaId = ('C'<<24) | ('P'<<16) | ('C'<<8) | 'I';
+        /* we must return 0 for now, as we don't determine 
+           schemas yet */
+        *SchemaId = 0;
         return SA_OK;
 }
 
