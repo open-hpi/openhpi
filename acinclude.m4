@@ -151,28 +151,29 @@ AC_DEFUN(OH_CHECK_OPENIPMI,
 				   OPENIPMI_VERSION_RELEASE);" >> $OH_OI_SRC
 	echo "return 0;}" >> $OH_OI_SRC
 
-	gcc -o $OH_OI_FILE $OH_OI_SRC
+	gcc -o $OH_OI_FILE $OH_OI_SRC >& /dev/null
 
-	OPENIPMI_VERSION=`./ipmi_ver | \
-	awk -F. '{ \
-		if ( $[1] == $1 ) { \
-			if ( $[2] == $2 ) { \
-			    if ( $[3] >= $3 ) { \
-			    	print "OK"; \
-				} \
+	if test -f "ipmi_ver"; then
+		OPENIPMI_VERSION=`./ipmi_ver | \
+		awk -F. '{ \
+			if ( $[1] == $1 ) { \
+				if ( $[2] == $2 ) { \
+			    	if ( $[3] >= $3 ) { \
+			    		print "OK"; \
+					} \
+				}
 			}
-		}
 
-	}'` \
+		}'` 
+	fi
 		
-
 	if test "$OPENIPMI_VERSION" == "OK"; then
 		have_openipmi=yes
 		AC_MSG_RESULT(yes)
 	else
 		AC_MSG_RESULT(no...OpenIPMI missing or wrong version IPMI plug-in can't build)
 		have_openipmi=no
-    	fi
+   	fi
 
 	rm -rf $OH_OI_FILE $OH_OI_SRC
 ])
