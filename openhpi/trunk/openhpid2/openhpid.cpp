@@ -65,6 +65,8 @@ static bool stop_server = FALSE;
 int main (int argc, char *argv[])
 {
 	GThreadPool *thrdpool;
+        int port;
+        char *portstr;
 
         // use config file given by the command line
         if (argc > 1) {
@@ -81,9 +83,18 @@ int main (int argc, char *argv[])
 	g_thread_init(NULL);
 	thrdpool = g_thread_pool_new(service_thread, NULL, -1, FALSE, NULL);
 
+        // get our listening port
+        portstr = getenv("OPENHPI_DAEMON_HOST");
+        if (portstr == NULL) {
+                port =  4743;
+        }
+        else {
+                port =  atoi(portstr);
+        }
+
         // create the server socket
 	psstrmsock servinst = new sstrmsock;
-	if (servinst->Create(55566)) {
+	if (servinst->Create(port)) {
 		printf("Error creating server socket.\n");
 		g_thread_pool_free(thrdpool, FALSE, TRUE);
                 	delete servinst;
