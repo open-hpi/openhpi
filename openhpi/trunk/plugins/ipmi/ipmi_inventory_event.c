@@ -11,27 +11,29 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Racing Guo <racing.guo@intel.com>
  */
 
 #include "ipmi.h"
 #include <oh_utils.h>
 #include <string.h>
 
-#if 0
 static void add_inventory_event_rdr(
                 SaHpiRdrT		*rdr,
                 SaHpiEntityPathT	parent_ep,
                 SaHpiResourceIdT	res_id)
 {
-        static int inv_count = 0;
         char name[] = "FRU Inventory data";
         
         rdr->RecordId = 0;
         rdr->RdrType = SAHPI_INVENTORY_RDR;
         rdr->Entity = parent_ep;
+	rdr->IsFru = SAHPI_TRUE;
 
-        rdr->RdrTypeUnion.InventoryRec.EirId = inv_count++;
-        rdr->RdrTypeUnion.InventoryRec.Oem   = 0;
+	/* One Fru has only one inventory, so IdrId always is 0 */
+	rdr->RdrTypeUnion.InventoryRec.IdrId = 0;
+        rdr->RdrTypeUnion.InventoryRec.Persistent = SAHPI_TRUE;
+	rdr->RdrTypeUnion.InventoryRec.Oem = 0;
 
         rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
@@ -95,4 +97,3 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
        }
 			   
 }
-#endif
