@@ -124,7 +124,9 @@ AC_ARG_ENABLE([dummy],
 AC_ARG_ENABLE([text_remote],
     [  --enable-text_remote          build text_remote plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
-        AC_SUBST(LIBTEXT_REMOTE,text_remote)
+        AC_SUBST(TEXT_REMOTE,text_remote)
+    else
+        AC_SUBST(TEXT_REMOTE,"")
     fi],
     [AC_SUBST(TEXT_REMOTE,"")])
 
@@ -133,6 +135,8 @@ AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(WATCHDOG,watchdog)
+    else
+        AC_SUBST(WATCHDOG,"")
     fi],
     [AC_SUBST(WATCHDOG,"")])
 
