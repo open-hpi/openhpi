@@ -91,6 +91,9 @@ SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHe
 #define oh_print_rptentry(rptEntry, space) oh_fprint_rptentry(stdout, rptEntry, space)
 SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptEntry, int space);
 
+#define oh_print_rdr(rdr, space) oh_fprint_rdr(stdout, rdr, space)
+SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *rdrEntry, int space);
+
 #define oh_print_sensorrec(sensor_ptr) oh_fprint_sensorrec(stdout, sensor_ptr)
 SaErrorT oh_fprint_sensorrec(FILE *stream, const SaHpiSensorRecT *sensor);
 
