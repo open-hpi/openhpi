@@ -147,8 +147,20 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         DomainInfo->DomainId = d->id;
         DomainInfo->DomainCapabilities = d->capabilities;
         DomainInfo->IsPeer = d->is_peer;
+        DomainInfo->DrtUpdateCount = 0;
+        DomainInfo->DrtUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
         DomainInfo->RptUpdateCount = d->rpt.update_count;
         DomainInfo->RptUpdateTimestamp = d->rpt.update_timestamp;
+        
+        DomainInfo->DatUpdateCount = d->dat.update_count;
+        DomainInfo->DatUpdateTimestamp = d->dat.update_timestamp;
+        DomainInfo->ActiveAlarms = oh_count_alarms(d, SAHPI_ALL_SEVERITIES);
+        DomainInfo->CriticalAlarms = oh_count_alarms(d, SAHPI_CRITICAL);
+        DomainInfo->MajorAlarms = oh_count_alarms(d, SAHPI_MAJOR);
+        DomainInfo->MinorAlarms = oh_count_alarms(d, SAHPI_MINOR);
+        DomainInfo->DatUserAlarmLimit = 0;
+        DomainInfo->DatOverflow = SAHPI_FALSE;
+        
         memcpy(DomainInfo->Guid, d->guid, sizeof(SaHpiGuidT));
         DomainInfo->DomainTag = d->tag;
         oh_release_domain(d); /* Unlock domain */

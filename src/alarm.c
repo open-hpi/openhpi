@@ -190,7 +190,7 @@ SaErrorT oh_remove_alarm(struct oh_domain *d,
 
 /**
  * oh_close_alarmtable
- * @d
+ * @d:
  *
  * Return value:
  **/
@@ -205,6 +205,34 @@ SaErrorT oh_close_alarmtable(struct oh_domain *d)
         d->dat.next_id = 0;
                 
         return error;
+}
+
+/**
+ * oh_count_alarms
+ * @d:
+ * @sev:
+ *
+ * Return value:
+ **/
+SaHpiUint32T oh_count_alarms(struct oh_domain *d, SaHpiSeverityT sev)
+{
+        GSList *alarms = NULL;
+        SaHpiUint32T count = 0;
+        
+        if (!d) return 0;
+        
+        if (sev == SAHPI_ALL_SEVERITIES)
+                return g_slist_length(d->dat.list);
+        else {
+                for (alarms = d->dat.list; alarms; alarms = alarms->next) {
+                        SaHpiAlarmT *alarm = alarms->data;
+                        if (alarm && alarm->Severity == sev) {
+                                count++;
+                        }
+                }
+        }
+        
+        return count;
 }
 
 static void oh_detect_oem_event_alarm(struct oh_domain *d, SaHpiEventT *event)
