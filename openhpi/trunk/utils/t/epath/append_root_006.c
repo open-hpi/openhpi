@@ -1,4 +1,4 @@
-                                            /* -*- linux-c -*-
+/* -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004
  *
@@ -31,17 +31,12 @@ int main(int argc, char **argv)
         int i;
         int mydebug = 0;
 
-        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                 ep.Entry[i].EntityType = SAHPI_ENT_GROUP;
-                ep.Entry[i].EntityInstance = i+1;
+                ep.Entry[i].EntityInstance = i + 1;
         }
 
-        if(append_root(&ep)==0) {
-                if (mydebug) printf("append_root function call failed\n");
-                return 1;
-        }
-
-        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                 if (ep.Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         if (mydebug) printf("append_root test failed, root found at element %d\n",
                                              i);

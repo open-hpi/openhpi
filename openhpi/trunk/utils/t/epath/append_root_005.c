@@ -1,4 +1,4 @@
-                                            /* -*- linux-c -*-
+/* -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004
  *
@@ -31,19 +31,22 @@ int main(int argc, char **argv)
         int i;
         int mydebug = 0;
 
-        for (i=0; i<SAHPI_MAX_ENTITY_PATH-1; i++) {
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH - 1; i++) {
                 ep.Entry[i].EntityType = SAHPI_ENT_GROUP;
-                ep.Entry[i].EntityInstance = i+1;
+                ep.Entry[i].EntityInstance = i + 1;
         }
-        ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType = 0;
+
+        ep.Entry[i].EntityType = 0;
+        ep.Entry[i].EntityInstance = 0;
 
         if(append_root(&ep)) {
                 if (mydebug) printf("append_root function call failed\n");
                 return 1;
         }
-        if(ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType != SAHPI_ENT_ROOT) {
+
+        if(ep.Entry[i].EntityType != SAHPI_ENT_ROOT) {
                 if (mydebug) printf("append_root failed, root %d != SAHPI_ENT_ROOT\n",
-                                   ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType);  
+                                    ep.Entry[SAHPI_MAX_ENTITY_PATH - 1].EntityType);  
                 return 1;
         }
 
@@ -53,7 +56,7 @@ int main(int argc, char **argv)
                                    ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityInstance);  
                 return 1;
         } */
-        for (i=0; i<SAHPI_MAX_ENTITY_PATH-2; i++) {
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH - 2; i++) {
                 if (ep.Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         if (mydebug) printf("append_root test failed, extra root at element %d\n",
                                              i);
