@@ -19,10 +19,7 @@
 #include <getopt.h>
 #include <string.h>
 #include <SaHpi.h>
-#include <ecode_utils.h>
-#include <epath_utils.h>
-#include <print_structs.h>
-#include <print_utils.h>
+#include <oh_utils.h>
 
 char progver[] = "1.0";
 int fdebug = 0;
