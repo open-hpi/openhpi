@@ -84,6 +84,20 @@ static inline SaHpiUint8T get_rdr_type_num(SaHpiRdrT rdr)
         return num;
 }
 
+static inline int check_ep(SaHpiEntityPathT ep)
+{
+        int check = -1, i;
+
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH: i++) {
+                if (ep.Entry[i].EntityType == SAHPI_ENT_ROOT) {
+                        check = 0;
+                        break;
+                }
+        }
+
+        return check;
+}
+
 /**
  * Resource interface functions
  */
@@ -100,20 +114,25 @@ static inline SaHpiUint8T get_rdr_type_num(SaHpiRdrT rdr)
  * @data: Pointer to private data for storing along with the RPT entry.
  *
  * Return value:
- * 0 means successful addition to the RPT. -1 means failure and not enough memory
- * could be allocated for a new position in the RPT.
+ * 0 - successful addition to the RPT.
+ * -1 - entry does not have an id assigned.
+ * -2 - entity path does not contain root element.
+ * -3 - failure and not enough memory could be allocated
+ * for a new position in the RPT.
  **/
 int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data)
 {
         RPTEntry *rptentry;
 
         /* Check to see if the entry is in the RPTable already */
+        if (entry.ResourceId == 0) return -1; /* Entry needs an id before being added */
+        if (check_ep(entry.ResourceEntity)) return -2; /* Entity path does not contain root element */
         rptentry = get_rptentry_by_rid(table, entry.ResourceId);
         
         /* If not, create new RPTEntry */
         if (!rptentry) {
                 rptentry = (RPTEntry *)malloc(sizeof(RPTEntry));
-                if (!rptentry) return -1; /* Not enough memory to add resource. */
+                if (!rptentry) return -3; /* Not enough memory to add resource. */
                 /* Put new RPTEntry in RPTable */
                 table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);                
         }
@@ -132,8 +151,8 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data)
  * @rid: Resource id of the RPT entry to be removed.
  *
  * Return value:
- * 0 means successful removal from the RPT. -1 means failure and no resource
- * found by that id.
+ * 0 - Successful removal from the RPT.
+ * -1 - Failure. No resource found by that id.
  **/
 int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
 {
@@ -255,13 +274,15 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * @rdr: RDR to be added to an RPT entry's RDR repository.
  * @data: Pointer to private data belonging to the RDR that is being added.
  *
- * All rdr interface funtions will act in the context of the first RPT entry in the
- * table, if rid is RPT_ENTRY_BEGIN (0).
+ * All rdr interface funtions, except oh_add_rdr will act in the context of
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
  *
  * Return value:
  * 0 - Successful addition of RDR.
  * -1 - Failure. RPT entry for that rid was not found.
- * -2 - Failure. Could not allocate enough memory to position the new RDR in the RDR
+ * -2 - Failure. RDR entity path is different from parent RPT entry.
+ * -3 - Failure. RDR type number has not been assigned.
+ * -4 - Failure. Could not allocate enough memory to position the new RDR in the RDR
  * repository.
  **/ 
 int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
@@ -272,6 +293,9 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
         rptentry = get_rptentry_by_rid(table, rid);
 
         if (!rptentry) return -1; /* Resource was not fount in table */
+        if (memcmp(rptentry.rpt_entry.ResourceEntity, rdr.Entity, sizeof(SaHpiEntityPathT)))
+                return -2; /* RDR entity path is different from parent RPT entry. */
+        if (!get_rdr_type_num(rdr)) return -3; /* RDR type number has not been assigned. */
 
         /* Check if record exists */
         rdr.RecordId = get_rdr_uid(rdr.RdrType, get_rdr_type_num(rdr));
@@ -280,7 +304,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
         /* If not, create new rdr */
         if (!rdrecord) {
                 rdrecord = (RDRecord *)malloc(sizeof(RDRecord));
-                if (!rdrecord) return -2; /* Could not create rdrecord */
+                if (!rdrecord) return -4; /* Could not create rdrecord */
                 /* Put new rdrecord in rdr repository */
                 rptentry->rdrtable = g_slist_append(rptentry->rdrtable, (gpointer)rdrecord);                        
         }
@@ -299,8 +323,8 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
  * @rid: Id of the RPT entry from which the RDR will be removed.
  * @rdrid: Record id of the RDR to remove.
  *
- * All rdr interface funtions will act in the context of the first RPT entry in the
- * table, if rid is RPT_ENTRY_BEGIN (0).
+ * All rdr interface funtions, except oh_add_rdr will act in the context of
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
  *
  * Return value:
  * 0 - Successful removal of RDR.
@@ -330,8 +354,8 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
  * @rid: Id of the RPT entry from which the RDR's data will be read.
  * @rdrid: Record id of the RDR to read data from.
  *
- * All rdr interface funtions will act in the context of the first RPT entry in the
- * table, if rid is RPT_ENTRY_BEGIN (0).
+ * All rdr interface funtions, except oh_add_rdr will act in the context of
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
  *
  * Return value:
  * A void pointer to the RDR data, or NULL if no data for that RDR was found.
@@ -357,8 +381,8 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
  * @rid: Id of the RPT entry containing the RDR being looked up.
  * @rdrid: Record id of the RDR being looked up.
  *
- * All rdr interface funtions will act in the context of the first RPT entry in the
- * table, if rid is RPT_ENTRY_BEGIN (0).
+ * All rdr interface funtions, except oh_add_rdr will act in the context of
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
  *
  * Return value:
  * Reference to the RDR looked up or NULL if no RDR was found.
@@ -384,8 +408,8 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
  * @type: RDR Type of the RDR being looked up.
  * @num: RDR id within the RDR type for the specified RPT entry.
  *
- * All rdr interface funtions will act in the context of the first RPT entry in the
- * table, if rid is RPT_ENTRY_BEGIN (0).
+ * All rdr interface funtions, except oh_add_rdr will act in the context of
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
  *
  * Return value:
  * Reference to the RDR looked up or NULL if no RDR was found.
@@ -415,8 +439,8 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
  * @rid_prev: Record id of the RDR previous to the one being looked up, relative
  * to the specified RPT entry.
  *
- * All rdr interface funtions will act in the context of the first RPT entry in the
- * table, if rid is RPT_ENTRY_BEGIN (0).
+ * All rdr interface funtions, except oh_add_rdr will act in the context of
+ * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0).
  *
  * Return value:
  * Pointer to the RDR found or NULL if the previous RDR by that
