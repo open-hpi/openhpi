@@ -915,7 +915,7 @@ sub print_testfile_case($$) {
 
                 str = $lookup_name(value);
                 if (strcmp(expected_str, str)) {
-                        printf("  Error! Line __LINE__ Testcase $type - $case failed\\n");
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
 			printf("  Received string=%s\\n", str);
 			printf("  Expected string=%s\\n", expected_str);
                         return -1;             
@@ -926,13 +926,14 @@ sub print_testfile_case($$) {
 		
                 err = $encode_name(&buffer, &enum_type);
                 if (err != SA_OK) {
-                        printf("Error! Testcase $type - $case encode failed. Error=%d\\n", err);
-                        return -1;
+		    printf("  Error! Testcase failed. Line=__LINE__\\n");
+		    printf("  Received error=%d\\n", err);
+		    return -1;
                 }
     
                 if ($case != enum_type) {
-                        printf("  Error! Testcase $type - $case encode failed\\n");
-                        printf("  Received type=%x\\n", enum_type);
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
+                        printf("  Received enum type=%x\\n", enum_type);
                         return -1;
                 }
 	}
@@ -984,12 +985,13 @@ sub print_xtestfile_case($$$) {
   
                 err = oh_decode_eventstate($state, $cat, &buffer);
                 if (err != SA_OK) {
-                        printf("Error! Testcase $cat - $state decode failed. Error=%d\\n", err);
-                        return -1; 
+		    printf("  Error! Testcase failed. Line=__LINE__\\n");
+		    printf("  Received error=%d\\n", err);
+		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Line __LINE__ Testcase $cat - $state decode failed\\n");
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
                         printf("  Received string=%s\\n", buffer.Data);
 			printf("  Expected string=%s\\n", expected_str);
                         return -1;             
@@ -997,13 +999,15 @@ sub print_xtestfile_case($$$) {
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("Error! Testcase $cat - $state encode failed. Error=%d\\n", err);
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
+			printf("  Received error=%d\\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !($valid_cat_test)) {
-                        printf("Error! Testcase $cat - $state encode failed\\n");
-                        printf("Received state=%x; Received cat=%x\\n", event_state, event_cat);
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
+                        printf("  Received state=%x; Received cat=%x\\n", 
+			       event_state, event_cat);
                         return -1;
                 }
         }
@@ -1023,7 +1027,7 @@ sub print_xtestfile_badevent($) {
         /* $cat - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, $cat)) {
-                        printf("Error! oh_valid_eventstate: Bad event for $cat testcase failed\\n");
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
                         return -1;
                 }
 	}
@@ -1066,7 +1070,8 @@ sub print_testfile_endfunc($) {
 
                 str = $lookup_name(value);
                 if (str != expected_str) {
-                        printf("$tbase_name Error! Testcase $type - Default failed\\n");
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
+			printf("  Received string=%s; Expected string=%s\\n", str, expected_str); 
                         return -1;             
                 }
 
@@ -1081,7 +1086,8 @@ sub print_testfile_endfunc($) {
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
                 err = $encode_name(0, &enum_type);
                 if (err != expected_err) {
-                        printf("Error! Testcase $type - NULL buffer failed. Error=%d\\n", err);
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
+			printf("  Received error=%d; Expected error=%d\\n", err, expected_err);
                         return -1;
                 }
 	             	
@@ -1092,7 +1098,8 @@ sub print_testfile_endfunc($) {
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = $encode_name(&buffer, &enum_type);
                 if (err != expected_err) {
-                        printf("Error! Testcase $type - Invalid type failed. Error=%d\\n", err);
+                        printf("  Error! Testcase failed. Line=__LINE__\\n");
+			printf("  Received error=%d; Expected error=%d\\n", err, expected_err);
                         return -1;
                 }
 	}
