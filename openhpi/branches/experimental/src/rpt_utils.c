@@ -133,14 +133,25 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data)
         RPTEntry *rptentry;
 
         /* Check to see if the entry is in the RPTable already */
-        if (entry.ResourceId == 0) return -1; /* Entry needs an id before being added */
-        if (check_ep(entry.ResourceEntity)) return -2; /* Entity path does not contain root element */
+        if (entry.ResourceId == 0) {
+                dbg("Failed to add. RPT entry needs an id before being added");
+                return -1;                
+        }
+
+        if (check_ep(entry.ResourceEntity)) {
+                dbg("Failed to add RPT entry. Entity path does not contain root element");
+                return -2;                
+        }
+        
         rptentry = get_rptentry_by_rid(table, entry.ResourceId);
         
         /* If not, create new RPTEntry */
         if (!rptentry) {
-                rptentry = (RPTEntry *)malloc(sizeof(RPTEntry));
-                if (!rptentry) return -3; /* Not enough memory to add resource. */
+                rptentry = (RPTEntry *)g_malloc0(sizeof(RPTEntry));
+                if (!rptentry) {
+                        dbg("Not enough memory to add RPT entry.");
+                        return -3;
+                }
                 /* Put new RPTEntry in RPTable */
                 table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);                
         }
@@ -168,7 +179,10 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
         
         rptentry = get_rptentry_by_rid(table, rid);
 
-        if (!rptentry) return -1; /* No Resource found by that id */
+        if (!rptentry) {
+                dbg("Failed to remove RPT entry. No Resource found by that id");
+                return -1;
+        }
         else table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
 
         return 0;
@@ -300,11 +314,20 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
 
         rptentry = get_rptentry_by_rid(table, rid);
 
-        if (!rptentry) return -1; /* Resource was not fount in table */
-dbg("TODO: RENIER check line below");
-//        if (memcmp( &rptentry->rpt_entry.ResourceEntity, &rdrecord->rdr.Entity, sizeof(SaHpiEntityPathT)))
-                return -2; /* RDR entity path is different from parent RPT entry. */
-        if (!get_rdr_type_num(rdr)) return -3; /* RDR type number has not been assigned. */
+        if (!rptentry){
+                dbg("Failed to add RDR. Parent RPT entry was not found in table.");
+                return -1;
+        }
+
+        if (memcmp(&(rptentry->rpt_entry.ResourceEntity), &(rdr.Entity), sizeof(SaHpiEntityPathT))) {
+                dbg("Failed to add RDR. Entity path is different from parent RPT entry.");
+                return -2;
+        }
+                
+        if (!get_rdr_type_num(rdr)) {
+                dbg("Failed to add RDR. Type's id number (num) has not been assigned.");
+                return -3;
+        }
 
         /* Check if record exists */
         rdr.RecordId = get_rdr_uid(rdr.RdrType, get_rdr_type_num(rdr));
@@ -312,8 +335,11 @@ dbg("TODO: RENIER check line below");
                 
         /* If not, create new rdr */
         if (!rdrecord) {
-                rdrecord = (RDRecord *)malloc(sizeof(RDRecord));
-                if (!rdrecord) return -4; /* Could not create rdrecord */
+                rdrecord = (RDRecord *)g_malloc0(sizeof(RDRecord));
+                if (!rdrecord) {
+                        dbg("Not enough memory to add RDR.");
+                        return -4;
+                }
                 /* Put new rdrecord in rdr repository */
                 rptentry->rdrtable = g_slist_append(rptentry->rdrtable, (gpointer)rdrecord);                        
         }
@@ -346,10 +372,16 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
         RDRecord *rdrecord;
 
         rptentry = get_rptentry_by_rid(table, rid);
-        if (!rptentry) return -1; /* No resource found by that id */
+        if (!rptentry) {
+                dbg("Failed to remove RDR. Parent RPT entry was not found.");
+                return -1;
+        }
 
         rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdrid);
-        if (!rdrecord) return -2; /* No rdr found by that id */
+        if (!rdrecord) {
+                dbg("Failed to remove RDR. Could not be found.");
+                return -2;
+        }
         else rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
 
         return 0;
