@@ -154,7 +154,7 @@ static void process_rsel_event(struct oh_handler *h, struct oh_rsel_event *e)
  * get_handler_event pulls an event from a given handler.  It will normally
  * be called from get_events, which iterates across all handlers.
  * 
- * Return value: 0 on sucess, -1 on failure
+ * Return value: 1 if event exists, 0 if no more events, -1 on failure
  **/
 static int get_handler_event(struct oh_handler *h, RPTable *rpt)
 {
@@ -162,10 +162,10 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         struct timeval to = {0, 0};
         int rv;                
         rv = h->abi->get_event(h->hnd, &event, &to);
-        if(rv < 0) {
+        if(rv < 1) {
                 dbg("No event found");
-                return -1;
-        }
+                return rv;
+        } 
         switch (event.type) {
         case OH_ET_HPI:
                 /* add the event to session event list */
@@ -192,7 +192,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         
         data_access_unlock();
 
-        return 0;
+        return 1;
 }
 
 /**
@@ -210,14 +210,14 @@ int get_events(void)
 {
         RPTable *rpt = default_rpt;
         GSList *i;
-        int done = 0;
+        int got_event = 0;
         
         data_access_lock();
 
         g_slist_for_each(i, global_handler_list) {
                 do {
-                        done = get_handler_event(i->data, rpt);
-                } while (!done);
+                        got_event = get_handler_event(i->data, rpt);
+                } while (got_event);
         }
         
         process_hotswap_policy();
