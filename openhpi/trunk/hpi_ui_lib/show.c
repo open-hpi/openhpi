@@ -373,7 +373,8 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		snprintf(buf, SHOW_BUF_SZ, "     Event states = %x", status);
 		proc(buf);
 		print_thres_value(&reading, "     Reading Value =", NULL, 0, proc);
-	};
+	} else
+		proc("     Reading not supported\n");
 
 	show_threshold(sessionid, resourceid, sensornum,
 		&(rdr.RdrTypeUnion.SensorRec), proc);
