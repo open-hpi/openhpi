@@ -14,6 +14,8 @@
  *     Kevin Gao <kevin.gao@linux.intel.com>
  *     Rusty Lynch <rusty.lynch@linux.intel.com>
  */
+#ifndef _INC_IPMI_H_
+#define _INC_IPMI_H_
 
 #include <sys/time.h>
 #include <stdio.h>
@@ -115,6 +117,12 @@ void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_ev
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
                                               const ipmi_entity_id_t *entity_id);
 
+/* This is used to help plug-in to find rdr in rptcache by data*/
+SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,
+                                SaHpiResourceIdT rid,
+                                SaHpiRdrTypeT type,
+                                void *data);
+
 /* This is used for OpenIPMI to notice sensor change */
 void ohoi_sensor_event(enum ipmi_update_e op,
                        ipmi_entity_t      *ent,
@@ -205,3 +213,4 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
                      (x).seq);                  \
         } while(0)
 
+#endif
