@@ -32,8 +32,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   gchar *logstr,
 			   SaHpiEventT *event,
-			   int isdst,
-			   int *event_enabled_ptr);
+			   int isdst);
 
 SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle,
 			       SaHpiEventT *thisEvent);

@@ -37,7 +37,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 
-	oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidHealth);
+	oid = snmp_derive_objid(&(res->ResourceEntity), s->mib.OidHealth);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.OidHealth);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -119,7 +119,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_COLD_RESET: /* COLD = WARM Reset Action */
 	case SAHPI_WARM_RESET:
-		oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidReset);
+		oid = snmp_derive_objid(&(res->ResourceEntity), s->mib.OidReset);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.OidReset);
 			return SA_ERR_HPI_INTERNAL_ERROR;
@@ -169,7 +169,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 
-	oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidPowerState);
+	oid = snmp_derive_objid(&(res->ResourceEntity), s->mib.OidPowerState);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerState);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -222,7 +222,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_INVALID_CMD; 
 	}
 
-	oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidPowerOnOff);
+	oid = snmp_derive_objid(&(res->ResourceEntity), s->mib.OidPowerOnOff);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerOnOff);
 		return SA_ERR_HPI_INTERNAL_ERROR;
