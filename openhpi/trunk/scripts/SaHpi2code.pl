@@ -77,7 +77,7 @@ if ($odir eq "") {
 die "cannot find base for file $ifile" unless $base;
 $ocfile = $base . "_enum_utils.c";
 $ohfile = $base . "_enum_utils.h";
-$oxcfile = $base . "_event_embed.c";
+$oxcfile = $base . "_event_utils.c.embed";
 #}
 #else {
 #    $ocfile = $oname . ".c";
@@ -455,7 +455,7 @@ sub print_copywrite {
  * full licensing terms.
  *
  * Author(s):
- *      Steve Sherman <stevees@us.ibm.com> 
+ *      Steve Sherman <stevees\@us.ibm.com> 
  */
 
 /******************************************************************* 
