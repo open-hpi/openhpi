@@ -26,6 +26,13 @@
 extern "C" {
 #endif
 
+/* Event utility macros */
+#define oh_new_event() g_new0(SaHpiEventT, 1)
+#define oh_dup_event(old) g_memdup(old, sizeof(*old))
+#define oh_copy_event(new, old) memcpy(new, old, sizeof(*new))
+#define oh_dup_oh_event(old) g_memdup(old, sizeof(*old))
+#define oh_copy_oh_event(new, old) memcpy(new, old, sizeof(*new))
+
 /*
  *  The event is used for plugin to report its resources.
  *  For OpenHPI >= 2.0 we use the full structure for add
@@ -92,6 +99,9 @@ gboolean oh_run_threaded(void);
 SaErrorT oh_get_events(void);
 SaErrorT oh_harvest_events(void);
 SaErrorT oh_process_events(void);
+
+/* Helper functions */
+struct oh_event* oh_new_oh_event(oh_event_type t);
 
 #ifdef __cplusplus
 }

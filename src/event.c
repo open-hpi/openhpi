@@ -35,6 +35,24 @@ GThread *oh_event_thread = NULL;
 GError *oh_event_thread_error = NULL;
 GMutex *oh_thread_mutex = NULL;
 
+/**
+ * oh_new_oh_event
+ * @type
+ * */
+struct oh_event* oh_new_oh_event(oh_event_type t)
+{
+	struct oh_event * new = NULL;
+	
+	new->type = t;
+	new = g_new0(struct oh_event, 1);
+	
+	if (new == NULL) {
+		dbg("Couldn't allocate new oh_event!");
+	}
+	
+	return new;
+}
+
 gboolean oh_run_threaded()
 {
         return oh_is_threaded;
@@ -153,7 +171,7 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
                         return SA_ERR_HPI_OUT_OF_SPACE;
                 } else {
                         trace("Found event for handler %p", h);
-                        e2 = g_memdup(&event, sizeof(struct oh_event));
+                        e2 =oh_dup_oh_event(&event);
                         e2->hid = h->id;
                         g_async_queue_push(oh_process_q, e2);
                 }
