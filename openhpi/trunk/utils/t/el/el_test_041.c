@@ -30,7 +30,8 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_append when el == NULL
+ * This test verifies the failure of oh_el_timeset when
+ * timestamp == SAHPI_TIME_UNSPECIFIED
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -39,33 +40,30 @@
 int main(int argc, char **argv)
 {
         oh_el *el;
-        SaErrorT retc;
-	SaHpiEventT event;
-	static char *data[1] = {
-        	"Test data one"
+	SaErrorT retc;
 
-	};
+	/* tests oh_el_timeset when timestamp = SAHPI_TIME_UNSPECIFIED */
+	
+	el = oh_el_create(20);     
 
+	retc = oh_el_timeset(el, SAHPI_TIME_UNSPECIFIED);
+	if (retc == SA_OK){
+		dbg("ERROR: oh_el_timeset on el failed");
+		return 1;
+	}
 
-	/* test oh_el_append with el==NULL*/
-	el = NULL;
-
-
-        event.Source = 1;
-        event.EventType = SAHPI_ET_USER;
-        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        event.Severity = SAHPI_DEBUG;
-
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
-
-        retc = oh_el_append(el, &event, NULL, NULL);
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_append failed.");
+        /* close el without saving to file*/
+        retc = oh_el_close(el);
+        if (retc != SA_OK) {
+                dbg("ERROR: oh_el_close on el failed.");
                 return 1;
-        }       
+        }
+
 
         return 0;
 }
+
+
 
 
 

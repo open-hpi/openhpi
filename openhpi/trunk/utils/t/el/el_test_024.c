@@ -30,43 +30,28 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_append when el == NULL
+ * This test verifies failure of oh_el_get when el == NULL
  *
  * Return value: 0 on success, 1 on failure
  **/
 
-
 int main(int argc, char **argv)
 {
         oh_el *el;
-        SaErrorT retc;
-	SaHpiEventT event;
-	static char *data[1] = {
-        	"Test data one"
+	oh_el_entry *entry; 
+	SaHpiEventLogEntryIdT prev, next;
+ 	SaErrorT retc;
 
-	};
-
-
-	/* test oh_el_append with el==NULL*/
+	/* test case 1: el == NULL */
 	el = NULL;
 
-
-        event.Source = 1;
-        event.EventType = SAHPI_ET_USER;
-        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        event.Severity = SAHPI_DEBUG;
-
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
-
-        retc = oh_el_append(el, &event, NULL, NULL);
+        retc = oh_el_get(el, SAHPI_NEWEST_ENTRY, &prev, &next, &entry);
         if (retc == SA_OK) {
-                dbg("ERROR: oh_el_append failed.");
+        	dbg("ERROR: oh_el_get failed.");
                 return 1;
-        }       
+        }
 
         return 0;
 }
-
-
 
 

@@ -30,9 +30,8 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_append when (1) el == NULL,
- * (2) event == NULL, and (3) el->enabled == SAHPI_FALSE &&
- * event->EventType == SAHPI_ET_USER
+ * This test verifies oh_el_prepend by reading an
+ * existing EL from a file, then prepending 5 events to the EL.
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -40,77 +39,54 @@
 
 int main(int argc, char **argv)
 {
-        oh_el *el, *el2, *el3;
+        oh_el *el;
         SaErrorT retc;
-	SaHpiEventT event, event2;
-	static char *data[1] = {
-        	"Test data one"
-
+	int x;
+	SaHpiEventT event;
+	static char *data[5] = {
+        	"Test data one",
+		"Test data two",
+		"Test data three",
+		"Test data four",
+		"Test data five"
 	};
 
 
-	/* test oh_el_append with el==NULL*/
-	el = NULL;
+	/* test oh_el_prepend with existing EL*/
+	el = oh_el_create(20);
 
 
-        event.Source = 1;
-        event.EventType = SAHPI_ET_USER;
-        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        event.Severity = SAHPI_DEBUG;
-
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
-
-        retc = oh_el_append(el, &event, NULL, NULL);
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_append failed.");
-                return 1;
-        }       
-
-	/*test oh_el_append with event==NULL*/
-	el2 = oh_el_create(20);
-        retc = oh_el_append(el, NULL, NULL, NULL);
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_append failed.");
-                return 1;
-        } 
-
-	/*test oh_el_append with el->enabled == SAHPI_FALSE &&
-        event->EventType == SAHPI_ET_USER */
-	
-	el3 = oh_el_create(20);
-
-	el3->enabled = SAHPI_FALSE;
-        event2.Source = 1;
-        event2.EventType = SAHPI_ET_USER;
-        event2.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        event2.Severity = SAHPI_DEBUG;
-
-        strcpy((char *) &event2.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
-
-        retc = oh_el_append(el, &event2, NULL, NULL);
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_append failed.");
-                return 1;
-        }   
-
-        /* close el2 */
-        retc = oh_el_close(el2);
+        /* get EL from file (el) */
+        retc = oh_el_map_from_file(el, "./elTest.data");
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el2 failed.");
+                dbg("ERROR: oh_el_map_from_file failed.");
                 return 1;
         }
-        
-	/* close el3 */
-        retc = oh_el_close(el3);
+
+	/* add 5 more events to el */
+	for(x=0;x<5;x++){
+        	event.Source = 1;
+        	event.EventType = SAHPI_ET_USER;
+        	event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        	event.Severity = SAHPI_DEBUG;
+		strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
+
+
+        	retc = oh_el_prepend(el, &event, NULL, NULL);
+        	if (retc != SA_OK) {
+              	  dbg("ERROR: oh_el_append failed.");
+               	  return 1;
+        	}       
+	}
+
+        /* close el */
+        retc = oh_el_close(el);
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el3 failed.");
+                dbg("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 
 
         return 0;
 }
-
-
-
 

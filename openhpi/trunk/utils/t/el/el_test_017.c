@@ -30,88 +30,40 @@
 /**
  * main: EL test
  *
- * This test verifies the failure of oh_el_map_from_file when
- * (1) el == NULL, (2) el->enabled == SAHPI_FALSE, (3) filename == NULL
- * and (4) filename does not exist.
+ * This test verifies failure of oh_el_prepend when el == NULL
  *
  * Return value: 0 on success, 1 on failure
  **/
 
-
 int main(int argc, char **argv)
 {
-        oh_el *el, *el2, *el3, *el4;
+        oh_el *el;
         SaErrorT retc;
+	SaHpiEventT event;
+	static char *data[1] = {
+        	"Test data one"
+
+	};
 
 
-	/* test failure of oh_el_map_from_file with el==NULL */
+	/* test oh_el_prepend with el==NULL*/
 	el = NULL;
 
-        retc = oh_el_map_from_file(el, "./elTest.data");
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_map_from_file failed.");
-                return 1;
-	}
 
+        event.Source = 1;
+        event.EventType = SAHPI_ET_USER;
+        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event.Severity = SAHPI_DEBUG;
 
-	/* test failure of oh_el_map_from_file with el->enabled == SAHPI_FALSE */
+        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
 
-	el2 = oh_el_create(20);
-	el2->enabled = SAHPI_FALSE;
-
-        retc = oh_el_map_from_file(el2, "./elTest.data");
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_map_from_file failed.");
-                return 1;
-	}
 	
-	/* test failure of oh_el_map_from_file with filename == NULL */
-
-	el3 = oh_el_create(20);
-
-        retc = oh_el_map_from_file(el3, NULL);
+        retc = oh_el_prepend(el, &event, NULL, NULL);
         if (retc == SA_OK) {
-                dbg("ERROR: oh_el_map_from_file failed.");
+                dbg("ERROR: oh_el_prepend failed.");
                 return 1;
-	}
+        }       
 
-
-	/* test failure of oh_el_map_from_file with nonexistant filename */
-	
-	el4 = oh_el_create(20);
-
-        retc = oh_el_map_from_file(el4, "./notthere.data");
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_map_from_file failed.");
-                return 1;
-	}
-
-        /* close el2 */
-        retc = oh_el_close(el2);
-	if (retc != SA_OK){
-                dbg("ERROR: oh_el_close on el2 failed.");
-                return 1;
-        }
-
-        /* close el3 */
-        retc = oh_el_close(el3);
-        if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el3 failed.");
-                return 1;
-        }
-
-        /* close el4 */
-        retc = oh_el_close(el4);
-        if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el4 failed.");
-                return 1;
-        }
-
-        return 0;
+	return 0;
 }
-
-
-
-
-
 

@@ -42,7 +42,31 @@ TESTS = el_test_001 \
 	el_test_017 \
 	el_test_018 \
 	el_test_019 \
-	el_test_020	
+	el_test_020 \
+	el_test_021 \
+        el_test_022 \
+	el_test_023 \
+	el_test_024 \
+	el_test_025 \
+	el_test_026 \
+	el_test_027 \
+	el_test_028 \
+	el_test_029 \
+	el_test_030 \
+	el_test_031 \
+	el_test_032 \
+	el_test_033 \
+	el_test_034 \
+	el_test_035 \
+	el_test_036 \
+	el_test_037 \
+	el_test_038 \
+	el_test_039 \
+	el_test_040 \
+	el_test_041 \
+	el_test_042 \
+	el_test_043 \
+	el_test_044
 
 
 check_PROGRAMS = $(TESTS)
@@ -67,3 +91,27 @@ el_test_017_SOURCES = el_test.h el_test_017.c $(REMOTE_SOURCES)
 el_test_018_SOURCES = el_test.h el_test_018.c $(REMOTE_SOURCES)
 el_test_019_SOURCES = el_test.h el_test_019.c $(REMOTE_SOURCES)
 el_test_020_SOURCES = el_test.h el_test_020.c $(REMOTE_SOURCES)
+el_test_021_SOURCES = el_test.h el_test_021.c $(REMOTE_SOURCES)
+el_test_022_SOURCES = el_test.h el_test_022.c $(REMOTE_SOURCES)
+el_test_023_SOURCES = el_test.h el_test_023.c $(REMOTE_SOURCES)
+el_test_024_SOURCES = el_test.h el_test_024.c $(REMOTE_SOURCES)
+el_test_025_SOURCES = el_test.h el_test_025.c $(REMOTE_SOURCES)
+el_test_026_SOURCES = el_test.h el_test_026.c $(REMOTE_SOURCES)
+el_test_027_SOURCES = el_test.h el_test_027.c $(REMOTE_SOURCES)
+el_test_028_SOURCES = el_test.h el_test_028.c $(REMOTE_SOURCES)
+el_test_029_SOURCES = el_test.h el_test_029.c $(REMOTE_SOURCES)
+el_test_030_SOURCES = el_test.h el_test_030.c $(REMOTE_SOURCES)
+el_test_031_SOURCES = el_test.h el_test_031.c $(REMOTE_SOURCES)
+el_test_032_SOURCES = el_test.h el_test_032.c $(REMOTE_SOURCES)
+el_test_033_SOURCES = el_test.h el_test_033.c $(REMOTE_SOURCES)
+el_test_034_SOURCES = el_test.h el_test_034.c $(REMOTE_SOURCES)
+el_test_035_SOURCES = el_test.h el_test_035.c $(REMOTE_SOURCES)
+el_test_036_SOURCES = el_test.h el_test_036.c $(REMOTE_SOURCES)
+el_test_037_SOURCES = el_test.h el_test_037.c $(REMOTE_SOURCES)
+el_test_038_SOURCES = el_test.h el_test_038.c $(REMOTE_SOURCES)
+el_test_039_SOURCES = el_test.h el_test_039.c $(REMOTE_SOURCES)
+el_test_040_SOURCES = el_test.h el_test_040.c $(REMOTE_SOURCES)
+el_test_041_SOURCES = el_test.h el_test_041.c $(REMOTE_SOURCES)
+el_test_042_SOURCES = el_test.h el_test_042.c $(REMOTE_SOURCES)
+el_test_043_SOURCES = el_test.h el_test_043.c $(REMOTE_SOURCES)
+el_test_044_SOURCES = el_test.h el_test_044.c $(REMOTE_SOURCES)
