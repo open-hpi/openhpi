@@ -21,12 +21,13 @@
  * Load 'libdummy', create two handlers, get plugin info and
  * compare with known value (3), destroy handlers, get info again
  * and compare with known value (1), unload plugin.
+ * Test without opening a session. Opening a handler should
+ * initialize the library.
  * Pass on sucess, otherwise failure.
  **/
  
 int main(int argc, char **argv)
 {
-        SaHpiSessionIdT sid = 0;
         char *config_file = NULL;
         oHpiHandlerIdT hid0, hid1;
         GHashTable *h0 = g_hash_table_new(g_str_hash, g_str_equal),
@@ -36,10 +37,7 @@ int main(int argc, char **argv)
         /* Save config file env variable and unset it */
         config_file = getenv("OPENHPI_CONF");
         setenv("OPENHPI_CONF","./noconfig", 1);
-        
-        if (saHpiSessionOpen(1, &sid, NULL))
-                return -1;
-                    
+
         if (oHpiPluginLoad("libdummy"))
                 return -1;
                 

@@ -19,20 +19,18 @@
 
 /**
  * Load the dummy plugin, unload it, and load it again.
+ * Test without opening a session. Opening a handler should
+ * initialize the library.
  * Pass on success, otherwise a failure.
  **/
  
 int main(int argc, char **argv)
 {
-        SaHpiSessionIdT sid = 0;
         char *config_file = NULL;
         
         /* Save config file env variable and unset it */
         config_file = getenv("OPENHPI_CONF");
-        setenv("OPENHPI_CONF","./noconfig", 1);
-        
-        if (saHpiSessionOpen(1, &sid, NULL))
-                return -1;
+        setenv("OPENHPI_CONF","./noconfig", 1);        
                     
         if (oHpiPluginLoad("libdummy"))
                 return -1;

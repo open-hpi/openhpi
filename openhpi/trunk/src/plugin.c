@@ -31,7 +31,6 @@
  * List of plugins (oh_plugin).
  */
 static GSList *plugin_list = NULL;
-
 /*
  * Table of handlers (oh_handler).
  */
@@ -53,18 +52,26 @@ void oh_cond_signal(void)
  * oh_init_ltdl
  *
  * Does all the initialization needed for the ltdl process to
- * work.  It takes no arguments, and returns 0 on success, < 0 on error
+ * work. It takes no arguments, and returns 0 on success, < 0 on error
  *
  * Returns: 0 on Success.
  **/
-int oh_init_ltdl()
+static int oh_init_ltdl(void)
 {
         char * path = NULL;
         int err;
+        static int init_done = 0;
+        
+        data_access_lock();
+        if (init_done) {
+                data_access_unlock();
+                return 0;
+        }
 
         err = lt_dlinit();
         if (err != 0) {
                 dbg("Can not init ltdl");
+                data_access_unlock();
                 return -1;
         }
 
@@ -77,8 +84,12 @@ int oh_init_ltdl()
         if (err != 0) {
                 dbg("Can not set lt_dl search path");
                 oh_exit_ltdl();
+                data_access_unlock();
                 return -1;
         }
+        
+        init_done = 1;
+        data_access_unlock();
 
         return 0;
 }
@@ -166,44 +177,24 @@ int oh_lookup_next_plugin(char *plugin_name,
                         data_access_unlock();
                         return -1;
                 }
-        }
-
-        for (node = plugin_list; node != NULL; node = node->next) {
-                struct oh_plugin *p = node->data;
-                if(strcmp(p->name, plugin_name) == 0) {
-                        if (node->next) {
-                                p = node->next->data;
-                                strncpy(next_plugin_name, p->name, size);
-                                data_access_unlock();
-                                return 0;
-                        } else
-                                break;
+        } else {
+                for (node = plugin_list; node != NULL; node = node->next) {
+                        struct oh_plugin *p = node->data;
+                        if (strcmp(p->name, plugin_name) == 0) {
+                                if (node->next) {
+                                        p = node->next->data;
+                                        strncpy(next_plugin_name, p->name, size);
+                                        data_access_unlock();
+                                        return 0;
+                                } else
+                                        break;
+                        }
                 }
         }
         data_access_unlock();
 
         return -1;
 }
-
-/*
-static int get_plugin_refcount(char *plugin_name)
-{
-        struct oh_plugin *plugin = NULL;
-
-        if (!plugin_name) {
-                dbg("ERROR getting plugin refcount. Invalid parameter.");
-                return -1;
-        }
-
-        plugin = get_plugin(plugin_name);
-
-        if(!plugin) {
-                return 0;
-        }
-
-        return plugin->refcount;
-}
-*/
 
 /* list of static plugins. defined in plugin_static.c.in */
 extern struct oh_static_plugin static_plugins[];
@@ -227,21 +218,29 @@ int oh_load_plugin(char *plugin_name)
                 return -1;
         }
 
+        data_access_lock();
+        if (oh_init_ltdl()) {                
+                data_access_unlock();
+                dbg("ERROR. Could not initialize ltdl for loading plugins.");
+                return -1;
+        }
+        
         if (oh_lookup_plugin(plugin_name)) {
                 dbg("Warning. Plugin %s already loaded. Not loading twice.",
                     plugin_name);
+                data_access_unlock();
                 return -1;
         }
 
         plugin = (struct oh_plugin *)g_malloc0(sizeof(struct oh_plugin));
         if (!plugin) {
                 dbg("Out of memory.");
+                data_access_unlock();
                 return -1;
         }
         plugin->name = g_strdup(plugin_name);
         plugin->refcount = 1;
-
-        data_access_lock();
+        
         /* first take search plugin in the array of static plugin */
         while( p->name ) {
                 if (!strcmp(plugin->name, p->name)) {
@@ -311,22 +310,23 @@ int oh_unload_plugin(char *plugin_name)
                 dbg("ERROR unloading plugin. NULL parameter passed.");
                 return -1;
         }
+        
+        data_access_lock();
 
         plugin = oh_lookup_plugin(plugin_name);
         if (!plugin) {
                 dbg("ERROR unloading plugin. Plugin not found.");
+                data_access_unlock();
                 return -2;
-        }
-
-        data_access_lock();
+        }        
 
         if (plugin->refcount > 1) {
                 dbg("ERROR unloading plugin. Handlers are still referencing it.");
+                data_access_unlock();
                 return -3;
         }
 
-        if (plugin->dl_handle)
-        {
+        if (plugin->dl_handle) {
                 lt_dlclose(plugin->dl_handle);
                 plugin->dl_handle = 0;
         }
@@ -342,15 +342,12 @@ int oh_unload_plugin(char *plugin_name)
         return 0;
 }
 
-/**
- * oh_lookup_handler
- *
- * Initializes handler hash table.
- **/
-void oh_init_handler_table(void)
+static int oh_init_handler_table(void)
 {
         if (!handler_table)
                 handler_table = g_hash_table_new(g_int_hash, g_int_equal);
+                
+        return (handler_table) ? 0 : -1;
 }
 
 /**
@@ -364,6 +361,11 @@ struct oh_handler *oh_lookup_handler(unsigned int hid)
         struct oh_handler *handler = NULL;
 
         data_access_lock();
+        if (!handler_table) {
+                data_access_unlock();                
+                return NULL;
+        }
+        
         handler = g_hash_table_lookup(handler_table, &hid);
         data_access_unlock();
 
@@ -398,18 +400,18 @@ int oh_lookup_next_handler(unsigned int hid, unsigned int *next_hid)
                         data_access_unlock();
                         return -1;
                 }
-        }
-
-        for (node = handler_ids; node; node = node->next) {
-                unsigned int *id = node->data;
-                if (*id == hid) {
-                        if (node->next) {
-                                id = node->next->data;
-                                *next_hid = *id;
-                                data_access_unlock();
-                                return 0;
-                        } else
-                                break;
+        } else {
+                for (node = handler_ids; node; node = node->next) {
+                        unsigned int *id = node->data;
+                        if (*id == hid) {
+                                if (node->next) {
+                                        id = node->next->data;
+                                        *next_hid = *id;
+                                        data_access_unlock();
+                                        return 0;
+                                } else
+                                        break;
+                        }
                 }
         }
         data_access_unlock();
@@ -444,9 +446,7 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         handler->plugin_name = g_strdup(plugin->name);
         handler->abi = plugin->abi;
         handler->config = handler_config;
-
-        /* FIXME: this should be done elsewhere.  if 0 it for now to make it
-           easier to migrate */
+        
         handler->hnd = handler->abi->open(handler->config);
         if (!handler->hnd) {
                 dbg("A plugin instance could not be opened.");
@@ -478,6 +478,11 @@ unsigned int oh_load_handler (GHashTable *handler_config)
         }
 
         data_access_lock();
+        if (oh_init_handler_table()) {
+                data_access_unlock();
+                dbg("ERROR. Could not initialize handler table.");
+                return 0;
+        }
 
         handler = new_handler(handler_config);
 
@@ -512,13 +517,14 @@ int oh_unload_handler(unsigned int hid)
                 return -1;
         }
 
+        data_access_lock();
         handler = oh_lookup_handler(hid);
         if (!handler) {
                 dbg("ERROR unloading handler. Handler not found.");
+                data_access_unlock();
                 return -1;
         }
-
-        data_access_lock();
+        
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
 

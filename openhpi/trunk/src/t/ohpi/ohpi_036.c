@@ -20,21 +20,19 @@
 
 /**
  * Set a paramter, get it, and compare values.
+ * Tests without opening a session to see if the global
+ * parameter table is initialized correctly anyway.
  * Pass on success, otherwise a failure.
  **/
  
 int main(int argc, char **argv)
 {
-        SaHpiSessionIdT sid = 0;
         char *config_file = NULL;
         char buffer[128];
         
         /* Save config file env variable and unset it */
         config_file = getenv("OPENHPI_CONF");
         setenv("OPENHPI_CONF","./noconfig", 1);
-        
-        if (saHpiSessionOpen(1, &sid, NULL))
-                return -1;
                 
         if (oHpiGlobalParamSet("OPENHPI_ON_EP", "{SYSTEM_CHASSIS,102}"))
                 return -1;
