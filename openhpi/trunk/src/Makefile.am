@@ -1,5 +1,3 @@
-
-
 #
 # Copyright (c) 2003, Intel Corporation
 # All rights reserved.
@@ -33,29 +31,18 @@
  
 
 
-MAINTAINERCLEANFILES = Makefile.in
+MAINTAINERCLEANFILES 	= Makefile.in
 
-INCLUDES 		= -I$(top_srcdir)/include  	\
-			  -I$(top_srcdir)/include/utils
+INCLUDES		= -I$(top_srcdir)/include
 
-COMMONLIBS		= $(top_srcdir)/lib/libopenhpi.la
+SUBDIRS			= plugins
 
-AM_CFLAGS 		= @CFLAGS@
+AM_CFLAGS		= @CFLAGS@
 
-bin_PROGRAMS		= hpitestapp hashtest listtest
+lib_LTLIBRARIES		= libopenhpi.la
 
-include_HEADERS		= hpitestapp.h
+libopenhpi_la_SOURCES	= safhpi.c
 
-hpitestapp_SOURCES	= hpitestapp.c
-hpitestapp_LDADD	= $(COMMONLIBS)
-hpitestapp_LDFLAGS	= -export-dynamic -dlpreopen force -dlopen self
-
-hashtest_SOURCES	= hashtest.c
-hashtest_LDADD		= $(top_srcdir)/lib/utils/libhpiutils.la
-hashtest_LDFLAGS	= -export-dynamic -dlpreopen force -dlopen self
-
-listtest_SOURCES	= listtest.c
-listtest_LDADD		= $(top_srcdir)/lib/utils/libhpiutils.la
-listtest_LDFLAGS	= -export-dynamic -dlpreopen force -dlopen self
+libopenhpi_la_LDFLAGS	= -version-info 0:0:0
 
 
