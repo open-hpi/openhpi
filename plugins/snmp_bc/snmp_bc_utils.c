@@ -33,8 +33,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         uuid_t  UUID_val;
 
         if ( (custom_handle == NULL) || (oid == NULL) || (guid == NULL)) {
-                dbg("Error: one of input parameter is a NULL pointer %x, %x, %x\n",
-                    (uint)custom_handle, (uint)oid, (uint)guid);
+                dbg("Error: found NULL pointer  handle %p  oid %p  guid %p\n",
+                    custom_handle,oid,guid);
                 status = SA_ERR_HPI_INVALID_PARAMS;
                 goto CLEANUP;
         }
