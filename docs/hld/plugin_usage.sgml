@@ -278,10 +278,10 @@ handler libwatchdog {
 +       strcpy(attrname, name);
         dlist_for_each_data(dev->directory->attributes, cur,
         </programlisting>
-        <programlisting role="C">
         <para>
         Patch 2:
         </para>
+        <programlisting role="C">
 --- sysfs_dir.c.orig    2003-08-29 04:43:27.000000000 -0700
 +++ sysfs_dir.c 2003-11-20 11:28:36.000000000 -0800
 @@ -274,6 +274,7 @@
