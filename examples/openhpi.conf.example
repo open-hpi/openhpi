@@ -4,8 +4,8 @@
 
 #OPENHPI_LOG_ON_SEV = "MINOR"
 #OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
-#OPENHPI_DEL_MAX_SIZE = "0"
-#OPENHPI_DAT_MAX_SIZE = "0"
+#OPENHPI_DEL_SIZE_LIMIT = "0"
+#OPENHPI_DAT_SIZE_LIMIT = "0"
 #OPENHPI_DAT_USER_LIMIT = "0"
 #OPENHPI_THREADED = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
@@ -22,9 +22,9 @@
 ## "CRITICAL", "MAJOR", "MINOR", "INFORMATIONAL", "OK", and "DEBUG".
 ## OPENHPI_ON_EP sets the entity path on wich the application is running. This
 ## entity path will be returned when SaHpiResourceIdGet() is called.
-## OPENHPI_DEL_MAX_SIZE sets the maximum size (in number of event log entries)
+## OPENHPI_DEL_SIZE_LIMIT sets the maximum size (in number of event log entries)
 ## for the domain event log. "0" means unlimited.
-## OPENHPI_DAT_MAX_SIZE sets the maximum size (in number of alarm entries) for
+## OPENHPI_DAT_SIZE_LIMIT sets the maximum size (in number of alarm entries) for
 ## the alarm table. "0" means unlimited.
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
 ## allowed in the alarm table.
@@ -45,7 +45,7 @@ plugin libdummy
 ## Depends on net-snmp being installed on the system:
 #plugin libsnmp_bc
 
-## Depends openhpi being configured 
+## Depends openhpi being configured
 ## (e.g "configure --enable-dummy=static")
 #plugin dummy
 
@@ -59,36 +59,36 @@ plugin libdummy
 ## Third section is a handler (instance) declaration with arguments understood by plugin
 ## Strings are enclosed by "", numbers are not.
 
-handler	libdummy {
+handler libdummy {
         entity_root = "{SYSTEM_CHASSIS,1}"
         name = "test"
-	addr =	0
+        addr =  0
 }
 
 ## Dummy allows you open second virtual by addr 1
 #handler libdummy {
-#	addr =	1
+#       addr =  1
 #}
 
 ## Section for ipmi plugin using SMI -- local interface
 
-#handler libipmi	{
+#handler libipmi        {
 #       entity_root = "{SYSTEM_CHASSIS,2}"
-#	name = "smi"
-#	addr = 0
+#       name = "smi"
+#       addr = 0
 #}
 
 ## Section for ipmi plugin based on OpenIPMI:
 
 #handler libipmi {
 #       entity_root = "{SYSTEM_CHASSIS,3}"
-#	name = "lan"
-#	addr = "x.x.x.x" 	#ipaddress
-#	port = 999
-#	auth_type = "straight"
-#	auth_level= "user"
-#	username = "joe"
-#	password = "blow"
+#       name = "lan"
+#       addr = "x.x.x.x"        #ipaddress
+#       port = 999
+#       auth_type = "straight"
+#       auth_level= "user"
+#       username = "joe"
+#       password = "blow"
 #}
 
 ## Section for snmp_bc plugin:
@@ -120,8 +120,8 @@ handler	libdummy {
 ## Section for ipmidirect plugin using SMI -- local interface
 #handler libipmidirect {
 #       entity_root = "{SYSTEM_CHASSIS,6}"
-#	name = "smi"
-#	addr = 0
+#       name = "smi"
+#       addr = 0
 #}
 
 ## Section for ipmidirect plugin using RMCP:
@@ -131,8 +131,8 @@ handler	libdummy {
 #        addr = "localhost" # ipaddress
 #        port = "623"      # RMCP port
 #        auth_type = "none" # none, md2, md5 or straight
-#	 auth_level = "admin" # none, callback, user, operator or admin
-#	 username = "arthur"
+#        auth_level = "admin" # none, callback, user, operator or admin
+#        username = "arthur"
 #        password = "pieman"
 #        logflags = ""      # logging off
 #        # logflags = "file stdout"

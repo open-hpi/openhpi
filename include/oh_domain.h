@@ -38,6 +38,7 @@ struct oh_dat { /* Domain Alarm Table */
         GSList *list;
         SaHpiUint32T update_count;
         SaHpiTimeT update_timestamp;
+        SaHpiBoolT overflow;
 };
 
 extern struct oh_domain_table oh_domains;
@@ -64,18 +65,18 @@ struct oh_domain {
         SaHpiDomainCapabilitiesT capabilities;
         SaHpiBoolT        is_peer;
         SaHpiTextBufferT  tag;
-        SaHpiGuidT        guid;        
+        SaHpiGuidT        guid;
 
         /* Domain Event Log */
         oh_el *del;
 
         /* List of session ids */
         GArray *sessions;
-        
+
         /* Synchronization - used internally by domain interfaces below. */
         GStaticRecMutex lock;
         int refcount;
-        GStaticRecMutex refcount_lock;        
+        GStaticRecMutex refcount_lock;
 };
 
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,

@@ -45,12 +45,12 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 {
         SaHpiSessionIdT sid;
         SaHpiDomainIdT did;
-        
+
         if (SessionId == NULL) {
                 dbg("Invalid Session Id pointer");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         /* Security Params required to be NULL by the spec at this point */
         if (SecurityParams != NULL) {
                 dbg("SecurityParams must be NULL");
@@ -137,6 +137,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
 {
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+        struct oh_global_param param = { .type = OPENHPI_DAT_USER_LIMIT };
 
         if (!DomainInfo) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -144,23 +145,28 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         OH_GET_DID(SessionId, did);
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
+        /* General */
         DomainInfo->DomainId = d->id;
         DomainInfo->DomainCapabilities = d->capabilities;
         DomainInfo->IsPeer = d->is_peer;
+        /* DRT */
         DomainInfo->DrtUpdateCount = 0;
         DomainInfo->DrtUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+        /* RPT */
         DomainInfo->RptUpdateCount = d->rpt.update_count;
         DomainInfo->RptUpdateTimestamp = d->rpt.update_timestamp;
-        
+        /* DAT */
         DomainInfo->DatUpdateCount = d->dat.update_count;
         DomainInfo->DatUpdateTimestamp = d->dat.update_timestamp;
         DomainInfo->ActiveAlarms = oh_count_alarms(d, SAHPI_ALL_SEVERITIES);
         DomainInfo->CriticalAlarms = oh_count_alarms(d, SAHPI_CRITICAL);
         DomainInfo->MajorAlarms = oh_count_alarms(d, SAHPI_MAJOR);
         DomainInfo->MinorAlarms = oh_count_alarms(d, SAHPI_MINOR);
-        DomainInfo->DatUserAlarmLimit = 0;
-        DomainInfo->DatOverflow = SAHPI_FALSE;
-        
+        if (oh_get_global_param(&param))
+                param.u.dat_user_limit = OH_MAX_DAT_USER_LIMIT;
+        DomainInfo->DatUserAlarmLimit = param.u.dat_user_limit;
+        DomainInfo->DatOverflow = d->dat.overflow;
+
         memcpy(DomainInfo->Guid, d->guid, sizeof(SaHpiGuidT));
         DomainInfo->DomainTag = d->tag;
         oh_release_domain(d); /* Unlock domain */
@@ -185,9 +191,9 @@ SaErrorT SAHPI_API saHpiDrtEntryGet (
         SaHpiDomainIdT did;
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-        
-        if((DrtEntry == NULL) || 
-           (NextEntryId == NULL) || 
+
+        if((DrtEntry == NULL) ||
+           (NextEntryId == NULL) ||
            (EntryId == SAHPI_LAST_ENTRY)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -357,14 +363,14 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                     ResourceId, did);
                 return error;
         }
-        
+
         /* Alarm Handling */
-        if (error == SA_OK) {                
-                oh_detect_res_sev_alarm(did, ResourceId, Severity);                
+        if (error == SA_OK) {
+                oh_detect_res_sev_alarm(did, ResourceId, Severity);
         }
 
         /* to get rpt entry into infrastructure */
-        oh_get_events();        
+        oh_get_events();
 
         return error;
 }
@@ -382,13 +388,13 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
         SaHpiRptEntryT *rptentry;
-        
+
         if (ResourceTag == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-        
+
         if (!ResourceTag || !oh_valid_textbuffer(ResourceTag))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -434,12 +440,12 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
 
         if (ResourceId == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
         oh_get_global_param(&ep_param);
-                
+
         OH_GET_DOMAIN(did, d); /* Lock domain */
         rptentry = oh_get_resource_by_ep(&(d->rpt), &ep_param.u.on_ep);
         if (!rptentry) {
@@ -526,13 +532,13 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 {
         SaErrorT rv;
         SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id,
-				SaHpiEventLogEntryIdT current,
-				SaHpiEventLogEntryIdT *prev,
-				SaHpiEventLogEntryIdT *next,
-				SaHpiEventLogEntryT *entry,
-				SaHpiRdrT  *rdr,
-				SaHpiRptEntryT  *rptentry);
-				
+                                SaHpiEventLogEntryIdT current,
+                                SaHpiEventLogEntryIdT *prev,
+                                SaHpiEventLogEntryIdT *next,
+                                SaHpiEventLogEntryT *entry,
+                                SaHpiRdrT  *rdr,
+                                SaHpiRptEntryT  *rptentry);
+
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -557,11 +563,11 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                                  &elentry);
                 if (retc == SA_OK) {
                         memcpy(EventLogEntry, &elentry->event, sizeof(SaHpiEventLogEntryT));
-			if (Rdr)
-				memcpy(Rdr, &elentry->rdr, sizeof(SaHpiRdrT)); 	
-			if (RptEntry)
-				memcpy(RptEntry, &elentry->res, sizeof(SaHpiRptEntryT));
-		}
+                        if (Rdr)
+                                memcpy(Rdr, &elentry->rdr, sizeof(SaHpiRdrT));
+                        if (RptEntry)
+                                memcpy(RptEntry, &elentry->res, sizeof(SaHpiRptEntryT));
+                }
                 oh_release_domain(d); /* Unlock domain */
                 return retc;
         }
@@ -575,8 +581,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
-	oh_release_domain(d); /* Unlock domain */
-	
+        oh_release_domain(d); /* Unlock domain */
+
         get_el_entry = h->abi->get_el_entry;
 
         if (!get_el_entry) {
@@ -585,9 +591,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         }
 
         rv = get_el_entry(h->hnd, ResourceId,
-				EntryId, PrevEntryId,
-				NextEntryId, EventLogEntry,
-				Rdr, RptEntry);
+                                EntryId, PrevEntryId,
+                                NextEntryId, EventLogEntry,
+                                Rdr, RptEntry);
 
         if(rv != SA_OK)
                 dbg("EL entry get failed\n");
@@ -609,7 +615,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         SaHpiDomainIdT did;
 
         OH_CHECK_INIT_STATE(SessionId);
-        
+
         if (EvtEntry == NULL) {
                 dbg("Error: Event Log Entry is NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -628,7 +634,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 dbg("Error: Event Log UserData is invalid");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
@@ -830,12 +836,12 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {                
+        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 d->del->enabled = Enable;
                 oh_release_domain(d); /* Unlock domain */
                 return SA_OK;
         }
-        
+
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
@@ -856,9 +862,9 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset (
         struct oh_handler *h;
         struct oh_domain *d;
         SaHpiDomainIdT did;
-	SaHpiRptEntryT *res;
-	SaErrorT rv = SA_OK;
-	SaErrorT (*reset_el_overflow)(void *hnd, SaHpiResourceIdT id);
+        SaHpiRptEntryT *res;
+        SaErrorT rv = SA_OK;
+        SaErrorT (*reset_el_overflow)(void *hnd, SaHpiResourceIdT id);
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -958,12 +964,12 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
                 return error;
         }
 
-        /* Flush session's event queue 
+        /* Flush session's event queue
          * we use a temp error variable as the dequeue loop signals an
          * end via a TIMEOUT error.  If it is anything else, we assign it
          * to the return value.
          */
-        
+
         error = SA_OK;
 
         while (terror == SA_OK) {
@@ -971,7 +977,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
                                                   SAHPI_TIMEOUT_IMMEDIATE,
                                                   &event);
         }
-        
+
         if(terror != SA_ERR_HPI_TIMEOUT) {
                 dbg("Unexpected error occured in clearing the event queues");
                 error = terror;
@@ -1050,8 +1056,8 @@ SaErrorT SAHPI_API saHpiEventAdd (
         SaErrorT error;
         unsigned int i;
 
-	error = oh_valid_addevent(EvtEntry);
-	if (error) return(error);
+        error = oh_valid_addevent(EvtEntry);
+        if (error) return(error);
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1087,18 +1093,18 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
         SaHpiAlarmT *a = NULL;
         struct oh_domain *d = NULL;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
-        
+
         OH_CHECK_INIT_STATE(SessionId);
-        
+
         if (!oh_lookup_severity(Severity) || !Alarm) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (Alarm->AlarmId == SAHPI_LAST_ENTRY) {
                 return error;
         }
-        
+
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        
+
         if (Alarm->AlarmId != SAHPI_FIRST_ENTRY) {
                 /* Lookup timestamp for previous alarm, first*/
                 a = oh_get_alarm(d, &Alarm->AlarmId, &Severity, NULL,
@@ -1108,17 +1114,17 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
                         error = SA_ERR_HPI_INVALID_DATA;
                 }
         }
-        
+
         a = oh_get_alarm(d, &Alarm->AlarmId, &Severity, NULL,
                          NULL, NULL, NULL, NULL,
                          UnacknowledgedOnly, 1); /* get next alarm */
         if (a) {
                 if (error != SA_ERR_HPI_INVALID_DATA) {
-                        error = SA_OK;                
+                        error = SA_OK;
                 }
                 memcpy(Alarm, a, sizeof(SaHpiAlarmT));
         }
-                
+
         oh_release_domain(d);
         return error;
 }
@@ -1132,22 +1138,22 @@ SaErrorT SAHPI_API saHpiAlarmGet(
         struct oh_domain *d = NULL;
         SaHpiAlarmT *a = NULL;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
-        
+
         OH_CHECK_INIT_STATE(SessionId);
-        
+
         if (!Alarm) return SA_ERR_HPI_INVALID_PARAMS;
-        
+
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        
+
         a = oh_get_alarm(d, &AlarmId, NULL, NULL,
                          NULL, NULL, NULL, NULL,
                          0, 0);
         if (a) {
                 memcpy(Alarm, a, sizeof(SaHpiAlarmT));
                 error = SA_OK;
-        }        
-                
+        }
+
         oh_release_domain(d);
         return error;
 }
@@ -1161,16 +1167,16 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         struct oh_domain *d = NULL;
         SaHpiAlarmT *a = NULL;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
-        
+
         OH_CHECK_INIT_STATE(SessionId);
-        
+
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
-        
+
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        
+
         if (AlarmId != SAHPI_ENTRY_UNSPECIFIED) { /* Acknowledge specific alarm */
                 a = oh_get_alarm(d, &AlarmId, NULL, NULL,
                                  NULL, NULL, NULL, NULL,
@@ -1183,7 +1189,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
                 SaHpiAlarmIdT aid = SAHPI_FIRST_ENTRY;
                 a = oh_get_alarm(d, &aid, &Severity, NULL,
                                  NULL, NULL, NULL, NULL,
-                                 0, 1);                
+                                 0, 1);
                 while (a) {
                         a->Acknowledged = SAHPI_TRUE;
                         a = oh_get_alarm(d, &a->AlarmId, &Severity, NULL,
@@ -1192,7 +1198,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
                 }
                 error = SA_OK;
         }
-        
+
         oh_release_domain(d);
         return error;
 }
@@ -1204,22 +1210,26 @@ SaErrorT SAHPI_API saHpiAlarmAdd(
         SaHpiDomainIdT did = 0;
         struct oh_domain *d = NULL;
         SaHpiAlarmT *a = NULL;
-                        
+
         OH_CHECK_INIT_STATE(SessionId);
-        
+
         if (!Alarm ||
             !oh_lookup_severity(Alarm->Severity) ||
             Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        
+
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        
+
         /* Add new alarm */
         a = oh_add_alarm(d, Alarm);
-                        
+
         oh_release_domain(d);
-        return SA_OK;
+
+        if (a == NULL)
+                return SA_ERR_HPI_OUT_OF_SPACE;
+        else
+                return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAlarmDelete(
@@ -1232,16 +1242,16 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
         SaHpiAlarmT *a = NULL;
         SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_USER;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
-        
+
         OH_CHECK_INIT_STATE(SessionId);
-        
+
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
-        
+
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        
+
         if (AlarmId != SAHPI_ENTRY_UNSPECIFIED) { /* Look for specific alarm */
                 a = oh_get_alarm(d, &AlarmId, NULL, NULL,
                                  NULL, NULL, NULL, NULL,
@@ -1260,7 +1270,7 @@ SaErrorT SAHPI_API saHpiAlarmDelete(
                                 NULL, NULL, NULL, 1);
                 error = SA_OK;
         }
-        
+
         oh_release_domain(d);
         return error;
 }
@@ -1509,9 +1519,9 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
-                                     ResourceId, 
-                                     SAHPI_SENSOR_RDR, 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt),
+                                     ResourceId,
+                                     SAHPI_SENSOR_RDR,
                                      SensorNum);
 
         if (rdr_cur == NULL) {
@@ -1571,7 +1581,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 oh_release_domain(d);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        
+
         rv = oh_valid_thresholds(SensorThresholds, rdr);
         if (rv != SA_OK) { /* Invalid sensor threshold */
                 dbg("Invalid sensor threshold.");
@@ -1671,9 +1681,9 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
-                                     ResourceId, 
-                                     SAHPI_SENSOR_RDR, 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt),
+                                     ResourceId,
+                                     SAHPI_SENSOR_RDR,
                                      SensorNum);
 
         if (rdr_cur == NULL) {
@@ -1692,7 +1702,7 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
         }
 
         rv = get_sensor_enable(h->hnd, ResourceId, SensorNum, SensorEnabled);
-	return rv;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiSensorEnableSet (
@@ -1723,9 +1733,9 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
-                                     ResourceId, 
-                                     SAHPI_SENSOR_RDR, 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt),
+                                     ResourceId,
+                                     SAHPI_SENSOR_RDR,
                                      SensorNum);
 
         if (rdr_cur == NULL) {
@@ -1734,7 +1744,7 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        
+
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -1744,9 +1754,9 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
         }
 
         rv = set_sensor_enable(h->hnd, ResourceId, SensorNum, SensorEnabled);
-        if (rv == SA_OK) {                
+        if (rv == SA_OK) {
                 oh_detect_sensor_enable_alarm(did, ResourceId,
-                                              SensorNum, SensorEnabled);                
+                                              SensorNum, SensorEnabled);
         }
 
         return rv;
@@ -1782,10 +1792,10 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
-        
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
-                                     ResourceId, 
-                                     SAHPI_SENSOR_RDR, 
+
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt),
+                                     ResourceId,
+                                     SAHPI_SENSOR_RDR,
                                      SensorNum);
 
         if (rdr_cur == NULL) {
@@ -1836,9 +1846,9 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
-                                     ResourceId, 
-                                     SAHPI_SENSOR_RDR, 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt),
+                                     ResourceId,
+                                     SAHPI_SENSOR_RDR,
                                      SensorNum);
 
         if (rdr_cur == NULL) {
@@ -1847,7 +1857,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        
+
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -1858,7 +1868,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
 
         rv = set_sensor_event_enables(h->hnd, ResourceId,
                                       SensorNum, SensorEventsEnabled);
-        if (rv == SA_OK) {                
+        if (rv == SA_OK) {
                 oh_detect_sensor_enable_alarm(did, ResourceId,
                                               SensorNum, SensorEventsEnabled);
         }
@@ -1900,9 +1910,9 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
-                                     ResourceId, 
-                                     SAHPI_SENSOR_RDR, 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt),
+                                     ResourceId,
+                                     SAHPI_SENSOR_RDR,
                                      SensorNum);
 
         if (rdr_cur == NULL) {
@@ -1911,7 +1921,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        
+
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -1936,7 +1946,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         SaErrorT rv;
         SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT,
                                            SaHpiSensorNumT,
-					   SaHpiSensorEventMaskActionT   Action,
+                                           SaHpiSensorEventMaskActionT   Action,
                                            SaHpiEventStateT   AssertEventMask,
                                            SaHpiEventStateT   DeassertEventMask);
         SaHpiRptEntryT *res;
@@ -1957,9 +1967,9 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
-                                     ResourceId, 
-                                     SAHPI_SENSOR_RDR, 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt),
+                                     ResourceId,
+                                     SAHPI_SENSOR_RDR,
                                      SensorNum);
 
         if (rdr_cur == NULL) {
@@ -1978,15 +1988,15 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         }
 
         rv = set_sensor_event_masks(h->hnd, ResourceId, SensorNum,
-				    Action,
+                                    Action,
                                     AssertEventMask,
                                     DeassertEventMask);
-        if (rv == SA_OK) {                
+        if (rv == SA_OK) {
                 oh_detect_sensor_mask_alarm(did, ResourceId,
                                             SensorNum,
                                             Action, DeassertEventMask);
         }
-        
+
         return rv;
 }
 
@@ -2053,7 +2063,7 @@ SaErrorT SAHPI_API saHpiControlGet (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
-        
+
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2080,7 +2090,7 @@ SaErrorT SAHPI_API saHpiControlGet (
         }
 
         oh_release_domain(d); /* Unlock domain */
-        
+
         get_func = h->abi->get_control_state;
         if (!get_func) {
                 return SA_ERR_HPI_INVALID_CMD;
@@ -2766,9 +2776,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         SAHPI_IN SaHpiBoolT                 UnacknowledgedOnly,
         SAHPI_INOUT SaHpiAnnouncementT      *Announcement)
 {
-        
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
-                             SaHpiAnnunciatorNumT, SaHpiSeverityT, 
+
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
+                             SaHpiAnnunciatorNumT, SaHpiSeverityT,
                              SaHpiBoolT, SaHpiAnnouncementT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
@@ -2793,9 +2803,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr = oh_get_rdr_by_type(&(d->rpt), 
-                                 ResourceId, 
-                                 SAHPI_ANNUNCIATOR_RDR, 
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_ANNUNCIATOR_RDR,
                                  AnnunciatorNum);
 
         if (!rdr) {
@@ -2813,9 +2823,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorGetNext(
         if (!ann_func) {
                 return SA_ERR_HPI_INVALID_CMD;
         }
-   
-        rv = ann_func(h->hnd, ResourceId, 
-                      AnnunciatorNum, Severity, 
+
+        rv = ann_func(h->hnd, ResourceId,
+                      AnnunciatorNum, Severity,
                       UnacknowledgedOnly,
                       Announcement);
 
@@ -2829,7 +2839,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_OUT SaHpiAnnouncementT        *Announcement)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiAnnouncementT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
@@ -2852,9 +2862,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr = oh_get_rdr_by_type(&(d->rpt), 
-                                 ResourceId, 
-                                 SAHPI_ANNUNCIATOR_RDR, 
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_ANNUNCIATOR_RDR,
                                  AnnunciatorNum);
 
         if (!rdr) {
@@ -2873,8 +2883,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorGet(
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = ann_func(h->hnd, ResourceId, 
-                      AnnunciatorNum, EntryId, 
+        rv = ann_func(h->hnd, ResourceId,
+                      AnnunciatorNum, EntryId,
                       Announcement);
 
         return rv;
@@ -2887,7 +2897,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_IN SaHpiSeverityT             Severity)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
         SaErrorT rv;
         SaHpiRptEntryT *res;
@@ -2916,9 +2926,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr = oh_get_rdr_by_type(&(d->rpt), 
-                                 ResourceId, 
-                                 SAHPI_ANNUNCIATOR_RDR, 
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_ANNUNCIATOR_RDR,
                                  AnnunciatorNum);
 
         if (!rdr) {
@@ -2937,8 +2947,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorAcknowledge(
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = ann_func(h->hnd, ResourceId, 
-                      AnnunciatorNum, EntryId, 
+        rv = ann_func(h->hnd, ResourceId,
+                      AnnunciatorNum, EntryId,
                       Severity);
 
         return rv;
@@ -2950,7 +2960,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_INOUT SaHpiAnnouncementT      *Announcement)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiAnnouncementT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
@@ -2980,9 +2990,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr = oh_get_rdr_by_type(&(d->rpt), 
-                                 ResourceId, 
-                                 SAHPI_ANNUNCIATOR_RDR, 
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_ANNUNCIATOR_RDR,
                                  AnnunciatorNum);
 
         if (!rdr) {
@@ -2992,10 +3002,10 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        rv = saHpiAnnunciatorModeGet(SessionId, 
-                                     ResourceId, 
+        rv = saHpiAnnunciatorModeGet(SessionId,
+                                     ResourceId,
                                      AnnunciatorNum,
-                                     &mode); 
+                                     &mode);
         if(rv != SA_OK) {
                 oh_release_domain(d);
                 return rv;
@@ -3004,7 +3014,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
                 oh_release_domain(d);
                 return SA_ERR_HPI_READ_ONLY;
         }
-        
+
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
@@ -3014,7 +3024,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorAdd(
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = ann_func(h->hnd, ResourceId, 
+        rv = ann_func(h->hnd, ResourceId,
                       AnnunciatorNum, Announcement);
 
         return rv;
@@ -3027,7 +3037,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         SAHPI_IN SaHpiEntryIdT              EntryId,
         SAHPI_IN SaHpiSeverityT             Severity)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiEntryIdT, SaHpiSeverityT);
         SaErrorT rv;
         SaHpiRptEntryT *res;
@@ -3057,9 +3067,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr = oh_get_rdr_by_type(&(d->rpt), 
-                                 ResourceId, 
-                                 SAHPI_ANNUNCIATOR_RDR, 
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_ANNUNCIATOR_RDR,
                                  AnnunciatorNum);
 
         if (!rdr) {
@@ -3069,10 +3079,10 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        rv = saHpiAnnunciatorModeGet(SessionId, 
-                                     ResourceId, 
+        rv = saHpiAnnunciatorModeGet(SessionId,
+                                     ResourceId,
                                      AnnunciatorNum,
-                                     &mode); 
+                                     &mode);
         if(rv != SA_OK) {
                 oh_release_domain(d);
                 return rv;
@@ -3081,7 +3091,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
                 oh_release_domain(d);
                 return SA_ERR_HPI_READ_ONLY;
         }
-        
+
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d);
 
@@ -3091,8 +3101,8 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = ann_func(h->hnd, ResourceId, 
-                      AnnunciatorNum, EntryId, 
+        rv = ann_func(h->hnd, ResourceId,
+                      AnnunciatorNum, EntryId,
                       Severity);
 
         return rv;
@@ -3104,7 +3114,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_OUT SaHpiAnnunciatorModeT     *Mode)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiAnnunciatorModeT *);
         SaErrorT rv;
         SaHpiRptEntryT *res;
@@ -3127,9 +3137,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr = oh_get_rdr_by_type(&(d->rpt), 
-                                 ResourceId, 
-                                 SAHPI_ANNUNCIATOR_RDR, 
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_ANNUNCIATOR_RDR,
                                  AnnunciatorNum);
 
         if (!rdr) {
@@ -3159,7 +3169,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_IN SaHpiAnnunciatorModeT      Mode)
 {
-        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT,
                              SaHpiAnnunciatorNumT, SaHpiAnnunciatorModeT);
         SaErrorT rv;
         SaHpiRptEntryT *res;
@@ -3186,9 +3196,9 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr = oh_get_rdr_by_type(&(d->rpt), 
-                                 ResourceId, 
-                                 SAHPI_ANNUNCIATOR_RDR, 
+        rdr = oh_get_rdr_by_type(&(d->rpt),
+                                 ResourceId,
+                                 SAHPI_ANNUNCIATOR_RDR,
                                  AnnunciatorNum);
 
         if (!rdr) {
@@ -3197,7 +3207,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        
+
         if (rdr->RdrTypeUnion.AnnunciatorRec.ModeReadOnly) {
                 dbg("Can't set mode on a Read Only Annunciator");
                 oh_release_domain(d); /* Unlock domain */
@@ -3389,7 +3399,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
+
         rd->controlled = 0;
 
         OH_HANDLER_GET(d, ResourceId, h);
