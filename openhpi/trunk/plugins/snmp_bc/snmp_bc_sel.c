@@ -623,12 +623,13 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	/*	  		*and*  call get_event for any more        */
 	/*	  6. we repeat step 1 ... indefinite loop                 */   
 	
-	if (!err)
+	if (!err) {
 		err = snmp_bc_add_to_eventq(handle, &tmpevent);
 		if (err) 
 		 dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
-	else 
+	} else { 
 	 	dbg("Cannot add el entry to elcache. Error=%s.", oh_lookup_error(err));
+	}
 			
         return(err);
 }
