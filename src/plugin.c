@@ -142,7 +142,7 @@ struct oh_plugin *oh_lookup_plugin(char *plugin_name)
  *
  * Returns: 0 on Success.
  **/
-int oh_lookup_next_plugin_name(char *plugin_name,
+int oh_lookup_next_plugin(char *plugin_name,
                           char *next_plugin_name,
                           unsigned int size)
 {
@@ -162,7 +162,7 @@ int oh_lookup_next_plugin_name(char *plugin_name,
                         data_access_unlock();
                         return 0;
                 } else {
-                        dbg("ERROR. No plugins found and NULL param passed.");
+                        trace("No plugins have been loaded yet.");
                         data_access_unlock();
                         return -1;
                 }
@@ -320,6 +320,11 @@ int oh_unload_plugin(char *plugin_name)
 
         data_access_lock();
 
+        if (plugin->refcount > 1) {
+                dbg("ERROR unloading plugin. Handlers are still referencing it.");
+                return -3;
+        }
+
         if (plugin->dl_handle)
         {
                 lt_dlclose(plugin->dl_handle);
@@ -372,7 +377,7 @@ struct oh_handler *oh_lookup_handler(unsigned int hid)
  *
  * Returns: 0 on Success.
  **/
-int oh_lookup_next_handler_id(unsigned int hid, unsigned int *next_hid)
+int oh_lookup_next_handler(unsigned int hid, unsigned int *next_hid)
 {
         GSList *node = NULL;
 
@@ -436,6 +441,7 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
                 goto err;
         }
 
+        handler->plugin_name = g_strdup(plugin->name);
         handler->abi = plugin->abi;
         handler->config = handler_config;
 
@@ -460,24 +466,24 @@ err:
  * oh_load_handler
  * @handler_config
  *
- * Returns: 0 on Success.
+ * Returns: 0 on Failure, otherwise the handler id
  **/
-int oh_load_handler (GHashTable *handler_config)
+unsigned int oh_load_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
 
         if (!handler_config) {
                 dbg("ERROR loading handler. Invalid handler configuration passed.");
-                return -1;
+                return 0;
         }
 
         data_access_lock();
 
         handler = new_handler(handler_config);
 
-        if(handler == NULL) {
+        if (handler == NULL) {
                 data_access_unlock();
-                return -1;
+                return 0;
         }
 
         g_hash_table_insert(handler_table,
@@ -487,7 +493,7 @@ int oh_load_handler (GHashTable *handler_config)
 
         data_access_unlock();
 
-        return 0;
+        return handler->id;
 }
 
 /**
@@ -499,6 +505,7 @@ int oh_load_handler (GHashTable *handler_config)
 int oh_unload_handler(unsigned int hid)
 {
         struct oh_handler *handler = NULL;
+        struct oh_plugin *plugin = NULL;
 
         if (!hid) {
                 dbg("ERROR unloading handler. Invalid handler id passed.");
@@ -517,9 +524,15 @@ int oh_unload_handler(unsigned int hid)
 
         g_hash_table_remove(handler_table, &(handler->id));
         handler_ids = g_slist_remove(handler_ids, &(handler->id));
+        plugin = oh_lookup_plugin(handler->plugin_name);
+        if (!plugin) {
+                dbg("WHAT?! Handler loaded, but plugin does not exist!");                
+        } else {
+                plugin->refcount--;
+        }
         data_access_unlock();
-        /* FIXME: decrement refcount in plugin */
-
+        
+        g_free(handler->plugin_name);
         g_free(handler);
 
         return 0;

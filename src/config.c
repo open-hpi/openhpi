@@ -527,7 +527,7 @@ int oh_set_global_param(const char *param, char *value)
 {
         char c;
 
-        if (!oh_lookup_next_plugin_name(NULL, &c, sizeof(c))) {
+        if (!oh_lookup_next_plugin(NULL, &c, sizeof(c))) {
                 dbg("ERROR. Cannot set global params. Plugins already loaded.");
                 return -1;
         }

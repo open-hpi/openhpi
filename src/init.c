@@ -44,7 +44,7 @@ SaErrorT oh_initialized()
 SaErrorT oh_initialize()
 {
         GSList *node = NULL;
-        struct oh_parsed_config config;
+        struct oh_parsed_config config = {NULL, NULL};
         char *openhpi_conf;
         int rval;
         unsigned int u;
@@ -72,7 +72,9 @@ SaErrorT oh_initialize()
                 openhpi_conf = OH_DEFAULT_CONF;
         }
 
-        if (oh_load_config(openhpi_conf, &config) < 0) {
+        rval = oh_load_config(openhpi_conf, &config);
+	/* Don't error out if there is no conf file  */
+	if (rval < 0 && rval != -4) {
                 dbg("Can not load config");
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -103,7 +105,7 @@ SaErrorT oh_initialize()
         oh_init_handler_table();
         for (node = config.handler_configs; node; node = node->next) {
                 GHashTable *handler_config = (GHashTable *)node->data;
-                if(oh_load_handler(handler_config) == 0) {
+                if(oh_load_handler(handler_config) > 0) {
                         trace("Loaded handler for plugin %s",
                               (char *)g_hash_table_lookup(handler_config, "plugin"));
                 } else {
@@ -119,13 +121,13 @@ SaErrorT oh_initialize()
          */
         oh_clean_config();
 
-        /* Check if we have at least one handler */
-        oh_lookup_next_handler_id(0, &u);
+	/* Check if there are any handler loaded */
+	oh_lookup_next_handler(0, &u);
         if (!u) {
                 /* there is no handler => this can not work */
-                dbg("No handler found. please check %s!", openhpi_conf);
-                data_access_unlock();
-                return SA_ERR_HPI_NOT_PRESENT;
+                dbg("No handlers loaded after initialization. Check %s!", openhpi_conf);
+                /*data_access_unlock();*/
+                /*return SA_ERR_HPI_NOT_PRESENT;*/
         }
 
         /* Initialize domain table */

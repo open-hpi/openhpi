@@ -32,6 +32,7 @@ struct oh_plugin {
  */
 struct oh_handler {
         unsigned int id; /* handler id */
+        char *plugin_name;
 
         GHashTable *config; /* pointer to configuration */
                 
@@ -50,16 +51,17 @@ int oh_exit_ltdl(void);
 
 /* Plugin and handler prototypes. */
 struct oh_plugin *oh_lookup_plugin(char *plugin_name);
-int oh_lookup_next_plugin_name(char *plugin_name,
+int oh_lookup_next_plugin(char *plugin_name,
                           char *next_plugin_name,
                           unsigned int size);
+			  
 int oh_load_plugin(char *plugin_name);
 int oh_unload_plugin(char *plugin_name);
 
 void oh_init_handler_table(void);
 struct oh_handler *oh_lookup_handler(unsigned int hid);
-int oh_lookup_next_handler_id(unsigned int hid, unsigned int *next_hid);
-int oh_load_handler(GHashTable *handler_config);
+int oh_lookup_next_handler(unsigned int hid, unsigned int *next_hid);
+unsigned int oh_load_handler(GHashTable *handler_config);
 int oh_unload_handler(unsigned int hid);
 
 #endif /*__OH_PLUGIN_H*/
