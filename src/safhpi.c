@@ -376,6 +376,9 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
+        
+        if (!ResourceTag || !oh_valid_textbuffer(ResourceTag))
+                return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_HANDLER_GET(d, ResourceId, h);
