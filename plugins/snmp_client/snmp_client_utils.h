@@ -29,6 +29,11 @@ SaErrorT snmp_get2(struct snmp_session *ss,
 		   size_t objid_len,
 		   struct snmp_value *value);
 
+SaErrorT snmp_set2(struct snmp_session *ss, 
+	           oid *objid,
+	           size_t objid_len,
+                   struct snmp_value *value);
+
 int snmp_getn_bulk( struct snmp_session *ss, 
 		    oid *bulk_objid, 
 		    size_t bulk_objid_len,
