@@ -29,6 +29,7 @@
 
 #include <oh_plugin.h>
 #include <oh_config.h>
+#include <rpt_utils.h>
 
 /*
  * Common OpenHPI implementation specific definitions 

@@ -44,6 +44,7 @@ lib_LTLIBRARIES		= libopenhpi.la
 libopenhpi_la_SOURCES	= \
                            config.c \
                            convert.c \
+			   rpt_utils.c \
                            domain.c \
                            epath_utils.c \
                            event.c \
