@@ -111,15 +111,40 @@ static void mc_add(ipmi_mc_t                    *mc,
 }
 
 static
+void mc_SDRs_read_done(ipmi_mc_t *mc, void *cb_data)
+{
+		int *mc_count = cb_data;
+
+		/* one less MC to wait for */
+		*mc_count = *mc_count - 1;
+
+		dbg("mc(%d %x) SDRs read done mc count left: %d",
+						ipmi_mc_get_address(mc),
+						ipmi_mc_get_channel(mc), *mc_count);
+}
+
+
+static
 void mc_active(ipmi_mc_t *mc, int active, void *cb_data)
 {
 		struct oh_handler_state *handler = cb_data;
+		struct ohoi_handler *ipmi_handler = handler->data;
+
+		int rv;
 
 		if (active) {
 				dbg("MC added and active...(%d %x)\n",
 								ipmi_mc_get_address(mc),
 								ipmi_mc_get_channel(mc));
+
 				mc_add(mc, handler);
+
+				ipmi_handler->mc_count++;
+				/* register MC level SDRs read */
+				rv = ipmi_mc_set_sdrs_first_read_handler(mc, mc_SDRs_read_done,
+								&ipmi_handler->mc_count);
+				if (rv)
+						dbg("mc level SDRs read handler failed");
 		}
 }
 
@@ -130,18 +155,33 @@ ohoi_mc_event(enum ipmi_update_e op,
               void               *cb_data)
 {
         struct oh_handler_state *handler = cb_data;
+		struct ohoi_handler *ipmi_handler = handler->data;
 		int rv;
 		
         switch (op) {
                 case IPMI_ADDED:
+						
+						/* if we get an MC but inactive, register a call to add
+						   it once it goes active */
 						rv = ipmi_mc_add_active_handler(mc, mc_active, handler);
+						
 						if(!ipmi_mc_is_active(mc)) {
 								dbg("MC updated but inactive...we ignore (%d %x)\n",
 												ipmi_mc_get_address(mc),
 												ipmi_mc_get_channel(mc));
 								break;
 						} else {
+
+								/* MC is active */
 								mc_add(mc, handler);
+						
+								ipmi_handler->mc_count++;
+								dbg("OP:ADD - mc count increment: %d", ipmi_handler->mc_count);
+								
+								/* register MC level SDRs read */
+								ipmi_mc_set_sdrs_first_read_handler(mc, mc_SDRs_read_done,
+											   	&ipmi_handler->mc_count);
+								
 								dbg("MC updated and is active: (%d %x)\n", 
 												ipmi_mc_get_address(mc), 
 												ipmi_mc_get_channel(mc));
@@ -151,13 +191,18 @@ ohoi_mc_event(enum ipmi_update_e op,
 						dbg("MC deleted: (%d %x)\n",
 										ipmi_mc_get_address(mc), 
 										ipmi_mc_get_channel(mc));
+						/* most likely won't get called during discovery so comment
+						   out for now */
+						//ipmi_handler->mc_count--;
+
+						/* need to add call to remove from RPT */
 						break;
+
 					case IPMI_CHANGED:
 						if(!ipmi_mc_is_active(mc)) {
 								dbg("MC changed and is inactive: (%d %x)\n",
 												ipmi_mc_get_address(mc), 
 												ipmi_mc_get_channel(mc));
-								/* we need to remove it from RPT */
 						} else {
 								mc_add(mc, handler);
 								dbg("MC changed and is active: (%d %x)\n",

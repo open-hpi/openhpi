@@ -62,15 +62,15 @@ void ohoi_setup_done(ipmi_domain_t	*domain,
 			int		still_connected,
 			void 		*user_data)
 {
-        /* Why need this, Corey? */
-        static ipmi_domain_mc_upd_t *mc_update_handler_id;
+
+    static ipmi_domain_mc_upd_t *mc_update_handler_id;
         
 	struct oh_handler_state *handler = user_data;
 	struct ohoi_handler *ipmi_handler = handler->data;
-        int rv;
+	int rv;
 
 	rv = ipmi_domain_enable_events(domain);
-    	if (rv)
+   	if (rv)
     	    dbg("ipmi_domain_enable_events return error %d", rv);
 
 
@@ -88,6 +88,7 @@ void ohoi_setup_done(ipmi_domain_t	*domain,
 										      ipmi_handler);
 	if (rv) 
 		dbg("ipmi_domain_set_bus_scan_handler return error: %d\n", rv);
+
 
     rv = ipmi_domain_register_mc_update_handler(domain, ohoi_mc_event, handler,
                                                     &mc_update_handler_id);

@@ -132,6 +132,8 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
         int done = 0;
 
         handler = (struct oh_handler_state *)hnd;
+		struct ohoi_handler *ipmi_handler = handler->data;
+
         ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_id->type != OHOI_RESOURCE_ENTITY) {
                 dbg("BUG: try to get sel in unsupported resource");
@@ -154,7 +156,7 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
                          return SA_ERR_HPI_INVALID;
         }
                 
-        return ohoi_loop(&done);
+        return ohoi_loop(&done, ipmi_handler);
 }
 
 SaErrorT ohoi_request_hotswap_action(void *hnd, SaHpiResourceIdT id, 
@@ -191,6 +193,8 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
         SaErrorT rv;
 
         handler = (struct oh_handler_state *)hnd;
+		struct ohoi_handler *ipmi_handler = handler->data;
+
         ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_id->type != OHOI_RESOURCE_ENTITY) {
                 dbg("BUG: try to get sel in unsupported resource");
@@ -202,7 +206,7 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
                                               _get_indicator_state,
                                               &ipmi_state);
 
-        rv = ohoi_loop(&ipmi_state.done);
+        rv = ohoi_loop(&ipmi_state.done, ipmi_handler);
         if (rv != SA_OK)
                 return rv;
 
@@ -218,6 +222,8 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
         int done;
         
         handler = (struct oh_handler_state *)hnd;
+		struct ohoi_handler *ipmi_handler = handler->data;
+
         ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_id->type != OHOI_RESOURCE_ENTITY) {
                 dbg("BUG: try to get sel in unsupported resource");
@@ -229,5 +235,5 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
                                               state,
                                               _hotswap_done,                                                                
                                               &done);
-        return ohoi_loop(&done);
+        return ohoi_loop(&done,ipmi_handler);
 }

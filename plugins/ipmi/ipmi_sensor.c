@@ -150,9 +150,12 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
 }
 
 int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, 
-                         SaHpiSensorReadingT *data)
+                         SaHpiSensorReadingT *data,
+						 void *cb_data)
 {
-	struct ohoi_sensor_reading reading_data;	
+		struct ohoi_handler *ipmi_handler = cb_data;
+		
+		struct ohoi_sensor_reading reading_data;	
         int rv;
         
         memset(data, 0, sizeof(*data));
@@ -160,14 +163,14 @@ int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id,
         reading_data.done               = 0;
 
         rv = ipmi_sensor_pointer_cb(sensor_id, 
-                                          get_sensor_data,
-                                          &reading_data);
+						get_sensor_data,
+                        &reading_data);
         if (rv) {
                 dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID;
         }
         
-        return ohoi_loop(&reading_data.done);
+        return ohoi_loop(&reading_data.done, ipmi_handler);
 }
 
 static void thres_get(ipmi_sensor_t		*sensor,
@@ -316,9 +319,10 @@ static int is_get_sensor_thresholds_done(const void *cb_data)
         return (thres_data->thres_done && thres_data->hyster_done);
 }
 
-int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id, SaHpiSensorThresholdsT *thres)
+int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id, SaHpiSensorThresholdsT *thres, void *cb_data)
 {
-	struct ohoi_sensor_thresholds	thres_data;
+		struct ohoi_handler *ipmi_handler = cb_data;
+		struct ohoi_sensor_thresholds	thres_data;
         int rv;
 		
         memset(thres, 0, sizeof(*thres));
@@ -336,7 +340,7 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id, SaHpiSensorThresholds
         }
 
         return ohoi_loop_until(is_get_sensor_thresholds_done, 
-                               &thres_data, 5);
+                               &thres_data, 5, ipmi_handler);
 }
 
 static void set_data(ipmi_sensor_t *sensor, int err, void *cb_data)
@@ -530,8 +534,11 @@ static void set_sensor_thresholds(ipmi_sensor_t *sensor,
 }
 
 int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id, 
-			       const SaHpiSensorThresholdsT     *thres)
+			       const SaHpiSensorThresholdsT     *thres,
+				   void *cb_data)
 {
+		struct ohoi_handler *ipmi_handler = cb_data;
+
         struct ohoi_sensor_thresholds thres_data;
         SaHpiSensorThresholdsT tmp_thres; 
         int rv;
@@ -543,15 +550,16 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
         thres_data.hyster_done  = 0;
         
         rv = ipmi_sensor_pointer_cb(sensor_id,
-                                          set_sensor_thresholds,
-                                          &thres_data);
+						set_sensor_thresholds,
+						&thres_data);
+		
         if (rv) {
-                dbg("Unable to convert sensor_id to pointer");
+				dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID;
         }
 
         return ohoi_loop_until(is_get_sensor_thresholds_done, 
-                               &thres_data, 5);
+                               &thres_data, 5, ipmi_handler);
 }
 
 static void enables_read(ipmi_sensor_t		*sensor,
@@ -615,40 +623,44 @@ static void get_sensor_event_enables(ipmi_sensor_t	*sensor,
         }
 }
 
-int ohoi_get_sensor_event_enables(ipmi_sensor_id_t      sensor_id, 
-			     SaHpiSensorEvtEnablesT	*enables)
+int ohoi_get_sensor_event_enables(ipmi_sensor_id_t      sensor_id,
+				SaHpiSensorEvtEnablesT	*enables,
+				void *cb_data)
 {
-	struct ohoi_sensor_enables enables_data;
+		struct ohoi_handler *ipmi_handler = cb_data;
+
+		struct ohoi_sensor_enables enables_data;
         int rv;
         
         enables_data.sensor_enables     = enables;
         enables_data.done               = 0;
         
         rv = ipmi_sensor_pointer_cb(sensor_id,
-                                          get_sensor_event_enables,
-                                          &enables_data);
+						get_sensor_event_enables,
+						&enables_data);
+		
         if (rv) {
-                dbg("Unable to convert sensor_id to pointer");
+				dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID;
         }
         
-        return ohoi_loop(&enables_data.done);
+        return ohoi_loop(&enables_data.done, ipmi_handler);
 }
 
 static void set_sensor_event_enables(ipmi_sensor_t      *sensor,
                                      void               *cb_data)
 {
-        struct ohoi_sensor_enables *enables_data;
-	int			rv;
-	ipmi_event_state_t	info;
+		struct ohoi_sensor_enables *enables_data;
+		int			rv;
+		ipmi_event_state_t	info;
         int i;
 
         enables_data = cb_data;
 
-	if (ignore_sensor(sensor)) {
-		dbg("sensor is ignored");
-                enables_data->done = 1;
-		return;
+		if (ignore_sensor(sensor)) {
+				dbg("sensor is ignored");
+				enables_data->done = 1;
+				return;
 	}	
         
 	if (ipmi_sensor_get_event_support(sensor) != IPMI_EVENT_SUPPORT_NONE) {
@@ -704,9 +716,12 @@ static void set_sensor_event_enables(ipmi_sensor_t      *sensor,
 }
 
 int ohoi_set_sensor_event_enables(ipmi_sensor_id_t		sensor_id,
-                                  const SaHpiSensorEvtEnablesT  *enables)
+                                  const SaHpiSensorEvtEnablesT  *enables,
+								  void *cb_data)
 
 {
+		struct ohoi_handler *ipmi_handler = cb_data;
+
         SaHpiSensorEvtEnablesT tmp_enables;
         struct ohoi_sensor_enables enables_data;
         int rv;
@@ -717,12 +732,12 @@ int ohoi_set_sensor_event_enables(ipmi_sensor_id_t		sensor_id,
         enables_data.done              = 0;
         
         rv = ipmi_sensor_pointer_cb(sensor_id,
-                                          set_sensor_event_enables,
-                                          &enables_data);
-        if (rv) {
-                dbg("Unable to convert sensor_id to pointer");
+						set_sensor_event_enables,
+						&enables_data);
+		if (rv) {
+				dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID;
         }
         
-        return ohoi_loop(&enables_data.done);
+        return ohoi_loop(&enables_data.done, ipmi_handler);
 }

@@ -87,19 +87,22 @@ static void get_sel_time(ipmi_mc_t *mc, void *cb_data)
 	ipmi_mc_get_current_sel_time(mc, get_sel_time_cb, cb_data);
 }
 
-void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time)
+void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data)
 {
-	struct get_sel_time_cb_data data;
-	int rv;	
+		struct ohoi_handler *ipmi_handler = cb_data;
+		
+		struct get_sel_time_cb_data data;
+		int rv;	
 
-        memset(&data, 0, sizeof(data));
-	rv = ipmi_mc_pointer_cb(mc_id, get_sel_time, &data); 
-	if (rv) {
-		dbg("Unable to convert domain id to a pointer");
-                return;
-        }
+		memset(&data, 0, sizeof(data));
+		
+		rv = ipmi_mc_pointer_cb(mc_id, get_sel_time, &data); 
+		if (rv) {
+				dbg("Unable to convert domain id to a pointer");
+				return;
+		}
 
-        rv = ohoi_loop(&data.flag);
+        rv = ohoi_loop(&data.flag, ipmi_handler);
         if (rv)
                 dbg("Unable to get sel time: Timeout!");
         
@@ -174,20 +177,23 @@ static void set_sel_time(ipmi_mc_t *mc, void *cb_data)
 	ipmi_mc_set_current_sel_time(mc, &data->time, set_sel_time_done, &data->flag);
 }
 
-void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time)
+void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data)
 {
-        struct set_sel_time_cb_data data;
-	int rv;
+		struct ohoi_handler *ipmi_handler = cb_data;
+		
+		struct set_sel_time_cb_data data;
+		int rv;
 	
         data.flag = 0;
         data.time = *time;
-	rv = ipmi_mc_pointer_cb(mc_id, set_sel_time, &data); 
+		
+		rv = ipmi_mc_pointer_cb(mc_id, set_sel_time, &data); 
         if (rv) {
-                dbg("Unable to convert MC id to a pointer");
+				dbg("Unable to convert MC id to a pointer");
                 return;
         }
                 
-        rv = ohoi_loop(&data.flag);
+        rv = ohoi_loop(&data.flag, ipmi_handler);
         if (rv) 
                 dbg("Unable to set SEL time: Timeout!");
         

@@ -15,26 +15,28 @@
 
 #include "ipmi.h"
 
-SaErrorT ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int to) 
+SaErrorT ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int to, void *cb_data2) 
 {
-	struct timeval tv1, tv2, tv3; 
+		struct ohoi_handler *ipmi_handler = cb_data2;
+		struct timeval tv1, tv2, tv3; 
+		
         /* Wait 5 seconds for result */
         gettimeofday(&tv1, NULL);
-	tv1.tv_sec += to;
-	while (1) {
+		tv1.tv_sec += to;
+		while (1) {
+				if (indicator(cb_data))
+						break;
 
-		if (indicator(cb_data))
-			break;
+				memset(&tv3, 0, sizeof(tv3));	
+				gettimeofday(&tv2, NULL);
+				
+				if (tv2.tv_sec>tv1.tv_sec) 
+						break;
+
+				sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &tv3);
+		}
 		
-		memset(&tv3, 0, sizeof(tv3));	
-		gettimeofday(&tv2, NULL);
-		if (tv2.tv_sec>tv1.tv_sec) 
-			break;
-		
-		sel_select(ohoi_sel, NULL, 0, NULL, &tv3);
-	}
-	
-	return ((indicator(cb_data))? SA_OK:SA_ERR_HPI_TIMEOUT);
+		return ((indicator(cb_data))? SA_OK:SA_ERR_HPI_TIMEOUT);
 }
 
 static int simple_indicator(const void *cb_data)
@@ -42,7 +44,9 @@ static int simple_indicator(const void *cb_data)
         return (*(const int *)cb_data);
 }
 
-SaErrorT ohoi_loop(int *done)
+SaErrorT ohoi_loop(int *done, void *cb_data)
 {
-        return (ohoi_loop_until(simple_indicator, done, 5));
+		struct ohoi_handler *ipmi_plugin = cb_data;
+
+        return (ohoi_loop_until(simple_indicator, done, 5, ipmi_plugin));
 }
