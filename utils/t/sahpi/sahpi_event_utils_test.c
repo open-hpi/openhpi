@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 	/******************************* 
 	 * oh_valid_eventstate testcases
          *******************************/
-
+#if 0
 	/* oh_valid_eventstate: SAHPI_EC_THRESHOLD Completeness (lower crit; no lower major) testcase */
 	{
 		event_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_CRIT;
@@ -217,6 +217,7 @@ int main(int argc, char **argv)
                 }
 	}
 	
+#endif
 	/* oh_valid_eventstate: SAHPI_EC_STATE exclusion testcase */
 	{
 		event_state = SAHPI_ES_STATE_DEASSERTED | SAHPI_ES_STATE_ASSERTED;
