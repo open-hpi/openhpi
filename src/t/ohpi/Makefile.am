@@ -21,9 +21,6 @@ AM_CFLAGS		= @NOCFLAGS@
 TDEPLIB                 = $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
 
-CDEPLIB                 = $(top_builddir)/openhpid2/libopenhpi.la \
-			  $(top_builddir)/utils/libopenhpiutils.la
-
 TESTS_ENVIRONMENT = OPENHPI_PATH=$(top_builddir)/plugins/dummy:$(top_builddir)/plugins/ipmi:$(top_builddir)/plugins/ipmidirect:$(top_builddir)/plugins/watchdog:$(top_builddir)/plugins/sysfs:$(top_builddir)/plugins/text_remote:$(top_builddir)/plugins/snmp_bc:$(top_builddir)/plugins/snmp_rsa
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/src/t/ohpi/openhpi.conf
@@ -194,7 +191,4 @@ ohpi_039_LDADD   = $(TDEPLIB)
 
 ohpi_version_SOURCES = ohpi_version.c
 ohpi_version_LDADD   = $(TDEPLIB)
-
-ohpi_version_client_SOURCES = ohpi_version_client.c
-ohpi_version_client_LDADD   = $(TDEPLIB)
 
