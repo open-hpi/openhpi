@@ -123,8 +123,8 @@ struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int num)
 
         e = eventdup(&working);
 
-//      find_res_events(&working.u.res_event.entry.ResourceEntity, 
-//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].rsa_res_info);
+//        find_res_events(&working.u.res_event.entry.ResourceEntity, 
+//                        &snmp_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info);
  
 	return e;
 }
@@ -163,7 +163,7 @@ struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num)
         e = eventdup(&working);
 
 //      find_res_events(&working.u.res_event.entry.ResourceEntity, 
-//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].rsa_res_info);
+//                      &snmp_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info);
  
 	return e;
 }
@@ -255,3 +255,52 @@ struct oh_event * snmp_rsa_discover_fan(SaHpiEntityPathT *ep, int fannum)
 }
 
 
+/**
+ * snmp_rsa_discover_inventories: Discover all available inventory records for a resource
+ * @ss: handle to snmp connection for this instance
+ * @parent_ep: Entity path of RDR's parent resource
+ * @parent_id: ID of RDR's parent resource
+ * @inventory: Pointer to RDR's static inventory definition 
+ * Return value: Pointer to Plugin Event, if success, NULL, if error or control does not exist
+ **/
+
+struct oh_event * snmp_rsa_discover_inventories(struct snmp_session *ss,
+                                            SaHpiEntityPathT parent_ep,
+                                            const struct snmp_rsa_inventory *inventory)
+{
+        gchar *oid;
+        int len;
+        struct oh_event working;
+        struct oh_event *e = NULL;
+
+        memset(&working, 0, sizeof(struct oh_event));
+
+        oid = snmp_derive_objid(parent_ep, inventory->rsa_inventory_info.mib.oid.OidManufacturer);
+        if (oid == NULL) {
+                dbg("NULL SNMP OID returned.\n");
+                return e;
+        }
+
+
+        if (rdr_exists(ss, oid, 0, 0)) {
+                working.type = OH_ET_RDR;
+                working.u.rdr_event.rdr.RdrType = SAHPI_INVENTORY_RDR;
+                working.u.rdr_event.rdr.Entity = parent_ep;
+                working.u.rdr_event.rdr.RdrTypeUnion.InventoryRec = inventory->inventory;
+
+                working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_LANGUAGE;
+                working.u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
+                len = strlen(inventory->comment);
+                if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+                        working.u.rdr_event.rdr.IdString.DataLength = (SaHpiUint8T)len;
+                        strcpy(working.u.rdr_event.rdr.IdString.Data,inventory->comment);
+                } else {
+                        dbg("Comment string too long - %s\n",inventory->comment);
+                }
+
+                e = eventdup(&working);
+        }
+
+        g_free(oid);
+        return e;
+}
