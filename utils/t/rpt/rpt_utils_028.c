@@ -14,10 +14,11 @@
  *
  */
 
-#include <SaHpi.h>
-#include <string.h>
 #include <glib.h>
-#include <rpt_utils.h>
+#include <string.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 #include <rpt_resources.h>
 
 /**
