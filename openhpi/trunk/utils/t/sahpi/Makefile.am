@@ -8,11 +8,11 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-REMOTE_SOURCES	= SaHpi_enum_utils.c \
-		  SaHpi_event_utils.c \
-		  SaHpi_event_utils.c.embed \
-	          SaHpi_struct_utils.c \
-	          SaHpi_time_utils.c 
+REMOTE_SOURCES	= sahpi_enum_utils.c \
+		  sahpi_event_encode.c\
+		  sahpi_event_utils.c \
+	          sahpi_struct_utils.c \
+	          sahpi_time_utils.c 
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
@@ -25,16 +25,16 @@ $(REMOTE_SOURCES):
 		ln -sf ../../$@; \
 	fi
 
-TESTS = tSaHpi_enum_utils \
-	tSaHpi_time_utils \
-	tSaHpi_event_embed \
-	tSaHpi_event_utils \
-	tSaHpi_struct_utils
+TESTS = sahpi_enum_utils_test \
+	sahpi_event_encode_test \
+	sahpi_event_utils_test \
+	sahpi_struct_utils_test \
+	sahpi_time_utils_test
 
 check_PROGRAMS = $(TESTS)
 
-tSaHpi_enum_utils_SOURCES = tSaHpi_enum_utils.c  $(REMOTE_SOURCES)
-tSaHpi_event_embed_SOURCES = tSaHpi_event_embed.c  $(REMOTE_SOURCES)
-tSaHpi_event_utils_SOURCES = tSaHpi_event_utils.c  $(REMOTE_SOURCES)
-tSaHpi_struct_utils_SOURCES = tSaHpi_struct_utils.c $(REMOTE_SOURCES)
-tSaHpi_time_utils_SOURCES = tSaHpi_time_utils.c $(REMOTE_SOURCES)
+sahpi_enum_utils_test_SOURCES = sahpi_enum_utils_test.c  $(REMOTE_SOURCES)
+sahpi_event_encode_test_SOURCES = sahpi_event_encode_test.c  $(REMOTE_SOURCES)
+sahpi_event_utils_test_SOURCES = sahpi_event_utils_test.c  $(REMOTE_SOURCES)
+sahpi_struct_utils_test_SOURCES = sahpi_struct_utils_test.c $(REMOTE_SOURCES)
+sahpi_time_utils_test_SOURCES = sahpi_time_utils_test.c $(REMOTE_SOURCES)
