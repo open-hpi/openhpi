@@ -62,9 +62,7 @@ static int set_previous_event_state(void *hnd,
 				    int recovery_event, 
 				    int *event_enabled);
 
-static int map2oem(void *hnd, 
-		   SaHpiEventT *event, 
-		   LogSource2ResourceT *resinfo,
+static int map2oem(SaHpiEventT *event, 
 		   rsa_sel_entry *sel_entry,
 		   OEMReasonCodeT reason);
 
@@ -258,13 +256,16 @@ int find_sensor_events(struct oh_handler_state *handle, SaHpiEntityPathT *ep, Sa
 int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled)
 {
 	rsa_sel_entry log_entry;
-	gchar *recovery_str, *login_str, search_str[RSA_SEL_ENTRY_STRING];
+	gchar *recovery_str, *login_str;
+	gchar search_str[RSA_SEL_ENTRY_STRING];
 	gchar thresh_read_value[MAX_THRESHOLD_VALUE_STRINGSIZE]; 
 	gchar thresh_trigger_value[MAX_THRESHOLD_VALUE_STRINGSIZE];
 	int is_recovery_event, is_threshold_event;
 	LogSource2ResourceT resinfo;
 	SaHpiEventT working, *event_ptr;
-	SaHpiSeverityT severity;
+	SaHpiResourceIdT event_rid;
+	SaHpiSeverityT event_severity;
+	SaHpiTimeT event_time;
 	Str2EventInfoT *strhash_data;
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
@@ -284,15 +285,15 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 		dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
 		return -1;
 	}
+	
+	/* Set dynamic event fields with default values from the error log string
+	   These can be overwritten in the code below */
+	event_rid = resinfo.rid;
+	event_time = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
+	event_severity = log_entry.sev; 
 
 	/* Assume event is enabled; unless we find out differently below */
 	*event_enabled = 1;
-
-	/* Fill-in HPI event time */
-	working.Timestamp = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
-
-        /* Set default severity; usually overwritten below with RSAT-level severity */
-	severity = log_entry.sev; 
 
 	/******************************************************************
 	 * Find event search string
@@ -310,6 +311,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 
 	if (recovery_str && (recovery_str == search_str)) {
 		is_recovery_event = 1;
+		memset(search_str, 0, RSA_SEL_ENTRY_STRING);
 		strcpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)));
 	}
 
@@ -344,7 +346,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 			if (strhash_data == NULL) {
 				dbg("Could not find valid event for duplicate string=%s and RID=%d", 
 				    search_str, resinfo.rid);
-				if (map2oem(hnd, &working, &resinfo, &log_entry, EVENT_NOT_MAPPED)) {
+				if (map2oem(&working, &log_entry, EVENT_NOT_MAPPED)) {
 					dbg("Cannot map to OEM Event %s", log_entry.text);
 					return -1;
 				}
@@ -356,29 +358,34 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 			}
 		}
 
-                /* Use the RID calculated from error log string unless OVR_RID is set. 
-		 * Unless overridden due to a dup string have OVR_RID set incorrectly.
-		 */
-
-		if (!(strhash_data->event_ovr & OVR_RID) || dupovrovr) {
-			working.Source = resinfo.rid;
-		}
-
-		/* OVR_SEV overrides the event log's severity and uses 
-		 * RSAT-level severity from calculated in off-line scripts 
-		 */
+		/* If OVR_SEV, use RSA-level severity calculated in off-line scripts */
 		if (strhash_data->event_ovr & OVR_SEV) {
-			severity = strhash_data->event_sev;
+			event_severity = strhash_data->event_sev;
 		}
 
 		/* Look to see if event is mapped to an HPI entity */
 		event_ptr = (SaHpiEventT *)g_hash_table_lookup(event2hpi_hash, strhash_data->event);
 		if (event_ptr) {
-			working = *event_ptr;
 
+                        /* Set static event data defined during resource discovery */
+			working = *event_ptr; 
+
+			/* If OVR_RID, use rid from bc_resources.c
+			   (unless dup strings have OVR_RID set incorrectly) */
+			if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
+				event_rid = event_ptr->Source;
+			}
+			else {
+				working.Source = event_rid; /* Restore error log's RID */
+			}
+	
 			/* Handle sensor events */
 			if (working.EventType == SAHPI_ET_SENSOR) {
 
+				/* ??? Should we read sensors on recovery events 
+				 * ??? to determine the real state of the sensor. 
+				 * ??? Currently recovery state is hardcoded in bc_resources.c
+				 */
 				if (is_recovery_event) {
 					working.EventDataUnion.SensorEvent.Assertion = SAHPI_FALSE;
 				}
@@ -425,21 +432,23 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 			}
 		} /* End found mapped event */
 		else { /* Map to OEM Event - Log Not Mapped */
-			if (map2oem(hnd, &working, &resinfo, &log_entry, EVENT_NOT_MAPPED)) {
+			if (map2oem(&working, &log_entry, EVENT_NOT_MAPPED)) {
 				dbg("Cannot map to OEM Event %s", log_entry.text);
 				return -1;
 			}
 		} /* End found "alertable" event string in hash */
 	}
 	else { /* Map to OEM Event - String not recognized as RSA "alertable" */
-		if (map2oem(hnd, &working, &resinfo, &log_entry, EVENT_NOT_ALERTABLE)) {
+		if (map2oem(&working, &log_entry, EVENT_NOT_ALERTABLE)) {
 			dbg("Cannot map to OEM Event %s", log_entry.text);
 			return -1;
 		}
 	}
 
  DONE:
-	working.Severity = severity;
+        working.Source = event_rid;
+        working.Timestamp = event_time;
+        working.Severity = event_severity;
 	memcpy((void *)event, (void *)&working, sizeof(SaHpiEventT));
 
 	return 0;
@@ -596,21 +605,26 @@ static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_
 		 * Set Current and Previous State 
 		 ********************************/
 		if (recovery_event) {
+
 			/* Recovery state is stored in the previous state field in the
-			   event's hash table - too lazy to create a different field */
-			SaHpiEventStateT tmpstate;
+			   event's hash table. Dynamic data is stored in RDR not the 
+			   event hash table, so event hash table uses previous
+			   field to hold recovery data */
 			
+			SaHpiEventStateT tmpstate;
 			tmpstate = ((struct RSA_SensorInfo *)rsa_data)->cur_state;
 
+			/* Set both RDR/event's current state; Remember for recovery 
+			   event hash's previous = recovery state */
 			((struct RSA_SensorInfo *)rsa_data)->cur_state = 
+				event->EventDataUnion.SensorEvent.PreviousState; 
+			event->EventDataUnion.SensorEvent.EventState = 
 				event->EventDataUnion.SensorEvent.PreviousState;
-
 			event->EventDataUnion.SensorEvent.PreviousState = tmpstate;
 		}
 		else { /* Normal non-recovery case */
 			event->EventDataUnion.SensorEvent.PreviousState = 
 				((struct RSA_SensorInfo *)rsa_data)->cur_state;
-			
 			((struct RSA_SensorInfo *)rsa_data)->cur_state = 
 				event->EventDataUnion.SensorEvent.EventState;
 		}
@@ -631,15 +645,21 @@ static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_
 		 * Set Current and Previous State 
 		 ********************************/
 		if (recovery_event) {
+
 			/* Recovery state is stored in the previous state field in the
-			   event's hash table - too lazy to create a different field */
-			SaHpiHsStateT tmpstate;
+			   event's hash table. Dynamic data is stored in RDR not the 
+			   event hash table, so event hash table uses previous
+			   field to hold recovery data */
 			
+			SaHpiHsStateT tmpstate;
 			tmpstate = ((struct RSA_ResourceInfo *)rsa_data)->cur_state;
 
+			/* Set both RDR/event's current state; Remember for recovery 
+			   event hash's previous = recovery state */
 			((struct RSA_ResourceInfo *)rsa_data)->cur_state = 
 				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
-
+			event->EventDataUnion.HotSwapEvent.HotSwapState = 
+				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
 			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState = tmpstate;
 		}
 		else { /* Normal non-recovery case */
@@ -661,10 +681,8 @@ static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_
 /****************************************************
  * Translate RSA log message to HPI OEM Event
  ****************************************************/
-static int map2oem(void *hnd, SaHpiEventT *event, LogSource2ResourceT *resinfo,
-		   rsa_sel_entry *sel_entry, OEMReasonCodeT reason)
+static int map2oem(SaHpiEventT *event, rsa_sel_entry *sel_entry, OEMReasonCodeT reason)
 {
-	event->Source = resinfo->rid;
 	event->EventType = SAHPI_ET_OEM;
 	event->EventDataUnion.OemEvent.MId = IBM_MANUFACTURING_ID;
 	strncpy(event->EventDataUnion.OemEvent.OemEventData,
