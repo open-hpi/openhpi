@@ -19,26 +19,29 @@ GENERATED_EVENT_CODE = el2event.c
 
 GENERATED_CODE = $(GENERATED_EVENT_HEADER_FILES) $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
 
-REMOTE_SIM_SOURCES   = \
-			snmp_bc.c \
-			snmp_bc_control.c \
-	     		snmp_bc_discover.c \
-			snmp_bc_discover_bc.c \
-			snmp_bc_discover_rsa.c \
-			snmp_bc_event.c \
-			snmp_bc_inventory.c \
-			snmp_bc_hotswap.c \
-			snmp_bc_power.c \
-			snmp_bc_reset.c \
-			snmp_bc_resources.c \
-			snmp_bc_resources_rsa.c \
-			snmp_bc_sel.c \
-			snmp_bc_sensor.c \
-			snmp_bc_session.c \
-	 		snmp_bc_time.c \
-	 		snmp_bc_utils.c \
-			snmp_bc_watchdog.c \
-			snmp_bc_xml2event.c
+# FIXME:: May be able to remove $(GENERATED_EVENT_CODE), if get auto-generated
+# files working with SMP systems
+REMOTE_SIM_SOURCES = \
+		$(GENERATED_EVENT_CODE) \
+		snmp_bc.c \
+		snmp_bc_control.c \
+	     	snmp_bc_discover.c \
+		snmp_bc_discover_bc.c \
+		snmp_bc_discover_rsa.c \
+		snmp_bc_event.c \
+		snmp_bc_inventory.c \
+		snmp_bc_hotswap.c \
+		snmp_bc_power.c \
+		snmp_bc_reset.c \
+		snmp_bc_resources.c \
+		snmp_bc_resources_rsa.c \
+		snmp_bc_sel.c \
+		snmp_bc_sensor.c \
+		snmp_bc_session.c \
+	 	snmp_bc_time.c \
+	 	snmp_bc_utils.c \
+		snmp_bc_watchdog.c \
+		snmp_bc_xml2event.c
 
 MOSTLYCLEANFILES = \
 		@TEST_CLEAN@ \
@@ -68,12 +71,12 @@ $(REMOTE_SIM_SOURCES):
 	fi
 
 libsnmp_bc_la_SOURCES = \
-			$(GENERATED_EVENT_CODE) \
-			$(REMOTE_SIM_SOURCES) \
-			sim_init.c \
-			sim_resources.c \
-			snmp_utils.c \
-			tsetup.c
+		$(REMOTE_SIM_SOURCES) \
+		sim_init.c \
+		sim_resources.c \
+		snmp_utils.c \
+		tsetup.c
+# FIXME:: May have to add $(GENERATED_EVENT_CODE) if auto generate files
 
 libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@
 libsnmp_bc_la_LDFLAGS = -version 0:0:0
@@ -82,11 +85,13 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Keep in sync with parent directory's Makefile.am
+# FIXME:: Be nice if auto-generation rules where just in snmp_bc/Makefile.am
+# and not repeated here; but t directory is done first.
 EVENT_MAP_FILE = $(top_srcdir)/plugins/snmp_bc/snmp_bc_event.map
 EVENT_MAP_SCRIPT = $(top_srcdir)/plugins/snmp_bc/eventmap2code.pl
 EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
-# # FIXME:: Add when we can auto-generate files for SMP systems
+# FIXME:: Add when we can auto-generate files for SMP systems
 #$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
 #	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
 #
