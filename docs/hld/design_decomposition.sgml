@@ -1,6 +1,13 @@
 <!-- ...................................................................... -->
 <!-- $Id$ ........................................ -->
 <!-- 
+        (C) Copyright Intel Corp
+        (C) Copyright IBM Corp
+ 
+        Authors:
+            Rusty Lynch
+            Sean Dague
+
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
         (the latest version is currently available at 
@@ -14,40 +21,119 @@
 
   <chapter>
   <title>Current Design</title>
+  <para>
+    This chapter attempts to give an over view of the current OpenHPI
+    implementation.  It will always lag behind the actually source
+    code base, so interested parties are best served by retrieving
+    OpenHPI from our CVS repository, and joining the OpenHPI mailing
+    lists.
+  </para>
   <sect1>
-    <title>Guiding Principles</title>
-    <para>
-      There are a few guiding principals behind 
-      the design and implementation of the OpenHPI project. To succeed, 
-      the project must be: 
-    </para>
-    <itemizedlist mark='opencircle'>
-      <listitem>
+    <title>Theory</title>
+    <sect2>
+      <title>Guiding Principles</title>
+      <para>
+        The goal of OpenHPI is to become the reference implemention
+        for HPI.  HPI is an emerging specification, of great
+        importance to those wishing to have a standardized mechanism
+        for Platform Management.  By producing a reliable Open Source
+        implementation of HPI, the OpenHPI team will help to turn HPI
+        from an emerging specification to an industry standard.
+      </para>
+      <para>
+        There are a few guiding principals behind 
+        the design and implementation of the OpenHPI project. To succeed, 
+        the project must be: 
+      </para>
+      <itemizedlist mark='opencircle'>
+        <listitem>
+          <para>
+            <emphasis>Simple</emphasis> - the easier the code is to
+            follow, the easier it is to find and fix bugs.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>Reliable</emphasis> - OpenHPI will be used in very
+            dynamic environments, and will need to be as robust as
+            possible.  To this end, the reliance on well known, well
+            debugged external libraries is perfered to writing our own
+            implementations of the same functions.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>Efficient</emphasis> - this is both in terms of
+            performance as well as code re-use.         
+            For performance, the reasons are obvious; you don't want your management layers 
+            to bring down the performance of your system. In regard to code re-use--the more 
+            that pieces of code can be re-used the faster that others can develop hardware 
+            specific components to sit within the OpenHPI domain. 
+          </para>
+        </listitem>
+      </itemizedlist>
+    </sect2>
+    <sect2>
+      <title>Requirements / Expectations</title>
+      <sect3>
+        <title>Compliance</title>
         <para>
-          <emphasis>Simple</emphasis> - the easier the code is to
-          follow, the easier it is to find and fix bugs.
+          OpenHPI will be a fully compliant
+          implementation of the HPI specification.  The OpenHPI team
+          is committed to providing a 100% compliant implementation HPI,
+          and to that end has produced a compliance test suite as part
+          of the OpenHPI project.  It is expected that many vendors may
+          wish to reuse or contribute to the compliance test suite
+          separate from the OpenHPI library itself.  
         </para>
-      </listitem>
-      <listitem>
         <para>
-          <emphasis>Reliable</emphasis> - OpenHPI will be used in very
-          dynamic environments, and will need to be as robust as
-          possible.  To this end, the reliance on well known, well
-          debugged external libraries is perfered to writing our own
-          implementations of the same functions.
+          As of the writing of this document, there has only be one
+          official release of HPI (1.0, released October 2002).  Due
+          to the nature of HPI specification design, the OpenHPI team
+          can only have access to officially released material.  The
+          OpenHPI team is committed to supporting future versions of
+          HPI after they are released.  However, given OpenHPI is an
+          Open Source project, and the requirements that any HPI
+          branded product be fully compliant to and major release
+          verion of the HPI spec, no formal commitment to the timing
+          of future specification support can be made.
         </para>
-      </listitem>
-      <listitem>
+      </sect3>
+      <sect3>
+        <title>Commercialization</title>
         <para>
-          <emphasis>Efficient</emphasis> - this is both in terms of
-          performance as well as code re-use.         
-          For performance, the reasons are obvious; you don't want your management layers 
-          to bring down the performance of your system. In regard to code re-use--the more 
-          that pieces of code can be re-used the faster that others can develop hardware 
-          specific components to sit within the OpenHPI domain. 
+          It is expected that many vendors may wish to offer a version
+          of HPI for their users, but do not wish to incur the cost of
+          developing an HPI solution from scratch.  OpenHPI wishes to
+          be a reference implementation for these vendors.  For this
+          reason OpenHPI is licensed under a BSD style license, that
+          allows this commercialization.  Contributions by these
+          entities back to the OpenHPI base are always welcomed and
+          encouraged, but not required.
         </para>
-      </listitem>
-    </itemizedlist>
+        <para>
+          To a similar end, it is expected the plugin interface will
+          be standardized so that vendors may produce object code only
+          enablement for their hardware when appropriate.  OpenHPI
+          still encourages those vendors to contribute their sources
+          back to OpenHPI whenever possible, but understands that this
+          will not always be the case.
+        </para>
+      </sect3>
+      <sect3>
+        <title>External Requirements</title>
+        <para>
+          HPI is a new specification.  As of the writing of this
+          document the OpenHPI team is unaware of any externally
+          available HPI based applications or implementations.  Given
+          that fact, the OpenHPI team is getting most of its
+          requirements from the OpenHPI participants directly.  As
+          available HPI applications become prevelant, OpenHPI expects
+          to work with those application vendors to gather further
+          external requirements which 
+        </para>
+      </sect3>
+    </sect2>
   </sect1>
   <sect1>
     <title>Implementation</title>
