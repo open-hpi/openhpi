@@ -20,5 +20,6 @@ SaHpiBoolT is_simulator(void);
 SaErrorT sim_banner(struct snmp_bc_hnd *custom_handle);
 SaErrorT sim_init(void);
 SaErrorT sim_close(void);
+SaErrorT sim_file(void);
 
 #endif
