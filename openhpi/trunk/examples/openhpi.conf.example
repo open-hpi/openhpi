@@ -1,6 +1,17 @@
-#File format is easy
+#File format is outlined here and examples are given
 
-###First section, declare plugin to use:
+###First section, declare global parameters
+#example:
+#global {
+#        OPENHPI_LOG_SEV = "MAJOR"
+#}
+#Parameters in the global stanza will be converted to
+#environment variables.
+#Here you can set which events will be logged in the domain
+#system event log based on severity: CRITICAL, MAJOR, MINOR,
+#INFORMATIONAL,OK, and DEBUG.
+
+###Second section, declare plugin to use:
 #example:
 
 #plugin	plugin-name
@@ -24,7 +35,7 @@ plugin	libdummy
 ## unique in a domain. If entity paths are conflicting among handlers, make
 ## sure the "entity_root" is unique here across handlers.
 #############################################################################
-###Second section is a handler (instance) declaration with arguments understood by plugin
+###Third section is a handler (instance) declaration with arguments understood by plugin
 #Strings are enclosed by "", numbers are not.
 
 handler	libdummy {
