@@ -21,8 +21,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <uid_utils.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 #define SYSFS2HPI_ERROR -700
 #define SCRATCHSIZE 60

@@ -21,8 +21,7 @@ extern "C" {
 #include "SaHpi.h"
 }
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
+#include <oh_utils.h>
 #include "marshal_hpi.h"
 #include "client_config.h"
 #include "openhpiclient.h"

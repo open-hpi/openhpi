@@ -25,8 +25,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
+#include <oh_utils.h>
 
 #include "sim_util.h"
 #include "sim_parser.h"
