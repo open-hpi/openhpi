@@ -97,25 +97,26 @@ struct oh_hpi_event {
 	SaHpiEventT		event;
 };
 
-/*
- * The event is used for plugin to notify SEL events
- */
-struct oh_sel_event {
-	/* this is SEL's id */
-	struct oh_resource_id	parent;
-
+/* The structure is used to storage RSEL entry*/
+struct oh_rsel {
 	/* this is the entry's id */
-	struct oh_sel_id	id;
+	struct oh_sel_id	oid;
 	
 	/* This is resource id which the entry relates */
 	struct oh_resource_id	res_id;
 	
 	/* This is rdr id which the entry relates */
 	struct oh_rdr_id	rdr_id;
-	
-	/* XXX: upper layer will fill some fields which does not
-	 * owned by plugins (ResourceId etc.). */
-	SaHpiSelEntryT		entry;
+};
+
+/*
+ * The event is used for plugin to notify SEL events
+ */
+struct oh_rsel_event {
+	/* this is SEL's id */
+	struct oh_resource_id	parent;
+
+	struct oh_rsel rsel;
 };
 
 /* 
@@ -128,14 +129,14 @@ struct oh_event {
 		OH_ET_DOMAIN,
 		OH_ET_RDR,
 		OH_ET_HPI,
-		OH_ET_SEL,
+		OH_ET_RSEL,
 	}type;
 	union {
 		struct oh_resource_event res_event;
 		struct oh_domain_event   domain_event;
 		struct oh_rdr_event	 rdr_event;
 		struct oh_hpi_event	 hpi_event;
-		struct oh_sel_event	 sel_event;
+		struct oh_rsel_event	 rsel_event;
 	} u;		    
 };
 
@@ -182,32 +183,37 @@ struct oh_abi_v1 {
 	/**
 	 * get the id which the caller is running
 	 */
-	int (*get_sel_id)(void *hnd, struct oh_resource_id id);
+	int (*get_self_id)(void *hnd, struct oh_resource_id id);
 
 	/**
-	 * get info from system event log
+	 * get info from RSEL
 	 */
 	int (*get_sel_info)(void *hnd, struct oh_resource_id id, SaHpiSelInfoT *info);
 
 	/**
-	 * set time to system event log
+	 * set time to RSEL
 	 */
-	int (*set_sel_time)(void *hnd, struct oh_resource_id id, struct timeval *time);
+	int (*set_sel_time)(void *hnd, struct oh_resource_id id, const struct timeval *time);
 
 	/**
-	 * set state to system event log
+	 * set state to RSEL
 	 */
 	int (*set_sel_state)(void *hnd, struct oh_resource_id id, int enabled);
 
 	/**
-	 * add entry to system event log
+	 * add entry to RSEL
 	 */
-	int (*add_sel_entry)(void *hnd, struct oh_resource_id id, SaHpiSelEntryT *Event);
+	int (*add_sel_entry)(void *hnd, struct oh_resource_id id, const SaHpiSelEntryT *Event);
 
 	/**
-	 * del entry in system event log
+	 * del entry in RSEL
 	 */
 	int (*del_sel_entry)(void *hnd, struct oh_sel_id id);
+
+	/**
+	 * get entry in RSEL
+	 */
+	int (*get_sel_entry)(void *hnd, struct oh_sel_id id, SaHpiSelEntryT *Event);
 	
 	/**
 	 * get sensor data
