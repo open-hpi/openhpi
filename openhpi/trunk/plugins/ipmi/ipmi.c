@@ -869,20 +869,58 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 }
 static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 				       SaHpiSensorNumT  num,
-				       SaHpiEventStateT *AssertEventMask,
-				       SaHpiEventStateT *DeassertEventMask)
+				       SaHpiEventStateT *assert,
+				       SaHpiEventStateT *deassert)
 {
-	return SA_OK;
+	
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
+		(void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
+
+	return ohoi_get_sensor_event_masks(*sensor, assert, deassert, ipmi_handler);
 
 }
 
 static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
    			  	       SaHpiSensorNumT num,
-			 	       SaHpiEventStateT  AssertEventMask,
-				       SaHpiEventStateT  DeassertEventMask)
+			 	       SaHpiEventStateT  assert,
+				       SaHpiEventStateT  deassert)
 {
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
 
-	return SA_OK;
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
+		(void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
+
+	return ohoi_set_sensor_event_masks(*sensor, assert, deassert, ipmi_handler);
 }
 
 
