@@ -46,8 +46,13 @@
 #include <string.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
 #include <epath_utils.h>
+
+#define dbg(format, ...) \
+        do { \
+	        fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \
+		fprintf(stderr, format "\n", ## __VA_ARGS__); \
+        } while(0)
 
 static unsigned int index2entitytype(unsigned int i);
 static unsigned int entitytype2index(unsigned int i);
@@ -355,14 +360,14 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
         return 0;
 }
 
-int set_epath_instance(struct oh_event *e, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
+int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
 {
         int i;
         int retval = -1;
 
         for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if(e->u.res_event.entry.ResourceEntity.Entry[i].EntityType == et) {
-                        e->u.res_event.entry.ResourceEntity.Entry[i].EntityInstance = ei;
+                if(ep->Entry[i].EntityType == et) {
+                        ep->Entry[i].EntityInstance = ei;
                         retval = 0;
                         break;
                 }
