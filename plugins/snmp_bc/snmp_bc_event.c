@@ -754,7 +754,7 @@ int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 	}
 
 	if (isblade || isswitch) {
-		instance = strtol(src_parts[1], &endptr, 10);
+		instance = strtoul(src_parts[1], &endptr, 10);
 		if (isblade) { 
 			rpt_index = BC_RPT_ENTRY_BLADE; 
 			array_ptr = &snmp_bc_blade_sensors[0];
