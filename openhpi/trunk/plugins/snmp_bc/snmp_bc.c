@@ -64,7 +64,7 @@ static int snmp_bc_get_event(void *hnd, struct oh_event *event, struct timeval *
 do { \
         int j; \
 	for(j=0; rdr_array[j].sensor.Num != 0; j++) { \
-		e = snmp_bc_discover_sensors(custom_handle->ss, \
+		e = snmp_bc_discover_sensors(handle, \
                                              parent_ep, \
                                              &rdr_array[j]); \
                 if(e != NULL) { \
@@ -80,7 +80,7 @@ do { \
 do { \
         int j; \
         for(j=0; rdr_array[j].bc_control_info.mib.oid != NULL; j++) { \
-	        e = snmp_bc_discover_controls(custom_handle->ss, \
+	        e = snmp_bc_discover_controls(handle, \
                                               parent_ep, \
                                               &rdr_array[j]); \
                 if(e != NULL) { \
@@ -96,7 +96,7 @@ do { \
 do { \
         int j; \
         for (j=0; rdr_array[j].bc_inventory_info.mib.oid.OidManufacturer != NULL; j++) { \
-                e = snmp_bc_discover_inventories(custom_handle->ss, \
+                e = snmp_bc_discover_inventories(handle, \
                                                  parent_ep, \
                                                  &rdr_array[j]); \
                 if(e != NULL) { \
@@ -127,7 +127,7 @@ static int snmp_bc_discover_resources(void *hnd)
 	/* Blade vector gives us info for chassis, blades, and blade daughter (add in) cards */
         if((snmp_get(custom_handle->ss,SNMP_BC_BLADE_VECTOR,&get_value)) == 0 &&
 	   (get_value.type == ASN_OCTET_STR)) {
-                e = snmp_bc_discover_chassis(get_value.string,&entity_root);
+                e = snmp_bc_discover_chassis(handle,get_value.string,&entity_root);
                 if(e != NULL) {
                         struct BC_ResourceInfo *bc_data =
                                 g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info),
@@ -143,7 +143,7 @@ static int snmp_bc_discover_resources(void *hnd)
                 }
 
                 for(i=0; i < strlen(get_value.string); i++) {
-                        e = snmp_bc_discover_blade(get_value.string, &entity_root, i);
+                        e = snmp_bc_discover_blade(handle,get_value.string, &entity_root, i);
                         if(e != NULL) {
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE].bc_res_info),
@@ -158,7 +158,7 @@ static int snmp_bc_discover_resources(void *hnd)
 				find_inventories(snmp_bc_blade_inventories);
                         }
 			
-			e = snmp_bc_discover_blade_addin(custom_handle->ss, get_value.string, &entity_root, i);
+			e = snmp_bc_discover_blade_addin(handle, get_value.string, &entity_root, i);
 			if(e != NULL) {
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].bc_res_info),
@@ -184,7 +184,7 @@ static int snmp_bc_discover_resources(void *hnd)
         if((snmp_get(custom_handle->ss,SNMP_BC_FAN_VECTOR,&get_value)) == 0 &&
 	   (get_value.type == ASN_OCTET_STR)) {
                 for(i=0; i < strlen(get_value.string); i++) {
-                        e = snmp_bc_discover_fan(get_value.string, &entity_root, i);
+                        e = snmp_bc_discover_fan(handle,get_value.string, &entity_root, i);
                         if(e != NULL) {
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].bc_res_info),
@@ -209,7 +209,7 @@ static int snmp_bc_discover_resources(void *hnd)
         if((snmp_get(custom_handle->ss,SNMP_BC_POWER_VECTOR,&get_value)) == 0 &&
 	   (get_value.type == ASN_OCTET_STR)) {
                 for(i=0; i < strlen(get_value.string); i++) {
-                        e = snmp_bc_discover_power(get_value.string, &entity_root, i);
+                        e = snmp_bc_discover_power(handle, get_value.string, &entity_root, i);
                         if(e != NULL) {
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].bc_res_info),
@@ -234,7 +234,7 @@ static int snmp_bc_discover_resources(void *hnd)
         if((snmp_get(custom_handle->ss,SNMP_BC_SWITCH_VECTOR,&get_value)) == 0 &&
 	   (get_value.type == ASN_OCTET_STR)) {
                 for(i=0; i < strlen(get_value.string); i++) {
-                        e = snmp_bc_discover_switch(get_value.string, &entity_root, i);
+                        e = snmp_bc_discover_switch(handle, get_value.string, &entity_root, i);
                         if(e != NULL) {
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].bc_res_info),
@@ -258,7 +258,7 @@ static int snmp_bc_discover_resources(void *hnd)
 
         if((snmp_get(custom_handle->ss,SNMP_BC_MEDIATRAY_EXISTS,&get_value)) == 0 &&
 	   (get_value.type == ASN_INTEGER)) {
-		e = snmp_bc_discover_mediatray(get_value.integer, &entity_root, 0);
+		e = snmp_bc_discover_mediatray(handle, get_value.integer, &entity_root, 0);
 		if(e != NULL) {
                         struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].bc_res_info),
@@ -284,7 +284,7 @@ static int snmp_bc_discover_resources(void *hnd)
                 for(i=0; i < strlen(get_value.string); i++) {
 			if((snmp_get(custom_handle->ss,SNMP_BC_MGMNT_ACTIVE,&get_active)) == 0 &&
 			    (get_active.type == ASN_INTEGER) && (get_active.integer == i+1)) { 	
-				e = snmp_bc_discover_mgmnt(get_value.string, &entity_root, i);
+				e = snmp_bc_discover_mgmnt(handle,get_value.string, &entity_root, i);
 				if(e != NULL) {
                                         struct BC_ResourceInfo *bc_data =
                                             g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].bc_res_info),

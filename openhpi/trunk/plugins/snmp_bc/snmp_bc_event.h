@@ -18,9 +18,6 @@
 
 #define MAX_THRESHOLD_VALUE_STRINGSIZE 10
 
-/* Global BC Event Number to HPI Event Hash Table */
-GHashTable * event2hpi_hash;
-
 typedef struct {
 	SaHpiResourceIdT       rid;
 	BCRptEntryT            rpt;
@@ -28,11 +25,11 @@ typedef struct {
 	SaHpiEntityPathT       ep;
 } LogSource2ResourceT;
 
-int event2hpi_hash_init(void);
-int event2hpi_hash_free(void);
+int event2hpi_hash_init(struct oh_handler_state *handle);
+int event2hpi_hash_free(struct oh_handler_state *handle);
 
-int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_info);
-int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor);
+int find_res_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_info);
+int find_sensor_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor);
 
 int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled);
 int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo);
