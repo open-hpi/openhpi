@@ -754,6 +754,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.InterpretedThresholds = {
 						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
 						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
+						.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
+						.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
 					},
 				},
 			},
@@ -860,6 +862,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.InterpretedThresholds = {
 						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
 						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
+						.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
+						.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
 					},
 				},
 			},
@@ -966,6 +970,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.InterpretedThresholds = {
 						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
 						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
+						.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
+						.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
 					},
 				},
 			},
@@ -1072,6 +1078,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.InterpretedThresholds = {
 						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
 						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
+						.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
+						.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
 					},
 				},
 			},
@@ -1176,6 +1184,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.InterpretedThresholds = {
 						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
 						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
+						.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
+						.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
 					},
 				},
 			},
@@ -1282,6 +1292,8 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.InterpretedThresholds = {
 						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
 						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
+						.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
+						.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
 					},
 				},
 			},
