@@ -1073,7 +1073,6 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
 {
         SaHpiDomainIdT did = 0;
         SaHpiAlarmT *a = NULL;
-        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_USER;
         struct oh_domain *d = NULL;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
         
@@ -1088,14 +1087,21 @@ SaErrorT SAHPI_API saHpiAlarmGetNext (
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
         
-        a = oh_get_alarm(d, &Alarm->AlarmId, &Severity, &type,
+        if (Alarm->AlarmId != SAHPI_FIRST_ENTRY) {
+                /* Lookup timestamp for previous alarm, first*/
+                a = oh_get_alarm(d, &Alarm->AlarmId, &Severity, NULL,
+                                 NULL, NULL, NULL, NULL,
+                                 UnacknowledgedOnly, 0);
+                if (a && a->Timestamp != Alarm->Timestamp) {
+                        error = SA_ERR_HPI_INVALID_DATA;
+                }
+        }
+        
+        a = oh_get_alarm(d, &Alarm->AlarmId, &Severity, NULL,
                          NULL, NULL, NULL, NULL,
                          UnacknowledgedOnly, 1); /* get next alarm */
         if (a) {
-                if (Alarm->AlarmId != SAHPI_FIRST_ENTRY &&
-                    Alarm->Timestamp != a->Timestamp) {
-                        error = SA_ERR_HPI_INVALID_DATA;
-                } else {
+                if (error != SA_ERR_HPI_INVALID_DATA) {
                         error = SA_OK;                
                 }
                 memcpy(Alarm, a, sizeof(SaHpiAlarmT));
@@ -1142,7 +1148,6 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         SaHpiDomainIdT did = 0;
         struct oh_domain *d = NULL;
         SaHpiAlarmT *a = NULL;
-        SaHpiStatusCondTypeT type = SAHPI_STATUS_COND_TYPE_USER;
         SaErrorT error = SA_ERR_HPI_NOT_PRESENT;
         
         OH_CHECK_INIT_STATE(SessionId);
@@ -1155,7 +1160,7 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
         OH_GET_DOMAIN(did, d); /* Lock domain */
         
         if (AlarmId != SAHPI_ENTRY_UNSPECIFIED) { /* Acknowledge specific alarm */
-                a = oh_get_alarm(d, &AlarmId, NULL, &type,
+                a = oh_get_alarm(d, &AlarmId, NULL, NULL,
                                  NULL, NULL, NULL, NULL,
                                  0, 0);
                 if (a) {
@@ -1164,12 +1169,12 @@ SaErrorT SAHPI_API saHpiAlarmAcknowledge(
                 }
         } else { /* Acknowledge group of alarms, by severity */
                 SaHpiAlarmIdT aid = SAHPI_FIRST_ENTRY;
-                a = oh_get_alarm(d, &aid, &Severity, &type,
+                a = oh_get_alarm(d, &aid, &Severity, NULL,
                                  NULL, NULL, NULL, NULL,
                                  0, 1);                
                 while (a) {
                         a->Acknowledged = SAHPI_TRUE;
-                        a = oh_get_alarm(d, &a->AlarmId, &Severity, &type,
+                        a = oh_get_alarm(d, &a->AlarmId, &Severity, NULL,
                                          NULL, NULL, NULL, NULL,
                                          0, 1);
                 }
