@@ -157,8 +157,7 @@ int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 	if (handle->selcache != NULL) {
 		rc = oh_sel_get(handle->selcache, current, prev, next, &tmpentryptr);
 		if (rc != SA_OK) {
-			printf("entryId %d, oh_sel_get returncode %d\n", current, rc);
-			dbg("Error fetching entry number %d from cache    >>>\n", current);
+			dbg("Error fetching entry number %d from cache, errnum %d  >>>\n", current, rc);
 		} else {
 			memcpy(entry, tmpentryptr, sizeof(SaHpiSelEntryT));
 		}
@@ -388,7 +387,6 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
         SaHpiSelEntryT tmpentry;
-	bc_sel_entry sel_entry;
         char oid[50];
         SaErrorT rv;
 	int isdst = 0;
@@ -399,8 +397,8 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 	if(get_value.type == ASN_OCTET_STR) {
 		int event_enabled;
 
-		snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);
-		isdst = sel_entry.time.tm_isdst;
+		/*snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);*/
+		/* isdst = sel_entry.time.tm_isdst;*/
                 log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
                 tmpentry.EntryId = current;
                 tmpentry.Timestamp = tmpentry.Event.Timestamp;
@@ -432,62 +430,72 @@ int snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char * text, bc_sel
 {
         bc_sel_entry ent;
         char level[8];
-        char * start = text;
-
+        char * findit;
+	
         /* Severity first */
-        if(sscanf(start,"Severity:%7s",level)) {
-                if(strcmp(level,"INFO") == 0) {
-
-                        ent.sev = SAHPI_INFORMATIONAL;
-                } else if(strcmp(level,"WARN") == 0) {
-                        ent.sev = SAHPI_MINOR;
-                } else if(strcmp(level,"ERR") == 0) {
-                        ent.sev = SAHPI_CRITICAL;
-                } else {
-                        ent.sev = SAHPI_DEBUG;
-                }
-        } else {
-                dbg("Couldn't parse Severity from Blade Center Log Entry");
-                return -1;
-        }
+	findit = strstr(text, "Severity:");
+	if (findit != NULL) {
+        	if(sscanf(findit,"Severity:%7s",level)) {
+                	if(strcmp(level,"INFO") == 0) {
+                        	ent.sev = SAHPI_INFORMATIONAL;
+                	} else if(strcmp(level,"WARN") == 0) {
+                        	ent.sev = SAHPI_MINOR;
+                	} else if(strcmp(level,"ERR") == 0) {
+                        	ent.sev = SAHPI_CRITICAL;
+                	} else {
+                        	ent.sev = SAHPI_DEBUG;
+                	}
+        	} else {
+                	dbg("Couldn't parse Severity from Blade Center Log Entry");
+                	return -1;
+        	}
+	}
                 
-        while(start && (strncmp(start,"Source:",7) != 0)) { start++; }
-        if(!start) { return -2; }
 
-        if(!sscanf(start,"Source:%19s",ent.source)) {
-                dbg("Couldn't parse Source from Blade Center Log Entry");
-                return -1;
-        }
+	findit = strstr(text, "Source:");
+	if (findit != NULL) {
+        	if(!sscanf(findit,"Source:%19s",ent.source)) {
+                	dbg("Couldn't parse Source from Blade Center Log Entry");
+                	return -1;
+        	}
+	} else 
+		return -2;
 
-        while(start && (strncmp(start,"Name:",5) != 0)) { start++; }
-        if(!start) { return -2; }
 
-        if(!sscanf(start,"Name:%19s",ent.sname)) {
-                dbg("Couldn't parse Name from Blade Center Log Entry");
-                return -1;
-        }
+	findit = strstr(text, "Name:");
+	if (findit != NULL) {
+        	if(!sscanf(findit,"Name:%19s",ent.sname)) {
+                	dbg("Couldn't parse Name from Blade Center Log Entry");
+                	return -1;
+        	}
+	} else 
+		return -2;
         
-        while(start && (strncmp(start,"Date:",5) != 0)) { start++; }
-        if(!start) { return -2; }
         
-        if(sscanf(start,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
-                  &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
-                  &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-		set_bc_dst(handle, &ent.time);
-                ent.time.tm_mon--;
-                ent.time.tm_year += 100;
-        } else {
-                dbg("Couldn't parse Date/Time from Blade Center Log Entry");
-                return -1;
-        }
+	findit = strstr(text, "Date:");
+	if (findit != NULL) {
+        	if(sscanf(findit,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
+                	  &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
+                  	&ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
+			set_bc_dst(handle, &ent.time);
+                	ent.time.tm_mon--;
+                	ent.time.tm_year += 100;
+        	} else {
+                	dbg("Couldn't parse Date/Time from Blade Center Log Entry");
+                	return -1;
+        	}
+	} else 
+		return -2;
         
-        while(start && (strncmp(start,"Text:",5) != 0)) { start++; }
-        if(!start) { return -2; }
         
-        /* advance to data */
-        start += 5;
-        strncpy(ent.text,start,BC_SEL_ENTRY_STRING - 1);
-        ent.text[BC_SEL_ENTRY_STRING - 1] = '\0';
+	findit = strstr(text, "Text:");
+	if (findit != NULL) {
+        	/* advance to data */
+        	findit += 5;
+        	strncpy(ent.text,findit,BC_SEL_ENTRY_STRING - 1);
+        	ent.text[BC_SEL_ENTRY_STRING - 1] = '\0';
+	} else 
+		return -2;
         
         *sel = ent;
         return 0;
