@@ -2645,7 +2645,53 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeGet(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_OUT SaHpiAnnunciatorModeT     *Mode)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiAnnunciatorModeT *);
+        SaErrorT rv;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiDomainIdT did;
+        struct oh_handler *h;
+        struct oh_domain *d = NULL;
+
+        if (Mode == NULL) return SA_ERR_HPI_INVALID_PARAMS;
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                dbg("Resource %d in Domain %d doesn't have annunciators",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), 
+                                 ResourceId, 
+                                 SAHPI_ANNUNCIATOR_RDR, 
+                                 AnnunciatorNum);
+
+        if (!rdr) {
+                dbg("No Annunciator num %d found for Resource %d in Domain %d",
+                    AnnunciatorNum, ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+
+        /* talk to the plugin */
+        ann_func = h->abi->get_annunc_mode;
+        if (!ann_func) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = ann_func(h->hnd, ResourceId, AnnunciatorNum, Mode);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
@@ -2654,7 +2700,63 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
         SAHPI_IN SaHpiAnnunciatorNumT       AnnunciatorNum,
         SAHPI_IN SaHpiAnnunciatorModeT      Mode)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT (*ann_func)(void *, SaHpiResourceIdT, 
+                             SaHpiAnnunciatorNumT, SaHpiAnnunciatorModeT);
+        SaErrorT rv;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiDomainIdT did;
+        struct oh_handler *h;
+        struct oh_domain *d = NULL;
+
+        /* if no valid mode, then this won't find a lookup */
+        if (!oh_lookup_annunciatormode(Mode)) {
+                dbg("Invalid Annunciator Mode");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
+                dbg("Resource %d in Domain %d doesn't have annunciators",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr = oh_get_rdr_by_type(&(d->rpt), 
+                                 ResourceId, 
+                                 SAHPI_ANNUNCIATOR_RDR, 
+                                 AnnunciatorNum);
+
+        if (!rdr) {
+                dbg("No Annunciator num %d found for Resource %d in Domain %d",
+                    AnnunciatorNum, ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        if (rdr->RdrTypeUnion.AnnunciatorRec.ModeReadOnly) {
+                dbg("Can't set mode on a Read Only Annunciator");
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_READ_ONLY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d);
+
+        /* talk to the plugin */
+        ann_func = h->abi->set_annunc_mode;
+        if (!ann_func) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = ann_func(h->hnd, ResourceId, AnnunciatorNum, Mode);
+
+        return rv;
 }
 
 /*******************************************************************************
