@@ -42,7 +42,7 @@ static int get_int_param(char *mes, int *val)
 	return(sscanf(buf, "%d", val));
 }
 
-static int help(int argc, char *argv[])
+int help(int argc, char *argv[])
 {
 	struct command *cmd = NULL;
 	int len;
@@ -855,8 +855,8 @@ static int quit(int argc, char *argv[])
 /* command table */
 const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"    \
 			"Usage: clearevtlog <resource id>";
-const char dathelp[] = "dat: domain alarm table list\n"                      \
-			"Usage: dat ";
+const char dathelp[] = "dat: domain alarm table list\n"
+			"Usage: dat";
 const char dscvhelp[] = "dscv: discovery resources\n"                      \
 			"Usage: dscv ";
 const char eventhelp[] = "event: enable or disable event display on screen\n" \
@@ -865,6 +865,8 @@ const char getthreshelp[] = "getthreshold: get sensor threshold values\n"  \
 			"Usage: getthreshold <resource id> <sensor id>";
 const char helphelp[] = "help: help information for OpenHPI commands\n"    \
 			"Usage: help [optional commands]";
+const char hsindhelp[] = "hotswap_ind: show hot swap indicator state\n"
+			"Usage: hotswap_ind <resource id>";
 const char hsstathelp[] = "hotswapstat: retrieve hot swap state of a resource\n" \
 			"Usage: hotswapstat <resource id> ";
 const char lreshelp[] = "lsres: list resources\n"                          \
@@ -888,14 +890,16 @@ const char setthreshelp[] = "setthreshold: set sensor threshold values\n"  \
 			"                    [ph val] [nh val]";
 const char settaghelp[] = "settag: set tag for a particular resource \n"   \
 			"Usage: settag <resource id> <tag string>";
-const char showrdrhelp[] = "showrdr: show resource data record\n"          \
-			"Usage: showrdr [<resource id> [<rdr num>]]";
+const char showrdrhelp[] = "showrdr: show resource data record\n"
+			"Usage: showrdr [<resource id> [<rdr num>]]\n"
+			"   or  rdr [<resource id> [<rdr num>]]";
 const char showevtloghelp[] = "showevtlog: show system event logs\n"       \
 			"Usage: showevtlog <resource id>";
 const char showinvhelp[] = "showinv: show inventory data of a resource\n"  \
 			"Usage: showinv <resource id>";
-const char showrpthelp[] = "showrpt: show resource information\n"          \
-			"Usage: showrpt [<resource id>]";
+const char showrpthelp[] = "showrpt: show resource information\n"
+			"Usage: showrpt [<resource id>]\n"
+			"   or  rpt [<resource id>]";
 const char showsorhelp[] = "showsensor: show sensor information\n"         \
 			"Usage: showsensor <resource id> <sensor id>";
 
@@ -906,12 +910,15 @@ struct command commands[] = {
     { "event",		event,			eventhelp },
     { "gethreshold",	get_thres,		getthreshelp },
     { "help",		help,			helphelp },
+    { "hotswap_ind",	show_hs_ind,		hsindhelp },
     { "hotswapstat",	hotswap_stat,		hsstathelp },
     { "lsres",		listres,		lreshelp },
     { "lsensor",	list_sensor,		lsorhelp },
     { "power",		power,			powerhelp },
     { "quit",		quit,			quithelp },
+    { "rdr",		show_rdr,		showrdrhelp },
     { "reset",		reset,			resethelp },
+    { "rpt",		show_rpt,		showrpthelp },
     { "senevtget",	sen_evt_get,		senevtgethelp },
     { "senevtelb",	sen_evt_set,		senevtsethelp },
     { "sethreshold",	set_thres,		setthreshelp },
@@ -921,7 +928,6 @@ struct command commands[] = {
     { "showrdr",	show_rdr,		showrdrhelp },
     { "showrpt",	show_rpt,		showrpthelp },
     { "showsensor",	show_sensor1,		showsorhelp },
-    { "hotswap_ind",	show_hs_ind,		NULL },
     { "?",		help,			helphelp },
     { NULL,		NULL,			NULL }
 };

@@ -208,6 +208,7 @@ OUT:
 
 void cmd_shell(void)
 {
+	help(1, (char **)NULL);
 	for (;;) {
 		cmd_parser();
 	}

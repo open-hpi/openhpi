@@ -43,6 +43,7 @@ extern Domain_t		*Domain;
 extern void	delete_progress(void);
 extern void	do_progress(char *mes);
 extern int	ui_print(char *Str);
+extern int	help(int argc, char *argv[]);
 
 void gdb(int level);
 int open_session(void);
