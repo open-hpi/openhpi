@@ -157,7 +157,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 }
 
 SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
-				 SaHpiHsPowerStateT *state)
+				 SaHpiPowerStateT *state)
 {
 	gchar *oid;
 	int rtn_code = SA_OK;
@@ -209,7 +209,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 }
 
 SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
-				 SaHpiHsPowerStateT state)
+				 SaHpiPowerStateT state)
 {
 	gchar *oid;
 	int rtn_code = SA_OK;

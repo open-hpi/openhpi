@@ -35,11 +35,11 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  SaHpiSensorEvtEnablesT *enables);
+					  SaHpiBoolT *enables);
 
 SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  const SaHpiSensorEvtEnablesT *enables);
+					  const SaHpiBoolT *enables);
 
 #endif /* SNMP_BC_SENSOR_H */

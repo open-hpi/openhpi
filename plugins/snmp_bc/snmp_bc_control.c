@@ -25,8 +25,10 @@
 #include <snmp_bc_utils.h>
 #include <snmp_bc_control.h>
 
-SaErrorT snmp_bc_get_control_state(void *hnd, SaHpiResourceIdT id,
+SaErrorT snmp_bc_get_control_state(void *hnd, 
+				   SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
+				   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state)
 {
         gchar *oid;
@@ -133,9 +135,11 @@ SaErrorT snmp_bc_get_control_state(void *hnd, SaHpiResourceIdT id,
 	return SA_OK;
 }
 
-SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
-                                     SaHpiCtrlNumT num,
-                                     SaHpiCtrlStateT *state)
+SaErrorT snmp_bc_set_control_state(void *hnd, 
+				   SaHpiResourceIdT id,
+				   SaHpiCtrlNumT num,
+				   SaHpiCtrlModeT *mode,
+				   SaHpiCtrlStateT *state)
 {
         gchar *oid;
 	int value;
