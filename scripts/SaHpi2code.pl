@@ -1044,7 +1044,7 @@ sub print_cfile_endfunc {
 
    print FILE_C <<EOF;
         default:
-                return "UNKNOWN";
+                return NULL;
         }
 }
 EOF
