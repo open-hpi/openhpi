@@ -83,7 +83,7 @@ static struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_id *oid
 	list_for_each(tmp, &d->res_list) {
 		struct oh_resource *r;
 		r = list_container(tmp, struct oh_resource, node);
-		if (memcpy(&r->oid, oid, sizeof(oid))==0)
+		if (memcmp(&r->oid, oid, sizeof(oid))==0)
 			return r;
 	}
 	return NULL;
