@@ -51,11 +51,11 @@ int ui_print(char *Str)
 	return(0);
 }
 
-ret_code_t help(int as)
+void help(int as)
 //  as = 0  - Available commands
 //  as = 1  - help command
 {
-	command_def_t	*cmd = NULL;
+	command_def_t	*cmd = NULL, *res = (command_def_t *)NULL;
 	int		len;
 	term_def_t	*term;
 
@@ -74,37 +74,44 @@ ret_code_t help(int as)
 				printf("\n");
 		}
 		printf("\n");
-        	return 0;
+		return;
 	}
 
 	for (;;) {
-		register char *arg;
+		register char	*arg;
+		int		n;
 
 		arg = term->term;
 		len = strlen(arg);
+		n = 0;
                 for (cmd = commands; cmd->cmd != NULL; cmd++) {
 			if ((cmd->type != MAIN_COM) &&
 				(cmd->type != block_type) &&
 				(cmd->type != UNDEF_COM))
 				continue;
-                        if (strncmp(cmd->cmd, arg, len) == 0)
+                        if (strncmp(cmd->cmd, arg, len) == 0) {
+				if (n == 0) res = cmd;
+				n++;
+			};
+			if (strcmp(cmd->cmd, arg) == 0) {
+				res = cmd;
+				n = 1;
 				break;
-                }
-		if (cmd->cmd == NULL)
+			}
+		}
+		if (n != 1)
 			printf("Invalid help command %s\n", arg);
 		else
-			printf("%s\n", cmd->help);
+			printf("%s\n", res->help);
 		term = get_next_term();
 		if (term == NULL) break;
 	}
-
-	return 0;
 }
 
 static ret_code_t help_cmd(void)
 {
 	help(1);
-	return(0);
+	return(HPI_SHELL_OK);
 }
 
 static ret_code_t add_config(void)
@@ -115,7 +122,7 @@ static ret_code_t add_config(void)
 	term = get_next_term();
 	if (term == NULL) {
 		printf("no config file\n");
-		return -1;
+		return HPI_SHELL_CMD_ERROR;
 	}
 //	rv = oh_process_config_file(term->term);
 //	if (rv == SA_ERR_HPI_BUSY) {
@@ -126,7 +133,7 @@ static ret_code_t add_config(void)
 //		printf("Hold on. Initialization is processing\n");
 //	}
 //	return rv;
-	return -1;
+	return HPI_SHELL_CMD_ERROR;
 }
   
 static ret_code_t event(void)
@@ -136,7 +143,7 @@ static ret_code_t event(void)
 	term = get_next_term();
 	if (term == NULL) {
 		printf("Event display: %s\n", prt_flag?"Enable":"Disable"); 
-		return(SA_OK);
+		return(HPI_SHELL_OK);
 	};
 	if (strcmp(term->term, "enable") == 0) {
 		prt_flag = 1;
@@ -157,7 +164,7 @@ static ret_code_t event(void)
 	};
 	set_Subscribe((Domain_t *)NULL, prt_flag);
 
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t debugset(void)
@@ -171,7 +178,7 @@ static ret_code_t debugset(void)
 		val = getenv("OPENHPI_DEBUG");
 		if (val == (char *)NULL) val = "NO";
 		printf("OPENHPI_DEBUG=%s\n", val);
-		return(SA_OK);
+		return(HPI_SHELL_OK);
 	};
 	if (strcmp(term->term, "on") == 0)
 		val = "YES";
@@ -181,7 +188,7 @@ static ret_code_t debugset(void)
 		return HPI_SHELL_PARM_ERROR;
 	setenv("OPENHPI_DEBUG", val, 1);
 
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t hotswap_stat(void)
@@ -360,7 +367,8 @@ static ret_code_t show_hs_ind(void)
 	if (term != NULL) {
 		do_set = 1;
 		if (strcmp(term->term, "on") == 0) state = SAHPI_HS_INDICATOR_ON;
-		else if (strcmp(term->term, "off") == 0) state = SAHPI_HS_INDICATOR_OFF;
+		else if (strcmp(term->term, "off") == 0)
+			state = SAHPI_HS_INDICATOR_OFF;
 		else return HPI_SHELL_PARM_ERROR;
 	};
 	if (do_set) {
@@ -375,7 +383,8 @@ static ret_code_t show_hs_ind(void)
 
 	rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId, rid, &state);
 	if (rv != SA_OK) { 
-		printf("saHpiHotSwapIndicatorStateGet error %s\n", oh_lookup_error(rv));
+		printf("saHpiHotSwapIndicatorStateGet error %s\n",
+			oh_lookup_error(rv));
 		return HPI_SHELL_CMD_ERROR;
 	}
 
@@ -474,12 +483,13 @@ static ret_code_t discovery(void)
 	do_progress("Discover");
         ret = saHpiDiscover(Domain->sessionId);
         if (SA_OK != ret) {
-                printf("saHpiResourcesDiscover failed\n");
+                printf("saHpiResourcesDiscover error = %s\n",
+			oh_lookup_error(ret));
 		delete_progress();
-        	return ret;
+        	return HPI_SHELL_CMD_ERROR;
 	};
 	delete_progress();
-        return ret;
+        return HPI_SHELL_OK;
 }
 
 static ret_code_t dat_list(void)
@@ -490,7 +500,7 @@ static ret_code_t dat_list(void)
 static ret_code_t listres(void)
 {
 	show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
 static ret_code_t show_evtlog(void)
@@ -525,12 +535,12 @@ static ret_code_t evtlog_time(void)
 	if (rv != SA_OK) 
 	{
 		printf("saHpiEventLogTimeGet %s\n", oh_lookup_error(rv));
-		return (rv);
+		return (HPI_SHELL_CMD_ERROR);
 	}
 
 	oh_decode_time(logtime, &buffer);
 	printf ("Current event log time: %s\n", buffer.Data);
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t evtlog_state(void)
@@ -558,19 +568,19 @@ static ret_code_t evtlog_state(void)
 		rv = saHpiEventLogStateSet(Domain->sessionId, rptid, state);
 		if (rv != SA_OK) {
 			printf("saHpiEventLogStateSet %s\n", oh_lookup_error(rv));
-			return(rv);
+			return(HPI_SHELL_CMD_ERROR);
 		};
-		return(SA_OK);
+		return(HPI_SHELL_OK);
 	};
 	rv = saHpiEventLogStateGet(Domain->sessionId, rptid, &state);
 	if (rv != SA_OK) {
 		printf("saHpiEventLogStateGet %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
 	if (state == SAHPI_TRUE) str = "Enable";
 	else str = "Disable";
 	printf("Event Log State: %s\n", str);
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t evtlog_reset(void)
@@ -587,9 +597,9 @@ static ret_code_t evtlog_reset(void)
 	rv = saHpiEventLogOverflowReset(Domain->sessionId, rptid);
 	if (rv != SA_OK) {
 		printf("saHpiEventLogOverflowReset %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t settime_evtlog(void)
@@ -599,8 +609,8 @@ static ret_code_t settime_evtlog(void)
 	SaHpiTimeT		newtime;
 	struct tm		new_tm_time;
 	char			buf[READ_BUF_SIZE];
-	int			day_array[] =
-					{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+	int			day_array[] = { 31, 28, 31, 30, 31, 30, 31,
+						31, 30, 31, 30, 31 };
 	term_def_t		*term;
 	int			i;
 
@@ -622,18 +632,18 @@ static ret_code_t settime_evtlog(void)
 
 	memset(&new_tm_time, 0, sizeof(struct tm));
 	i = get_string_param("format: MM:DD:YYYY:hh:mm:ss ==> ", buf, READ_BUF_SIZE);
-	if (i != 0) return(-1);
+	if (i != 0) return(HPI_SHELL_PARM_ERROR);
 	sscanf(buf, "%d:%d:%d:%d:%d:%d", &new_tm_time.tm_mon, &new_tm_time.tm_mday,
 		&new_tm_time.tm_year, &new_tm_time.tm_hour, &new_tm_time.tm_min,
 		&new_tm_time.tm_sec);
 	if ((new_tm_time.tm_mon < 1) || (new_tm_time.tm_mon > 12)) {
 		printf("Month out of range: (%d)\n", new_tm_time.tm_mon);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	new_tm_time.tm_mon--;
 	if (new_tm_time.tm_year < 1900) {
 		printf("Year out of range: (%d)\n", new_tm_time.tm_year);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	if (new_tm_time.tm_mon == 1) {
 	/* if the given year is a leap year */
@@ -646,22 +656,22 @@ static ret_code_t settime_evtlog(void)
 	if ((new_tm_time.tm_mday < 1) ||
 		(new_tm_time.tm_mday > day_array[new_tm_time.tm_mon])) {
 		printf("Day out of range: (%d)\n", new_tm_time.tm_mday);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 
 	new_tm_time.tm_year -= 1900;
 	
 	if ((new_tm_time.tm_hour < 0) || (new_tm_time.tm_hour > 24)) {
 		printf("Hours out of range: (%d)\n", new_tm_time.tm_hour);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	if ((new_tm_time.tm_min < 0) || (new_tm_time.tm_min > 60)) {
 		printf("Minutes out of range: (%d)\n", new_tm_time.tm_min);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	if ((new_tm_time.tm_sec < 0) || (new_tm_time.tm_sec > 60)) {
 		printf("Seconds out of range: (%d)\n", new_tm_time.tm_sec);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 
 	newtime = (SaHpiTimeT) mktime(&new_tm_time) * 1000000000;
@@ -669,9 +679,10 @@ static ret_code_t settime_evtlog(void)
 	if (rv != SA_OK) 
 	{
 		printf("saHpiEventLogTimeSet %s\n", oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
 	}
 
-	return (rv);
+	return (HPI_SHELL_OK);
 }
 
 static ret_code_t show_rpt(void)
@@ -687,12 +698,12 @@ static ret_code_t show_rpt(void)
 	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
 	if (rv != SA_OK) {
 		printf("NO rpt: %d\n", resid);
-		return(SA_OK);
+		return(HPI_SHELL_CMD_ERROR);
 	};
 	make_attrs_rpt(&tmp_rpt, &rpt_entry);
 	show_Rpt(&tmp_rpt, ui_print);
 	free_attrs(&(tmp_rpt.Attrutes));
-	return (SA_OK);
+	return (HPI_SHELL_OK);
 }
 
 static ret_code_t show_rdr(void)
@@ -714,19 +725,19 @@ static ret_code_t show_rdr(void)
 		i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
 		if (i == 0) {
 			printf("NO rpt!\n");
-			return(SA_OK);
+			return(HPI_SHELL_CMD_ERROR);
 		};
 		i = get_string_param("RPT (ID | all) ==> ", buf, 9);
-		if (i != 0) return SA_OK;
+		if (i != 0) return HPI_SHELL_CMD_ERROR;
 		if (strncmp(buf, "all", 3) == 0) {
 			show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
-			return(SA_OK);
+			return(HPI_SHELL_OK);
 		};
 		rptid = (SaHpiResourceIdT)atoi(buf);
 	} else {
 		if (strcmp(term->term, "all") == 0) {
 			show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
-			return(SA_OK);
+			return(HPI_SHELL_OK);
 		};
 		if (isdigit(term->term[0]))
 			rptid = (SaHpiResourceIdT)atoi(term->term);
@@ -761,7 +772,7 @@ static ret_code_t show_rdr(void)
 	if (rv != SA_OK) {
 		printf("ERROR!!! Get rdr: ResourceId=%d RdrType=%d RdrNum=%d: %s\n",
 			rptid, type, rdrnum, oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
 	make_attrs_rdr(&tmp_rdr, &rdr_entry);
 	show_Rdr(&tmp_rdr, ui_print);
@@ -812,7 +823,7 @@ static ret_code_t domain_info(void)
 	rv = saHpiDomainInfoGet(Domain->sessionId, &info);
 	if (rv != SA_OK) {
 		printf("ERROR!!! saHpiDomainInfoGet: %s\n", oh_lookup_error(rv));
-		return(rv);
+		return(HPI_SHELL_CMD_ERROR);
 	};
 	printf("Domain: %d   Capabil: 0x%x   IsPeer: %d   Guid: %s\n",
 		info.DomainId, info.DomainCapabilities,
@@ -834,7 +845,7 @@ static ret_code_t domain_info(void)
 		info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms,
 		info.MinorAlarms, info.DatUserAlarmLimit);
 	printf("        DatOverflow : %d\n", info.DatOverflow);
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
 static ret_code_t domain_proc(void)
@@ -855,7 +866,8 @@ static ret_code_t domain_proc(void)
 	term = get_next_term();
 	if (term == NULL) {
 		printf("Domain list:\n");
-		printf("    ID: %d   SessionId: %d", Domain->domainId, Domain->sessionId);
+		printf("    ID: %d   SessionId: %d", Domain->domainId,
+			Domain->sessionId);
 		rv = saHpiDomainInfoGet(Domain->sessionId, &info);
 		if (rv == SA_OK) {
 			buf = &(info.DomainTag);
@@ -890,7 +902,7 @@ static ret_code_t domain_proc(void)
 			saHpiSessionClose(sessionId);
 			printf("\n");
 		}
-		return(SA_OK);
+		return(HPI_SHELL_OK);
 	};
 
 	if (isdigit(term->term[0]))
@@ -918,7 +930,7 @@ static ret_code_t domain_proc(void)
 	Domain = domain;
 	set_Subscribe(Domain, prt_flag);
 	add_domain(Domain);
-	return(SA_OK);
+	return(HPI_SHELL_OK);
 }
 
 /* command table */

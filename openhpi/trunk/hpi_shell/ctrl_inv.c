@@ -127,8 +127,7 @@ static int add_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid, SaHpiIdrIdT rdrnum)
 {
 	SaErrorT	rv;
-	SaHpiIdrFieldT	field, res_field;
-	SaHpiEntryIdT	fentryid, nextfentryid;
+	SaHpiIdrFieldT	field;
 	char		buf[256];
 	int		res, i;
 
@@ -146,25 +145,6 @@ static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 	};
 	field.FieldId = res;
 
-	fentryid = SAHPI_FIRST_ENTRY;
-	while (fentryid != SAHPI_LAST_ENTRY) {
-		rv = saHpiIdrFieldGet(sessionId, rptid, rdrnum, field.AreaId,
-			SAHPI_IDR_FIELDTYPE_UNSPECIFIED, fentryid,
-			&nextfentryid, &res_field);
-		if (rv != SA_OK) {
-			printf("No Field for AreaId: %d  FieldId: %d\n",
-				field.AreaId, field.FieldId);
-			return(-1);
-		};
-		if (res_field.FieldId == field.FieldId) break;
-		fentryid = nextfentryid;
-	};
-	if (res_field.FieldId != field.FieldId) {
-		printf("No Field for AreaId: %d  FieldId: %d\n",
-			field.AreaId, field.FieldId);
-		return(-1);
-	};
-	field = res_field;
 	i = get_string_param("Field type(chass,time,manuf,prodname,prodver,"
 		"snum,pnum,file,tag,custom): ", buf, 9);
 	if (i == 0) {
@@ -327,6 +307,7 @@ ret_code_t inv_block(void)
 	char			buf[256];
 	ret_code_t		ret;
 	term_def_t		*term;
+	int			res;
 
 	ret = ask_rpt(&rptid);
 	if (ret != HPI_SHELL_OK) return(ret);
@@ -344,7 +325,11 @@ ret_code_t inv_block(void)
 	show_inventory(Domain->sessionId, rptid, rdrnum, ui_print);
 	for (;;) {
 		block_type = INV_COM;
-		get_new_command("inventory block ==> ");
+		res = get_new_command("inventory block ==> ");
+		if (res == 2) {
+			unget_term();
+			return HPI_SHELL_OK;
+		};
 		term = get_next_term();
 		if (term == NULL) continue;
 		snprintf(buf, 256, "%s", term->term);
@@ -372,11 +357,6 @@ ret_code_t inv_block(void)
 		if (strcmp(buf, "delfield") == 0) {
 			del_inventory_field(Domain->sessionId, rptid, rdrnum);
 			continue;
-		};
-		unget_term();
-		if (run_command() == 2) {
-			unget_term();
-			return(SA_OK);
 		}
 	};
 	block_type = MAIN_COM;
@@ -541,6 +521,7 @@ ret_code_t ctrl_block(void)
 	char			buf[256];
 	ret_code_t		ret;
 	term_def_t		*term;
+	int			res;
 
 	ret = ask_rpt(&rptid);
 	if (ret != HPI_SHELL_OK) return(ret);
@@ -558,7 +539,11 @@ ret_code_t ctrl_block(void)
 	show_control(Domain->sessionId, rptid, rdrnum, ui_print);
 	for (;;) {
 		block_type = CTRL_COM;
-		get_new_command("control block ==> ");
+		res = get_new_command("control block ==> ");
+		if (res == 2) {
+			unget_term();
+			return HPI_SHELL_OK;
+		};
 		term = get_next_term();
 		if (term == NULL) continue;
 		snprintf(buf, 256, "%s", term->term);
@@ -574,11 +559,6 @@ ret_code_t ctrl_block(void)
 		if (strcmp(buf, "show") == 0) {
 			show_control(Domain->sessionId, rptid, rdrnum, ui_print);
 			continue;
-		};
-		unget_term();
-		if (run_command() == 2) {
-			unget_term();
-			return(SA_OK);
 		}
 	};
 	block_type = MAIN_COM;
