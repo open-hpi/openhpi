@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
 	retc = oh_el_overflowreset(el);
         if (retc == SA_OK) {
-                dbg("ERROR: el clear failed.");
+                dbg("ERROR: el overflowreset failed.");
                 return 1;
         }
 

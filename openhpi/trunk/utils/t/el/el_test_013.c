@@ -131,14 +131,14 @@ int main(int argc, char **argv)
         /* close el4 */
         retc = oh_el_close(el4);
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el3 failed.");
+                dbg("ERROR: oh_el_close on el4 failed.");
                 return 1;
         }
 
         /* close el5 */
         retc = oh_el_close(el5);
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el3 failed.");
+                dbg("ERROR: oh_el_close on el5 failed.");
                 return 1;
         }
 

@@ -67,7 +67,7 @@ int main(int argc, char **argv)
         /* close el without saving to file*/
         retc = oh_el_close(el2);
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el failed.");
+                dbg("ERROR: oh_el_close on el2 failed.");
                 return 1;
         }
 

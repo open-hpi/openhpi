@@ -11,7 +11,7 @@
  * full licensing terms.
  *
  * Authors:
- *      David Ashley<dashley@us.ibm.com>
+ *      Christina Hernandez<hernanc@us.ibm.com>
  */
 
 #include <stdio.h>
@@ -23,7 +23,6 @@
 #include <openhpi.h>
 #include <oh_utils.h>
 
-
 #include "el_test.h"
 
 
@@ -31,7 +30,8 @@
  * main: EL test
  *
  * This test tests creates an EL and adds five events.
- * It then save the EL to a file.
+ * It then verifies there are five events in the EL and 
+ * that they are the same as the original events.
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -40,85 +40,62 @@ int main(int argc, char **argv)
         oh_el *el;
         int x;
         SaErrorT retc;
-        SaHpiEventLogInfoT info;
-        SaHpiEventLogEntryIdT id, prev, next;
+	SaHpiEventT event;
+        SaHpiEventLogEntryIdT curr = SAHPI_FIRST_ENTRY, prev = 0, next = 0;
         oh_el_entry *entry;
+	static char *data[5] = {
+        	"Test data one",
+        	"Test data two",
+        	"Test data three",
+        	"Test data four",
+        	"Test data five"
+	};
 
         /* create the EL */
-        el = oh_el_create(OH_ELTEST_MAX_ENTRIES);
+        el = oh_el_create(30);
 
-        if(el == NULL) {
-                dbg("ERROR: el == NULL.");
-                return 1;
-        }
+	/* add 5 events to el */
+	for(x=0;x<5;x++){
+        	event.Source = 1;
+        	event.EventType = SAHPI_ET_USER;
+        	event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        	event.Severity = SAHPI_DEBUG;
+		strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
 
-        /* add a multiple events */
-        for (x = 0; x < OH_ELTEST_MAX_ENTRIES + 2; x++) {
-                retc = add_event(el, x);
-                if (retc != SA_OK) {
-                        dbg("ERROR: add_event failed.");
-                        return 1;
-                }
-        }
 
-        /* get el info */
-        retc = oh_el_info(el, &info);
-        if (retc != SA_OK) {
-                dbg("ERROR: oh_el_info failed.");
-                return 1;
-        }
-        if (info.Entries != OH_ELTEST_MAX_ENTRIES) {
-                dbg("ERROR: oh_el_info returned incorrect number of entries.");
-                return 1;
-        }
+        	retc = oh_el_append(el, &event, NULL, NULL);
+        	if (retc != SA_OK) {
+              	  dbg("ERROR: oh_el_append failed.");
+               	  return 1;
+        	}       
+	}
+	
+        if(g_list_length(el->elentries) != 5){
+        	dbg("ERROR: g_list_length does not hold the correct number of entries.");
+        	return 1;
+	}
 
-        /* now refetch all entries */
-        x = 0;
-        id = SAHPI_OLDEST_ENTRY;
-        next = 0;
-        while (next != SAHPI_NO_MORE_ENTRIES) {
-                retc = oh_el_get(el, id, &prev, &next, &entry);
-                if (retc != SA_OK) {
-                        dbg("ERROR: oh_el_get failed.");
-                        return 1;
-                }
-                x++;
-                id = next;
-        }
-        if (x != OH_ELTEST_MAX_ENTRIES) {
-                dbg("ERROR: oh_el_get return incorrect number of entries.");
-                return 1;
-        }
-
-        /* now fetch an entry that does not exist */
-        id = 9999;
-        retc = oh_el_get(el, id, &prev, &next, &entry);
-        if (retc != SA_ERR_HPI_NOT_PRESENT) {
-                dbg("ERROR: oh_el_get failed on invalid entryid.");
-                return 1;
-        }
-
-        /* save the EL with invalid filename */
-        retc = oh_el_map_to_file(el, NULL);
-        if (retc != SA_ERR_HPI_INVALID_PARAMS) {
-                dbg("ERROR: oh_el_map_to_file failed with invalid filename.");
-                return 1;
-        }
-
-        /* save the EL */
-        retc = oh_el_map_to_file(el, "./elTest.data");
-        if (retc != SA_OK) {
-                dbg("ERROR: oh_el_map_to_file failed.");
-                return 1;
-        }
-
-        /* close the el */
+        
+	 for(x=0; curr != SAHPI_NO_MORE_ENTRIES; x++){
+		retc = oh_el_get(el, curr, &prev, &next, &entry);
+		if (retc != SA_OK){
+			dbg("ERROR: oh_el_get failed.");
+			return 1;
+		}
+		
+		if (strcmp(entry->event.Event.EventDataUnion.UserEvent.UserEventData.Data, data[x])){
+			dbg("ERROR: Data from el and original data do not match");
+			return 1;
+		}
+		curr = next;
+	}
+	
+	/* close the el */
         retc = oh_el_close(el);
         if (retc != SA_OK) {
                 dbg("ERROR: oh_el_close failed.");
                 return 1;
         }
-
 
         return 0;
 }
