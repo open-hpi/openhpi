@@ -50,6 +50,11 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value,
 SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
                                  SaHpiSensorDataFormatT format,
 				 SaHpiTextBufferT *buffer);
+#if 0
+SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
+			     SaHpiCtrlTypeT control_type,
+			     SaHpiTextBufferT *buffer);
+#endif
 
 /***************************** 
  * Validate structure routines
@@ -87,11 +92,22 @@ SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrInfo, int space
 #define oh_print_idrareaheader(areaHeader, space) oh_fprint_idrareaheader(stdout, areaHeader, space)
 SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHeader, int space);
 
+/* FIXME:: */
 #if 0
+#define oh_print_ctrlrec(ctrl_ptr) oh_fprint_ctrlrec(stdout, ctrl_ptr)
+SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control);
+
+#define oh_print_watchdogrec(watchdog_ptr) oh_fprint_watchdogrec(stdout, watchdog_ptr)
+SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog);
+
+
+
+
+Need ?????
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
-SaHpiBoolT oh_valid_time(SaHpiTimeT time);
+SaHpiBoolT oh_valid_time(SaHpiTimeT time); - move to sahpi_time_utils.c/h
 /* EventAdd and EventLogAdd ??? */
-SaHpiBoolT oh_valid_event(SaHpiEventT event);
+SaHpiBoolT oh_valid_event(SaHpiEventT event); - move to sahpi_event_utils.c/h
 #endif
 
 #ifdef __cplusplus

@@ -677,8 +677,8 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
 		/* Sensor Threshold Read Threshold */
 		if (tdef->ReadThold) {
 			oh_append_offset(buffer, offsets);
-			oh_append_big_textbuffer(buffer, "Readable Threshold(s):\n", 
-						 strlen("Readable Threshold(s):\n"));
+			oh_append_big_textbuffer(buffer, "Readable Thresholds:\n", 
+						 strlen("Readable Thresholds:\n"));
 
 			err = oh_build_threshold_mask(buffer, tdef->ReadThold, offsets + 1);
 			if (err != SA_OK) { return(err); }
@@ -687,8 +687,8 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
 		/* Sensor Threshold Write Threshold */
 		if (tdef->WriteThold) {
 			oh_append_offset(buffer, offsets);
-			oh_append_big_textbuffer(buffer, "Writeable Threshold(s):\n", 
-						 strlen("Writeable Threshold(s):\n"));
+			oh_append_big_textbuffer(buffer, "Writeable Thresholds:\n", 
+						 strlen("Writeable Thresholds:\n"));
 
 			err = oh_build_threshold_mask(buffer, tdef->WriteThold, offsets + 1);
 			if (err != SA_OK) { return(err); }
