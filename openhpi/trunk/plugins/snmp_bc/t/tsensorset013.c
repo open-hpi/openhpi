@@ -27,7 +27,8 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
+        SaHpiRptEntryT rptentry;
+	SaHpiRdrT      rdr;					
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
 	 
@@ -36,59 +37,60 @@ int main(int argc, char **argv)
 	SaHpiEventStateT assertMask       = SAHPI_ES_UPPER_MINOR;
 	SaHpiEventStateT deassertMask      = SAHPI_ES_UPPER_CRIT;
 	
+
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
-	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	SaHpiRdrT *rdrptr;
-		
+	 * ************************************* */		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 
 	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	err = tfind_resource(&sessionid,SAHPI_CAPABILITY_SENSOR,SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
-
+		return SA_OK;
 	}
 
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	id = rptentry.ResourceId;
 	/************************** 
-	 *  
+	 * Test: find a sensor with desired property
 	 **************************/
-	sid = 0;
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor = SAHPI_FALSE;			
 	do {
-		sid++;
-		rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, sid);
-		if (rdrptr != NULL) {
-			if (rdrptr->RdrTypeUnion.SensorRec.EventCtrl != SAHPI_SEC_PER_EVENT) {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if ((rdr.RdrType == SAHPI_SENSOR_RDR) &&
+				(rdr.RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT))
+			{
+				foundSensor = SAHPI_TRUE;
 				break;
-			} else 
-				rdrptr = NULL;
+														
+			}
+			entryid = nextentryid;
 		}
-	} while ((rdrptr == NULL) && (sid < 128));
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
 
-	if (rdrptr == NULL) testfail = -1;
-
+	if (!foundSensor) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		sid = rdr.RdrTypeUnion.SensorRec.Num; 
+	}	
 	/************************** 
-	 * Alter sensor characteristic
+	 * Test: Request with invlaid data
 	 **************************/
-	rdrptr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_PER_EVENT;
-
-	/************************** 
-	 * Test  
-	 **************************/
-	assertMask =  ~(rdrptr->RdrTypeUnion.SensorRec.Events);
+	assertMask =  ~(rdr.RdrTypeUnion.SensorRec.Events);
 	expected_err = SA_ERR_HPI_INVALID_DATA;                   
-	err = snmp_bc_set_sensor_event_masks((void *)h->hnd, id, sid, act, assertMask, deassertMask);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorEventMasksSet(sessionid, id, sid, act, assertMask, deassertMask);
+	checkstatus(err, expected_err, testfail);
 
 	/***************************
 	 * Cleanup after all tests

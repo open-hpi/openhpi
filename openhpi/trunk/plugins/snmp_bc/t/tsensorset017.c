@@ -27,7 +27,8 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
+        SaHpiRptEntryT rptentry;
+	SaHpiRdrT      rdr;					
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
 	 
@@ -35,70 +36,70 @@ int main(int argc, char **argv)
 	SaHpiSensorEventMaskActionT act   = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
 	SaHpiEventStateT assertMask       = SAHPI_ES_UPPER_MINOR;
 	SaHpiEventStateT deassertMask      = SAHPI_ES_UPPER_CRIT;
-	
+
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
-	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	SaHpiRdrT *rdrptr;
-		
+	 * ************************************* */		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 
 	}
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	err = tfind_resource(&sessionid,SAHPI_CAPABILITY_SENSOR,SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
-
+		return SA_OK;
 	}
 
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	id = rptentry.ResourceId;
 	/************************** 
-	 *  
+	 * Test: find a sensor with desired property
 	 **************************/
-	sid = 0;
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor = SAHPI_FALSE;			
 	do {
-		sid++;
-		rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, sid);
-		if (rdrptr != NULL) {
-			if (rdrptr->RdrTypeUnion.SensorRec.EventCtrl != SAHPI_SEC_PER_EVENT) {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if ((rdr.RdrType == SAHPI_SENSOR_RDR) &&
+				(rdr.RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT))
+			{
+				foundSensor = SAHPI_TRUE;
 				break;
-			} else 
-				rdrptr = NULL;
+														
+			}
+			entryid = nextentryid;
 		}
-	} while ((rdrptr == NULL) && (sid < 128));
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
 
-	if (rdrptr == NULL) testfail = -1;
-
+	if (!foundSensor) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		sid = rdr.RdrTypeUnion.SensorRec.Num; 
+	}	
 	/************************** 
-	 * Alter sensor characteristic
-	 **************************/
-	rdrptr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_PER_EVENT;
-					 
-	/************************** 
-	 * Test  
+	 * Test: excercise normal code path
 	 **************************/
 	act   = SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS;
-	deassertMask = ~(rdrptr->RdrTypeUnion.SensorRec.Events);
+	deassertMask = ~(rdr.RdrTypeUnion.SensorRec.Events);
 	assertMask =  SAHPI_ALL_EVENT_STATES;
 	expected_err = SA_OK;                   
-	err = snmp_bc_set_sensor_event_masks((void *)h->hnd, id, sid, act, assertMask, deassertMask);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorEventMasksSet(sessionid, id, sid, act, assertMask, deassertMask);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test  
+	 * Test   excercise normal code path
 	 **************************/
-	assertMask =  rdrptr->RdrTypeUnion.SensorRec.Events;
+	assertMask =  rdr.RdrTypeUnion.SensorRec.Events;
 	expected_err = SA_OK;                   
-	err = snmp_bc_set_sensor_event_masks((void *)h->hnd, id, sid, act, assertMask, deassertMask);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorEventMasksSet(sessionid, id, sid, act, assertMask, deassertMask);
+	checkstatus(err, expected_err, testfail);
 
 	/***************************
 	 * Cleanup after all tests

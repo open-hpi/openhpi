@@ -27,67 +27,39 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-        SaHpiDomainIdT did;
-        struct oh_domain *d;
+	SaHpiRptEntryT rptentry;
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	 
 	SaHpiSensorNumT sid = 0;
 	SaHpiSensorThresholdsT thres;
-        /* *************************************                 
+
+	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
-	SaHpiRdrT	*rdrptr;
-	
+	 * ************************************* */		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
-	}
 
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	}
+	err = tfind_resource(&sessionid,SAHPI_CAPABILITY_SENSOR,SAHPI_FIRST_ENTRY, &rptentry, SAHPI_FALSE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
 
 	id = rptentry.ResourceId;
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
-        /************************** 
-	 *         
-         **************************/
-        sid = 0;
-        do {
-                sid++;
-                rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, sid);
-                if (rdrptr != NULL) {
-                        if (rdrptr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_THRESHOLD) 
-                                break;
-	                else
-				rdrptr = NULL;
-		}
-
-        } while ((rdrptr == NULL) && (sid < 128));
-
-        if (rdrptr == NULL) testfail = -1;
 
         /************************** 
-	 * Test  
+	 * Test : Invalid capability
          **************************/
-
-        OH_GET_DID(sessionid, did);
-        OH_GET_DOMAIN(did, d); /* Lock domain */
-        rptentry.ResourceCapabilities &= !SAHPI_CAPABILITY_SENSOR;
-        oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
-        oh_release_domain(d); /* Unlock domain */
-
         expected_err = SA_ERR_HPI_CAPABILITY;
-	err = snmp_bc_set_sensor_thresholds((void *)h->hnd, id, sid, &thres);
-        checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorThresholdsSet(sessionid, id, sid, &thres);
+        checkstatus(err, expected_err, testfail);
 											
 	/***************************
 	 * Cleanup after all tests
