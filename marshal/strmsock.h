@@ -23,6 +23,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <SaHpi.h>
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -97,6 +99,8 @@ typedef strmsock *pstrmsock;
 class cstrmsock : public strmsock
 {
 	public:
+	SaHpiSessionIdT		sid;
+	cstrmsock		*next;
 	cstrmsock		();
 	~cstrmsock		();
 	bool Open		(const char *, int);
@@ -111,8 +115,8 @@ class sstrmsock : public strmsock
 	protected:
 	char	acHostName[256];	 // host name
 	int	ss;			// the server socket handle
-	int	backlog;			// listen queue size
-	struct	sockaddr_in addr;		// address structure
+	int	backlog;		// listen queue size
+	struct	sockaddr_in addr;	// address structure
 	bool	fOpenS;		 	// TRUE = valid server socket
 
 	public:

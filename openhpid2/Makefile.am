@@ -12,8 +12,8 @@
 #    W. David Ashley <dashley@us.ibm.com>
 #
 
-#SUBDIRS			= t
-#DIST_SUBDIRS 		= t
+SUBDIRS			= t
+DIST_SUBDIRS 		= t
 
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
@@ -23,34 +23,32 @@ INCLUDES 		= -I $(top_srcdir)/include -I $(top_srcdir)/utils -I $(top_srcdir)/ma
 #EXTRA_DIST              = README openhpiclient.conf
 
 #pkgconfigdir            = $(libdir)/pkgconfig
-#pkgconfig_DATA          = openhpiclient.pc
+#pkgconfig_DATA          =
 
 # daemon
-bin_PROGRAMS            = openhpid client
+bin_PROGRAMS            = openhpid
 
 openhpid_SOURCES        = \
 	openhpid.cpp
 
-client_SOURCES        = \
-	client.cpp
-
-# this is defined with ./configure --enable-daemon=static 
-#if OPENHPID_STATIC
-#openhpid_LDADD = $(top_builddir)/marshal/libohtcpconnx.la
-#openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
-#openhpid_LDFLAGS        = -static
-#client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la
-#client_LDADD            = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
-#client_LDFLAGS          = -static
-#else
-openhpid_LDADD = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
-#openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la
+# this is defined with ./configure --enable-daemon=static
+if OPENHPID_STATIC
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
+openhpid_LDFLAGS        = -static
+else
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
 openhpid_LDFLAGS        =
-client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la
-#client_LDADD            = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la
-client_LDFLAGS          =
-#endif
+endif
 
+
+lib_LTLIBRARIES	        = libclient.la
+
+libclient_la_SOURCES = \
+	client.cpp \
+	client.h
+
+libclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+libclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
 
 clean-local:
 	rm -f *~ core core.*

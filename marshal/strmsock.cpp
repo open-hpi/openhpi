@@ -224,6 +224,7 @@ cstrmsock::cstrmsock()
 	} else {
 		errcode = 0;
 	}
+	next = NULL;
 }
 
 
@@ -237,7 +238,7 @@ cstrmsock::~cstrmsock()
 
 
 bool cstrmsock::Open(
-		const char * pszHost,	// the remote host
+		const char * pszHost,		// the remote host
 		const int lPort)		// the remote port
 {
 	struct sockaddr_in  addr;		// address structure
