@@ -944,7 +944,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
         
-        stuct oh_session *s;
+        struct oh_session *s;
         RPTable *rpt;
         struct oh_handler *h;
         SaHpiRptEntryT *res;
