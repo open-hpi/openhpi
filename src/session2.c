@@ -18,10 +18,38 @@
 #include <oh_domain.h>
 #include <string.h>
 
-struct sessions sessions = {        
+struct oh_sessions sessions = {        
         .table = NULL,
         .lock = NULL
 };
+
+static struct oh_event *oh_generate_hpi_event(void)
+{
+        struct oh_event *event = NULL;
+
+        event = g_new0(struct oh_event, 1);        
+        event->type = OH_ET_HPI;
+        event->u.hpi_event.parent = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        event->u.hpi_event.id = SAHPI_ENTRY_UNSPECIFIED;
+        event->u.hpi_event.event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        event->u.hpi_event.event.EventType = SAHPI_ET_HPI_SW;
+        event->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event->u.hpi_event.event.Severity = SAHPI_CRITICAL;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.MId =
+                SAHPI_MANUFACTURER_ID_UNSPECIFIED;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.Type =
+                SAHPI_HPIE_OTHER;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataType =
+                SAHPI_TL_TYPE_TEXT;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Language =
+                SAHPI_TL_TYPE_TEXT;        
+        strcpy(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data,
+                "This session is being destroyed now!");
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataLength =
+                strlen(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data);
+
+        return event;
+}
 
 /**
  * oh_create_session
@@ -223,10 +251,11 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
 SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                                   SaHpiTimeoutT timeout,
                                   struct oh_event *event)
-{      
+{
        struct oh_session *session = NULL;
        struct oh_event *devent = NULL;
        GTimeVal gtimeval;
+       GAsyncQueue *eventq = NULL;
 
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -236,24 +265,26 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                g_mutex_unlock(sessions.lock);
                return SA_ERR_HPI_NOT_PRESENT;
        }
+       eventq = session->eventq2;
+       g_async_queue_ref(eventq);
+       g_mutex_unlock(sessions.lock);
 
        if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
-               devent = g_async_queue_try_pop(session->eventq2);               
+               devent = g_async_queue_try_pop(eventq);
        } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
-               devent = g_async_queue_pop(session->eventq2);
+               devent = g_async_queue_pop(eventq); /* Need to time this. */
        } else {
                gtimeval.tv_sec = timeout / 1000000000;
                gtimeval.tv_usec = timeout % 1000000000 / 1000;
-               devent = g_async_queue_timed_pop(session->eventq2, &gtimeval);               
-       }       
+               devent = g_async_queue_timed_pop(eventq, &gtimeval);
+       }
+       g_async_queue_unref(eventq);
 
        if (devent) {
                memcpy(event, devent, sizeof(struct oh_event));
                g_free(devent);
-               g_mutex_unlock(sessions.lock); /* Unlocked session table */
                return SA_OK;
        } else {
-               g_mutex_unlock(sessions.lock); /* Unlocked session table */
                return SA_ERR_HPI_TIMEOUT;
        }
 }
@@ -267,12 +298,12 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
  * Returns:
  **/
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
-{       
+{
         struct oh_session *session = NULL;
         struct oh_domain *domain = NULL;
         SaHpiDomainIdT did;
         gpointer event = NULL;
-        unsigned int i, len;
+        int i, len;
 
         if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -282,14 +313,23 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
                 g_mutex_unlock(sessions.lock);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        
+
         g_hash_table_remove(sessions.table, &(session->id));
         g_mutex_unlock(sessions.lock); /* Unlocked session table */
         did = session->did;
 
         /* Finalize session */
-        while ((event = g_async_queue_try_pop(session->eventq2)) != NULL) {
-                g_free(event);
+        len = g_async_queue_length(session->eventq2);
+        if (len < 0) {
+                for (i = 0; i > len; i--) {
+                        g_async_queue_push(session->eventq2, oh_generate_hpi_event());
+                }
+        } else if (len > 0) {
+                for (i = 0; i < len; i++) {
+                        event = g_async_queue_try_pop(session->eventq2);
+                        if (event) g_free(event);
+                        event = NULL;
+                }
         }
         g_async_queue_unref(session->eventq2);
         g_free(session);
@@ -305,7 +345,7 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
                         }
                 }
                 oh_release_domain(domain);
-        }        
+        }
 
         return SA_OK;
 }

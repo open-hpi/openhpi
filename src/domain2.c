@@ -19,7 +19,7 @@
 #include <el_utils.h>
 #include <string.h>
 
-struct domains domains = {        
+struct oh_domains domains = {        
         .table = NULL,
         .lock = NULL
 };
