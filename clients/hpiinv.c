@@ -240,7 +240,9 @@ main(int argc, char **argv)
 	SaHpiResourceIdT resourceid;
 	SaHpiRdrT rdr;
 	SaHpiEirIdT eirid;
-
+	
+	SaHpiRptInfoT rpt_info_before;
+	
 	printf("%s ver %s\n",argv[0],progver);
 
 	while ( (c = getopt( argc, argv,"a:xz?")) != EOF ) {
@@ -280,10 +282,11 @@ main(int argc, char **argv)
 		printf("saHpiSessionOpen error %d\n",rv);
 		exit(-1);
 	}
- 
+
 	rv = saHpiResourcesDiscover(sessionid);
 	if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
 
+restart: 
 	rv = saHpiRptInfoGet(sessionid,&rptinfo);
 	if (fxdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
 	if (fdebug) printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
@@ -379,6 +382,31 @@ main(int argc, char **argv)
 		}
 		rptentryid = nextrptentryid;
 	}
+        
+
+	/* 
+	   because INVENTORY RDR will be added after some time, 
+	   we need to monitor RptInfo here 
+	 */
+	rpt_info_before = rptinfo;
+	while (1) {
+                rv = saHpiRptInfoGet(sessionid, &rptinfo);
+                if (SA_OK != rv) {
+                        fprintf(stderr, "saHpiRptInfoGet return: %d\n", rv);
+                        break;
+                }
+
+                if (rpt_info_before.UpdateCount != rptinfo.UpdateCount) {
+                        rpt_info_before = rptinfo;
+			fprintf(stderr, "Updated RptInfo, rescanning...");
+			goto restart;
+		} else { 
+			/* Try again */
+			rv = saHpiResourcesDiscover(sessionid);
+			if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+		}	
+        };
+	
 	rv = saHpiSessionClose(sessionid);
 	rv = saHpiFinalize();
         free(inv);

@@ -164,7 +164,7 @@ handler libsnmp_bc {
         of allowed hosts.
       </para>
       <para>
-	SNMP v3 is supported in BladeCenter Telco.  SNMP v3 is <B>currently not</B> 
+	SNMP v3 is supported in BladeCenter Telco.  SNMP v3 is <emphasis>currently not</emphasis> 
 	available in BladeCenter Enterprise.
         For snmpv3, in the web interface, (a) set MM Control - General Settings.
 	(b) Set MM Control - Login Profiles, select a paticular userid then follow the link

@@ -40,6 +40,7 @@ AM_CFLAGS		= -g @CFLAGS@
 pkglib_LTLIBRARIES	= libipmi.la
 
 libipmi_la_SOURCES	= ipmi.c 		\
+			  posix_vlog.c		\
 			  ipmi_close.c		\
 			  ipmi_event.c 		\
 			  ipmi_entity_event.c	\
@@ -55,7 +56,6 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  ipmi_util.c 		\
 			  hotswap.c		\
 			  sync.c 		\
-			  posix_vlog.c		\
 			  ipmi.h
 			  
 libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix

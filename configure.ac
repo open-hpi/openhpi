@@ -3,10 +3,9 @@ dnl autoconf and automake for openhpi
 dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
 dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
-
 AC_PREREQ(2.57)
 AC_INIT(openhpi.spec.in)
-AM_INIT_AUTOMAKE(openhpi, 1.9.0)
+AM_INIT_AUTOMAKE(openhpi, 0.9.0)
 
 AM_CONFIG_HEADER(config.h)
 AH_TOP([#ifndef OPENHPI_CONFIG_H
@@ -19,7 +18,7 @@ AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
-HPI_LIB_VERSION=10:0:9
+HPI_LIB_VERSION=9:0:9
 HPI_PKG=openhpi
 HPI_UTIL_PKG=openhpiutils
 HPI_CLIENT_PKG=openhpiclient
@@ -37,10 +36,6 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
-
-AC_MSG_ERROR([
-*** You don't want this CVS Tree, this is for OpenHPI 2.0 ***
-])
 
 # die on int != 32bits.  This is too instrumental to our code right now.
 # AC_MSG_CHECKING(int is 4 bytes)
@@ -72,9 +67,34 @@ fi
 AC_MSG_CHECKING(gcc >= 3.2.0)
 OH_CHECK_GCC(3,2,0)
 
-# glib 2.x checks
-GLIB_REQUIRED_VERSION=2.2.0
-GLIB=glib-2.0
+GLIB_REQUIRED_VERSION=1.2.0
+
+AC_ARG_WITH([glib],
+    [[  --with-glib=VERSION     use glib version >= VERSION [default=1.2.0]]],
+    [GLIB_REQUIRED_VERSION=$withval],
+    [if pkg-config --atleast-version 1.2.0 glib; then
+         GLIB_REQUIRED_VERSION=1.2.0;
+     elif pkg-config --atleast-version 2.0.0 glib-2.0; then
+         GLIB_REQUIRED_VERSION=2.0.0;
+     else
+         AC_MSG_ERROR([
+*** GLIB is required. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+        fi])
+
+case "$GLIB_REQUIRED_VERSION" in
+    1*)
+        GLIB=glib;
+        ;;
+    2*)
+        GLIB=glib-2.0;
+        AC_MSG_WARN([glib 2.0 is not recommended, please use glib 1.2])
+        ;;
+    *)
+        AC_MSG_ERROR([
+*** unsupported GLIB $GLIB_REQUIRED_VERSION. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+esac
 
 if pkg-config --atleast-version $GLIB_REQUIRED_VERSION $GLIB; then
    :
@@ -246,7 +266,7 @@ AC_ARG_ENABLE([watchdog],
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
-OH_CHECK_OPENIPMI(1,3,6)
+OH_CHECK_OPENIPMI(1,3,8)
 
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
