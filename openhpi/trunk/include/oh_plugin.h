@@ -76,7 +76,7 @@ struct oh_hpi_event {
 	
 	/* XXX: upper layer will fill some fields which does not
 	 * owned by plugins (ResourceId etc.). */
-	SaHpiEventT		hpi_event;
+	SaHpiEventT		event;
 };
 
 /* 

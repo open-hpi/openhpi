@@ -107,7 +107,7 @@ static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_rdr_id oid)
 	return rdr;
 }
 
-static struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid)
+struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid)
 {
 	GSList *i;
 	

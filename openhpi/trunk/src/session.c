@@ -121,3 +121,10 @@ int session_pop_event(struct oh_session *s, struct oh_event *e)
 	return 1;
 }
 
+/*
+ * session_has_event - query if the session has events
+ */
+int session_has_event(struct oh_session *s)
+{
+	return (s->eventq == NULL) ? 0 : 1;
+}

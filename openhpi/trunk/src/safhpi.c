@@ -188,7 +188,7 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 		return SA_ERR_HPI_UNKNOWN;
 	}
 	
-	rv = get_events(s);
+	rv = get_events();
 	if (rv<0) {
 		dbg("Error attempting to process resources");
 		return SA_ERR_HPI_UNKNOWN;
@@ -311,14 +311,16 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiResourceIdT *ResourceId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	return SA_ERR_HPI_UNKNOWN;
 }
 
 SaErrorT SAHPI_API saHpiEntitySchemaGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiUint32T *SchemaId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	/*FIXME: how to determine schema is ongoing*/
+	*SchemaId = ('C'<<24) | ('P'<<16) | ('C'<<8) | 'I';
+	return SA_OK;
 }
 
 
@@ -402,14 +404,57 @@ SaErrorT SAHPI_API saHpiSubscribe (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiBoolT ProvideActiveAlarms)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}
+
+	if (s->event_state == OH_EVENT_SUBSCRIBE) {
+		dbg("Duplicate subscribe");
+		return SA_ERR_HPI_DUPLICATE;
+	}
+	
+	if (ProvideActiveAlarms) {
+		/*FIXME: nothing to do here?! */
+	}
+
+	s->event_state = OH_EVENT_SUBSCRIBE;
+	return SA_OK;
 }
 
 
 SaErrorT SAHPI_API saHpiUnsubscribe (
 		SAHPI_IN SaHpiSessionIdT SessionId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+        struct oh_session *s;
+        
+        OH_STATE_READY_CHECK;
+        
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}
+
+	if (s->event_state == OH_EVENT_UNSUBSCRIBE) {
+		dbg("Duplicate subscribe");
+		return SA_ERR_HPI_INVALID_REQUEST;
+	}
+	
+	s->event_state = OH_EVENT_UNSUBSCRIBE;
+	return SA_OK;
+}
+
+static void gettimeofday1(SaHpiTimeT *t)
+{
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	*t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;	
 }
 
 SaErrorT SAHPI_API saHpiEventGet (
@@ -419,7 +464,81 @@ SaErrorT SAHPI_API saHpiEventGet (
 		SAHPI_INOUT SaHpiRdrT *Rdr,
 		SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+        struct oh_session *s;
+	SaHpiTimeT now, end;
+        OH_STATE_READY_CHECK;
+       	int value;
+
+        s = session_get(SessionId);
+        if (!s) {
+                dbg("Invalid session");
+                return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	gettimeofday1(&now);
+	if (Timeout== SAHPI_TIMEOUT_BLOCK) {
+		end = now + (SaHpiTimeT)10000*1000000000; /*set a long time*/
+	} else {
+		end = now + Timeout;
+	}
+	
+	while (1) {
+		int rv;
+		
+		rv = get_events();
+		if (rv<0) {
+			value = SA_ERR_HPI_UNKNOWN;
+			break;
+		}
+		
+		if (session_has_event(s)) {
+			value = SA_OK;
+			break;
+		}
+		
+		gettimeofday1(&now);	
+		if (now>=end) {
+			value = SA_ERR_HPI_TIMEOUT;
+			break;
+		}
+	}
+	
+	//dbg("now=%lld, end=%lld", now, end);
+	
+	if (value==SA_OK) {
+		struct oh_event e;
+		struct oh_resource *res;
+		struct oh_rdr *rdr;
+		
+		if (session_pop_event(s, &e)<0) {
+			dbg("Empty event queue?!");
+			return SA_ERR_HPI_UNKNOWN;
+		}
+		if (e.type != OH_ET_HPI) {
+			dbg("Non-HPI event?!");
+			return SA_ERR_HPI_UNKNOWN;
+		}
+
+		memcpy(Event, &e.u.hpi_event.event, sizeof(*Event));
+
+		res = get_res_by_oid(e.u.hpi_event.parent);
+		if (res) {
+			memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+			
+			rdr = get_rdr_by_oid(res, e.u.hpi_event.id);
+			if (rdr) {
+				memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
+			} else {
+				dbg("Event without resource");
+			}
+		}else {
+			dbg("Event without resource");
+		}
+
+	}
+	
+	return value;
+
 }
 
 SaErrorT SAHPI_API saHpiRdrGet (
