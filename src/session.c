@@ -1,7 +1,6 @@
 /*      -*- linux-c -*-
  *
- * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,155 +9,347 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
- *     Louis Zhuang <louis.zhuang@linux.intel.com>
- *     Sean Dague <http://dague.net/sean>
- *     David Judkovics <djudkovi@us.ibm.com>
- *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ * Author(s):
+ *      Renier Morales <renierm@users.sf.net>
+ *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <oh_utils.h>
+#include <oh_session.h>
+#include <oh_domain.h>
 #include <string.h>
 
-#include <SaHpi.h>
-#include <openhpi.h>
+struct oh_session_table oh_sessions = {        
+        .table = NULL,
+        .lock = G_STATIC_REC_MUTEX_INIT
+};
 
-GSList *global_session_list=NULL;
-
-static SaHpiSessionIdT scounter = 0;
-
-struct oh_session *session_get(SaHpiSessionIdT sid)
+static struct oh_event *oh_generate_hpi_event(void)
 {
-        GSList *i;
-        
-        data_access_lock();
+        struct oh_event *event = NULL;
 
-        g_slist_for_each(i, global_session_list) {
-                struct oh_session *s = i->data;
-                if(s->id == sid) {
-                        data_access_unlock();
-                        return s;
+        event = g_new0(struct oh_event, 1);        
+        event->type = OH_ET_HPI;
+        event->u.hpi_event.res.ResourceId= SAHPI_UNSPECIFIED_RESOURCE_ID;
+        event->u.hpi_event.rdr.RecordId = SAHPI_ENTRY_UNSPECIFIED;
+        event->u.hpi_event.event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+        event->u.hpi_event.event.EventType = SAHPI_ET_HPI_SW;
+        event->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event->u.hpi_event.event.Severity = SAHPI_CRITICAL;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.MId =
+                SAHPI_MANUFACTURER_ID_UNSPECIFIED;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.Type =
+                SAHPI_HPIE_OTHER;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataType =
+                SAHPI_TL_TYPE_TEXT;
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Language =
+                SAHPI_TL_TYPE_TEXT;        
+        strcpy(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data,
+                "This session is being destroyed now!");
+        event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.DataLength =
+                strlen(event->u.hpi_event.event.EventDataUnion.HpiSwEvent.EventData.Data);
+
+        return event;
+}
+
+/**
+ * oh_create_session
+ * @did:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
+{
+        struct oh_session *session = NULL;
+        struct oh_domain *domain = NULL;
+        static SaHpiSessionIdT id = 1; /* Session ids will start at 1 */
+
+        if (did < 1) return 0;
+
+        session = g_new0(struct oh_session, 1);
+        if (!session) return 0;
+
+        session->did = did;
+        session->eventq = g_async_queue_new();
+
+        domain = oh_get_domain(did);
+        if (!domain) {
+                g_async_queue_unref(session->eventq);
+                g_free(session);
+                return 0;
+        }
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        session->id = id++;
+        g_hash_table_insert(oh_sessions.table, &(session->id), session);
+        g_array_append_val(domain->sessions, session->id);
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */        
+        oh_release_domain(domain);
+                
+        return session->id;
+}
+
+/**
+ * oh_get_session_domain
+ * @sid:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid)
+{
+        struct oh_session *session = NULL;
+        SaHpiDomainIdT did;
+        
+        if (sid < 1) return 0;
+
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        session = g_hash_table_lookup(oh_sessions.table, &sid);
+        if (!session) {
+                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                return 0;
+        }
+        
+        did = session->did;
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        
+
+        return did;
+}
+
+/**
+ * oh_list_sessions
+ * @did:
+ *
+ *
+ *
+ * Returns: A dynamically allocated array of session ids.
+ * The caller needs to free this array when he is done with it.
+ **/
+GArray *oh_list_sessions(SaHpiDomainIdT did)
+{
+        struct oh_domain *domain = NULL;
+        GArray *session_ids = NULL;
+        guint i, length;
+
+        if (did < 1) return NULL;
+
+        dbg("About to get domain");
+        domain = oh_get_domain(did);
+        if (!domain) return NULL;
+        dbg("Got domain");
+        
+        length = domain->sessions->len;
+        session_ids = g_array_sized_new(FALSE, TRUE,
+                                        sizeof(SaHpiSessionIdT),
+                                        length);
+        
+        for (i = 0; i < length; i++) {
+                g_array_append_val(session_ids,
+                                   g_array_index(domain->sessions,
+                                                 SaHpiSessionIdT,
+                                                 i)
+                                   );
+        }
+        oh_release_domain(domain);
+
+        return session_ids;
+}
+
+/**
+ * oh_get_session_state
+ * @sid:
+ * @state:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_get_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT *state)
+{
+        struct oh_session *session = NULL;
+
+        if (sid < 1 || !state) return SA_ERR_HPI_INVALID_PARAMS;
+
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        session = g_hash_table_lookup(oh_sessions.table, &sid);
+        if (!session) {
+                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
+        *state = session->state;
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+
+        return SA_OK;
+}
+
+/**
+ * oh_set_session_state
+ * @sid:
+ * @state:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_set_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT state)
+{
+       struct oh_session *session = NULL;
+
+       if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
+
+       g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+       session = g_hash_table_lookup(oh_sessions.table, &sid);
+       if (!session) {
+               g_static_rec_mutex_unlock(&oh_sessions.lock);
+               return SA_ERR_HPI_INVALID_SESSION;
+       }
+       session->state = state;
+       g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+
+       return SA_OK;
+}
+
+/**
+ * oh_queue_session_event
+ * @sid:
+ * @event:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
+{      
+       struct oh_session *session = NULL;
+       struct oh_event *qevent = NULL;
+
+       if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
+
+       qevent = g_memdup(event, sizeof(struct oh_event));
+       g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+       session = g_hash_table_lookup(oh_sessions.table, &sid);
+       if (!session) {               
+               g_static_rec_mutex_unlock(&oh_sessions.lock);
+               g_free(qevent);
+               return SA_ERR_HPI_INVALID_SESSION;
+       }
+       g_async_queue_push(session->eventq, qevent);
+       g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+
+       return SA_OK;
+}
+
+/**
+ * oh_dequeue_session_event
+ * @sid:
+ * @event:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
+                                  SaHpiTimeoutT timeout,
+                                  struct oh_event *event)
+{
+       struct oh_session *session = NULL;
+       struct oh_event *devent = NULL;
+       GTimeVal gfinaltime;
+       GAsyncQueue *eventq = NULL;
+
+       if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
+
+       g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+       session = g_hash_table_lookup(oh_sessions.table, &sid);
+       if (!session) {
+               g_static_rec_mutex_unlock(&oh_sessions.lock);
+               return SA_ERR_HPI_INVALID_SESSION;
+       }
+       eventq = session->eventq;
+       g_async_queue_ref(eventq);
+       g_static_rec_mutex_unlock(&oh_sessions.lock);
+
+       if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
+               devent = g_async_queue_try_pop(eventq);
+       } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
+               devent = g_async_queue_pop(eventq); /* FIXME: Need to time this. */
+       } else {               
+               g_get_current_time(&gfinaltime);
+               g_time_val_add(&gfinaltime, (glong) (timeout / 1000));
+               devent = g_async_queue_timed_pop(eventq, &gfinaltime);
+       }
+       g_async_queue_unref(eventq);
+
+       if (devent) {
+               memcpy(event, devent, sizeof(struct oh_event));
+               g_free(devent);
+               return SA_OK;
+       } else {
+               memset(event, 0, sizeof(struct oh_event));
+               return SA_ERR_HPI_TIMEOUT;
+       }
+}
+
+/**
+ * oh_destroy_session
+ * @sid:
+ *
+ *
+ *
+ * Returns:
+ **/
+SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
+{
+        struct oh_session *session = NULL;
+        struct oh_domain *domain = NULL;
+        SaHpiDomainIdT did;
+        gpointer event = NULL;
+        int i, len;
+
+        if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
+
+        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
+        session = g_hash_table_lookup(oh_sessions.table, &sid);
+        if (!session) {
+                g_static_rec_mutex_unlock(&oh_sessions.lock);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
+
+        g_hash_table_remove(oh_sessions.table, &(session->id));
+        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
+        did = session->did;
+
+        /* Finalize session */
+        len = g_async_queue_length(session->eventq);
+        if (len < 0) {
+                for (i = 0; i > len; i--) {
+                        g_async_queue_push(session->eventq, oh_generate_hpi_event());
+                }
+        } else if (len > 0) {
+                for (i = 0; i < len; i++) {
+                        event = g_async_queue_try_pop(session->eventq);
+                        if (event) g_free(event);
+                        event = NULL;
                 }
         }
+        g_async_queue_unref(session->eventq);
+        g_free(session);
 
-        data_access_unlock();
-        
-        return NULL;
-}
-
-int session_add(SaHpiDomainIdT did, 
-                struct oh_session **session)
-{
-        struct oh_session *s;
-        
-        data_access_lock();
-        
-        s = malloc(sizeof(*s));
-        if (!s) {
-                dbg("Cannot get memory!");
-                data_access_unlock();
-                return -1;
-        }
-        memset(s, 0, sizeof(*s));
-        
-        // (sd: session id should be set more intellegently, no?
-        s->id = scounter++;
-        s->did = did;
-        s->eventq = NULL;
-        
-        global_session_list = g_slist_append(global_session_list, s);
-        
-        *session = s;
-        
-        data_access_unlock();
-        
-        return 0;
-}
-
-int session_del(struct oh_session *session)
-{
-        /* cleanup session events */
-        while(session->eventq) {
-                struct oh_session_event *e = (struct oh_session_event *)session->eventq->data;
-                session->eventq = g_slist_remove(session->eventq, e);
-                free(e);
+        /* Update domain about session deletion. */
+        domain = oh_get_domain(did);
+        if (domain) {
+                len = domain->sessions->len;
+                for (i = 0; i < len; i++) {
+                        if (g_array_index(domain->sessions,SaHpiSessionIdT,i) == sid) {
+                                g_array_remove_index(domain->sessions,i);
+                                break;
+                        }
+                }
+                oh_release_domain(domain);
         }
 
-        /* remove session from global_session_list */
-        global_session_list = g_slist_remove(global_session_list, session);
-        free(session);
-
-        return 0;
-}
-
-/*
- * session_push_event pushs and event into a session.
- * We store a copy of event so that caller of the function
- * needn't care about ref counter of the event.
-*/
-
-int session_count ()
-{
-        int i;
-        
-        i = g_slist_length(global_session_list);
-        
-        return i;
-}
-
-int session_push_event(struct oh_session *s, struct oh_session_event *e)
-{
-        struct oh_session_event *e1;
-
-        data_access_lock();
-
-        e1 = malloc(sizeof(struct oh_session_event ));
-        if (!e1) {
-                dbg("Out of memory!");
-                data_access_unlock();
-                return -1;
-        }
-        memcpy(e1, e, sizeof(struct oh_session_event));
-
-        s->eventq = g_slist_append(s->eventq, (gpointer *) e1);
-
-        data_access_unlock();
-
-        return 0;
-}
-
-/*
- * session_pop_event - pops events off the session.  
- */
-
-int session_pop_event(struct oh_session *s, struct oh_session_event *e)
-{
-        GSList *head;
-        data_access_lock();
-
-        if (g_slist_length(s->eventq) == 0) {
-                data_access_unlock();
-                return -1;
-        }
-
-        head = s->eventq;
-        s->eventq = g_slist_remove_link(s->eventq, head);
-
-        memcpy(e, head->data, sizeof(struct oh_session_event));
-
-        free(head->data);
-        g_slist_free_1(head);
-
-        data_access_unlock();
-
-        return 0;
-}
-
-/*
- * session_has_event - query if the session has events
- */
-int session_has_event(struct oh_session *s)
-{
-        return (s->eventq == NULL) ? 0 : 1;
+        return SA_OK;
 }

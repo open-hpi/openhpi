@@ -70,29 +70,7 @@ struct oh_resource_data
         SaHpiTimeoutT      auto_extract_timeout;
 };
 
-/*
- *  Global listing of all active sessions (oh_session).  This list is
- *  populated and depopulated by calls to saHpiSessionOpen() and
- *  saHpiSessionClose()
- */
-extern GSList *global_session_list;
-
-struct oh_session *session_get(SaHpiSessionIdT);
-int session_add(SaHpiDomainIdT, struct oh_session**);
-int session_del(struct oh_session*);
-int session_count(void);
-/* malloc/copy/add event into the tail of event_list */
 #define oh_session_event oh_hpi_event
-int session_push_event(struct oh_session*, struct oh_session_event*);
-/* del/copy/free event from the head of event_list */
-int session_pop_event(struct oh_session*, struct oh_session_event*);
-/*query if the session has events*/
-int session_has_event(struct oh_session *s);
-
-struct oh_domain *get_domain_by_id(SaHpiDomainIdT did);
-int is_in_domain_list(SaHpiDomainIdT domain_id);
-int add_domain(SaHpiDomainIdT domain_id);
-void oh_cleanup_domain(void);
 
 /* hotswap - ***This all needs to be cleaned up,
  * all the way down to src/hotswap.c*** -- RM 7/16

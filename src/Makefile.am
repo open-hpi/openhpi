@@ -45,7 +45,6 @@ lib_LTLIBRARIES         = libopenhpi.la
 libopenhpi_la_SOURCES   = \
                            config.c \
                            domain.c \
-                           domain2.c \
                            event.c \
                            hotswap.c \
                            lock.c \
@@ -53,9 +52,7 @@ libopenhpi_la_SOURCES   = \
                            plugin_static.c \
                            init.c \
                            safhpi.c \
-                           session.c \
-                           session2.c
-
+                           session.c
 
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
 libopenhpi_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@ -export-symbols $(top_srcdir)/src/hpi.sym
