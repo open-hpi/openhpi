@@ -60,6 +60,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                                              OH_SESSION_PREALLOC);
 
         g_static_rec_mutex_init(&(domain->lock));
+        g_static_rec_mutex_init(&(domain->refcount_lock));
 
         if (!domain->del || !domain->sessions) {
                 g_free(domain->del);
@@ -86,9 +87,22 @@ SaHpiDomainIdT oh_get_default_domain_id()
         return (SaHpiDomainIdT)OH_FIRST_DOMAIN;
 }
 
-static gboolean __dec_domain_refcount(struct oh_domain *d)
+static void __inc_domain_refcount(struct oh_domain *d)
 {
-        return g_atomic_int_dec_and_test(&(d->refcount));
+        g_static_rec_mutex_lock(&d->refcount_lock);
+        d->refcount++;
+        g_static_rec_mutex_unlock(&d->refcount_lock);
+        
+        return;
+}
+
+static void __dec_domain_refcount(struct oh_domain *d)
+{
+        g_static_rec_mutex_lock(&d->refcount_lock);
+        d->refcount--;
+        g_static_rec_mutex_unlock(&d->refcount_lock);
+        
+        return;
 }
 
 static void __delete_domain(struct oh_domain *d)
@@ -97,6 +111,7 @@ static void __delete_domain(struct oh_domain *d)
         oh_el_close(d->del);
         g_array_free(d->sessions, TRUE);
         g_static_rec_mutex_free(&(d->lock));
+        g_static_rec_mutex_free(&(d->refcount_lock));
         g_free(d);
 }
 
@@ -157,8 +172,8 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
                	return NULL;
 	}
 
-	/* Punch in */
-        g_atomic_int_inc(&(domain->refcount));
+	/* Punch in */        
+        __inc_domain_refcount(domain);
         /* Unlock domain table */
 	g_static_rec_mutex_unlock(&(oh_domains.lock));
         /* Wait to get domain lock */
