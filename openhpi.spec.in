@@ -90,7 +90,7 @@ install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_
 %files
 ###################################################
 %defattr(-,root,root)
-%doc README COPYING ChangeLog
+%doc README COPYING 
 %doc docs/hld/*pdf
 %doc docs/hld/openhpi-manual
 %config /etc/@HPI_PKG@/*
@@ -124,6 +124,7 @@ install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_
 ###################################################
 %defattr(-,root,root)
 %{prefix}/bin/openhpid
+%{prefix}/lib/liboh*
 
 ###################################################
 %clean
