@@ -596,6 +596,710 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 		},
                 .comment = "I/O ambient air temperature in degrees centigrade(C)."
         },
+        /* 5V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 7,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.1",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.1",
+					},
+				},
+			},
+			.event_array = {
+				{
+                                        .event = "06035500", /* EN_PFA_HI_FAULT_PLANAR_5V */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "06034480", /* EN_CUTOFF_HI_FAULT_PLANAR_5V */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "06035800", /* EN_PFA_LO_FAULT_PLANAR_5V */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "06034800", /* EN_CUTOFF_LO_FAULT_PLANAR_5V */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus 5 Volt power supply voltage reading expressed in volts(V)"
+        },
+        /* 3.3V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 8,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.2",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.2",
+					},
+				},
+			},
+			.event_array = {
+				{
+                                        .event = "0002D400", /* EN_PFA_HI_FAULT_3_35V */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0002C480", /* EN_CUTOFF_HI_FAULT_3_35V */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "08033880", /* EN_PFA_LO_FAULT_3_35V */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "0002C880", /* EN_CUTOFF_LO_FAULT_3_35V */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus 3.3 Volt power supply voltage reading expressed in volts(V)"
+        },
+        /* 12V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 9,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.3",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.3",
+					},
+				},
+			},
+			.event_array = {
+				{
+                                        .event = "06037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
+			                .event_state = SAHPI_ES_UPPER_MAJOR,
+		                },
+		                {
+			                .event = "06036480", /* EN_CUTOFF_HI_FAULT_12V_PLANAR */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "06037800", /* EN_PFA_LO_FAULT_12V_PLANAR */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "06036800", /* EN_CUTOFF_LO_FAULT_12V_PLANAR */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus 12 Volt power supply voltage reading expressed in volts(V)"
+        },
+        /* -12V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 10,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.4.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.4",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.4",
+					},
+				},
+			},
+			.event_array = {
+				{
+					.event = "0803F500", /* EN_PFA_HI_FAULT_N12V */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0803E480", /* EN_CUTOFF_HI_FAULT_N12V */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0803F800", /* EN_PFA_LO_FAULT_N12V */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "0803E800", /* EN_CUTOFF_LO_FAULT_N12V */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus -12 Volt power supply voltage reading expressed in volts(V)"
+        },
+        /* -5V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 11,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.5",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.5",
+					},
+				},
+			},
+			.event_array = {
+				{
+					.event = "0803D500", /* EN_PFA_HI_FAULT_N5V */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0803C480", /* EN_CUTOFF_HI_FAULT_N5V */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0803D800", /* EN_PFA_LO_FAULT_N5V */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "0803C800", /* EN_CUTOFF_LO_FAULT_N5V */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus -5 Volt power supply voltage reading expressed in volts(V)"
+        },
+        /* 2.5V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 12,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.6",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.6",
+					},
+				},
+			},
+			.event_array = {
+				{
+                                        .event = "08031480", /* EN_PFA_HI_FAULT_2_5V */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "08030480", /* EN_CUTOFF_HI_FAULT_2_5V */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "08031880", /* EN_PFA_LO_FAULT_2_5V */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "08030880", /* EN_CUTOFF_LO_FAULT_2_5V */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus 2.5 Volt power supply voltage reading expressed in volts(V)"
+        },
+        /* 1.5V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 13,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.7.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.7",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.7",
+					},
+				},
+			},
+			.event_array = {
+				{
+                                        .event = "08041400", /* EN_PFA_HI_FAULT_1_5V */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "08040480", /* EN_CUTOFF_HI_FAULT_1_5V */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "08041800", /* EN_PFA_LO_FAULT_1_5V */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "08040880", /* EN_CUTOFF_LO_FAULT_1_5V */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus 1.5 Volt power supply voltage reading expressed in volts(V)"
+        },
+        /* 1.25V voltage sensor on Chassis */
+        {
+                .sensor = {
+                        .Num = 14,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_THRESHOLD,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT |
+				  SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_INTERPRETED,
+                                .IsNumeric = SAHPI_TRUE,
+                                .SignFormat = SAHPI_SDF_UNSIGNED,
+                                .BaseUnits = SAHPI_SU_VOLTS,
+                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
+                                .ModifierUse = SAHPI_SMUU_NONE,
+                                .FactorsStatic = SAHPI_TRUE,
+                                .Factors = {
+                                        .Linearization = SAHPI_SL_LINEAR,
+                                },
+                                .Percentage = SAHPI_FALSE,
+                                .Range = {
+					.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN,
+					.Max = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 16,
+							}	
+						},
+					},
+					.Min = {
+						.ValuesPresent = SAHPI_SRF_INTERPRETED,
+						.Interpreted = {
+							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+							.Value = {
+								.SensorFloat32 = 0,
+							}	
+						},
+					},
+				},
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_TRUE,
+				.TholdCapabilities = SAHPI_STC_INTERPRETED,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+                        },
+                        .Oem = 0
+                },
+		.rsa_sensor_info = {
+			.cur_state = SAHPI_ES_UNSPECIFIED,
+			.mib = {
+				.not_avail_indicator_num = 0,
+				.write_only = 0,
+				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
+				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
+				.threshold_oids = {
+					.InterpretedThresholds = {
+						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.8",
+						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.6.8",
+					},
+				},
+			},
+			.event_array = {
+				{
+                                        .event = "08001400", /* EN_PFA_HI_FAULT_1_25V */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "08000480", /* EN_CUTOFF_HI_FAULT_1_25V */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "08001800", /* EN_PFA_LO_FAULT_1_25V */
+					.event_state = SAHPI_ES_LOWER_MAJOR,
+				},
+				{
+					.event = "08000880", /* EN_CUTOFF_LO_FAULT_1_25V */
+					.event_state = SAHPI_ES_LOWER_CRIT,
+				},
+				{},
+			},
+		},
+                .comment = "Plus 1.25 Volt power supply voltage reading expressed in volts(V)"
+        },
 
         {} /* Terminate array with a null element */
 };
@@ -675,6 +1379,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C401", /* EN_PROC_HOT_CPU1 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C081", /* EN_OVER_TEMP_CPU1 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -750,6 +1470,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D502", /* EN_PFA_HI_OVER_TEMP_CPU2 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C402", /* EN_PROC_HOT_CPU2 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421D082", /* EN_THERM_TRIP_CPU2 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -825,6 +1561,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D503", /* EN_PFA_HI_OVER_TEMP_CPU3 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C403", /* EN_PROC_HOT_CPU3 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C083", /* EN_OVER_TEMP_CPU3 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -900,6 +1652,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D504", /* EN_PFA_HI_OVER_TEMP_CPU4 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C404", /* EN_PROC_HOT_CPU4 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421D084", /* EN_THERM_TRIP_CPU4 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -975,6 +1743,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D505", /* EN_PFA_HI_OVER_TEMP_CPU5 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C485", /* EN_CUTOFF_HI_OVER_TEMP_CPU5 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C405", /* EN_PROC_HOT_CPU5 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C085", /* EN_OVER_TEMP_CPU5 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -1050,6 +1834,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D506", /* EN_PFA_HI_OVER_TEMP_CPU6 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C486", /* EN_CUTOFF_HI_OVER_TEMP_CPU6 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C406", /* EN_PROC_HOT_CPU6 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421D086", /* EN_THERM_TRIP_CPU6 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -1125,6 +1925,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D507", /* EN_PFA_HI_OVER_TEMP_CPU7 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C487", /* EN_CUTOFF_HI_OVER_TEMP_CPU7 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C407", /* EN_PROC_HOT_CPU7 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C087", /* EN_OVER_TEMP_CPU7 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -1200,6 +2016,22 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0421D508", /* EN_PFA_HI_OVER_TEMP_CPU8 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0421C488", /* EN_CUTOFF_HI_OVER_TEMP_CPU8 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421C408", /* EN_PROC_HOT_CPU8 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
+				{
+					.event = "0421D088", /* EN_THERM_TRIP_CPU8 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -1284,6 +2116,14 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0681C403", /* EN_PFA_HI_OVER_TEMP_DASD1 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0681C483", /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -1359,6 +2199,14 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+				{
+                                        .event = "0681D491", /* EN_PFA_HI_OVER_TEMP_DASD2 */
+					.event_state = SAHPI_ES_UPPER_MAJOR,
+				},
+				{
+					.event = "0681C491", /* EN_CUTOFF_HI_OVER_TEMP_DASD2 */
+					.event_state = SAHPI_ES_UPPER_CRIT,
+				},
 				{},
 			},
 		},
@@ -1434,6 +2282,9 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+                                /* The MIB claims that 4 DASD units are possible
+                                 * but there are events for only 2 units.
+                                 */
 				{},
 			},
 		},
@@ -1509,6 +2360,9 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 				},
 			},
 			.event_array = {
+                                /* The MIB claims that 4 DASD units are possible
+                                 * but there are events for only 2 units.
+                                 */
 				{},
 			},
 		},
