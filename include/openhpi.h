@@ -131,7 +131,13 @@ struct oh_domain {
          */
         SaHpiDomainIdT domain_id;
         
-        /* System Event Log */
+        /* Domain's Resource Presence Table */
+        RPTable rptable;
+
+        /* Domain Information */
+        SaHpiDomainInfoT domain_info;
+        
+        /* Domain Event Log */
         oh_sel *sel;
 };
 
