@@ -40,7 +40,6 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 				   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state)
 {
-	int i, found;
 	SaErrorT err;
 	SaHpiCtrlStateT working_state;
         struct ControlInfo *cinfo;
@@ -94,37 +93,8 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		
 		switch (rdr->RdrTypeUnion.CtrlRec.Type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
-			found = 0;
-			for (i=0; i<OH_MAX_CTRLSTATEDIGITAL; i++) {
-				if (cinfo->mib.digitalmap[i] == get_value.integer) { 
-					found++;
-					break; 
-				}
-			}
-			if (found) {
-				switch (i) {
-				case 0:
-					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
-					break;
-				case 1:
-					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
-					break;
-				case 2:
-					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_OFF;
-					break;
-				case 3:
-					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_ON;
-					break;
-				default:
-					dbg("No control state defined for reading=%d.", i);
-					return(SA_ERR_HPI_INTERNAL_ERROR);
-				}
-			} 
-			else {
-				dbg("Control's value not defined");
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
-			break;
+			dbg("Digital controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_DISCRETE:
 			working_state.StateUnion.Discrete = get_value.integer;
 			break;
@@ -166,7 +136,6 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
  * Return values:
  * SA_OK - Normal case.
  * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_CONTROL.
- * SA_ERR_HPI_INVALID_CMD - Control is write-only.
  * SA_ERR_HPI_INVALID_DATA - @state contains bad text control data.
  * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
  * SA_ERR_HPI_NOT_PRESENT - Control doesn't exist.
@@ -177,7 +146,6 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 				   SaHpiCtrlModeT mode,
 				   SaHpiCtrlStateT *state)
 {
-	int value;
 	SaErrorT err;
         struct ControlInfo *cinfo;
 	struct snmp_value set_value;
@@ -216,46 +184,9 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 	if (mode != SAHPI_CTRL_MODE_AUTO && state) {
 		switch (state->Type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
-			switch (state->StateUnion.Digital) {
-			case SAHPI_CTRL_STATE_OFF:
-				value = cinfo->mib.digitalwmap[SAHPI_CTRL_STATE_OFF];
-				break;
-			case SAHPI_CTRL_STATE_ON:
-				value = cinfo->mib.digitalwmap[SAHPI_CTRL_STATE_ON];
-				break;	
-			case SAHPI_CTRL_STATE_PULSE_OFF:
-				/* NOTE: Not checking to see if already off;
-				   hardware doesn't support setting pulse off */
-				value = cinfo->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_OFF];
-				break;
-			case SAHPI_CTRL_STATE_PULSE_ON:
-				/* NOTE: Not checking to see if already on;
-				   hardware doesn't support setting pulse on */
-				value = cinfo->mib.digitalwmap[OH_MAX_CTRLSTATEDIGITAL - 1];
-				break;
-			default:
-				dbg("Invalid Case=%d", state->StateUnion.Digital);
-				return SA_ERR_HPI_INVALID_PARAMS;
-			}
-
-			if (value < 0) {
-				dbg("Control does not allow state=%s to be set.", 
-				    oh_lookup_ctrlstatedigital(state->StateUnion.Digital));
-				return(SA_ERR_HPI_INVALID_CMD);
-			}
-			
-			set_value.type = ASN_INTEGER;
-			set_value.str_len = 1;
-			set_value.integer = value;
-
-			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.oid, set_value);
-			if (err) {
-				dbg("Cannot set SNMP OID=%s.; Value=%d.", cinfo->mib.oid, value);
-				return(err);
-			}
-			break;
+			dbg("Digital controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_DISCRETE:
-			
 			set_value.type = ASN_INTEGER;
 			set_value.str_len = 1;
 			set_value.integer = state->StateUnion.Discrete;
@@ -271,7 +202,6 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			dbg("Analog controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_STREAM:
-			
 			dbg("Stream controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_TEXT:

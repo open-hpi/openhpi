@@ -285,8 +285,6 @@ struct ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         const char *oid;
-        int digitalmap[OH_MAX_CTRLSTATEDIGITAL];  /* Readable controls */
-	int digitalwmap[OH_MAX_CTRLSTATEDIGITAL]; /* Writable controls */
 };
 
 struct ControlInfo {
@@ -303,7 +301,6 @@ struct snmp_bc_control {
 extern struct snmp_bc_control snmp_bc_chassis_controls_bc[];
 extern struct snmp_bc_control snmp_bc_chassis_controls_bct[];
 extern struct snmp_bc_control snmp_bc_blade_controls[];
-extern struct snmp_bc_control snmp_bc_blade_controls_bct[];
 extern struct snmp_bc_control snmp_bc_blade_addin_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_mediatray_controls[];

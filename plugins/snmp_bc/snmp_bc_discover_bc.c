@@ -506,9 +506,6 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_discover_sensors(handle, snmp_bc_blade_sensors, e);
 			snmp_bc_discover_ipmi_sensors(handle, snmp_bc_blade_ipmi_sensors, e);
 			snmp_bc_discover_controls(handle, snmp_bc_blade_controls, e);
-			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
-				snmp_bc_discover_controls(handle, snmp_bc_blade_controls_bct, e);
-			}
 			snmp_bc_discover_inventories(handle, snmp_bc_blade_inventories, e);
 			
 			/******************************** 
