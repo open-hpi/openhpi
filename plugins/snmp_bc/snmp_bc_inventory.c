@@ -439,9 +439,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		
 		} else {
                         rv = snmp_bc_snmp_get(custom_handle, oid, &get_value);
-                        if((rv != SA_OK) ||
-                          	!((get_value.type == ASN_INTEGER) ||
-                           			(get_value.type == ASN_OCTET_STR))) {
+                        if(rv != SA_OK) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
                                 g_free(oid);
                                 return rv;
@@ -632,20 +630,9 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle, gchar *oid,
 	thisField->Field.DataLength = 0; /* SaHpiUint8T  */	
 
         rv = snmp_bc_snmp_get(custom_handle, oid, &get_value);
-	if((rv != SA_OK) ||
-		!((get_value.type == ASN_INTEGER) ||
-			(get_value.type == ASN_OCTET_STR))) {
-				
+	if(rv != SA_OK) {	
 		dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-                g_free(oid);
-		
-		/* FIXME:                                          */
-		/* Xlate whatever snmp return code to SA_ERR_HPI_* */
-		/* Xlation should be done at snmp_bc_get_snmp()    */
-		/* if snmp_get() return SA_OK,                     */
-		/* then get_value.type is not recognizable for inv */
-		if (rv == SA_OK) rv = SA_ERR_HPI_INTERNAL_ERROR;
-		
+                g_free(oid);		
                 return(rv);
 	} else {
 		if( get_value.type == ASN_OCTET_STR ) {
