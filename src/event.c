@@ -155,7 +155,7 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         SaHpiTextBufferT buffer;
         struct oh_domain *d;
         SaErrorT rv = SA_OK;
-
+        
         if (!oh_lookup_global_param("OPENHPI_LOG_SEV",
                                     buffer.Data,
                                     SAHPI_MAX_TEXT_BUFFER_LENGTH)) {

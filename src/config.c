@@ -515,7 +515,9 @@ int oh_lookup_global_param(char *param, char *value, int size)
 
         data_access_lock();
         v = (char *)g_hash_table_lookup(global_params, param);
-        strncpy(value, v, size);
+        if (v) {
+                strncpy(value, v, size);
+        }
         data_access_unlock();
 
         return (v) ? 0 : -1;
