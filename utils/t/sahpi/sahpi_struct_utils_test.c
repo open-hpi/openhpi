@@ -31,45 +31,57 @@ int main(int argc, char **argv)
 	SaHpiTextBufferT buffer, bad_buffer;
 
 	/************************************ 
-	 * oh_lookup_manufacturerid testcases
+	 * oh_decode_manufacturerid testcases
          ************************************/
 
 	{
-		/* oh_lookup_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase */
+		/* oh_decode_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase */
 		SaHpiManufacturerIdT mid;	
 
 		expected_str = "UNSPECIFIED Manufacturer";
 		mid = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
 
-		str = oh_lookup_manufacturerid(mid); 
+		err = oh_decode_manufacturerid(mid, &buffer); 
 		
-                if (strcmp(expected_str, str)) {
-                        printf("Error! oh_lookup_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase failed\n");
-			printf("Received string=%s\n", str);
+                if (strcmp(expected_str, buffer.Data) || err) {
+                        printf("Error! oh_decode_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase failed\n");
+			printf("Received string=%s; Error=%d\n", buffer.Data, err);
                         return -1;
                 }
 		
-		/* oh_lookup_manufacturerid: IBM testcase */
+		/* oh_decode_manufacturerid: IBM testcase */
 		expected_str = "IBM";
 		mid = 2;
 
-		str = oh_lookup_manufacturerid(mid); 
+		err = oh_decode_manufacturerid(mid, &buffer); 
 		
-                if (strcmp(expected_str, str)) {
-                        printf("Error! oh_lookup_manufacturerid: IBM testcase failed\n");
-			printf("Received string=%s\n", str);
+                if (strcmp(expected_str, buffer.Data) || err) {
+                        printf("Error! oh_decode_manufacturerid: IBM testcase failed\n");
+			printf("Received string=%s; Error=%d\n", buffer.Data, err);
                         return -1;
                 }
 		
-		/* oh_lookup_manufacturerid: Undefined manufacturer testcase */
+		/* oh_encode_manufacturerid: Undefined manufacturer testcase */
 		expected_str = "Unknown Manufacturer";
 		mid = UNDEFINED_MANUFACTURER;
 
-		str = oh_lookup_manufacturerid(mid);
+		err = oh_decode_manufacturerid(mid, &buffer);
 		
-                if (strcmp(expected_str, str)) {
-                        printf("Error! oh_lookup_manufacturerid: Undefined manufacturer testcase failed\n");
-			printf("Received string=%s\n", str);
+                if (strcmp(expected_str, buffer.Data) || err) {
+                        printf("Error! oh_decode_manufacturerid: Undefined manufacturer testcase failed\n");
+			printf("Received string=%s; Error=%d\n", buffer.Data, err);
+                        return -1;
+                }
+
+		/* oh_encode_manufacturerid: NULL buffer testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+		mid = UNDEFINED_MANUFACTURER;
+
+		err = oh_decode_manufacturerid(mid, 0);
+		
+                if (err != expected_err) {
+                        printf("Error! oh_decode_manufacturerid: NULL buffer testcase failed\n");
+			printf("Error received=%d\n", err);
                         return -1;
                 }
 	}

@@ -44,7 +44,8 @@ SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from
 /************************************************* 
  * Structures to string/buffer conversion routines
  *************************************************/
-const char * oh_lookup_manufacturerid(SaHpiManufacturerIdT value);
+SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value,
+				  SaHpiTextBufferT *buffer);
 
 SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
                                  SaHpiSensorDataFormatT format,
@@ -59,14 +60,15 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
  **************************/
 #define oh_print_textbuffer(buffer)  oh_fprint_textbuffer(stdout, buffer)
 SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *buffer);
+
 #define oh_print_big_textbuffer(big_buffer)  oh_fprint_big_textbuffer(stdout, big_buffer)
 SaErrorT oh_fprint_big_textbuffer(FILE *stream, const oh_big_textbuffer *big_buffer);
 
 #if 0
-SaHpiBoolT valid_SaHpiTextBufferT(SaHpiTextBufferT *buffer);
-SaHpiBoolT valid_SaHpiTimeT(SaHpiTimeT time);
+SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
+SaHpiBoolT oh_valid_time(SaHpiTimeT time);
 /* EventAdd and EventLogAdd ??? */
-SaHpiBoolT valid_SaHpiEventT(SaHpiEventT event);
+SaHpiBoolT oh_valid_event(SaHpiEventT event);
 #endif
 
 #ifdef __cplusplus

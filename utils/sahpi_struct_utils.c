@@ -40,26 +40,56 @@ static inline SaErrorT oh_copy_big_textbuffer(oh_big_textbuffer *dest, const oh_
 /**
  * oh_lookup_manufacturerid:
  * @value: enum value of type SaHpiManufacturerIdT.
+ * @buffer:  Location to store the string.
  *
  * Converts @value into a string based on @value's enum definition
  * in http://www.iana.org/assignments/enterprise-numbers.
+ * String is stored in an SaHpiTextBufferT data structure.
+ * 
  * Only a few of the manufacturers in that list have been defined.
  * For all others, this routine returns "Unknown Manufacturer".
  * Feel free to add your own favorite manufacturer to this routine.
  * 
  * Returns:
- * string - normal operation.
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL
  **/
-const char *oh_lookup_manufacturerid(SaHpiManufacturerIdT value) 
+SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *buffer) 
 {
+	SaErrorT err;
+	SaHpiTextBufferT working;
+
+	if (!buffer) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = oh_init_textbuffer(&working);
+	if (err) { return(err); }
+
 	switch(value) {
 	case SAHPI_MANUFACTURER_ID_UNSPECIFIED:
-		return("UNSPECIFIED Manufacturer");
+		err = oh_append_textbuffer(&working, 
+					   "UNSPECIFIED Manufacturer",
+					   strlen("UNSPECIFIED Manufacturer"));
+		if (err) { return(err); }
+		break;
 	case 2:
-		return("IBM");
-	default:  
-		return("Unknown Manufacturer");
+		err = oh_append_textbuffer(&working, 
+					   "IBM",
+					   strlen("IBM"));
+		if (err) { return(err); }
+		break;
+	default:
+		err = oh_append_textbuffer(&working, 
+					   "Unknown Manufacturer",
+					   strlen("Unknown Manufacturer"));
+		if (err) { return(err); }
+		break;
 	}
+
+	oh_copy_textbuffer(buffer, &working);	
+	
+	return(SA_OK);
 }
 
 /**
