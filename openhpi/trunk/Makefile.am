@@ -40,7 +40,7 @@ RPMDIR			=$(HOME)/rpms
 RPMSRC	=$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
 RPM386	=$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
-EXTRA_DIST		= openhpi.spec BigBuild bootstrap nukem.sh \
+EXTRA_DIST		= openhpi.spec \
 	$(shell find $(srcdir)/include -name '*.h')
 
 AUTOMAKE_OPTIONS	= foreign
