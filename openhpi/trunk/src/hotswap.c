@@ -23,35 +23,34 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-void process_hotswap_policy(void)
+void process_hotswap_policy(struct oh_handler *handler)
 {
-#if 0
-        SaHpiTimeT cur, est;
+        SaHpiTimeT cur, est;	   
         struct oh_hpi_event e;
-        struct oh_resource *res;
+				      
+	SaHpiRptEntryT *entry;
 
-	int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id, SaHpiHsStateT state);
-        
-        while(hotswap_pop_event(&e)>0) {
+        int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+                                 SaHpiHsStateT *state);
+
+        get_hotswap_state = handler->abi->get_hotswap_state;
+        if (!get_hotswap_state) {
+		dbg(" Very bad thing here");
+                return;
+	}
+
+
+        while( hotswap_pop_event(&e) > 0 ) {
         
                 if (e.event.EventType != SAHPI_ET_HOTSWAP) {
                         dbg("Non-hotswap event!");
                         return;
                 }
-        
-                res = oh_get_res_by_oid(e.parent);
-                if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-                        dbg("Non-hotswapable resource?!");
-                        return;
-                }
-                if (res->controlled) {
-                        dbg("Controlled resource?!");
-                        return;
-                }
+        	    
+		entry = oh_get_resource_by_id(default_rpt, e.parent);
 
-                set_hotswap_state = res->handler->abi->set_hotswap_state;
-                if (!set_hotswap_state) {
-                        dbg("Unsupport hotswap maintainance?!");
+                if (!(entry->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                        dbg("Non-hotswapable resource?!");
                         return;
                 }
 
@@ -61,23 +60,18 @@ void process_hotswap_policy(void)
                                 == SAHPI_HS_STATE_INSERTION_PENDING) {
                         est = e.event.Timestamp + get_hotswap_auto_insert_timeout();
                         if (cur>=est) {
-/* TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid */
-dbg("TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid");
-//                                set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_ACTIVE_HEALTHY);
+				handler->abi->set_hotswap_state( handler->hnd, e.parent, SAHPI_HS_STATE_ACTIVE_HEALTHY);
                         }
                 } else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
                                 == SAHPI_HS_STATE_EXTRACTION_PENDING) {
-                        est = e.event.Timestamp + res->auto_extract_timeout;
+                        est = e.event.Timestamp /* + res->auto_extract_timeout */  + 1 /* sum pos */;
                         if (cur>=est) {
-/* TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid */
-dbg("TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid");
-//                                set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_INACTIVE);
+                               handler->abi->set_hotswap_state(handler->hnd, e.parent, SAHPI_HS_STATE_INACTIVE);
                         }
                 } else {
                         dbg();
                 }
         }
-#endif
 }
 
 static GSList *hs_eq=NULL;
