@@ -191,6 +191,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 		rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
+		rv = SA_ERR_HPI_NOT_PRESENT;
 		if (i_record->area[0].idrareas.AreaId == AreaId) {
 			/* Search for fieldId here */
 			for (i=0; i < i_record->area[0].idrareas.NumFields; i++) {
@@ -199,34 +200,28 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 				{
 					memcpy(Field, &(i_record->area[0].field[i]), sizeof(SaHpiIdrFieldT));
 					foundit = SAHPI_TRUE;
+					rv = SA_OK;
 					break;
 				}
 			}
+			
+			*NextFieldId = SAHPI_LAST_ENTRY;
 			i++;
 			if (foundit) {
-                                foundit = SAHPI_FALSE;
                                 if (i < i_record->area[0].idrareas.NumFields) {
                                         do { 
-                                                if ((i_record->area[0].field[i].Type == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
+                                                if ((i_record->area[0].field[i].Type == FieldType) || 
+								(FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
                                                 {       
                                                         *NextFieldId = i_record->area[0].field[i].FieldId;                                         
-                                                        foundit= SAHPI_TRUE;
                                                         break;
                                                 }
                                                 i++;
-                                        } while (i < i_record->area[0].idrareas.NumFields);
-                                
-                                        if (!foundit) 
-                                                *NextFieldId = SAHPI_LAST_ENTRY;
+                                        } while (i < i_record->area[0].idrareas.NumFields);                                        
+                                }
                                         
-                                } else 
-                                        *NextFieldId = SAHPI_LAST_ENTRY;
-			} else 
-				rv = SA_ERR_HPI_NOT_PRESENT;
-			 
-		} else 
-			rv = SA_ERR_HPI_NOT_PRESENT;
-		
+			}
+		}
 	}
 
 	g_free(i_record);
