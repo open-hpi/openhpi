@@ -129,7 +129,7 @@ protected:
 
   cIpmiEntity *Add( tIpmiDeviceNum device_num,
                     tIpmiEntityId entity_id, int entity_instance,
-                    bool came_from_sdr, const char *id,
+                    bool came_from_sdr,
                     cIpmiMc *mc, int lun );
   cIpmiEntity *Find( tIpmiDeviceNum device_num,
                      tIpmiEntityId entity_id, int entity_instance );
@@ -149,8 +149,7 @@ public:
                      tIpmiEntityId entity_id, int entity_instance );
 
   cIpmiEntity *Add( cIpmiMc *mc, int lun, 
-                    tIpmiEntityId entity_id, int entity_instance,
-                    const char *id );
+                    tIpmiEntityId entity_id, int entity_instance );
   void Rem( cIpmiEntity *ent );
 };
 
@@ -210,12 +209,9 @@ protected:
   unsigned char m_device_modifier;
   unsigned char m_oem;
 
-  char          m_id[33];
+  cIpmiTextBuffer m_id_string;
 
   bool          m_presence_sensor_always_there;
-
-  const char   *m_entity_id_string;
-
   int           m_presence_possibly_changed;
 
   cIpmiEntityInfo *m_ents;
@@ -266,20 +262,20 @@ public:
   tIpmiDeviceNum DeviceNum() { return m_device_num; }
   cIpmiDomain *Domain() { return m_domain; }
 
-  const char   *EntityIdString() const { return m_entity_id_string; }
   tIpmiEntityId EntityId() const { return m_entity_id; }
   unsigned char EntityInstance() const { return m_entity_instance; }
 
-  void SetId( const char *id )
+  cIpmiTextBuffer &IdString()
   {
-    strncpy( m_id, id, 32 );
-    m_id[32] = '\0';
+    return m_id_string;
   }
 
   bool Destroy();
 
   // HPI resource id
   SaHpiResourceIdT m_resource_id;
+
+  virtual bool cIpmiEntity::CreateResource( SaHpiRptEntryT &entry );
 };
 
 

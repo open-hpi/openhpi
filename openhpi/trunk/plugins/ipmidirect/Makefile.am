@@ -41,8 +41,6 @@ AM_CFLAGS               = @CFLAGS@
 pkglib_LTLIBRARIES      = libipmidirect.la
 
 libipmidirect_la_SOURCES= \
-		entity.cpp \
-		fru.cpp \
 		hotswap.cpp \
 		ipmi.h \
 		ipmi.cpp \
@@ -103,7 +101,6 @@ libipmidirect_la_SOURCES= \
 		ipmi_utils.h \
 		ipmi_utils.cpp \
 		sel.cpp \
-		sensor.cpp \
 		thread.h \
 		thread.cpp
 

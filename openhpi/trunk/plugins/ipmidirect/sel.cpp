@@ -26,7 +26,7 @@ cIpmi::IfSelAdd( cIpmiEntity *ent, cIpmiSel * /*sel*/ )
 
   dbg( "adding SEL %d.%d (%s)",
        ent->EntityId(), ent->EntityInstance(),
-       ent->EntityIdString() );
+       IpmiEntityIdToString( ent->EntityId() ) );
 
    // find resource
   SaHpiRptEntryT *resource = ent->Domain()->FindResource( ent->m_resource_id );
@@ -38,7 +38,7 @@ cIpmi::IfSelAdd( cIpmiEntity *ent, cIpmiSel * /*sel*/ )
      }
 
   assert( (resource->ResourceCapabilities & SAHPI_CAPABILITY_SEL ) == 0 );
-  
+
   // update resource
   resource->ResourceCapabilities |= SAHPI_CAPABILITY_SEL;
 

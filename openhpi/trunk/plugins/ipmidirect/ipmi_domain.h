@@ -265,10 +265,6 @@ public:
   // called in cIpmiEntity::AddSensor to set the initial hotswap state
   void IfHotswapSetInitialState( cIpmiEntity *ent, cIpmiSensorHotswap *sensor );
 
-  // called from IPMI framework to create/destroy HPI resources
-  virtual void IfEntityAdd( cIpmiEntity *ent ) = 0;
-  virtual void IfEntityRem( cIpmiEntity *ent ) = 0;
-
   // called from IPMI framwork to create SEL
   virtual void IfSelAdd( cIpmiEntity *ent, cIpmiSel *sel ) = 0;
 
