@@ -42,8 +42,8 @@ SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from
  *************************************************/
 const char * oh_lookup_manufacturerid(SaHpiManufacturerIdT value);
 
-SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT *reading,
-                                 SaHpiSensorDataFormatT *format,
+SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
+                                 SaHpiSensorDataFormatT format,
 				 SaHpiTextBufferT *buffer);
 
 /***************************** 

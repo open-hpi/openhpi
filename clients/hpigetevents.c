@@ -10,16 +10,17 @@
  * full licensing terms.
  *
  * Author(s):
- *	pdphan	03/22/04	Initial code
+ *	Peter D Phan <pdphan@us.ibm.com>
+ *      Steve Sherman <stevees@us.ibm.com>    
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
-#include "SaHpi.h"
-#include <printevent_utils.h>
-#include "ecode_utils.h"
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 
 #define HPI_NSEC_PER_SEC 1000000000LL
 
@@ -70,7 +71,7 @@ int main(int argc, char **argv)
                 if (rv == SA_ERR_HPI_ERROR) 
                         printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
                 else
-                        printf("saHpiSessionOpen: %s\n",decode_error(rv));
+                        printf("saHpiSessionOpen: %s\n", oh_lookup_error(rv));
                 exit(-1);
         }
  
@@ -79,9 +80,9 @@ int main(int argc, char **argv)
 	if (rv != SA_OK) return rv;
 
         rv = saHpiDiscover(sessionid);
-        if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
+        if (fdebug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
 //        rv = saHpiRptInfoGet(sessionid,&rptinfo);
-//        if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
+//        if (fdebug) printf("saHpiRptInfoGet %s\n", oh_lookup_error(rv));
 //        printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
         //              rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
         
@@ -92,7 +93,7 @@ int main(int argc, char **argv)
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
+                if (fdebug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
                 if (rv == SA_OK) {
                         resourceid = rptentry.ResourceId;
                         if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
@@ -107,7 +108,7 @@ int main(int argc, char **argv)
                         
 			/* Using EventLogInfo to build up event queue - for now */
                         rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
-                        if (fdebug) printf("saHpiEventLogInfoGet %s\n",decode_error(rv));
+                        if (fdebug) printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
                         if (rv == SA_OK) {
 				break;
                         }

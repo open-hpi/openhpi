@@ -47,17 +47,14 @@ pkgconfig_DATA          = openhpiutils.pc
 lib_LTLIBRARIES         = libopenhpiutils.la
 
 libopenhpiutils_la_SOURCES = \
-			ecode_utils.c \
 			el_utils.c \
 			epath_utils.c \
 			rpt_utils.c \
-			print_structs.c \
 			printevent_utils.c \
 			SaHpi_enum_utils.c \
 			SaHpi_event_utils.c \
 			SaHpi_struct_utils.c \
 			SaHpi_time_utils.c \
-			sensor_utils.c \
 			uid_utils.c
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@

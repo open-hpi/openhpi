@@ -2,6 +2,7 @@
  *      $Id$
  *
  * Copyright (c) 2003 by Intel Corp.
+ * (C) Copyright IBM Corp. 2004 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,7 +11,7 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Andy Cress <arcress@users.sourceforge.net>
  *     Renier Morales <renierm@users.sf.net>
  */
@@ -19,9 +20,9 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
+
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <print_structs.h>
 
 char progver[] = "1.0";
 int fdebug = 0;
@@ -51,8 +52,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                 return;
         }
         
-        if((rv = oh_sensor_reading2str(reading, sensorrec->DataFormat, 
-                                       &text)) == SA_OK) {
+        if((rv = oh_decode_sensorreading(reading, sensorrec->DataFormat, &text)) == SA_OK) {
                 printf(" = %s\n", text.Data);
         } else {
                 printf(" FAILED %s\n", oh_lookup_error(rv));
@@ -61,31 +61,31 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
         if (fshowrange) { // show ranges
                 printf("\t    Ranges::\n");
                 if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_NOMINAL ) {
-                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.Nominal, 
-                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                        if((rv = oh_decode_sensorreading(sensorrec->DataFormat.Range.Nominal, 
+							 sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tNominal of Range: %s\n", text.Data);
                         } else {
                                 printf( "\t\tNominal of Range: FAILED %s\n", oh_lookup_error(rv));
                         }
                 }
                 if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MAX ) {
-                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.Max, 
-                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                        if((rv = oh_decode_sensorreading(sensorrec->DataFormat.Range.Max, 
+							 sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tMax of Range: %s\n", text.Data);
                         } else {
                                 printf( "\t\tMax of Range: FAILED %s\n", oh_lookup_error(rv));
                         }
                 }
                 if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MIN ) {
-                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.Min, 
-                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                        if((rv = oh_decode_sensorreading(sensorrec->DataFormat.Range.Min, 
+							 sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tMin of Range: %s\n", text.Data);
                         } else {
                                 printf( "\t\tMin of Range: FAILED %s\n", oh_lookup_error(rv));
                         }
                 }
                 if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MAX ) {
-                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.NormalMax, 
+                        if((rv = oh_decode_sensorreading(sensorrec->DataFormat.Range.NormalMax, 
                                                        sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tNormal Max of Range: %s\n", text.Data);
                         } else {
@@ -93,8 +93,8 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                         }
                 }
                 if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MIN ) {
-                        if((rv = oh_sensor_reading2str(sensorrec->DataFormat.Range.NormalMin, 
-                                                       sensorrec->DataFormat, &text)) == SA_OK) {
+                        if((rv = oh_decode_sensorreading(sensorrec->DataFormat.Range.NormalMin, 
+							 sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tNormal Min of Range: %s\n", text.Data);
                         } else {
                                 printf( "\t\tNormal Min of Range: FAILED %s\n", oh_lookup_error(rv));
@@ -110,7 +110,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                  printf( "\t    Thresholds::\n" );
 
                  if (thresh.LowCritical.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.LowCritical, 
+                         if((rv = oh_decode_sensorreading(thresh.LowCritical, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tLow Critical Threshold: %s\n", text.Data);
                          } else {
@@ -118,7 +118,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                          }
                  }
                  if (thresh.LowMajor.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.LowMajor, 
+                         if((rv = oh_decode_sensorreading(thresh.LowMajor, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tLow Major Threshold: %s\n", text.Data);
                          } else {
@@ -126,7 +126,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                          }
                  }
                  if (thresh.LowMinor.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.LowMinor, 
+                         if((rv = oh_decode_sensorreading(thresh.LowMinor, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tLow Minor Threshold: %s\n", text.Data);
                          } else {
@@ -134,7 +134,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                          }
                  }
                  if (thresh.UpCritical.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.UpCritical, 
+                         if((rv = oh_decode_sensorreading(thresh.UpCritical, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tUp Critical Threshold: %s\n", text.Data);
                          } else {
@@ -142,7 +142,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                          }
                  }
                  if (thresh.UpMajor.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.UpMajor, 
+                         if((rv = oh_decode_sensorreading(thresh.UpMajor, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tUp Major Threshold: %s\n", text.Data);
                          } else {
@@ -150,7 +150,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                          }
                  }
                  if (thresh.UpMinor.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.UpMinor, 
+                         if((rv = oh_decode_sensorreading(thresh.UpMinor, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tUp Minor Threshold: %s\n", text.Data);
                          } else {
@@ -158,7 +158,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                          }
                  }
                  if (thresh.PosThdHysteresis.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.PosThdHysteresis, 
+                         if((rv = oh_decode_sensorreading(thresh.PosThdHysteresis, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tPos Threshold Hysteresis: %s\n", text.Data);
                          } else {
@@ -166,7 +166,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
                          }
                  }
                  if (thresh.NegThdHysteresis.IsSupported) {
-                         if((rv = oh_sensor_reading2str(thresh.NegThdHysteresis, 
+                         if((rv = oh_decode_sensorreading(thresh.NegThdHysteresis, 
                                                         sensorrec->DataFormat, &text)) == SA_OK) {
                                 printf( "\t\tNeg Threshold Hysteresis: %s\n", text.Data);
                          } else {
@@ -218,17 +218,17 @@ int main(int argc, char **argv)
 
         rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
-                printf("saHpiSessionOpen: %s",oh_lookup_error(rv));
+                printf("saHpiSessionOpen: %s", oh_lookup_error(rv));
                 exit(-1);
         }
         
         rv = saHpiDiscover(sessionid);
-        if (fdebug) printf("saHpiResourcesDiscover %s\n",oh_lookup_error(rv));
+        if (fdebug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
         
         /*
         rv = saHpiRptInfoGet(sessionid,&rptinfo);
 
-        if (fdebug) printf("saHpiRptInfoGet %s\n",oh_lookup_error(rv));
+        if (fdebug) printf("saHpiRptInfoGet %s\n", oh_lookup_error(rv));
         printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
                rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
         */
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
         {
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (fdebug) printf("saHpiRptEntryGet %s\n",oh_lookup_error(rv));
+                if (fdebug) printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
                                                 
                 if (rv == SA_OK) {
                         /* Walk the RDR list for this RPT entry */

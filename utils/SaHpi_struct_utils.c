@@ -64,8 +64,8 @@ const char *oh_lookup_manufacturerid(SaHpiManufacturerIdT value)
 
 /**
  * oh_decode_sensorreading: 
- * @reading: Pointer to SaHpiSensorReadingT to convert.
- * @format: Pointer to SaHpiDataFormatT for the sensor reading.
+ * @reading: SaHpiSensorReadingT to convert.
+ * @format: SaHpiDataFormatT for the sensor reading.
  * @buffer: Location to store the converted string.
  *
  * Converts a sensor reading and format into a string. 
@@ -78,8 +78,8 @@ const char *oh_lookup_manufacturerid(SaHpiManufacturerIdT value)
  * SA_ERR_HPI_INVALID_PARAMS - @buffer, @reading, @format is NULL; Invalid @reading type
  * SA_ERR_HPI_OUT_OF_SPACE - @buffer not big enough to accomodate appended string
  **/
-SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT *reading,
-				 SaHpiSensorDataFormatT *format,
+SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
+				 SaHpiSensorDataFormatT format,
 				 SaHpiTextBufferT *buffer)
 {
 	SaErrorT err;
@@ -90,37 +90,37 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT *reading,
 	if (!buffer) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        if (!reading->IsSupported || !format->IsSupported) {
+        if (!reading.IsSupported || !format.IsSupported) {
                 return(SA_ERR_HPI_INVALID_CMD);
         }
-        if (reading->Type != format->ReadingType) {
+        if (reading.Type != format.ReadingType) {
                 return(SA_ERR_HPI_INVALID_DATA);
         }
 	
 	oh_init_textbuffer(&working);
 	memset(text, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 
-        switch(reading->Type) {
+        switch(reading.Type) {
         case SAHPI_SENSOR_READING_TYPE_INT64:
                 text_size = snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-				     "%lld", reading->Value.SensorInt64);
+				     "%lld", reading.Value.SensorInt64);
 		err = oh_append_textbuffer(&working, text, text_size);
 		if (err != SA_OK) { return(err); }
                 break;
         case SAHPI_SENSOR_READING_TYPE_UINT64:
 		text_size = snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-				     "%llu", reading->Value.SensorUint64);
+				     "%llu", reading.Value.SensorUint64);
 		err = oh_append_textbuffer(&working, text, text_size);
 		if (err != SA_OK) { return(err); }
                 break;
 	case SAHPI_SENSOR_READING_TYPE_FLOAT64:
                 text_size = snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH, 
-				     "%le", reading->Value.SensorFloat64);
+				     "%le", reading.Value.SensorFloat64);
 		err = oh_append_textbuffer(&working, text, text_size);
 		if (err != SA_OK) { return(err); }
  		break;
         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-		err = oh_append_textbuffer(&working, reading->Value.SensorBuffer, 
+		err = oh_append_textbuffer(&working, reading.Value.SensorBuffer, 
 					   SAHPI_SENSOR_BUFFER_LENGTH);
 		if (err != SA_OK) { return(err); }
                 break;
@@ -128,7 +128,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT *reading,
 		return(SA_ERR_HPI_INVALID_PARAMS);
         }
         
-        if (format->Percentage) {
+        if (format.Percentage) {
 		err = oh_append_textbuffer(&working, "%", 1); 
 		if (err != SA_OK) { return(err); }
         }
@@ -138,16 +138,16 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT *reading,
 		/* Add units */
 		err = oh_append_textbuffer(&working, " ", 1); 		
 		if (err != SA_OK) { return(err); }
-		str = oh_lookup_sensorunits(format->BaseUnits);
+		str = oh_lookup_sensorunits(format.BaseUnits);
  		if (str == NULL) { return(SA_ERR_HPI_INVALID_PARAMS); }
 		err = oh_append_textbuffer(&working, str, strlen(str)); 		
 		if (err != SA_OK) { return(err); }
 		
 		/* Add modifier units, if appropriate */
-		if (format->BaseUnits != SAHPI_SU_UNSPECIFIED && 
-		    format->ModifierUse != SAHPI_SMUU_NONE) {
+		if (format.BaseUnits != SAHPI_SU_UNSPECIFIED && 
+		    format.ModifierUse != SAHPI_SMUU_NONE) {
 
-			switch(format->ModifierUse) {
+			switch(format.ModifierUse) {
 			case SAHPI_SMUU_BASIC_OVER_MODIFIER:
 				err = oh_append_textbuffer(&working, " / ", 3); 
 				if (err != SA_OK) { return(err); }
@@ -159,7 +159,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT *reading,
 			default:
 				return(SA_ERR_HPI_INVALID_PARAMS);
 			}
-			str = oh_lookup_sensorunits(format->ModifierUnits);
+			str = oh_lookup_sensorunits(format.ModifierUnits);
 			if (str == NULL) { return(SA_ERR_HPI_INVALID_PARAMS); }
 			err = oh_append_textbuffer(&working, str, strlen(str)); 		
 			if (err != SA_OK) { return(err); }

@@ -19,7 +19,6 @@
 
 #include <oh_error.h>
 
-#include <ecode_utils.h>
 #include <el_utils.h>
 #include <epath_utils.h>
 #include <event_utils.h>
@@ -29,7 +28,6 @@
 #include <SaHpi_event_utils.h>
 #include <SaHpi_struct_utils.h>
 #include <SaHpi_time_utils.h>
-#include <sensor_utils.h>
 #include <uid_utils.h>
 
 #endif
