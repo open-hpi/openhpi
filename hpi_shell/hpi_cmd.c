@@ -51,7 +51,7 @@ int debug = 0;
 int i, j, k = 0;
 SaHpiUint32T actualsize;
 char progname[] = "hpi_cmd";
-char hpi_cmd_ver[] = "0.1";
+char hpi_cmd_ver[] = "0.2";
 char *asset_tag;
 char outbuff[256];
 SaHpiInventoryDataT *inv;
