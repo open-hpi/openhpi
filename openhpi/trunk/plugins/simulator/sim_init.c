@@ -135,8 +135,7 @@ SaErrorT build_rptcache(RPTable *rptcache)
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 		
 		dbg("Adding resource number %d",i);
-		oh_add_resource(rptcache, &dummy_rpt_array[i].rpt, NULL, FREE_RPT_DATA);
-		i++;
+		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
         }
 
         return 0;
