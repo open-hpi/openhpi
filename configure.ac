@@ -109,8 +109,6 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
         this is required for plugin loading)
     ])
 
-dnl AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
-
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
 
 OH_CHECK_NETSNMP
@@ -265,8 +263,9 @@ dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
 
-if pkg-config --atleast-version 1.3.14 OpenIPMI; then
+if pkg-config --atleast-version 1.4.8 OpenIPMI; then
     have_openipmi=yes
+    AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
     OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
     AC_SUBST(OPENIPMI_CFLAGS)
     OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
