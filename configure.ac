@@ -19,7 +19,7 @@ AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
-HPI_LIB_VERSION=3:0:3
+HPI_LIB_VERSION=10:0:9
 HPI_PKG=openhpi
 HPI_UTIL_PKG=openhpiutils
 HPI_CLIENT_PKG=openhpiclient
@@ -72,34 +72,9 @@ fi
 AC_MSG_CHECKING(gcc >= 3.2.0)
 OH_CHECK_GCC(3,2,0)
 
-GLIB_REQUIRED_VERSION=1.2.0
-
-AC_ARG_WITH([glib],
-    [[  --with-glib=VERSION     use glib version >= VERSION [default=1.2.0]]],
-    [GLIB_REQUIRED_VERSION=$withval],
-    [if pkg-config --atleast-version 1.2.0 glib; then
-         GLIB_REQUIRED_VERSION=1.2.0;
-     elif pkg-config --atleast-version 2.0.0 glib-2.0; then
-         GLIB_REQUIRED_VERSION=2.0.0;
-     else
-         AC_MSG_ERROR([
-*** GLIB is required. The latest version of
-*** GLIB is always available from ftp://ftp.gtk.org/.])
-        fi])
-
-case "$GLIB_REQUIRED_VERSION" in
-    1*)
-        GLIB=glib;
-        ;;
-    2*)
-        GLIB=glib-2.0;
-        AC_MSG_WARN([glib 2.0 is not recommended, please use glib 1.2])
-        ;;
-    *)
-        AC_MSG_ERROR([
-*** unsupported GLIB $GLIB_REQUIRED_VERSION. The latest version of
-*** GLIB is always available from ftp://ftp.gtk.org/.])
-esac
+# glib 2.x checks
+GLIB_REQUIRED_VERSION=2.2.0
+GLIB=glib-2.0
 
 if pkg-config --atleast-version $GLIB_REQUIRED_VERSION $GLIB; then
    :
