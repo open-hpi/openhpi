@@ -685,10 +685,13 @@ do {                                                                          \
 	if (!sensor_info)                                                     \
 		return SA_ERR_HPI_NOT_PRESENT;	                              \
                                                                               \
+} while (0)
+
+#define CHECK_SENSOR_ENABLE(sensor_info)                                      \
+do {                                                                          \
 	if (sensor_info->enable == SAHPI_FALSE)                               \
 		return SA_ERR_HPI_INVALID_REQUEST;                            \
 } while (0)
-
 
 /**
  * ipmi_get_sensor_reading: get sensor reading, type, category and other info.
@@ -716,6 +719,7 @@ static int ipmi_get_sensor_reading(void   *hnd,
 	SaHpiEventStateT  tmp_state;
 
 	SENSOR_CHECK(handler, sensor_info, id, num);
+	CHECK_SENSOR_ENABLE(sensor_info);
 	
 	rv = ohoi_get_sensor_reading(sensor_info->sensor_id, &tmp_reading,
 				     &tmp_state, ipmi_handler);
@@ -751,6 +755,8 @@ static int ipmi_get_sensor_thresholds(void			*hnd,
 	struct ohoi_sensor_info *sensor_info;
 
 	SENSOR_CHECK(handler, sensor_info, id, num);
+	CHECK_SENSOR_ENABLE(sensor_info);
+	
 	if (!thres)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -768,6 +774,7 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 	struct ohoi_sensor_info *sensor_info;
 
 	SENSOR_CHECK(handler, sensor_info, id, num);
+	CHECK_SENSOR_ENABLE(sensor_info);
 	
 	if (!thres)
 		return SA_ERR_HPI_INVALID_PARAMS;
