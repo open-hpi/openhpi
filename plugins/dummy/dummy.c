@@ -31,7 +31,7 @@
 #include <oh_error.h>
 
 #define DUMMY_THREADED
-#undef	DUMMY_THREADED
+#undef  DUMMY_THREADED
 
 gpointer event_thread(gpointer data);
 
@@ -70,8 +70,8 @@ gpointer event_thread(gpointer data);
 
 #define VIRTUAL_NODES 2
 
-#define NO_ID 0	 /* Arbitrarily define IdrId == 0 as end-of-inventory */
-	   	 /* instead of using a counter of some kind           */
+#define NO_ID 0  /* Arbitrarily define IdrId == 0 as end-of-inventory */
+                 /* instead of using a counter of some kind           */
 
 /* dummy resource status */
 static struct {
@@ -624,7 +624,7 @@ static struct dummy_sensor {
 };
 
 /************************************************************************/
-/* Resource one inventory data   					*/
+/* Resource one inventory data                                          */
 /************************************************************************/
 struct  dummy_idr_area {
         SaHpiIdrAreaHeaderT  idrareas;
@@ -729,14 +729,14 @@ static struct dummy_inventories {
                 {}
         },
         {} /* Terminate Array */
-	   /* Arbitrarily define IdrId == 0 as end-of-inventory */
-	   /* instead of using a counter of some kind           */
+           /* Arbitrarily define IdrId == 0 as end-of-inventory */
+           /* instead of using a counter of some kind           */
 },
 {}
 };
 
 /************************************************************************/
-/* System Event Log data 								*/
+/* System Event Log data                                                                */
 /************************************************************************/
 static struct dummy_rel {
         SaHpiEventLogEntryT entry;
@@ -808,7 +808,9 @@ static struct oh_event *__eventdup(const struct oh_event *event)
                 dbg("Out of memory!");
                 return NULL;
         }
+
         memcpy(e, event, sizeof(*e));
+
         return e;
 }
 
@@ -882,7 +884,7 @@ static void *dummy_open(GHashTable *handler_config)
                 dbg("entity_root is needed and not present");
                 return(NULL);
         }
-					   
+                                           
         i = g_malloc0(sizeof(*i));
         if (!i) {
                 dbg("out of memory");
@@ -903,16 +905,16 @@ static void *dummy_open(GHashTable *handler_config)
         hotswap_event[1].u.hpi_event.res = dummy_resources[1];
 
 
-	/* make sure the glib threading subsystem is initialized */
+        /* make sure the glib threading subsystem is initialized */
         if (!g_thread_supported ()) {
                 g_thread_init (NULL);
                 printf("thread not initialized\n");
-		g_free(i);
-		return NULL;
-	}
+                g_free(i);
+                return NULL;
+        }
 
-	/* initialize mutex */
-	i->handler_lock = g_malloc0(sizeof(GStaticRecMutex));
+        /* initialize mutex */
+        i->handler_lock = g_malloc0(sizeof(GStaticRecMutex));
         if (!i->handler_lock) {
                 dbg("GStaticRecMutex: out of memory");
                 return NULL;
@@ -921,29 +923,29 @@ static void *dummy_open(GHashTable *handler_config)
 
 #ifdef DUMMY_THREADED
 
-	/* add to oh_handler_state */
-	GThread *thread_handle;
-	GError **e = NULL;
+        /* add to oh_handler_state */
+        GThread *thread_handle;
+        GError **e = NULL;
 
-	/* create event queue for async events*/
-	if ( !(i->eventq_async = g_async_queue_new()) ) {
-		printf("g_async_queue_new failed\n");
-		g_free(i);
-		return NULL;
-	}
-	
-	/* spawn a thread */
-	if ( !(thread_handle = g_thread_create (event_thread,
-						i,	/* oh_handler_state */
-						FALSE,
-						e)) ) {
-	     printf("g_thread_create failed\n");
-	     g_free(i);
-	     return NULL;
-	}
+        /* create event queue for async events*/
+        if ( !(i->eventq_async = g_async_queue_new()) ) {
+                printf("g_async_queue_new failed\n");
+                g_free(i);
+                return NULL;
+        }
+        
+        /* spawn a thread */
+        if ( !(thread_handle = g_thread_create (event_thread,
+                                                i,      /* oh_handler_state */
+                                                FALSE,
+                                                e)) ) {
+             printf("g_thread_create failed\n");
+             g_free(i);
+             return NULL;
+        }
 #endif
         
-	return( (void *)i );
+        return( (void *)i );
 }
 
 static void dummy_close(void *hnd)
@@ -1006,7 +1008,6 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 
         memset(&e,0,sizeof(e));
 
-
         /* get the last resouce in our rptache  */
         /* since we know it has no rdrs         */
         rpt_e = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
@@ -1021,7 +1022,6 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
                 e.type = OH_ET_RESOURCE;
                 memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));
         }
-
         dbg("**** ResourceId %d ******", e.u.res_event.entry.ResourceId);
 
         return(&e);
@@ -1040,9 +1040,14 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         static unsigned int toggle = 0;
         static unsigned int count = 0;
 
+if (!inst->handler_lock) printf("\n\npossible bad pointer hnd pointer is NULL!!!!!\n\n\n");
+
         if (g_slist_length(inst->eventq)>0) {
+
                 trace("List has an event, send it up");
+
                 memcpy(event, inst->eventq->data, sizeof(*event));
+
                 event->did = 1; /* FIXME: use real domain lookup */
                 free(inst->eventq->data);
                 inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
@@ -1054,6 +1059,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 
                 /* just stick this user event on the first resource */
                 rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
+
                 if (!rpt_entry) {
                         g_free(e);
                         return(-1);
@@ -1070,9 +1076,9 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                 return(-1);
         }
 
-	g_static_rec_mutex_lock (inst->handler_lock);
+        g_static_rec_mutex_lock (inst->handler_lock);
         
-	toggle++;
+        toggle++;
         if( (toggle%3) == 0 ) {
                 /* once initial reporting of events toggle between      */
                 /* removing and adding resource, removes resource 3     */
@@ -1082,7 +1088,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         dbg("\n**** EVEN ****, remove the resource\n");
                         if ( (e = remove_resource(inst)) ) {
                                 *event = *e;
-				g_static_rec_mutex_unlock (inst->handler_lock);
+                                g_static_rec_mutex_unlock (inst->handler_lock);
                                 return(1);
                         }
                 } else {
@@ -1090,13 +1096,13 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         dbg("\n**** ODD ****, add the resource\n");
                         if ( (e = add_resource(inst)) ) {
                                 *event = *e;
-				g_static_rec_mutex_unlock (inst->handler_lock);
+                                g_static_rec_mutex_unlock (inst->handler_lock);
                                 return(1);
                         }
                 }
         }
 
-	g_static_rec_mutex_unlock (inst->handler_lock);
+        g_static_rec_mutex_unlock (inst->handler_lock);
 
         return(-1);
 
@@ -1364,238 +1370,238 @@ static int dummy_set_control_state(void *hnd, SaHpiResourceIdT id,
 
 
 /************************************************************************/
-/* Inventory functions   						*/
+/* Inventory functions                                                  */
 /************************************************************************/
 static SaErrorT dummy_get_idr_info( void *hnd,  
-		SaHpiResourceIdT        ResourceId,
-		SaHpiIdrIdT             IdrId,
-		SaHpiIdrInfoT          *IdrInfo)
+                SaHpiResourceIdT        ResourceId,
+                SaHpiIdrIdT             IdrId,
+                SaHpiIdrInfoT          *IdrInfo)
 {
-	SaErrorT  rv = SA_OK;
-	int i = 0;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
-	SaHpiBoolT foundmatch = SAHPI_FALSE;
+        SaErrorT  rv = SA_OK;
+        int i = 0;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        SaHpiBoolT foundmatch = SAHPI_FALSE;
 
-	if (rdr != NULL) {
+        if (rdr != NULL) {
 
-		while (dummy_inventory[i].idrinfo.IdrId != NO_ID) {
-			if (dummy_inventory[i].idrinfo.IdrId == IdrId) { 
-				memcpy(IdrInfo, &(dummy_inventory[i].idrinfo.IdrId), sizeof(SaHpiIdrInfoT));
-				foundmatch = SAHPI_TRUE;
-				break;
-			} else 
-				i++;
-		} 
-		
-		if (!foundmatch) 
-			rv = SA_ERR_HPI_NOT_PRESENT;
-		
-	} else {
-		rv = SA_ERR_HPI_NOT_PRESENT;
-	}
+                while (dummy_inventory[i].idrinfo.IdrId != NO_ID) {
+                        if (dummy_inventory[i].idrinfo.IdrId == IdrId) { 
+                                memcpy(IdrInfo, &(dummy_inventory[i].idrinfo.IdrId), sizeof(SaHpiIdrInfoT));
+                                foundmatch = SAHPI_TRUE;
+                                break;
+                        } else 
+                                i++;
+                } 
+                
+                if (!foundmatch) 
+                        rv = SA_ERR_HPI_NOT_PRESENT;
+                
+        } else {
+                rv = SA_ERR_HPI_NOT_PRESENT;
+        }
 
-	return rv;
+        return rv;
 }
 
 static SaErrorT dummy_get_idr_area_header( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrAreaTypeT        AreaType,
-		SaHpiEntryIdT            AreaId,
-		SaHpiEntryIdT           *NextAreaId,
-		SaHpiIdrAreaHeaderT     *Header)
+                SaHpiResourceIdT         ResourceId,
+                SaHpiIdrIdT              IdrId,
+                SaHpiIdrAreaTypeT        AreaType,
+                SaHpiEntryIdT            AreaId,
+                SaHpiEntryIdT           *NextAreaId,
+                SaHpiIdrAreaHeaderT     *Header)
 {
-	SaErrorT  rv = SA_OK;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
-	SaHpiIdrAreaTypeT        thisAreaType;
-	SaHpiEntryIdT            thisAreaId;
-	SaHpiBoolT foundArea = SAHPI_FALSE;
-	int num_areas, i;
+        SaErrorT  rv = SA_OK;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        SaHpiIdrAreaTypeT        thisAreaType;
+        SaHpiEntryIdT            thisAreaId;
+        SaHpiBoolT foundArea = SAHPI_FALSE;
+        int num_areas, i;
 
-	if (rdr != NULL) {
-		struct dummy_inventories *s = dummy_inventory;
-		
-		num_areas =  s->idrinfo.NumAreas;
-		i = 0;
-		do { 
-		
-			thisAreaId = s->my_idr_area[i].idrareas.AreaId;
-			thisAreaType = s->my_idr_area[i].idrareas.Type;
-			if ( ((AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) && (AreaId == SAHPI_FIRST_ENTRY)) ||
-			     ((thisAreaType == AreaType) && ((AreaId == SAHPI_FIRST_ENTRY) || (AreaId == thisAreaId))) || 
-			     ((AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) && (thisAreaId == AreaId)) )
-			{
-				memcpy(Header, &(s->my_idr_area[i].idrareas) , sizeof(SaHpiIdrInfoT));
-				foundArea = SAHPI_TRUE;
-				break;
-			}
-			i++;
-		} while (i < num_areas);
-		
-		i++;
-		if (foundArea) {
-			foundArea = SAHPI_FALSE;
-			if (i < num_areas) {
-				do { 
-					thisAreaType = s->my_idr_area[i].idrareas.Type;
-					if ((thisAreaId == AreaId) && (thisAreaType == AreaType)) {	 
-						*NextAreaId = s->my_idr_area[i].idrareas.AreaId;
-						foundArea = SAHPI_TRUE;
-						break;
-					}
-					i++;
-				} while (i < num_areas);
+        if (rdr != NULL) {
+                struct dummy_inventories *s = dummy_inventory;
+                
+                num_areas =  s->idrinfo.NumAreas;
+                i = 0;
+                do { 
+                
+                        thisAreaId = s->my_idr_area[i].idrareas.AreaId;
+                        thisAreaType = s->my_idr_area[i].idrareas.Type;
+                        if ( ((AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) && (AreaId == SAHPI_FIRST_ENTRY)) ||
+                             ((thisAreaType == AreaType) && ((AreaId == SAHPI_FIRST_ENTRY) || (AreaId == thisAreaId))) || 
+                             ((AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) && (thisAreaId == AreaId)) )
+                        {
+                                memcpy(Header, &(s->my_idr_area[i].idrareas) , sizeof(SaHpiIdrInfoT));
+                                foundArea = SAHPI_TRUE;
+                                break;
+                        }
+                        i++;
+                } while (i < num_areas);
+                
+                i++;
+                if (foundArea) {
+                        foundArea = SAHPI_FALSE;
+                        if (i < num_areas) {
+                                do { 
+                                        thisAreaType = s->my_idr_area[i].idrareas.Type;
+                                        if ((thisAreaId == AreaId) && (thisAreaType == AreaType)) {      
+                                                *NextAreaId = s->my_idr_area[i].idrareas.AreaId;
+                                                foundArea = SAHPI_TRUE;
+                                                break;
+                                        }
+                                        i++;
+                                } while (i < num_areas);
 
-				if (!foundArea) 
-					*NextAreaId = SAHPI_LAST_ENTRY; 
+                                if (!foundArea) 
+                                        *NextAreaId = SAHPI_LAST_ENTRY; 
 
-			} else  {
-				*NextAreaId = SAHPI_LAST_ENTRY;
-			}
-			
-		} else 
-			rv = SA_ERR_HPI_NOT_PRESENT;			
-		
-	} else {
-		rv = SA_ERR_HPI_NOT_PRESENT;
-	}
+                        } else  {
+                                *NextAreaId = SAHPI_LAST_ENTRY;
+                        }
+                        
+                } else 
+                        rv = SA_ERR_HPI_NOT_PRESENT;                    
+                
+        } else {
+                rv = SA_ERR_HPI_NOT_PRESENT;
+        }
 
-	return rv;
+        return rv;
 
 }
 
 static SaErrorT dummy_add_idr_area( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrAreaTypeT        AreaType,
-		SaHpiEntryIdT           *AreaId)
+                SaHpiResourceIdT         ResourceId,
+                SaHpiIdrIdT              IdrId,
+                SaHpiIdrAreaTypeT        AreaType,
+                SaHpiEntryIdT           *AreaId)
 
 {
-	return SA_ERR_HPI_READ_ONLY;
+        return SA_ERR_HPI_READ_ONLY;
 }
 
 static SaErrorT dummy_del_idr_area( void *hnd,
-		SaHpiResourceIdT       ResourceId,
-		SaHpiIdrIdT            IdrId,
-		SaHpiEntryIdT          AreaId)
+                SaHpiResourceIdT       ResourceId,
+                SaHpiIdrIdT            IdrId,
+                SaHpiEntryIdT          AreaId)
 {
-	return SA_ERR_HPI_READ_ONLY;
+        return SA_ERR_HPI_READ_ONLY;
 }
 
 static SaErrorT dummy_get_idr_field( void *hnd,
-		SaHpiResourceIdT       ResourceId,
-		SaHpiIdrIdT             IdrId,
-		SaHpiEntryIdT           AreaId,
-		SaHpiIdrFieldTypeT      FieldType,
-		SaHpiEntryIdT           FieldId,
-		SaHpiEntryIdT          *NextFieldId,
-		SaHpiIdrFieldT         *Field)
+                SaHpiResourceIdT       ResourceId,
+                SaHpiIdrIdT             IdrId,
+                SaHpiEntryIdT           AreaId,
+                SaHpiIdrFieldTypeT      FieldType,
+                SaHpiEntryIdT           FieldId,
+                SaHpiEntryIdT          *NextFieldId,
+                SaHpiIdrFieldT         *Field)
 {
-	SaErrorT  rv = SA_OK;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
-	int num_areas = 0, area_index = 0, field_index = 0, num_fields = 0;
-	SaHpiEntryIdT            thisAreaId;
-	SaHpiIdrFieldTypeT      thisFieldType;
-	SaHpiEntryIdT           thisFieldId;
-	SaHpiBoolT foundArea = FALSE;
-	SaHpiBoolT foundField = FALSE;
-	struct dummy_idr_area *thisArea;
+        SaErrorT  rv = SA_OK;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+        int num_areas = 0, area_index = 0, field_index = 0, num_fields = 0;
+        SaHpiEntryIdT            thisAreaId;
+        SaHpiIdrFieldTypeT      thisFieldType;
+        SaHpiEntryIdT           thisFieldId;
+        SaHpiBoolT foundArea = FALSE;
+        SaHpiBoolT foundField = FALSE;
+        struct dummy_idr_area *thisArea;
 
 
-	if (rdr != NULL) {
-		struct dummy_inventories *s = dummy_inventory;
-		
-		num_areas =  s->idrinfo.NumAreas;
-		area_index = 0;
-		do { 
-		
-			thisAreaId = s->my_idr_area[area_index].idrareas.AreaId;
-			if ((thisAreaId == AreaId) || (AreaId == SAHPI_FIRST_ENTRY)) { 
-				foundArea = SAHPI_TRUE;
-				break;
-			}
-			area_index++;
-		} while (area_index < num_areas);
-		
-		
-		if (foundArea) {
-			num_fields = s->my_idr_area[area_index].idrareas.NumFields;
-			thisArea   = &(s->my_idr_area[area_index]);
+        if (rdr != NULL) {
+                struct dummy_inventories *s = dummy_inventory;
+                
+                num_areas =  s->idrinfo.NumAreas;
+                area_index = 0;
+                do { 
+                
+                        thisAreaId = s->my_idr_area[area_index].idrareas.AreaId;
+                        if ((thisAreaId == AreaId) || (AreaId == SAHPI_FIRST_ENTRY)) { 
+                                foundArea = SAHPI_TRUE;
+                                break;
+                        }
+                        area_index++;
+                } while (area_index < num_areas);
+                
+                
+                if (foundArea) {
+                        num_fields = s->my_idr_area[area_index].idrareas.NumFields;
+                        thisArea   = &(s->my_idr_area[area_index]);
 
-			do { 
-				thisFieldType = thisArea->idrfields[field_index].Type;
-				thisFieldId = thisArea->idrfields[field_index].FieldId;
-				if (((thisFieldId == FieldId) || (FieldId == SAHPI_FIRST_ENTRY)) 
-				   && ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED)))
-				{	 
-					memcpy(Field, &(thisArea->idrfields[field_index]), sizeof(SaHpiIdrFieldT)) ;
-					foundField = SAHPI_TRUE;
-					break;
-				}
-				field_index++;
-			} while (field_index < num_fields);
-			
-			field_index++;
-			if (foundField) {
-				foundField = SAHPI_FALSE;
-				if (field_index < num_fields) {
-					do { 
-						thisFieldType = thisArea->idrfields[field_index].Type;
-						if ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
-						{	
-							*NextFieldId = thisArea->idrfields[field_index].FieldId; 					 
-							foundField = SAHPI_TRUE;
-							break;
-						}
-						field_index++;
-					} while (field_index < num_fields);
-				
-					if (!foundField) {
-						*NextFieldId = SAHPI_LAST_ENTRY;
-					}
-				} else 
-					*NextFieldId = SAHPI_LAST_ENTRY;
+                        do { 
+                                thisFieldType = thisArea->idrfields[field_index].Type;
+                                thisFieldId = thisArea->idrfields[field_index].FieldId;
+                                if (((thisFieldId == FieldId) || (FieldId == SAHPI_FIRST_ENTRY)) 
+                                   && ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED)))
+                                {        
+                                        memcpy(Field, &(thisArea->idrfields[field_index]), sizeof(SaHpiIdrFieldT)) ;
+                                        foundField = SAHPI_TRUE;
+                                        break;
+                                }
+                                field_index++;
+                        } while (field_index < num_fields);
+                        
+                        field_index++;
+                        if (foundField) {
+                                foundField = SAHPI_FALSE;
+                                if (field_index < num_fields) {
+                                        do { 
+                                                thisFieldType = thisArea->idrfields[field_index].Type;
+                                                if ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
+                                                {       
+                                                        *NextFieldId = thisArea->idrfields[field_index].FieldId;                                         
+                                                        foundField = SAHPI_TRUE;
+                                                        break;
+                                                }
+                                                field_index++;
+                                        } while (field_index < num_fields);
+                                
+                                        if (!foundField) {
+                                                *NextFieldId = SAHPI_LAST_ENTRY;
+                                        }
+                                } else 
+                                        *NextFieldId = SAHPI_LAST_ENTRY;
 
-			} else {
-				rv = SA_ERR_HPI_NOT_PRESENT;			
-			}
-									
-		} else {
-			rv = SA_ERR_HPI_NOT_PRESENT;			
-		}
-		
-	} else {
-		rv = SA_ERR_HPI_NOT_PRESENT;
-	}
-	return rv;
+                        } else {
+                                rv = SA_ERR_HPI_NOT_PRESENT;                    
+                        }
+                                                                        
+                } else {
+                        rv = SA_ERR_HPI_NOT_PRESENT;                    
+                }
+                
+        } else {
+                rv = SA_ERR_HPI_NOT_PRESENT;
+        }
+        return rv;
 }
 
 static SaErrorT dummy_add_idr_field( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrFieldT        *Field)
+                SaHpiResourceIdT         ResourceId,
+                SaHpiIdrIdT              IdrId,
+                SaHpiIdrFieldT        *Field)
 {
-	return SA_ERR_HPI_READ_ONLY;
+        return SA_ERR_HPI_READ_ONLY;
 }
 
 static SaErrorT dummy_set_idr_field( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrFieldT           *Field)
+                SaHpiResourceIdT         ResourceId,
+                SaHpiIdrIdT              IdrId,
+                SaHpiIdrFieldT           *Field)
 {
-	return SA_ERR_HPI_READ_ONLY;
+        return SA_ERR_HPI_READ_ONLY;
 }
 
 static SaErrorT dummy_del_idr_field( void *hnd, 
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiEntryIdT            AreaId,
-		SaHpiEntryIdT            FieldId)
+                SaHpiResourceIdT         ResourceId,
+                SaHpiIdrIdT              IdrId,
+                SaHpiEntryIdT            AreaId,
+                SaHpiEntryIdT            FieldId)
 {
-	return SA_ERR_HPI_READ_ONLY;
+        return SA_ERR_HPI_READ_ONLY;
 }
 
 /************************************************************************/
@@ -1923,42 +1929,42 @@ static int dummy_set_reset_state(void *hnd, SaHpiResourceIdT id,
 }
 
 static struct oh_abi_v2 oh_dummy_plugin = {
-	.open			= dummy_open,
-	.close			= dummy_close,
-	.get_event		= dummy_get_event,
-	.discover_resources     = dummy_discover_resources,
-	.get_el_info		= dummy_get_sel_info,
-	.set_el_time		= dummy_set_sel_time,
-	.add_el_entry		= dummy_add_sel_entry,	
-	.get_el_entry		= dummy_get_sel_entry,
-	.get_sensor_data	= dummy_get_sensor_data,
-	.get_sensor_thresholds	= dummy_get_sensor_thresholds,
-	.set_sensor_thresholds	= dummy_set_sensor_thresholds,
-	.get_sensor_event_enables = dummy_get_sensor_event_enabled,
-	.set_sensor_event_enables = dummy_set_sensor_event_enabled,
-	.get_control_state	= dummy_get_control_state,
-	.set_control_state	= dummy_set_control_state,
-	.get_idr_info		= dummy_get_idr_info,
-	.get_idr_area_header	= dummy_get_idr_area_header,
-	.add_idr_area		= dummy_add_idr_area,
-	.del_idr_area		= dummy_del_idr_area,
-	.get_idr_field		= dummy_get_idr_field,
-	.add_idr_field		= dummy_add_idr_field,
-	.set_idr_field		= dummy_set_idr_field,
-	.del_idr_field		= dummy_del_idr_field,
-	.get_watchdog_info	= dummy_get_watchdog_info,
-	.set_watchdog_info	= dummy_set_watchdog_info,
-	.reset_watchdog		= dummy_reset_watchdog,
-	.get_hotswap_state	= dummy_get_hotswap_state,
-	.set_hotswap_state	= dummy_set_hotswap_state,
-	.request_hotswap_action	= dummy_request_hotswap_action,
-	.get_power_state	= dummy_get_power_state,
-	.set_power_state	= dummy_set_power_state,
-	.get_indicator_state	= dummy_get_indicator_state,
-	.set_indicator_state	= dummy_set_indicator_state,
-	.control_parm		= dummy_control_parm,
-	.get_reset_state	= dummy_get_reset_state,
-	.set_reset_state	= dummy_set_reset_state
+        .open                   = dummy_open,
+        .close                  = dummy_close,
+        .get_event              = dummy_get_event,
+        .discover_resources     = dummy_discover_resources,
+        .get_el_info            = dummy_get_sel_info,
+        .set_el_time            = dummy_set_sel_time,
+        .add_el_entry           = dummy_add_sel_entry,  
+        .get_el_entry           = dummy_get_sel_entry,
+        .get_sensor_data        = dummy_get_sensor_data,
+        .get_sensor_thresholds  = dummy_get_sensor_thresholds,
+        .set_sensor_thresholds  = dummy_set_sensor_thresholds,
+        .get_sensor_event_enables = dummy_get_sensor_event_enabled,
+        .set_sensor_event_enables = dummy_set_sensor_event_enabled,
+        .get_control_state      = dummy_get_control_state,
+        .set_control_state      = dummy_set_control_state,
+        .get_idr_info           = dummy_get_idr_info,
+        .get_idr_area_header    = dummy_get_idr_area_header,
+        .add_idr_area           = dummy_add_idr_area,
+        .del_idr_area           = dummy_del_idr_area,
+        .get_idr_field          = dummy_get_idr_field,
+        .add_idr_field          = dummy_add_idr_field,
+        .set_idr_field          = dummy_set_idr_field,
+        .del_idr_field          = dummy_del_idr_field,
+        .get_watchdog_info      = dummy_get_watchdog_info,
+        .set_watchdog_info      = dummy_set_watchdog_info,
+        .reset_watchdog         = dummy_reset_watchdog,
+        .get_hotswap_state      = dummy_get_hotswap_state,
+        .set_hotswap_state      = dummy_set_hotswap_state,
+        .request_hotswap_action = dummy_request_hotswap_action,
+        .get_power_state        = dummy_get_power_state,
+        .set_power_state        = dummy_set_power_state,
+        .get_indicator_state    = dummy_get_indicator_state,
+        .set_indicator_state    = dummy_set_indicator_state,
+        .control_parm           = dummy_control_parm,
+        .get_reset_state        = dummy_get_reset_state,
+        .set_reset_state        = dummy_set_reset_state
 };
 
 int dummy_get_interface(void **pp, const uuid_t uuid);
@@ -1986,77 +1992,77 @@ int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("dum
 #ifdef DUMMY_THREADED
 gpointer event_thread(gpointer data)
 {
-	struct timespec req, rem;
-	memset(&req, 0, sizeof(req));
-	req.tv_nsec = 700000000;
+        struct timespec req, rem;
+        memset(&req, 0, sizeof(req));
+        req.tv_nsec = 700000000;
 
 
-	struct oh_handler_state *inst = (struct oh_handler_state *)data;
+        struct oh_handler_state *inst = (struct oh_handler_state *)data;
 
         struct oh_event *e;
 
-	sleep(1);
+        sleep(1);
 
-	int c=0;
-	for (;;) {
-		c++;
+        int c=0;
+        for (;;) {
+                c++;
 printf("address of data [%u]\n", (int)data);
 printf("address of inst [%u]\n", (int)inst);
 printf("address of mutex [%u]\n", (int)inst->handler_lock);
 printf("loop count [%d]\n", c);
 printf("event burp!\n");
 
-		/* allocate memory for event */
-		e = g_malloc0(sizeof(*e));
-		if (!e) {
-			dbg("Out of memory!");
-			return NULL;
-		}
+                /* allocate memory for event */
+                e = g_malloc0(sizeof(*e));
+                if (!e) {
+                        dbg("Out of memory!");
+                        return NULL;
+                }
 
-		/* build event */
-		static unsigned int toggle = 0;
-		struct oh_event *event;
-		/* once initial reporting of events toggle between      */
-		/* removing and adding resource, removes resource 3     */
-		/* since it has no rdr's to add back later              */
-		event = g_malloc0(sizeof(*event));
-		if (!event) {
-			printf("event: memory alloc failure\n");
-			return 0;
-		}
+                /* build event */
+                static unsigned int toggle = 0;
+                struct oh_event *event;
+                /* once initial reporting of events toggle between      */
+                /* removing and adding resource, removes resource 3     */
+                /* since it has no rdr's to add back later              */
+                event = g_malloc0(sizeof(*event));
+                if (!event) {
+                        printf("event: memory alloc failure\n");
+                        return 0;
+                }
 
 
-		while (!g_static_rec_mutex_trylock (inst->handler_lock))
-			printf("mutex is going to block [%d]\n", (int)inst->handler_lock);
+                while (!g_static_rec_mutex_trylock (inst->handler_lock))
+                        printf("mutex is going to block [%d]\n", (int)inst->handler_lock);
 
-		//g_static_rec_mutex_lock (inst->handler_lock);
-		
-		if ( (toggle%2) == 0 ) {
-			toggle++;
-			printf("\n**** EVEN ****, remove the resource\n");
-			if ( (e = remove_resource(inst)) ) {
-				memcpy(event, e, sizeof(*event));
-				g_async_queue_push(inst->eventq_async, event);
-			}
-		} else {
-			toggle++;
-			printf("\n**** ODD ****, add the resource\n");
-			if ( (e = add_resource(inst)) ) {
-				memcpy(event, e, sizeof(*event));
-				g_async_queue_push(inst->eventq_async, event);
-			}
-		}
+                //g_static_rec_mutex_lock (inst->handler_lock);
+                
+                if ( (toggle%2) == 0 ) {
+                        toggle++;
+                        printf("\n**** EVEN ****, remove the resource\n");
+                        if ( (e = remove_resource(inst)) ) {
+                                memcpy(event, e, sizeof(*event));
+                                g_async_queue_push(inst->eventq_async, event);
+                        }
+                } else {
+                        toggle++;
+                        printf("\n**** ODD ****, add the resource\n");
+                        if ( (e = add_resource(inst)) ) {
+                                memcpy(event, e, sizeof(*event));
+                                g_async_queue_push(inst->eventq_async, event);
+                        }
+                }
 
-		g_static_rec_mutex_unlock (inst->handler_lock);
+                g_static_rec_mutex_unlock (inst->handler_lock);
 
-		nanosleep(&req, &rem);
+                nanosleep(&req, &rem);
 
-	}
-	
-	g_thread_exit(0);
+        }
+        
+        g_thread_exit(0);
 
-	printf("THREAD END\n");	
-	return 0 ;
+        printf("THREAD END\n"); 
+        return 0 ;
 }
 #endif
 
