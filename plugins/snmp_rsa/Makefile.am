@@ -26,12 +26,14 @@ EXTRA_DIST		=	rsa_resources.h \
 	     			snmp_rsa.h \
 	     			snmp_rsa_discover.h \
 	     			snmp_rsa_session.h \
+	     			snmp_rsa_sensor.h \
 	     			snmp_rsa_utils.h
 
 libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
 	     			snmp_rsa.c \
 	     			snmp_rsa_discover.c \
 	     			snmp_rsa_session.c \
+	     			snmp_rsa_sensor.c \
 	     			snmp_rsa_utils.c
 
 libsnmp_rsa_la_LIBADD	= @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la -luuid 

@@ -26,7 +26,7 @@
 // #include <snmp_rsa_control.h>
 #include <snmp_rsa_discover.h>
 // #include <snmp_rsa_sel.h>
-// #include <snmp_rsa_sensor.h>
+#include <snmp_rsa_sensor.h>
 #include <snmp_rsa_session.h>
 // #include <snmp_rsa_watchdog.h>
 
@@ -449,16 +449,11 @@ struct oh_abi_v2 oh_snmp_rsa_plugin = {
         .del_sel_entry			= NULL,
 //      .get_sel_entry			= snmp_rsa_get_sel_entry,
         .get_sel_entry			= NULL,
-//      .get_sensor_data		= snmp_rsa_get_sensor_data,
-        .get_sensor_data		= NULL,
-//      .get_sensor_thresholds		= snmp_rsa_get_sensor_thresholds,
-        .get_sensor_thresholds		= NULL,
-//      .set_sensor_thresholds		= snmp_rsa_set_sensor_thresholds,
-        .set_sensor_thresholds		= NULL,
-//      .get_sensor_event_enables	= snmp_rsa_get_sensor_event_enables,
-        .get_sensor_event_enables	= NULL,
-//      .set_sensor_event_enables	= snmp_rsa_set_sensor_event_enables,
-        .set_sensor_event_enables	= NULL,
+        .get_sensor_data		= snmp_rsa_get_sensor_data,
+        .get_sensor_thresholds		= snmp_rsa_get_sensor_thresholds,
+        .set_sensor_thresholds		= snmp_rsa_set_sensor_thresholds,
+        .get_sensor_event_enables	= snmp_rsa_get_sensor_event_enables,
+        .set_sensor_event_enables	= snmp_rsa_set_sensor_event_enables,
 //      .get_control_state		= snmp_rsa_get_control_state,
         .get_control_state		= NULL,
 //      .set_control_state		= snmp_rsa_set_control_state,
