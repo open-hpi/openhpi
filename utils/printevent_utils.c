@@ -594,7 +594,6 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
         char outbuf[132];
         char mystr[26];
         unsigned char data1, data2, data3;
-		//char date[30];
 
         if (!sel || !rdr || !rptentry) return;
 	
@@ -609,8 +608,6 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
         } else {   /*relative time*/
                 tt1 = sel->Event.Timestamp / 1000000000;
                 sprintf(timestr,"rel(%lx)", (unsigned long)tt1);
-				//saftime2str(sel->Event.Timestamp, date, 30);
-				//printf("timestamp = %s\n", date);
 
         }
         if (rptentry->ResourceId == sel->Event.Source)
