@@ -369,7 +369,7 @@ int test_wdtreset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHp
 	SaHpiWatchdogT wdt_running = {
         	.Log                    = SAHPI_FALSE,
         	.Running                = SAHPI_TRUE,
-        	.TimerUse               = SAHPI_WTU_OS_LOAD,
+        	.TimerUse               = SAHPI_WTU_SMS_OS,
         	.TimerAction            = SAHPI_WA_RESET,
         	.PretimerInterrupt      = SAHPI_WPI_NONE,
         	.PreTimeoutInterval     = 0,
@@ -390,7 +390,7 @@ int test_wdtreset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHp
 		return err;
 	}
 	printf("TEST:  Manually verify wdt running (expiry in 1 sec)\n");
-	sleep(1);
+	sleep(2);
 
 	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_running);
 	if (SA_OK != err) {
