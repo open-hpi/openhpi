@@ -2,7 +2,7 @@
 #define _UID_UTILS_
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003,2004
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,6 +14,7 @@
  *
  * Authors:
  *      David Judkovics <djudkovi@us.ibm.com>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 #ifdef __cplusplus
@@ -23,10 +24,10 @@ extern "C" {
 /* hpi internal apis */
 SaErrorT oh_uid_initialize(void); 
 guint oh_uid_from_entity_path(SaHpiEntityPathT *ep); 
-guint oh_uid_remove(guint uid);
+gint oh_uid_remove(guint uid);
 guint oh_uid_lookup(SaHpiEntityPathT *ep);
-guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep);
-guint oh_uid_map_to_file(void);
+gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep);
+gint oh_uid_map_to_file(void);
 #ifdef __cplusplus
 }
 #endif 
