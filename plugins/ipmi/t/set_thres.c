@@ -22,8 +22,10 @@
 
 static char* sensor_name;
 static char* pname;
-static int need_set;
-static float thres_value;
+static int   have_minor;
+static int   have_major;
+static float minor_value;
+static float major_value;
 
 static char*
 gettext(SaHpiTextBufferT *text)
@@ -139,14 +141,21 @@ dordr(SaHpiSessionIdT sessionid,
                 thres_print(&thres);
 
                 
-                if (need_set) {
+                if (have_minor) {
                         struct timeval tv;
 
                         thres.LowMinor.ValuesPresent = SAHPI_SRF_INTERPRETED;
                         thres.LowMinor.Interpreted.Type = 
                                            SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32;
-                        thres.LowMinor.Interpreted.Value.SensorFloat32 = thres_value;
+                        thres.LowMinor.Interpreted.Value.SensorFloat32 = minor_value;
                         
+                        if (have_major) {
+                                thres.LowMajor.ValuesPresent = SAHPI_SRF_INTERPRETED;
+                                thres.LowMajor.Interpreted.Type =
+                                           SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32;
+                                thres.LowMajor.Interpreted.Value.SensorFloat32 = major_value;
+                        }
+
                         gettimeofday(&tv, NULL);
                         printf("set thres at :%ld\n", tv.tv_sec);
 
@@ -164,7 +173,7 @@ dordr(SaHpiSessionIdT sessionid,
 static void
 usage(void)
 {
-        printf("%s <sensor name> <LowMinor Reading Value>\n", pname);
+        printf("%s <sensor name> [LowMinor Reading Value] [LowMajor Reading Value]\n", pname);
 }
 
 int
@@ -191,11 +200,17 @@ main(int argc, char **argv)
         }
 
         sensor_name = argv[1];
-        need_set = 0;
+        have_minor = 0;
+        have_major = 0;
 
-        if (argc == 3) {
-                need_set = 1;
-                thres_value = atof(argv[2]);
+        if (argc >= 3) {
+                have_minor = 1;
+                minor_value = atof(argv[2]);
+        }
+
+        if (argc >=4) {
+                have_major = 1;
+                major_value = atof(argv[3]);
         }
 
         rv = saHpiInitialize(&hpiVer);
