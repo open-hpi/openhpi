@@ -1,0 +1,79 @@
+########################################################################
+# (C) Copyright IBM Corp. 2004
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under a BSD style license.  See
+# the Copying file included with the OpenHPI distribution for
+# full licensing terms.
+#
+# Author(s):
+#      Steve Sherman <stevees@us.ibm.com>
+#########################################################################
+
+#########################################################################
+# This file serves as input to eventmap2xml.pl to produce:
+# 
+# snmp_bc_errorlog.h - maps hardware error log restrictions to #defines
+# eventxxx.xml - maps hardware events into an XML format, containing
+#      	  	 the information needed to map the hardware event strings
+#                to HPI events. xxx is platform specific
+#
+# Another HPI script reads the XML file and generates a c file which
+# instantiates the data into an array.
+#
+# An internal script, str2map.pl, is used to help generate this file.
+# Couple of things need to be done manually though:
+#
+# - Strip out obsolete codes (they are in the code but not used).
+# - Add FF to beginning of event numbers for duplicate events
+#   (e.g. EN_PFA_HI_FAULT_2_5V)
+# - Remove switch install and removed events with "multiple I/0 Error ..." 
+#   Hardware code doesn't actually append this string for these particular
+#   events, although the logic in bc_str2map.pl thinks it does.
+# - Change warning thresholds to SAHPI_MAJOR severity.
+#
+# NOTES:
+# - OVR_RID only good if there is an unique message number per resource
+#   Else can't determine the proper RID - same event number shows up
+#   in the event array of multiple RIDs. Need to use Error Log's Source
+#   field in these cases, which implies no OVR_RID.
+###########################################################################
+
+#########
+# Defines
+#########
+
+HPI_DEF|LOG_LOGIN_STRING|"Login ID:"
+HPI_DEF|LOG_LOGIN_CHAR|"'"
+HPI_DEF|LOG_READ_VALUE_STRING|" Read value "
+HPI_DEF|LOG_THRESHOLD_VALUE_STRING|" Threshold value "
+HPI_DEF|ER_STR_POST_LOG_CLEARED|"System log cleared."
+HPI_DEF|EVT_EN_LOG_FULL|"System error log full"
+HPI_DEF|EVT_RECOVERY|"Recovery "
+
+##################
+# Chassis Resource
+##################
+# None
+
+#################
+# Chassis Sensors
+#################
+
+# Test event - used to unit test code
+EN_TEST_EVENT|0xFFFFFFFF|ALL|SAHPI_CRITICAL|NO_OVR|"Bogus Test Event."
+EN_CUTOFF_HI_OVER_TEMP_AMBIENT|0x0001C480|BCT|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to high ambient temperature."
+EN_CUTOFF_HI_OVER_TEMP_AMBIENT_DUP1|0x0001C481|BCT|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to high ambient temperature."
+EN_CUTOFF_HI_OVER_TEMP_AMBIENT_DUP2|0x0001C482|BCT|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to high ambient temperature."
+EN_PFA_HI_OVER_TEMP_AMBIENT|0x0001D500|BC|SAHPI_MAJOR|OVR_SEV|"System over recommended ambient temperature."
+EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|RSA|SAHPI_CRITICAL|OVR_SEV|"Shutoff Management Module temperature."
+EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|  BCT  , BC , RSA |SAHPI_MAJOR|OVR_SEV|"Management Module over temperature."
+EN_PFA_HI_OVER_TEMP_SP_CARD_DUP1|0x0001D401| BC |SAHPI_MAJOR|OVR_SEV|"Management Module over temperature."
+EN_PFA_HI_OVER_TEMP_SP_CARD_DUP2|0x0001D402| RSA |SAHPI_MAJOR|OVR_SEV|"Management Module over temperature."
+EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|RSA, BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.8V CPU over voltage"
+EN_CUTOFF_HI_FAULT_1_8V_DUP|0x0807A481|BC, RSA|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.8V CPU over voltage"
+EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT, BC |SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.8V CPU under voltage"
+EN_PFA_LO_FAULT_2_5V|0xFF031880|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
+EN_PFA_LO_FAULT_2_5V_DUP|0xFF031881|ALL|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
