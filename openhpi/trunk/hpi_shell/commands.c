@@ -25,10 +25,21 @@
 #include "hpi_cmd.h"
 #include "resource.h"
 
+#define READ_BUF_SIZE	1024
+
 int ui_print(char *Str)
 {
 	printf("%s", Str);
 	return(0);
+}
+
+static int get_int_param(char *mes, int *val)
+{
+	char	buf[READ_BUF_SIZE];
+
+	printf("%s", mes);
+	fgets(buf, READ_BUF_SIZE, stdin);
+	return(sscanf(buf, "%d", val));
 }
 
 static int help(int argc, char *argv[])
@@ -209,7 +220,7 @@ static int sa_show_hs_ind(SaHpiResourceIdT resourceid)
 
 	rv = saHpiHotSwapIndicatorStateGet(sessionid, resourceid, &state);
 	if (rv != SA_OK) { 
-		printf("saHpiHotSwapStateGet error %s\n",  oh_lookup_error(rv));
+		printf("saHpiHotSwapStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -234,7 +245,7 @@ static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
 
 	rv = saHpiHotSwapStateGet(sessionid, resourceid, &state);
 	if (rv != SA_OK) { 
-		printf("saHpiHotSwapStateGet error %s\n",  oh_lookup_error(rv));
+		printf("saHpiHotSwapStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -281,14 +292,14 @@ static int sa_power(int argc, char *argv[])
 
         rv = saHpiResourcePowerStateSet(sessionid, resourceid, state);
         if (rv != SA_OK) {
-                printf("saHpiResourcePowerStateSet error %s\n",  oh_lookup_error(rv));
+                printf("saHpiResourcePowerStateSet error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 
 L1:
         rv = saHpiResourcePowerStateGet(sessionid, resourceid, &state);
         if (rv != SA_OK) {
-                printf("saHpiResourcePowerStateGet error %s\n",  oh_lookup_error(rv));
+                printf("saHpiResourcePowerStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 	if (state == SAHPI_POWER_ON) {
@@ -321,14 +332,14 @@ static int sa_reset(int argc, char *argv[])
 
         rv = saHpiResourceResetStateSet(sessionid, resourceid, state);
         if (rv != SA_OK) {
-                printf("saHpiResourceResetStateSet error %s\n",oh_lookup_error(rv));
+                printf("saHpiResourceResetStateSet error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 
 L1:
 	rv = saHpiResourceResetStateGet(sessionid, resourceid, &state);
 	if (rv != SA_OK) {
-		printf("saHpiResourceResetStateGet error %s\n",oh_lookup_error(rv));
+		printf("saHpiResourceResetStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 	if (state == SAHPI_RESET_ASSERT) {
@@ -361,7 +372,7 @@ static int sa_set_tag(int argc, char *argv[])
 
 	rv = saHpiResourceTagSet(sessionid,resourceid,&resourcetag);
 	if (rv != SA_OK) {
-		printf("saHpiResourceTagSet error = %s\n",oh_lookup_error(rv));
+		printf("saHpiResourceTagSet error = %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -374,7 +385,7 @@ static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
 
 	rv = saHpiEventLogClear(sessionid,resourceid);
 	if (rv != SA_OK) {
-		printf("EventLog clear, error = %s\n",oh_lookup_error(rv));
+		printf("EventLog clear, error = %s\n", oh_lookup_error(rv));
 		return -1;
 	}
 
@@ -620,7 +631,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 			rva = saHpiIdrAreaHeaderGet(sessionid, resourceid, idrInfo.IdrId,
 				areaType, areaId, &nextareaId, &areaHeader);
 			if (rva != SA_OK) {
-				printf("saHpiIdrAreaHeaderGet error %s\n",oh_lookup_error(rva));
+				printf("saHpiIdrAreaHeaderGet error %s\n", oh_lookup_error(rva));
 				break;
 			}
 			oh_print_idrareaheader(&areaHeader, 2);
@@ -782,14 +793,20 @@ static int show_inv(int argc, char *argv[])
 
 static int show_rpt(int argc, char *argv[])
 {
-	Rpt_t	*Rpt;
+	Rpt_t			*Rpt;
+	int			i, res;
+	SaHpiResourceIdT	Id;
 
-	if (argc < 2)
-		return HPI_SHELL_PARM_ERROR;
-	Rpt = get_rpt(Domain, (SaHpiResourceIdT)atoi(argv[1]));
+	if (argc < 2) {
+		i = get_int_param("RPT ID ==> ", &res);
+		if (i == 1) Id = (SaHpiResourceIdT)res;
+		else return HPI_SHELL_PARM_ERROR;
+	} else {
+		Id = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+	Rpt = get_rpt(Domain, Id);
 	if (Rpt != (Rpt_t *)NULL)
 		show_Rpt(Rpt, ui_print);
-			
 	return (SA_OK);
 }
 
@@ -855,7 +872,7 @@ const char showevtloghelp[] = "showevtlog: show system event logs\n"       \
 const char showinvhelp[] = "showinv: show inventory data of a resource\n"  \
 			"Usage: showinv <resource id>";
 const char showrpthelp[] = "showrpt: show resource information\n"          \
-			"Usage: showrpt <resource id>";
+			"Usage: showrpt [<resource id>]";
 const char showsorhelp[] = "showsensor: show sensor information\n"         \
 			"Usage: showsensor <resource id> <sensor id>";
 

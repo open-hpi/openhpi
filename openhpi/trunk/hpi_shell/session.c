@@ -40,7 +40,6 @@ static GMutex		*thread_mutex = NULL;
 static char		*progress_mes;
 Domain_t		*Domain;
 
-
 #define PROGRESS_BUF_SIZE	80
 
 /* Progress bar implementation */
