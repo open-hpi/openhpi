@@ -655,3 +655,323 @@ int set_text_buffer(SaHpiTextBufferT *buf)
 	};
 	return(0);
 }
+
+static void show_rdr_attrs(SaHpiRdrT *rdr_entry)
+{
+	Rdr_t			tmp_rdr;
+
+	make_attrs_rdr(&tmp_rdr, rdr_entry);
+	show_Rdr(&tmp_rdr, ui_print);
+	free_attrs(&(tmp_rdr.Attrutes));
+}
+
+static int list_cond(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+{
+	SaErrorT		rv;
+	SaHpiAnnouncementT	annon;
+	SaHpiTextBufferT	buffer;
+
+	annon.EntryId = SAHPI_FIRST_ENTRY;
+	for (;;) {
+		rv = saHpiAnnunciatorGetNext(Domain->sessionId, rptid, rdrnum,
+			SAHPI_ALL_SEVERITIES, SAHPI_FALSE, &annon);
+		if (rv != SA_OK) {
+			if (rv == SA_ERR_HPI_NOT_PRESENT)
+				break;
+			printf("saHpiAnnunciatorGetNext error %s\n", oh_lookup_error(rv));
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		oh_decode_time(annon.Timestamp, &buffer);
+		printf("   ID: %d  AddedByUser: %d  Acknowledged: %d  Time: %s  Sever: %d\n",
+			annon.EntryId, annon.AddedByUser, annon.Acknowledged,
+			buffer.Data, annon.Severity);
+	};
+	return SA_OK;
+}
+
+static int set_acknowledge(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+{
+	SaErrorT		rv;
+	char			str[32];
+	int			i, all = 0;
+	SaHpiSeverityT		sev = SAHPI_OK;
+	SaHpiEntryIdT		entryId = 0;
+
+	i = get_string_param("EntryId(<Id> | all): ", str, 32);
+	if (i != 0) return(-1);
+	if (strcmp(str, "all") == 0) all = 1;
+	else entryId = atoi(str);
+	if (all) {
+		i = get_string_param("Severity(crit|maj|min|info|ok): ",
+			str, 10);
+		if (i != 0) return(-1);
+		if (strcmp(str, "crit") == 0) sev = SAHPI_CRITICAL;
+		else if (strcmp(str, "maj") == 0) sev = SAHPI_MAJOR;
+		else if (strcmp(str, "min") == 0) sev = SAHPI_MINOR;
+		else if (strcmp(str, "info") == 0) sev = SAHPI_INFORMATIONAL;
+		else if (strcmp(str, "ok") == 0) sev = SAHPI_OK;
+		else {
+			printf("Invalid severity %s\n", str);
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		entryId = SAHPI_ENTRY_UNSPECIFIED;
+	};
+
+	rv = saHpiAnnunciatorAcknowledge(Domain->sessionId, rptid, rdrnum,
+		entryId, sev);
+	if (rv != SA_OK) {
+		printf("saHpiAnnunciatorAcknowledge error %s\n", oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return SA_OK;
+}
+
+static int delete_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+{
+	SaErrorT		rv;
+	char			str[32];
+	int			i, any = 0;
+	SaHpiSeverityT		sev = SAHPI_OK;
+	SaHpiEntryIdT		entryId = 0;
+
+	i = get_string_param("EntryId(<Id> | any): ", str, 32);
+	if (i != 0) return(-1);
+	if (strcmp(str, "any") == 0) any = 1;
+	else entryId = atoi(str);
+	if (any) {
+		i = get_string_param("Severity(crit|maj|min|info|ok|all): ",
+			str, 10);
+		if (i != 0) return(-1);
+		if (strcmp(str, "crit") == 0) sev = SAHPI_CRITICAL;
+		else if (strcmp(str, "maj") == 0) sev = SAHPI_MAJOR;
+		else if (strcmp(str, "min") == 0) sev = SAHPI_MINOR;
+		else if (strcmp(str, "info") == 0) sev = SAHPI_INFORMATIONAL;
+		else if (strcmp(str, "ok") == 0) sev = SAHPI_OK;
+		else if (strcmp(str, "all") == 0) sev = SAHPI_ALL_SEVERITIES;
+		else {
+			printf("Invalid severity %s\n", str);
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		entryId = SAHPI_ENTRY_UNSPECIFIED;
+	};
+
+	rv = saHpiAnnunciatorDelete(Domain->sessionId, rptid, rdrnum,
+		entryId, sev);
+	if (rv != SA_OK) {
+		printf("saHpiAnnunciatorDelete error %s\n", oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return SA_OK;
+}
+
+static int add_announ(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum)
+{
+	SaErrorT		rv;
+	char			str[32];
+	int			i;
+	SaHpiSeverityT		sev = SAHPI_OK;
+	SaHpiAnnouncementT	announ;
+	SaHpiStatusCondTypeT	type = SAHPI_STATUS_COND_TYPE_SENSOR;
+	SaHpiDomainIdT		did;
+	SaHpiResourceIdT	resId;
+	SaHpiSensorNumT		sennum = 0;
+
+	memset(&announ, 0, sizeof(SaHpiAnnouncementT));
+	i = get_string_param("Severity(crit|maj|min|info|ok): ",
+		str, 10);
+	if (i != 0) return(-1);
+	if (strcmp(str, "crit") == 0) sev = SAHPI_CRITICAL;
+	else if (strcmp(str, "maj") == 0) sev = SAHPI_MAJOR;
+	else if (strcmp(str, "min") == 0) sev = SAHPI_MINOR;
+	else if (strcmp(str, "info") == 0) sev = SAHPI_INFORMATIONAL;
+	else if (strcmp(str, "ok") == 0) sev = SAHPI_OK;
+	else {
+		printf("Invalid severity %s\n", str);
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	announ.Severity = sev;
+
+	memset(&announ, 0, sizeof(SaHpiAnnouncementT));
+	i = get_string_param("Condition Type(sensor|res|oem|user): ",
+		str, 10);
+	if (i != 0) return(-1);
+	if (strcmp(str, "sensor") == 0) type = SAHPI_STATUS_COND_TYPE_SENSOR;
+	else if (strcmp(str, "res") == 0) type = SAHPI_STATUS_COND_TYPE_RESOURCE;
+	else if (strcmp(str, "oem") == 0) type = SAHPI_STATUS_COND_TYPE_OEM;
+	else if (strcmp(str, "user") == 0) type = SAHPI_STATUS_COND_TYPE_USER;
+	else {
+		printf("Invalid Condition Type %s\n", str);
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	announ.StatusCond.Type = type;
+
+	i = get_int_param("DomainId: ", &did);
+	if (i != 1) did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+	announ.StatusCond.DomainId = did;
+
+	i = get_int_param("ResourceId: ", &resId);
+	if (i != 1) resId = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	announ.StatusCond.ResourceId = resId;
+
+	i = get_int_param("Sensor number: ", &sennum);
+	announ.StatusCond.SensorNum = sennum;
+
+	rv = saHpiAnnunciatorAdd(Domain->sessionId, rptid, rdrnum, &announ);
+	if (rv != SA_OK) {
+		printf("saHpiAnnunciatorAdd error %s\n", oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return SA_OK;
+}
+
+static void show_cond(SaHpiResourceIdT rptid, SaHpiInstrumentIdT rdrnum, int num)
+{
+	SaErrorT		rv;
+	SaHpiAnnouncementT	announ;
+	SaHpiTextBufferT	buffer;
+	SaHpiConditionT		*cond;
+	char			*str;
+	oh_big_textbuffer	tmpbuf;
+
+	rv = saHpiAnnunciatorGet(Domain->sessionId, rptid, rdrnum, num, &announ);
+	if (rv != SA_OK) {
+		printf("Can not find Announcement: %d\n", num);
+		return;
+	};
+	oh_decode_time(announ.Timestamp, &buffer);
+	printf("   ID: %d  AddedByUser: %d  Acknowledged: %d  Time: %s  Sever: %d\n",
+		announ.EntryId, announ.AddedByUser, announ.Acknowledged,
+		buffer.Data, announ.Severity);
+	cond = &(announ.StatusCond);
+	switch (cond->Type) {
+		case SAHPI_STATUS_COND_TYPE_SENSOR:	str = "SENSOR"; break;
+		case SAHPI_STATUS_COND_TYPE_RESOURCE:	str = "RESOURCE"; break;
+		case SAHPI_STATUS_COND_TYPE_OEM:	str = "OEM"; break;
+		case SAHPI_STATUS_COND_TYPE_USER:	str = "USER"; break;
+		default: str = "UNKNOWN"; break;
+	};
+	printf("      Condition: Type = %s   DomainId = %d  ResId %d  SensorNum = %d\n",
+		str, cond->DomainId, cond->ResourceId, cond->SensorNum);
+	oh_decode_entitypath(&(cond->Entity), &tmpbuf);
+	printf("                 EPath = %s\n", tmpbuf.Data);
+	printf("                 Mid = %d  EventState = %x\n", cond->Mid, cond->EventState);
+	printf("                 Name = %s  Data = %s\n", cond->Name.Value, cond->Data.Data);
+}
+
+ret_code_t ann_block(void)
+{
+	SaHpiRdrT		rdr_entry;
+	SaHpiResourceIdT	rptid;
+	SaHpiInstrumentIdT	rdrnum;
+	SaHpiAnnunciatorModeT	mode;
+	SaHpiRdrTypeT		type;
+	SaErrorT		rv;
+	char			buf[256];
+	char			*str;
+	ret_code_t		ret;
+	term_def_t		*term;
+	int			res, val;
+
+	ret = ask_rpt(&rptid);
+	if (ret != HPI_SHELL_OK) return(ret);
+	type = SAHPI_ANNUNCIATOR_RDR;
+	ret = ask_rdr(rptid, type, &rdrnum);
+	if (ret != HPI_SHELL_OK) return(ret);
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
+		&rdr_entry);
+	if (rv != SA_OK) {
+		printf("saHpiRdrGetByInstrumentId error %s\n", oh_lookup_error(rv));
+		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
+			rptid, type, rdrnum);
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	show_rdr_attrs(&rdr_entry);
+	for (;;) {
+		block_type = ANN_COM;
+		res = get_new_command("annunciator block ==> ");
+		if (res == 2) {
+			unget_term();
+			block_type = MAIN_COM;
+			return HPI_SHELL_OK;
+		};
+		term = get_next_term();
+		if (term == NULL) continue;
+		snprintf(buf, 256, "%s", term->term);
+		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
+		if (strcmp(buf, "acknow") == 0) {
+			set_acknowledge(rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "list") == 0) {
+			list_cond(rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "add") == 0) {
+			add_announ(rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "delete") == 0) {
+			delete_announ(rptid, rdrnum);
+			continue;
+		};
+		if (strcmp(buf, "modeget") == 0) {
+			rv = saHpiAnnunciatorModeGet(Domain->sessionId, rptid,
+				rdrnum, &mode);
+			if (rv != SA_OK) {
+				printf("saHpiAnnunciatorModeGet error %s\n",
+					oh_lookup_error(rv));
+				continue;
+			};
+			switch (mode) {
+				case SAHPI_ANNUNCIATOR_MODE_AUTO:
+					str = "AUTO"; break;
+				case SAHPI_ANNUNCIATOR_MODE_USER:
+					str = "USER"; break;
+				case SAHPI_ANNUNCIATOR_MODE_SHARED:
+					str = "SHARED"; break;
+				default: str = "Unknown"; break;
+			};
+			printf("Annunciator Mode: %s\n", str);
+			continue;
+		};
+		if (strcmp(buf, "modeset") == 0) {
+			res = get_string_param("Mode(auto|user|shared): ",
+				buf, 10);
+			if (res != 0) {
+				printf("Invalid mode: %s\n", buf);
+				continue;
+			};
+			if (strcmp(buf, "auto") == 0)
+				mode = SAHPI_ANNUNCIATOR_MODE_AUTO;
+			else if (strcmp(buf, "user") == 0)
+				mode = SAHPI_ANNUNCIATOR_MODE_USER;
+			else if (strcmp(buf, "shared") == 0)
+				mode = SAHPI_ANNUNCIATOR_MODE_SHARED;
+			else {
+				printf("Invalid mode: %s\n", buf);
+				continue;
+			};
+			rv = saHpiAnnunciatorModeSet(Domain->sessionId, rptid,
+				rdrnum, mode);
+			if (rv != SA_OK) {
+				printf("saHpiAnnunciatorModeSet error %s\n",
+					oh_lookup_error(rv));
+			};
+			continue;
+		};
+		if (strcmp(buf, "show") == 0) {
+			term = get_next_term();
+			if (term == NULL) {
+				show_rdr_attrs(&rdr_entry);
+				continue;
+			};
+			unget_term();
+			res = get_int_param(" ", &val);
+			if (res != 1) unget_term();
+			else show_cond(rptid, rdrnum, val);
+			continue;
+		}
+	};
+	block_type = MAIN_COM;
+	return SA_OK;
+}

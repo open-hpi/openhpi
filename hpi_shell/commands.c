@@ -1191,6 +1191,8 @@ static ret_code_t domain_proc(void)
 /* command table */
 const char addcfghelp[] = "addcfg: add plugins, domains, handlers from"
 			" config file\nUsage: addcfg <config file>\n";
+const char annhelp[] =	"ann: annunciator command block\n"
+			"Usage: ann <resourceId> <num>\n";
 const char clevtloghelp[] = "clearevtlog: clear system event logs\n"
 			"Usage: clearevtlog [<resource id>]";
 const char ctrlhelp[] =	"ctrl: control command block\n"
@@ -1304,9 +1306,25 @@ const char ctrl_showhelp[] = "show: show control\n"
 			"Usage: show";
 const char ctrl_setsthelp[] = "state: show control state\n"
 			"Usage: state";
+//  annunciator command block
+const char ann_acknowhelp[] = "acknow: set acknowledge flag\n"
+			"Usage: acknow [<EntryId>] | [all <Severity>]";
+const char ann_addhelp[] = "add: add Announcement\n"
+			"Usage: add <values>";
+const char ann_delhelp[] = "delete: delete Announcement\n"
+			"Usage: delete <EntryId>";
+const char ann_listhelp[] = "list: show Announcement list\n"
+			"Usage: list";
+const char ann_mgethelp[] = "modeget: show annunciator mode\n"
+			"Usage: modeget";
+const char ann_msethelp[] = "modeset: set annunciator mode\n"
+			"Usage: modeset <mode>";
+const char ann_showhelp[] = "show: show annunciator or condition\n"
+			"Usage: show [num]";
 
 command_def_t commands[] = {
     { "addcfg",		add_config,	addcfghelp,	MAIN_COM },
+    { "ann",		ann_block,	annhelp,	MAIN_COM },
     { "clearevtlog",	clear_evtlog,	clevtloghelp,	MAIN_COM },
     { "ctrl",		ctrl_block,	ctrlhelp,	MAIN_COM },
     { "dat",		dat_list,	dathelp,	MAIN_COM },
@@ -1364,5 +1382,13 @@ command_def_t commands[] = {
     { "setstate",	unget_term,	ctrl_setsthelp,	CTRL_COM },
     { "show",		unget_term,	ctrl_showhelp,	CTRL_COM },
     { "state",		unget_term,	ctrl_sthelp,	CTRL_COM },
+//  annunciator command block
+    { "acknow",		unget_term,	ann_acknowhelp,	ANN_COM },
+    { "add",		unget_term,	ann_addhelp,	ANN_COM },
+    { "delete",		unget_term,	ann_delhelp,	ANN_COM },
+    { "list",		unget_term,	ann_listhelp,	ANN_COM },
+    { "modeget",	unget_term,	ann_mgethelp,	ANN_COM },
+    { "modeset",	unget_term,	ann_msethelp,	ANN_COM },
+    { "show",		unget_term,	ann_showhelp,	ANN_COM },
     { NULL,		NULL,		NULL,		MAIN_COM }
 };
