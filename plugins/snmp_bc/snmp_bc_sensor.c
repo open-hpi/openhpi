@@ -185,7 +185,7 @@ static SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 	
 	/***************************************************************************
 	 * Translate reading into event state. Algorithm is:
-	 * - If sensor is a threshold, see if any threshold OIDs are defined
+	 * - If sensor is a threshold and has readable thresholds.
          *   - If so, check from most severe to least
 	 * - If not found or not a threshold value, search reading2event array.
 	 *   - Check for Ranges supported; return after first match.
@@ -196,13 +196,15 @@ static SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
 	 *   - any other combination = internal error
 	 * - else SAHPI_ES_UNSPECIFIED
 	 ***************************************************************************/
-	if (rdr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_THRESHOLD) {
+	if (rdr->RdrTypeUnion.SensorRec.Category == SAHPI_EC_THRESHOLD &&
+	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold != 0) {
 		SaHpiSensorThresholdsT thres;		
 		memset(&thres, 0, sizeof(SaHpiSensorThresholdsT));
 
 		SaErrorT err = snmp_bc_get_sensor_thresholds(hnd, rid, sid, &thres);
 		if (err) {
-			dbg("Cannot get sensor thresholds. Error=%s", oh_lookup_error(err));
+			dbg("Cannot get sensor thresholds for Sensor=%s. Error=%s", 
+			    rdr->IdString.Data, oh_lookup_error(err));
 			return(err);
 		}
 		if (thres.LowCritical.IsSupported == SAHPI_TRUE) {
@@ -407,8 +409,12 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
          *   lower) and a total value for the opposite set.
          *************************************************************************/
 
-	get_threshold(SAHPI_STM_UP_HYSTERESIS, PosThdHysteresis);
-	get_threshold(SAHPI_STM_LOW_HYSTERESIS, NegThdHysteresis);
+	if (sinfo->mib.threshold_oids.NegThdHysteresis) {
+		get_threshold(SAHPI_STM_LOW_HYSTERESIS, NegThdHysteresis);
+	}
+	if (sinfo->mib.threshold_oids.PosThdHysteresis) {
+		get_threshold(SAHPI_STM_UP_HYSTERESIS, PosThdHysteresis);
+	}
 
 	/* Negative Total Hysteresis - applies to lower thresholds */
 	if (sinfo->mib.threshold_oids.TotalNegThdHysteresis) {
