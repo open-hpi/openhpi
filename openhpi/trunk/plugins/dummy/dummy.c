@@ -87,7 +87,7 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
 		.ResourceInfo = {0},
 		.ResourceSeverity= SAHPI_MAJOR, 
 		.ResourceTag	= {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 18,
 			.Data		= "Dummy-System-Board"
@@ -113,7 +113,7 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
 		.ResourceInfo = {0},
 		.ResourceSeverity= SAHPI_MAJOR, 
 		.ResourceTag	= {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 18,
 			.Data		= "Dummy-System-Board"
@@ -134,7 +134,7 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
 		.ResourceInfo = {0},
 		.ResourceSeverity= SAHPI_MAJOR, 
 		.ResourceTag	= {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 18,
 			.Data		= "Dummy-System-Board"
@@ -269,7 +269,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 24,
 			.Data		= "Dummy-System-Temperature"
@@ -335,7 +335,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 23,
 			.Data		= "Dummy-Power-Temperature"
@@ -375,7 +375,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 17,
 			.Data		= "Digital-Control-1"
@@ -399,7 +399,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 18,
 			.Data		= "System-Inventory-1"
@@ -465,7 +465,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 24,
 			.Data		= "Dummy-System-Temperature"
@@ -535,7 +535,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 23,
 			.Data		= "Dummy-Power-Temperature"
@@ -566,7 +566,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 17,
 			.Data		= "Digital-Control-1"
@@ -590,7 +590,7 @@ static SaHpiRdrT dummy_rdrs[] = {
 			},
 		},
 		.IdString = {
-			.DataType	= SAHPI_TL_TYPE_ASCII6,
+			.DataType	= SAHPI_TL_TYPE_LANGUAGE,
 			.Language	= SAHPI_LANG_ENGLISH,
 			.DataLength 	= 18,
 			.Data		= "System-Inventory-1"
