@@ -46,11 +46,17 @@
  *   - Telco supports 8 blades (instead of 14)
  *
  * Differences between the BladeCenter models are discovered dynamically 
- * by this plugin at run-time during resource discovery. 
+ * by this plugin at run-time during resource discovery.
  *************************************************************************/
 
 #ifndef __BC_RESOURCES_H
 #define __BC_RESOURCES_H
+
+/* HPI Spec dependencies */
+#define ELEMENTS_IN_SaHpiStateDigitalT 5
+
+/* IBM Manufacturing Number */
+#define IBM_MANUFACTURING_ID 2
 
 /* BladeCenter types - run-time support for platform-specific processing */
 #define SNMP_BC_BLADECENTER_TYPE ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.1.0"
@@ -60,9 +66,6 @@
 #define SNMP_BC_PLATFORM_BCT "BCT"
 #define SNMP_BC_PLATFORM_BCE "BCE"
 char    bc_type[4];
-
-/* HPI Spec dependencies */
-#define ELEMENTS_IN_SaHpiStateDigitalT 5
 
 /* Resource indexes to snmp_rpt array below */
 typedef enum {
