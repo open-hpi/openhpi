@@ -162,7 +162,8 @@ TESTS = tevent \
 	thotswap008   \
 	thotswap009   \
 	tsptime001    \
-	tsptime002
+	tsptime002    \
+	tdiscover001
 #	testxml
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
@@ -631,6 +632,12 @@ tsptime001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 # 
 tsptime002_SOURCES = tsptime002.c 
 tsptime002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tdiscover001_SOURCES = tdiscover001.c 
+tdiscover001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
