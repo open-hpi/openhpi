@@ -217,6 +217,9 @@ struct SensorInfo {
 };
 
 struct snmp_bc_sensor {
+        /* Usually sensor.Num = index; index is used to search thru sensor arrays. It allows 
+           sensor.Num to be independent from array index (e.g. for aggregate sensors */
+	int index; 
         SaHpiSensorRecT sensor;
         struct SensorInfo sensor_info;
         const char *comment;
