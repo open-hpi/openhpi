@@ -35,4 +35,11 @@ EXTRA_DIST		= $(shell find . *pod.1)
 
 man_MANS = openhpi-switcher.1
 
+clean-local: am_config_clean-local
+
+am_config_clean-local:
+	rm -f *~
+	find . -name \*\.1 | grep -v pod | xargs rm -f
+
+
 .PHONY: FORCE
