@@ -833,9 +833,12 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
         SAHPI_IN SaHpiBoolT       Enable)
 {
         struct oh_domain *d;
+        struct oh_handler *h;
+        SaErrorT rv;
         SaHpiDomainIdT did;
         SaHpiRptEntryT *res;
-
+        SaErrorT (*set_el_state)(void *hnd, SaHpiResourceIdT id, SaHpiBoolT e);
+         
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
@@ -853,11 +856,24 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
                 dbg("Resource %d in Domain %d does not have EL",ResourceId,did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
-        } else {
-                oh_release_domain(d); /* Unlock domain */
-                /* FIXME: Need to add set_el_state abi call */
+        } 
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        set_el_state = h->abi->set_el_state;
+
+        if (!set_el_state) {
                 return SA_ERR_HPI_UNSUPPORTED_API;
         }
+
+        rv = set_el_state(h->hnd, ResourceId, Enable);
+        if(rv != SA_OK) {
+                dbg("Set EL state failed Domain %d, Resource: %d", 
+                    did, ResourceId);
+        }
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEventLogOverflowReset (
