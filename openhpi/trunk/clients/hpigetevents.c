@@ -47,7 +47,9 @@ int main(int argc, char **argv)
 	SaHpiRdrT rdr;
 	SaHpiTimeoutT timeout; 
 	SaHpiEventT event;
-        
+       
+	memset(&rptentry, 0, sizeof(rptentry));
+	
 	printf("%s: version %s\n",argv[0],progver); 
 
         while ( (c = getopt( argc, argv,"t:x?")) != EOF )
@@ -116,27 +118,34 @@ printf("************** timeout:[%lld] ****************\n", timeout);
                         rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
                         if (fdebug) printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
                         if (rv == SA_OK) {
-				break;
+                                break;
                         }
                         
                         rptentryid = nextrptentryid;
                 }
         }
         
-	printf( "Go and get the event\n");
-	while (1) {
-            rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
-     		if (rv != SA_OK) { 
-			if (rv != SA_ERR_HPI_TIMEOUT) {
-	  			printf( "Error during EventGet - Test FAILED\n");
-	  			break;
-        		} else {
-	  			printf( "\n\n****** Time, %d seconds, expired waiting for event.\n", wait);
-	  			break;
-			}
-		} else {
-                    //print_event(&event);
-		}
+        printf( "Go and get the event\n");
+        while (1) {
+                rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
+                if (rv != SA_OK) { 
+                        if (rv != SA_ERR_HPI_TIMEOUT) {
+                                printf( "Error during EventGet - Test FAILED\n");
+                                break;
+                        } else {
+                                printf( "\n\n****** Time, %d seconds, expired waiting for event.\n", wait);
+                                break;
+                        }
+                } else {
+                        printf("Received Event of Type: %s\n", 
+                               oh_lookup_eventtype(event.EventType));
+                        if(event.EventType == SAHPI_ET_RESOURCE) {
+                                printf("   Subtype: %s\n", 
+                                       oh_lookup_resourceeventtype(
+                                               event.EventDataUnion.ResourceEvent.ResourceEventType)
+                                        );
+                        }
+                }
      	}
 
 	/* Unsubscribe to future events */
