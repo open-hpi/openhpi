@@ -10,7 +10,8 @@ AM_CFLAGS               = @CFLAGS@
 bin_PROGRAMS = \
 	hpigetevents \
         hpiinv \
-	hpisensor
+	hpisensor \
+	hpitree
 
 #bin_PROGRAMS           = hpialarmpanel \
 #                          hpithres \
@@ -86,6 +87,10 @@ hpigetevents_LDFLAGS      =
 #hpievent_SOURCES      = hpievent.c
 #hpievent_LDADD        = $(COMMONLIBS)
 #hpievent_LDFLAGS      =
+
+hpitree_SOURCES      = hpitree.c
+hpitree_LDADD        = $(COMMONLIBS)
+hpitree_LDFLAGS      =
 
 clean-local:
 	rm -f *~ *.o
