@@ -286,21 +286,17 @@ SaErrorT get_events()
         return rv;
 }
 
-unsigned int get_log_severity(char *severity)
+SaHpiSeverityT get_log_severity(unsigned char *severity_str)
 {
-        if (!severity) return SAHPI_INFORMATIONAL;
-        else if (!strcmp("CRITICAL", severity)) {
-                return SAHPI_CRITICAL;
-        } else if (!strcmp("MAJOR",severity)) {
-                return SAHPI_MAJOR;
-        } else if (!strcmp("MINOR",severity)) {
-                return SAHPI_MINOR;
-        } else if (!strcmp("OK",severity)) {
-                return SAHPI_OK;
-        } else if (!strcmp("DEBUG",severity)) {
-                return SAHPI_DEBUG;
-        } else {
-                return SAHPI_INFORMATIONAL;
+        SaHpiSeverityT severity = SAHPI_MINOR;
+        int i;
+        for (i = 0; i < OH_MAX_SEVERITY; i++) {
+                if (!strcasecmp(severity_str, severity_strings[i].str)) {
+                        severity = severity_strings[i].entity_type;
+                        break;
+                }
         }
+
+        return severity;        
 }
 
