@@ -49,18 +49,33 @@ typedef enum {
 /*************************************************************************
  *                   Resource Definitions
  *************************************************************************/
-struct ResourceMibInfo {
-	const char* OidHealth;
+struct RSA_ResourceMibInfo {
+	const char *OidHealth;
 	int   HealthyValue;
-	const char* OidReset;
-	const char* OidPowerState;
-	const char* OidPowerOnOff;
+	const char *OidReset;
+	const char *OidPowerState;
+	const char *OidPowerOnOff;
+};
+
+#define MAX_EVENTS_PER_RESOURCE 3 
+#define MAX_RESOURCE_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_RESOURCE + 1) 
+                                       /* Includes an ending NULL entry */
+struct res_event_map {
+        char *event;
+	SaHpiHsStateT event_state;
+};
+
+struct RSA_ResourceInfo {
+	struct RSA_ResourceMibInfo mib;
+        SaHpiHsStateT cur_state;
+	SaHpiHsStateT def_state;
+        struct res_event_map event_array[MAX_RESOURCE_EVENT_ARRAY_SIZE];
 };
 
 struct snmp_rpt {
         SaHpiRptEntryT rpt;
-	struct ResourceMibInfo mib;
-        const  char* comment;
+	struct RSA_ResourceInfo rsa_res_info;
+        const  char *comment;
 };
 
 extern struct snmp_rpt snmp_rpt_array[];

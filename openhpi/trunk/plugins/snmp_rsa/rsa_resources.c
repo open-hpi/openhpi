@@ -43,7 +43,6 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .Entry = {}
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
-			                        SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
 			                        SAHPI_CAPABILITY_RESOURCE |
 			                        SAHPI_CAPABILITY_SEL |
@@ -51,12 +50,16 @@ struct snmp_rpt snmp_rpt_array[] = {
 			                        SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_CRITICAL,
                 },
-		.mib = {
-			.OidHealth = ".1.3.6.1.4.1.2.3.51.1.2.7.1.0",
-			.HealthyValue = 255,
-			.OidReset = '\0',
-			.OidPowerState = '\0',
-			.OidPowerOnOff = '\0',
+		.rsa_res_info = {
+                        .mib = {
+                                .OidHealth = ".1.3.6.1.4.1.2.3.51.1.2.7.1.0",
+                                .HealthyValue = 255,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+                        },
+			.def_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                        .event_array = {},
 		},
                 .comment = "Chassis"
         },
@@ -67,11 +70,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .ManufacturerId = 2,
                         },
                         .ResourceEntity = {
-                                .Entry[0] =
-                                {
-				        .EntityType = SAHPI_ENT_PROCESSOR,
-			                .EntityInstance = RSA_HPI_INSTANCE_BASE
-				},
+                                .Entry = {}
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_RESOURCE |
@@ -79,12 +78,16 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
                  },
-	         .mib = {
-		         .OidHealth = '\0',
-		         .HealthyValue = 0,
-		         .OidReset = '\0',
-		         .OidPowerState = '\0',
-		         .OidPowerOnOff = '\0',
+		.rsa_res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+                        },
+			.def_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                        .event_array = {},
 		},
                 .comment = "CPUs"
         },
@@ -95,11 +98,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .ManufacturerId = 2,
                         },
                         .ResourceEntity = {
-                                .Entry[0] =
-                                {
-				        .EntityType = SAHPI_ENT_DISK_BAY,
-			                .EntityInstance = RSA_HPI_INSTANCE_BASE
-				},
+                                .Entry = {}
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_RESOURCE |
@@ -107,13 +106,17 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
                  },
-                .mib = {
-                        .OidHealth = '\0',
-                        .HealthyValue = 0,
-                        .OidReset = '\0',
-                        .OidPowerState = '\0',
-                        .OidPowerOnOff = '\0',
-               },
+		.rsa_res_info = {
+                        .mib = {
+                                .OidHealth = '\0',
+                                .HealthyValue = 0,
+                                .OidReset = '\0',
+                                .OidPowerState = '\0',
+                                .OidPowerOnOff = '\0',
+                        },
+			.def_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
+                        .event_array = {},
+		},
                 .comment = "DASD"
         },
 
