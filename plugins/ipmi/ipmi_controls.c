@@ -45,7 +45,13 @@ static void __get_control_state(ipmi_control_t *control,
 {
         struct ohoi_control_info *info = cb_data;
 
-        if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
+	if (err || !val) {
+		dbg("__get_control_state: err = %d; val = %p", err, val);
+		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		info->done = 1;
+		return;
+	}
+       if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
                 dbg("IPMI plug-in only support OEM control now");
                 return;
         }
@@ -603,7 +609,7 @@ SaErrorT ohoi_get_reset_state(void *hnd,
 	rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl,
 				     get_reset_state, &reset_state);
 	if(rv) {
-		dbg("[reset_state] controm pointer callback failed. rv = %d", rv);
+		dbg("[reset_state] control pointer callback failed. rv = %d", rv);
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 
