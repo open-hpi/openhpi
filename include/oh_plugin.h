@@ -87,14 +87,35 @@ struct oh_rdr_event {
  * The event is used for plugin to notify HPI events
  */
 struct oh_hpi_event {
-	/*This resource id which the rdr belongs to */
+	/*This is resource id which the event belongs to */
 	struct oh_resource_id	parent;
-	/*This is rdr id the RDR relate*/
+	/*This is rdr id which the event relates*/
 	struct oh_rdr_id	id;
 	
 	/* XXX: upper layer will fill some fields which does not
 	 * owned by plugins (ResourceId etc.). */
 	SaHpiEventT		event;
+};
+
+/*
+ * The event is used for plugin to notify SEL events
+ */
+struct oh_sel_event {
+	/* this is SEL's id */
+	struct oh_resource_id	parent;
+
+	/* this is the entry's id */
+	struct oh_sel_id	id;
+	
+	/* This is resource id which the entry relates */
+	struct oh_resource_id	res_id;
+	
+	/* This is rdr id which the entry relates */
+	struct oh_rdr_id	rdr_id;
+	
+	/* XXX: upper layer will fill some fields which does not
+	 * owned by plugins (ResourceId etc.). */
+	SaHpiSelEntryT		entry;
 };
 
 /* 
@@ -106,13 +127,15 @@ struct oh_event {
 		OH_ET_RESOURCE,
 		OH_ET_DOMAIN,
 		OH_ET_RDR,
-		OH_ET_HPI
+		OH_ET_HPI,
+		OH_ET_SEL,
 	}type;
 	union {
 		struct oh_resource_event res_event;
 		struct oh_domain_event   domain_event;
 		struct oh_rdr_event	 rdr_event;
 		struct oh_hpi_event	 hpi_event;
+		struct oh_sel_event	 sel_event;
 	} u;		    
 };
 

@@ -26,7 +26,7 @@ static void process_session_event(struct oh_event *e)
 	struct oh_resource *res;
 	GSList *i;
 
-	res = get_res_by_oid(e->u.res_event.id);
+	res = get_res_by_oid(e->u.hpi_event.parent);
 	if (!res) {
 		dbg("No the resource");
 	}
@@ -38,7 +38,7 @@ static void process_session_event(struct oh_event *e)
 
 	/* if the event is come from resource with SEL cap.*/
 	if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
-		rsel_add2(res, e);
+		rsel_add2(res, &e->u.sel_event);
 	
 	g_slist_for_each(i, res->domain_list) {
 		SaHpiDomainIdT domain_id;
@@ -48,7 +48,7 @@ static void process_session_event(struct oh_event *e)
 		domain_id = GPOINTER_TO_UINT(i->data);
 		d = get_domain_by_id(domain_id);
 		if (d) 
-			dsel_add2(d, e);
+			dsel_add2(d, &e->u.hpi_event);
 		else 
 			dbg("Invalid domain");
 

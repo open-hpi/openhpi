@@ -353,11 +353,11 @@ SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
 SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry);
-void dsel_add2(struct oh_domain *d, struct oh_event *e);
+void dsel_add2(struct oh_domain *d, struct oh_hpi_event *e);
 void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
 void dsel_clr(SaHpiDomainIdT domain_id);
 void rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry);
-void rsel_add2(struct oh_resource *d, struct oh_event *e);
+void rsel_add2(struct oh_resource *d, struct oh_sel_event *e);
 void rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id);
 void rsel_clr(SaHpiResourceIdT res_id); 
 
