@@ -30,6 +30,7 @@
 #include <oh_plugin.h>
 #include <oh_config.h>
 #include <rpt_utils.h>
+#include <sel_utils.h>
 
 /*
  * Common OpenHPI implementation specific definitions 
@@ -118,11 +119,6 @@
 extern "C" {
 #endif 
 
-enum oh_sel_state {
-        OH_SEL_ENABLED=0,
-        OH_SEL_DISABLED,
-};
-
 /*
  * Representation of an domain
  */
@@ -133,9 +129,7 @@ struct oh_domain {
         SaHpiDomainIdT domain_id;
         
         /* System Event Log */
-        enum oh_sel_state sel_state;
-        int sel_counter;
-        GSList *sel_list;
+        oh_sel *sel;
 };
 
 /*
@@ -333,6 +327,7 @@ struct oh_handler *new_handler(GHashTable *handler_config);
 int free_handler(struct oh_handler*);
 
 /* system event log */
+#define OH_DEFAULT_DOMAIN_ID 0
 int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info);
 int dsel_get_state(SaHpiDomainIdT domain_id);
 int dsel_set_state(SaHpiDomainIdT domain_id, int enable);
