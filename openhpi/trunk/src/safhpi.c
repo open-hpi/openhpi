@@ -856,6 +856,12 @@ SaErrorT SAHPI_API saHpiControlStateSet (
 	return SA_OK;
 }
 
+/* current sahpi.h missed SA_ERR_INVENT_DATA_TRUNCATED */
+#ifndef SA_ERR_INVENT_DATA_TRUNCATED
+//#warning "No 'SA_ERR_INVENT_DATA_TRUNCATED 'definition in sahpi.h!"
+#define SA_ERR_INVENT_DATA_TRUNCATED	(SaErrorT)(SA_HPI_ERR_BASE - 1000)
+#endif
+
 SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -864,7 +870,33 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
 		SAHPI_OUT SaHpiInventoryDataT *InventData,
 		SAHPI_OUT SaHpiUint32T *ActualSize)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+
+	int (*get_size)(void *, struct oh_rdr_id, size_t *);
+	int (*get_func)(void *, struct oh_rdr_id, SaHpiInventoryDataT *);
+
+	OH_GET_RESOURCE;
+
+	rdr = get_rdr(res, SAHPI_INVENTORY_RDR, EirId);
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	get_size = res->handler->abi->get_inventory_size;
+	get_func = res->handler->abi->get_inventory_info;
+	if (!get_func || !get_size)		
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (get_size(res->handler->hnd, rdr->oid, ActualSize))
+		return SA_ERR_HPI_UNKNOWN;
+	
+	if (*ActualSize>BufferSize)
+		return SA_ERR_INVENT_DATA_TRUNCATED;
+	
+	if (get_func(res->handler->hnd, rdr->oid, InventData))
+		return SA_ERR_HPI_UNKNOWN;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
@@ -873,7 +905,25 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
 		SAHPI_IN SaHpiEirIdT EirId,
 		SAHPI_IN SaHpiInventoryDataT *InventData)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+
+	int (*set_func)(void *, struct oh_rdr_id, SaHpiInventoryDataT *);
+
+	OH_GET_RESOURCE;
+
+	rdr = get_rdr(res, SAHPI_INVENTORY_RDR, EirId);
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	set_func = res->handler->abi->set_inventory_info;
+	if (!set_func)		
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (set_func(res->handler->hnd, rdr->oid, InventData))
+		return SA_ERR_HPI_UNKNOWN;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiWatchdogTimerGet (
