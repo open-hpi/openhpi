@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 AC_PREREQ(2.57)
 AC_INIT(openhpi.spec.in)
-AM_INIT_AUTOMAKE(openhpi, 0.4)
+AM_INIT_AUTOMAKE(openhpi, 0.4.1)
 
 AM_CONFIG_HEADER(config.h)
 
@@ -400,6 +400,7 @@ AC_CONFIG_FILES([openhpi.spec
         src/Makefile
         src/snmp/Makefile
         src/t/Makefile
+	src/t/epath/Makefile
         src/plugin_static.c
         src/plugins/Makefile
 	src/plugins/snmp_client/Makefile
