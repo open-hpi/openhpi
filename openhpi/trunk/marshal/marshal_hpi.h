@@ -36,13 +36,13 @@ typedef enum
   eFsaHpiNull,
   eFsaHpiSessionOpen,
   eFsaHpiSessionClose,
-  eFsaHpiResourcesDiscover,
+  eFsaHpiDiscover,
   eFsaHpiRptInfoGet,
   eFsaHpiRptEntryGet,
   eFsaHpiRptEntryGetByResourceId,
   eFsaHpiResourceSeveritySet,
   eFsaHpiResourceTagSet,
-  eFsaHpiResourceIdGet,
+  //  eFsaHpiResourceIdGet,
   eFsaHpiEntitySchemaGet,
   eFsaHpiEventLogInfoGet,
   eFsaHpiEventLogEntryGet,
@@ -88,7 +88,7 @@ typedef enum
   eFsaHpiParmControl,
   eFsaHpiResourceResetStateGet,
   eFsaHpiResourceResetStateSet,
-  eFPing
+  eFClose,
 } tHpiFucntionId;
 
 

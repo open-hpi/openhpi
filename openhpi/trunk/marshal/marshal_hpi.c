@@ -46,14 +46,14 @@ static const cMarshalType *saHpiSessionCloseOut[] =
 };
 
 
-static const cMarshalType *saHpiResourcesDiscoverIn[] =
+static const cMarshalType *saHpiDiscoverIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   0
 };
 
 
-static const cMarshalType *saHpiResourcesDiscoverOut[] =
+static const cMarshalType *saHpiDiscoverOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
@@ -136,6 +136,7 @@ static const cMarshalType *saHpiResourceTagSetOut[] =
 };
 
 
+/*
 static const cMarshalType *saHpiResourceIdGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
@@ -148,6 +149,7 @@ static const cMarshalType *saHpiResourceIdGetOut[] =
   &SaHpiResourceIdType,
   0
 };
+*/
 
 
 static const cMarshalType *saHpiEntitySchemaGetIn[] =
@@ -847,13 +849,13 @@ static cHpiMarshal hpi_marshal[] =
 {
   dHpiMarshalEntry( saHpiSessionOpen ),
   dHpiMarshalEntry( saHpiSessionClose ),
-  dHpiMarshalEntry( saHpiResourcesDiscover ),
+  dHpiMarshalEntry( saHpiDiscover ),
   dHpiMarshalEntry( saHpiRptInfoGet ),
   dHpiMarshalEntry( saHpiRptEntryGet ),
   dHpiMarshalEntry( saHpiRptEntryGetByResourceId ),
   dHpiMarshalEntry( saHpiResourceSeveritySet ),
   dHpiMarshalEntry( saHpiResourceTagSet ),
-  dHpiMarshalEntry( saHpiResourceIdGet ),
+  //  dHpiMarshalEntry( saHpiResourceIdGet ),
   dHpiMarshalEntry( saHpiEntitySchemaGet ),
   dHpiMarshalEntry( saHpiEventLogInfoGet ),
   dHpiMarshalEntry( saHpiEventLogEntryGet ),

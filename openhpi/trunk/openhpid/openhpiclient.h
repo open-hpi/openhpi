@@ -26,11 +26,14 @@
 #include <pthread.h>
 
 
-// 30s timeout for messages
-#define dDefaultMessageTimeout 30000
+// retries
+#define dDefaultMessageRetries 120
 
-// 20 outstanding messages before block
-#define dDefaultMaxOutstanding 20
+// timeout for one retry
+#define dDefaultMessageTimeout 250
+
+// outstanding messages before block
+#define dDefaultMaxOutstanding 12
 
 struct sOpenHpiClientRequest;
 typedef struct sOpenHpiClientRequest cOpenHpiClientRequest;
@@ -39,7 +42,6 @@ typedef struct sOpenHpiClientRequest cOpenHpiClientRequest;
 struct sOpenHpiClientRequest
 {
   cOpenHpiClientRequest *m_next;
-  unsigned char   m_seq;
   SaErrorT        m_error;
 
   cMessageHeader *m_request_header;
@@ -48,10 +50,12 @@ struct sOpenHpiClientRequest
   cMessageHeader *m_reply_header;
   void          **m_reply;
 
+  int             m_retries_left;
   struct timeval  m_timeout;
 
   pthread_mutex_t *m_lock;
   pthread_cond_t  *m_cond;
+  int              m_cond_var;
 };
 
 
@@ -72,9 +76,9 @@ typedef struct
 
   // maximum outstanding requests
   int                    m_max_outstanding; // must be <= 256
-  unsigned               m_timeout;
+  unsigned int           m_retries;
+  unsigned int           m_timeout;
 
-  int                    m_num_sessions;
   cClientConnection     *m_client_connection;
   int                    m_initialize;
 
@@ -83,12 +87,12 @@ typedef struct
   cOpenHpiClientRequest *m_outstanding[256];
   int                    m_num_outstanding;
 
-  int                    m_current_seq;
-
   pthread_t              m_thread;
   tOpenHpiClientThreadState m_thread_state;
   int                    m_thread_exit;
 
+  SaHpiSessionIdT       *m_session;
+  int                    m_num_sessions;
 } cOpenHpiClientConf;
 
 
