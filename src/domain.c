@@ -86,6 +86,20 @@ SaHpiDomainIdT oh_get_default_domain_id()
         return (SaHpiDomainIdT)OH_FIRST_DOMAIN;
 }
 
+static gboolean __dec_domain_refcount(struct oh_domain *d)
+{
+        return g_atomic_int_dec_and_test(&(d->refcount));
+}
+
+static void __delete_domain(struct oh_domain *d)
+{
+        oh_flush_rpt(&(d->rpt));
+        oh_el_close(d->del);
+        g_array_free(d->sessions, TRUE);
+        g_static_rec_mutex_free(&(d->lock));
+        g_free(d);
+}
+
 /**
  * oh_destroy_domain
  * @did:
@@ -107,17 +121,13 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        g_static_rec_mutex_lock(&(domain->lock));
         g_hash_table_remove(oh_domains.table, &(domain->id));
         g_static_rec_mutex_unlock(&(oh_domains.lock)); /* Unlocked domain table */
+        __dec_domain_refcount(domain);
 
-        oh_flush_rpt(&(domain->rpt));
-        oh_el_close(domain->del);
-        g_array_free(domain->sessions, TRUE);
-        g_static_rec_mutex_unlock(&(domain->lock));
-        g_static_rec_mutex_free(&(oh_domains.lock)); /* Unlocked domain table */
         
-        g_free(domain);
+        if (domain->refcount < 0)
+                __delete_domain(domain);
 
         return SA_OK;
 }
@@ -133,7 +143,6 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
 {
         struct oh_domain *domain = NULL;
-	int res_lock;
 
         if (did < 1) return NULL;
         
@@ -148,12 +157,12 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
                	return NULL;
 	}
 
-	res_lock = g_static_rec_mutex_trylock(&(domain->lock));
-	/* Unlocked domain table */
+	/* Punch in */
+        g_atomic_int_inc(&(domain->refcount));
+        /* Unlock domain table */
 	g_static_rec_mutex_unlock(&(oh_domains.lock));
-	/* I see it is no correct but it works now */
-	if (res_lock == 0)
-		g_static_rec_mutex_lock(&(domain->lock));
+        /* Wait to get domain lock */
+        g_static_rec_mutex_lock(&(domain->lock));
 
         return domain;
 }
@@ -200,7 +209,11 @@ SaErrorT oh_release_domain(struct oh_domain *domain)
 {
         if (!domain) return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_static_rec_mutex_unlock(&(domain->lock));
+        __dec_domain_refcount(domain);
+        if (domain->refcount < 0)
+                __delete_domain(domain);
+        else        
+                g_static_rec_mutex_unlock(&(domain->lock));
 
         return SA_OK;
 }
