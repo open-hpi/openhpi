@@ -255,11 +255,15 @@ static
 SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv = SA_OK;
+	SaHpiTextBufferT working;		
+	oh_init_textbuffer(&working);																		
 
-	if (resourceid == 255) 
+	if ((resourceid == all_resources) ||
+		(resourceid == rptptr->ResourceId)) {
+		entitypath2string(&rptptr->ResourceEntity, working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+		printf("\n+%s\n",working.Data);
 		oh_print_rptentry(rptptr, 2);
-	else if (resourceid == rptptr->ResourceId) 
-			oh_print_rptentry(rptptr, 2);
+	}
 	return(rv);
 }
 
@@ -294,8 +298,8 @@ SaErrorT list_inv(SaHpiSessionIdT sessionid,
 					l_resourceid, idrid, oh_lookup_error(rvInvent));
 		} else {
 			snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-							"\nIdr for %s, ResourceId: %d\n",
-			rptptr->ResourceTag.Data,l_resourceid);
+						"\nIdr for %s, ResourceId: %d\n",
+						rptptr->ResourceTag.Data,l_resourceid);
 			oh_print_text(&working);
 			oh_print_idrinfo(&idrInfo, 4);
 			walkInventory(sessionid, l_resourceid, &idrInfo);
@@ -429,7 +433,7 @@ SaErrorT list_rdr(SaHpiSessionIdT sessionid,
 	oh_init_textbuffer(&working);																		
 
 	snprintf(working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-				"\nRdr for %s, ResourceId: %d\n",
+				"\n|---Rdr for %s, ResourceId: %d\n",
 					rptptr->ResourceTag.Data,l_resourceid);
 	rv = oh_print_text(&working);	
 	rv = oh_print_rdr(rdrptr, 4);
