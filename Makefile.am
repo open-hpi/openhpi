@@ -72,7 +72,7 @@ am_config_clean:
 	rm -fr $(PACKAGE)-*.tar.gz
 define all-sources
 	(find . \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
-	-name *.[chS] -print )
+	-name '*.[chS]' -print )
 endef
 
 tags:
