@@ -77,6 +77,7 @@ TESTS = tevent \
 	thotswap_power_set_err \
 	thotswap_unsupported \
 	tsensor \
+	tsensor_1 \
 	tutils_conv \
 	tutils_oid
 
@@ -88,6 +89,11 @@ check_PROGRAMS = $(TESTS)
 # Unit test using normal IF calls and simulation library
 tevent_SOURCES = tevent.c
 tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+
+tsensor_1_SOURCES = tsensor_1.c
+tsensor_1_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
