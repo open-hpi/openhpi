@@ -17,7 +17,7 @@
 #include <SaHpi.h>
 
 #include <oh_plugin.h>
-#include <rpt_utils.h>
+#include <oh_utils.h>
 #include <snmp_util.h>
 #include <snmp_bc.h>
 #include <bc_resources.h>
