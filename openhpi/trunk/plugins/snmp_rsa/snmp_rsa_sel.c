@@ -24,6 +24,7 @@
 #include <snmp_rsa.h>
 #include <snmp_rsa_sel.h>
 #include <snmp_rsa_event.h>
+#include <snmp_rsa_time.h>
 
 
 oh_sel *rsa_selcache = NULL;
@@ -126,16 +127,73 @@ SaErrorT snmp_rsa_build_selcache(void *hnd, SaHpiResourceIdT id)
 {
 	int current;
 	SaErrorT rv;
+	int event_enabled;
 	struct oh_handler_state *handle = hnd;
 	struct snmp_rsa_hnd *custom_handle = handle->data;
 	
+	int read_index; 
+	struct snmp_value get_value;
+	struct snmp_value *valueptr;
+	GList *thisValue;
+        SaHpiSelEntryT tmpentry;
+        char oid[50];
+	int isdst = 0;
+	GList  *temp_SEL_store = NULL;
+	
+	
 	current = get_rsa_sel_size_from_hardware(custom_handle->ss);
+	
+	/* Work around RSA SEL read problem - bug 940051 */
+	
+	/* Disable old code
+	 * if (current != 0) {
+	 *	do {
+	 *		rv = snmp_rsa_sel_read_add (hnd, id, current); 
+	 *		current--;
+	 * 	} while(current > 0);
+	 * }
+	*/
+
+	/* Work around code - duplicate from snmp_rsa_read_add() */
 	if (current != 0) {
-		do {
-			rv = snmp_rsa_sel_read_add (hnd, id, current); 
-			current--;
-		} while(current > 0);
+	
+		/* Fetch SEL from RSA in this order NEWEST->OLDEST */
+		for (read_index = 1; read_index < (current + 1); read_index++) { 	
+			sprintf(oid, "%s.%d", RSA_SEL_ENTRY_OID, read_index);
+			rv = snmp_get(custom_handle->ss,oid,&get_value);
+
+			if ((rv == SA_OK) && (get_value.type == ASN_OCTET_STR)) {
+			        /* alloc the new entry */
+        			valueptr = (struct snmp_value *) g_malloc0(sizeof(struct snmp_value));
+        			if (valueptr == NULL) {
+					g_list_free(temp_SEL_store);
+                			return SA_ERR_HPI_OUT_OF_SPACE;
+        			}
+				memcpy(valueptr, &get_value, sizeof(struct snmp_value));
+        			temp_SEL_store = g_list_append(temp_SEL_store, valueptr);
+			} else {
+				dbg("Couldn't fetch SEL Entry from RSA snmp");
+				return -1;
+			}
+		}
+		
+		thisValue = g_list_last(temp_SEL_store);
+		while (thisValue != NULL) {
+			memcpy(&get_value, (struct snmp_value *)thisValue->data, sizeof(struct snmp_value));
+                	rsa_log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
+                	tmpentry.EntryId = current;
+                	tmpentry.Timestamp = tmpentry.Event.Timestamp;
+                	rv = oh_sel_add(handle->selcache, &tmpentry);
+		
+			if (event_enabled) {
+				rv = snmp_rsa_add_to_eventq(hnd, &tmpentry.Event);
+			}
+			thisValue = g_list_previous(thisValue);
+		}
 	}
+	g_list_free(temp_SEL_store);
+	
+	
 	return SA_OK;
 }
 
@@ -396,7 +454,7 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
                 if(sscanf(findit,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
                           &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year,
                         &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-                       /*  set_bc_dst(handle, &ent.time);*/
+                        set_rsa_dst(handle, &ent.time);
                         ent.time.tm_mon--;
                         ent.time.tm_year += 100;
                 } else {
