@@ -311,17 +311,17 @@ SaErrorT ohoi_get_inventory_size(void                   *hnd,
                                  SaHpiUint32T           *size)
 {        
         struct oh_handler_state         *handler;
-        const struct ohoi_resource_id   *ohoi_res_id;
+        const struct ohoi_resource_info   *ohoi_res_info;
         
         handler  = hnd;
 
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_ENTITY) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Bug: try to get fru in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        return get_inventory_size(ohoi_res_id->u.entity_id, size);
+        return get_inventory_size(ohoi_res_info->u.entity_id, size);
 }
 
 SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
@@ -329,16 +329,16 @@ SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
                           SaHpiInventoryDataT *data)
 {
         struct oh_handler_state         *handler;
-        const struct ohoi_resource_id   *ohoi_res_id;
+        const struct ohoi_resource_info   *ohoi_res_info;
         
         handler  = hnd;
 
-        ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
-        if (ohoi_res_id->type != OHOI_RESOURCE_ENTITY) {
+        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+        if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Bug: try to get fru in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        return get_inventory_info(ohoi_res_id->u.entity_id, data);;
+        return get_inventory_info(ohoi_res_info->u.entity_id, data);;
 }
 

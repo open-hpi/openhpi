@@ -55,7 +55,10 @@ struct ohoi_handler {
 
 };
 
-struct ohoi_resource_id {
+struct ohoi_resource_info {
+
+        SaHpiUint8T  rdr_count; 
+
         enum {
                 OHOI_RESOURCE_ENTITY = 0,
                 OHOI_RESOURCE_MC
