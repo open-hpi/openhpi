@@ -234,6 +234,75 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 	           size_t objid_len,
                    struct snmp_value *value) 
 {
+	struct snmp_pdu *pdu;
+	struct snmp_pdu *response;
+
+        char datatype = 's';
+        void *dataptr = NULL;
+        int status = 0;
+	int rtncode = 0;
+
+        /*
+         * Create the PDU for the data for our request.
+         */
+        pdu = snmp_pdu_create(SNMP_MSG_SET);
+
+        rtncode = 0; /* Default - All is OK */
+
+        switch (value->type)
+        {
+                case ASN_INTEGER:
+                case ASN_COUNTER:
+                        datatype = 'i';
+			(long *)dataptr = &value->integer;
+                        break;
+                case ASN_OCTET_STR:
+                        datatype = 's';
+			(u_char *)dataptr = &value->string;
+                        break;
+                default:
+                        rtncode = -1;
+                        fprintf(stderr, "datatype %c not yet supported by snmp_set()\n", value->type);
+                        break;
+        }
+
+        if (rtncode == 0) {
+
+		/*
+		 * Set the data to send out
+		 */
+                snmp_add_var(pdu, objid, objid_len, datatype, dataptr);
+        	/*
+         	* Send the Request out.
+         	*/
+        	status = snmp_synch_response(ss, pdu, &response);
+        	/*
+         	* Process the response.
+         	*/
+        	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
+                	rtncode = 0;
+                
+        	} else {
+                	rtncode = -1;
+                	if (status == STAT_SUCCESS) 
+                        	fprintf(stderr, 
+					"snmp_set2: Error in packet, Reason: %s\n",
+					snmp_errstring(response->errstat));
+                	else
+                        	snmp_sess_perror("snmpset", ss);
+        	}
+
+        	/* Clean up: free the response */
+        	if (response) snmp_free_pdu(response);
+	
+	}
+
+        return rtncode;
+
+
+
+
+
 #if 0
 
 /**
@@ -302,10 +371,10 @@ int snmp_set(
          	* Process the response.
          	*/
         	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                	rtncode = 0;
+                	rtncode = SA_OK;
                 
         	} else {
-                	rtncode = -1;
+                	rtncode = SA_ERR_HPI_ERROR;
                 	if (status == STAT_SUCCESS)
                         	fprintf(stderr, "Error in packet %s\nReason: %s\n",
                                 		objid, snmp_errstring(response->errstat));
@@ -314,13 +383,14 @@ int snmp_set(
         	}
 
         	/* Clean up: free the response */
-        	if (response) snmp_free_pdu(response);
-	
+		sc_free_pdu(&response) 
 	}
 
         return rtncode;
+
 /********************************************/
-        struct snmp_pdu *pdu;
+
+	struct snmp_pdu *pdu;
         struct snmp_pdu *response;
         
         struct variable_list *vars;
@@ -389,7 +459,6 @@ int snmp_set(
 
 #endif
 
-	return SA_ERR_HPI_ERROR;
 }
 
 
