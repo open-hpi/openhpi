@@ -263,14 +263,6 @@ IpmiOpen( GHashTable *handler_config )
                  logfile = dDefaultLogfile;
           }
      }
-  else
-     {
-       // default
-       lp = dIpmiLogStdOut;
-
-       if ( logfile && *logfile )
-            lp |= dIpmiLogLogFile;
-     }
 
   stdlog.Open( lp, logfile, max_logfiles );
   stdlog.Time( true );
@@ -1672,9 +1664,7 @@ cIpmi::IfSetResourceTag( cIpmiResource *ent, SaHpiTextBufferT *tag )
                                                     ent->m_resource_id );
   assert( rptentry );
 
-  rptentry->ResourceTag.DataType = tag->DataType;
-  rptentry->ResourceTag.Language = tag->Language;
-  rptentry->ResourceTag.DataLength = tag->DataLength;
+  memcpy(&rptentry->ResourceTag, tag, sizeof(SaHpiTextBufferT));
 
   oh_add_resource(ent->Domain()->GetHandler()->rptcache,
                     rptentry, ent, 1);

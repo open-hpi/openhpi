@@ -973,5 +973,10 @@ cIpmiSel::GetSelEntry( SaHpiEventLogEntryIdT current,
           rdr = *selrdr;
   }
 
-  return sensor->CreateEvent( &e, entry.Event );
+  rv = sensor->CreateEvent( &e, entry.Event );
+
+  if ( rv == SA_ERR_HPI_DUPLICATE )
+      rv = SA_OK;
+
+  return rv;
 }

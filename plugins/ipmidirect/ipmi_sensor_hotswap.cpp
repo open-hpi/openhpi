@@ -160,7 +160,7 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 
   // Nothing changed -> no HS event will be sent
   if (he.HotSwapState == he.PreviousHotSwapState)
-      return SA_ERR_HPI_ERROR;
+      return SA_ERR_HPI_DUPLICATE;
 
 #ifdef FAKE_ECN_BEHAVIOR
   if (he.HotSwapState == SAHPI_HS_STATE_ACTIVE)
