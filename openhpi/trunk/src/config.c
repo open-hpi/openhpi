@@ -449,6 +449,7 @@ int oh_load_config (char *filename)
         oh_conf_file = open(filename, O_RDONLY);
         if(oh_conf_file < 0) {
                 dbg("Configuration file '%s' could not be opened", filename);
+                g_scanner_destroy(oh_scanner);
                 return -2;
         }
 
@@ -485,6 +486,7 @@ int oh_load_config (char *filename)
         
         if(close(oh_conf_file) != 0) {
                 dbg("Couldn't close file '%s'.", filename);
+                g_scanner_destroy(oh_scanner);
                 return -2;
         }
 
