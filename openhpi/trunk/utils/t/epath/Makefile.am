@@ -180,6 +180,7 @@ TESTS = \
         ep_concat_013 \
         ep_concat_014 \
         ep_concat_015 \
+	ep_derive_001 \
         set_ep_instance_000 \
         set_ep_instance_001 \
         set_ep_instance_002 \
@@ -344,6 +345,8 @@ ep_concat_012_SOURCES = ep_concat_012.c $(REMOTE_SOURCES)
 ep_concat_013_SOURCES = ep_concat_013.c $(REMOTE_SOURCES)
 ep_concat_014_SOURCES = ep_concat_014.c $(REMOTE_SOURCES)
 ep_concat_015_SOURCES = ep_concat_015.c $(REMOTE_SOURCES)
+
+ep_derive_001_SOURCES = ep_derive_001.c $(REMOTE_SOURCES)
 
 set_ep_instance_000_SOURCES = set_ep_instance_000.c $(REMOTE_SOURCES)
 set_ep_instance_001_SOURCES = set_ep_instance_001.c $(REMOTE_SOURCES)

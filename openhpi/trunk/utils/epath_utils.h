@@ -25,6 +25,10 @@
 #include <glib.h>
 #include <SaHpi.h>
 
+/* Character for blanking out normalized strings based on entity path */
+#define OH_DERIVE_BLANK_CHAR 'x'
+#define OH_DERIVE_BLANK_STR "x"
+
 /* Max number of digits an enitity instance has */
 #define OH_MAX_LOCATION_DIGITS 6
 
@@ -62,6 +66,8 @@ int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityLocati
 int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2);
 
 int print_ep(const SaHpiEntityPathT *ep);
+
+gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str);
 
 #ifdef __cplusplus
 }

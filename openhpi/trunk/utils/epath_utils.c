@@ -608,3 +608,99 @@ int print_ep(const SaHpiEntityPathT *ep)
 
         return 0;
 }
+
+/**********************************************************************
+ * oh_derive_string:
+ * @ep - Pointer to entity's HPI SaHpiEntityPathT.
+ * @str - Un-normalized character string.
+ *
+ * This function "normalizes" a string (such as an SNMP OID) 
+ * based on entity path. Starting from the end of @str, this routine 
+ * replaces the letter 'x', with the last instance number of entity path,
+ * the process is repeated until all 'x' are replaced by an instance number.
+ * For example,
+ * 
+ * @str = ".1.3.6.1.4.1.2.3.x.2.22.1.5.1.1.5.x"
+ * @ep = {SAHPI_ENT_CHASSIS, 51}{SAHPI_ENT_SBC_BLADE, 3}
+ *
+ * Returns a normalized string of ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.3".
+ *
+ * If @str does not contain any 'x' characters, this routine still 
+ * allocates memory and returns a "normalized" string. In this case,
+ * the normalized string is identical to @str.
+ *
+ * Note!
+ * Caller of this routine MUST g_free() the returned normalized string
+ * when finished with it.
+ *
+ * Returns:
+ * Pointer to normalize string - Normal case.
+ * NULL - Error.
+ **********************************************************************/
+gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
+{
+        gchar *new_str = NULL, *str_walker = NULL;
+        gchar **fragments = NULL, **str_nodes = NULL;
+        guint num_epe, num_blanks, str_strlen = 0;
+        guint total_num_digits, i, work_instance_num, num_digits;
+
+	if (!ep || !str) return(NULL);
+
+        for (num_epe = 0;
+             ep->Entry[num_epe].EntityType != SAHPI_ENT_ROOT && num_epe < SAHPI_MAX_ENTITY_PATH;
+             num_epe++);
+        /* trace("Number of elements in entity path: %d", num_epe); */
+
+        if (num_epe == 0) {
+                dbg("Entity Path is null.");
+                return(NULL);
+        }
+        if ((str_strlen = strlen(str)) == 0) return(NULL); /* Str is zero length */
+        if (!strrchr(str, OH_DERIVE_BLANK_CHAR)) return(g_strdup(str)); /* Nothing to replace */
+
+        for (num_blanks=0, i=0; i<str_strlen; i++) {
+                if (str[i] == OH_DERIVE_BLANK_CHAR) num_blanks++;
+        }
+        /* trace("Number of blanks in str: %d, %s", num_blanks, str); */
+        if (num_blanks > num_epe) {
+                dbg("Number of replacments=%d > entity path elements=%d", num_blanks, num_epe);
+                return(NULL);
+        }
+
+        fragments = g_strsplit(str, OH_DERIVE_BLANK_STR, - 1);
+        if (!fragments) { dbg("Cannot split string"); goto CLEANUP; }
+        str_nodes = g_malloc0((num_blanks + 1) * sizeof(gchar **));
+        if (!str_nodes) { dbg("Out of memory."); goto CLEANUP; }
+        total_num_digits = 0;
+        for (i=0; i<num_blanks; i++) {
+                work_instance_num = ep->Entry[num_blanks-1-i].EntityLocation;
+                for (num_digits = 1;
+                     (work_instance_num = work_instance_num/10) > 0; num_digits++);
+                str_nodes[i] = g_malloc0((num_digits+1) * sizeof(gchar));
+                if (!str_nodes[i]) {dbg("Out of memory."); goto CLEANUP;}
+                snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%d", 
+			 ep->Entry[num_blanks - 1 - i].EntityLocation);
+                /* trace("Instance number: %s", str_nodes[i]); */
+                total_num_digits = total_num_digits + num_digits;
+        }
+
+        new_str = g_malloc0((str_strlen-num_blanks + total_num_digits + 1) * sizeof(gchar));
+        if (!new_str) { dbg("Out of memory."); goto CLEANUP; }
+        str_walker = new_str;
+        for (i=0; fragments[i]; i++) {
+                str_walker = strcpy(str_walker, fragments[i]);
+                str_walker = str_walker + strlen(fragments[i]);
+                if (str_nodes[i]) {
+                        str_walker = strcpy(str_walker, str_nodes[i]);
+                        /* trace("Instance number: %s", str_nodes[i]); */
+                        str_walker = str_walker + strlen(str_nodes[i]);
+                }
+                /* trace("New str: %s", new_str); */
+        }
+
+CLEANUP:
+        g_strfreev(fragments);
+        g_strfreev(str_nodes);
+
+        return(new_str);
+}
