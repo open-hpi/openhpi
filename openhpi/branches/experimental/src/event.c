@@ -81,7 +81,7 @@ static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_
         int rv;
         data_access_lock();
 
-        rv = oh_add_resource(rpt,e->entry,h);
+        rv = oh_add_resource(rpt,&(e->entry),h);
         
         data_access_unlock();
         
@@ -126,7 +126,7 @@ static int process_rdr_event(struct oh_handler *h, RPTable *rpt, struct oh_rdr_e
                 return -1;
         }
         
-        rv = oh_add_rdr(rpt,rid,e->rdr,NULL);
+        rv = oh_add_rdr(rpt,rid,&(e->rdr),NULL);
         
         return rv;
 }

@@ -71,19 +71,19 @@ static inline SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
         return uid;
 }
 
-static inline SaHpiUint8T get_rdr_type_num(SaHpiRdrT rdr)
+static inline SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
 {
         SaHpiUint8T num;
         
-        switch (rdr.RdrType) {
+        switch (rdr->RdrType) {
                 case SAHPI_CTRL_RDR:
-                        num = rdr.RdrTypeUnion.CtrlRec.Num;
+                        num = rdr->RdrTypeUnion.CtrlRec.Num;
                 case SAHPI_SENSOR_RDR:
-                        num = rdr.RdrTypeUnion.SensorRec.Num;
+                        num = rdr->RdrTypeUnion.SensorRec.Num;
                 case SAHPI_INVENTORY_RDR:
-                        num = rdr.RdrTypeUnion.InventoryRec.EirId;
+                        num = rdr->RdrTypeUnion.InventoryRec.EirId;
                 case SAHPI_WATCHDOG_RDR:
-                        num = rdr.RdrTypeUnion.WatchdogRec.WatchdogNum;
+                        num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;
                 default:
                         num = 0;
         }
@@ -123,6 +123,18 @@ static inline void update_rptable(RPTable *table, guint modifier) {
 }
 
 /**
+ * General RPT calls
+ */
+void oh_flush_rpt(RPTable *table)
+{
+        SaHpiRptEntryT *tmp_entry;
+
+        while ((tmp_entry = oh_get_resource_by_id(table, RPT_ENTRY_BEGIN)) != NULL) {
+                oh_remove_resource(table, RPT_ENTRY_BEGIN);
+        }
+}
+
+/**
  * Resource interface functions
  */
 
@@ -144,22 +156,22 @@ static inline void update_rptable(RPTable *table, guint modifier) {
  * -3 - failure and not enough memory could be allocated
  * for a new position in the RPT.
  **/
-int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data)
+int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
 {
         RPTEntry *rptentry;
 
         /* Check to see if the entry is in the RPTable already */
-        if (entry.ResourceId == 0) {
+        if (entry->ResourceId == 0) {
                 dbg("Failed to add. RPT entry needs an id before being added");
                 return -1;                
         }
 
-        if (check_ep(entry.ResourceEntity)) {
+        if (check_ep(entry->ResourceEntity)) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element");
                 return -2;                
         }
         
-        rptentry = get_rptentry_by_rid(table, entry.ResourceId);
+        rptentry = get_rptentry_by_rid(table, entry->ResourceId);
         
         /* If not, create new RPTEntry */
         if (!rptentry) {
@@ -173,8 +185,8 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data)
         }
         /* Else, modify existing RPTEntry */
         rptentry->data = data;
-        rptentry->rpt_entry = entry;
-        rptentry->rpt_entry.EntryId = entry.ResourceId;
+        rptentry->rpt_entry = *entry;
+        rptentry->rpt_entry.EntryId = entry->ResourceId;
 
         update_rptable(table, RPT_INCREMENT);
                        
@@ -200,8 +212,16 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
         if (!rptentry) {
                 dbg("Failed to remove RPT entry. No Resource found by that id");
                 return -1;
+        } else {
+                SaHpiRdrT *tmp_rdr;
+                /* Remove all RDRs for the resource first */
+                while ((tmp_rdr = oh_get_rdr_by_id(table, rid, RDR_BEGIN)) != NULL) {
+                        oh_remove_rdr(table, rid, RDR_BEGIN);
+                }
+                /* then remove the resource itself. */
+                table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
+                g_free((gpointer)rptentry);
         }
-        else table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
 
         update_rptable(table, RPT_DECREMENT);
 
@@ -327,10 +347,11 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * -4 - Failure. Could not allocate enough memory to position the new RDR in the RDR
  * repository.
  **/ 
-int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
+int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
+        SaHpiUint8T type_num;
 
         rptentry = get_rptentry_by_rid(table, rid);
 
@@ -339,19 +360,19 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
                 return -1;
         }
 
-        if (memcmp(&(rptentry->rpt_entry.ResourceEntity), &(rdr.Entity), sizeof(SaHpiEntityPathT))) {
+        if (memcmp(&(rptentry->rpt_entry.ResourceEntity), &(rdr->Entity), sizeof(SaHpiEntityPathT))) {
                 dbg("Failed to add RDR. Entity path is different from parent RPT entry.");
                 return -2;
         }
-                
-        if (!get_rdr_type_num(rdr)) {
+
+        if (!(type_num = get_rdr_type_num(rdr))) {
                 dbg("Failed to add RDR. Type's id number (num) has not been assigned.");
                 return -3;
         }
 
         /* Check if record exists */
-        rdr.RecordId = get_rdr_uid(rdr.RdrType, get_rdr_type_num(rdr));
-        rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdr.RecordId);
+        rdr->RecordId = get_rdr_uid(rdr->RdrType, type_num);
+        rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdr->RecordId);
                 
         /* If not, create new rdr */
         if (!rdrecord) {
@@ -364,7 +385,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
                 rptentry->rdrtable = g_slist_append(rptentry->rdrtable, (gpointer)rdrecord);                        
         }
         /* Else, modify existing rdrecord */        
-        rdrecord->rdr = rdr;
+        rdrecord->rdr = *rdr;
         rdrecord->data = data;
 
         update_rptable(table, RPT_KEEP_COUNT);
@@ -403,8 +424,10 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
         if (!rdrecord) {
                 dbg("Failed to remove RDR. Could not be found.");
                 return -2;
+        } else {
+                rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
+                g_free((gpointer)rdrecord);                
         }
-        else rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
 
         update_rptable(table, RPT_KEEP_COUNT);
         

@@ -51,8 +51,12 @@ typedef struct {
        void *data; /* private data for the owner of the rpt entry. */
 } RDRecord;
 
-/* Resource */
-int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data);
+
+/* General RPT calls */
+void oh_flush_rpt(RPTable *table);
+
+/* Resource calls */
+int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data);
 
 int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid);
 
@@ -61,8 +65,8 @@ SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid);
 SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep);
 SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev);
 
-/* RDR */
-int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data);
+/* RDR calls */
+int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data);
 
 int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
 
