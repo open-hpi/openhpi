@@ -23,7 +23,7 @@
 #include <openhpi.h>
 #include <rsa_resources.h>
 #include <snmp_rsa.h>
-#include <snmp_rsa_utils.h>
+// #include <snmp_rsa_utils.h>
 #include <snmp_rsa_discover.h>
 
 static inline struct oh_event *eventdup(const struct oh_event *event) 

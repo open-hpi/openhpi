@@ -71,7 +71,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {
 				        .EntityType = SAHPI_ENT_PROCESSOR,
 			                .EntityInstance = RSA_HPI_INSTANCE_BASE
-				}
+				},
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_RESOURCE |
@@ -79,12 +79,12 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
                  },
-		.mib = {
-			.OidHealth = '\0';
-			.HealthyValue = '\0',
-			.OidReset = '\0',
-			.OidPowerState = '\0',
-			.OidPowerOnOff = '\0',
+	         .mib = {
+		         .OidHealth = '\0',
+		         .HealthyValue = 0,
+		         .OidReset = '\0',
+		         .OidPowerState = '\0',
+		         .OidPowerOnOff = '\0',
 		},
                 .comment = "CPUs"
         },
@@ -99,7 +99,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {
 				        .EntityType = SAHPI_ENT_DISK_BAY,
 			                .EntityInstance = RSA_HPI_INSTANCE_BASE
-				}
+				},
 			},
                         .ResourceCapabilities = SAHPI_CAPABILITY_INVENTORY_DATA |
 			                        SAHPI_CAPABILITY_RESOURCE |
@@ -107,13 +107,13 @@ struct snmp_rpt snmp_rpt_array[] = {
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_MAJOR,
                  },
-		.mib = {
-			.OidHealth = '\0';
-			.HealthyValue = '\0',
-			.OidReset = '\0',
-			.OidPowerState = '\0',
-			.OidPowerOnOff = '\0',
-		},
+                .mib = {
+                        .OidHealth = '\0',
+                        .HealthyValue = 0,
+                        .OidReset = '\0',
+                        .OidPowerState = '\0',
+                        .OidPowerOnOff = '\0',
+               },
                 .comment = "DASD"
         },
 

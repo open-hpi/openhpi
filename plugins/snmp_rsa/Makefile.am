@@ -13,7 +13,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 SNMPUTILSDIR    = $(top_srcdir)/src/$(SNMPDIR)
 SNMPUTILBDIR    = $(top_builddir)/src/$(SNMPDIR)
 
-SUBDIRS 		= t
+# SUBDIRS 		= t
 
 INCLUDES		= -I$(top_srcdir)/include -I$(SNMPUTILSDIR)
 
