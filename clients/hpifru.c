@@ -21,7 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
-#include "SaHpi.h"
+#include <SaHpi.h>
 
 #define NCT 25
 
@@ -81,7 +81,7 @@ findmatch(char *buffer, int sbuf, char *pattern, int spattern, char figncase)
     return (-1);
 }                               /*end findmatch */
 
-int 
+static int 
 IsTagBmc(char *dstr, int dlen)
 {
    int ret = 0;
@@ -92,7 +92,7 @@ IsTagBmc(char *dstr, int dlen)
    return(ret);
 }
 
-void
+static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
 	size_t datalen;
@@ -101,7 +101,7 @@ fixstr(SaHpiTextBufferT *strptr)
 	outbuff[datalen] = 0;
 }
 
-void
+static void
 prtchassinfo(void)
 {
   chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
@@ -152,7 +152,7 @@ prtchassinfo(void)
   }
 }
 
-void
+static void
 prtprodtinfo(void)
 {
   int j;
@@ -209,7 +209,7 @@ prtprodtinfo(void)
   } /*end for*/
 }
 
-void
+static void
 prtboardinfo(void)
 {
   dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.BoardInfo;
