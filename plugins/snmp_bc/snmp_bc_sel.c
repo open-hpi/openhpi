@@ -34,7 +34,7 @@ oh_el *bc_selcache = NULL;
  **/
 static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceIdT id)
 {
-        int i=1;
+        int i = 1;
 	
 	/* Go synchronize cache and hardware copy of the SEL */
         snmp_bc_check_selcache(handle, id, SAHPI_NEWEST_ENTRY);
@@ -66,7 +66,12 @@ static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
         int i = 1;
 
         do {
-		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID, i);
+		if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID_RSA, i);
+		}
+		else {
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID, i);
+		}
                 i++;
         } while(snmp_bc_snmp_get(custom_handle, oid, &run_value) == 0);
         
@@ -119,7 +124,13 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 
 	/* In Event Log, the newest entry is index at index 1 */
 	/* Need first value to figure out what update time is */
-        snprintf(oid, SNMP_BC_MAX_OID_LENGTH,"%s.%d", SNMP_BC_SEL_ENTRY_OID, 1);
+	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+		snprintf(oid, SNMP_BC_MAX_OID_LENGTH,"%s.%d", SNMP_BC_SEL_ENTRY_OID_RSA, 1);
+	}
+	else {
+		snprintf(oid, SNMP_BC_MAX_OID_LENGTH,"%s.%d", SNMP_BC_SEL_ENTRY_OID, 1);
+	}
+
         err = snmp_bc_snmp_get(custom_handle, oid, &first_value);
 	if (err == SA_OK) {
         	if (first_value.type == ASN_OCTET_STR) {
@@ -327,7 +338,13 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 	if (err) fetchentry = NULL;
 		
 	current = 1;
-	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
+	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID_RSA, current);
+	}
+	else {
+		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
+	}
+
        	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
        	if (err) {
 		dbg("SNMP log is empty.");
@@ -349,7 +366,14 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 	if (fetchentry->event.Event.Timestamp != new_timestamp) {
 		while (1) {
 			current++;
-			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
+			if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+				snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
+					 SNMP_BC_SEL_ENTRY_OID_RSA, current);
+			}
+			else {
+				snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
+					 SNMP_BC_SEL_ENTRY_OID, current);
+			}
 			err = snmp_bc_snmp_get(custom_handle,oid,&get_value);
 			if (err == 0) {
 				if (snmp_bc_parse_sel_entry(handle, get_value.string, &sel_entry) < 0) {
@@ -475,7 +499,15 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	}
         struct snmp_bc_hnd *custom_handle = handle->data;
 
-	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
+	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
+			 SNMP_BC_SEL_ENTRY_OID_RSA, current);
+	}
+	else {
+		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d",
+			 SNMP_BC_SEL_ENTRY_OID, current);
+	}
+
 	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
 	if (err != SA_OK)
 		 return(err); 
@@ -626,7 +658,8 @@ SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, 
 	if (findit != NULL) {
         	/* Advance to data */
         	findit += 5;
-        	strncpy(ent.text,findit, SNMP_BC_MAX_SEL_ENTRY_LENGTH - 1);
+		strncpy(ent.text,findit, SNMP_BC_MAX_SEL_ENTRY_LENGTH - 1);
+
         	ent.text[SNMP_BC_MAX_SEL_ENTRY_LENGTH - 1] = '\0';
 	} else {
 		dbg("Premature data termination.");
@@ -669,7 +702,13 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	set_value.type = ASN_INTEGER;
 	set_value.str_len = 1;
 	set_value.integer = (long) clearEventLogExecute;
-	err = snmp_bc_snmp_set(custom_handle, SNMP_BC_CLEAR_SEL_OID, set_value);
+	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+		err = snmp_bc_snmp_set(custom_handle, SNMP_BC_SEL_CLEAR_OID_RSA, set_value);
+	}
+	else {
+		err = snmp_bc_snmp_set(custom_handle, SNMP_BC_SEL_CLEAR_OID, set_value);
+	}
+
 	if (err) {
 		dbg("SNMP set failed. Error=%s.", oh_lookup_error(err));
 		return(err);

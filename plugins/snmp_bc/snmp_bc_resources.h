@@ -118,10 +118,14 @@ typedef enum {
 #define SNMP_BC_DST_RSA             ".1.3.6.1.4.1.2.3.51.1.4.4.2.0"
 
 /* OID definitions for System Event Log */
-#define SNMP_BC_DATETIME_OID ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
-#define SNMP_BC_SEL_INDEX_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
-#define SNMP_BC_SEL_ENTRY_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
-#define SNMP_BC_CLEAR_SEL_OID ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
+#define SNMP_BC_DATETIME_OID      ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
+#define SNMP_BC_DATETIME_OID_RSA  ".1.3.6.1.4.1.2.3.51.1.4.4.1.0"
+#define SNMP_BC_SEL_INDEX_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
+#define SNMP_BC_SEL_INDEX_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.1"
+#define SNMP_BC_SEL_ENTRY_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
+#define SNMP_BC_SEL_ENTRY_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.2.1.2"
+#define SNMP_BC_SEL_CLEAR_OID     ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
+#define SNMP_BC_SEL_CLEAR_OID_RSA ".1.3.6.1.4.1.2.3.51.1.3.4.3.0"
 
 /**********************
  * Resource Definitions
