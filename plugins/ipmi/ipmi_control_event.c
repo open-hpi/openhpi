@@ -212,6 +212,7 @@ void ohoi_control_event(enum ipmi_update_e op,
 	ipmi_entity_id_t	entity_id;	
 	SaHpiRptEntryT		*rpt_entry;
         struct ohoi_resource_info *ohoi_res_info;
+	int rv;
         
 	entity_id = ipmi_entity_convert_to_id(ent);
 	rpt_entry = ohoi_get_resource_by_entityid(
