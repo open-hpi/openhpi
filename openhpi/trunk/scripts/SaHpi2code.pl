@@ -137,22 +137,22 @@ $err_type = "SaErrorT";
 %category = ();
 %global_category = ();
 
-if (&normalize_file(INPUT_HEADER)) { $rtn_code = 1; goto CLEANUP; }
+if (normalize_file(INPUT_HEADER)) { $rtn_code = 1; goto CLEANUP; }
 
-&print_copywrite(FILE_C);
-&print_copywrite(FILE_H);
-&print_copywrite(FILE_X);
+print_copywrite(FILE_C);
+print_copywrite(FILE_H);
+print_copywrite(FILE_X);
 if ($tdir) { 
-    &print_copywrite(FILE_TEST);
-    &print_copywrite(FILE_XTEST);
+    print_copywrite(FILE_TEST);
+    print_copywrite(FILE_XTEST);
 }
 
-&print_cfile_header();
-&print_hfile_header();
-&print_xfile_header();
+print_cfile_header();
+print_hfile_header();
+print_xfile_header();
 if ($tdir) { 
-    &print_testfile_header();
-    &print_xtestfile_header();
+    print_testfile_header();
+    print_xtestfile_header();
 }
 
 foreach $line (@normalized_array) {
@@ -183,14 +183,14 @@ foreach $line (@normalized_array) {
 	if ( $enum_end ne "" ) {
 	    $in_enum = 0;
 	    $line_count++;
-	    &print_cfile_func($enum_type);
+	    print_cfile_func($enum_type);
 	    foreach $case (@enum_array) {
-		&print_cfile_case($enum_type, $case);
-		if ($tdir) { &print_testfile_case($enum_type, $case); }
+		print_cfile_case($enum_type, $case);
+		if ($tdir) { print_testfile_case($enum_type, $case); }
 	    }
-	    &print_cfile_endfunc();
-	    if ($tdir) { &print_testfile_endfunc($enum_type); }
-	    &print_hfile_func($enum_type);
+	    print_cfile_endfunc();
+	    if ($tdir) { print_testfile_endfunc($enum_type); }
+	    print_hfile_func($enum_type);
 	    @enum_array = ();
 	    next;
 	}
@@ -206,28 +206,28 @@ foreach $line (@normalized_array) {
 if ($in_enum) { die "$0 Error! Open enum definition. $! Stopped"; }
 if ($#err_array > 0) {
     $line_count++;
-    &print_cfile_func($err_type);
+    print_cfile_func($err_type);
     foreach $case (@err_array) {
-	&print_cfile_case($err_type, $case);
-	if ($tdir) { &print_testfile_case($err_type, $case); }
+	print_cfile_case($err_type, $case);
+	if ($tdir) { print_testfile_case($err_type, $case); }
     }
-    &print_cfile_endfunc();
-    if ($tdir) { &print_testfile_endfunc($err_type); }
-    &print_hfile_func($err_type);
+    print_cfile_endfunc();
+    if ($tdir) { print_testfile_endfunc($err_type); }
+    print_hfile_func($err_type);
 }
 
 if ($#cat_array > 0) {
     $line_count++;
-    &print_cfile_func($cat_type);
+    print_cfile_func($cat_type);
     foreach $case (@cat_array) {
-	&print_cfile_case($cat_type, $case);
+	print_cfile_case($cat_type, $case);
 	if ($tdir) { 
-	    &print_testfile_case($cat_type, $case); 
+	    print_testfile_case($cat_type, $case); 
 	}
     }
-    &print_cfile_endfunc();
-    if ($tdir) { &print_testfile_endfunc($cat_type); }
-    &print_hfile_func($cat_type);
+    print_cfile_endfunc();
+    if ($tdir) { print_testfile_endfunc($cat_type); }
+    print_hfile_func($cat_type);
 }
 
 ####################################
@@ -242,10 +242,10 @@ foreach $gc (keys %global_category) {
 	if ($debug) { print("CAT=$gc; EVENT=$gevt; STR=$global_category{$gc}->{$gevt}->{string}\n"); }
 	print FILE_X "{SAHPI_EC_UNSPECIFIED, $gevt, \"$global_category{$gc}->{$gevt}->{string}\"},\n";
 	if ($tdir) { 
-	    &print_xtestfile_case($gevt, "SAHPI_EC_UNSPECIFIED", $global_category{$gc}->{$gevt}->{string});
+	    print_xtestfile_case($gevt, "SAHPI_EC_UNSPECIFIED", $global_category{$gc}->{$gevt}->{string});
 	}
     }
-    &print_xtestfile_badevent("SAHPI_EC_UNSPECIFIED");
+    print_xtestfile_badevent("SAHPI_EC_UNSPECIFIED");
 }
 print FILE_X "};\n\n";
 print FILE_X "\#define OH_MAX_STATE_GLOBAL_STRINGS $max_global_events\n\n";
@@ -258,18 +258,18 @@ foreach $c (keys %category) {
 	if ($debug) { print("CAT=$c; EVENT=$evt; STR=$category{$c}->{$evt}->{string}\n"); }
 	print FILE_X "{$c, $evt, \"$category{$c}->{$evt}->{string}\"},\n";
 	if ($tdir) { 
-	    &print_xtestfile_case($evt, $c, $category{$c}->{$evt}->{string});
+	    print_xtestfile_case($evt, $c, $category{$c}->{$evt}->{string});
 	}
     }
-    &print_xtestfile_badevent($c);
+    print_xtestfile_badevent($c);
 }
 print FILE_X "};\n\n";
 print FILE_X "\#define OH_MAX_STATE_STRINGS $max_events\n\n";
 
-&print_hfile_ending();
+print_hfile_ending();
 if ($tdir) { 
-    &print_testfile_ending();
-    &print_xtestfile_ending();
+    print_testfile_ending();
+    print_xtestfile_ending();
 }
 
 CLEANUP:
@@ -314,7 +314,7 @@ sub normalize_file {
 	
 	# Handle special case for Event Categories and their states
 	if (/^.*\s+SaHpiEventCategoryT\s*==.*$/ ) {
-	    &parse_category_events($input_handle, $_);
+	    parse_category_events($input_handle, $_);
 	}
 
 	next if /^\s*$/;               # Skip blank lines
@@ -590,7 +590,7 @@ sub beautify_func_name($type) {
 ###############################
 sub print_hfile_func {
     my( $type ) = @_;
-    my $func_name = &beautify_func_name($type);
+    my $func_name = beautify_func_name($type);
     
     print FILE_H <<EOF;
 const char * $func_name($type value);
@@ -604,7 +604,7 @@ EOF
 ###########################
 sub print_cfile_func {
     my( $type ) = @_; 
-    my $func_name = &beautify_func_name($type);
+    my $func_name = beautify_func_name($type);
     if ($debug) { print("CFILE func_name=$func_name\n"); }
  
     print FILE_C <<EOF;
@@ -680,7 +680,7 @@ sub beautify_enum_name($type, $enum) {
 ###############################
 sub print_cfile_case {
     my( $type, $case ) = @_;
-    my $casestr = &beautify_enum_name($type, $case);
+    my $casestr = beautify_enum_name($type, $case);
 #    print("CASE=$case; STR=$casestr\n");
 
     print FILE_C <<EOF;
@@ -696,8 +696,8 @@ EOF
 ################################
 sub print_testfile_case {
     my( $type, $case ) = @_;
-    my $func_name = &beautify_func_name($type);
-    my $casestr = &beautify_enum_name($type, $case);
+    my $func_name = beautify_func_name($type);
+    my $casestr = beautify_enum_name($type, $case);
 
     print FILE_TEST <<EOF;
         /* $type - $case testcase */
@@ -828,7 +828,7 @@ EOF
 ####################################
 sub print_testfile_endfunc {
     my( $type ) = @_;
-    my $func_name = &beautify_func_name($type);
+    my $func_name = beautify_func_name($type);
     
     print FILE_TEST <<EOF;
         /* $type - Default testcase */
