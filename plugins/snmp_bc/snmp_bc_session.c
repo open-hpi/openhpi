@@ -71,13 +71,14 @@ void *snmp_bc_open(GHashTable *handler_config)
 
 #if 0
 	/* Initialize "String to Event" mapping hash table */
-	if (str2event_use_count == 0) {
-		if (str2event_hash_init()) {
+	/* FIXME:: Add RSA initialization here */
+	if (bc_xml2event_use_count == 0) {
+		if (bc_xml2event_hash_init(&bc_xml2event_hash, bc_eventxml)) {
 			dbg("Cannot initialize str2event hash table.");
 			return NULL;
 		}
 	}
-	str2event_use_count++;
+	bc_xml2event_use_count++;
 #endif
 	
 #if 0
@@ -279,9 +280,10 @@ void snmp_bc_close(void *hnd)
 	event2hpi_hash_free(handle);
 
 	/* Cleanup str2event hash table */
-	str2event_use_count--;
-	if (str2event_use_count == 0) {
-		str2event_hash_free();
+	/* FIXME:: Add RSA free here */
+	bc_xml2event_use_count--;
+	if (bc_xml2event_use_count == 0) {
+		xml2event_hash_free(&bc_xml2event_hash);
 	}
 #endif
 }
