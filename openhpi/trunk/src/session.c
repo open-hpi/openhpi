@@ -137,10 +137,8 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
 
         if (did < 1) return NULL;
 
-        dbg("About to get domain");
         domain = oh_get_domain(did);
         if (!domain) return NULL;
-        dbg("Got domain");
 
         length = domain->sessions->len;
         session_ids = g_array_sized_new(FALSE, TRUE,

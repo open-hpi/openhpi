@@ -68,10 +68,20 @@ static void close_handlers_atexit(void)
 }
 	      
 extern GCond *oh_thread_wait;
+extern GMutex *oh_thread_mutex;
 
-void oh_cond_signal(void)
+void oh_wake_event_thread(void)
 {
         g_cond_signal(oh_thread_wait);
+        /* this is a trick, it tries to lock the mutex (which
+           will not be free until the thread finishes) */
+        dbg("Usleeping 1");
+        g_usleep(1);
+        dbg("Attempting to get lock");
+        g_mutex_lock(oh_thread_mutex);
+        dbg("Got lock");
+        g_mutex_unlock(oh_thread_mutex);
+        dbg("Gave back the lock");
 }
 
 /**

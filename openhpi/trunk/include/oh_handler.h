@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-void oh_cond_signal(void);
+void oh_wake_event_thread(void);
 
 /*
  * Common OpenHPI implementation specific definitions

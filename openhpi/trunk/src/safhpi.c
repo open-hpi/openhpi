@@ -683,8 +683,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         rv = add_el_entry(h->hnd, ResourceId, EvtEntry);
         if(rv != SA_OK) {
                 dbg("EL add entry failed");
+                return rv;
         }
-
 
         /* to get REL entry into infrastructure */
         rv = oh_get_events();
@@ -1032,11 +1032,9 @@ SaErrorT SAHPI_API saHpiEventGet (
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
-        if ( !oh_run_threaded() ) {
-                error = oh_get_events();
-                if (error < 0) return SA_ERR_HPI_UNKNOWN;
-        }
-
+        error = oh_get_events();
+        if (error < 0) return SA_ERR_HPI_UNKNOWN;
+        
         error = oh_dequeue_session_event(SessionId, Timeout, &e);
         if (error) return error;
 
@@ -1084,11 +1082,8 @@ SaErrorT SAHPI_API saHpiEventAdd (
 
         g_async_queue_push(oh_process_q, g_memdup(&e, sizeof(struct oh_event)));
         
-        if (!oh_run_threaded()) {
-                /* Push events manually through event loop if not using threads */
-                oh_get_events();                
-        }
-
+        error = oh_get_events();                
+        
         return error;
 }
 

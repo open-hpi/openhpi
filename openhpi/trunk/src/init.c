@@ -45,12 +45,12 @@ SaErrorT oh_initialize()
         struct oh_global_param config_param = { .type = OPENHPI_CONF };
         int rval;
         unsigned int u;
-
+        
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
         SaHpiTextBufferT tag;
-
+        
         data_access_lock();
-
+        
         /* Check ready state */
         if (oh_initialized() == SA_OK) {
                 dbg("Cannot initialize twice");
@@ -58,20 +58,20 @@ SaErrorT oh_initialize()
                 return SA_ERR_HPI_DUPLICATE;
         }        
 
+        /* Initialize event process queue */
+        oh_event_init();
+        
         /* Set openhpi configuration file location */        
         oh_get_global_param(&config_param);
-
+        
         rval = oh_load_config(config_param.u.conf, &config);
-	/* Don't error out if there is no conf file */
-	if (rval < 0 && rval != -4) {
+        /* Don't error out if there is no conf file */
+        if (rval < 0 && rval != -4) {
                 dbg("Can not load config");
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
         
-        /* Initialize event process queue */
-        oh_event_init();
-
         /* Initialize uid_utils */
         rval = oh_uid_initialize();
         if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
@@ -139,6 +139,9 @@ SaErrorT oh_initialize()
         /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
         trace("Initialized session table");
+
+        /* this only does something if the config says to */
+        oh_start_event_thread();
 
         oh_init_state = INIT;
         trace("Set init state");

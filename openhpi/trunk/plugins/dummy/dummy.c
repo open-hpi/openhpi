@@ -1267,7 +1267,7 @@ static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT
 	g_async_queue_push(inst->eventq_async, e);
 
 #endif
-        return 0;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 static int dummy_get_sel_entry(void *hnd,
@@ -2157,7 +2157,7 @@ gpointer event_thread(gpointer data)
 //                g_static_rec_mutex_unlock (inst->handler_lock);
 
 		/* signal threaded infrastructure */
-		oh_cond_signal();
+		oh_wake_event_thread();
 		dbg("dummy thread, signaled");
 
                 nanosleep(&req, &rem);

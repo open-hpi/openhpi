@@ -35,8 +35,14 @@ INCLUDES		= @OPENHPI_INCLUDES@
 
 AM_CFLAGS		= -g @CFLAGS@
 
-pkglib_LTLIBRARIES	= libdummy.la
+pkglib_LTLIBRARIES	= libdummy.la 
+#libdummy2.la
 
-libdummy_la_SOURCES	= dummy.c
+libdummy_la_SOURCES	= dummy.c 
 libdummy_la_LIBADD	= -luuid
 libdummy_la_LDFLAGS	= -module -avoid-version -export-dynamic
+
+libdummy2_la_SOURCES    = dummy_init.c dummy_annunce.c
+libdummy2_la_LIBADD      = -luuid
+libdummy2_la_LDFLAGS     = -module -avoid-version -export-dynamic
+
