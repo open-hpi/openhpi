@@ -1024,7 +1024,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-	set_sensor_event_enables = res->handler->abi->get_sensor_event_enables;
+	set_sensor_event_enables = res->handler->abi->set_sensor_event_enables;
 	
 	if (!set_sensor_event_enables)
 		return SA_ERR_HPI_UNSUPPORTED_API;
