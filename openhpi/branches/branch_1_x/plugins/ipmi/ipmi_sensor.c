@@ -42,16 +42,16 @@ struct ohoi_sensor_enables {
 	int			done;	
 };
 
-static int ignore_sensor(ipmi_sensor_t *sensor)
+static int is_ignored_sensor(ipmi_sensor_t *sensor)
 {
         ipmi_entity_t *ent;
-
-        if ( ipmi_sensor_get_ignore_if_no_entity(sensor) )
-                return 0;
 
         ent = ipmi_sensor_get_entity(sensor);
 
         if (ent && ipmi_entity_is_present(ent))
+                return 0;
+        
+        if ( !ipmi_sensor_get_ignore_if_no_entity(sensor) )
                 return 0;
 
         return 1;
@@ -125,8 +125,9 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
 
         reading_data = cb_data;
         
-	if (ignore_sensor(sensor)) {
+	if (is_ignored_sensor(sensor)) {
 		dbg("Sensor is not present, ignored");
+                reading_data->done = -1;
 		return;
 	}	
 
@@ -136,6 +137,7 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
 		if (rv) {
 			dbg("Unable to get sensor reading: %s\n",
                             strerror( rv ) );
+                        reading_data->done = -1;
 			return;
 		}
         } else {
@@ -143,6 +145,7 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
 		if (rv) {
 			dbg("Unable to get sensor reading states: %s\n",
                             strerror( rv ) );
+                        reading_data->done = -1;
 			return;
                 }
         }
@@ -163,11 +166,15 @@ int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id,
         reading_data.done               = 0;
 
         rv = ipmi_sensor_pointer_cb(sensor_id, 
-						get_sensor_data,
-                        &reading_data);
+                                    get_sensor_data,
+                                    &reading_data);
         if (rv) {
                 dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID;
+        }
+        if (reading_data.done < 0) {
+                dbg("Unable to start sensor reading");
+                return SA_ERR_HPI_NO_RESPONSE;
         }
         
         return ohoi_loop(&reading_data.done, ipmi_handler);
@@ -270,7 +277,7 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 	int rv;
 	
         thres_data = cb_data;
-	if (ignore_sensor(sensor)) {
+	if (is_ignored_sensor(sensor)) {
                 dbg("ENTITY_NOT_PRESENT");
 		return;
 	}	
@@ -503,7 +510,7 @@ static void set_sensor_thresholds(ipmi_sensor_t *sensor,
 	int rv;	
 
         thres_data = cb_data;
-	if (ignore_sensor(sensor)) {
+	if (is_ignored_sensor(sensor)) {
 		dbg("sensor is ignored");
 		return;
 	}	
@@ -606,7 +613,7 @@ static void get_sensor_event_enables(ipmi_sensor_t	*sensor,
 	
         enables_data = cb_data;
         
-	if (ignore_sensor(sensor)) {
+	if (is_ignored_sensor(sensor)) {
 		dbg("sensor is ignored");
                 enables_data->done = 1;
 		return;
@@ -660,7 +667,7 @@ static void set_sensor_event_enables(ipmi_sensor_t      *sensor,
 
         enables_data = cb_data;
 
-	if (ignore_sensor(sensor)) {
+	if (is_ignored_sensor(sensor)) {
 		dbg("sensor is ignored");
 		enables_data->done = 1;
 		return;
