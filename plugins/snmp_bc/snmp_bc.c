@@ -308,6 +308,11 @@ static int snmp_bc_discover_resources(void *hnd)
                 return -1;
         }
 
+	/* 
+	Build cache copy of SEL 
+	*/
+	snmp_bc_check_selcache(hnd, 1, SAHPI_NEWEST_ENTRY);
+
         /*
         Rediscovery: Get difference between current rptcache and tmpcache. Delete
         obsolete items from rptcache and add new items in.        
