@@ -24,11 +24,6 @@ typedef SaHpiUint32T oHpiHandlerIdT;
 #define OH_GLOBAL_STR_MAX_LENGTH 1024
 
 typedef struct {
-        SaHpiUint16T   DataLength;
-        SaHpiUint8T    Data[OH_GLOBAL_STR_MAX_LENGTH];  /* Data buffer */
-} oHpiTextBufferT;
-
-typedef struct {
         int refcount; /* refcount - 1 = # of handlers using it. */
         /* More to come later... */
 } oHpiPluginInfoT;
