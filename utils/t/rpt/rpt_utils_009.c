@@ -37,21 +37,23 @@ int main(int argc, char **argv)
         guint i = 0;
         
         for (i = 0; rptentries[i].ResourceId != 0; i++) {
-                if (oh_add_resource(rptable, rptentries + i, NULL, 0))
-                        return 1;                
+                if (oh_add_resource(rptable, rptentries + i, NULL, 0))                        
+                        return 1;
         }
 
-        if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs, NULL,0))
+        if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs, NULL,0)) {
                 return 1;
-
+        }
+        
         record_id =
                 get_rdr_uid(rdrs[0].RdrType, rdrs[0].RdrTypeUnion.SensorRec.Num);
-        rdrs[0].RecordId = record_id;
-                
+        rdrs[0].RecordId = record_id;        
+                        
         tmprdr = oh_get_rdr_by_id(rptable, SAHPI_FIRST_ENTRY, record_id);
         if (!tmprdr ||
-            memcmp(rdrs, tmprdr, sizeof(SaHpiRdrT)))
+            memcmp(rdrs, tmprdr, sizeof(SaHpiRdrT))) {
                 return 1;
+        }
 
         return 0;
 }

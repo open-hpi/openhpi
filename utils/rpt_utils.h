@@ -83,9 +83,9 @@ SaErrorT oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid
 void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
 SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
 SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
-                              SaHpiRdrTypeT type, SaHpiUint8T num);
+                              SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
 SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev);
-SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num);
+SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num);
 
 
 #ifdef __cplusplus
