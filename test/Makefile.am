@@ -10,7 +10,7 @@ INCLUDES 		= -I$(top_srcdir)/include  	\
 
 COMMONLIBS		= $(top_srcdir)/lib/libopenhpi.la
 
-AM_CFAGS 		= @CFLAGS@
+AM_CFLAGS 		= @CFLAGS@
 
 bin_PROGRAMS		= hpitestapp hashtest
 
