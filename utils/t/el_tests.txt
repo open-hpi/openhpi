@@ -2,15 +2,15 @@ Unit tests we should have for el_utils
 
 The possitive tests:
 Start with no EL
-   - create a new EL via oh_el_create
+   - create a new EL via oh_el_create (001)
       - examine struct
-   - add 1 event
+   - add 1 event (002)
       - examine total number of entries in struct
       - fetch by entityid, compare
-   - add 5 events
+   - add 5 events (003)
       - examine total number of entries in struct
       - fetch by entityid, compare
-   - save EL to file
+   - save EL to file (004)
       - examine total number of entries in struct
       - examine file
 
