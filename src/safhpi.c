@@ -18,6 +18,7 @@
  *     David Judkovics <djudkovi@us.ibm.com>
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  *     Renier Morales <renierm@users.sf.net>
+ *     Racing Guo <racing.guo@intel.com>
  */
 
 #include <string.h>
@@ -1320,7 +1321,40 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
         SAHPI_IN  SaHpiSensorNumT  SensorNum,
         SAHPI_OUT SaHpiBoolT       *SensorEnabled)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT rv;
+        SaErrorT (*get_sensor_enable)(void *hnd, SaHpiResourceIdT,
+                                      SaHpiSensorNumT,
+                                      SaHpiBoolT *enable);
+
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+
+        if (!SensorEnabled) return SA_ERR_HPI_INVALID_PARAMS;
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors in Domain %d",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        get_sensor_enable = h->abi->get_sensor_enable;
+        if (!get_sensor_enable) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = get_sensor_enable(h->hnd, ResourceId, SensorNum, SensorEnabled);
+	return rv;
 }
 
 SaErrorT SAHPI_API saHpiSensorEnableSet (
@@ -1329,7 +1363,38 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
         SAHPI_IN SaHpiSensorNumT  SensorNum,
         SAHPI_IN SaHpiBoolT       SensorEnabled)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT rv;
+        SaErrorT (*set_sensor_enable)(void *hnd, SaHpiResourceIdT,
+                                      SaHpiSensorNumT,
+                                      SaHpiBoolT enable);
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors in Domain %d",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        set_sensor_enable = h->abi->set_sensor_enable;
+        if (!set_sensor_enable) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = set_sensor_enable(h->hnd, ResourceId, SensorNum, SensorEnabled);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiSensorEventEnableGet (

@@ -14,6 +14,7 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
  *     Renier Morales <renierm@users.sourceforge.net>
+ *     Racing Guo <racing.guo@intel.com>
  */
 
 #ifndef __OH_HANDLER_H
@@ -247,6 +248,22 @@ struct oh_abi_v2 {
                                      const SaHpiSensorThresholdsT *thres);
 
         /**
+	 * get sensor enable
+	*/
+
+	SaErrorT (*get_sensor_enable)(void *hnd, SaHpiResourceIdT id,
+					     SaHpiSensorNumT num,
+					     SaHpiBoolT *enable);
+
+	/**
+	 * set sensor enable
+	*/
+
+	SaErrorT (*set_sensor_enable)(void *hnd, SaHpiResourceIdT id,
+				      SaHpiSensorNumT num,
+				      SaHpiBoolT enable);
+
+	/**
          * get sensor event enables
          */
         SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
