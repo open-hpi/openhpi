@@ -121,7 +121,7 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
      	snmp_bc_lock_handler(custom_handle);	
 	err = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 	
-	/* If err is encounterred during el cache sync, */
+	/* If err is encountered during el cache sync, */
 	/* log error but take no corrected action.      */
 	/* New entry will still be there next time      */
 	if (err) {

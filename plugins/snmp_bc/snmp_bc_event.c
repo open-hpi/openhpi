@@ -385,19 +385,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 		return(err);
 	}
 
-	/* Find default RID from Error Log's "Source" field - need if OEM event */
-	err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo, 0);
-	if (err) {
-		dbg("Cannot translate %s to RID. Error=%s", log_entry.source, oh_lookup_error(err));
-		return(err);
-	}
-	
-	/* Set dynamic event fields with default values from the log string.
-	   These may be overwritten in the code below */
-	event_rid = resinfo.rid;
-	event_severity = log_entry.sev; 
-	event_time = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
-
 	/**********************************************************************
 	 * For some types of events (e.g. thresholds), dynamic data is appended
 	 * to some root string. Need to find this root string, since its the
@@ -444,158 +431,175 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
 	trace("Event search string=%s.", search_str);
 
-	/* See if adjusted root string is in the errlog2event_hash table */
-	strhash_data = (ErrLog2EventInfoT *)g_hash_table_lookup(errlog2event_hash, search_str);
-	if (strhash_data) {
-		/* Handle strings that have multiple event numbers */
-		int dupovrovr = 0;
-		if (strhash_data->event_dup) {
-			strhash_data = snmp_bc_findevent4dupstr(search_str, strhash_data, &resinfo);
-			if (strhash_data == NULL) {
-				dbg("Cannot find valid event for duplicate string=%s and RID=%d.", 
-				    search_str, resinfo.rid);
-				if (snmp_bc_map2oem(&working, &log_entry,  EVENT_NOT_ALERTABLE)) {
-					dbg("Cannot map to OEM Event %s.", log_entry.text);
-					return(SA_ERR_HPI_INTERNAL_ERROR);
-				}
-				goto DONE;
-			}
-			if (strhash_data->event_ovr & OVR_RID) {
-				dbg("Cannot have RID override on duplicate string=%s.", search_str);
-				dupovrovr = 1;
-			}
-		}
+	/* Set dynamic event fields with default values from the log string.
+	   These may be overwritten in the code below */
+	event_severity = log_entry.sev; 
+	event_time = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 
-		/* If OVR_SEV, use BCT-level severity calculated in off-line scripts */
-		if (strhash_data->event_ovr & OVR_SEV) {
-			event_severity = strhash_data->event_sev;
-		}
-
-		/* Look to see if event is mapped to an HPI entity */
-		eventmap_info = (EventMapInfoT *)g_hash_table_lookup(custom_handle->event2hpi_hash_ptr, 
-								     strhash_data->event);
-		if (eventmap_info) {
-                        /* Set static event data defined during resource discovery */
-			working = eventmap_info->hpievent;
-			/* Find RID */
-			if (strhash_data->event_ovr & OVR_EXP) {
-				/* If OVR_EXP, find RID of expansion card */
-				err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo,
-							 strhash_data->event_ovr);
-				if (err) {
-					dbg("Cannot translate %s to RID. Error=%s.", 
-					    log_entry.source, oh_lookup_error(err));
-					return(err);
-				}
-				event_rid = resinfo.rid;
-			}
-			else {
-				/* If OVR_RID, use RID from discovery - Used if want events from
-				   a resource not distinguished by the Error Log "Source" field
-				   (e.g. not a BLADE, SWITCH, or CHASSIS). OVR_EXP is a special
-				   subset of OVR_RID - don't define both */
- 				if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
-					event_rid = eventmap_info->hpievent.Source;
-				}
-			}
-			
-			/* Set RID in structure - used in later calls */
-			working.Source = event_rid;
-
-			/* Handle sensor events */
-			if (working.EventType == SAHPI_ET_SENSOR) {
-
-				if (is_recovery_event == SAHPI_TRUE) {
-					working.EventDataUnion.SensorEvent.Assertion = SAHPI_FALSE;
-				}
-
-				/* Determine severity of event */
-				err = snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
-
-				/* Set optional event current and previous states, if possible */
-				err = snmp_bc_set_cur_prev_event_states(handle, eventmap_info, 
-									&working, is_recovery_event);
-
-				/* Set optional event threshold trigger values */
-				if (is_threshold_event == SAHPI_TRUE) {
-					if (oh_encode_sensorreading(&thresh_read_value,
-								    working.EventDataUnion.SensorEvent.TriggerReading.Type,
-								    &working.EventDataUnion.SensorEvent.TriggerReading)) {
-						dbg("Cannot convert trigger reading=%s; text=%s.",
-						    thresh_read_value.Data, log_entry.text);
-						return(SA_ERR_HPI_INTERNAL_ERROR);
-					}
-					working.EventDataUnion.SensorEvent.OptionalDataPresent =
-						working.EventDataUnion.SensorEvent.OptionalDataPresent |
-						SAHPI_SOD_TRIGGER_READING;
-					
-					if (oh_encode_sensorreading(&thresh_trigger_value,
-								    working.EventDataUnion.SensorEvent.TriggerThreshold.Type,
-								    &working.EventDataUnion.SensorEvent.TriggerThreshold)) {
-						dbg("Cannot convert trigger threshold=%s; text=%s.",
-						    thresh_trigger_value.Data, log_entry.text);
-						return(SA_ERR_HPI_INTERNAL_ERROR);
-					}
-					working.EventDataUnion.SensorEvent.OptionalDataPresent =
-						working.EventDataUnion.SensorEvent.OptionalDataPresent |
-						SAHPI_SOD_TRIGGER_THRESHOLD;
-				}
-			}
-
-                        /* Handle hot-swap events */
-			else if (working.EventType == SAHPI_ET_HOTSWAP) {
-
-				/* Determine severity of event. Sometimes a Recovery event is sent for a
-                                   removal event to mean installed - don't want these "install" events 
-                                   to pick up the resource's severity */
-				if (is_recovery_event != SAHPI_TRUE) {
-					snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
-				}
-
-				/* Set event's state */
-				snmp_bc_set_cur_prev_event_states(handle, eventmap_info,
-								  &working, is_recovery_event);
-			}
-			else {
-				dbg("Platform doesn't support events of type=%s.",
-				    oh_lookup_eventtype(working.EventType));
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
-
-			/************************************************** 
-			 * Check to see if need to mark resource as failed.
-                         **************************************************/
-			if (eventmap_info->event_res_failure) {
-				SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, event->Source);
-				if (rpt) {
-					/* Only notify if change in status */
-					if (rpt->ResourceFailed == SAHPI_FALSE) {
-						rpt->ResourceFailed = SAHPI_TRUE;
-						/* Add changed resource to event queue */
-						struct oh_event *e = g_malloc0(sizeof(struct oh_event));
-						if (e == NULL) {
-							dbg("Out of memory.");
-							return(SA_ERR_HPI_OUT_OF_SPACE);
-						}
-						e->did = oh_get_default_domain_id();						
-						e->type = OH_ET_RESOURCE;
-						e->u.res_event.entry = *rpt;
-						handle->eventq = g_slist_append(handle->eventq, e);
-					}
-				}
-			}
-		} /* End found mapped event */
-		else { /* Map to OEM Event - Event not in event2hpi_hash or hasn't been discovered */
-			if (snmp_bc_map2oem(&working, &log_entry, EVENT_NOT_MAPPED)) {
-				dbg("Cannot map to OEM Event %s.", log_entry.text);
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
-		}
+	/* Find default RID from Error Log's "Source" field - need if NOT_ALERTABLE OEM event */
+	err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo, 0);
+	if (err) {
+		dbg("Cannot translate %s to RID. Error=%s", log_entry.source, oh_lookup_error(err));
+		return(err);
 	}
-	else { /* Map to OEM Event - Log string not in errlog2event_hash */
+	event_rid = resinfo.rid;
+
+	/***********************************************************
+	 * See if adjusted root string is in errlog2event_hash table
+         ***********************************************************/
+
+	strhash_data = (ErrLog2EventInfoT *)g_hash_table_lookup(errlog2event_hash, search_str);
+	if (!strhash_data) {
 		if (snmp_bc_map2oem(&working, &log_entry, EVENT_NOT_ALERTABLE)) {
 			dbg("Cannot map to OEM Event %s.", log_entry.text);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
+		goto DONE;
+	}
+
+	/* See if need to override default RID; These are hardcoded exceptions caused by the
+           fact that we have to handle duplicates event strings for resources that the
+           BladeCenter's event log Source file doesn't define. These options must not be
+           used with the OVR_RID option. */
+	if (strhash_data->event_ovr & OVR_EXP || strhash_data->event_ovr & OVR_MM) {
+
+		err = snmp_bc_logsrc2rid(handle, log_entry.source, &resinfo,
+					 strhash_data->event_ovr);
+		if (err) {
+			dbg("Cannot translate %s to RID. Error=%s.",
+			    log_entry.source, oh_lookup_error(err));
+			return(err);
+		}
+		
+		event_rid = resinfo.rid;
+	}
+
+	/* Handle duplicate strings that have different event numbers */
+	int dupovrovr = 0;
+	if (strhash_data->event_dup) {
+		strhash_data = snmp_bc_findevent4dupstr(search_str, strhash_data, &resinfo);
+		if (strhash_data == NULL) {
+			dbg("Cannot find valid event for duplicate string=%s and RID=%d.", 
+			    search_str, resinfo.rid);
+			if (snmp_bc_map2oem(&working, &log_entry,  EVENT_NOT_ALERTABLE)) {
+				dbg("Cannot map to OEM Event %s.", log_entry.text);
+				return(SA_ERR_HPI_INTERNAL_ERROR);
+			}
+			goto DONE;
+		}
+		if (strhash_data->event_ovr & OVR_RID) {
+			dbg("Cannot have RID override on duplicate string=%s.", search_str);
+			dupovrovr = 1;
+		}
+	}
+	
+	/* If OVR_SEV, use BCT-level severity calculated in off-line scripts */
+	if (strhash_data->event_ovr & OVR_SEV) {
+		event_severity = strhash_data->event_sev;
+	}
+	
+	/**************************************************
+	 * Find event string's mapped HPI event information
+         **************************************************/
+	eventmap_info = (EventMapInfoT *)g_hash_table_lookup(custom_handle->event2hpi_hash_ptr, 
+							     strhash_data->event);
+	if (!eventmap_info) {
+		if (snmp_bc_map2oem(&working, &log_entry, EVENT_NOT_MAPPED)) {
+			dbg("Cannot map to OEM Event %s.", log_entry.text);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
+		goto DONE;
+	}
+
+	/* Set static event data defined during resource discovery */
+	working = eventmap_info->hpievent;
+
+	/* Handle OVR_RID - only for non-duplicate event strings */
+	if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
+		event_rid = eventmap_info->hpievent.Source;
+	}
+	
+	/* Set RID in structure - used in later calls */
+	working.Source = event_rid;
+
+	/* Handle sensor events */
+	if (working.EventType == SAHPI_ET_SENSOR) {
+		if (is_recovery_event == SAHPI_TRUE) {
+			working.EventDataUnion.SensorEvent.Assertion = SAHPI_FALSE;
+		}
+		
+		/* Determine severity of event */
+		err = snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
+		
+		/* Set optional event current and previous states, if possible */
+		err = snmp_bc_set_cur_prev_event_states(handle, eventmap_info, 
+							&working, is_recovery_event);
+		
+		/* Set optional event threshold trigger values */
+		if (is_threshold_event == SAHPI_TRUE) {
+			if (oh_encode_sensorreading(&thresh_read_value,
+						    working.EventDataUnion.SensorEvent.TriggerReading.Type,
+						    &working.EventDataUnion.SensorEvent.TriggerReading)) {
+				dbg("Cannot convert trigger reading=%s; text=%s.",
+				    thresh_read_value.Data, log_entry.text);
+				return(SA_ERR_HPI_INTERNAL_ERROR);
+			}
+			working.EventDataUnion.SensorEvent.OptionalDataPresent =
+				working.EventDataUnion.SensorEvent.OptionalDataPresent |
+				SAHPI_SOD_TRIGGER_READING;
+			
+			if (oh_encode_sensorreading(&thresh_trigger_value,
+						    working.EventDataUnion.SensorEvent.TriggerThreshold.Type,
+						    &working.EventDataUnion.SensorEvent.TriggerThreshold)) {
+				dbg("Cannot convert trigger threshold=%s; text=%s.",
+				    thresh_trigger_value.Data, log_entry.text);
+				return(SA_ERR_HPI_INTERNAL_ERROR);
+			}
+			working.EventDataUnion.SensorEvent.OptionalDataPresent =
+				working.EventDataUnion.SensorEvent.OptionalDataPresent |
+				SAHPI_SOD_TRIGGER_THRESHOLD;
+		}
+	}
+	
+	/* Handle hot-swap events */
+	else if (working.EventType == SAHPI_ET_HOTSWAP) {
+		/* Determine severity of event. Sometimes a Recovery event is sent for a
+		   removal event to mean installed - don't want these "install" events 
+		   to pick up the resource's severity */
+		if (is_recovery_event != SAHPI_TRUE) {
+			snmp_bc_set_event_severity(handle, eventmap_info, &working, &event_severity);
+		}
+		
+		/* Set event's state */
+		snmp_bc_set_cur_prev_event_states(handle, eventmap_info,
+						  &working, is_recovery_event);
+	}
+	else {
+		dbg("Platform doesn't support events of type=%s.",
+		    oh_lookup_eventtype(working.EventType));
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+	
+	/************************************************** 
+	 * Check to see if need to mark resource as failed.
+	 **************************************************/
+	if (eventmap_info->event_res_failure) {
+		SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, event->Source);
+		if (rpt) {
+			/* Only notify if change in status */
+			if (rpt->ResourceFailed == SAHPI_FALSE) {
+				rpt->ResourceFailed = SAHPI_TRUE;
+				/* Add changed resource to event queue */
+				struct oh_event *e = g_malloc0(sizeof(struct oh_event));
+				if (e == NULL) {
+					dbg("Out of memory.");
+					return(SA_ERR_HPI_OUT_OF_SPACE);
+				}
+				e->did = oh_get_default_domain_id();						
+				e->type = OH_ET_RESOURCE;
+				e->u.res_event.entry = *rpt;
+				handle->eventq = g_slist_append(handle->eventq, e);
+			}
 		}
 	}
 
@@ -1068,8 +1072,10 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
  * All other "Source" field text strings are mapped to the 
  * Chassis's resource ID.
  *
- * @ovr_flags is used to indicate exception cases. The only one
- * currently is to indicate if the resource is an expansion card.
+ * @ovr_flags is used to indicate exception cases. The two case
+ * supported are:
+ *   - OVR_EXP - indicates resource is an expansion card.
+ *   - OVR_MM - indicates resource is the active MM card.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -1084,12 +1090,18 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	guint loc;
 	gchar **src_parts = NULL, *endptr = NULL, *root_tuple;
 	SaErrorT err;
-	SaHpiBoolT isblade, isexpansioncard, ischassis, isswitch;
+	SaHpiBoolT isblade, isexpansioncard, isswitch;
 	SaHpiEntityPathT ep, ep_root;
 	SaHpiEntityTypeT entity_type;
 	struct snmp_bc_sensor *array_ptr;
 
 	if (!handle || !src || !resinfo) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -1113,7 +1125,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	}
 
 	/* See if resource is something other than the chassis */
-	isblade = isexpansioncard = isswitch = ischassis = SAHPI_FALSE;
+	isblade = isexpansioncard = isswitch = SAHPI_FALSE;
 	if (!strcmp(src_parts[0], "BLADE")) { 
 		/* All expansion card events are reported as blade events in the Error Log */
 		if (ovr_flags & OVR_EXP) { isexpansioncard = SAHPI_TRUE; }
@@ -1143,11 +1155,21 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 	}
 	else {
-		ischassis = SAHPI_TRUE;
-		rpt_index = BC_RPT_ENTRY_CHASSIS;
-		array_ptr = &snmp_bc_chassis_sensors[0];
+		/* Check for OVR_MM override, if cannot find explict resource from error
+                   logs "Source" field */
+		if (ovr_flags & OVR_MM) {
+			loc = custom_handle->active_mm;
+			rpt_index = BC_RPT_ENTRY_MGMNT_MODULE;
+			entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
+			array_ptr = &snmp_bc_mgmnt_sensors[0];
+		}
+		else {
+			rpt_index = BC_RPT_ENTRY_CHASSIS;
+			array_ptr = &snmp_bc_chassis_sensors[0];
+		}
 	}
 	g_strfreev(src_parts);
+
 
 	/* Find rest of Entity Path and calculate the RID */
 	err = oh_concat_ep(&ep, &snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity);
@@ -1166,7 +1188,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 		    oh_lookup_entitytype(entity_type), loc, oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
-	
+
 	/* Special case - if Expansion Card set location of parent blade as well */
 	if (isexpansioncard == SAHPI_TRUE) {
 		err = oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, loc);

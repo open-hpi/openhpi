@@ -29,10 +29,13 @@
 # - Change warning thresholds to SAHPI_MAJOR severity.
 #
 # NOTES:
-# - OVR_RID only good if there is an unique message number per resource
-#   Else can't determine the proper RID - same event number shows up
-#   in the event array of multiple RIDs. Need to use Error Log's Source
-#   field in these cases, which implies no OVR_RID.
+# - Cannot have duplicate events with the chassis and any other resource
+#   that cannot be explicitly derived from the event log's Source field.
+# - OVR_MM is used to change the default resource from the chassis to
+#   the MM. Had to do this to support duplicate event strings between 
+#   blades and the MM.
+# - OVR_EXP is used to assign BEM events to the add-in card resource.
+#   They are reported by the event log's Source field as blade events. 
 ###########################################################################
 
 #########
@@ -65,50 +68,9 @@ EN_TEST_EVENT|0xFFFFFFFF|BCT,BC,RSA|SAHPI_CRITICAL|NO_OVR|"Bogus Test Event."
 
 # Ambient air thermal sensor on Control Panel/Media Tray
 EN_CUTOFF_HI_OVER_TEMP_AMBIENT|0x0001C480|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to high ambient temperature."
-EN_PFA_HI_OVER_TEMP_AMBIENT|0x0001D500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended ambient temperature."
-EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Shutoff due to high Management Module temperature."
-EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Management Module is over recommended temperature."
 EN_CUTOFF_LO_OVER_TEMP_AMBIENT|0x0001C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to under ambient temperature."
+EN_PFA_HI_OVER_TEMP_AMBIENT|0x0001D500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended ambient temperature."
 EN_MAJOR_LO_OVER_TEMP_AMBIENT|0x0011C900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended ambient temperature."
-EN_CUTOFF_LO_OVER_TEMP_SP_CARD|0x0011C881|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to under Management Module temperature."
-EN_MAJOR_LO_OVER_TEMP_SP_CARD|0x0011C901|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended Management Module temperature."
-
-# 1.8V voltage sensor on Management Module
-# Changed warnings to SAHPI_MAJOR 
-EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.8V CPU over voltage"
-EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to 1.8V CPU under voltage"
-EN_MAJOR_HI_FAULT_1_8V|0xFF07A500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
-EN_MAJOR_LO_FAULT_1_8V|0xFF07A900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
-
-# 2.5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_2_5V|0x08030480|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +2.5v over voltage."
-EN_CUTOFF_LO_FAULT_2_5V|0x08030880|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +2.5v under voltage."
-EN_PFA_HI_FAULT_2_5V|0xFF031480|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +2.5v."
-EN_PFA_LO_FAULT_2_5V|0xFF031880|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
-
-# 3.3V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_3_35V|0x08032480|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +3.3v over voltage."
-EN_CUTOFF_LO_FAULT_3_35V|0x08032880|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +3.3v under voltage."
-EN_PFA_HI_FAULT_3_35V|0xFF033480|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
-EN_MAJOR_LO_FAULT_3_35V|0xFF032900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
-
-# 5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_PLANAR_5V|0x06034480|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +5v over voltage."
-EN_CUTOFF_LO_FAULT_PLANAR_5V|0x06034800|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +5v under voltage."
-EN_MAJOR_HI_FAULT_PLANAR_5V|0x06034500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +5v."
-EN_PFA_LO_FAULT_PLANAR_5V|0x06035800|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +5v."
-
-# -5V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_N5V|0x0803C480|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to -5v over voltage."
-EN_CUTOFF_LO_FAULT_N5V|0x0803C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to -5v under voltage."
-EN_PFA_HI_FAULT_N5V|0x0803D500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for -5v."
-EN_MAJOR_LO_FAULT_N5V|0x803C900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for -5v."
-
-# 12V voltage sensor on Management Module
-EN_CUTOFF_HI_FAULT_12V_PLANAR|0x06036480|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +12v over voltage."
-EN_CUTOFF_LO_FAULT_12V_PLANAR|0x06036800|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to +12v under voltage."
-EN_PFA_HI_FAULT_12V_PLANAR|0xFF037500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +12v."
-EN_PFA_LO_FAULT_12V_PLANAR|0xFF037800|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
 
 # MM redundancy sensor - No real physical sensor; event-only sensor
 EN_MM_NON_REDUNDANT|0x00284000|BCT,BC|SAHPI_MINOR|OVR_SEV|"Chassis Running Nonredundant Management Modules"
@@ -131,6 +93,66 @@ EN_FAULT_MJR_FILTER|0x6F200000|BCT|SAHPI_MAJOR|OVR_SEV|"Telco Filter is in BAD c
 EN_FAULT_MNR_FILTER|0x6F300000|BCT|SAHPI_MINOR|OVR_SEV|"Telco Filter is in WARNING condition."
 EN_FAULT_CRT_AMBIENT|0x6F400000|BCT|SAHPI_CRITICAL|OVR_SEV|"Telco Ambient Temperature is outside the supported range (4-40)."
 EN_FAULT_MNR_FILTER_SERVICE|0x6F500000|BCT|SAHPI_MINOR|OVR_SEV|"Telco Filter: Routine Service Check is required."
+
+############################
+# Management Module Resource
+############################
+
+EN_MM_1_INSTALLED|0x00282001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 1 was installed."
+EN_MM_2_INSTALLED|0x00282002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 2 was installed."
+
+EN_MM_1_REMOVED|0x00284001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 1 was removed."
+EN_MM_2_REMOVED|0x00284002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_MM|"Management Module 2 was removed."
+
+###########################
+# Management Module Sensors
+###########################
+
+# Thermal sensor on MM
+EN_CUTOFF_HI_OVER_TEMP_SP_CARD|0x0001C500|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Shutoff due to high Management Module temperature."
+EN_CUTOFF_LO_OVER_TEMP_SP_CARD|0x0011C881|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"System shutoff due to under Management Module temperature."
+EN_PFA_HI_OVER_TEMP_SP_CARD|0x0001D400|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Management Module is over recommended temperature."
+EN_MAJOR_LO_OVER_TEMP_SP_CARD|0x0011C901|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended Management Module temperature."
+
+# 1.8V voltage sensor on Management Module
+# Manually changed warnings to SAHPI_MAJOR 
+EN_CUTOFF_HI_FAULT_1_8V|0x0807A480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to 1.8V CPU over voltage"
+EN_CUTOFF_LO_FAULT_1_8V|0x0807A880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to 1.8V CPU under voltage"
+EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System is over recommended voltage for 1.8V CPU"
+EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System is under recommended voltage for 1.8V CPU"
+
+# 2.5V voltage sensor on Management Module
+EN_CUTOFF_HI_FAULT_2_5V|0x08030480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +2.5v over voltage."
+EN_CUTOFF_LO_FAULT_2_5V|0x08030880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +2.5v under voltage."
+EN_PFA_HI_FAULT_2_5V|0x08031480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage on +2.5v."
+EN_PFA_LO_FAULT_2_5V|0x08031880|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage on +2.5v."
+
+# 3.3V voltage sensor on Management Module
+EN_CUTOFF_HI_FAULT_3_35V|0x08032480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +3.3v over voltage."
+EN_CUTOFF_LO_FAULT_3_35V|0x08032880|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +3.3v under voltage."
+EN_PFA_HI_FAULT_3_35V|0x08033480|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage on +3.3v."
+EN_MAJOR_LO_FAULT_3_35V|0x08032900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage on +3.3v."
+
+# 5V voltage sensor on Management Module
+EN_CUTOFF_HI_FAULT_PLANAR_5V|0x06034480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +5v over voltage."
+EN_CUTOFF_LO_FAULT_PLANAR_5V|0x06034800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +5v under voltage."
+EN_MAJOR_HI_FAULT_PLANAR_5V|0x06034500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for +5v."
+EN_PFA_LO_FAULT_PLANAR_5V|0x06035800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for +5v."
+
+# -5V voltage sensor on Management Module
+EN_CUTOFF_HI_FAULT_N5V|0x0803C480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to -5v over voltage."
+EN_CUTOFF_LO_FAULT_N5V|0x0803C800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to -5v under voltage."
+EN_PFA_HI_FAULT_N5V|0x0803D500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for -5v."
+EN_MAJOR_LO_FAULT_N5V|0x803C900|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for -5v."
+
+# 12V voltage sensor on Management Module
+EN_CUTOFF_HI_FAULT_12V_PLANAR|0x06036480|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +12v over voltage."
+EN_CUTOFF_LO_FAULT_12V_PLANAR|0x06036800|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"System shutoff due to +12v under voltage."
+EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System over recommended voltage for +12v."
+EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|BCT,BC|SAHPI_MAJOR|OVR_SEV,OVR_MM|"System under recommended voltage for +12v."
+
+# Network uplink loss
+EN_MM_NETWORK_LOSS|0x00222000|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_MM|"Management Module network uplink loss."
 
 ################
 # Blade Resource
@@ -222,8 +244,8 @@ EN_1_5VS_WARNING_LOW|0x0A040C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +1.5V under 
 # Blade's 1.8V voltage sensor
 EN_IO_1_8V_WARNING_HI|0x0A07BC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V over recommended voltage."
 EN_IO_1_8V_WARNING_LOW|0x0A07AC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +1.8V under recommended voltage."
-EN_MAJOR_HI_FAULT_1_8V|0x0807A500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
-EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
+EN_MAJOR_HI_FAULT_1_8V|0xFF07A500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is over recommended voltage for 1.8V CPU"
+EN_MAJOR_LO_FAULT_1_8V|0xFF07A900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under recommended voltage for 1.8V CPU"
 
 # Blade's 1.8V standby sensor
 # None
@@ -231,8 +253,8 @@ EN_MAJOR_LO_FAULT_1_8V|0x0807A900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System is under re
 # Blade's 2.5V voltage sensor
 EN_IO_2_5V_WARNING_HI|0x0A031C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +2.5V over recommended voltage."
 EN_IO_2_5V_WARNING_LOW|0x0A030C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board 2.5V under recommended voltage."
-EN_PFA_HI_FAULT_2_5V|0x08031480|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +2.5v."
-EN_PFA_LO_FAULT_2_5V|0x08031880|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
+EN_PFA_HI_FAULT_2_5V|0xFF031480|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +2.5v."
+EN_PFA_LO_FAULT_2_5V|0xFF031880|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +2.5v."
 
 # Blade's 2.5V standby voltage sensor
 EN_2_5VS_WARNING_HI|0x0A031C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +2.5V over recommended voltage."
@@ -241,8 +263,8 @@ EN_2_5VS_WARNING_LOW|0x0A030C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +2.5V under 
 # Blade's 3.3V voltage sensor
 EN_IO_3_3V_WARNING_HI|0x0A02DC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +3.3V over recommended voltage."
 EN_IO_3_3V_WARNING_LOW|0x0A02CC00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +3.3V under recommended voltage."
-EN_PFA_HI_FAULT_3_35V|0x08033480|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
-EN_MAJOR_LO_FAULT_3_35V|0x08032900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
+EN_PFA_HI_FAULT_3_35V|0xFF033480|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage on +3.3v."
+EN_MAJOR_LO_FAULT_3_35V|0xFF032900|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage on +3.3v."
 
 # Blade's 3.3V standby voltage sensor
 EN_3_3VS_WARNING_HI|0x0A02DC02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +3.3V over recommended voltage."
@@ -261,8 +283,8 @@ EN_5VS_WARNING_LOW|0x0A034C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +5V under reco
 # Blade's 12V voltage sensor
 EN_IO_12V_WARNING_HI|0x0A037C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +12V over recommended voltage."
 EN_IO_12V_WARNING_LOW|0x0A036C00|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"IO Board +12V under recommended voltage."
-EN_PFA_HI_FAULT_12V_PLANAR|0x06037500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +12v."
-EN_PFA_LO_FAULT_12V_PLANAR|0x06037800|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
+EN_PFA_HI_FAULT_12V_PLANAR|0xFF037500|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System over recommended voltage for +12v."
+EN_PFA_LO_FAULT_12V_PLANAR|0xFF037800|BCT,BC|SAHPI_MAJOR|OVR_SEV|"System under recommended voltage for +12v."
 
 # Blade's 12V standby voltage sensor
 EN_12VS_WARNING_HI|0x0A037C02|BCT,BC|SAHPI_MAJOR|OVR_SEV|"Standby +12V over recommended voltage."
@@ -431,22 +453,6 @@ EN_MEDIA_TRAY_REMOVED|0x06A1E001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"The
 # MM checking Media Tray VPD - Map to generic operational sensor (degraded)
 EN_FAULT_FP_R|0x09020000|BCT,BC|SAHPI_MINOR|OVR_SEV,OVR_RID|"System front panel controller not responding."
 
-############################
-# Management Module Resource
-############################
-
-EN_MM_1_INSTALLED|0x00282001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module 1 was installed."
-EN_MM_2_INSTALLED|0x00282002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module 2 was installed."
-
-EN_MM_1_REMOVED|0x00284001|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module 1 was removed."
-EN_MM_2_REMOVED|0x00284002|BCT,BC|SAHPI_INFORMATIONAL|OVR_SEV,OVR_RID|"Management Module 2 was removed."
-
-###########################
-# Management Module Sensors
-###########################
-
-EN_MM_NETWORK_LOSS|0x00222000|BCT,BC|SAHPI_CRITICAL|OVR_SEV|"Management Module network uplink loss."
-
 #################
 # Switch Resource
 #################
@@ -595,10 +601,10 @@ EN_FAULT_PS1_REMOVED|0x0821E001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Sup
 EN_FAULT_PS2_REMOVED|0x0821E002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 2 Removed."
 EN_FAULT_PS3_REMOVED|0x0821E003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 3 Removed."
 EN_FAULT_PS4_REMOVED|0x0821E004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 4 Removed."
-EN_FAULT_PS1_REMOVED_INFO|0x0821F001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 1 Removed."
-EN_FAULT_PS2_REMOVED_INFO|0x0821F002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 2 Removed."
-EN_FAULT_PS3_REMOVED_INFO|0x0821F003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 3 Removed."
-EN_FAULT_PS4_REMOVED_INFO|0x0821F004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 4 Removed."
+#EN_FAULT_PS1_REMOVED_INFO|0x0821F001|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 1 Removed."
+#EN_FAULT_PS2_REMOVED_INFO|0x0821F002|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 2 Removed."
+#EN_FAULT_PS3_REMOVED_INFO|0x0821F003|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 3 Removed."
+#EN_FAULT_PS4_REMOVED_INFO|0x0821F004|BCT,BC|SAHPI_CRITICAL|OVR_SEV,OVR_RID|"Power Supply 4 Removed."
 
 ###############
 # Power Sensors
