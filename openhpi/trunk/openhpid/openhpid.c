@@ -130,7 +130,7 @@ int discover_resources_msg(char * readbuffer, int sockfd)
             
                         discover_resources_msg.oh_event_arry[i].type = OH_ET_RESOURCE;
                         discover_resources_msg.oh_event_arry[i].u.res_event.id.ptr = NULL;
-			discover_resources_msg.oh_event_arry[i].u.res_event.domain_id = entry.DomainId;
+		 //       discover_resources_msg.oh_event_arry[i].u.res_event.domain_id = entry.DomainId;
                         memcpy(&discover_resources_msg.oh_event_arry[i].u.res_event.entry, 
                                &entry, 
                                sizeof(entry));         
