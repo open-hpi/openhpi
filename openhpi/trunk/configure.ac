@@ -374,7 +374,12 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wcast-qual \
 	-Wcast-align"
 
-CXX_WARNINGS="$CC_WARNINGS \
+CXX_WARNINGS="-Wall -Wmissing-prototypes \
+	-Wstrict-prototypes \
+	-Wpointer-arith \
+	-Werror \
+	-Wcast-qual \
+	-Wcast-align \
         -Wshadow \
         -Wwrite-strings \
         -Wredundant-decls"
