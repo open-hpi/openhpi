@@ -262,7 +262,14 @@ static SaHpiRdrT dummy_rdrs[] = {
 				.ThresholdDefn = {
 					.IsThreshold = SAHPI_TRUE,
 					.TholdCapabilities = SAHPI_STC_RAW,
-					.ReadThold = SAHPI_STM_LOW_CRIT,
+					.ReadThold = SAHPI_STM_LOW_MINOR|
+						     SAHPI_STM_LOW_MAJOR|
+						     SAHPI_STM_LOW_CRIT |
+						     SAHPI_STM_UP_MINOR |
+					             SAHPI_STM_UP_MAJOR |
+					             SAHPI_STM_UP_CRIT |
+					             SAHPI_STM_UP_HYSTERESIS |
+					             SAHPI_STM_LOW_HYSTERESIS,
 					.WriteThold = SAHPI_STM_LOW_CRIT,
 				},
 				.Oem = 0,
@@ -328,7 +335,14 @@ static SaHpiRdrT dummy_rdrs[] = {
 				.ThresholdDefn = {
 					.IsThreshold = SAHPI_TRUE,
 					.TholdCapabilities = SAHPI_STC_RAW | SAHPI_STC_INTERPRETED,
-					.ReadThold = SAHPI_STM_LOW_CRIT,
+					.ReadThold = SAHPI_STM_LOW_MINOR|
+						     SAHPI_STM_LOW_MAJOR|
+						     SAHPI_STM_LOW_CRIT |
+						     SAHPI_STM_UP_MINOR |
+					             SAHPI_STM_UP_MAJOR |
+					             SAHPI_STM_UP_CRIT |
+					             SAHPI_STM_UP_HYSTERESIS |
+					             SAHPI_STM_LOW_HYSTERESIS,
 					.WriteThold = SAHPI_STM_LOW_CRIT,
 				},
 				.Oem = 0,
@@ -458,7 +472,14 @@ static SaHpiRdrT dummy_rdrs[] = {
 				.ThresholdDefn = {
 					.IsThreshold = SAHPI_TRUE,
 					.TholdCapabilities=SAHPI_STC_RAW,
-					.ReadThold = SAHPI_STM_LOW_CRIT,
+					.ReadThold = SAHPI_STM_LOW_MINOR|
+						     SAHPI_STM_LOW_MAJOR|
+						     SAHPI_STM_LOW_CRIT |
+						     SAHPI_STM_UP_MINOR |
+					             SAHPI_STM_UP_MAJOR |
+					             SAHPI_STM_UP_CRIT |
+					             SAHPI_STM_UP_HYSTERESIS |
+					             SAHPI_STM_LOW_HYSTERESIS,
 					.WriteThold = SAHPI_STM_LOW_CRIT,
 				},
 				.Oem = 0,
@@ -528,7 +549,14 @@ static SaHpiRdrT dummy_rdrs[] = {
 				.ThresholdDefn = {
 					.IsThreshold = SAHPI_TRUE,
 					.TholdCapabilities=SAHPI_STC_RAW,
-					.ReadThold = SAHPI_STM_LOW_CRIT,
+					.ReadThold = SAHPI_STM_LOW_MINOR|
+						     SAHPI_STM_LOW_MAJOR|
+						     SAHPI_STM_LOW_CRIT |
+						     SAHPI_STM_UP_MINOR |
+					             SAHPI_STM_UP_MAJOR |
+					             SAHPI_STM_UP_CRIT |
+					             SAHPI_STM_UP_HYSTERESIS |
+					             SAHPI_STM_LOW_HYSTERESIS,
 					.WriteThold = SAHPI_STM_LOW_CRIT,
 				},
 				.Oem = 0,
@@ -623,23 +651,104 @@ static struct dummy_sensor {
 		},
 		.thresholds = {
 			.LowCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
+				/*
+				typedef struct {
+					SaHpiSensorReadingFormatsT  ValuesPresent;
+					SaHpiUint32T                Raw;
+					SaHpiSensorInterpretedT     Interpreted;
+					SaHpiSensorEvtStatusT       EventStatus;
+				} SaHpiSensorReadingT;
+				
+				typedef struct {
+					SaHpiSensorInterpretedTypeT  Type;
+					SaHpiSensorInterpretedUnionT Value;
+				} SaHpiSensorInterpretedT;
+				*/
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x7e,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "5 tics",
+					},
+				},
 			},
 			.LowMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0xff,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "88 tocs",
+					}
+				},
 			},
 			.LowMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x1fe,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "20,0000 leagues",
+					},
+				},
 			},
 			.UpCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x400,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "556 hands",
+					},
+				},
+
 			},
 			.UpMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x800,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "297 hectares",
+					},
+				},
+
 			},
 			.UpMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x1000,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "10 kilometers",
+					},
+				},
+
 			},
+			.PosThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x2000,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "5 decaliters",
+					},
+				},
+
+			},
+			.NegThdHysteresis = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 0x4000,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
+					.Value = {
+						.SensorBuffer = "1 centillion",
+					},
+				},
+
+			},
+
 
 		}
 	},
@@ -658,27 +767,35 @@ static struct dummy_sensor {
 		.thresholds = {
 			.LowCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x201,
 			},
 			.LowMajor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x202,
 			},
 			.LowMinor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x203,
 			},
 			.UpCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x204,
 			},
 			.UpMajor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x205,
 			},
 			.UpMinor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x206,
 			},
 			.PosThdHysteresis = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x207,
 			},
 			.NegThdHysteresis = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x208,
 			},
 
 		}
@@ -692,27 +809,35 @@ static struct dummy_sensor {
 		.thresholds = {
 			.LowCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x301,
 			},
 			.LowMajor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x302,
 			},
 			.LowMinor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x303,
 			},
 			.UpCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x304,
 			},
 			.UpMajor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x305,
 			},
 			.UpMinor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x306,
 			},
 			.PosThdHysteresis = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x307,
 			},
 			.NegThdHysteresis = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x308,
 			},
 
 
@@ -727,27 +852,35 @@ static struct dummy_sensor {
 		.thresholds = {
 			.LowCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x401,
 			},
 			.LowMajor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x402,
 			},
 			.LowMinor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x403,
 			},
 			.UpCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x404,
 			},
 			.UpMajor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x405,
 			},
 			.UpMinor = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x406,
 			},
 			.PosThdHysteresis = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x407,
 			},
 			.NegThdHysteresis = {
 				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 0x408,
 			},
 
 		}
@@ -1241,6 +1374,7 @@ static int dummy_get_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 				       SaHpiSensorNumT num,
 				       SaHpiSensorThresholdsT *thres)
 {
+	memset(thres, 0, sizeof(*thres));     
 	memcpy(thres, &dummy_sensors[num - 1].thresholds, sizeof(SaHpiSensorThresholdsT));     
 
 	return 0;
