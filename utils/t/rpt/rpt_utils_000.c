@@ -31,7 +31,7 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(rptable, NULL);
+        oh_init_rpt(rptable);
         SaHpiRptEntryT *tmpentry = NULL;
 
         if (oh_add_resource(rptable, rptentries, NULL, 0))

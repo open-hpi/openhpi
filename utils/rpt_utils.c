@@ -92,18 +92,16 @@ static void update_rptable(RPTable *table) {
         struct timeval tv;
         SaHpiTimeT time;
 
-        if (!table) {dbg("ERROR: Cannot work on a null table pointer."); return;}
-        if (!table->info) {
-                dbg("ERROR: This RPT has not been initialized! At least, call oh_init_rpt(NULL)");
+        if (!table) {
+                dbg("ERROR: Cannot work on a null table pointer.");
                 return;
-        }                
+        }
 
         gettimeofday(&tv, NULL);
         time = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
 
-        table->info->RptUpdateTimestamp = time;
-
-        table->info->RptUpdateCount = table->info->RptUpdateCount + 1;
+        table->update_timestamp = time;
+        table->update_count++;
 }
 
 /**
@@ -131,25 +129,22 @@ SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
 
 /**
  * oh_init_rpt
- * @info: Pointer to the domain info structure that will be updated
- * with the rpt update count and update timestamp.
+ * @table: Pointer to RPTable structure to be initialized.
  *
- * If @info is passed in as NULL, the rpt will be initialized to use its own
- * internal domain info.
  *
  * Returns: SA_OK on success Or minus SA_OK on error.
  **/
-SaErrorT oh_init_rpt(RPTable *table, SaHpiDomainInfoT *info)
+SaErrorT oh_init_rpt(RPTable *table)
 {
         if (!table) {
                 dbg("ERROR: Cannot work on a null table pointer.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        if (!info)
-                table->info = &(table->local_info);
-        else
-                table->info = info;
+        table->update_timestamp = SAHPI_TIME_UNSPECIFIED;
+        table->update_count = 0;
+        table->rptlist = NULL;
+        table->rptable = NULL;        
 
         return SA_OK;
 }
@@ -268,16 +263,13 @@ SaErrorT oh_get_rpt_info(RPTable *table,
                          SaHpiUint32T *update_count,
                          SaHpiTimeT *update_timestamp)
 {
-        if (!table || update_count || update_timestamp) {
+        if (!table || !update_count || !update_timestamp) {
                 dbg("ERROR: Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (!table->info) {
-                dbg("ERROR: This RPT has not been initialized! At least, call oh_init_rpt(NULL)");
-                return SA_ERR_HPI_ERROR;
         }
 
-        *update_count = table->info->RptUpdateCount;
-        *update_timestamp = table->info->RptUpdateTimestamp;
+        *update_count = table->update_count;
+        *update_timestamp = table->update_timestamp;
 
         return SA_OK;
 }

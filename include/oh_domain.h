@@ -54,7 +54,10 @@ struct oh_domain {
         void *drt;
 
         /* Domain Information */
-        SaHpiDomainInfoT info;
+        SaHpiDomainCapabilitiesT capabilities;
+        SaHpiBoolT        is_peer;
+        SaHpiTextBufferT  tag;
+        SaHpiGuidT        guid;        
 
         /* Domain Event Log */
         oh_el *del;
@@ -66,7 +69,7 @@ struct oh_domain {
 };
 
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
-                                SaHpiBoolT isPeer,
+                                SaHpiBoolT is_peer,
                                 SaHpiTextBufferT *tag);
 SaHpiDomainIdT oh_get_default_domain_id(void);
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did);
