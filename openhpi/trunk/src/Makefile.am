@@ -30,6 +30,7 @@
 #
 
 
+pkglibdir = $(libdir)/openhpi/standard
 
 MAINTAINERCLEANFILES    = Makefile.in plugin_static.c
 MOSTLYCLEANFILES        = @TEST_CLEAN@
@@ -43,7 +44,7 @@ DIST_SUBDIRS            = t
 
 AM_CFLAGS               = @CFLAGS@
 
-lib_LTLIBRARIES         = libopenhpi.la
+pkglib_LTLIBRARIES         = libopenhpi.la
 
 libopenhpi_la_SOURCES   = \
                            config.c \
