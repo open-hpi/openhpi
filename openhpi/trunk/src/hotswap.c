@@ -2,6 +2,7 @@
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2003
+ * Copyright (c) 2004 by FORCE Computers.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  * Contributors:
  *     David Judkovics <djudkovi@us.ibm.com> 
  */
@@ -41,7 +43,8 @@ void process_hotswap_policy(struct oh_handler *handler)
 
 
         while( hotswap_pop_event(&e) > 0 ) {
-        
+                struct oh_resource_data *rd;
+
                 if (e.event.EventType != SAHPI_ET_HOTSWAP) {
                         dbg("Non-hotswap event!");
                         return;
@@ -54,7 +57,13 @@ void process_hotswap_policy(struct oh_handler *handler)
                         return;
                 }
 
-                if (oh_is_resource_managed(e.parent)) {
+                rd = oh_get_resource_data(default_rpt, e.parent);
+                if (!rd) {
+                        dbg( "Can't find resource data for Resource %d", e.parent);
+                        continue;
+                }
+
+                if (rd->controlled) {
                         dbg();
                         continue;
                 }
@@ -65,13 +74,15 @@ void process_hotswap_policy(struct oh_handler *handler)
                                 == SAHPI_HS_STATE_INSERTION_PENDING) {
                         est = e.event.Timestamp + get_hotswap_auto_insert_timeout();
                         if (cur>=est) {
-				handler->abi->set_hotswap_state( handler->hnd, e.parent, SAHPI_HS_STATE_ACTIVE_HEALTHY);
+				handler->abi->set_hotswap_state( handler->hnd, e.parent,
+                                                                 SAHPI_HS_STATE_ACTIVE_HEALTHY);
                         }
                 } else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
                                 == SAHPI_HS_STATE_EXTRACTION_PENDING) {
-                        est = e.event.Timestamp /* + res->auto_extract_timeout */  + 1 /* sum pos */;
+                        est = e.event.Timestamp + rd->auto_extract_timeout + 1 /* sum pos */;
                         if (cur>=est) {
-                               handler->abi->set_hotswap_state(handler->hnd, e.parent, SAHPI_HS_STATE_INACTIVE);
+                               handler->abi->set_hotswap_state(handler->hnd, e.parent,
+                                                               SAHPI_HS_STATE_INACTIVE);
                         }
                 } else {
                         dbg();
@@ -146,7 +157,7 @@ int hotswap_has_event()
         return (hs_eq == NULL) ? 0 : 1;
 }
 
-static SaHpiTimeoutT hotswap_auto_insert_timeout;
+static SaHpiTimeoutT hotswap_auto_insert_timeout = 0;
 
 SaHpiTimeoutT get_hotswap_auto_insert_timeout(void)
 {
@@ -158,3 +169,16 @@ void set_hotswap_auto_insert_timeout(SaHpiTimeoutT to)
         hotswap_auto_insert_timeout = to;
 }
 
+
+/* default auto extract timeout */
+static SaHpiTimeoutT hotswap_auto_extract_timeout = 0;
+
+SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void)
+{
+        return hotswap_auto_extract_timeout;
+}
+
+void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to)
+{
+        hotswap_auto_extract_timeout = to;
+}

@@ -22,8 +22,11 @@
 /* declare Rptable object */		     
 RPTable *default_rpt = NULL; 
 
+
+#if 0
 /* declare hotswap state list */
-GSList *managed_hs_resources = NULL;
+ GSList *managed_hs_resources = NULL;
+#endif
 
 static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
 {
@@ -810,6 +813,8 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         return &(rdrecord->rdr);
 }
 
+
+#if 0
 /************************************************************************************
  *
  *  Managed Hotswap State Functions
@@ -847,3 +852,4 @@ int oh_set_resource_managed(SaHpiResourceIdT rid, guint32 state) {
         managed_hs_resources = g_slist_append(managed_hs_resources,rnew);
         return 0;
 }
+#endif
