@@ -1577,7 +1577,9 @@ typedef struct {
 
 /* Watchdog Number - Identifier for a watchdog timer. */
 typedef SaHpiUint8T SaHpiWatchdogNumT;
-#define SAHPI_DEFAULT_WATCHDOG_NUM (SaHpiWatchdogT)0x00
+/* Using SaHpiWatchdogNumT instead of SaHpiWatchdogT as in spec. */
+/* Spec believed to be in error since SaHpiWatchdogT is a struct. */
+#define SAHPI_DEFAULT_WATCHDOG_NUM (SaHpiWatchdogNumT)0x00
 
 /*
 ** Watchdog Timer Action
