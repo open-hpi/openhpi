@@ -168,11 +168,12 @@ SaErrorT oh_harvest_events()
         unsigned int hid = 0, next_hid;
         struct oh_handler *h = NULL;
 
+        data_access_lock();
+
         oh_lookup_next_handler(hid, &next_hid);
         while (next_hid) {
-                dbg("harvesting for %d", next_hid);
+                trace("harvesting for %d", next_hid);
                 hid = next_hid;
-                data_access_lock();
 
                 h = oh_lookup_handler(hid);
                 if(!h) {
@@ -187,10 +188,10 @@ SaErrorT oh_harvest_events()
 		 */		
                 if (harvest_events_for_handler(h) == SA_OK && error)
                         error = SA_OK;
-                data_access_unlock();
 
                 oh_lookup_next_handler(hid, &next_hid);
         }
+        data_access_unlock();
 
         return error;
 }
