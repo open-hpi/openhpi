@@ -215,9 +215,6 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
 
-       gtimeval.tv_sec = timeout / 1000000000;
-       gtimeval.tv_usec = timeout % 1000000000 / 1000;
-       
        g_mutex_lock(sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(sessions.table, &sid);
        if (!session) {
@@ -225,13 +222,25 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                return SA_ERR_HPI_NOT_PRESENT;
        }
 
-       devent = g_async_queue_timed_pop(session->eventq2, &gtimeval);
-       memcpy(event, devent, sizeof(struct oh_event));
-       g_free(devent);
+       if (timeout == SAHPI_TIMEOUT_IMMEDIATE) {
+               devent = g_async_queue_try_pop(session->eventq2);               
+       } else if (timeout == SAHPI_TIMEOUT_BLOCK) {
+               devent = g_async_queue_pop(session->eventq2);
+       } else {
+               gtimeval.tv_sec = timeout / 1000000000;
+               gtimeval.tv_usec = timeout % 1000000000 / 1000;
+               devent = g_async_queue_timed_pop(session->eventq2, &gtimeval);               
+       }       
 
-       g_mutex_unlock(sessions.lock); /* Unlocked session table */
-
-       return SA_OK;       
+       if (devent) {
+               memcpy(event, devent, sizeof(struct oh_event));
+               g_free(devent);
+               g_mutex_unlock(sessions.lock); /* Unlocked session table */
+               return SA_OK;
+       } else {
+               g_mutex_unlock(sessions.lock); /* Unlocked session table */
+               return SA_ERR_HPI_TIMEOUT;
+       }
 }
 
 /**
