@@ -71,7 +71,7 @@ static void ShowSensor(
                         if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE) 
                                 printf(" = %x %x\n", reading.EventStatus.SensorStatus,
                                        reading.EventStatus.EventStatus);
-                        else printf(" = no reading\n");
+                        else printf(" = event-only sensor\n");
                         return;
                 } else {
                         /* have raw, but not interpreted, so try convert. */
