@@ -14,6 +14,7 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Racing Guo <racing.guo@intel.com>
  * Contributors:
  *     David Judkovics <djudkovi@us.ibm.com> 
  */
@@ -27,6 +28,8 @@
 #include <oh_hotswap.h>
 #include <oh_utils.h>
 
+GSList *hs_eq = NULL;
+
 void process_hotswap_policy()
 {
         SaHpiTimeT cur, est;	   
@@ -34,11 +37,12 @@ void process_hotswap_policy()
 	struct oh_handler *handler;
 	struct oh_domain *domain;
         RPTable *rpt;
+	GSList *tmp_hs_eq = NULL;
 
         int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
         
-        while( hotswap_pop_event(&e) > 0 ) {
+        while( hotswap_pop_event(&hs_eq, &e) > 0 ) {
                 struct oh_resource_data *rd;
                
 		domain = oh_get_domain(e.did);
@@ -111,7 +115,7 @@ void process_hotswap_policy()
                                                                  SAHPI_HS_STATE_ACTIVE);
                         }else {
 				/*push again in order to process in the feature*/
-				hotswap_push_event(&e);
+				hotswap_push_event(&tmp_hs_eq, &e);
 			}
                 } else if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
                            == SAHPI_HS_STATE_EXTRACTION_PENDING) {
@@ -121,23 +125,29 @@ void process_hotswap_policy()
                                                                 SAHPI_HS_STATE_INACTIVE);
                         } else {
 				/*push again in order to process in the feature*/
-                                hotswap_push_event(&e);
+                                hotswap_push_event(&tmp_hs_eq, &e);
 			}
                 } else {
                         dbg();
                 }
 		oh_release_domain(domain);
         }
+
+	/* Make sure:
+	   1. hs_eq has no event (hotswap_pop_event(&e) > 0)
+	   2. process_hotswap_policy is not reentry. (only one thread call this function)
+	*/
+
+	hs_eq = tmp_hs_eq;
 }
 
-static GSList *hs_eq=NULL;
 /*
  * session_push_event pushs and event into a session.
  * We store a copy of event so that caller of the function
  * needn't care about ref counter of the event.
 */
 
-int hotswap_push_event(struct oh_event *e)
+int hotswap_push_event(GSList **hs_eq, struct oh_event *e)
 {
         struct oh_event *e1;
 
@@ -151,7 +161,7 @@ int hotswap_push_event(struct oh_event *e)
         }
         memcpy(e1, e, sizeof(*e));
 
-        hs_eq = g_slist_append(hs_eq, (gpointer *) e1);
+        *hs_eq = g_slist_append(*hs_eq, (gpointer *) e1);
         
         data_access_unlock();
 
@@ -165,19 +175,19 @@ int hotswap_push_event(struct oh_event *e)
  * here doesn't jive with the rest of the exit codes
  */
 
-int hotswap_pop_event(struct oh_event *e) 
+int hotswap_pop_event(GSList **hs_eq, struct oh_event *e) 
 {
         GSList *head;
         
         data_access_lock();
 
-        if (g_slist_length(hs_eq) == 0) {
+        if (g_slist_length(*hs_eq) == 0) {
                 data_access_unlock();
                 return 0;
         }
        
-        head = hs_eq;
-        hs_eq = g_slist_remove_link(hs_eq, head);
+        head = *hs_eq;
+        *hs_eq = g_slist_remove_link(*hs_eq, head);
         
         memcpy(e, head->data, sizeof(*e));
         
@@ -192,7 +202,7 @@ int hotswap_pop_event(struct oh_event *e)
 /*
  * session_has_event - query if the session has events
  */
-int hotswap_has_event()
+int hotswap_has_event(GSList *hs_eq)
 {
         return (hs_eq == NULL) ? 0 : 1;
 }
