@@ -17,6 +17,7 @@
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 #include <tsetup.h>
+extern void * snmp_bc_sim_handler;
 
 SaErrorT tsetup (SaHpiSessionIdT *sessionid_ptr)
 {
