@@ -70,18 +70,23 @@ static void close_handlers_atexit(void)
 extern GCond *oh_thread_wait;
 extern GMutex *oh_thread_mutex;
 
-void oh_wake_event_thread(void)
+void oh_wake_event_thread(SaHpiBoolT wait)
 {
-        g_cond_signal(oh_thread_wait);
-        /* this is a trick, it tries to lock the mutex (which
-           will not be free until the thread finishes) */
-        dbg("Usleeping 1");
-        g_usleep(1);
-        dbg("Attempting to get lock");
-        g_mutex_lock(oh_thread_mutex);
-        dbg("Got lock");
-        g_mutex_unlock(oh_thread_mutex);
-        dbg("Gave back the lock");
+        trace("Waking thread");
+        g_cond_broadcast(oh_thread_wait);
+        if(wait) {
+                /* the wait concept is important.  By taking these locks
+                   we ensure that the thread is forced to go through
+                   at least one cycle (though it could be 2 based on 
+                   racing) This is important for the infrastructure on
+                   calls like discover, which need to know *now* what
+                   is going on.  Plugins probably don't care, but we
+                   leave it as an option anyway. */
+                g_mutex_lock(oh_thread_mutex);
+                trace("Got the lock on the thread");
+                g_mutex_unlock(oh_thread_mutex);
+                trace("Gave back the thread lock");
+        }
 }
 
 /**

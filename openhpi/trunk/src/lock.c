@@ -16,6 +16,7 @@
 #include <oh_lock.h>
 
 int oh_will_block = 0;
+int lockcount = 0;
 
 #ifdef HAVE_THREAD_SAFE
 /* multi-threading support, use Posix mutex for data access */

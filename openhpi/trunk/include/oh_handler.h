@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-void oh_wake_event_thread(void);
+void oh_wake_event_thread(SaHpiBoolT);
 
 /*
  * Common OpenHPI implementation specific definitions
