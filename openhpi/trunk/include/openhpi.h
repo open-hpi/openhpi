@@ -404,15 +404,9 @@ static inline void gettimeofday1(SaHpiTimeT *t)
         *t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;   
 }
 
-#ifdef HAVE_THREAD_SAFE
 void data_access_lock(void);
 void data_access_unlock(void);
 int data_access_block_times(void); 
-#else
-static inline void data_access_lock(void) {};
-static inline void data_access_unlock(void) {};
-static inline int data_access_block_times(void){};
-#endif
 
 #define dbg(format, ...)                                      \
         do {                                                                          \
