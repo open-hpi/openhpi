@@ -157,11 +157,19 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	    || ((ipmi_entity_get_entity_id(entity) == 7 || 15))) {
 
 			char *str;
+			char *str2;
+
 			str = ipmi_entity_get_entity_id_string(entity);
+
 			if (!(strcmp(str, "invalid"))) {
 				dbg("entity_id_string is invlaid, bad SDR..stick to entity_id");
-			} else
-				memcpy(entry->ResourceTag.Data, str, strlen(str) + 1);
+			} else {
+			  	/* Let's identify the entity-instance in the ResourceTag */
+				  str2 = (char *)calloc(strlen(str) + 1, sizeof(char));
+				  snprintf(str2, strlen(str) + 3, "%s-%d",str,
+					   	ipmi_entity_get_entity_instance(entity));
+				  memcpy(entry->ResourceTag.Data, str2, strlen(str2) + 1);
+			}
 	}
 	entry->ResourceTag.DataLength = (SaHpiUint32T)strlen(entry->ResourceTag.Data);
 }
