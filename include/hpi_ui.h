@@ -75,11 +75,12 @@ typedef struct {
 typedef struct {
 	SaHpiSessionIdT		sessionId;
 	SaHpiDomainIdT		domainId;
+	int			session_opened;
+	int			discovered;
 } Domain_t;
 
 typedef int (*hpi_ui_print_cb_t)(char *buf);
 
-extern Domain_t	*init_resources(SaHpiSessionIdT session);	// create resources tree
 extern SaErrorT	find_rdr_by_num(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiInstrumentIdT num, SaHpiRdrTypeT type, int as,
 			SaHpiRdrT *retrdr);
@@ -109,6 +110,8 @@ extern SaErrorT	show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			int show_short, hpi_ui_print_cb_t proc);
+extern SaErrorT	show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+			SaHpiIdrIdT num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc);
 extern int	show_rdr_list(Domain_t *D, SaHpiResourceIdT resourceid,
