@@ -27,7 +27,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-EXTRA_DIST		= openhpi-switcher.pod.1
+EXTRA_DIST		= openhpi-switcher.pod.1 openhpi.pod.7
 
 %.1: %.pod.1
 	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.1//'` \
@@ -41,13 +41,17 @@ EXTRA_DIST		= openhpi-switcher.pod.1
 	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.5//'` \
 		-s 5 -c "OpenHPI" $< $@
 
-man_MANS = openhpi-switcher.1
+%.7: %.pod.7
+	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.7//'` \
+		-s 7 -c "OpenHPI" $< $@
+
+man_MANS = openhpi-switcher.1 openhpi.7
 
 clean-local: am_config_clean-local
 
 am_config_clean-local:
 	rm -f *~
-	find . -name \*\.[135] | grep -v pod | xargs rm -f
+	find . -name \*\.[1357] | grep -v pod | xargs rm -f
 
 
 .PHONY: FORCE
