@@ -15,7 +15,6 @@
 
 #include <snmp_bc_plugin.h>
 
-#if 0
 SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiHsStateT *state)
 {
@@ -32,7 +31,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
         struct BC_ResourceInfo *s =
                 (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 	if(s->mib.OidHealth == NULL) { 
 		return SA_ERR_HPI_INVALID_CMD;
@@ -41,16 +40,16 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 	oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidHealth);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.OidHealth);
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	status = snmp_bc_snmp_get(custom_handle,oid,&get_value);
 	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
 		if(get_value.integer == s->mib.HealthyValue) { 
-			*state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+			*state = SAHPI_HS_STATE_ACTIVE;
 		}
 		else { 
-			*state = SAHPI_HS_STATE_ACTIVE_UNHEALTHY;
+			*state = SAHPI_HS_STATE_INACTIVE;
 		}
         } else {
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
@@ -74,7 +73,6 @@ SaErrorT snmp_bc_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
         return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-#endif
 SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiResetActionT *act)
 {
@@ -124,7 +122,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidReset);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.OidReset);
-			return SA_ERR_HPI_INVALID_CMD;
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 		
 		set_value.type = ASN_INTEGER;
