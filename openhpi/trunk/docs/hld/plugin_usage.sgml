@@ -246,27 +246,27 @@ handler libwatchdog {
         --enable-sysfs</literal> when running ./configure.
       </para>
       <para>
-        The sysfs plugin in release 0.4 and later relies on libsysfs 0.3.0
-        (found in sysutils 0.2.0) 
+        The sysfs plugin in OpenHPI release 0.4 and later relies on libsysfs 
+        0.3.0 (found in sysutils 0.3.0) 
         <ulink
           url="http://linux-diag.sourceforge.net/Sysfsutils.html"
           >on the Linux Diagnostic Tools project page</ulink>.
       </para>
       <para>
-        The sysfs plugin in release 0.3 relies on libsysfs 0.2.0* (found
-        in sysutils 0.2.0).  Source code can be retrieved from cvs using
-        the tag libsysfs0_2_0.
-        The sysfs plugin relies on libsysfs 0.2.0* (found in sysutils 0.2.0)
+        The sysfs plugin in release 0.3 relies on libsysfs 0.2.0 (found
+        in sysutils 0.2.0) 
         <ulink
           url="http://linux-diag.sourceforge.net/Sysfsutils.html"
           >on the Linux Diagnostic Tools project page</ulink>.
-        The libsysfs0.2.0 has two bugs that need to be fixed before using
-	this plugin.  Applying the two patches (separate, sorry!) will
-	fix these:
+        Source code for the sysfs plugin that works with libsysfs 0.2.0
+        can be retrieved from OpenHPI cvs using the tag libsysfs0_2_0.
+        libsysfs0.2.0 has two bugs that need to be fixed before using the
+	OpenHPI sysfs plugin.  Applying the two patches below (separate, sorry!)
+	will fix these.  Both issues are fixed in libsysfs 0.3.0.
 	</para>
-	<para>
-        This issue is fixed with libsysfs 0.3.0.
-	</para>
+        <para>
+        Patch 1:
+        </para>
         <programlisting role="C">
 --- sysfsutils-0_2_0/lib/sysfs_device.c.orig    2003-10-17 11:25:37.000000000 -0
 700
@@ -278,10 +278,10 @@ handler libwatchdog {
 +       strcpy(attrname, name);
         dlist_for_each_data(dev->directory->attributes, cur,
         </programlisting>
-	<para>
-        This issue is fixed with libsysfs 0.3.0.
-	</para>
         <programlisting role="C">
+        <para>
+        Patch 2:
+        </para>
 --- sysfs_dir.c.orig    2003-08-29 04:43:27.000000000 -0700
 +++ sysfs_dir.c 2003-11-20 11:28:36.000000000 -0800
 @@ -274,6 +274,7 @@
