@@ -50,7 +50,7 @@ static struct {
         //unsigned char dbg_lock;
         unsigned char threaded;        
         char path[OH_GLOBAL_STR_MAX_LENGTH];
-        char conf[OH_GLOBAL_STR_MAX_LENGTH];
+        char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned char read_env;
         GStaticRecMutex lock;
 } global_params = {
@@ -261,8 +261,8 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_CONF", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                memset(global_params.conf, 0, OH_GLOBAL_STR_MAX_LENGTH);
-                strncpy(global_params.conf, value, OH_GLOBAL_STR_MAX_LENGTH-1);
+                memset(global_params.conf, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+                strncpy(global_params.conf, value, SAHPI_MAX_TEXT_BUFFER_LENGTH-1);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else {
                 dbg("ERROR. Invalid global parameter %s in config file", name);
@@ -650,7 +650,7 @@ int oh_get_global_param(struct oh_global_param *param)
                         g_static_rec_mutex_lock(&global_params.lock);
                         strncpy(param->u.conf,
                                 global_params.conf,
-                                OH_GLOBAL_STR_MAX_LENGTH);
+                                SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 default:
@@ -709,10 +709,10 @@ int oh_set_global_param(struct oh_global_param *param)
                         break;
                 case OPENHPI_CONF:
                         g_static_rec_mutex_lock(&global_params.lock);
-                        memset(global_params.conf, 0, OH_GLOBAL_STR_MAX_LENGTH);
+                        memset(global_params.conf, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         strncpy(global_params.conf,
                                 param->u.conf,
-                                OH_GLOBAL_STR_MAX_LENGTH-1);
+                                SAHPI_MAX_TEXT_BUFFER_LENGTH-1);
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
                 default:

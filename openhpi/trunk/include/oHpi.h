@@ -52,7 +52,7 @@ typedef union {
         //unsigned char DebugLock; /* !0 = YES, 0 = NO */
         unsigned char Threaded; /* !0 = YES, 0 = NO */
         char Path[OH_GLOBAL_STR_MAX_LENGTH];
-        char Conf[OH_GLOBAL_STR_MAX_LENGTH];
+        char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 } oHpiGlobalParamUnionT;
 
 typedef struct {
