@@ -72,6 +72,7 @@
 #define SNMP_BC_MAX_OID_LENGTH 50
 
 /* OIDs to determine platform types */
+#define SNMP_BC_PLATFORM_OID_BC   ".1.3.6.1.4.1.2.3.51.2.2.7.1.0" /* BCI System Health */
 #define SNMP_BC_PLATFORM_OID_BCT  ".1.3.6.1.4.1.2.3.51.2.2.9.1.0" /* BCT System Health */
 #define SNMP_BC_PLATFORM_OID_RSA  ".1.3.6.1.4.1.2.3.51.1.2.7.1.0" /* RSA System Health */
 
@@ -107,7 +108,7 @@ typedef enum {
 #define RSA_MAX_FAN    8
 #define RSA_MAX_DASD   4
 
-/* Maximum entries in BladeCenter and RSA eventlog, approximate */
+/* Maximum entries in eventlog, approximate */
 #define BC_EL_MAX_SIZE 768 /* 512 */
 
 /* OID definitions for discovering resources.*/
