@@ -35,6 +35,8 @@ MOSTLYCLEANFILES 	= \
 	@TEST_CLEAN@ \
 	*.log
 
+MAINTAINERCLEANFILES 	= Makefile.in *~
+
 CLEANFILES		= @CLEANFILES@ $(MOSTLYCLEANFILES)
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/plugins/ipmidirect
