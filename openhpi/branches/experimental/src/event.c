@@ -22,6 +22,7 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 #include <epath_utils.h>
+#include <uid_utils.h>
 
 static void process_session_event(struct oh_hpi_event *e)
 {
@@ -83,7 +84,10 @@ static void process_resource_event(struct oh_handler *h, struct oh_resource_even
                 ep_concat(&res->entry.ResourceEntity, &root_ep);
         }
         
-        res->entry.ResourceId = global_rpt_counter;
+        if(res->entry.ResourceId == 0) {
+                res->entry.ResourceId = oh_uid_from_entity_path(&(res->entry.ResourceEntity));
+        }
+
         if (res->entry.ResourceCapabilities&SAHPI_CAPABILITY_DOMAIN) {
                 dbg("New domain in resource!");
                 if (!get_domain_by_oid(e->domain_id)) {
