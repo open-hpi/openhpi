@@ -5,10 +5,10 @@
 
 #plugin	plugin-name
 
-#plugin	libdummy
+plugin	libdummy
 
 #Depends on openipmi to be installed on this system:
-plugin libipmi
+#plugin libipmi
 
 #Depends on net-snmp being installed on the system:
 #plugin libsnmp_bc
@@ -17,11 +17,11 @@ plugin libipmi
 ###Second section is a handler (instance) declaration with arguments understood by plugin
 #Strings are enclosed by "", numbers are not.
 
-#handler	libdummy {
-#        entity_root = "{SYSTEM_CHASSIS,0}"
-#        name = "test"
-#	addr =	0
-#}
+handler	libdummy {
+        entity_root = "{SYSTEM_CHASSIS,0}"
+        name = "test"
+	addr =	0
+}
 
 # Dummy allows you open second virtual by addr 1
 #handler	libdummy {
@@ -30,10 +30,10 @@ plugin libipmi
 
 #section for ipmi plugin using SMI -- local interface
 
-handler libipmi	{
-	name = "smi"
-	addr = 0
-}
+#handler libipmi	{
+#	name = "smi"
+#	addr = 0
+#}
 
 #Section for ipmi plugin based on OpenIPMI:
 
