@@ -68,7 +68,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 	/* Initialize "String to Event" mapping hash table */
 	/* FIXME:: Add RSA initialization here */
 	if (errlog2event_hash_use_count == 0) {
-		if (errlog2event_hash_init(&errlog2event_hash, bc_eventxml)) {
+		if (errlog2event_hash_init(custom_handle)) {
 			dbg("Out of memory.");
 			return NULL;
 		}
@@ -272,10 +272,9 @@ void snmp_bc_close(void *hnd)
 	/* Cleanup event2hpi hash table */
 	event2hpi_hash_free(handle);
 
-	/* Cleanup str2event hash table */
-	/* FIXME:: Add RSA free here */
+	/* Cleanup errlog2event_hash table */
 	errlog2event_hash_use_count--;
 	if (errlog2event_hash_use_count == 0) {
-		errlog2event_hash_free(&errlog2event_hash);
+		errlog2event_hash_free();
 	}
 }

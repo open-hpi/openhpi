@@ -10,8 +10,14 @@
 # full licensing terms.
 
 # Generated files - need to keep in sync with parent's directory's Makefile.am
-GENERATED_CODE = event_array.c 
-# event_array_rsa.c
+GENERATED_EVENT_HEADER_FILES = \
+				el.h \
+				el2event.h
+
+GENERATED_EVENT_XML_MAP = event.xml
+GENERATED_EVENT_CODE = el2event.c
+
+GENERATED_CODE = $(GENERATED_EVENT_HEADER_FILES) $(GENERATED_EVENT_XML_MAP) $(GENERATED_EVENT_CODE)
 
 REMOTE_SIM_SOURCES   = \
 			snmp_bc.c \
@@ -57,12 +63,13 @@ $(REMOTE_SIM_SOURCES):
 		ln -s ../$@; \
 	fi
 
-libsnmp_bc_la_SOURCES	= $(GENERATED_CODE) \
-			  $(REMOTE_SIM_SOURCES) \
-			  sim_init.c \
-			  sim_resources.c \
-			  snmp_utils.c \
-			  tsetup.c
+libsnmp_bc_la_SOURCES	= \
+			$(GENERATED_EVENT_CODE) \
+			$(REMOTE_SIM_SOURCES) \
+			sim_init.c \
+			sim_resources.c \
+			snmp_utils.c \
+			tsetup.c
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@
 libsnmp_bc_la_LDFLAGS	= -version 0:0:0
@@ -71,15 +78,15 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Keep in sync with parent directory's Makefile.am
-XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/event.xml
+EVENT_MAP_FILE = $(top_srcdir)/plugins/snmp_bc/snmp_bc_event.map
+EVENT_MAP_SCRIPT = $(top_srcdir)/plugins/snmp_bc/eventmap2code.pl
+EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
-#XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
+$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
+	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
 
-$(GENERATED_CODE): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
-	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml $(XMLDATA_BC) > event_array.c
-
-
-#	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > event_array_rsa.c
+$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
+	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf
@@ -92,7 +99,6 @@ TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 TESTS = 
 #	tevent \
 #	tcontrol_parms
-       	
 #	tset_resource_tag \
 #	tset_resource_sev \
 #	tsnmp_bc_getset \

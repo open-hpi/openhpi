@@ -593,6 +593,22 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
                                         .recovery_state = SAHPI_ES_UNSPECIFIED,
                                 },
+				{
+                                        .event = "0001C500", /* EN_CUTOFF_HI_OVER_TEMP_SP_CARD */
+					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_TRUE,
+                                        .event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                },
+                                {
+                                        .event = "0001D400", /* EN_PFA_HI_OVER_TEMP_SP_CARD */
+ 					.event_assertion = SAHPI_TRUE,
+					.event_res_failure = SAHPI_FALSE,
+					.event_res_failure_unexpected = SAHPI_FALSE,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+                                        .recovery_state = SAHPI_ES_UNSPECIFIED,
+                                },
                                 {},
                         },
 			/* Default HDW thresholds: Warning=60; Warning Reset=55 */
