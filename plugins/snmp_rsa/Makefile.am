@@ -31,5 +31,5 @@ libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
 	     			snmp_rsa_discover.c \
 	     			snmp_rsa_session.c
 
-libsnmp_rsa_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libsnmp_util.la
+libsnmp_rsa_la_LIBADD	= @SNMPLIBS@ $(SNMPUTILBDIR)/libsnmp_util.la -luuid 
 libsnmp_rsa_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
