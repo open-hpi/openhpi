@@ -28,7 +28,7 @@
 
 #define NCT 25
 
-char progver[] = "0.8";
+char progver[] = "0.a";
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
 	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
@@ -337,9 +337,9 @@ main(int argc, char **argv)
 						if (rv == SA_OK)
 	      					{
 	 						/* Walk thru the list of inventory data */
-		 					 if (inv->Validity == SAHPI_INVENT_DATA_VALID) 
+		 					if (inv->Validity == SAHPI_INVENT_DATA_VALID) 
 		  					{
-                                                                for( i = 0; inv->DataRecords[i]; i++ )
+                                                                for( i = 0; inv->DataRecords[i] != NULL; i++ )
                                                                 {
                                                                         if (fdebug) printf( "Record = %d Index = %d type=%x len=%d\n", i, 
                                                                                             i, inv->DataRecords[i]->RecordType, 
