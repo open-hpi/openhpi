@@ -14,6 +14,8 @@
  *
  */
 
+#ifndef RPT_UTILS_H
+#define RPT_UTILS_H
 #include <SaHpi.h>
 #include <glib.h>
 
@@ -21,38 +23,39 @@ typedef struct {
         SaHpiRptInfoT rpt_info;
         /* The structure to hold this is subject to change. */
         /* No one should touch this. */
-        GSList rptable; /* Contains RPTEntrys */
+        GSList *rptable; /* Contains RPTEntrys */
 } RPTable;
 
 typedef struct {
         SaHpiRptEntryT rpt_entry;
         void *data; /* private data for the owner of the RPTable */
-        RDRTable rdrtable;  /* Contains RDRecords */
+        GSList *rdrtable;  /* Contains RDRecords */
 } RPTEntry;
 
 typedef struct {
-       SaHpiRdrT rdrecord;
+       SaHpiRdrT rdr;
        void *data /* private data for the owner of the rpt entry. */
 } RDRecord;
 
 /* Resource */
-int oh_add_resource(RPTable table, SaHpiRptEntryT entry, void *data);
+int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data);
 
-int oh_remove_resource(RPTable table, SaHpiResourceIdT rid);
+int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid);
 
-void *oh_get_resource_data(RPTable table, SaHpiResourceIdT rid);
-SaHpiRptEntryT *oh_get_resource_by_id(RPTable table, SaHpiResourceIdT rid);
-SaHpiRptEntryT *oh_get_resource_by_ep(RPTable table, SaHpiEntityPathT *ep);
-SaHpiRptEntryT *oh_get_resource_next(RPTable table, SaHpiResourceIdT rid_prev);
+void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid);
+SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid);
+SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep);
+SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev);
 
 /* RDR */
-int oh_add_rdr(RPTable table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data);
+int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data);
 
-int oh_remove_rdr(RPTable table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
+int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
 
-void *oh_get_rdr_data(RPTable table, SaHpiResourceIdT rid);
-SaHpiRdrT *oh_get_rdr_by_id(RPTable table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
-SaHpiRdrT *oh_get_rdr_by_type(RPTable table, SaHpiResourceIdT rid,
+void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
+SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
+SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                               SaHpiRdrTypeT type, SaHpiUint8T num);
-SaHpiRdrT *oh_get_rdr_next(RPTable table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev);
+SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev);
 
+#endif
