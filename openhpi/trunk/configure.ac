@@ -301,22 +301,6 @@ AC_ARG_ENABLE([snmp_bc],
     fi]
     )
 
-AC_ARG_ENABLE([snmp_rsa],
-    [  --enable-snmp_rsa       build IBM RSA plugin [default=no]],
-    [if test "x$enableval" = "xyes"; then
-        if test "x$have_netsnmp" = "xyes"; then
-            AC_SUBST(SNMP_RSA,snmp_rsa)
-        else
-            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
-                Can not build IBM RSA support without net-snmp)
-        fi
-    fi])
-
-dnl    [if test "x$have_netsnmp" = "xyes"; then
-dnl            AC_SUBST(SNMP_RSA,snmp_rsa)
-dnl    fi]
-dnl    )
-
 AC_ARG_ENABLE([ipmidirect],
     [  --enable-ipmidirect     build direct ipmi plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
@@ -577,8 +561,6 @@ AC_CONFIG_FILES([openhpi.spec
 	plugins/ipmi/t/Makefile
         plugins/snmp_bc/Makefile
         plugins/snmp_bc/t/Makefile
-        plugins/snmp_rsa/Makefile
-        plugins/snmp_rsa/t/Makefile
         plugins/sysfs/Makefile
         plugins/ipmidirect/Makefile
         plugins/ipmidirect/t/Makefile

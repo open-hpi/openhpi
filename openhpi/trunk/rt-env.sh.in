@@ -8,7 +8,7 @@ OPENHPI_CONF=@abs_top_srcdir@/examples/openhpi.conf
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:@abs_top_builddir@/src/.libs:@abs_top_builddir@/utils/.libs
 LIBRARY_PATH=${LIBRARY_PATH}:@abs_top_builddir@/src/.libs:@abs_top_builddir@/utils/.libs
 OPENHPI_PLUGIN_ROOT=@abs_top_builddir@/plugins
-OPENHPI_PATH=${OPENHPI_PLUGIN_ROOT}/dummy:${OPENHPI_PLUGIN_ROOT}/ipmi:${OPENHPI_PLUGIN_ROOT}/ipmidirect:${OPENHPI_PLUGIN_ROOT}/watchdog:${OPENHPI_PLUGIN_ROOT}/sysfs:${OPENHPI_PLUGIN_ROOT}/text_remote:${OPENHPI_PLUGIN_ROOT}/snmp_bc:${OPENHPI_PLUGIN_ROOT}/snmp_rsa:${LTDL_LIBRARY_PATH}
+OPENHPI_PATH=${OPENHPI_PLUGIN_ROOT}/dummy:${OPENHPI_PLUGIN_ROOT}/ipmi:${OPENHPI_PLUGIN_ROOT}/ipmidirect:${OPENHPI_PLUGIN_ROOT}/watchdog:${OPENHPI_PLUGIN_ROOT}/sysfs:${OPENHPI_PLUGIN_ROOT}/text_remote:${OPENHPI_PLUGIN_ROOT}/snmp_bc:${LTDL_LIBRARY_PATH}
 # the following entries are for the hpi daemon and client
 OPENHPI_DAEMON_HOST=localhost
 OPENHPI_DAEMON_PORT=4743
