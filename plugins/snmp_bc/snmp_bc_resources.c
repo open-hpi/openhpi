@@ -42,7 +42,6 @@ struct snmp_rpt snmp_rpt_array_bct[] = {
                                         .EntityLocation = 0,
                                 }
                         },
-			/* FIXME:: Add SAHPI_CAPABILITY_ANNUNCIATOR | support */
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
@@ -86,7 +85,6 @@ struct snmp_rpt snmp_rpt_array[] = {
                                         .EntityLocation = 0,
                                 }
                         },
-			/* FIXME:: Add SAHPI_CAPABILITY_ANNUNCIATOR | support */
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
@@ -260,8 +258,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                         .EntityType = SAHPI_ENT_ROOT,
                                         .EntityLocation = 0,
                                 }
-                        }
-			,/* FIXME:: Add SAHPI_CAPABILITY_ANNUNCIATOR | support */
+                        },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_FRU |
@@ -3299,9 +3296,7 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
  ******************/
 
 struct snmp_bc_control snmp_bc_chassis_controls[] = {
-
-	/* FIXME:: user can clear this - does this make this mode user; but box sets it ???? */
-        /* Front Panel Information R/W LED */
+        /* Front Panel Information R/W LED - System updates; user can clear */
         {
                 .control = {
                         .Num = 1,
@@ -3309,7 +3304,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
 			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_AUTO,
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
 				.ReadOnly = SAHPI_TRUE,
 			},
 			.WriteOnly = SAHPI_FALSE,
@@ -3331,18 +3326,18 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                                 .digitalwmap[2] = -1, /* Not applicable */
                                 .digitalwmap[3] = -1, /* Not applicable */
                         },
+			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
-                .comment = "Front Panel LED - Information"
+                .comment = "Front Panel Information LED"
         },
-
-        /* FIXME:: No blinking anymore in B.1.1 */
-        /* Front Panel Identify R/W LED */
-        {
+        /* Front Panel Identify R/W LED. User controlled. */
+  	/* 0 is Off; 1 is solid on; 2 is blinking */
+	{
                 .control = {
                         .Num = 2,
                         .OutputType = SAHPI_CTRL_LED,
-                        .Type = SAHPI_CTRL_TYPE_DIGITAL,
-                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
+                        .Type = SAHPI_CTRL_TYPE_DISCRETE,
+                        .TypeUnion.Discrete.Default = 0,
 			.DefaultMode = {
 				.Mode = SAHPI_CTRL_MODE_MANUAL,
 				.ReadOnly = SAHPI_TRUE,
@@ -3355,19 +3350,10 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                                 .not_avail_indicator_num = 3,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.4.0",
-				/* Read values */
-                                .digitalmap[0] =  0, /* Off */
-                                .digitalmap[1] =  1, /* On */
-                                .digitalmap[2] = -1, /* Not applicable */
-                                .digitalmap[3] =  2, /* Blinking */
-				/* Write values */
-                                .digitalwmap[0] =  0, /* Off */
-                                .digitalwmap[1] =  1, /* On */
-                                .digitalwmap[2] = -1, /* Not applicable */
-                                .digitalwmap[3] =  2, /* Blinking */
                         },
+			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
-                .comment = "Front Panel LED - Identify"
+                .comment = "Front Panel Identify LED"
         },
         {} /* Terminate array with a null element */
 };
@@ -3375,12 +3361,12 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
 /****************
  * Blade Controls
  ****************/
+
 #define LAST_COMMON_BLADE_CONTROL_NUM 2
 
-/* FIXME:: same problem as chassis info LED */
 struct snmp_bc_control snmp_bc_blade_controls[] = {
 
-        /* Blade Information R/W LED */
+        /* Blade Information R/W LED - System updates; user can clear */
         {
                 .control = {
                         .Num = 1,
@@ -3388,7 +3374,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                         .Type = SAHPI_CTRL_TYPE_DIGITAL,
                         .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
 			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_AUTO,
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
 				.ReadOnly = SAHPI_TRUE,
 			},
 			.WriteOnly = SAHPI_FALSE,
@@ -3410,16 +3396,18 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                                 .digitalwmap[2] = -1, /* Not applicable */
                                 .digitalwmap[3] = -1, /* Not applicable */
                         },
+			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
-                .comment = "Blade LED - Information"
+                .comment = "Blade Information LED"
         },
         /* Blade Identify R/W LED */
+	/* 0 is Off; 1 is solid on; 2 is blinking */
         {
                 .control = {
                         .Num = 2,
                         .OutputType = SAHPI_CTRL_LED,
-                        .Type = SAHPI_CTRL_TYPE_DIGITAL,
-                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
+                        .Type = SAHPI_CTRL_TYPE_DISCRETE,
+                        .TypeUnion.Discrete.Default = 0,
  			.DefaultMode = {
 				.Mode = SAHPI_CTRL_MODE_MANUAL,
 				.ReadOnly = SAHPI_TRUE,
@@ -3432,26 +3420,17 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                                 .not_avail_indicator_num = 0,
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.11.x",
-				/* Read values */
-                                .digitalmap[0] =  0, /* Off */
-                                .digitalmap[1] =  1, /* On */
-                                .digitalmap[2] = -1, /* Not applicable */
-                                .digitalmap[3] =  2, /* Blinking */
-				/* Write values */
-                                .digitalwmap[0] =  0, /* Off */
-                                .digitalwmap[1] =  1, /* On */
-                                .digitalwmap[2] = -1, /* Not applicable */
-                                .digitalwmap[3] =  2, /* Blinking */
                         },
-                },
-                .comment = "Blade LED - Identify"
+ 			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
+               },
+                .comment = "Blade Identify LED"
         },
 
         {} /* Terminate array with a null element */
 };
 
 struct snmp_bc_control snmp_bct_blade_controls[] = {
-        /* Blade's number of restarts counter */
+        /* Blade's number of restarts counter - System sets; User clears */
         {
                 .control = {
                         .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
@@ -3459,7 +3438,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,
                         .TypeUnion.Discrete.Default = 0,
   			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_AUTO,
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
 				.ReadOnly = SAHPI_TRUE,
 			},
 			.WriteOnly = SAHPI_FALSE,
@@ -3471,8 +3450,9 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                                 .write_only = SAHPI_FALSE,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.x", 
                         },
+  			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
                 },
-                .comment = "Blade number of restarts counter"
+               .comment = "Blade restart counter"
         },
 
         {} /* Terminate array with a null element */
@@ -3758,7 +3738,6 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
         {} /* Terminate array with a null element */
 };
 
-/* FIXME: Support LEDs as annuniators ???? */
 #if 0
         /* System Error LED on chassis */
         {
