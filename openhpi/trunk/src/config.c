@@ -20,6 +20,8 @@
 #include <string.h>
 #include <glib.h>
 
+GSList *global_handler_list;
+
 struct oh_handler_config *new_handler_config(char *, char *, char *);
 struct oh_plugin_config *new_plugin_config(char *);
 

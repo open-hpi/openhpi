@@ -40,7 +40,6 @@ static const int entry_id_offset = 1000;
 #define OH_GET_RESOURCE						\
 	do {							\
 		struct oh_session *s;				\
-		struct oh_domain  *d;				\
 								\
 		OH_STATE_READY_CHECK;				\
 								\
@@ -50,15 +49,13 @@ static const int entry_id_offset = 1000;
 			return SA_ERR_HPI_INVALID_SESSION;	\
 		}						\
 								\
-		d   = s->domain;				\
-								\
-		res = get_resource(d, ResourceId);		\
+		res = get_resource(ResourceId);			\
 		if (!res) {					\
 			dbg("Invalid resource");		\
 			return SA_ERR_HPI_INVALID_RESOURCE;	\
 		}						\
 	}while(0)
-
+#if 0
 #define OH_GET_ZONE						\
 	do {							\
 		struct oh_session *s;				\
@@ -80,7 +77,7 @@ static const int entry_id_offset = 1000;
 			return SA_ERR_HPI_INVALID_RESOURCE;	\
 		}						\
 	}while(0)
-#if 0
+
 static struct oh_zone *get_zone(struct oh_domain *d, SaHpiResourceIdT rid)
 {
 	struct list_head *i;
@@ -166,14 +163,11 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 		SAHPI_OUT SaHpiSessionIdT *SessionId,
 		SAHPI_IN void *SecurityParams)
 {
-        struct oh_domain  *d;
         struct oh_session *s;
-        int rv, i;
-        struct oh_domain_config *dconf;
-        struct oh_handler_config *temp;
+        int rv;
         
         OH_STATE_READY_CHECK;
-
+#if 0
         if(DomainId == SAHPI_DEFAULT_DOMAIN_ID) {
                 rv = load_handlers();
                 if(rv != 0) {
@@ -187,10 +181,16 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                         return SA_ERR_HPI_INVALID_DOMAIN;
                 }
         }
+#endif
 /*        
         dconf = (struct oh_config *) calloc(1, sizeof(struct oh_config));
         load_domain_config(&dconf, DomainId);
 */
+	if(!domain_exists(SAHPI_DEFAULT_DOMAIN_ID)) {
+		dbg("Default domain not open!");
+		dbg("No other domains may be openned before it");
+		return SA_ERR_HPI_INVALID_DOMAIN;
+	}
         
         rv = session_add(DomainId, &s);
         if(rv < 0) {
@@ -218,7 +218,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         free_domain_config(dconf);
 */
 
-        *SessionId = s->sid;
+        *SessionId = s->session_id;
 	
 	return SA_OK;
 }
@@ -244,8 +244,7 @@ SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 {
 	struct oh_session *s;
-	struct oh_domain *d;
-	struct list_head *i;
+	int i;
 	int rv =0;
 	
 	OH_STATE_READY_CHECK;
@@ -256,20 +255,19 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 		return SA_ERR_HPI_INVALID_SESSION;
 	}
 	
-	d = s->domain;
-	
-	list_for_each(i, &d->zone_list) {
-		struct oh_zone *z
-			= list_container(i, struct oh_zone, node);
-		rv |= z->abi->discover_resources(z->hnd);
+	for (i=0; i< g_slist_length(global_handler_list); i++) {
+		struct oh_handler *h
+			= g_slist_nth_data(global_handler_list, i);
+		rv |= h->abi->discover_resources(h->hnd);
 	}
-	if (rv)
+	if (rv) {
+		dbg("Error attempting to discover resource");	
 		return SA_ERR_HPI_UNKNOWN;
-
+	}
 	
-	rv = session_get_events(s);
+	rv = get_events(s);
 	if (rv<0) {
-		dbg("Error attempting to discover resources");
+		dbg("Error attempting to process resources");
 		return SA_ERR_HPI_UNKNOWN;
 	}
 
@@ -280,25 +278,14 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiRptInfoT *RptInfo)
 {
-	struct oh_session *s;
-	struct oh_domain  *d;
-	struct timeval 	*upt;
-	
 	OH_STATE_READY_CHECK;
 
-	s = session_get(SessionId);
-	if (!s) {
-		dbg("Invalid session");
-		return SA_ERR_HPI_INVALID_SESSION;
-	}
-	
-	d   = s->domain;
-	upt = &d->update_time; 
-	RptInfo->UpdateCount 	= d->update_counter;
-	RptInfo->UpdateTimestamp= (SaHpiTimeT)upt->tv_sec*1000000000 + upt->tv_usec*1000;
+	RptInfo->UpdateCount 	= global_rpt_counter;
+	RptInfo->UpdateTimestamp= (SaHpiTimeT)global_rpt_timestamp.tv_sec*1000000000 + global_rpt_timestamp.tv_usec*1000;
 	return SA_OK;
 }
 
+#if 0
 static inline int is_last_resource_in_domain(struct oh_domain *d, 
 		struct oh_resource *res) 
 {
@@ -306,6 +293,7 @@ static inline int is_last_resource_in_domain(struct oh_domain *d,
 		= list_container(list_last(&d->zone_list), struct oh_zone, node);
 	return (&res->node == list_last(&lz->res_list));
 }
+#endif
 
 SaErrorT SAHPI_API saHpiRptEntryGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
@@ -313,12 +301,10 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-	int no;
-	int cur;
-	struct list_head  *i;
-	struct oh_resource *r;
+	struct oh_resource *res;
 	struct oh_session *s;
-	struct oh_domain  *d;
+	
+	int no;
 	
 	OH_STATE_READY_CHECK;
 
@@ -327,8 +313,6 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		dbg("Invalid session");
 		return SA_ERR_HPI_INVALID_SESSION;
 	}
-	
-	d   = s->domain;
 	
 	switch (EntryId) {
 	case SAHPI_FIRST_ENTRY:
@@ -339,35 +323,31 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		break;
 	}
 	
-	cur = 0;
-	r = NULL;
-	list_for_each(i, &d->zone_list) {
-		struct oh_zone *z 
-			= list_container(i, struct oh_zone, node);
-		struct list_head *j;
-		
-		list_for_each(j, &z->res_list) {
-			if ( cur==no ) {
-				r = list_container(j, struct oh_resource, node);
-				goto exit_for;
-			}
-			cur++;
-		}
-	}
-exit_for:
-
-	if (!r) {
+	if (no>=g_slist_length(global_rpt)) {
 		dbg("Invalid EntryId");
 		return SA_ERR_HPI_INVALID;
 	}
 	
-	memcpy(RptEntry, &r->entry, sizeof(*RptEntry));
-
-	if (is_last_resource_in_domain(d, r)) { 
-		*NextEntryId = SAHPI_LAST_ENTRY;
-	} else {
-		*NextEntryId = no+1+entry_id_offset;
+	res = g_slist_nth_data(global_rpt, no);
+	if (!resource_is_in_domain(res, s->domain_id)) {
+		dbg("Invalid EntryId");
+		return SA_ERR_HPI_INVALID;
 	}
+			
+	memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+	
+	for (no++; no<g_slist_length(global_rpt); no++) {
+		res = g_slist_nth_data(global_rpt, no);
+		if (resource_is_in_domain(res, s->domain_id)) 
+			break;
+	}
+	
+	if (no<g_slist_length(global_rpt)) {
+		*NextEntryId = no+entry_id_offset;
+	} else {
+		*NextEntryId = SAHPI_LAST_ENTRY;
+	}
+	
 	return SA_OK;
 }
 
@@ -536,42 +516,33 @@ SaErrorT SAHPI_API saHpiRdrGet (
 	struct oh_resource *res;
 	struct oh_rdr	  *rdr;
 	
-	int n;
-	int i;
-	struct list_head  *tmp;
+	int no;
 	
 	OH_GET_RESOURCE;
 
 	switch (EntryId) {
 	case SAHPI_FIRST_ENTRY:
-		n = 0;
+		no = 0;
 		break;
 	default:
-		n = EntryId - entry_id_offset;
+		no = EntryId - entry_id_offset;
 		break;
 	}
 	
-	i = 0;
-	rdr = NULL;
-	list_for_each(tmp, &res->rdr_list) {
-		if (i==n) {
-			rdr = list_container(tmp, struct oh_rdr, node);
-			break;
-		}
-		i++;
-	}
-	
-	if (!rdr) {
+	if (no>=g_slist_length(res->rdr_list)) {
 		dbg("Invalid EntryId");
 		return SA_ERR_HPI_INVALID;
 	}
-	
-	memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
 
-	if (rdr->node.next == &res->rdr_list) { //last entry
-		*NextEntryId = SAHPI_LAST_ENTRY;
+	rdr = g_slist_nth_data(res->rdr_list, no);
+	memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
+	
+	no++;
+		
+	if (no < g_slist_length(res->rdr_list)) {
+		*NextEntryId = no+entry_id_offset;
 	} else {
-		*NextEntryId = n+1+entry_id_offset;
+		*NextEntryId = SAHPI_LAST_ENTRY;
 	}
 	return SA_OK;
 }
@@ -587,25 +558,23 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 	dbg("saHpiSensorReadingGet() called");
 
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*get_func) (void *, struct oh_rdr_id *, SaHpiSensorReadingT *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
 
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-	get_func = zone->abi->get_sensor_data;
+	get_func = res->handler->abi->get_sensor_data;
 
 	if (!get_func)
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(zone->hnd, &rdr->oid, Reading))
+	if (get_func(res->handler->hnd, &rdr->oid, Reading))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -644,25 +613,23 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 		SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds)
 {
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*set_func) (void *, struct oh_rdr_id *,const SaHpiSensorThresholdsT *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
 
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 	
-	set_func = zone->abi->set_sensor_thresholds;
+	set_func = res->handler->abi->set_sensor_thresholds;
 
 	if (!set_func)
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (set_func(zone->hnd, &rdr->oid, SensorThresholds))
+	if (set_func(res->handler->hnd, &rdr->oid, SensorThresholds))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -675,25 +642,23 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 		SAHPI_IN SaHpiSensorThresholdsT *SensorThresholds)
 {
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*get_func) (void *, struct oh_rdr_id *,SaHpiSensorThresholdsT *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
 
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 	
-	get_func = zone->abi->get_sensor_thresholds;
+	get_func = res->handler->abi->get_sensor_thresholds;
 
 	if (!get_func)
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(zone->hnd, &rdr->oid, SensorThresholds))
+	if (get_func(res->handler->hnd, &rdr->oid, SensorThresholds))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -782,23 +747,21 @@ SaErrorT SAHPI_API saHpiControlStateGet (
 		SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
 {
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*get_func)(void *, struct oh_rdr_id *,SaHpiCtrlStateT *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-	get_func = zone->abi->get_control_state;
+	get_func = res->handler->abi->get_control_state;
 	if (!get_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(zone->hnd, &rdr->oid, CtrlState))
+	if (get_func(res->handler->hnd, &rdr->oid, CtrlState))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -811,23 +774,21 @@ SaErrorT SAHPI_API saHpiControlStateSet (
 		SAHPI_IN SaHpiCtrlStateT *CtrlState)
 {
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*set_func)(void *, struct oh_rdr_id *,SaHpiCtrlStateT *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-	set_func = zone->abi->set_control_state;
+	set_func = res->handler->abi->set_control_state;
 	if (!set_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (set_func(zone->hnd, &rdr->oid, CtrlState))
+	if (set_func(res->handler->hnd, &rdr->oid, CtrlState))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -860,23 +821,21 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
 		SAHPI_OUT SaHpiWatchdogT *Watchdog)
 {
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*get_func)(void *, struct oh_rdr_id *,SaHpiWatchdogT *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_WATCHDOG_RDR, WatchdogNum);
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-	get_func = zone->abi->get_watchdog_info;
+	get_func = res->handler->abi->get_watchdog_info;
 	if (!get_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (get_func(zone->hnd, &rdr->oid, Watchdog))
+	if (get_func(res->handler->hnd, &rdr->oid, Watchdog))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -889,23 +848,21 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
 		SAHPI_IN SaHpiWatchdogT *Watchdog)
 {
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*set_func)(void *, struct oh_rdr_id *,SaHpiWatchdogT *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_WATCHDOG_RDR, WatchdogNum);
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-	set_func = zone->abi->set_watchdog_info;
+	set_func = res->handler->abi->set_watchdog_info;
 	if (!set_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (set_func(zone->hnd, &rdr->oid, Watchdog))
+	if (set_func(res->handler->hnd, &rdr->oid, Watchdog))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;
@@ -917,23 +874,21 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
 		SAHPI_IN SaHpiWatchdogNumT WatchdogNum)
 {
 	struct oh_resource *res;
-	struct oh_zone *zone;
 	struct oh_rdr *rdr;
 
 	int (*reset_func)(void *, struct oh_rdr_id *);
 
 	OH_GET_RESOURCE;
-	OH_GET_ZONE;
 
 	rdr = get_rdr(res, SAHPI_WATCHDOG_RDR, WatchdogNum);
 	if (!rdr)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
-	reset_func = zone->abi->reset_watchdog;
+	reset_func = res->handler->abi->reset_watchdog;
 	if (!reset_func)		
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
-	if (reset_func(zone->hnd, &rdr->oid))
+	if (reset_func(res->handler->hnd, &rdr->oid))
 		return SA_ERR_HPI_UNKNOWN;
 
 	return SA_OK;

@@ -10,6 +10,11 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
+GSList *global_rpt = NULL;
+unsigned int global_rpt_counter = 0; /*FIXME: I use the couter for two purposes. 
+				   1) RptInfo counter 2) ResourceId allocation */
+struct timeval global_rpt_timestamp = {0, 0};
+
 #if 0
 static void init_res(struct oh_resource *res)
 {
@@ -96,6 +101,19 @@ struct oh_resource *get_resource(SaHpiResourceIdT rid)
 			return res;
 	}
 	return NULL;
+}
+
+int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT did)
+{
+	int i;
+	
+	for (i=0; i< g_slist_length(res->domain_list); i++) {
+		SaHpiDomainIdT id;
+		id = GPOINTER_TO_UINT(g_slist_nth_data(res->domain_list, i));
+		if (id == did)
+			return 1;
+	}
+	return 0;
 }
 
 #if 0

@@ -46,6 +46,8 @@ int reset_domain_list(void)
 
 #endif
 
+GSList *global_domain_list = NULL;
+
 int domain_exists(SaHpiDomainIdT did) 
 {
         SaHpiDomainIdT *temp;
