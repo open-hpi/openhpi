@@ -146,7 +146,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_WATCHDOG;
 	}
 	entry->ResourceSeverity = SAHPI_OK;
-	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
+	entry->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
