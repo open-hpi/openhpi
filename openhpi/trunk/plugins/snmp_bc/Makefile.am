@@ -74,6 +74,6 @@ XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/event.xml
 XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
 
 $(GENERATED_CODE): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
-	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml snmp_bc_events.xml > event_array.c
-	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxm_ snmp_bc_events_rsa.xml > event_array_rsa.c
+	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml $(XMLDATA_BC) > event_array.c
+	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > event_array_rsa.c
 
