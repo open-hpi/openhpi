@@ -23,7 +23,7 @@
 
 
 #include "marshal_hpi.h"
-#include "client.h"
+#include "openhpiclient.h"
 
 #define dClientDebugErr
 // #define dClientDebug

@@ -372,7 +372,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                          hm, pReq, &session_id, &domain_tag ) < 0 )
                    return eResultError;
 
-              ret = saHpiDomainTagSet( session_id, domain_tag );
+              ret = saHpiDomainTagSet( session_id, &domain_tag );
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }
