@@ -93,3 +93,4 @@ oHpiHandlerInfo
 oHpiHandlerGetNext
 oHpiGlobalParamGet
 oHpiGlobalParamSet
+oh_wake_event_thread
