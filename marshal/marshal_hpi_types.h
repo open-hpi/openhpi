@@ -203,7 +203,7 @@ extern cMarshalType SaHpiRptEntryType;
 extern cMarshalType SaHpiSelInfoType;
 #define SaHpiSelEntryIdType SaHpiUint32Type
 extern cMarshalType SaHpiSelEntryType;
-  
+
 
 #ifdef __cplusplus
 }

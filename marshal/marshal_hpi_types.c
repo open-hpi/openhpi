@@ -391,6 +391,9 @@ SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
 
   s = Marshal( &SaHpiTimeType, &gd->MfgDateTime, b );
 
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
@@ -412,6 +415,10 @@ SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
        const SaHpiTextBufferT *tb = *tbp;
 
        s = Marshal( &Uint8Type, tb ? &found : &not_found, b );
+
+       if ( s < 0 )
+	    return -1;
+
        size += s;
        b    += s;
 
@@ -428,12 +435,17 @@ SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
        n++;
 
        s = Marshal( &SaHpiTextBufferType, tb, b );
+
+       if ( s < 0 )
+	    return -1;
+
        size += s;
        b    += s;
      }
 
   // fill in the placeholder for the number of entries
-  Marshal( &Uint32Type, &n, num );
+  if ( Marshal( &Uint32Type, &n, num ) < 0 )
+       return -1;
 
   return size;
 }
@@ -445,11 +457,18 @@ SaHpiInventChassisInfoMarshaller( SaHpiUint32T len,
 				  unsigned char *b )
 {
   int size = Marshal( &SaHpiInventChassisTypeType, &iu->Type, b );
+
+  if ( size < 0 )
+       return -1;
+
   b += size;
 
-  size +=  SaHpiInventGeneralDataMarshaller( &iu->GeneralData, b );
+  int s = SaHpiInventGeneralDataMarshaller( &iu->GeneralData, b );
 
-  return size;
+  if ( s < 0 )
+       return -1;
+
+  return size + s;
 }
 
 
@@ -459,6 +478,10 @@ SaHpiInventOemMarshaller( SaHpiUint32T len,
 			  unsigned char *b )
 {
   int size = Marshal( &SaHpiManufacturerIdType, &od->MId, b );
+
+  if ( size < 0 )
+       return -1;
+
   b += size;
 
   int s = len - sizeof( SaHpiManufacturerIdT );
@@ -478,6 +501,10 @@ SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
   int s;
 
   s = Marshal( &SaHpiInventDataRecordTypeType, &r->RecordType, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
@@ -485,7 +512,7 @@ SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
   size += sizeof( tUint32 );
   b += sizeof( tUint32 );
 
-  tUint32 l;
+  int l;
 
   switch( r->RecordType )
      {
@@ -521,10 +548,14 @@ SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
 
        default:
 	    assert( 0 );
-	    break;
+	    return -1;
      }
 
-  Marshal( &Uint32Type, &l, len );
+  if ( l < 0 )
+       return -1;
+
+  if ( Marshal( &Uint32Type, &l, len ) < 0 )
+       return -1;
 
   size += l;
 
@@ -543,6 +574,10 @@ SaHpiInventoryDataMarshaller( const cMarshalType *type, const void *data,
   tUint32 i;
 
   s = Marshal( &SaHpiInventDataValidityType, &id->Validity, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
@@ -551,12 +586,20 @@ SaHpiInventoryDataMarshaller( const cMarshalType *type, const void *data,
        num++;
 
   s = Marshal( &Uint32Type, &num, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
   for( i = 0; id->DataRecords[i]; i++ )
      {
        s = SaHpiInventDataRecordMarshaller( id->DataRecords[i], b );
+
+       if ( s < 0 )
+	    return -1;
+
        b    += s;
        size += s;
      }
@@ -587,12 +630,20 @@ SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
   int s;
 
   s = Demarshal( byte_order, &SaHpiTimeType, &gd->MfgDateTime, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
   // get the number of entries
   tUint32 num;
   s = Demarshal( byte_order, &Uint32Type, &num, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b += s;
 
@@ -608,6 +659,10 @@ SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
   for( i = 0; i < num + 1; i++, tbp++ )
      {
        s = Demarshal( byte_order, &Uint8Type, &found, b );
+
+       if ( s < 0 )
+	    return -1;
+
        size += s;
        b    += s;
 
@@ -618,6 +673,10 @@ SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
 	  }
 
        s = Demarshal( byte_order, &SaHpiTextBufferType, data, b );
+
+       if ( s < 0 )
+	    return -1;
+
        size += s;
        b    += s;
 
@@ -637,14 +696,21 @@ SaHpiInventChassisInfoDemarshaller( int byte_order, SaHpiUint32T *len,
 				    const unsigned char *b, tUint32 *data_size )
 {
   int size = Demarshal( byte_order, &SaHpiInventChassisTypeType, &iu->Type, b );
+
+  if ( size < 0 )
+       return -1;
+
   b += size;
 
   *data_size += sizeof( SaHpiInventChassisDataT ) - sizeof( SaHpiInventGeneralDataT );
 
-  size += SaHpiInventGeneralDataDemarshaller( byte_order, len, &iu->GeneralData, b,
+  int s = SaHpiInventGeneralDataDemarshaller( byte_order, len, &iu->GeneralData, b,
 					      data_size );
 
-  return size;
+  if ( s < 0 )
+       return -1;
+
+  return size + s;
 }
 
 
@@ -655,6 +721,10 @@ SaHpiInventOemDemarshaller( int byte_order, SaHpiUint32T *len,
 			    tUint32 *data_size )
 {
   int size = Demarshal( byte_order, &SaHpiManufacturerIdType, &od->MId, b );
+
+  if ( size < 0 )
+       return -1;
+
   b += size;
 
   int s = *len - sizeof( SaHpiManufacturerIdT );
@@ -679,11 +749,19 @@ SaHpiInventDataRecordDemarshaller( int byte_order,
 
   s = Demarshal( byte_order, &SaHpiInventDataRecordTypeType,
 		 &r->RecordType, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
   tUint32 record_len;
   s = Demarshal( byte_order, &Uint32Type, &record_len, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
@@ -730,6 +808,9 @@ SaHpiInventDataRecordDemarshaller( int byte_order,
 	    break;
      }
 
+  if ( s < 0 )
+       return -1;
+
   size += s;
 
   return size;
@@ -746,11 +827,19 @@ SaHpiInventoryDataDemarshaller( int byte_order, const cMarshalType *type, void *
   int s;
 
   s = Demarshal( byte_order, &SaHpiInventDataValidityType, &id->Validity, b );
+
+  if ( s < 0 )
+    return -1;
+
   size += s;
   b    += s;
 
   tUint32 num;
   s = Demarshal( byte_order, &Uint32Type, &num, b );
+
+  if ( s < 0 )
+       return -1;
+
   size += s;
   b    += s;
 
@@ -764,6 +853,10 @@ SaHpiInventoryDataDemarshaller( int byte_order, const cMarshalType *type, void *
 
        id->DataRecords[i] = (SaHpiInventDataRecordT *)data_ptr;
        s = SaHpiInventDataRecordDemarshaller( byte_order, id->DataRecords[i], b, &data_size );
+
+       if ( s < 0 )
+	    return -1;
+
        b    += s;
        size += s;
 

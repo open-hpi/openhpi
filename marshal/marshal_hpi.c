@@ -932,14 +932,14 @@ HpiMarshalFind( int id )
 }
 
 
-unsigned int
+int
 HpiMarshalRequest( cHpiMarshal *m, void *buffer, const void **param )
 {
   return MarshalArray( m->m_request, param, buffer );
 }
 
 
-unsigned int
+int
 HpiMarshalRequest1( cHpiMarshal *m, void *buffer, const void *p1 )
 {
   const void *param[1];
@@ -949,7 +949,7 @@ HpiMarshalRequest1( cHpiMarshal *m, void *buffer, const void *p1 )
 }
 
 
-unsigned int
+int
 HpiMarshalRequest2( cHpiMarshal *m, void *buffer, const void *p1, const void *p2  )
 {
   const void *param[2];
@@ -960,7 +960,7 @@ HpiMarshalRequest2( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
 }
 
 
-unsigned int
+int
 HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3 )
 {
   const void *param[3];
@@ -972,7 +972,7 @@ HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
 }
 
 
-unsigned int
+int
 HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, 
 		    const void *p3, const void *p4 )
 {
@@ -986,7 +986,7 @@ HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
 }
 
 
-unsigned int
+int
 HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2,
 		    const void *p3, const void *p4, const void *p5 )
 {
@@ -1001,35 +1001,35 @@ HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
 }
 
 
-void
+int
 HpiDemarshalRequest( int byte_order, cHpiMarshal *m, const void *buffer, void **params )
 {
-  DemarshalArray( byte_order, m->m_request, params, buffer );
+  return DemarshalArray( byte_order, m->m_request, params, buffer );
 }
 
 
-void
+int
 HpiDemarshalRequest1( int byte_order, cHpiMarshal *m, const void *buffer, void *p1 )
 {
   void *param[1];
   param[0] = p1;
   
-  HpiDemarshalRequest( byte_order, m, buffer, param );
+  return HpiDemarshalRequest( byte_order, m, buffer, param );
 }
 
 
-void
+int
 HpiDemarshalRequest2( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2 )
 {
   void *param[2];
   param[0] = p1;
   param[1] = p2;
 
-  HpiDemarshalRequest( byte_order, m, buffer, param );
+  return HpiDemarshalRequest( byte_order, m, buffer, param );
 }
 
 
-void
+int
 HpiDemarshalRequest3( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3 )
 {
   void *param[3];
@@ -1037,11 +1037,11 @@ HpiDemarshalRequest3( int byte_order, cHpiMarshal *m, const void *buffer, void *
   param[1] = p2;
   param[2] = p3;
 
-  HpiDemarshalRequest( byte_order, m, buffer, param );
+  return HpiDemarshalRequest( byte_order, m, buffer, param );
 }
 
 
-void
+int
 HpiDemarshalRequest4( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3, void *p4 )
 {
   void *param[4];
@@ -1050,11 +1050,11 @@ HpiDemarshalRequest4( int byte_order, cHpiMarshal *m, const void *buffer, void *
   param[2] = p3;
   param[3] = p4;
 
-  HpiDemarshalRequest( byte_order, m, buffer, param );
+  return HpiDemarshalRequest( byte_order, m, buffer, param );
 }
 
 
-void
+int
 HpiDemarshalRequest5( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3, void *p4, void *p5 )
 {
   void *param[5];
@@ -1064,11 +1064,11 @@ HpiDemarshalRequest5( int byte_order, cHpiMarshal *m, const void *buffer, void *
   param[3] = p4;
   param[4] = p5;
 
-  HpiDemarshalRequest( byte_order, m, buffer, param );
+  return HpiDemarshalRequest( byte_order, m, buffer, param );
 }
 
 
-unsigned int
+int
 HpiMarshalReply( cHpiMarshal *m, void *buffer, const void **params )
 {
   // the first value is the result.
@@ -1081,7 +1081,7 @@ HpiMarshalReply( cHpiMarshal *m, void *buffer, const void **params )
 }
 
 
-unsigned int
+int
 HpiMarshalReply0( cHpiMarshal *m, void *buffer, const void *result )
 {
   const void *param[1];
@@ -1091,7 +1091,7 @@ HpiMarshalReply0( cHpiMarshal *m, void *buffer, const void *result )
 }
 
 
-unsigned int
+int
 HpiMarshalReply1( cHpiMarshal *m, void *buffer, const void *result, const void *p1  )
 {
   const void *param[2];
@@ -1102,7 +1102,7 @@ HpiMarshalReply1( cHpiMarshal *m, void *buffer, const void *result, const void *
 }
 
 
-unsigned int
+int
 HpiMarshalReply2( cHpiMarshal *m, void *buffer, const void *result,
 		  const void *p1, const void *p2 )
 {
@@ -1115,7 +1115,7 @@ HpiMarshalReply2( cHpiMarshal *m, void *buffer, const void *result,
 }
 
 
-unsigned int
+int
 HpiMarshalReply3( cHpiMarshal *m, void *buffer, const void *result, const void *p1,
 		  const void *p2, const void *p3 )
 {
@@ -1129,7 +1129,7 @@ HpiMarshalReply3( cHpiMarshal *m, void *buffer, const void *result, const void *
 }
 
 
-unsigned int
+int
 HpiMarshalReply4( cHpiMarshal *m, void *buffer, const void *result, const void *p1,
 		  const void *p2, const void *p3, const void *p4 )
 {
@@ -1144,7 +1144,7 @@ HpiMarshalReply4( cHpiMarshal *m, void *buffer, const void *result, const void *
 }
 
 
-unsigned int
+int
 HpiMarshalReply5( cHpiMarshal *m, void *buffer, const void *result, const void *p1,
 		  const void *p2, const void *p3, const void *p4, const void *p5 )
 {
@@ -1160,41 +1160,46 @@ HpiMarshalReply5( cHpiMarshal *m, void *buffer, const void *result, const void *
 }
 
 
-void
+int
 HpiDemarshalReply( int byte_order, cHpiMarshal *m, const void *buffer, void **params )
 {
   // the first value is the error code
-  Demarshal( byte_order, &SaErrorType, params[0], buffer );
+  int rv = Demarshal( byte_order, &SaErrorType, params[0], buffer );
+
+  if ( rv < 0 )
+       return -1;
 
   SaErrorT err = *(SaErrorT *)params[0];
 
   if ( err == SA_OK )
-       DemarshalArray( byte_order, m->m_reply, params, buffer );
+       return DemarshalArray( byte_order, m->m_reply, params, buffer );
+
+  return rv;
 }
 
 
-void
+int
 HpiDemarshalReply0( int byte_order, cHpiMarshal *m, const void *buffer, void *result )
 {
   void *param[1];
   param[0] = result;
 
-  HpiDemarshalReply( byte_order, m, buffer, param );
+  return HpiDemarshalReply( byte_order, m, buffer, param );
 }
 
 
-void
+int
 HpiDemarshalReply1( int byte_order, cHpiMarshal *m, const void *buffer, void *result, void *p1 )
 {
   void *param[2];
   param[0] = result;
   param[1] = p1;
 
-  HpiDemarshalReply( byte_order, m, buffer, param );
+  return HpiDemarshalReply( byte_order, m, buffer, param );
 }
 
 
-void
+int
 HpiDemarshalReply2( int byte_order, cHpiMarshal *m, const void *buffer, void *result, void *p1, void *p2 )
 {
   void *param[3];
@@ -1202,11 +1207,11 @@ HpiDemarshalReply2( int byte_order, cHpiMarshal *m, const void *buffer, void *re
   param[1] = p1;
   param[2] = p2;
 
-  HpiDemarshalReply( byte_order, m, buffer, param );
+  return HpiDemarshalReply( byte_order, m, buffer, param );
 }
 
 
-void
+int
 HpiDemarshalReply3( int byte_order, cHpiMarshal *m, const void *buffer, void *result, void *p1, void *p2, void *p3 )
 {
   void *param[4];
@@ -1215,11 +1220,11 @@ HpiDemarshalReply3( int byte_order, cHpiMarshal *m, const void *buffer, void *re
   param[2] = p2;
   param[3] = p3;
 
-  HpiDemarshalReply( byte_order, m, buffer, param );  
+  return HpiDemarshalReply( byte_order, m, buffer, param );  
 }
 
 
-void
+int
 HpiDemarshalReply4( int byte_order, cHpiMarshal *m, const void *buffer, void *result, void *p1, void *p2, void *p3, void *p4 )
 {
   void *param[5];
@@ -1229,11 +1234,11 @@ HpiDemarshalReply4( int byte_order, cHpiMarshal *m, const void *buffer, void *re
   param[3] = p3;
   param[4] = p4;
 
-  HpiDemarshalReply( byte_order, m, buffer, param );  
+  return HpiDemarshalReply( byte_order, m, buffer, param );  
 }
 
 
-void
+int
 HpiDemarshalReply5( int byte_order, cHpiMarshal *m, const void *buffer, void *result, void *p1, void *p2, void *p3, void *p4, void *p5 )
 {
   void *param[6];
@@ -1244,5 +1249,5 @@ HpiDemarshalReply5( int byte_order, cHpiMarshal *m, const void *buffer, void *re
   param[4] = p4;
   param[5] = p5;
 
-  HpiDemarshalReply( byte_order, m, buffer, param );  
+  return HpiDemarshalReply( byte_order, m, buffer, param );  
 }
