@@ -29,6 +29,7 @@ static void process_session_event(struct oh_hpi_event *e)
 	res = get_res_by_oid(e->parent);
 	if (!res) {
 		dbg("No the resource");
+		return;
 	}
 
 	if (res->controlled == 0 
