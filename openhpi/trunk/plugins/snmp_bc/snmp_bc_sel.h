@@ -17,10 +17,7 @@
 #ifndef SNMP_BC_SEL_H
 #define SNMP_BC_SEL_H
 
-#define BC_DATETIME_OID ".1.3.6.1.4.1.2.3.51.2.4.4.1.0"
-#define BC_SEL_INDEX_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.1"
-#define BC_SEL_ENTRY_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
-
+#define clearEventLogExecute 1
 #define BC_SEL_ID_STRING 20
 #define BC_SEL_ENTRY_STRING 256
 
@@ -48,5 +45,6 @@ int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entr
 int snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id);
 int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
 int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId);
+SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id);
 
 #endif
