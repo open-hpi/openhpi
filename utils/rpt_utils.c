@@ -64,7 +64,7 @@ static RDRecord *get_rdrecord_by_id(RPTEntry *rptentry, SaHpiEntryIdT id)
         return rdrecord;
 }
 
-static int check_instrument_id(SaHpiRdrT *rdr)
+/*static int check_instrument_id(SaHpiRdrT *rdr)
 {
         switch (rdr->RdrType) {
                 case SAHPI_SENSOR_RDR:
@@ -76,7 +76,7 @@ static int check_instrument_id(SaHpiRdrT *rdr)
                 default:
                         return 0;
         }
-}
+}*/
 
 static SaHpiInstrumentIdT get_rdr_type_num(SaHpiRdrT *rdr)
 {
