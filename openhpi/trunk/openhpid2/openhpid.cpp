@@ -79,6 +79,7 @@ static struct option long_options[] = {
         {"port",      required_argument, NULL, 'p'},
         {"pidfile",   required_argument, NULL, 'f'},
         {"timeout",   required_argument, NULL, 's'},
+        {"threads",   required_argument, NULL, 't'},
         {0, 0, 0, 0}
 };
 
