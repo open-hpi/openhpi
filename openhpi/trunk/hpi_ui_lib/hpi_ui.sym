@@ -13,11 +13,7 @@ init_resources
 get_rpt_attr
 get_rpt_attr_as_string
 get_rdr_attr
-get_rdr_attr_as_string
-set_rpt_attr
-set_rdr_attr
 get_value_as_string
-get_attr_name
 show_rdr_list
 show_rpt_list
 show_Rpt
@@ -27,6 +23,4 @@ show_short_event
 make_attrs_rpt
 make_attrs_rdr
 free_attrs
-
-
-
+show_control
