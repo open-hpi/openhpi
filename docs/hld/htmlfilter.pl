@@ -6,7 +6,7 @@
 my @files = @ARGV;
 
 foreach my $file (@files) {
-    system("tidy -c -m $file 2>/dev/null");
+	system("tidy -c -m $file 2>/dev/null");
 }
 
 foreach my $file (@files) {
@@ -15,8 +15,17 @@ foreach my $file (@files) {
     my $contents = <IN>;
     close(IN);
 
-    $contents =~ s{(</style>\s*)(<!--.*?-->)*}{$1<!--#include virtual="/openhpi.css" -->\n}is;
-    $contents =~ s{(<body.*?>\s*).*?(<div)}{$1<table>\n<tr>\n<!--#include virtual="/sidebar.html" -->\n<td valign="top">\n$2}is;
+    my $css = '<!--#include virtual="/openhpi.css" -->';
+    my $sidebar = '<!--#include virtual="/sidebar.html" -->';
+    my $end = '</td></tr></table>';
+    # we want to do only one of these
+    if($contents =~ s{(</style>\s*)($css)*}{$1$css\n}is) {
+        # tidy output
+    } elsif ($contents =~ s{($css\s*)*<body}{$css\n<body}is) {
+        # not tidy output
+    }
+    
+    $contents =~ s{(<body.*?>\s*).*?(<div)}{$1<table>\n<tr>\n$sidebar\n<td valign="top">\n$2}is;
     $contents =~ s{(</td></tr></table>\s*)*(</body>)}{</td></tr></table></body>}is;
 
     open(OUT,">$file");
