@@ -183,14 +183,15 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	/* Force a cache sync before servicing the request */
-	err = snmp_bc_check_selcache(handle, id, current);
-	if (err) {
-		dbg("Event Log cache check failed.");
-		return(err);
-	}
-	
+
 	if (handle->elcache != NULL) {
+		/* Force a cache sync before servicing the request */
+		err = snmp_bc_check_selcache(handle, id, current);
+		if (err) {
+			dbg("Event Log cache check failed.");
+			return(err);
+		}
+	
 		err = oh_el_get(handle->elcache, current, prev, next, &tmpentryptr);
 		if (err) {
 			dbg("Getting Event Log entry=%d from cache failed. Error=%s.", 
