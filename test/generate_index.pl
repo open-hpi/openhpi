@@ -35,24 +35,24 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>Test Coverage Analysis</title>
-<style>
-<!--#include virtual="/openhpi.css" -->
-</style>
+<link rel="stylesheet" href="openhpi.css" type="text/css">
 </head>
 <body>
+<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>
 <table>
 <tr>
 <!--#include virtual="/sidebar.html" -->
-<td valign="top">
-<h1>Test Coverage Analysis</h1>
+<td id="maincolumn"><div class="mainsegment">
+<h3>Test Coverage Analysis</h3>
+<div>
 <table>
 END
 }
 
 sub make_html_tail {
     return <<END;
-</table>
-</td></tr></table>
+</table></div>
+</div></td></tr></table>
 </body>
 </html>
 END
