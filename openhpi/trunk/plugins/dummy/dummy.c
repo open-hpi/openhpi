@@ -848,7 +848,7 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
                 /* save the resource id for tracking resource status */
                 dummy_resource_status[i].ResourceId = res.ResourceId;
 
-		trace("oh_add_resource succeeded for RESOURCE %d\n", i);
+		dbg("oh_add_resource succeeded for RESOURCE %d", i);
 
         }
         /* append entity root to rdrs entity paths */
@@ -870,7 +870,7 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 			return -1;
                 }
 
-		trace("oh_add_resource succeeded for RDR %d\n", i);
+		dbg("oh_add_resource succeeded for RDR %d", i);
         }
 
         return(0);
@@ -909,7 +909,7 @@ static void *dummy_open(GHashTable *handler_config)
 
         /* initialize hashtable pointer */
         i->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(i->rptcache);
+        oh_init_rpt(i->rptcache, NULL);
 
         /* fill in the local rpt cache */
         __build_the_rpt_cache(i);
@@ -927,12 +927,12 @@ static void *dummy_open(GHashTable *handler_config)
         }
 
         /* initialize mutex */
-        i->handler_lock = g_malloc0(sizeof(GStaticRecMutex));
-        if (!i->handler_lock) {
-                dbg("GStaticRecMutex: out of memory");
-                return NULL;
-        }
-        g_static_rec_mutex_init (i->handler_lock);
+//        i->handler_lock = g_malloc0(sizeof(GStaticRecMutex));
+//        if (!i->handler_lock) {
+//                dbg("GStaticRecMutex: out of memory");
+//                return NULL;
+//        }
+//        g_static_rec_mutex_init (i->handler_lock);
 
         /* create event queue for async events*/
         if ( !(i->eventq_async = g_async_queue_new()) ) {
@@ -943,14 +943,15 @@ static void *dummy_open(GHashTable *handler_config)
 
 #ifdef DUMMY_THREADED
         /* add to oh_handler_state */
-        GThread *thread_handle;
+        // GThread *thread_handle;
         GError **e = NULL;
         
         /* spawn a thread */
-        if ( !(thread_handle = g_thread_create (event_thread,
-                                                i,      /* oh_handler_state */
-                                                FALSE,
-                                                e)) ) {
+        if ( !(i->thread_handle = g_thread_create( 
+					event_thread,
+					i,  /* oh_handler_state */
+					TRUE,
+					e)) ) {
              printf("g_thread_create failed\n");
              g_free(i);
              return NULL;
@@ -972,10 +973,15 @@ static void dummy_close(void *hnd)
         }
 
 	/* destroy mutex */
-        g_static_rec_mutex_free(inst->handler_lock);
+//        g_static_rec_mutex_free(inst->handler_lock);
 	
 	/* destroy async queue */
 
+	/* signal thread to exit and wait */
+	//gpointer rtval_thread;
+	// need to signal thread to close, possibly extra flag in oh_handler_state
+	//rtval_thread = g_thread_join(inst->thread_handle);
+	//dbg("rtval_thread [%d]\n", *(int*)rtval_thread);
 
         /* TODO: free the GHashTabel GHashTable *config */
 
@@ -986,7 +992,7 @@ static void dummy_close(void *hnd)
         return;
 }
 
-#if 1
+
 static struct oh_event *remove_resource(struct oh_handler_state *inst)
 {
         SaHpiRptEntryT *rpt_e = NULL;
@@ -1012,7 +1018,7 @@ static struct oh_event *remove_resource(struct oh_handler_state *inst)
                 /*memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));*/
         }
 
-        trace("**** ResourceId %d ******", e.u.res_event.entry.ResourceId);
+        dbg("**** ResourceId %d ******", e.u.res_event.entry.ResourceId);
 
         return(&e);
 
@@ -1049,7 +1055,7 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 
 }
 
-#endif
+
 static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
         struct oh_handler_state *inst = hnd;
@@ -1063,25 +1069,6 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         static unsigned int toggle = 0;
         static unsigned int count = 0;
 
-
-#if 0
-        if (g_slist_length(inst->eventq)>0) {
-
-                trace("List has an event, send it up");
-
-                memcpy(event, inst->eventq->data, sizeof(*event));
-
-                event->did = oh_get_default_domain_id(); 
-
-                free(inst->eventq->data);
-
-                inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
-
-		trace("*************** dummy_get_event, g_slist_length\n");
-
-                return(1);
-
-#else
 	if ( (qse = g_async_queue_try_pop(inst->eventq_async)) ) {
 
                 trace("List has an event, send it up");
@@ -1092,10 +1079,9 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 
                 g_free(qse);
 
-		trace("*************** dummy_get_event, g_async_queue_try_pop\n");
+		dbg("*************** dummy_get_event, g_async_queue_try_pop\n");
 
                 return(1);
-#endif
 
         } else if (count == 0) {
                 trace("List is empty, getting next resource");
@@ -1121,36 +1107,35 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                 return(-1);
         }
 
-        g_static_rec_mutex_lock (inst->handler_lock);
+//        g_static_rec_mutex_lock (inst->handler_lock);
         
         toggle++;
 
 #ifndef DUMMY_THREADED
-
         if( (toggle%3) == 0 ) {
                 /* once initial reporting of events toggle between      */
                 /* removing and adding resource, removes resource 3     */
                 /* since it has no rdr's to add back later              */
                 if ( (count%2) == 0 ) {
                         count++;
-                        trace("\n**** EVEN ****, remove the resource\n");
+                        dbg("\n**** EVEN ****, remove the resource\n");
                         if ( (e = remove_resource(inst)) ) {
                                 *event = *e;
-                                g_static_rec_mutex_unlock (inst->handler_lock);
+//                                g_static_rec_mutex_unlock (inst->handler_lock);
                                 return(1);
                         }
                 } else {
                         count++;
-                        trace("\n**** ODD ****, add the resource\n");
+                        dbg("\n**** ODD ****, add the resource\n");
                         if ( (e = add_resource(inst)) ) {
                                 *event = *e;
-                                g_static_rec_mutex_unlock (inst->handler_lock);
+//                                g_static_rec_mutex_unlock (inst->handler_lock);
                                 return(1);
                         }
                 }
         }
 #endif
-        g_static_rec_mutex_unlock (inst->handler_lock);
+//        g_static_rec_mutex_unlock (inst->handler_lock);
 
         return(-1);
 
@@ -1377,7 +1362,7 @@ static int dummy_get_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
                                           SaHpiBoolT *enabled)
 {
 
-        trace(" ********* dummy_get_sensor_event_enables *******");
+        dbg(" ********* dummy_get_sensor_event_enables *******");
         memcpy(enabled, &dummy_sensors[num - 1].enabled, sizeof(*enabled));
 
         return 0;
@@ -1388,7 +1373,7 @@ static int dummy_set_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
                                           const SaHpiBoolT enabled)
 {
 
-        trace(" ********* dummy_set_sensor_event_enables *******");
+        dbg(" ********* dummy_set_sensor_event_enables *******");
 
         memcpy(&dummy_sensors[num - 1].enabled, &enabled, sizeof(enabled));
 
@@ -2071,6 +2056,8 @@ gpointer event_thread(gpointer data)
         req.tv_nsec = THREAD_SLEEP_TIME_NS;
 	req.tv_sec =  THREAD_SLEEP_TIME_SECS;
 
+	int rtval = 999;
+
 
         struct oh_handler_state *inst = (struct oh_handler_state *)data;
 
@@ -2078,14 +2065,14 @@ gpointer event_thread(gpointer data)
 
         sleep(1);
 
-        int c=0;
         for (;;) {
-                c++;
-trace("address of data [%u]\n", (int)data);
-trace("address of inst [%u]\n", (int)inst);
-trace("address of mutex [%u]\n", (int)inst->handler_lock);
-trace("loop count [%d]\n", c);
-trace("event burp!\n");
+		/*
+		printf("address of data [%u]\n", (int)data);
+		printf("address of inst [%u]\n", (int)inst);
+		printf("address of mutex [%u]\n", (int)inst->handler_lock);
+		printf("loop count [%d]\n", c);
+		printf("event burp!\n");
+		*/
 
                 /* allocate memory for event */
                 e = g_malloc0(sizeof(*e));
@@ -2107,39 +2094,42 @@ trace("event burp!\n");
                 }
 
 
-                while (!g_static_rec_mutex_trylock (inst->handler_lock))
-                        trace("mutex is going to block [%d]\n", (int)inst->handler_lock);
+//                while (!g_static_rec_mutex_trylock (inst->handler_lock))
+//                        printf("mutex is going to block [%d]\n", (int)inst->handler_lock);
 
                 //g_static_rec_mutex_lock (inst->handler_lock);
                 
                 if ( (toggle%2) == 0 ) {
                         toggle++;
-                        trace("\n**** EVEN ****, remove the resource\n");
+                        dbg("**** EVEN ****, remove the resource");
                         if ( (e = remove_resource(inst)) ) {
                                 memcpy(event, e, sizeof(*event));
                                 g_async_queue_push(inst->eventq_async, event);
                         }
                 } else {
                         toggle++;
-                        trace("\n**** ODD ****, add the resource\n");
+                        dbg("**** ODD ****, add the resource");
                         if ( (e = add_resource(inst)) ) {
                                 memcpy(event, e, sizeof(*event));
                                 g_async_queue_push(inst->eventq_async, event);
                         }
                 }
 
-                g_static_rec_mutex_unlock (inst->handler_lock);
+//                g_static_rec_mutex_unlock (inst->handler_lock);
 
+		/* signal threaded infrastructure */
 		oh_cond_signal();
-		trace("dummy thread, signaled");
+		dbg("dummy thread, signaled");
 
                 nanosleep(&req, &rem);
 
         }
         
-        g_thread_exit(0);
 
-        trace("THREAD END\n"); 
+        printf("THREAD END\n"); 
+        
+	g_thread_exit(&rtval);
+
         return 0 ;
 }
 #endif
