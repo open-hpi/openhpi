@@ -43,7 +43,7 @@ int main(int arc, const char *argv[])
                 exit(-1);
         }
         
-        /* Every domain requires a new session */
+	/* Every domain requires a new session */
 	/* This example is for one domain, one session */
         err = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID, &session_id, NULL);
         if (SA_OK != err) {
@@ -68,11 +68,11 @@ int main(int arc, const char *argv[])
 SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, SaHpiRptEntryT entry)
 {
 	
-	SaErrorT		err;
-        SaHpiRptInfoT        	rpt_info_before;
-        SaHpiRptInfoT        	rpt_info_after;
-        SaHpiEntryIdT        	current;
-        SaHpiEntryIdT        	next;
+	SaErrorT	err;
+	SaHpiRptInfoT	rpt_info_before;
+	SaHpiRptInfoT   rpt_info_after;
+	SaHpiEntryIdT	current;
+	SaHpiEntryIdT   next;
 
         err = saHpiResourcesDiscover(session_id);
         if (SA_OK != err) {
@@ -415,9 +415,9 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			SaHpiSensorReadingT	reading;
 			SaHpiSensorTypeT	type;
 			SaHpiSensorNumT		num;
-			SaHpiEventCategoryT 	category;
-			//SaHpiSensorThresholdsT	thres;
-			//SaHpiSensorReadingT 	converted;
+			SaHpiEventCategoryT	category;
+			SaHpiSensorThresholdsT	thres;
+			//SaHpiSensorReadingT	converted;
 			
 			SaErrorT val;
 			
@@ -432,16 +432,24 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 				printf("Error reading sensor data {sensor, %d}", num);
 				continue;
 			} else {
-				if (reading.ValuesPresent == SAHPI_SRF_RAW)
+				if (reading.ValuesPresent & SAHPI_SRF_RAW) {
 					printf("\tValues Present: RAW\n");
-				if (reading.ValuesPresent == SAHPI_SRF_INTERPRETED)
-					printf("\tValues Present: Interpreted\n");
-				if (reading.ValuesPresent == SAHPI_SRF_EVENT_STATE);
-					printf("\tValues Present: Event State\n");
-
-
-			}
+					printf("\t\tRaw value: %d\n", reading.Raw);
+					
+					err = saHpiSensorThresholdsGet(session_id, resource_id, num, &thres);
+					if (err != SA_OK) {
+						printf("Error reading sensor thresholds {sensor, %d}\n", num);
+						continue;
+					}
+				}
 				
+				
+				if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED)
+					printf("\tValues Present: Interpreted\n");
+				if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE)
+					printf("\tValues Present: Event State\n");
+					
+			}
 			
 				
 		}
