@@ -310,16 +310,29 @@ static cMarshalType SaHpiCtrlRecUnionElements[] =
 static cMarshalType SaHpiCtrlRecUnionType = dUnion( 3, SaHpiCtrlRecUnionT, SaHpiCtrlRecUnionElements );
 
 
+static cMarshalType SaHpiCtrlDefaultModeElements[] =
+{
+	dStructElement( SaHpiCtrlDefaultModeT, Mode, SaHpiCtrlModeType ),
+	dStructElement( SaHpiCtrlDefaultModeT, ReadOnly, SaHpiBoolType),
+	dStructElementEnd()
+};
+
+cMarshalType SaHpiCtrlDefaultModeType = dStruct( SaHpiCtrlDefaultModeT, SaHpiCtrlDefaultModeElements );
+
+
 static cMarshalType SaHpiCtrlRecElements[] =
 {
-  dStructElement( SaHpiCtrlRecT, Num, SaHpiCtrlNumType ),
+	dStructElement( SaHpiCtrlRecT, Num, SaHpiCtrlNumType ),
 
-  dStructElement( SaHpiCtrlRecT, OutputType, SaHpiCtrlOutputTypeType ),
-  dStructElement( SaHpiCtrlRecT, Type, SaHpiCtrlTypeType ),
-  dStructElement( SaHpiCtrlRecT, TypeUnion, SaHpiCtrlRecUnionType ),
+	dStructElement( SaHpiCtrlRecT, OutputType, SaHpiCtrlOutputTypeType ),
+	dStructElement( SaHpiCtrlRecT, Type, SaHpiCtrlTypeType ),
+	dStructElement( SaHpiCtrlRecT, TypeUnion, SaHpiCtrlRecUnionType ),
+	dStructElement( SaHpiCtrlRecT, DefaultMode, SaHpiCtrlDefaultModeType ),
 
-  dStructElement( SaHpiCtrlRecT, Oem, SaHpiUint32Type),
-  dStructElementEnd()
+	dStructElement( SaHpiCtrlRecT, WriteOnly, SaHpiBoolType ),
+
+	dStructElement( SaHpiCtrlRecT, Oem, SaHpiUint32Type),
+	dStructElementEnd()
 };
 
 cMarshalType SaHpiCtrlRecType = dStruct( SaHpiCtrlRecT, SaHpiCtrlRecElements );
@@ -867,27 +880,43 @@ static cMarshalType SaHpiWatchdogRecElements[] =
 
 cMarshalType SaHpiWatchdogRecType = dStruct( SaHpiWatchdogRecT, SaHpiWatchdogRecElements );
 
+static cMarshalType SaHpiAnnunciatorRecElements[] =
+{
+	dStructElement( SaHpiAnnunciatorRecT, AnnunciatorNum, SaHpiAnnunciatorNumType ),
+	dStructElement( SaHpiAnnunciatorRecT, AnnunciatorType, SaHpiAnnunciatorTypeType ),
+	dStructElement( SaHpiAnnunciatorRecT, ModeReadOnly, SaHpiBoolType ),
+	dStructElement( SaHpiAnnunciatorRecT, MaxConditions, SaHpiUint32Type ),
+	dStructElement( SaHpiAnnunciatorRecT, Oem, SaHpiUint32Type ),
+	dStructElementEnd()
+};
+
+cMarshalType SaHpiAnnunciatorRecType = dStruct( SaHpiAnnunciatorRecT, SaHpiAnnunciatorRecElements );
 
 static cMarshalType SaHpiRdrTypeUnionElements[] =
 {
-  dUnionElement( SAHPI_NO_RECORD, VoidType ),
-  dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
-  dUnionElement( SAHPI_SENSOR_RDR, SaHpiSensorRecType ),
-  dUnionElement( SAHPI_INVENTORY_RDR, SaHpiInventoryRecType ),
-  dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
-  dUnionElementEnd()
+	dUnionElement( SAHPI_NO_RECORD, VoidType ),
+	dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
+	dUnionElement( SAHPI_SENSOR_RDR, SaHpiSensorRecType ),
+	dUnionElement( SAHPI_INVENTORY_RDR, VoidType ),/* TODO this void type is just a place holder */
+	dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
+	dUnionElement( SAHPI_ANNUNCIATOR_RDR, SaHpiAnnunciatorRecType ),
+	dUnionElementEnd()
 };
 
 static cMarshalType SaHpiRdrTypeUnionType = dUnion( 1, SaHpiRdrTypeUnionT, SaHpiRdrTypeUnionElements );
 
+
 static cMarshalType SaHpiRdrElements[] =
 {
-  dStructElement( SaHpiRdrT, RecordId, SaHpiEntryIdType ),
-  dStructElement( SaHpiRdrT, RdrType, SaHpiRdrTypeType ),
-  dStructElement( SaHpiRdrT, Entity, SaHpiEntityPathType ),
-  dStructElement( SaHpiRdrT, RdrTypeUnion, SaHpiRdrTypeUnionType ),
-  dStructElement( SaHpiRdrT, IdString, SaHpiTextBufferType ),
-  dStructElementEnd()
+	dStructElement( SaHpiRdrT, RecordId, SaHpiEntryIdType ),
+	dStructElement( SaHpiRdrT, RdrType, SaHpiRdrTypeType ),
+	dStructElement( SaHpiRdrT, Entity, SaHpiEntityPathType ),
+
+	dStructElement( SaHpiRdrT, Entity, SaHpiBoolType ),
+
+	dStructElement( SaHpiRdrT, RdrTypeUnion, SaHpiRdrTypeUnionType ),
+	dStructElement( SaHpiRdrT, IdString, SaHpiTextBufferType ),
+	dStructElementEnd()
 };
 
 cMarshalType SaHpiRdrType = dStruct( SaHpiRdrT, SaHpiRdrElements );
