@@ -29,7 +29,10 @@ TESTS = sahpi_enum_utils_test \
 	sahpi_event_encode_test \
 	sahpi_event_utils_test \
 	sahpi_struct_utils_test \
-	sahpi_time_utils_test
+	sahpi_time_utils_test \
+	sahpi_struct_idrinfo_test \
+	sahpi_struct_idrarea_test \
+	sahpi_struct_idrfield_test
 
 check_PROGRAMS = $(TESTS)
 
@@ -38,3 +41,7 @@ sahpi_event_encode_test_SOURCES = sahpi_event_encode_test.c  $(REMOTE_SOURCES)
 sahpi_event_utils_test_SOURCES = sahpi_event_utils_test.c  $(REMOTE_SOURCES)
 sahpi_struct_utils_test_SOURCES = sahpi_struct_utils_test.c $(REMOTE_SOURCES)
 sahpi_time_utils_test_SOURCES = sahpi_time_utils_test.c $(REMOTE_SOURCES)
+sahpi_struct_idrinfo_test_SOURCES = sahpi_struct_idrinfo_test.c $(REMOTE_SOURCES)
+sahpi_struct_idrarea_test_SOURCES = sahpi_struct_idrarea_test.c $(REMOTE_SOURCES)
+sahpi_struct_idrfield_test_SOURCES = sahpi_struct_idrfield_test.c $(REMOTE_SOURCES)
+
