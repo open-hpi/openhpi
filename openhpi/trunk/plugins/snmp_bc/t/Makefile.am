@@ -11,6 +11,7 @@
  
 REMOTE_SIM_SOURCES   = 	bc_resources.c \
 			snmp_bc.c \
+			com_xml2event.c \
 	     		snmp_bc_discover.c \
 			snmp_bc_discover_bc.c \
 			snmp_bc_discover_rsa.c \
@@ -78,7 +79,8 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 #	thotswap_power_set \
 #	thotswap_power_set_err \
 #	thotswap_unsupported \
-#	tsensor
+#	tsensor \
+#	testxml
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
 # XFAIL_TESTS = thotswap_reset
@@ -92,6 +94,9 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 #		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit tests with IF and snmp calls stubbed out
+#testxml_SOURCES = testxml.c
+#testxml_LDADD   = com_xml2event.c
+
 #tsensor_SOURCES = tsensor.c
 #tsensor_LDADD   = snmp_bc_sensor.o 
 

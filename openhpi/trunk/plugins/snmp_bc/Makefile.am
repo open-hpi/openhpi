@@ -15,6 +15,8 @@ MOSTLYCLEANFILES	= @TEST_CLEAN@
 SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
 SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 
+XMLDATA = bc_xmlevents.c rsa_xmlevents.c
+
 SUBDIRS 		= t
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils -I$(SNMPUTILSDIR)
@@ -25,8 +27,8 @@ pkglib_LTLIBRARIES	= libsnmp_bc.la
 
 EXTRA_DIST		=	bc_errorlog.h \
 				bc_resources.h \
-				bc_str2event.h \
 				snmp_bc.h \
+				com_xml2event.h \
 				snmp_bc_control.h \
 				snmp_bc_event.h \
 	     			snmp_bc_discover.h \
@@ -38,7 +40,14 @@ EXTRA_DIST		=	bc_errorlog.h \
 				snmp_bc_inventory.h \
 				snmp_bc_watchdog.h
 
-libsnmp_bc_la_SOURCES	=	bc_resources.c \
+#				bc_str2event.h \
+
+# Generated files (e.g.bc_xmlevents.c rsa_xmlevents.c) must be listed first
+libsnmp_bc_la_SOURCES	= \
+                                bc_xmlevents \
+                                rsa_xmlevents.c \
+                                com_xml2event.c \
+                                bc_resources.c \
 				sim_init.c \
 				snmp_bc.c \
 	     			snmp_bc_discover.c \
@@ -49,7 +58,6 @@ libsnmp_bc_la_SOURCES	=	bc_resources.c \
 	     			snmp_bc_time.c \
 				stubs.c
 
-#				bc_str2event.c \
 #				snmp_bc_control.c \
 #				snmp_bc_event.c \
 #				snmp_bc_hotswap.c \
@@ -60,3 +68,8 @@ libsnmp_bc_la_SOURCES	=	bc_resources.c \
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la
 libsnmp_bc_la_LDFLAGS	= -avoid-version
+
+$(XMLDATA): RSA_STRING.XML BC_STRING.XML $(top_srcdir)/scripts/text2cstr.pl
+	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml BC_STRING.XML > bc_xmlevents.c
+	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml RSA_STRING.XML > rsa_xmlevents.c
+

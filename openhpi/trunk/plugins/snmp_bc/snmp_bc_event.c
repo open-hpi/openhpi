@@ -350,7 +350,8 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	dbg ("Search string=%s xxx", search_str);
 #endif
 	/* See if adjusted search string is a recognized BC "alertable" event */
-	strhash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, search_str);
+        /* FIXME Fix for RSA */
+	strhash_data = (Str2EventInfoT *)g_hash_table_lookup(bc_xml2event_hash, search_str);
 	if (strhash_data) {
 
 		/* Handle strings that have multiple event numbers */
@@ -532,7 +533,8 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strha
 			strncpy(dupstr, tmpstr, BC_SEL_ENTRY_STRING);
 			g_free(tmpstr);
 
-			dupstr_hash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, dupstr);
+                        /* FIXME Fix for RSA */
+			dupstr_hash_data = (Str2EventInfoT *)g_hash_table_lookup(xml2event_hash, dupstr);
 			if (dupstr_hash_data == NULL) {
 				dbg("Cannot find duplicate string=%s\n", dupstr);
 			}
@@ -544,7 +546,7 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strha
 
 /*
  * This function parses BladeCenter threshold log messages into their various 
- * sub-strings. Format is root string (in str2event_hash) followed by read threshold 
+ * sub-strings. Format is root string (in bc(rsa)xml2event_hash) followed by read threshold 
  * value string  followed by trigger threshold value string. Unfortunately can't
  * convert directly to sensor values yet because don't yet know if event mapped or
  * if it is, what the sensor's threshold data type is.
