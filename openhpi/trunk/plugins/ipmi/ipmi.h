@@ -52,7 +52,6 @@ struct ohoi_handler {
 	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
 	int sel_clear_done;		/* we need to wait for mc_sel_reread for clear to succeed */
 //	int FRU_done;			/* we have to track FRUs */
-	int ipmi_instance;
 
 	ipmi_domain_id_t domain_id;
 
