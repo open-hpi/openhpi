@@ -65,13 +65,9 @@ SaErrorT oh_decode_eventstate(SaHpiEventStateT event_state,
 		if (state_strings[i].category == event_cat) {
 			if ((state_strings[i].state & event_state) == state_strings[i].state) {
 				found++;
-				err = oh_append_textbuffer(&working,
-							   state_strings[i].str,
-							   strlen(state_strings[i].str));
+				err = oh_append_textbuffer(&working, state_strings[i].str);
 				if (err != SA_OK) { return(err); }
-				err = oh_append_textbuffer(&working,
-							   OH_ENCODE_DELIMITER,
-							   OH_ENCODE_DELIMITER_LENGTH);
+				err = oh_append_textbuffer(&working, OH_ENCODE_DELIMITER);
 				if (err != SA_OK) { return(err); }
 			}
 		}
@@ -83,13 +79,9 @@ SaErrorT oh_decode_eventstate(SaHpiEventStateT event_state,
 			/* Strip any UNSPECIFIED definitions, if another definition found */
 			if (!(found && state_global_strings[i].state == SAHPI_ES_UNSPECIFIED)) {
 				found++;
-				err = oh_append_textbuffer(&working,
-							   state_global_strings[i].str,
-							   strlen(state_global_strings[i].str));
+				err = oh_append_textbuffer(&working, state_global_strings[i].str);
 				if (err != SA_OK) { return(err); }
-				err = oh_append_textbuffer(&working,
-							   OH_ENCODE_DELIMITER,
-							   OH_ENCODE_DELIMITER_LENGTH);
+				err = oh_append_textbuffer(&working, OH_ENCODE_DELIMITER);
 				if (err != SA_OK) { return(err); }
 			}
 		}

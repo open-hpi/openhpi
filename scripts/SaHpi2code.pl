@@ -921,8 +921,8 @@ sub print_testfile_case($$) {
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = $encode_name(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1093,7 +1093,7 @@ sub print_testfile_endfunc($) {
 	             	
                 /* $type - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, \"INVALID_TYPE\", strlen(\"INVALID_TYPE\"));
+		err = oh_append_textbuffer(&buffer, \"INVALID_TYPE\");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = $encode_name(&buffer, &enum_type);

@@ -8,17 +8,16 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-REMOTE_SOURCES	= sahpi_enum_utils.c \
-		  sahpi_event_encode.c\
+REMOTE_SOURCES =  epath_utils.c \
+		  sahpi_enum_utils.c \
+		  sahpi_event_encode.c \
 		  sahpi_event_utils.c \
 	          sahpi_struct_utils.c \
 	          sahpi_time_utils.c 
 
-MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
-
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
-
-AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@
+INCLUDES	= -I$(top_srcdir)/include -I$(top_srcdir)/utils
+AM_CFLAGS	= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \

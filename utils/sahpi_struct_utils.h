@@ -38,7 +38,7 @@ typedef struct {
 } oh_big_textbuffer;
 
 SaErrorT oh_init_textbuffer(SaHpiTextBufferT *buffer);
-SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from, size_t size);
+SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from);
 SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from);
 
 /* Print just the Data portions of the text structures */

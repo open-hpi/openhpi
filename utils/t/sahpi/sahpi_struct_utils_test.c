@@ -415,7 +415,7 @@ int main(int argc, char **argv)
 		str = " + 20  Volts";
 		expected_int64 = 20;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -434,7 +434,7 @@ int main(int argc, char **argv)
 		str = "The, happy, %% result is ... +2,000Volts ,,... ";
 		expected_int64 = 2000;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -453,7 +453,7 @@ int main(int argc, char **argv)
 		str = "There are no numbers in this string";
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -465,7 +465,7 @@ int main(int argc, char **argv)
 		str = "-2.5volts";
 		expected_float64 = -2.5;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_FLOAT64, &reading);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -484,7 +484,7 @@ int main(int argc, char **argv)
 		str = "1.000.000 volts";
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_FLOAT64, &reading);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -496,7 +496,7 @@ int main(int argc, char **argv)
 		str = "+-33e02";
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -508,7 +508,7 @@ int main(int argc, char **argv)
 		str = "33% RPM";
 		expected_float64 = 0.33;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_FLOAT64, &reading);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -527,7 +527,7 @@ int main(int argc, char **argv)
 		str = "33% RPM";
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -539,7 +539,7 @@ int main(int argc, char **argv)
 		str = "99999999999999999999999999999999";
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -551,7 +551,7 @@ int main(int argc, char **argv)
 		str = "99999999999999999999999999999999";
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_UINT64, &reading);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -564,7 +564,7 @@ int main(int argc, char **argv)
 		str = "99999999999999999999999999999999";
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, str, strlen(str));
+		oh_append_textbuffer(&buffer, str);
 		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_FLOAT64, &reading);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -593,7 +593,7 @@ int main(int argc, char **argv)
 		/* oh_append_textbuffer: NULL buffer testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		err = oh_append_textbuffer(0, str, strlen(str));
+		err = oh_append_textbuffer(0, str);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
@@ -603,32 +603,12 @@ int main(int argc, char **argv)
 		/* oh_append_textbuffer: NULL str testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		err = oh_append_textbuffer(&buffer, 0, strlen(str));
+		err = oh_append_textbuffer(&buffer, 0);
 		if (err != expected_err) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
-
-		/* oh_append_textbuffer: Zero size testcase */
-		expected_err = SA_OK;
-		memset(buffer.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		strncpy(buffer.Data, str, strlen(str));
-		expected_str = str;
-
-		err = oh_append_textbuffer(&buffer, str, 0);
-		if (err != SA_OK) {
-			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-			printf("  Received error=%d\n", err);
-			return -1;
-		}
-
-                if (strcmp(expected_str, buffer.Data)) {
-     			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-			printf("  Received string=%s; Expected string=%s\n", 
-			       buffer.Data, expected_str);
-                         return -1;             
-                }
-
 
 		/* oh_append_textbuffer: Out of space testcase */
 		{ 
@@ -637,7 +617,7 @@ int main(int argc, char **argv)
 			expected_err = SA_ERR_HPI_OUT_OF_SPACE;
 			memset(bigstr, 0x32, SAHPI_MAX_TEXT_BUFFER_LENGTH +1);
 			
-			err = oh_append_textbuffer(&buffer, bigstr, strlen(bigstr));
+			err = oh_append_textbuffer(&buffer, bigstr);
 			if (err != expected_err) {
 				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 				printf("  Received error=%d; Expected error=%d\n", err, expected_err);
@@ -677,7 +657,7 @@ int main(int argc, char **argv)
 			printf("  Received error=%d\n", err);
 			return -1;
 		}
-		err = oh_append_textbuffer(&buffer, str, strlen(str));	
+		err = oh_append_textbuffer(&buffer, str);	
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);

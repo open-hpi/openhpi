@@ -48,8 +48,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -81,8 +81,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -114,8 +114,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -147,8 +147,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -180,8 +180,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -213,8 +213,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -246,8 +246,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -279,8 +279,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -312,8 +312,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -345,8 +345,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -378,8 +378,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -411,8 +411,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -444,8 +444,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -477,8 +477,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -510,8 +510,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -543,8 +543,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -576,8 +576,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -609,8 +609,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -642,8 +642,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -675,8 +675,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -708,8 +708,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -741,8 +741,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -774,8 +774,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -807,8 +807,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -840,8 +840,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -873,8 +873,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -906,8 +906,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -939,8 +939,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -972,8 +972,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1005,8 +1005,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1038,8 +1038,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1071,8 +1071,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1104,8 +1104,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1137,8 +1137,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1170,8 +1170,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1203,8 +1203,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1236,8 +1236,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1269,8 +1269,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1302,8 +1302,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1335,8 +1335,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1368,8 +1368,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1401,8 +1401,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1434,8 +1434,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1467,8 +1467,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1500,8 +1500,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1533,8 +1533,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1566,8 +1566,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1599,8 +1599,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1632,8 +1632,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1665,8 +1665,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1698,8 +1698,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1731,8 +1731,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1764,8 +1764,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1797,8 +1797,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1830,8 +1830,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1863,8 +1863,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1896,8 +1896,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1929,8 +1929,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1962,8 +1962,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -1995,8 +1995,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2028,8 +2028,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2061,8 +2061,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2094,8 +2094,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2127,8 +2127,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2160,8 +2160,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2193,8 +2193,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2226,8 +2226,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2259,8 +2259,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2292,8 +2292,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2325,8 +2325,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2358,8 +2358,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2391,8 +2391,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2424,8 +2424,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2457,8 +2457,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2490,8 +2490,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2523,8 +2523,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2556,8 +2556,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2589,8 +2589,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2622,8 +2622,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2655,8 +2655,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2688,8 +2688,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2721,8 +2721,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2754,8 +2754,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2787,8 +2787,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2820,8 +2820,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2853,8 +2853,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2886,8 +2886,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2919,8 +2919,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2952,8 +2952,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -2985,8 +2985,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3018,8 +3018,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3051,8 +3051,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3084,8 +3084,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3117,8 +3117,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3150,8 +3150,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3183,8 +3183,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3216,8 +3216,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3249,8 +3249,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3282,8 +3282,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3315,8 +3315,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3348,8 +3348,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3381,8 +3381,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3414,8 +3414,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3447,8 +3447,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3480,8 +3480,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3513,8 +3513,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3546,8 +3546,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3579,8 +3579,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3612,8 +3612,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3645,8 +3645,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3678,8 +3678,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3711,8 +3711,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3744,8 +3744,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3777,8 +3777,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3810,8 +3810,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3843,8 +3843,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3876,8 +3876,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3909,8 +3909,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3942,8 +3942,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -3975,8 +3975,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4008,8 +4008,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4041,8 +4041,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4074,8 +4074,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4107,8 +4107,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4140,8 +4140,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4173,8 +4173,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4206,8 +4206,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4239,8 +4239,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4272,8 +4272,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4305,8 +4305,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4338,8 +4338,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4371,8 +4371,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4404,8 +4404,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4437,8 +4437,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4470,8 +4470,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4503,8 +4503,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4536,8 +4536,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_language(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4583,7 +4583,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiLanguageT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_language(&buffer, &enum_type);
@@ -4610,8 +4610,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_texttype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4643,8 +4643,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_texttype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4676,8 +4676,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_texttype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4709,8 +4709,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_texttype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4742,8 +4742,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_texttype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4789,7 +4789,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiTextTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_texttype(&buffer, &enum_type);
@@ -4816,8 +4816,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4849,8 +4849,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4882,8 +4882,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4915,8 +4915,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4948,8 +4948,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -4981,8 +4981,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5014,8 +5014,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5047,8 +5047,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5080,8 +5080,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5113,8 +5113,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5146,8 +5146,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5179,8 +5179,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5212,8 +5212,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5245,8 +5245,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5278,8 +5278,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5311,8 +5311,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5344,8 +5344,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5377,8 +5377,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5410,8 +5410,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5443,8 +5443,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5476,8 +5476,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5509,8 +5509,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5542,8 +5542,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5575,8 +5575,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5608,8 +5608,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5641,8 +5641,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5674,8 +5674,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5707,8 +5707,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5740,8 +5740,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5773,8 +5773,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5806,8 +5806,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5839,8 +5839,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5872,8 +5872,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5905,8 +5905,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5938,8 +5938,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -5971,8 +5971,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6004,8 +6004,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6037,8 +6037,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6070,8 +6070,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6103,8 +6103,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6136,8 +6136,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6169,8 +6169,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6202,8 +6202,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6235,8 +6235,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6268,8 +6268,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6301,8 +6301,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6334,8 +6334,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6367,8 +6367,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6400,8 +6400,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6433,8 +6433,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6466,8 +6466,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6499,8 +6499,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6532,8 +6532,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6565,8 +6565,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6598,8 +6598,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6631,8 +6631,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6664,8 +6664,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6697,8 +6697,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6730,8 +6730,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6763,8 +6763,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6796,8 +6796,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6829,8 +6829,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6862,8 +6862,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6895,8 +6895,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6928,8 +6928,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6961,8 +6961,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -6994,8 +6994,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_entitytype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7041,7 +7041,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiEntityTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_entitytype(&buffer, &enum_type);
@@ -7068,8 +7068,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7101,8 +7101,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7134,8 +7134,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7167,8 +7167,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7200,8 +7200,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7233,8 +7233,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7266,8 +7266,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7299,8 +7299,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7332,8 +7332,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7365,8 +7365,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7398,8 +7398,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7431,8 +7431,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7464,8 +7464,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7497,8 +7497,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7530,8 +7530,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7563,8 +7563,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7596,8 +7596,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7629,8 +7629,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7662,8 +7662,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7695,8 +7695,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7728,8 +7728,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7761,8 +7761,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7794,8 +7794,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7827,8 +7827,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7860,8 +7860,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7893,8 +7893,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7926,8 +7926,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7959,8 +7959,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -7992,8 +7992,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8025,8 +8025,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8058,8 +8058,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8091,8 +8091,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8124,8 +8124,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8157,8 +8157,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8190,8 +8190,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8223,8 +8223,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8256,8 +8256,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8289,8 +8289,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8322,8 +8322,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8355,8 +8355,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8388,8 +8388,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8421,8 +8421,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8454,8 +8454,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8501,7 +8501,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSensorTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_sensortype(&buffer, &enum_type);
@@ -8528,8 +8528,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorreadingtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8561,8 +8561,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorreadingtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8594,8 +8594,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorreadingtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8627,8 +8627,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorreadingtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8674,7 +8674,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSensorReadingTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_sensorreadingtype(&buffer, &enum_type);
@@ -8701,8 +8701,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensoreventmaskaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8734,8 +8734,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensoreventmaskaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8781,7 +8781,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSensorEventMaskActionT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_sensoreventmaskaction(&buffer, &enum_type);
@@ -8808,8 +8808,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8841,8 +8841,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8874,8 +8874,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8907,8 +8907,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8940,8 +8940,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -8973,8 +8973,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9006,8 +9006,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9039,8 +9039,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9072,8 +9072,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9105,8 +9105,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9138,8 +9138,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9171,8 +9171,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9204,8 +9204,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9237,8 +9237,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9270,8 +9270,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9303,8 +9303,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9336,8 +9336,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9369,8 +9369,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9402,8 +9402,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9435,8 +9435,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9468,8 +9468,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9501,8 +9501,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9534,8 +9534,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9567,8 +9567,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9600,8 +9600,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9633,8 +9633,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9666,8 +9666,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9699,8 +9699,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9732,8 +9732,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9765,8 +9765,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9798,8 +9798,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9831,8 +9831,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9864,8 +9864,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9897,8 +9897,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9930,8 +9930,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9963,8 +9963,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -9996,8 +9996,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10029,8 +10029,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10062,8 +10062,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10095,8 +10095,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10128,8 +10128,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10161,8 +10161,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10194,8 +10194,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10227,8 +10227,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10260,8 +10260,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10293,8 +10293,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10326,8 +10326,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10359,8 +10359,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10392,8 +10392,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10425,8 +10425,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10458,8 +10458,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10491,8 +10491,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10524,8 +10524,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10557,8 +10557,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10590,8 +10590,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10623,8 +10623,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10656,8 +10656,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10689,8 +10689,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10722,8 +10722,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10755,8 +10755,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10788,8 +10788,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10821,8 +10821,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10854,8 +10854,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10887,8 +10887,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10920,8 +10920,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10953,8 +10953,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -10986,8 +10986,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11019,8 +11019,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11052,8 +11052,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11085,8 +11085,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11118,8 +11118,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11151,8 +11151,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11184,8 +11184,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11217,8 +11217,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11250,8 +11250,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11283,8 +11283,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11316,8 +11316,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11349,8 +11349,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11382,8 +11382,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11415,8 +11415,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11448,8 +11448,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11481,8 +11481,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11514,8 +11514,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11547,8 +11547,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11580,8 +11580,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11613,8 +11613,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11646,8 +11646,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11679,8 +11679,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11712,8 +11712,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11745,8 +11745,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11778,8 +11778,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensorunits(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11825,7 +11825,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSensorUnitsT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_sensorunits(&buffer, &enum_type);
@@ -11852,8 +11852,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensormodunituse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11885,8 +11885,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensormodunituse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11918,8 +11918,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensormodunituse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -11965,7 +11965,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSensorModUnitUseT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_sensormodunituse(&buffer, &enum_type);
@@ -11992,8 +11992,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensoreventctrl(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12025,8 +12025,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensoreventctrl(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12058,8 +12058,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sensoreventctrl(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12105,7 +12105,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSensorEventCtrlT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_sensoreventctrl(&buffer, &enum_type);
@@ -12132,8 +12132,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrltype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12165,8 +12165,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrltype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12198,8 +12198,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrltype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12231,8 +12231,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrltype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12264,8 +12264,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrltype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12297,8 +12297,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrltype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12344,7 +12344,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiCtrlTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_ctrltype(&buffer, &enum_type);
@@ -12371,8 +12371,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrlstatedigital(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12404,8 +12404,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrlstatedigital(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12437,8 +12437,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrlstatedigital(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12470,8 +12470,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrlstatedigital(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12517,7 +12517,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiCtrlStateDigitalT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_ctrlstatedigital(&buffer, &enum_type);
@@ -12544,8 +12544,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrlmode(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12577,8 +12577,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrlmode(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12624,7 +12624,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiCtrlModeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_ctrlmode(&buffer, &enum_type);
@@ -12651,8 +12651,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12684,8 +12684,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12717,8 +12717,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12750,8 +12750,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12783,8 +12783,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12816,8 +12816,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12849,8 +12849,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12882,8 +12882,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12915,8 +12915,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12948,8 +12948,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -12981,8 +12981,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13028,7 +13028,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiCtrlOutputTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_ctrloutputtype(&buffer, &enum_type);
@@ -13055,8 +13055,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrareatype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13088,8 +13088,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrareatype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13121,8 +13121,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrareatype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13154,8 +13154,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrareatype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13187,8 +13187,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrareatype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13220,8 +13220,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrareatype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13267,7 +13267,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiIdrAreaTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_idrareatype(&buffer, &enum_type);
@@ -13294,8 +13294,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13327,8 +13327,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13360,8 +13360,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13393,8 +13393,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13426,8 +13426,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13459,8 +13459,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13492,8 +13492,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13525,8 +13525,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13558,8 +13558,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13591,8 +13591,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13624,8 +13624,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13671,7 +13671,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiIdrFieldTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_idrfieldtype(&buffer, &enum_type);
@@ -13698,8 +13698,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13731,8 +13731,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13764,8 +13764,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13797,8 +13797,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13844,7 +13844,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiWatchdogActionT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_watchdogaction(&buffer, &enum_type);
@@ -13871,8 +13871,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogactionevent(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13904,8 +13904,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogactionevent(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13937,8 +13937,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogactionevent(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -13970,8 +13970,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogactionevent(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14003,8 +14003,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogactionevent(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14050,7 +14050,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiWatchdogActionEventT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_watchdogactionevent(&buffer, &enum_type);
@@ -14077,8 +14077,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogpretimerinterrupt(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14110,8 +14110,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogpretimerinterrupt(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14143,8 +14143,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogpretimerinterrupt(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14176,8 +14176,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogpretimerinterrupt(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14209,8 +14209,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogpretimerinterrupt(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14256,7 +14256,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiWatchdogPretimerInterruptT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_watchdogpretimerinterrupt(&buffer, &enum_type);
@@ -14283,8 +14283,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14316,8 +14316,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14349,8 +14349,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14382,8 +14382,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14415,8 +14415,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14448,8 +14448,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14481,8 +14481,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14528,7 +14528,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiWatchdogTimerUseT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_watchdogtimeruse(&buffer, &enum_type);
@@ -14555,8 +14555,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsindicatorstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14588,8 +14588,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsindicatorstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14635,7 +14635,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiHsIndicatorStateT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_hsindicatorstate(&buffer, &enum_type);
@@ -14662,8 +14662,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14695,8 +14695,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14742,7 +14742,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiHsActionT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_hsaction(&buffer, &enum_type);
@@ -14769,8 +14769,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14802,8 +14802,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14835,8 +14835,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14868,8 +14868,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14901,8 +14901,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_hsstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -14948,7 +14948,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiHsStateT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_hsstate(&buffer, &enum_type);
@@ -14975,8 +14975,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_severity(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15008,8 +15008,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_severity(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15041,8 +15041,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_severity(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15074,8 +15074,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_severity(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15107,8 +15107,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_severity(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15140,8 +15140,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_severity(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15173,8 +15173,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_severity(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15220,7 +15220,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSeverityT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_severity(&buffer, &enum_type);
@@ -15247,8 +15247,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_resourceeventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15280,8 +15280,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_resourceeventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15313,8 +15313,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_resourceeventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15360,7 +15360,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiResourceEventTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_resourceeventtype(&buffer, &enum_type);
@@ -15387,8 +15387,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_domaineventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15420,8 +15420,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_domaineventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15467,7 +15467,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiDomainEventTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_domaineventtype(&buffer, &enum_type);
@@ -15494,8 +15494,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sweventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15527,8 +15527,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sweventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15560,8 +15560,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_sweventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15607,7 +15607,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiSwEventTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_sweventtype(&buffer, &enum_type);
@@ -15634,8 +15634,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15667,8 +15667,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15700,8 +15700,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15733,8 +15733,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15766,8 +15766,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15799,8 +15799,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15832,8 +15832,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15865,8 +15865,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15898,8 +15898,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -15945,7 +15945,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiEventTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_eventtype(&buffer, &enum_type);
@@ -15972,8 +15972,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_statuscondtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16005,8 +16005,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_statuscondtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16038,8 +16038,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_statuscondtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16071,8 +16071,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_statuscondtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16118,7 +16118,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiStatusCondTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_statuscondtype(&buffer, &enum_type);
@@ -16145,8 +16145,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatormode(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16178,8 +16178,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatormode(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16211,8 +16211,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatormode(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16258,7 +16258,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiAnnunciatorModeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_annunciatormode(&buffer, &enum_type);
@@ -16285,8 +16285,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16318,8 +16318,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16351,8 +16351,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16384,8 +16384,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16417,8 +16417,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16450,8 +16450,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16483,8 +16483,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16530,7 +16530,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiAnnunciatorTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_annunciatortype(&buffer, &enum_type);
@@ -16557,8 +16557,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_rdrtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16590,8 +16590,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_rdrtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16623,8 +16623,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_rdrtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16656,8 +16656,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_rdrtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16689,8 +16689,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_rdrtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16722,8 +16722,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_rdrtype(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16769,7 +16769,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiRdrTypeT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_rdrtype(&buffer, &enum_type);
@@ -16796,8 +16796,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_parmaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16829,8 +16829,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_parmaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16862,8 +16862,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_parmaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16909,7 +16909,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiParmActionT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_parmaction(&buffer, &enum_type);
@@ -16936,8 +16936,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_resetaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -16969,8 +16969,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_resetaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17002,8 +17002,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_resetaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17035,8 +17035,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_resetaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17082,7 +17082,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiResetActionT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_resetaction(&buffer, &enum_type);
@@ -17109,8 +17109,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_powerstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17142,8 +17142,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_powerstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17175,8 +17175,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_powerstate(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17222,7 +17222,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiPowerStateT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_powerstate(&buffer, &enum_type);
@@ -17249,8 +17249,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventlogoverflowaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17282,8 +17282,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventlogoverflowaction(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17329,7 +17329,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiEventLogOverflowActionT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_eventlogoverflowaction(&buffer, &enum_type);
@@ -17356,8 +17356,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17389,8 +17389,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17422,8 +17422,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17455,8 +17455,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17488,8 +17488,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17521,8 +17521,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17554,8 +17554,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17587,8 +17587,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17620,8 +17620,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17653,8 +17653,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17686,8 +17686,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17719,8 +17719,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17752,8 +17752,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17785,8 +17785,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17818,8 +17818,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17851,8 +17851,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17884,8 +17884,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17917,8 +17917,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17950,8 +17950,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -17983,8 +17983,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18016,8 +18016,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18049,8 +18049,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_error(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18096,7 +18096,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaErrorT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_error(&buffer, &enum_type);
@@ -18123,8 +18123,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18156,8 +18156,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18189,8 +18189,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18222,8 +18222,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18255,8 +18255,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18288,8 +18288,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18321,8 +18321,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18354,8 +18354,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18387,8 +18387,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18420,8 +18420,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18453,8 +18453,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18486,8 +18486,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18519,8 +18519,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18552,8 +18552,8 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
-		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, str, strlen(str));		
+		err = oh_init_textbuffer(&buffer);
+		err = oh_append_textbuffer(&buffer, str);
 		
                 err = oh_encode_eventcategory(&buffer, &enum_type);
                 if (err != SA_OK) {
@@ -18599,7 +18599,7 @@ int main(int argc, char **argv)
 	             	
                 /* SaHpiEventCategoryT - Invalid type testcase */
 		err = oh_init_textbuffer(&buffer);		
-		err = oh_append_textbuffer(&buffer, "INVALID_TYPE", strlen("INVALID_TYPE"));
+		err = oh_append_textbuffer(&buffer, "INVALID_TYPE");
 
 		expected_err = SA_ERR_HPI_INVALID_DATA;
                 err = oh_encode_eventcategory(&buffer, &enum_type);

@@ -205,7 +205,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
 				SaHpiEventCategoryT cat;
 
 				oh_init_textbuffer(&buffer);
-				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_append_textbuffer(&buffer, vars->val.string);
 				oh_encode_eventstate(&buffer,
 						     &sen_max_reading[i].EventStatus.EventStatus,
 						     &cat);
@@ -434,7 +434,7 @@ dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
 				SaHpiEventCategoryT cat;
 				
 				oh_init_textbuffer(&buffer);
-				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_append_textbuffer(&buffer, vars->val.string);
 				oh_encode_eventstate(&buffer,
 						     &sen_min_reading[i].EventStatus.EventStatus,
 						     &cat);
@@ -662,7 +662,7 @@ dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
 				SaHpiEventCategoryT cat;
 
 				oh_init_textbuffer(&buffer);
-				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_append_textbuffer(&buffer, vars->val.string);
 				oh_encode_eventstate(&buffer,
 						     &sen_nominal_reading[i].EventStatus.EventStatus,
 						     &cat);
@@ -890,7 +890,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 				SaHpiEventCategoryT cat;
 
 				oh_init_textbuffer(&buffer);
-				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_append_textbuffer(&buffer, vars->val.string);
 				oh_encode_eventstate(&buffer,
 						     &sen_normal_max_reading[i].EventStatus.EventStatus,
 						     &cat);
@@ -1118,7 +1118,7 @@ dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 				SaHpiEventCategoryT cat;
 
 				oh_init_textbuffer(&buffer);
-				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_append_textbuffer(&buffer, vars->val.string);
 				oh_encode_eventstate(&buffer,
 						     &sen_normal_min_reading[i].EventStatus.EventStatus,
 						     &cat);

@@ -25,7 +25,7 @@
 #include <oh_utils.h>
 
 static inline SaErrorT oh_init_bigtext(oh_big_textbuffer *big_buffer);
-static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from, size_t size);
+static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from);
 static inline SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from);
 
 static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets);
@@ -75,21 +75,15 @@ SaErrorT oh_decode_manufacturerid(SaHpiManufacturerIdT value, SaHpiTextBufferT *
 
 	switch(value) {
 	case SAHPI_MANUFACTURER_ID_UNSPECIFIED:
-		err = oh_append_textbuffer(&working, 
-					   "UNSPECIFIED Manufacturer",
-					   strlen("UNSPECIFIED Manufacturer"));
+		err = oh_append_textbuffer(&working, "UNSPECIFIED Manufacturer");
 		if (err) { return(err); }
 		break;
 	case 2:
-		err = oh_append_textbuffer(&working, 
-					   "IBM",
-					   strlen("IBM"));
+		err = oh_append_textbuffer(&working,"IBM");
 		if (err) { return(err); }
 		break;
 	default:
-		err = oh_append_textbuffer(&working, 
-					   "Unknown Manufacturer",
-					   strlen("Unknown Manufacturer"));
+		err = oh_append_textbuffer(&working,  "Unknown Manufacturer");
 		if (err) { return(err); }
 		break;
 	}
@@ -122,7 +116,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 	SaErrorT err;
 	SaHpiTextBufferT working;
         char text[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-        size_t text_size = 0;
+	char str[SAHPI_SENSOR_BUFFER_LENGTH + 1];
 
 	if (!buffer) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -139,26 +133,28 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 
         switch(reading.Type) {
         case SAHPI_SENSOR_READING_TYPE_INT64:
-                text_size = snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-				     "%lld", reading.Value.SensorInt64);
-		err = oh_append_textbuffer(&working, text, text_size);
+                snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+			 "%lld", reading.Value.SensorInt64);
+		err = oh_append_textbuffer(&working, text);
 		if (err != SA_OK) { return(err); }
                 break;
         case SAHPI_SENSOR_READING_TYPE_UINT64:
-		text_size = snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-				     "%llu", reading.Value.SensorUint64);
-		err = oh_append_textbuffer(&working, text, text_size);
+		snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+			 "%llu", reading.Value.SensorUint64);
+		err = oh_append_textbuffer(&working, text);
 		if (err != SA_OK) { return(err); }
                 break;
 	case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                text_size = snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH, 
-				     "%le", reading.Value.SensorFloat64);
-		err = oh_append_textbuffer(&working, text, text_size);
+                snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH, 
+			 "%le", reading.Value.SensorFloat64);
+		err = oh_append_textbuffer(&working, text);
 		if (err != SA_OK) { return(err); }
  		break;
         case SAHPI_SENSOR_READING_TYPE_BUFFER:
-		err = oh_append_textbuffer(&working, reading.Value.SensorBuffer, 
-					   SAHPI_SENSOR_BUFFER_LENGTH);
+		/* In case Sensor Buffer contains no end of string deliminter */
+		memset(str, 0, SAHPI_SENSOR_BUFFER_LENGTH + 1);
+		strncpy(str, reading.Value.SensorBuffer, SAHPI_SENSOR_BUFFER_LENGTH);
+		err = oh_append_textbuffer(&working, str);
 		if (err != SA_OK) { return(err); }
                 break;
 	default:
@@ -166,18 +162,18 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
         }
         
         if (format.Percentage) {
-		err = oh_append_textbuffer(&working, "%", 1); 
+		err = oh_append_textbuffer(&working, "%"); 
 		if (err != SA_OK) { return(err); }
         }
 	else {
 		const char *str;
 
 		/* Add units */
-		err = oh_append_textbuffer(&working, " ", 1); 		
+		err = oh_append_textbuffer(&working, " "); 		
 		if (err != SA_OK) { return(err); }
 		str = oh_lookup_sensorunits(format.BaseUnits);
  		if (str == NULL) { return(SA_ERR_HPI_INVALID_PARAMS); }
-		err = oh_append_textbuffer(&working, str, strlen(str)); 		
+		err = oh_append_textbuffer(&working, str); 		
 		if (err != SA_OK) { return(err); }
 		
 		/* Add modifier units, if appropriate */
@@ -186,11 +182,11 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 
 			switch(format.ModifierUse) {
 			case SAHPI_SMUU_BASIC_OVER_MODIFIER:
-				err = oh_append_textbuffer(&working, " / ", 3); 
+				err = oh_append_textbuffer(&working, " / "); 
 				if (err != SA_OK) { return(err); }
 				break;
 			case SAHPI_SMUU_BASIC_TIMES_MODIFIER:
-				err = oh_append_textbuffer(&working, " * ", 3); 
+				err = oh_append_textbuffer(&working, " * "); 
 				if (err != SA_OK) { return(err); }
 				break;
 			default:
@@ -198,7 +194,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 			}
 			str = oh_lookup_sensorunits(format.ModifierUnits);
 			if (str == NULL) { return(SA_ERR_HPI_INVALID_PARAMS); }
-			err = oh_append_textbuffer(&working, str, strlen(str)); 		
+			err = oh_append_textbuffer(&working, str); 		
 			if (err != SA_OK) { return(err); }
 		}
 	}
@@ -537,27 +533,23 @@ static inline SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_tex
  * oh_append_textbuffer:
  * @buffer: SaHpiTextBufferT to append to.
  * @from: String to be appended.
- * @size: Size of string.
  *
- * Appends a string to the @buffer->Data.
+ * Appends a string to @buffer->Data.
  * 
  * Returns:
  * SA_OK - normal operation.
- * SA_ERR_HPI_INVALID_PARAMS - @buffer or @from is NULL. Or
- *                             @from is NULL and size is non-zero.
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer or @from is NULL.
  * SA_ERR_HPI_OUT_OF_SPACE - @buffer not big enough to accomodate appended string
  **/
-SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from, size_t size)
+SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
 {
         SaHpiUint8T *p;
+	size_t size;
 
-	/* FIXME:: Add a valid_textbuffer check when routine is available */
-	if (size == 0) { 
-		return(SA_OK); 
-	}
 	if (!buffer || !from) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	size = strlen(from);
         if ((size + buffer->DataLength) >= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 		dbg("Cannot append to text buffer. Bufsize=%d, size=%d",
 		    buffer->DataLength, size);
@@ -573,17 +565,16 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from, size_t
         return(SA_OK);
 }
 
-static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from, size_t size)
+static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
 {
         SaHpiUint8T *p;
+	size_t size;
 
-	if (size == 0) {
-		return(SA_OK);
-	}
 	if (!big_buffer || !from) {
 		dbg("Invalid parameters");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	size = strlen(from);
         if ((size + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
 		dbg("Cannot append to buffer. Bufsize=%d, size=%d",
 		    big_buffer->DataLength, size);
@@ -599,14 +590,13 @@ static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const ch
         return(SA_OK);
 }
 
-
 /* Append an arbitrary number of fixed offset strings to a big text buffer */
 static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
 {
 	int i;
 	
 	for (i=0; i < offsets; i++) {
-		oh_append_bigtext(buffer, OH_PRINT_OFFSET, strlen(OH_PRINT_OFFSET));
+		oh_append_bigtext(buffer, OH_PRINT_OFFSET);
 	}
 
 	return(SA_OK);
@@ -651,43 +641,43 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 	/* Sensor Num */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Sensor Num: %d\n", sensor->Num);
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 	offsets++;
 
 	/* Sensor Type */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s\n", 
 		 oh_lookup_sensortype(sensor->Type));
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 
 	/* Sensor Category */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Category: %s\n", 
 		 oh_lookup_eventcategory(sensor->Category));
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 
 	/* Sensor Enable Control */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EnableCtrl: %s\n",
 		(sensor->EnableCtrl == SAHPI_TRUE) ? "TRUE" : "FALSE");
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 
 	/* Sensor Event Control */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EventCtrl: %s\n", 
 		 oh_lookup_sensoreventctrl(sensor->EventCtrl));
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 
 	/* Sensor Supported Events */
 	{
 		SaHpiTextBufferT evt_buffer;
 
 		oh_append_offset(buffer, offsets);
-	        oh_append_bigtext(buffer, "Events: ", strlen("Events: "));
+	        oh_append_bigtext(buffer, "Events: ");
 		err = oh_decode_eventstate(sensor->Events, sensor->Category, &evt_buffer);
 		if (err != SA_OK) { return(err); }
-		oh_append_bigtext(buffer, evt_buffer.Data, strlen(evt_buffer.Data));
-		oh_append_bigtext(buffer, "\n", strlen("\n"));
+		oh_append_bigtext(buffer, evt_buffer.Data);
+		oh_append_bigtext(buffer, "\n");
 	}
 	
 	/* Sensor Data Format */
@@ -701,7 +691,7 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 	/* Sensor OEM Data */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OEM: %x\n", sensor->Oem);
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 
 	/* printf("SENSOR LENGTH = %d\n", strlen(buffer->Data)); */
 	return(SA_OK);
@@ -717,14 +707,14 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 
 	/* Sensor Data Format Title */
 	oh_append_offset(buffer, offsets);
-	oh_append_bigtext(buffer, "Data Format:\n", strlen("Data Format:\n"));
+	oh_append_bigtext(buffer, "Data Format:\n");
 	offsets++;
 		
 	/* Sensor Data Format IsSupported */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IsSupported: %s\n",
 		 (format->IsSupported == SAHPI_TRUE) ? "TRUE" : "FALSE");
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 		
 	if (format->IsSupported) {
 
@@ -732,7 +722,7 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 		oh_append_offset(buffer, offsets);
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Reading Type: %s\n", 
 			 oh_lookup_sensorreadingtype(format->ReadingType));
-		oh_append_bigtext(buffer, str, strlen(str));
+		oh_append_bigtext(buffer, str);
 		
 		if (format->ReadingType != SAHPI_SENSOR_READING_TYPE_BUFFER) {
 
@@ -740,101 +730,101 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 			oh_append_offset(buffer, offsets);
 			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Base Unit: %s\n", 
 				 oh_lookup_sensorunits(format->BaseUnits));
-			oh_append_bigtext(buffer, str, strlen(str));
+			oh_append_bigtext(buffer, str);
 			
 			/* Sensor Data Format Modifier Units */
 			if (format->ModifierUnits) {
 				oh_append_offset(buffer, offsets);
 				snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Modifier Unit: %s\n", 
 					 oh_lookup_sensorunits(format->ModifierUnits));
-				oh_append_bigtext(buffer, str, strlen(str));
+				oh_append_bigtext(buffer, str);
 				/* Sensor Data Format Modifier Use */
 				oh_append_offset(buffer, offsets);
 				snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Modifier Use: %s\n",
 					 oh_lookup_sensormodunituse(format->ModifierUse));
-				oh_append_bigtext(buffer, str, strlen(str));
+				oh_append_bigtext(buffer, str);
 			}
 			
 			/* Sensor Data Format Percentage */
 			oh_append_offset(buffer, offsets);
 			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Percentage: %s\n",
 				 (format->Percentage == SAHPI_TRUE) ? "TRUE" : "FALSE");
-			oh_append_bigtext(buffer, str, strlen(str));
+			oh_append_bigtext(buffer, str);
 		
 			/* Sensor Data Format Max Range */
 			if (format->Range.Flags & SAHPI_SRF_MAX && 
 			    format->Range.Max.IsSupported) { 
 				oh_append_offset(buffer, offsets);
-				oh_append_bigtext(buffer, "Range Max: ", strlen("Range Max: "));
+				oh_append_bigtext(buffer, "Range Max: ");
 				
 				err = oh_decode_sensorreading(format->Range.Max,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
-				oh_append_bigtext(buffer, "\n", strlen("\n"));
+				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, "\n");
 			}
 
 			/* Sensor Data Format Min Range */
 			if (format->Range.Flags & SAHPI_SRF_MIN && 
 			    format->Range.Min.IsSupported) { 
 				oh_append_offset(buffer, offsets);
-				oh_append_bigtext(buffer, "Range Min: ", strlen("Range Min: "));
+				oh_append_bigtext(buffer, "Range Min: ");
 				
 				err = oh_decode_sensorreading(format->Range.Min,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
-				oh_append_bigtext(buffer, "\n", strlen("\n"));
+				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, "\n");
 			}
 
 			/* Sensor Data Format Nominal Range */
 			if (format->Range.Flags & SAHPI_SRF_NOMINAL && 
 			    format->Range.Nominal.IsSupported) { 
 				oh_append_offset(buffer, offsets);
-				oh_append_bigtext(buffer, "Range Nominal: ", strlen("Range Nominal: "));
+				oh_append_bigtext(buffer, "Range Nominal: ");
 				
 				err = oh_decode_sensorreading(format->Range.Nominal,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
-				oh_append_bigtext(buffer, "\n", strlen("\n"));
+				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, "\n");
 			}
 
 			/* Sensor Data Format Normal Max Range */
 			if (format->Range.Flags & SAHPI_SRF_NORMAL_MAX && 
 			    format->Range.NormalMax.IsSupported) { 
 				oh_append_offset(buffer, offsets);
-				oh_append_bigtext(buffer, "Range Normal Max: ", strlen("Range Normal Max: "));
+				oh_append_bigtext(buffer, "Range Normal Max: ");
 				
 				err = oh_decode_sensorreading(format->Range.NormalMax,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
-				oh_append_bigtext(buffer, "\n", strlen("\n"));
+				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, "\n");
 			}
 
 			/* Sensor Data Format Normal Min Range */
 			if (format->Range.Flags & SAHPI_SRF_NORMAL_MIN && 
 			    format->Range.NormalMin.IsSupported) { 
 				oh_append_offset(buffer, offsets);
-				oh_append_bigtext(buffer, "Range Normal Min: ", strlen("Range Normal Min: "));
+				oh_append_bigtext(buffer, "Range Normal Min: ");
 				
 				err = oh_decode_sensorreading(format->Range.NormalMin,
 							      *format,
 							      &reading_buffer);
 				if (err) { return(err); }
-				oh_append_bigtext(buffer, reading_buffer.Data, strlen(reading_buffer.Data));
-				oh_append_bigtext(buffer, "\n", strlen("\n"));
+				oh_append_bigtext(buffer, reading_buffer.Data);
+				oh_append_bigtext(buffer, "\n");
 			}
 
 			/* Sensor Data Format Accuracy Factor */
 			oh_append_offset(buffer, offsets);
 			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Accuracy: %le\n", format->AccuracyFactor);	
-			oh_append_bigtext(buffer, str, strlen(str));
+			oh_append_bigtext(buffer, str);
 		}
 	}
 	
@@ -850,22 +840,21 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
 
 	/* Sensor Threshold Definition Title */
 	oh_append_offset(buffer, offsets);
-	oh_append_bigtext(buffer, "Threshold Definitions:\n", strlen("Threshold Definitions:\n"));
+	oh_append_bigtext(buffer, "Threshold Definitions:\n");
 	offsets++;
 
 	/* Sensor Threshold Definition IsAccessible */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IsAccessible: %s\n",
 		 (tdef->IsAccessible == SAHPI_TRUE) ? "TRUE" : "FALSE");
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 	
 	if (tdef->IsAccessible) {
 
 		/* Sensor Threshold Read Threshold */
 		if (tdef->ReadThold) {
 			oh_append_offset(buffer, offsets);
-			oh_append_bigtext(buffer, "Readable Thresholds:\n", 
-						 strlen("Readable Thresholds:\n"));
+			oh_append_bigtext(buffer, "Readable Thresholds:\n"); 
 
 			err = oh_build_threshold_mask(buffer, tdef->ReadThold, offsets + 1);
 			if (err != SA_OK) { return(err); }
@@ -874,8 +863,7 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
 		/* Sensor Threshold Write Threshold */
 		if (tdef->WriteThold) {
 			oh_append_offset(buffer, offsets);
-			oh_append_bigtext(buffer, "Writeable Thresholds:\n", 
-						 strlen("Writeable Thresholds:\n"));
+			oh_append_bigtext(buffer, "Writeable Thresholds:\n");
 
 			err = oh_build_threshold_mask(buffer, tdef->WriteThold, offsets + 1);
 			if (err != SA_OK) { return(err); }
@@ -885,7 +873,7 @@ static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer,
 		oh_append_offset(buffer, offsets);
 		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Nonlinear: %s\n",
 			 (tdef->Nonlinear == SAHPI_TRUE) ? "TRUE" : "FALSE");
-		oh_append_bigtext(buffer, str, strlen(str));
+		oh_append_bigtext(buffer, str);
 	}	
 
 	return(SA_OK);
@@ -901,36 +889,36 @@ static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
 	oh_append_offset(buffer, offsets);
 
 	if (tmask & SAHPI_STM_LOW_MINOR) {
-		oh_append_bigtext(buffer, "LOW_MINOR", strlen("LOW_MINOR"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "LOW_MINOR");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 	if (tmask & SAHPI_STM_LOW_MAJOR) {
-		oh_append_bigtext(buffer, "LOW_MAJOR", strlen("LOW_MAJOR"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "LOW_MAJOR");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 	if (tmask & SAHPI_STM_LOW_CRIT) {
-		oh_append_bigtext(buffer, "LOW_CRIT", strlen("LOW_CRIT"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "LOW_CRIT");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 	if (tmask & SAHPI_STM_LOW_HYSTERESIS) {
-		oh_append_bigtext(buffer, "LOW_HYSTERESIS", strlen("LOW_HYSTERESIS"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "LOW_HYSTERESIS");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 	if (tmask & SAHPI_STM_UP_MINOR) {
-		oh_append_bigtext(buffer, "UP_MINOR", strlen("UP_MINOR"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "UP_MINOR");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 	if (tmask & SAHPI_STM_UP_MAJOR) {
-		oh_append_bigtext(buffer, "UP_MAJOR", strlen("UP_MAJOR"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "UP_MAJOR");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 	if (tmask & SAHPI_STM_UP_CRIT) {
-		oh_append_bigtext(buffer, "UP_CRIT", strlen("UP_CRIT"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "UP_CRIT");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 	if (tmask & SAHPI_STM_UP_HYSTERESIS) {
-		oh_append_bigtext(buffer, "UP_HYSTERESIS", strlen("UP_HYSTERESIS"));
-		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER, OH_ENCODE_DELIMITER_LENGTH);
+		oh_append_bigtext(buffer, "UP_HYSTERESIS");
+		oh_append_bigtext(buffer, OH_ENCODE_DELIMITER);
 	}
 
 	/* Remove last delimiter; add NL */
@@ -938,7 +926,7 @@ static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer,
 		buffer->Data[buffer->DataLength - i] = 0x00;
 	}
 	buffer->DataLength = buffer->DataLength - (i-1);
-	oh_append_bigtext(buffer, "\n", strlen("\n"));
+	oh_append_bigtext(buffer, "\n");
 
 	return(SA_OK);
 }
@@ -967,32 +955,32 @@ SaErrorT oh_fprint_idrfield(FILE *stream, const SaHpiIdrFieldT *thisfield, int s
 	oh_init_bigtext(&mybuf);
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Id:\t%d\n",thisfield->FieldId);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Field Type:\t%s\n",
 						oh_lookup_idrfieldtype(thisfield->Type));
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
 				(thisfield->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE");
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType:\t%s\n",
 					oh_lookup_texttype(thisfield->Field.DataType));
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language:\t%s\n",
 					oh_lookup_language(thisfield->Field.Language));
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content:\t%s\n",
 						thisfield->Field.Data);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 							
 	rv = oh_fprint_bigtext(stream, &mybuf); 		
 	return(rv);
@@ -1023,21 +1011,21 @@ SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areahe
 	oh_init_bigtext(&mybuf);
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaId:  \t%d\n", areaheader->AreaId);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AreaType:\t%s\n",
 						oh_lookup_idrareatype(areaheader->Type));
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
 				(areaheader->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumFields:\t%d\n",areaheader->NumFields);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	rv = oh_fprint_bigtext(stream, &mybuf); 					
 	return(rv);
@@ -1067,20 +1055,20 @@ SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo, int space
 	oh_init_bigtext(&mybuf);
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "IdrId:   \t%d\n", idrinfo->IdrId);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UpdateCount:\t%d\n", idrinfo->UpdateCount);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ReadOnly:\t%s\n",
 				(idrinfo->ReadOnly == SAHPI_TRUE) ? "TRUE" : "FALSE" );
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "NumAreas:\t%d\n", idrinfo->NumAreas);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	rv = oh_fprint_bigtext(stream, &mybuf); 					
 	return(rv);
@@ -1110,34 +1098,34 @@ static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBu
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
 	oh_append_offset(buffer, offsets);
-	oh_append_bigtext(buffer, "Text Buffer:\n", strlen("Text Buffer:\n"));
+	oh_append_bigtext(buffer, "Text Buffer:\n");
 	offsets++;
 	
 	/* Text Buffer Data Type */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Data Type: %s\n", 
 		 oh_lookup_texttype(textbuffer->DataType));
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 
 	/* Text Buffer Language */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language: %s\n", 
 		 oh_lookup_language(textbuffer->Language));
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 	
 	/* Text Buffer Data Length */
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Data Length: %d\n", 
 		 textbuffer->DataLength);
-	oh_append_bigtext(buffer, str, strlen(str));
+	oh_append_bigtext(buffer, str);
 
 	/* Text Buffer Data */
 	if (textbuffer->DataLength) {
 		oh_append_offset(buffer, offsets);
 		memset(str, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-		oh_append_bigtext(buffer, "Data: ", strlen("Data: "));
-		oh_append_bigtext(buffer, textbuffer->Data, textbuffer->DataLength);
-		oh_append_bigtext(buffer, "\n", strlen("\n"));
+		oh_append_bigtext(buffer, "Data: ");
+		oh_append_bigtext(buffer, textbuffer->Data);
+		oh_append_bigtext(buffer, "\n");
 	}
 
 	return(SA_OK);
@@ -1172,115 +1160,84 @@ SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
 	if (err) { return(err); }
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_RESOURCE\n",
-					   strlen("\tSAHPI_CAPABILITY_RESOURCE\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_RESOURCE\n");
 		if (err) { return(err); }
 	}
 
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_EVENT_LOG\n",
-					   strlen("\tSAHPI_CAPABILITY_EVENT_LOG\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_EVENT_LOG\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_EVT_DEASSERTS\n",
-					   strlen("\tSAHPI_CAPABILITY_EVT_DEASSERTS\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_EVT_DEASSERTS\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_AGGREGATE_STATUS) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n",
-					   strlen("\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_CONFIGURATION\n",
-					   strlen("\tSAHPI_CAPABILITY_CONFIGURATION\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_CONFIGURATION\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n",
-					   strlen("\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_WATCHDOG\n",
-					   strlen("\tSAHPI_CAPABILITY_WATCHDOG\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_WATCHDOG\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_CONTROL) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_CONTROL\n",
-					   strlen("\tSAHPI_CAPABILITY_CONTROL\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_CONTROL\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_FRU\n",
-					   strlen("\tSAHPI_CAPABILITY_FRU\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_FRU\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_INVENTORY_DATA\n",
-					   strlen("\tSAHPI_CAPABILITY_INVENTORY_DATA\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_INVENTORY_DATA\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_RDR) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_RDR\n",
-					   strlen("\tSAHPI_CAPABILITY_RDR\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_RDR\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_SENSOR) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_SENSOR\n",
-					   strlen("\tSAHPI_CAPABILITY_SENSOR\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_SENSOR\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_ANNUNCIATOR\n",
-					   strlen("\tSAHPI_CAPABILITY_ANNUNCIATOR\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_ANNUNCIATOR\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_POWER\n",
-					   strlen("\tSAHPI_CAPABILITY_POWER\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_POWER\n");
 		if (err) { return(err); }
 	}
 
         if(ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
-		err = oh_append_textbuffer(&working, 
-					   "\tSAHPI_CAPABILITY_RESET\n",
-					   strlen("\tSAHPI_CAPABILITY_RESET\n"));
+		err = oh_append_textbuffer(&working, "\tSAHPI_CAPABILITY_RESET\n");
 		if (err) { return(err); }
 	}
-		
 				
  	oh_copy_textbuffer(buffer, &working);
+
 	return(SA_OK);
-	        
 }
 
 /**
@@ -1297,74 +1254,73 @@ SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
  **/
 SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int space)
 {
-	SaErrorT rv = SA_OK;
+	SaErrorT err = SA_OK;
 	oh_big_textbuffer mybuf;
 	SaHpiTextBufferT buffer; 
 	char* str = buffer.Data;
 
-	if (!stream || !rptentry) 
+	if (!stream || !rptentry) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
-			
+	}
 	
 	oh_init_bigtext(&mybuf);
-	oh_append_bigtext(&mybuf, "\nRPT Entry:\n", strlen("\nRPT Entry:\n"));
+	oh_append_bigtext(&mybuf, "\nRPT Entry:\n");
 	
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EntryId:  \t%d\n",
-							rptentry->EntryId);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+		 rptentry->EntryId);
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, (space));
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceId: %d\n",
-							rptentry->ResourceId);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+		 rptentry->ResourceId);
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path:\n\t");
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
         entitypath2string(&rptentry->ResourceEntity, str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
-	oh_append_bigtext(&mybuf, "\n", strlen("\n"));
+	oh_append_bigtext(&mybuf, "\n");
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Capability:\n");
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 	oh_decode_capability(rptentry->ResourceCapabilities, &buffer);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "HotSwap Capability:\t%d\n",
-							rptentry->HotSwapCapabilities);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+		 rptentry->HotSwapCapabilities);
+	oh_append_bigtext(&mybuf, str);
 
 				
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceFailed:\t%s\n",
-				(rptentry->ResourceFailed == SAHPI_TRUE) ? "TRUE" : "FALSE" );
-	oh_append_bigtext(&mybuf, str, strlen(str));
+		 (rptentry->ResourceFailed == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_bigtext(&mybuf, str);
 
 	oh_append_offset(&mybuf, space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceTag:\n");
-	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_append_bigtext(&mybuf, str);
 			
 	oh_append_offset(&mybuf, 4+space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType:\t%s\n",
-					oh_lookup_texttype(rptentry->ResourceTag.DataType));
-	oh_append_bigtext(&mybuf, str, strlen(str));
+		 oh_lookup_texttype(rptentry->ResourceTag.DataType));
+	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, 4+space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language:\t%s\n",
-					oh_lookup_language(rptentry->ResourceTag.Language));
-	oh_append_bigtext(&mybuf, str, strlen(str));
+		 oh_lookup_language(rptentry->ResourceTag.Language));
+	oh_append_bigtext(&mybuf, str);
 						
 	oh_append_offset(&mybuf, 4+space);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content:\t%s\n",
-						rptentry->ResourceTag.Data);
-	oh_append_bigtext(&mybuf, str, strlen(str));
+		 rptentry->ResourceTag.Data);
+	oh_append_bigtext(&mybuf, str);
 
-
-	rv = oh_fprint_bigtext(stream, &mybuf); 					
-	return(rv);
+	err = oh_fprint_bigtext(stream, &mybuf); 					
+	return(err);
 }
 
 
