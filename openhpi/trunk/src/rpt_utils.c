@@ -117,7 +117,7 @@ static int check_ep(SaHpiEntityPathT ep)
         return check;
 }
 
-static void update_rptable(RPTable *table, guint modifier) {
+static void update_rptable(RPTable *table) {
         struct timeval tv;
         SaHpiTimeT time;
 
@@ -128,11 +128,7 @@ static void update_rptable(RPTable *table, guint modifier) {
 
         table->rpt_info.UpdateTimestamp = time;
 
-        if (modifier == RPT_INCREMENT) {
-                table->rpt_info.UpdateCount = table->rpt_info.UpdateCount + 1;
-        } else if (modifier == RPT_DECREMENT) {
-                table->rpt_info.UpdateCount = table->rpt_info.UpdateCount - 1;
-        }
+        table->rpt_info.UpdateCount = table->rpt_info.UpdateCount + 1;        
 }
 
 /**
@@ -290,8 +286,7 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
 int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata)
 {
         RPTEntry *rptentry;
-        guint update_flag = RPT_KEEP_COUNT;
-
+        
         if (!table) {
                 dbg("ERROR: Cannot work on a null table pointer.");
                 return -1;
@@ -320,8 +315,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
                         return -6;
                 }
                 /* Put new RPTEntry in RPTable */
-                table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);
-                update_flag = RPT_INCREMENT;
+                table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);                
         }
         /* Else, modify existing RPTEntry */
         rptentry->owndata = owndata;
@@ -329,7 +323,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
         rptentry->rpt_entry = *entry;
         rptentry->rpt_entry.EntryId = entry->ResourceId;
 
-        update_rptable(table, update_flag);
+        update_rptable(table);
                        
         return 0; 
 }
@@ -374,7 +368,7 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
                 g_free((gpointer)rptentry);
         }
 
-        update_rptable(table, RPT_DECREMENT);
+        update_rptable(table);
 
         return 0;
 }
@@ -602,9 +596,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
         rdrecord->owndata = owndata;        
         rdrecord->rdr = *rdr;
         rdrecord->data = data;
-
-        update_rptable(table, RPT_KEEP_COUNT);
-        
+      
         return 0;
 }
 
@@ -656,8 +648,6 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
                 g_free((gpointer)rdrecord);                
         }
 
-        update_rptable(table, RPT_KEEP_COUNT);
-        
         return 0;
 }
 
