@@ -76,6 +76,59 @@ static int snmp_rsa_get_event(void *hnd, struct oh_event *event, struct timeval 
 }
 
 
+#define find_sensors(rdr_array) \
+do { \
+        int j; \
+	for(j=0; rdr_array[j].rsa_sensor_info.mib.oid != NULL; j++) { \
+		e = snmp_rsa_discover_sensors(custom_handle->ss, \
+                                              parent_ep, \
+                                              &rdr_array[j]); \
+                /* the commented code below goes here */ \
+        } \
+} while(0)
+
+/*
+                if(e != NULL) { \
+                        struct RSA_SensorInfo *rsa_data = g_memdup(&(rdr_array[j].rsa_sensor_info), \
+                                                                   sizeof(struct RSA_SensorInfo)); \
+                        oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0); \
+                        tmpqueue = g_slist_append(tmpqueue, e); \
+                } \
+*/
+
+#define find_controls(rdr_array) \
+do { \
+        int j; \
+        for(j=0; rdr_array[j].rsa_control_info.mib.oid != NULL; j++) { \
+	        e = snmp_rsa_discover_controls(custom_handle->ss, \
+                                               parent_ep, \
+                                               &rdr_array[j]); \
+                if(e != NULL) { \
+                        struct RSA_ControlInfo *rsa_data = g_memdup(&(rdr_array[j].rsa_control_info), \
+                                                                    sizeof(struct RSA_ControlInfo)); \
+                        oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0); \
+                        tmpqueue = g_slist_append(tmpqueue, e); \
+                } \
+        } \
+} while(0)
+
+#define find_inventories(rdr_array) \
+do { \
+        int j; \
+        for (j=0; rdr_array[j].rsa_inventory_info.mib.oid.OidManufacturer != NULL; j++) { \
+                e = snmp_rsa_discover_inventories(custom_handle->ss, \
+                                                  parent_ep, \
+                                                  &rdr_array[j]); \
+                if(e != NULL) { \
+                        struct RSA_InventoryInfo *rsa_data = g_memdup(&(rdr_array[j].rsa_inventory_info), \
+                                                                      sizeof(struct RSA_InventoryInfo)); \
+                        oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0); \
+                        tmpqueue = g_slist_append(tmpqueue, e); \
+                } \
+        } \
+} while(0)
+
+
 static int snmp_rsa_discover_resources(void *hnd)
 {
         SaHpiEntityPathT entity_root;        
@@ -111,8 +164,8 @@ static int snmp_rsa_discover_resources(void *hnd)
                 oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                 tmpqueue = g_slist_append(tmpqueue, e);
 //              SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-//              SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
-//		find_sensors(snmp_rsa_chassis_sensors);                        
+                SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+		find_sensors(snmp_rsa_chassis_sensors);                        
 //		find_controls(snmp_rsa_chassis_controls);
 //		find_inventories(snmp_rsa_chassis_inventories);
         }
@@ -247,7 +300,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                 }
                 gpointer data = oh_get_rdr_data(tmpcache, res->ResourceId, rdr->RecordId);
                 /* Need to figure out the size of the data associated with the rdr */
-                if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct SensorMibInfo);
+                if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct RSA_SensorMibInfo);
                 else if (rdr->RdrType == SAHPI_CTRL_RDR)
                         rdr_data_size = sizeof(struct ControlMibInfo);
                 else if (rdr->RdrType == SAHPI_INVENTORY_RDR)

@@ -23,7 +23,7 @@
 #include <openhpi.h>
 #include <rsa_resources.h>
 #include <snmp_rsa.h>
-// #include <snmp_rsa_utils.h>
+#include <snmp_rsa_utils.h>
 #include <snmp_rsa_discover.h>
 
 static inline struct oh_event *eventdup(const struct oh_event *event) 
@@ -36,6 +36,27 @@ static inline struct oh_event *eventdup(const struct oh_event *event)
 	}
 	memcpy(e, event, sizeof(struct oh_event));
 	return e;
+}
+
+
+static inline int rdr_exists(struct snmp_session *ss, const char *oid, unsigned int na, 
+			     int write_only)
+{
+        int err;
+	struct snmp_value get_value;
+
+	if (write_only) { return 1; }; /* Can't check it if its non-readable */
+
+        err = snmp_get(ss, oid, &get_value);
+        if (err || (get_value.type == ASN_INTEGER && na && na == get_value.integer) ||
+                (get_value.type == ASN_OCTET_STR &&
+                        (!strcmp(get_value.string,"Not available") ||
+                         !strcmp(get_value.string,"Not installed") ||
+                         !strcmp(get_value.string,"Not Readable!")))) {
+                return 0;
+        }
+
+        return 1;
 }
 
 
@@ -102,7 +123,7 @@ struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int num)
         e = eventdup(&working);
 
 //      find_res_events(&working.u.res_event.entry.ResourceEntity, 
-//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].bc_res_info);
+//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].rsa_res_info);
  
 	return e;
 }
@@ -141,8 +162,57 @@ struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num)
         e = eventdup(&working);
 
 //      find_res_events(&working.u.res_event.entry.ResourceEntity, 
-//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].bc_res_info);
+//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].rsa_res_info);
  
+	return e;
+}
+
+/**
+ * snmp_rsa_discover_sensors: Discover all available sensors for a resource
+ * @ss: handle to snmp connection for this instance
+ * @parent_ep: Entity path of RDR's parent resource
+ * @parent_id: ID of RDR's parent resource
+ * @control: Pointer to RDR's static control definition (SaHpiSensorRecT)
+ * Return value: Pointer to Plugin Event, if success, NULL, if error or sensor does not exist
+ **/
+struct oh_event * snmp_rsa_discover_sensors(struct snmp_session *ss,
+                                            SaHpiEntityPathT parent_ep,                                           
+                                            const struct snmp_rsa_sensor *sensor)
+{
+	gchar *oid;
+	int len;
+        struct oh_event working;
+        struct oh_event *e = NULL;
+
+        memset(&working, 0, sizeof(struct oh_event));
+	
+	oid = snmp_derive_objid(parent_ep, sensor->rsa_sensor_info.mib.oid);
+	if (oid == NULL) {
+		dbg("NULL SNMP OID returned\n");
+		return e;
+	}
+
+	if (rdr_exists(ss, oid, sensor->rsa_sensor_info.mib.not_avail_indicator_num,sensor->rsa_sensor_info.mib.write_only)) {
+		working.type = OH_ET_RDR;
+		working.u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
+		working.u.rdr_event.rdr.Entity = parent_ep;
+		working.u.rdr_event.rdr.RdrTypeUnion.SensorRec = sensor->sensor;
+
+		working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
+		len = strlen(sensor->comment);
+		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+			working.u.rdr_event.rdr.IdString.DataLength = (SaHpiUint8T)len;
+			strcpy(working.u.rdr_event.rdr.IdString.Data,sensor->comment);
+		} else {
+			dbg("Comment string too long - %s\n",sensor->comment);
+		}
+		e = eventdup(&working);
+		
+//		find_sensor_events(&parent_ep, sensor->sensor.Num, sensor);
+	}
+
+	g_free(oid);
 	return e;
 }
 
