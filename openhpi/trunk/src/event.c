@@ -23,9 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <openhpi.h>
 #include <oh_event.h>
-#include <glib.h>
+#include <openhpi.h>
 
 #define OH_THREAD_SLEEP_TIME 2 * G_USEC_PER_SEC
 
