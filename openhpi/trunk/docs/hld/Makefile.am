@@ -28,7 +28,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
-DIAGRAMS = $(shell ls images/*png images/*gif) 
+DIAGRAMS = $(shell echo $(srcdir)/images/*png $(srcdir)/images/*gif) 
 
 SERVER = shell1.sourceforge.net
 HLDDIR = /home/groups/o/op/openhpi/htdocs/manual
@@ -39,7 +39,7 @@ openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
 #openhpi_docs_DATA	= openhpi-manual/book1.html 
 
-SGML_FILES              = $(shell ls *.dtd) $(shell ls *.sgml)
+SGML_FILES              = $(shell echo $(srcdir)/*.dtd) $(shell echo $(srcdir)/*.sgml)
 
 EXTRA_DIST		= $(DIAGRAMS) $(SGML_FILES)
 
@@ -64,8 +64,8 @@ openhpi-manual/book1.html: $(SGML_FILES)
 	-cp $(DIAGRAMS) openhpi-manual/images
 
 publish: openhpi-manual/book1.html
-	-./htmlfilter.pl $(shell ls openhpi-manual/*html)
-	-chmod a+x $(shell ls openhpi-manual/*html)
+	-./htmlfilter.pl $(shell echo $(srcdir)/openhpi-manual/*html)
+	-chmod a+x $(shell echo $(srcdir)/openhpi-manual/*html)
 	if test ! -e openhpi-manual/book1.html; then \
 		ln openhpi-manual/index.html openhpi-manual/book1.html; \
 	fi;

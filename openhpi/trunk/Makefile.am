@@ -41,7 +41,7 @@ RPMSRC	=$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
 RPM386	=$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
 EXTRA_DIST		= openhpi.spec BigBuild bootstrap nukem.sh \
-	$(shell find include -name '*.h')
+	$(shell find $(srcdir)/include -name '*.h')
 
 AUTOMAKE_OPTIONS	= foreign
 
@@ -63,7 +63,9 @@ ALLSOURCES = $(shell \
 includedir=$(base_includedir)/openhpi
 
 # these are the only headers that users should have any access to
-include_HEADERS	= include/SaHpi.h include/epath_utils.h include/uid_utils.h
+include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
+                  $(top_srcdir)/include/epath_utils.h \
+                  $(top_srcdir)/include/uid_utils.h
 
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
