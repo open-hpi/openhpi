@@ -1496,7 +1496,7 @@ cIpmiInventoryRecordMultiRecord::HpiRead( int record_id,
        return;
      }
 
-  return operator[]( record_id )->HpiRead( r );
+  operator[]( record_id )->HpiRead( r );
 }
 
 
@@ -1711,7 +1711,7 @@ cIpmiInventoryParser::HpiRead( SaHpiInventoryDataT &data ) const
   unsigned char *d = (unsigned char *)&data;
   unsigned s = HpiSize();
 
-#ifndef NDEBUG
+#if 0
   int l;
 
   memset( d, 0, s+256 );
@@ -1751,7 +1751,7 @@ cIpmiInventoryParser::HpiRead( SaHpiInventoryDataT &data ) const
 	  }
      }
 
-#ifndef NDEBUG
+#if 0
   // check for overwrite
   d = (unsigned char *)&data;
 

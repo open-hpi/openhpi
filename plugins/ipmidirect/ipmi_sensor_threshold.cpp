@@ -699,7 +699,8 @@ cIpmiSensorThreshold::CreateRdr( SaHpiRptEntryT &resource,
   // data format
   rec.DataFormat.BaseUnits     = (SaHpiSensorUnitsT)BaseUnit();
   rec.DataFormat.ModifierUnits = (SaHpiSensorUnitsT)ModifierUnit();
-  rec.DataFormat.ModifierUse  = (SaHpiSensorModUnitUseT)ModifierUnitUse();
+  rec.DataFormat.ModifierUse   = (SaHpiSensorModUnitUseT)ModifierUnitUse();
+  rec.DataFormat.FactorsStatic = SAHPI_TRUE;
 
   if ( m_sensor_factors->CreateDataFormat( rec.DataFormat ) == false )
        return false;
@@ -833,6 +834,22 @@ cIpmiSensorThreshold::GetData( SaHpiSensorReadingT &data )
 
   ConvertToInterpreted( rsp.m_data[1], data );
 
+  // add event status
+  data.ValuesPresent |= SAHPI_SRF_EVENT_STATE;
+
+  data.EventStatus.SensorStatus = 0;
+
+  if ( (rsp.m_data[2] & 0x80) != 0 )
+       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
+
+  if ( (rsp.m_data[2] & 0x40) != 0 )
+       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_SCAN_ENABLED;
+
+  if ( rsp.m_data[2] & 0x20 )
+       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_BUSY;
+
+  data.EventStatus.EventStatus = rsp.m_data[3];
+
   return SA_OK;
 }
 
@@ -880,7 +897,7 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  SaErrorT rv = res->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = res->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv != SA_OK )
      {
@@ -937,7 +954,7 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
   msg.m_data[0]  = m_num;
   msg.m_data[1]  = 0xff;
 
-  SaErrorT rv = res->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = res->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv )
      {
@@ -1007,7 +1024,7 @@ cIpmiSensorThreshold::GetThresholdsAndHysteresis( SaHpiSensorThresholdsT &thres 
 }
 
 
-SaErrorT 
+SaErrorT
 cIpmiSensorThreshold::ConvertThreshold( const SaHpiSensorReadingT &r, 
                                         tIpmiThresh event,
                                         unsigned char &data,
@@ -1037,6 +1054,8 @@ SaErrorT
 cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
 {
   cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdSetSensorThreshold );
+  memset( msg.m_data, 0, dIpmiMaxMsgLength );
+
   msg.m_data_len = 8;
   msg.m_data[0]  = m_num;
   msg.m_data[1]  = 0;
@@ -1048,31 +1067,31 @@ cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
 
   if ( rv != SA_OK )
        return rv;
-  
+
   rv = ConvertThreshold( thres.LowMajor, eIpmiLowerCritical,
                          msg.m_data[3], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
-  
+
   rv = ConvertThreshold( thres.LowCritical, eIpmiLowerNonRecoverable,
                          msg.m_data[4], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
-  
+
   rv = ConvertThreshold( thres.UpMinor, eIpmiUpperNonCritical,
                          msg.m_data[5], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
-  
+
   rv = ConvertThreshold( thres.UpMajor, eIpmiUpperCritical,
                          msg.m_data[6], msg.m_data[1] );
 
   if ( rv != SA_OK )
        return rv;
-  
+
   rv = ConvertThreshold( thres.UpCritical, eIpmiUpperNonRecoverable,
                          msg.m_data[7], msg.m_data[1] );
 
@@ -1093,7 +1112,7 @@ cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
   // set thresholds
   cIpmiMsg rsp;
 
-  rv = m_mc->SendCommand( msg, rsp, m_lun );
+  rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv != SA_OK )
      {
@@ -1135,16 +1154,16 @@ cIpmiSensorThreshold::SetHysteresis( const SaHpiSensorThresholdsT &thres )
   msg.m_data[1]  = 0xff;
 
   SaErrorT rv = ConvertFromInterpreted( thres.PosThdHysteresis, msg.m_data[2] );
-  
-  if ( rv != SA_OK )
-       return rv;
-  
-  rv = ConvertFromInterpreted( thres.NegThdHysteresis, msg.m_data[3] );
-  
+
   if ( rv != SA_OK )
        return rv;
 
-  rv = m_mc->SendCommand( msg, rsp, m_lun );
+  rv = ConvertFromInterpreted( thres.NegThdHysteresis, msg.m_data[3] );
+
+  if ( rv != SA_OK )
+       return rv;
+
+  rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv != SA_OK )
      {

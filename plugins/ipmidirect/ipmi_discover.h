@@ -22,23 +22,6 @@ class cIpmiMcThread;
 class cIpmiMcTask;
 
 
-/*
-enum tIpmiMcType
-{
-  eIpmiMcTypeBoard,
-  eIpmiMcTypePower,
-  eIpmiMcTypeFan
-};
-
-
-// cIpmiMcThread::m_types
-#define dIpmiMcTypeBitBoard (1<<eIpmiMcTypeBoard)
-#define dIpmiMcTypeBitPower (1<<eIpmiMcTypePower)
-#define dIpmiMcTypeBitFan   (1<<eIpmiMcTypeFan)
-#define dIpmiMcTypeBitAll   0xffffffff
-*/
-
-
 // cIpmiMcThread::m_properties
 #define dIpmiMcThreadInitialDiscover 1 // discover at startup
 #define dIpmiMcThreadPollAliveMc     2 // poll mc if found
@@ -53,22 +36,16 @@ class cIpmiMcThread : public cThread
 private:
   cIpmiDomain  *m_domain;
 
-  void WriteLock()   { /*m_domain->WriteLock();*/ }
-  void WriteUnlock() { /*m_domain->WriteUnlock();*/ }
-  void ReadLock()    { /*m_domain->ReadLock();*/ }
-  void ReadUnlock()  { /*m_domain->ReadUnlock();*/ }
-  
+  void WriteLock();
+  void WriteUnlock();
+
   unsigned char m_addr;
-  //  unsigned int  m_type; // dIpmiMcTypeBitXXXX
-  //int           m_slot;
   cIpmiMc      *m_mc;
 
   // properties
   unsigned int m_properties; // dIpmiMcThreadXXXX
 
 public:
-  //unsigned int Type() { return m_type; }
-  //int          Slot() { return m_slot; }
   cIpmiMc     *Mc()   { return m_mc; }
 
 protected:
@@ -80,9 +57,7 @@ public:
 
   cIpmiMcThread( cIpmiDomain  *domain,
                  unsigned char addr,
-                 unsigned int  properties /*,
-                 unsigned int  mc_type,
-                 int           slot */ );
+                 unsigned int  properties );
 
   ~cIpmiMcThread();
 

@@ -24,18 +24,16 @@
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
-#include <glib.h>
 
-#include "ipmi_domain.h"
 #include "ipmi_mc.h"
 #include "ipmi_inventory.h"
 #include "ipmi_sensor.h"
 #include "ipmi_utils.h"
+#include "ipmi_domain.h"
 
 
 cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   : m_addr( addr ), m_active( true ),
-    //    m_fru_state( eIpmiFruStateNotInstalled ),
     m_domain( domain ),
     m_sensors_in_my_sdr( 0 ),
     m_sel( 0 ),
@@ -47,8 +45,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
     m_sdr_repository_support( false ), m_sensor_device_support( false ),
     m_major_fw_revision( 0 ), m_minor_fw_revision( 0 ),
     m_major_version( 0 ), m_minor_version( 0 ),
-    m_manufacturer_id( 0 ), m_product_id( 0 ),
-    m_resources( 0 )
+    m_manufacturer_id( 0 ), m_product_id( 0 )
 {
   stdlog << "adding MC: " << addr.m_channel << " " << addr.m_slave_addr << "\n";
 
@@ -86,23 +83,19 @@ cIpmiMc::~cIpmiMc()
        m_sel = 0;
      }
 
-  assert( m_resources == 0 );
+  assert( Num() == 0 );
 }
 
 
 cIpmiResource *
 cIpmiMc::FindResource( cIpmiResource *res )
 {
-  GList *list = m_resources;
-
-  while( list )
+  for( int i = 0; i < Num(); i++ )
      {
-       cIpmiResource *r = (cIpmiResource *)list->data;
+       cIpmiResource *r = operator[]( i );
 
        if ( r == res )
 	    return res;
-
-       list = g_list_next( list );
      }
 
   return 0;
@@ -112,16 +105,12 @@ cIpmiMc::FindResource( cIpmiResource *res )
 cIpmiResource *
 cIpmiMc::FindResource( const cIpmiEntityPath &ep )
 {
-  GList *list = m_resources;
-
-  while( list )
+  for( int i = 0; i < Num(); i++ )
      {
-       cIpmiResource *res = (cIpmiResource *)list->data;
+       cIpmiResource *res = operator[]( i );
 
        if ( res->EntityPath() == ep )
 	    return res;
-
-       list = g_list_next( list );
      }
 
   return 0;
@@ -137,22 +126,22 @@ cIpmiMc::AddResource( cIpmiResource *res )
        return;
      }
 
-  m_resources = g_list_append( m_resources, res );
+  Add( res );
 }
 
 
 void
 cIpmiMc::RemResource( cIpmiResource *res )
 {
-  cIpmiResource *r = FindResource( res->EntityPath() );
+  int idx = Find( res );
 
-  if ( r == 0 || r != res )
+  if ( idx == -1 )
      {
        assert( 0 );
        return;
      }
 
-  m_resources = g_list_remove( m_resources, res );
+  Rem( idx );
 }
 
 
@@ -168,22 +157,13 @@ cIpmiMc::Cleanup()
      {
        cIpmiSensor *sensor = (cIpmiSensor *)m_sensors_in_my_sdr->data;
        m_sensors_in_my_sdr = g_list_remove( m_sensors_in_my_sdr, sensor );
-       sensor->Resource()->Rem( sensor );
+       sensor->Resource()->RemRdr( sensor );
        delete sensor;
      }
 
-/*
-  // remove rdrs found in MC
-  while( m_rdrs )
+  while( Num() )
      {
-       cIpmiRdr *rdr = (cIpmiRdr *)m_rdrs->data;
-       rdr->Resource()->Rem( rdr );
-     }
-*/
-
-  while( m_resources )
-     {
-       cIpmiResource *res = (cIpmiResource *)m_resources->data;
+       cIpmiResource *res = operator[]( 0 );
        res->Destroy();
      }
 
@@ -527,23 +507,52 @@ cIpmiMc::GetAddress() const
 }
 
 
+cIpmiRdr *
+cIpmiMc::FindRdr( cIpmiRdr *r )
+{
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiResource *res = operator[]( i );
+
+       int idx = res->FindRdr( r );
+
+       if ( idx != -1 )
+	    return r;
+     }
+
+  return 0;
+}
+
+
 cIpmiSensor *
 cIpmiMc::FindSensor( unsigned int lun, unsigned int sensor_id )
 {
-  return (cIpmiSensor *)Find( this, SAHPI_SENSOR_RDR, sensor_id, lun );
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiResource *res = operator[]( i );
+
+       cIpmiRdr *r = res->FindRdr( this, SAHPI_SENSOR_RDR,
+				   sensor_id, lun );
+
+       if ( r )
+	    return (cIpmiSensor *)r;
+     }
+
+  return 0;
 }
 
 
 cIpmiSensorHotswap *
 cIpmiMc::FindHotswapSensor()
 {
-  for( GList *list = m_rdrs; list; list = g_list_next( list ) )
+  for( int i = 0; i < Num(); i++ )
      {
-       cIpmiRdr *rdr = (cIpmiRdr *)list->data;
-       cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( rdr );
+       cIpmiResource *res = operator[]( i );
+
+       cIpmiSensorHotswap *hs = res->GetHotswapSensor();
 
        if ( hs )
-            return hs;
+	    return hs;
      }
 
   return 0;
@@ -609,31 +618,36 @@ cIpmiMc::AtcaPowerFru( int fru_id )
 bool
 cIpmiMc::DumpFrus( cIpmiLog &dump, const char *name ) const
 {
-  GList *list;
+  int i;
 
   // create a list of frus
-  GList *invs = 0;
+  cArray<cIpmiInventory> invs;
 
-  for( list = m_rdrs; list; list = g_list_next( list ) )
+  for( i = 0; i < Num(); i++ )
      {
-       cIpmiRdr *rdr = (cIpmiRdr *)list->data;
+       cIpmiResource *res = operator[]( i );
 
-       cIpmiInventory *inv = dynamic_cast<cIpmiInventory *>( rdr );
+       for( int j = 0; j < res->NumRdr(); j++ )
+	  {
+	    cIpmiRdr *rdr = res->GetRdr( j );
 
-       if ( inv )
-            invs = g_list_append( invs, inv );
+	    cIpmiInventory *inv = dynamic_cast<cIpmiInventory *>( rdr );
+
+	    if ( inv )
+		 invs.Add( inv );
+	  }
      }
 
-  if ( invs == 0 )
+  if ( invs.Num() == 0 )
        return false;
 
   char fru_device_name[80];
   sprintf( fru_device_name, "FruDevice%02x_", GetAddress() );
 
   // dump frus
-  for( list = invs; list; list = g_list_next( list ) )
+  for( i = 0; i < invs.Num(); i++ )
      {
-       cIpmiInventory *inv = (cIpmiInventory *)invs->data;
+       cIpmiInventory *inv = invs[i];
 
        char str[80];
        sprintf( str, "%s%d", fru_device_name, inv->Num() );
@@ -646,10 +660,9 @@ cIpmiMc::DumpFrus( cIpmiLog &dump, const char *name ) const
 
   bool first = true;
 
-  while( invs )
+  while( invs.Num() )
      {
-       cIpmiInventory *inv = (cIpmiInventory *)invs->data;
-       invs = g_list_remove( invs, inv );
+       cIpmiInventory *inv = invs.Rem( 0 );
 
        if ( first )
             first = false;
@@ -670,31 +683,36 @@ cIpmiMc::DumpFrus( cIpmiLog &dump, const char *name ) const
 bool
 cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
 {
-  GList *list;
+  int i;
 
   // create a list of controls
-  GList *controls = 0;
+  cArray<cIpmiControl> controls;
 
-  for( list = m_rdrs; list; list = g_list_next( list ) )
+  for( i = 0; i < Num(); i++ )
      {
-       cIpmiRdr *rdr = (cIpmiRdr *)list->data;
+       cIpmiResource *res = operator[]( i );
 
-       cIpmiControl *control = dynamic_cast<cIpmiControl *>( rdr );
+       for( int j = 0; j < res->NumRdr(); j++ )
+	  {
+	    cIpmiRdr *rdr = res->GetRdr( j );
 
-       if ( control )
-            controls = g_list_append( controls, control );
+	    cIpmiControl *control = dynamic_cast<cIpmiControl *>( rdr );
+
+	    if ( control )
+		 controls.Add( control );
+	  }
      }
 
-  if ( controls == 0 )
+  if ( controls.Num() == 0 )
        return false;
 
   char control_device_name[80];
   sprintf( control_device_name, "ControlDevice%02x_", GetAddress() );
 
   // dump controls
-  for( list = controls; list; list = g_list_next( list ) )
+  for( i = 0; i < controls.Num(); i++ )
      {
-       cIpmiControl *control = (cIpmiControl *)controls->data;
+       cIpmiControl *control = controls[i];
 
        char str[80];
        sprintf( str, "%s%d", control_device_name, control->Num() );
@@ -707,10 +725,9 @@ cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
 
   bool first = true;
 
-  while( controls )
+  while( controls.Num() )
      {
-       cIpmiControl *control = (cIpmiControl *)controls->data;
-       controls = g_list_remove( controls, control );
+       cIpmiControl *control = controls.Rem( 0 );
 
        if ( first )
             first = false;
@@ -797,4 +814,45 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
   dump.Hex( false );
 
   dump.End();
+}
+
+
+bool
+cIpmiMc::Populate()
+{
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiResource *res = operator[]( i );
+
+       if ( res->Populate() == false )
+	    return false;
+     }
+
+  return true;
+}
+
+
+SaErrorT
+cIpmiMc::GetHotswapStates()
+{
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiResource *res = operator[]( i );
+
+       cIpmiSensorHotswap *hs = res->GetHotswapSensor();
+
+       if ( hs == 0 )
+            continue;
+
+       tIpmiFruState state;
+
+       SaErrorT rv = hs->GetState( state );
+
+       if ( rv != SA_OK )
+            return rv;
+
+       res->FruState() = state;
+     }
+
+  return SA_OK;
 }

@@ -23,6 +23,8 @@
 #include "ipmi_utils.h"
 
 
+#define SA_ERR_INVENT_DATA_TRUNCATED    (SaErrorT)(SA_HPI_ERR_BASE - 1000)
+
 static cIpmi *
 VerifyIpmi( void *hnd )
 {
@@ -296,14 +298,11 @@ IpmiOpen( GHashTable *handler_config )
   handler->rptcache = (RPTable *)g_malloc0( sizeof( RPTable ) );
   handler->config   = handler_config;
 
-  ipmi->IfEnter();
-
   ipmi->SetHandler( handler );
 
   if ( !ipmi->IfOpen( handler_config ) )
      {
        ipmi->IfClose();
-       ipmi->IfLeave();
 
        delete ipmi;
 
@@ -316,8 +315,6 @@ IpmiOpen( GHashTable *handler_config )
        return 0;
      }
 
-  ipmi->IfLeave();
-
   return handler;
 }
 
@@ -329,9 +326,7 @@ IpmiClose( void *hnd )
 
   cIpmi *ipmi = VerifyIpmi( hnd );
 
-  ipmi->IfEnter();
   ipmi->IfClose();
-  ipmi->IfLeave();
 
   assert( ipmi->CheckLock() );
 
@@ -355,10 +350,10 @@ IpmiGetEvent( void *hnd, struct oh_event *event,
               struct timeval *timeout )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
-  ipmi->IfEnter();
 
+  // there is no need to get a lock because
+  // the event queue has its own lock
   SaErrorT rv = ipmi->IfGetEvent( event, *timeout );
-  ipmi->IfLeave();
 
   return rv;
 }
@@ -369,9 +364,7 @@ IpmiDiscoverResources( void *hnd )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
 
-  ipmi->IfEnter();
   SaErrorT rv = ipmi->IfDiscoverResources();
-  ipmi->IfLeave();
 
   return rv;
 }
@@ -400,8 +393,7 @@ IpmiGetSensorData( void *hnd,
                    SaHpiSensorNumT num,
                    SaHpiSensorReadingT *data )
 {
-  cIpmi     *ipmi;
-
+  cIpmi *ipmi = 0;
   cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
 
   if ( !sensor )
@@ -573,7 +565,17 @@ IpmiGetInventoryInfo( void *hnd, SaHpiResourceIdT id,
   if ( !inv )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = inv->HpiRead( *data );
+  SaErrorT rv;
+
+  // special case data == 0
+  if ( data == 0 )
+     {
+       assert( 0 );
+
+       rv = SA_ERR_INVENT_DATA_TRUNCATED;
+     }
+  else
+       rv = inv->HpiRead( *data );
 
   ipmi->IfLeave();
 

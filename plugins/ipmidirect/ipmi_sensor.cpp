@@ -188,7 +188,10 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_use_count = 1;
   m_destroyed = false;
 
-  m_mc = mc->Domain()->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
+  cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, sdr->m_data[5] );
+
+  //m_mc = mc->Domain()->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
+  m_mc = mc; // mc->Domain()->FindMcByAddr( addr );
 
   if ( !m_mc )
      {
@@ -350,12 +353,10 @@ SaErrorT
 cIpmiSensor::GetSensorReading( cIpmiMsg &rsp )
 {
   cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorReading );
-  SaErrorT rv;
-
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  rv = m_mc->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv != SA_OK )
      {
@@ -390,7 +391,7 @@ cIpmiSensor::GetEventEnables( SaHpiSensorEvtEnablesT &enables, cIpmiMsg &rsp )
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  SaErrorT rv = m_mc->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv != SA_OK )
      {
@@ -437,7 +438,7 @@ cIpmiSensor::SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
 
   cIpmiMsg rsp;
 
-  SaErrorT rv = m_mc->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv != SA_OK )
      {

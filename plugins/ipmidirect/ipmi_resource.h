@@ -18,21 +18,39 @@
 #define dIpmiResource_h
 
 
-#ifndef dIpmiRdr_h
-#include "ipmi_rdr.h"
-#endif
-
-#ifndef dIpmiSensor_h
-#include "ipmi_sensor.h"
+#ifndef dIpmiSensorHotswap_h
+#include "ipmi_sensor_hotswap.h"
 #endif
 
 #ifndef dIpmiControl_h
 #include "ipmi_control.h"
 #endif
 
+#ifndef dArray_h
+#include "array.h"
+#endif
 
-class cIpmiResource : public cIpmiRdrContainer
+#ifndef dIpmiCon_h
+#include "ipmi_con.h"
+#endif
+
+
+class cIpmiResource : cArray<cIpmiRdr>
 {
+public:
+  bool m_sel; // true if this is a resource,
+              // which provedes access to SEL
+
+  // find a specific rdr
+  cIpmiRdr *FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type, unsigned int num, unsigned int lun = 0 );
+  cIpmiRdr *FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type, cIpmiRdr *rdr );
+
+  bool AddRdr( cIpmiRdr *rdr );
+  bool RemRdr( cIpmiRdr *rdr );
+  int FindRdr( cIpmiRdr *rdr ) { return Find( rdr ); }
+  int NumRdr() { return Num(); }
+  cIpmiRdr *GetRdr( int idx ) { return operator[]( idx ); }
+
 protected:
   cIpmiMc            *m_mc;
   unsigned int        m_fru_id;
@@ -56,7 +74,7 @@ public:
   cIpmiMc *Mc() const { return m_mc; }
   unsigned int FruId() const { return m_fru_id; }
   tIpmiFruState &FruState() { return m_fru_state; }
-  cIpmiDomain *Domain() const { return m_mc->Domain(); }
+  cIpmiDomain *Domain() const;
   unsigned int &Oem() { return m_oem; }
   cIpmiEntityPath &EntityPath() { return m_entity_path; }
 
@@ -73,12 +91,6 @@ public:
 public:
   // return hotswap sensor if there is one
   cIpmiSensorHotswap *GetHotswapSensor() { return m_hotswap_sensor; }
-
-  // add cIpmiRdr and create an Hpi Rdr.
-  virtual bool Add( cIpmiRdr *rdr );
-
-  // remove cIpmiRdr
-  virtual bool Rem( cIpmiRdr *rdr );
 
 protected:
   unsigned int m_current_control_id;
@@ -97,10 +109,21 @@ public:
   virtual bool Destroy();
 
   SaErrorT SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
-                        unsigned int lun = 0, int retries = dIpmiDefaultRetries )
-  {
-    return m_mc->SendCommand( msg, rsp, lun, retries );
-  }
+                        unsigned int lun = 0, int retries = dIpmiDefaultRetries );
+
+  SaErrorT SendCommandReadLock( cIpmiRdr *rdr, const cIpmiMsg &msg, cIpmiMsg &rsp,
+                                unsigned int lun = 0, int retries = dIpmiDefaultRetries );
+  SaErrorT SendCommandReadLock( const cIpmiMsg &msg, cIpmiMsg &rsp,
+                                unsigned int lun = 0, int retries = dIpmiDefaultRetries );
+
+private:
+  bool PopulateSel();
+
+  bool m_populate;
+
+public:
+  // create and populate hpi resource
+  virtual bool Populate();
 };
 
 

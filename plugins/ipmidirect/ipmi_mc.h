@@ -63,7 +63,7 @@ class cIpmiDomain;
 class cIpmiMcThread;
 
 
-class cIpmiMc : public cIpmiRdrContainer
+class cIpmiMc : cArray<cIpmiResource>
 {
 protected:
   cIpmiMcVendor *m_vendor;
@@ -75,10 +75,6 @@ protected:
   // that refer to this MC, but the MC is not currently in the
   // system.
   bool           m_active;
-
-  // state only to create state change Mx -> M0
-  // where Mx is m_fru_state
-  //  tIpmiFruState  m_fru_state;
 
   cIpmiDomain   *m_domain;
 
@@ -120,18 +116,15 @@ protected:
 
   SaErrorT SendSetEventRcvr( unsigned int addr );
 
-  GList *m_resources;
-
 public:
   void AddResource( cIpmiResource *res );
   void RemResource( cIpmiResource *res );
-  //cIpmiResource *FindResource( unsigned int fru_id );
   cIpmiResource *FindResource( const cIpmiEntityPath &ep );
   cIpmiResource *FindResource( cIpmiResource *res );
 
 public:
   cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr );
-  ~cIpmiMc();
+  virtual ~cIpmiMc();
 
   cIpmiDomain *Domain() const { return m_domain; }
 
@@ -149,8 +142,6 @@ public:
     assert( v >= 0 && v < 4 );
     return m_aux_fw_revision[v];
   }
-
-  //tIpmiFruState &FruState() { return m_fru_state; }
 
   const cIpmiAddr &Addr() { return m_addr; }
 
@@ -189,6 +180,7 @@ public:
   unsigned int GetAddress() const;
   void         SetActive();
   cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_id );
+  cIpmiRdr *FindRdr( cIpmiRdr *r );
 
   SaErrorT AtcaPowerFru( int fru_id );
 
@@ -205,6 +197,13 @@ protected:
 
 public:
   void Dump( cIpmiLog &dump, const char *name ) const;
+
+  // create and populate resources and rdrs
+  virtual bool Populate();
+
+  // get hotswap state for all resources which has a hotswap sensor.
+  // must be called with read lock m_domain.m_lock held.
+  SaErrorT GetHotswapStates();
 };
 
 

@@ -128,7 +128,7 @@ protected:
   cIpmiSdrs    *m_main_sdrs;
 
   // The sensors that came from the main SDR.
-  GList        *m_sensors_in_main_sdr;
+  GList *m_sensors_in_main_sdr;
 
   // Major and minor versions of the connection.
   unsigned int  m_major_version;
@@ -146,7 +146,7 @@ protected:
   //   mcs, entities, sensors, frus, sels
   cThreadLockRw m_lock;
 
-  GList        *m_mcs; // list of all MCs
+  cArray<cIpmiMc> m_mcs; // list of all MCs
 
 public:
   void ReadLock()    { m_lock.ReadLock(); }
@@ -180,8 +180,8 @@ public:
   int GetChannels();
 
 public:
-  cIpmiMc *NewMc( const cIpmiAddr &addr );
-  bool     CleanupMc( cIpmiMc *mc );
+  void AddMc( cIpmiMc *mc );
+  bool CleanupMc( cIpmiMc *mc );
 
 public:
   cIpmiDomain();
@@ -191,7 +191,7 @@ public:
   void Cleanup();
 
   cIpmiMc *FindMcByAddr( const cIpmiAddr &addr );
-  cIpmiMc *FindOrCreateMcBySlaveAddr( unsigned int slave_addr );
+  //cIpmiMc *FindOrCreateMcBySlaveAddr( unsigned int slave_addr );
   SaErrorT SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
                         int retries = dIpmiDefaultRetries );
   GList *GetSdrSensors( cIpmiMc *mc );
@@ -209,6 +209,7 @@ public:
 
   cIpmiResource  *VerifyResource( cIpmiResource *res );
   cIpmiMc        *VerifyMc( cIpmiMc *mc );
+  cIpmiRdr       *VerifyRdr( cIpmiRdr *rdr );
   cIpmiSensor    *VerifySensor( cIpmiSensor *s );
   cIpmiControl   *VerifyControl( cIpmiControl *c );
   cIpmiInventory *VerifyInventory( cIpmiInventory *i );
@@ -225,6 +226,8 @@ public:
   virtual SaHpiRptEntryT *FindResource( SaHpiResourceIdT id ) = 0;
 
   void Dump( cIpmiLog &dump ) const;
+
+  bool Populate();
 };
 
 
