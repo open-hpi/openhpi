@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=/usr/local
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: OpenHPI
+Description: Implementation of SA Forum's Hardware Platform Interface
+Version: 0.5.0
+Requires: glib
+Libs: -L${libdir} -lopenhpi
+Cflags: -I${includedir}/openhpi 
