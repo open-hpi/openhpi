@@ -1130,7 +1130,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 {
         SaErrorT rv;
         SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT,
-                              SaHpiSensorReadingT *);
+                              SaHpiSensorReadingT *, SaHpiEventStateT *);
 
         struct oh_handler *h;
         SaHpiRptEntryT *res;
@@ -1162,7 +1162,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
-        get_func = h->abi->get_sensor_data;
+        get_func = h->abi->get_sensor_reading;
 
         if (!get_func) {
                 return SA_ERR_HPI_INVALID_CMD;
@@ -1172,8 +1172,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
                 return SA_OK;
         }
 
-        rv = get_func(h->hnd, ResourceId, SensorNum, Reading);
-        /* FIXME: Need to return EventState also */
+        rv = get_func(h->hnd, ResourceId, SensorNum, Reading, EventState);
 
         return rv;
 }
