@@ -198,7 +198,8 @@ SaErrorT oh_get_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT *state)
 SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
 {
        struct oh_session *session = NULL;
-
+        struct oh_event e;
+	
        if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
@@ -208,8 +209,13 @@ SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
                return SA_ERR_HPI_INVALID_SESSION;
        }
        session->state = state;
+ 
        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
-
+      if (state == SAHPI_FALSE) {
+              oh_get_events();                
+              while (oh_dequeue_session_event(sid, SAHPI_TIMEOUT_IMMEDIATE,
+	                                          &e) == SA_OK);
+       }
        return SA_OK;
 }
 
