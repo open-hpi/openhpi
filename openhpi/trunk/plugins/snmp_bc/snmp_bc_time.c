@@ -330,8 +330,10 @@ int set_bc_sp_time(struct snmp_session *ss, struct tm *time) {
         int returncode = 0;
 
         set_value.type = ASN_OCTET_STR;
+	
         strftime(set_value.string, sizeof(set_value.string), "%m/%d/%Y,%H:%M:%S", time);
-
+	set_value.str_len = 19;
+	
         if (snmp_set(ss,BC_DATETIME_OID,set_value) == 0)
         {
                 returncode = 0;
