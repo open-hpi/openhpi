@@ -58,6 +58,9 @@ int open_msg(char * readbuffer, int sockfd);
 int discover_resources_msg(char * readbuffer, int sockfd);
 void answer(int newsockfd);
 
+GSList *resource_list_add(GSList *event_list_ptr); 
+GSList *rdr_list_add(SaHpiResourceIdT resource_id, GSList *event_list_ptr);
+
 /* global variables */
 SaErrorT 	err;
 SaHpiVersionT version;      /* return value from SaHpiInitialize */
