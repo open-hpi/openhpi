@@ -114,7 +114,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 	printf("****** BladeCenter Simulator  ******\n");
 
 	if (!strcmp(bc_type, SNMP_BC_PLATFORM_BCE)) {
-		printf("****** BladeCenter Enterprise ******\n");
+		printf("****** BladeCenter Integrated ******\n");
 	}
 	if (!strcmp(bc_type, SNMP_BC_PLATFORM_BCT)) {
 		printf("****** BladeCenter Telco      ******\n");
