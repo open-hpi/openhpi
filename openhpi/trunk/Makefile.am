@@ -78,6 +78,7 @@ $(top_srcdir)/utils/sahpi_enum_utils.h:
 	make -C $(top_builddir)/utils sahpi_enum_utils.h
 
 install-data-local: openhpi.pc
+	set >> /home/sdague/set2.log
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(VARPATH)

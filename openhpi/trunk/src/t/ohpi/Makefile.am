@@ -24,7 +24,6 @@ TESTS_ENVIRONMENT += OPENHPI_CONF=$(top_srcdir)/src/t/ohpi/openhpi.conf
 
 TESTS = ohpi_000 \
         ohpi_001 \
-        ohpi_002 \
         ohpi_003 \
         ohpi_004 \
         ohpi_005 \

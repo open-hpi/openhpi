@@ -20,7 +20,7 @@ AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		ln -s ../../$@; \
+		$(LN_S) $(top_srcdir)/utils/$@; \
 	fi
 
 TESTS_ENVIRONMENT = OPENHPI_UID_MAP=$(shell pwd)/uid_map
