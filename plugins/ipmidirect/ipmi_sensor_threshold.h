@@ -2,6 +2,7 @@
  * ipmi_sensor_threshold.h
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiSensorThreshold_h
@@ -215,10 +217,6 @@ protected:
   tIpmiHysteresisSupport m_hysteresis_support;
   tIpmiThresholdAccessSuport m_threshold_access;
 
-  unsigned int           m_assertion_event_mask; // dIpmiEventXXX
-  unsigned int           m_deassertion_event_mask;
-  unsigned int           m_reading_mask;
-
   unsigned int           m_threshold_readable;
   unsigned int           m_threshold_settable;
 
@@ -233,6 +231,7 @@ protected:
   bool                   m_normal_min_specified;
   bool                   m_normal_max_specified;
   bool                   m_nominal_reading_specified;
+  bool                   m_swap_thresholds;
 
   unsigned char          m_nominal_reading;
   unsigned char          m_normal_max;
@@ -247,6 +246,9 @@ protected:
   unsigned char          m_lower_non_critical_threshold;
   unsigned char          m_positive_going_threshold_hysteresis;
   unsigned char          m_negative_going_threshold_hysteresis;
+
+  unsigned char          m_current_positive_hysteresis;
+  unsigned char          m_current_negative_hysteresis;
 
 public:
   cIpmiSensorThreshold( cIpmiMc *mc );
@@ -270,6 +272,7 @@ public:
   unsigned char NormalMax() const { return m_normal_max; }
   bool          NormalMinSpecified() const { return m_normal_min_specified; }
   unsigned char NormalMin() const { return m_normal_min; }
+  bool          SwapThresholds() const { return m_swap_thresholds; }
 
   bool IsThresholdReadable( tIpmiThresh event );
   bool IsThresholdSettable( tIpmiThresh event );
@@ -286,12 +289,16 @@ protected:
   virtual cIpmiSensorFactors *CreateSensorFactors( cIpmiMc *mc, cIpmiSdr *sdr );
 
   // create HPI event mask
-  unsigned short GetEventMask();
+  unsigned short GetEventMask(unsigned int ipmi_event_mask);
 
   // convert to HPI interpreted values
   void ConvertToInterpreted( unsigned int v, SaHpiSensorReadingT &r );
+  void ConvertToInterpreted( unsigned int v, SaHpiSensorReadingT &r, bool is_hysteresis );
   SaErrorT ConvertFromInterpreted( const SaHpiSensorReadingT r,
                                    unsigned char &v );
+  SaErrorT ConvertFromInterpreted( const SaHpiSensorReadingT r,
+                                   unsigned char &v,
+                                   bool is_hysteresis);
 
   SaErrorT ConvertThreshold( const SaHpiSensorReadingT &r, 
                              tIpmiThresh event,
@@ -308,7 +315,7 @@ public:
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
   // get sensor data
-  SaErrorT GetData( SaHpiSensorReadingT &data );
+  SaErrorT GetSensorReading( SaHpiSensorReadingT &data, SaHpiEventStateT &state );
 
   SaErrorT GetThresholdsAndHysteresis( SaHpiSensorThresholdsT &thres );
 
@@ -327,8 +334,12 @@ protected:
   SaErrorT SetHysteresis( const SaHpiSensorThresholdsT &thres );
 
 public:
-  virtual SaErrorT GetEventEnables( SaHpiSensorEvtEnablesT &enables );
-  virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables );
+  virtual SaErrorT GetEventMasksHw( SaHpiEventStateT &AssertEventMask,
+                                    SaHpiEventStateT &DeassertEventMask
+                                  );
+  virtual SaErrorT SetEventMasksHw( const SaHpiEventStateT &AssertEventMask,
+                                    const SaHpiEventStateT &DeassertEventMask
+                                  );
 };
 
 

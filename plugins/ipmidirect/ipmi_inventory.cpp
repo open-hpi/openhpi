@@ -1,7 +1,8 @@
 /*
- * ipmi_inventory.h
+ * ipmi_inventory.cpp
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 
@@ -22,7 +24,6 @@
 #include "ipmi_domain.h"
 #include "ipmi_inventory.h"
 
-
 //////////////////////////////////////////////////
 //                  cIpmiInventory
 //////////////////////////////////////////////////
@@ -32,10 +33,6 @@ cIpmiInventory::cIpmiInventory( cIpmiMc *mc, unsigned int fru_device_id )
     m_access( eInventoryAccessModeByte ), m_size( 0 ),
     m_oem( 0 )
 {
-  char str[80];
-  sprintf( str, "FRU%d", fru_device_id );
-
-  m_id_string.SetAscii( str, SAHPI_TL_TYPE_LANGUAGE, SAHPI_LANG_ENGLISH );
 }
 
 
@@ -123,13 +120,11 @@ SaErrorT
 cIpmiInventory::Fetch()
 {
   m_fetched = false;
-  Clear();
 
   SaErrorT rv = GetFruInventoryAreaInfo( m_size,
                                          m_access );
-
   if ( rv != SA_OK || m_size == 0 )
-       return  rv != SA_OK ? rv : SA_ERR_HPI_DATA_LEN_INVALID;
+       return  rv != SA_OK ? rv : SA_ERR_HPI_INVALID_DATA;
 
   unsigned short offset = 0;
   unsigned char *data = new unsigned char[m_size];
@@ -154,7 +149,7 @@ cIpmiInventory::Fetch()
        offset += n;
      }
 
-  rv = IpmiRead( data, m_size );
+  rv = ParseFruInfo( data, m_size, Num() );
 
   delete [] data;
 
@@ -184,68 +179,18 @@ cIpmiInventory::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
           }
 
        memset( e, 0, sizeof( struct oh_event ) );
-       e->type               = oh_event::OH_ET_RESOURCE;
+       e->type               = OH_ET_RESOURCE;
        e->u.res_event.entry = resource;
 
+       stdlog << "cIpmiInventory::CreateRdr OH_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
        m_mc->Domain()->AddHpiEvent( e );
      }
 
   // control record
   SaHpiInventoryRecT &rec = rdr.RdrTypeUnion.InventoryRec;
-  rec.EirId = Num();
+  rec.IdrId = Num();
   rec.Oem = m_oem;
 
   return true;
 }
 
-
-void
-cIpmiInventory::Dump( cIpmiLog &dump, const char *name ) const
-{
-  int i;
-  char str[80];
-  sprintf( str, "FruRecord%02x_%d_", Mc()->GetAddress(), m_fru_device_id );
-
-  int nr = 0;
-  int r  = 0;
-
-  for( i = 0; i < eIpmiInventoryRecordTypeLast; i++ )
-     {
-       const cIpmiInventoryRecord *ir = GetRecord( (tIpmiInventoryRecordType)i );
-
-       if ( ir == 0 )
-            continue;
-
-       nr += ir->IpmiNumRecords();
-
-       for( int j = 0; j < ir->IpmiNumRecords(); j++ )
-          {
-            char s[80];
-            sprintf( s, "%s%d", str, r++ );
-
-            ir->Dump( dump, j, s );
-          }
-     }
-
-  dump.Begin( "FruDevice", name );
-
-  dump.Entry( "DeviceId" ) << (int)m_fru_device_id << ";\n";
-  dump.Entry( "Access" ) << ( ( m_access == eInventoryAccessModeWord )
-                              ? "dFruAccessWord" : "dFruAccessByte" ) << ";\n";
-
-  if ( nr )
-       dump.Entry( "FruRecords" );
-
-  for( i = 0; i < nr; i++ )
-     {
-       if ( i != 0 )
-            dump << ", ";
-
-       dump << str << i;
-     }
-
-  if ( nr )
-       dump << ";\n";
-
-  dump.End();
-}

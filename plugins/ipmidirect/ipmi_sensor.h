@@ -2,6 +2,7 @@
  * ipmi_sensor.h
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 
@@ -55,49 +57,54 @@ class  cIpmiDomain;
 
 enum tIpmiSensorType
 {
-  eIpmiSensorTypeInvalid                      = 0x00,
-  eIpmiSensorTypeTemperature                  = 0x01,
-  eIpmiSensorTypeVoltage		      = 0x02,
-  eIpmiSensorTypeCurrent		      = 0x03,
-  eIpmiSensorTypeFan			      = 0x04,
-  eIpmiSensorTypePhysicalSecurity	      = 0x05,
-  eIpmiSensorTypePlatformSecurity	      = 0x06,
-  eIpmiSensorTypeProcessor		      =	0x07,
-  eIpmiSensorTypePowerSupply		      =	0x08,
-  eIpmiSensorTypePowerUnit		      =	0x09,
-  eIpmiSensorTypeCoolingDevice		      =	0x0a,
-  eIpmiSensorTypeOtherUnitsBasedSensor	      = 0x0b,
-  eIpmiSensorTypeMemory			      =	0x0c,
-  eIpmiSensorTypeDriveSlot		      =	0x0d,
-  eIpmiSensorTypePowerMemoryResize	      =	0x0e,
-  eIpmiSensorTypeSystemFirmwareProgress	      = 0x0f,
-  eIpmiSensorTypeEventLoggingDisabled	      =	0x10,
-  eIpmiSensorTypeWatchdog1		      =	0x11,
-  eIpmiSensorTypeSystemEvent		      =	0x12,
-  eIpmiSensorTypeCriticalInterrupt	      =	0x13,
-  eIpmiSensorTypeButton			      =	0x14,
-  eIpmiSensorTypeModuleBoard		      =	0x15,
-  eIpmiSensorTypeMicrocontrollerCoprocessor   =	0x16,
-  eIpmiSensorTypeAddInCard		      =	0x17,
-  eIpmiSensorTypeChassis		      =	0x18,
-  eIpmiSensorTypeChipSet		      =	0x19,
-  eIpmiSensorTypeOtherFru		      =	0x1a,
-  eIpmiSensorTypeCableInterconnect	      =	0x1b,
-  eIpmiSensorTypeTerminator		      =	0x1c,
-  eIpmiSensorTypeSystemBootInitiated	      =	0x1d,
-  eIpmiSensorTypeBootError		      =	0x1e,
-  eIpmiSensorTypeOsBoot			      = 0x1f,
-  eIpmiSensorTypeOsCriticalStop		      = 0x20,
-  eIpmiSensorTypeSlotConnector		      = 0x21,
-  eIpmiSensorTypeSystemAcpiPowerState	      = 0x22,
-  eIpmiSensorTypeWatchdog2		      = 0x23,
-  eIpmiSensorTypePlatformAlert		      = 0x24,
-  eIpmiSensorTypeEntityPresence		      = 0x25,
-  eIpmiSensorTypeMonitorAsicIc		      = 0x26,
-  eIpmiSensorTypeLan			      = 0x27,
-  eIpmiSensorTypeManagementSubsystemHealth    = 0x28,
-  eIpmiSensorTypeBattery		      = 0x29,
-  eIpmiSensorTypeAtcaHotSwap                  = 0xf0
+  eIpmiSensorTypeInvalid                    = 0x00,
+  eIpmiSensorTypeTemperature                = 0x01,
+  eIpmiSensorTypeVoltage                    = 0x02,
+  eIpmiSensorTypeCurrent                    = 0x03,
+  eIpmiSensorTypeFan                        = 0x04,
+  eIpmiSensorTypePhysicalSecurity           = 0x05,
+  eIpmiSensorTypePlatformSecurity           = 0x06,
+  eIpmiSensorTypeProcessor                  = 0x07,
+  eIpmiSensorTypePowerSupply                = 0x08,
+  eIpmiSensorTypePowerUnit                  = 0x09,
+  eIpmiSensorTypeCoolingDevice              = 0x0a,
+  eIpmiSensorTypeOtherUnitsBasedSensor      = 0x0b,
+  eIpmiSensorTypeMemory                     = 0x0c,
+  eIpmiSensorTypeDriveSlot                  = 0x0d,
+  eIpmiSensorTypePowerMemoryResize          = 0x0e,
+  eIpmiSensorTypeSystemFirmwareProgress     = 0x0f,
+  eIpmiSensorTypeEventLoggingDisabled       = 0x10,
+  eIpmiSensorTypeWatchdog1                  = 0x11,
+  eIpmiSensorTypeSystemEvent                = 0x12,
+  eIpmiSensorTypeCriticalInterrupt          = 0x13,
+  eIpmiSensorTypeButton                     = 0x14,
+  eIpmiSensorTypeModuleBoard                = 0x15,
+  eIpmiSensorTypeMicrocontrollerCoprocessor = 0x16,
+  eIpmiSensorTypeAddInCard		            = 0x17,
+  eIpmiSensorTypeChassis                    = 0x18,
+  eIpmiSensorTypeChipSet                    = 0x19,
+  eIpmiSensorTypeOtherFru                   = 0x1a,
+  eIpmiSensorTypeCableInterconnect          = 0x1b,
+  eIpmiSensorTypeTerminator                 = 0x1c,
+  eIpmiSensorTypeSystemBootInitiated        = 0x1d,
+  eIpmiSensorTypeBootError                  = 0x1e,
+  eIpmiSensorTypeOsBoot                     = 0x1f,
+  eIpmiSensorTypeOsCriticalStop             = 0x20,
+  eIpmiSensorTypeSlotConnector              = 0x21,
+  eIpmiSensorTypeSystemAcpiPowerState       = 0x22,
+  eIpmiSensorTypeWatchdog2                  = 0x23,
+  eIpmiSensorTypePlatformAlert              = 0x24,
+  eIpmiSensorTypeEntityPresence             = 0x25,
+  eIpmiSensorTypeMonitorAsicIc              = 0x26,
+  eIpmiSensorTypeLan                        = 0x27,
+  eIpmiSensorTypeManagementSubsystemHealth  = 0x28,
+  eIpmiSensorTypeBattery                    = 0x29,
+  eIpmiSensorTypeOemFirst                   = 0xc0,
+  eIpmiSensorTypeOemLast                    = 0xef,
+  eIpmiSensorTypeAtcaHotSwap                = 0xf0,
+  eIpmiSensorTypeAtcaIpmb                   = 0xf1,
+  eIpmiSensorTypeAtcaAmcHotSwap             = 0xf2,
+  eIpmiSensorTypeAtcaLast                   = 0xff
 };
 
 const char *IpmiSensorTypeToString( tIpmiSensorType type );
@@ -118,7 +125,9 @@ enum tIpmiEventReadingType
   eIpmiEventReadingTypeDiscreteAvailability      = 0x0a,
   eIpmiEventReadingTypeDiscreteRedundancy        = 0x0b,
   eIpmiEventReadingTypeDiscreteAcpiPower         = 0x0c,
-  eIpmiEventReadingTypeSensorSpecific            = 0x6f
+  eIpmiEventReadingTypeSensorSpecific            = 0x6f,
+  eIpmiEventReadingTypeOemFirst                  = 0x70,
+  eIpmiEventReadingTypeOemLast                   = 0x7f
 };
 
 const char *IpmiEventReadingTypeToString( tIpmiEventReadingType type );
@@ -154,8 +163,6 @@ protected:
                              // will be the MC that owned the device
                              // SDR this came from.
 
-  SaHpiEventStateT m_event_state; // HPI current event state
-
   bool          m_destroyed;
   int           m_use_count;
 
@@ -172,6 +179,18 @@ protected:
   bool          m_sensor_init_pu_scanning;
   bool          m_ignore_if_no_entity;
   bool          m_supports_auto_rearm;
+
+  unsigned int  m_assertion_event_mask;
+  unsigned int  m_deassertion_event_mask;
+  unsigned int  m_reading_mask;
+
+  SaHpiBoolT    m_enabled;
+  SaHpiBoolT    m_events_enabled;
+  SaHpiEventStateT    m_current_hpi_assert_mask;
+  SaHpiEventStateT    m_current_hpi_deassert_mask;
+  SaHpiEventStateT    m_hpi_assert_mask;
+  SaHpiEventStateT    m_hpi_deassert_mask;
+  SaHpiSensorEventCtrlT m_event_control;
 
   tIpmiEventSupport m_event_support;
 
@@ -199,8 +218,6 @@ public:
   cIpmiSdr *GetSdr() { return m_sdr; }
   void SetSdr( cIpmiSdr *sdr ) { m_sdr = sdr; }
 
-  SaHpiEventStateT &EventState() { return m_event_state; }
-
   tIpmiSensorType SensorType() const { return m_sensor_type; }
   tIpmiEventReadingType EventReadingType() const { return m_event_reading_type; }
 
@@ -217,10 +234,11 @@ public:
   // create an HPI event from ipmi event
   virtual SaErrorT CreateEvent( cIpmiEvent *event, SaHpiEventT &h );
 
-  // handle all incomming sensor events
-  virtual void HandleEvent( cIpmiEvent *event );
+  // create and send HPI sensor enable change event
+  void CreateEnableChangeEvent();
 
-  bool Ignore();
+  // handle all incoming sensor events
+  virtual void HandleEvent( cIpmiEvent *event );
 
   virtual void Dump( cIpmiLog &dump ) const;
 
@@ -230,28 +248,61 @@ public:
   // create an RDR sensor record
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
+  SaHpiEventCategoryT HpiEventCategory(tIpmiEventReadingType reading_type);
+  SaHpiSensorTypeT HpiSensorType(tIpmiSensorType sensor_type);
+
   // read sensor. must be called with a global read lock held.
-  virtual SaErrorT GetSensorReading( cIpmiMsg &rsp );
+  SaErrorT GetSensorData( cIpmiMsg &rsp );
 
   // get sensor data. this function must called with the global read lock held
-  virtual SaErrorT GetData( SaHpiSensorReadingT &data ) = 0;
+  virtual SaErrorT GetSensorReading( SaHpiSensorReadingT &data, SaHpiEventStateT &state ) = 0;
 
   // this function must called with the global read lock held
-  virtual SaErrorT GetEventEnables( SaHpiSensorEvtEnablesT &enables ) = 0;
+  SaErrorT GetEnable( SaHpiBoolT &enable );
+
+  // this function must called with the global read lock held
+  SaErrorT GetEventEnables( SaHpiBoolT &enables );
+
+  SaErrorT GetEventEnableHw( SaHpiBoolT &enables );
+
+  // this function must called with the global read lock held
+  SaErrorT GetEventMasks( SaHpiEventStateT &AssertEventMask,
+                          SaHpiEventStateT &DeassertEventMask
+                        );
+
+  // this function must called with the global read lock held
+  virtual SaErrorT GetEventMasksHw( SaHpiEventStateT &AssertEventMask,
+                                    SaHpiEventStateT &DeassertEventMask
+                                  ) = 0;
 
 protected:
   // this function must called with the global read lock held
-  virtual SaErrorT GetEventEnables( SaHpiSensorEvtEnablesT &enables,
-                                    cIpmiMsg &rsp );
+  virtual SaErrorT GetEventMasksHw( cIpmiMsg &rsp );
 
 public:
   // this function must called with the global read lock held
- virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables ) = 0;
+  SaErrorT SetEnable( const SaHpiBoolT &enable );
+
+  // this function must called with the global read lock held
+  SaErrorT SetEventEnables( const SaHpiBoolT &enables );
+
+  SaErrorT SetEventEnableHw( const SaHpiBoolT &enables );
+
+  // this function must called with the global read lock held
+  SaErrorT SetEventMasks( const SaHpiSensorEventMaskActionT &act,
+                          SaHpiEventStateT &AssertEventMask,
+                          SaHpiEventStateT &DeassertEventMask
+                        );
+
+  // this function must called with the global read lock held
+  virtual SaErrorT SetEventMasksHw( const SaHpiEventStateT &AssertEventMask,
+                                    const SaHpiEventStateT &DeassertEventMask
+                                  ) = 0;
 
 protected:
   // this function must called with the global read lock held
-  virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
-                                    cIpmiMsg &msg );
+  virtual SaErrorT SetEventMasksHw( cIpmiMsg &msg,
+                                    bool evt_enable );
 };
 
 

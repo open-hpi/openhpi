@@ -2,6 +2,7 @@
  * ipmi_sensor_threshold.cpp
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include "ipmi_sensor_threshold.h"
@@ -272,9 +274,6 @@ cIpmiSensorThreshold::cIpmiSensorThreshold( cIpmiMc *mc )
     m_sensor_init_hysteresis( false ),
     m_hysteresis_support( eIpmiHysteresisSupportNone ),
     m_threshold_access( eIpmiThresholdAccessSupportNone ),
-    m_assertion_event_mask( 0 ),
-    m_deassertion_event_mask( 0 ),
-    m_reading_mask( 0 ),
     m_threshold_readable( 0 ),
     m_threshold_settable( 0 ),
     m_rate_unit( eIpmRateUnitNone ),
@@ -326,12 +325,17 @@ cIpmiSensorThreshold::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   unsigned int val = IpmiGetUint16( sdr->m_data + 14 );
 
   m_assertion_event_mask = val & dIpmiEventMask;
+  m_current_hpi_assert_mask = GetEventMask( m_assertion_event_mask );
+  m_hpi_assert_mask = m_current_hpi_assert_mask;
   m_reading_mask = (val >> 12) & 7;
   
   // deassertion
   val = IpmiGetUint16( sdr->m_data + 16 );
 
   m_deassertion_event_mask = val & dIpmiEventMask;
+  m_current_hpi_deassert_mask = GetEventMask( m_deassertion_event_mask );
+  m_hpi_deassert_mask = m_current_hpi_deassert_mask;
+
   m_reading_mask |= ((val >> 12) & 7 ) << 3;
 
   val = IpmiGetUint16( sdr->m_data + 18 );
@@ -364,7 +368,15 @@ cIpmiSensorThreshold::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_lower_critical_threshold = sdr->m_data[40];
   m_lower_non_critical_threshold = sdr->m_data[41];
   m_positive_going_threshold_hysteresis = sdr->m_data[42];
+  m_current_positive_hysteresis = m_positive_going_threshold_hysteresis;
   m_negative_going_threshold_hysteresis = sdr->m_data[43];
+  m_current_negative_hysteresis = m_negative_going_threshold_hysteresis;
+
+  if (( m_sensor_factors->Linearization() == eIpmiLinearization1OverX )
+      || ( m_sensor_factors->Linearization() == eIpmiLinearization1OverCube ))
+      m_swap_thresholds = true;
+  else
+      m_swap_thresholds = false;
 
   return true;
 }
@@ -529,6 +541,31 @@ cIpmiSensorThreshold::IsThresholdSettable( tIpmiThresh event )
   return m_threshold_settable & ( 1 << event );
 }
 
+static void
+SwapEventState( SaHpiEventStateT &event_state )
+{
+    switch (event_state)
+    {
+    case SAHPI_ES_LOWER_MINOR:
+        event_state = SAHPI_ES_UPPER_MINOR;
+        break;
+    case SAHPI_ES_LOWER_MAJOR:
+        event_state = SAHPI_ES_UPPER_MAJOR;
+        break;
+    case SAHPI_ES_LOWER_CRIT:
+        event_state = SAHPI_ES_UPPER_CRIT;
+        break;
+    case SAHPI_ES_UPPER_MINOR:
+        event_state = SAHPI_ES_LOWER_MINOR;
+        break;
+    case SAHPI_ES_UPPER_MAJOR:
+        event_state = SAHPI_ES_LOWER_MAJOR;
+        break;
+    case SAHPI_ES_UPPER_CRIT:
+        event_state = SAHPI_ES_LOWER_CRIT;
+        break;
+    }
+}
 
 SaErrorT
 cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
@@ -552,7 +589,6 @@ cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
        se.Assertion = SAHPI_FALSE;
 
   tIpmiThresh threshold = (tIpmiThresh)((event->m_data[10] >> 1) & 0x07);
-  se.PreviousState = EventState();
 
   switch( threshold )
      {
@@ -591,27 +627,52 @@ cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
             se.EventState = SAHPI_ES_UNSPECIFIED;
      }
 
-  EventState() = se.EventState;
+  if ( SwapThresholds() == true )
+  {
+      SwapEventState( se.EventState );
+  }
+
+  SaHpiSensorOptionalDataT optional_data = 0;
 
   // byte 2
   tIpmiEventType type = (tIpmiEventType)(event->m_data[10] >> 6);
 
   if ( type == eIpmiEventData1 )
+  {
        ConvertToInterpreted( event->m_data[11],  se.TriggerReading );
+       optional_data |= SAHPI_SOD_TRIGGER_READING;
+  }
   else if ( type == eIpmiEventData2 )
+  {
        se.Oem = (SaHpiUint32T)event->m_data[11]; 
+       optional_data |= SAHPI_SOD_OEM;
+  }
   else if ( type == eIpmiEventData3 )
+  {
        se.SensorSpecific = (SaHpiUint32T)event->m_data[11]; 
+       optional_data |= SAHPI_SOD_SENSOR_SPECIFIC;
+  }
 
   // byte 3
   type = (tIpmiEventType)((event->m_data[10] & 0x30) >> 4);
 
   if ( type == eIpmiEventData1 )
-       ConvertToInterpreted( event->m_data[11], se.TriggerThreshold );
+  {
+       ConvertToInterpreted( event->m_data[12], se.TriggerThreshold );
+       optional_data |= SAHPI_SOD_TRIGGER_THRESHOLD;
+  }
   else if ( type == eIpmiEventData2 )
-       se.Oem = (SaHpiUint32T)event->m_data[12];
+  {
+       se.Oem |= (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
+       optional_data |= SAHPI_SOD_OEM;
+  }
   else if ( type == eIpmiEventData3 )
-       se.SensorSpecific = (SaHpiUint32T)event->m_data[12];
+  {
+       se.SensorSpecific = (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
+       optional_data |= SAHPI_SOD_SENSOR_SPECIFIC;
+  }
+
+  se.OptionalDataPresent = optional_data;
 
   return SA_OK;
 }
@@ -629,15 +690,14 @@ cIpmiSensorThreshold::Dump( cIpmiLog &dump ) const
 
 
 unsigned short
-cIpmiSensorThreshold::GetEventMask()
+cIpmiSensorThreshold::GetEventMask(unsigned int ipmi_event_mask)
 {
   // convert ipmi event mask to hpi event mask
-  unsigned short amask = m_assertion_event_mask;
-  unsigned short dmask = m_deassertion_event_mask;
+  unsigned short amask = ipmi_event_mask;
   unsigned short mask  = 0;
 
   for( int i = 0; i < 12; i++ )
-       if ( amask & (1 <<i ) || dmask & (1 <<i ) )
+       if ( amask & (1 <<i ) )
             mask |= (1 << (i/2));
 
   return mask;
@@ -648,18 +708,27 @@ SaErrorT
 cIpmiSensorThreshold::ConvertFromInterpreted( const SaHpiSensorReadingT r,
                                               unsigned char &v )
 {
-  if ( (r.ValuesPresent & SAHPI_SRF_INTERPRETED) == 0 )
+    return ( ConvertFromInterpreted( r, v, false ) );
+}
+
+SaErrorT
+cIpmiSensorThreshold::ConvertFromInterpreted( const SaHpiSensorReadingT r,
+                                              unsigned char &v,
+                                              bool is_hysteresis)
+{
+  if ( r.IsSupported == SAHPI_FALSE )
        return SA_OK;
 
-  if ( r.Interpreted.Type != SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32 )
+  if ( r.Type != SAHPI_SENSOR_READING_TYPE_FLOAT64 )
        return SA_ERR_HPI_INVALID_DATA;
 
   unsigned int raw;
 
   if ( !m_sensor_factors->ConvertToRaw( cIpmiSensorFactors::eRoundNormal, 
-                                        (double)r.Interpreted.Value.SensorFloat32,
-                                        raw ) )
-       return false;
+                                        (double)r.Value.SensorFloat64,
+                                        raw,
+                                        is_hysteresis ) )
+       return SA_ERR_HPI_INVALID_DATA;
 
   v = (unsigned char)raw;
 
@@ -670,19 +739,60 @@ cIpmiSensorThreshold::ConvertFromInterpreted( const SaHpiSensorReadingT r,
 void
 cIpmiSensorThreshold::ConvertToInterpreted( unsigned int v, SaHpiSensorReadingT &r )
 {
-  memset( &r, 0, sizeof( SaHpiSensorReadingT ) );
+    ConvertToInterpreted( v, r, false );
+}
 
-  r.ValuesPresent = SAHPI_SRF_RAW;
-  r.Raw = (SaHpiUint32T)v;
+void
+cIpmiSensorThreshold::ConvertToInterpreted( unsigned int v,
+                                            SaHpiSensorReadingT &r,
+                                            bool is_hysteresis)
+{
+  memset( &r, 0, sizeof( SaHpiSensorReadingT ) );
 
   double d;
 
-  if ( m_sensor_factors->ConvertFromRaw( v, d ) )
+  r.IsSupported   = SAHPI_FALSE;
+  
+  if ( m_sensor_factors->ConvertFromRaw( v, d, is_hysteresis ) )
      {
-       r.ValuesPresent |= SAHPI_SRF_INTERPRETED;
-       r.Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32;
-       r.Interpreted.Value.SensorFloat32 = (SaHpiFloat32T)d;
+       r.IsSupported         = SAHPI_TRUE;
+       r.Type                = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+       r.Value.SensorFloat64 = (SaHpiFloat64T)d;
      }
+}
+
+void
+static SwapThresholdsMask( SaHpiSensorThdMaskT &threshold_mask )
+{
+    SaHpiSensorThdMaskT temp_mask;
+
+    temp_mask = threshold_mask;
+
+    threshold_mask = 0;
+
+    if (temp_mask & SAHPI_STM_LOW_MINOR)
+        threshold_mask |= SAHPI_STM_UP_MINOR;
+
+    if (temp_mask & SAHPI_STM_LOW_MAJOR)
+        threshold_mask |= SAHPI_STM_UP_MAJOR;
+
+    if (temp_mask & SAHPI_STM_LOW_CRIT)
+        threshold_mask |= SAHPI_STM_UP_CRIT;
+
+    if (temp_mask & SAHPI_STM_UP_MINOR)
+        threshold_mask |= SAHPI_STM_LOW_MINOR;
+
+    if (temp_mask & SAHPI_STM_UP_MAJOR)
+        threshold_mask |= SAHPI_STM_LOW_MAJOR;
+
+    if (temp_mask & SAHPI_STM_UP_CRIT)
+        threshold_mask |= SAHPI_STM_LOW_CRIT;
+
+    if (temp_mask & SAHPI_STM_UP_HYSTERESIS)
+        threshold_mask |= SAHPI_STM_LOW_HYSTERESIS;
+
+    if (temp_mask & SAHPI_STM_LOW_HYSTERESIS)
+        threshold_mask |= SAHPI_STM_UP_HYSTERESIS;
 }
 
 
@@ -694,22 +804,28 @@ cIpmiSensorThreshold::CreateRdr( SaHpiRptEntryT &resource,
        return false;
 
   SaHpiSensorRecT &rec = rdr.RdrTypeUnion.SensorRec;
-  rec.Events = GetEventMask();
-
+  
   // data format
+  rec.DataFormat.IsSupported   = SAHPI_TRUE;
+  rec.DataFormat.ReadingType   = SAHPI_SENSOR_READING_TYPE_FLOAT64;
   rec.DataFormat.BaseUnits     = (SaHpiSensorUnitsT)BaseUnit();
   rec.DataFormat.ModifierUnits = (SaHpiSensorUnitsT)ModifierUnit();
   rec.DataFormat.ModifierUse   = (SaHpiSensorModUnitUseT)ModifierUnitUse();
-  rec.DataFormat.FactorsStatic = SAHPI_TRUE;
-
-  if ( m_sensor_factors->CreateDataFormat( rec.DataFormat ) == false )
-       return false;
-
-  rec.DataFormat.Percentage = (SaHpiBoolT)Percentage();
+  rec.DataFormat.Percentage    = (SaHpiBoolT)Percentage();
+  rec.DataFormat.AccuracyFactor = (SaHpiFloat64T)GetFactors()->AccuracyFactor();
 
   rec.DataFormat.Range.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
-  ConvertToInterpreted( SensorMax(), rec.DataFormat.Range.Max );
-  ConvertToInterpreted( SensorMin(), rec.DataFormat.Range.Min );
+
+  if ( SwapThresholds() == true )
+  {
+    ConvertToInterpreted( SensorMax(), rec.DataFormat.Range.Min );
+    ConvertToInterpreted( SensorMin(), rec.DataFormat.Range.Max );
+  }
+  else
+  {
+    ConvertToInterpreted( SensorMax(), rec.DataFormat.Range.Max );
+    ConvertToInterpreted( SensorMin(), rec.DataFormat.Range.Min );
+  }
 
   if ( NominalReadingSpecified() )
      {
@@ -719,14 +835,30 @@ cIpmiSensorThreshold::CreateRdr( SaHpiRptEntryT &resource,
 
   if ( NormalMaxSpecified() )
      {
-       rec.DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MAX;
-       ConvertToInterpreted( NormalMax(), rec.DataFormat.Range.NormalMax );
+       if ( SwapThresholds() == true )
+       {
+           rec.DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MIN;
+           ConvertToInterpreted( NormalMax(), rec.DataFormat.Range.NormalMin );
+       }
+       else
+       {
+           rec.DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MAX;
+           ConvertToInterpreted( NormalMax(), rec.DataFormat.Range.NormalMax );
+       }
      }
 
   if ( NormalMinSpecified() )
      {
-       rec.DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MIN;
-       ConvertToInterpreted( NormalMin(), rec.DataFormat.Range.NormalMin );
+       if ( SwapThresholds() == true )
+       {
+           rec.DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MAX;
+           ConvertToInterpreted( NormalMin(), rec.DataFormat.Range.NormalMax );
+       }
+       else
+       {
+           rec.DataFormat.Range.Flags |= SAHPI_SRF_NORMAL_MIN;
+           ConvertToInterpreted( NormalMin(), rec.DataFormat.Range.NormalMin );
+       }
      }
 
   // thresholds
@@ -734,40 +866,44 @@ cIpmiSensorThreshold::CreateRdr( SaHpiRptEntryT &resource,
 
   if ( acc >= eIpmiThresholdAccessSupportReadable )
      {
-       rec.ThresholdDefn.IsThreshold = SAHPI_TRUE;
-       rec.ThresholdDefn.TholdCapabilities = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED;
+       rec.ThresholdDefn.IsAccessible = SAHPI_TRUE;
 
        SaHpiSensorThdMaskT temp = 0;
 
        int val = IsThresholdReadable( eIpmiLowerNonCritical );
        if ( val )
-            temp |= SAHPI_STM_LOW_MINOR;
+           temp |= SAHPI_STM_LOW_MINOR;
 
        val = IsThresholdReadable( eIpmiLowerCritical );
 
        if ( val )
-            temp |= SAHPI_STM_LOW_MAJOR;
+           temp |= SAHPI_STM_LOW_MAJOR;
 
        val = IsThresholdReadable( eIpmiLowerNonRecoverable );
        if ( val )
-            temp |= SAHPI_STM_LOW_CRIT;
+           temp |= SAHPI_STM_LOW_CRIT;
 			
        val = IsThresholdReadable( eIpmiUpperNonCritical );
        if ( val )
-            temp |= SAHPI_STM_UP_MINOR;
+           temp |= SAHPI_STM_UP_MINOR;
 			
        val = IsThresholdReadable( eIpmiUpperCritical );
        if ( val )
-            temp |= SAHPI_STM_UP_MAJOR;
+           temp |= SAHPI_STM_UP_MAJOR;
 			
        val = IsThresholdReadable( eIpmiUpperNonRecoverable );
        if ( val )
-            temp |= SAHPI_STM_UP_CRIT;
+           temp |= SAHPI_STM_UP_CRIT;
 
        if (    HysteresisSupport() == eIpmiHysteresisSupportReadable 
             || HysteresisSupport() == eIpmiHysteresisSupportSettable ) 
             temp |=   SAHPI_STM_UP_HYSTERESIS
                     | SAHPI_STM_LOW_HYSTERESIS;
+
+       if ( SwapThresholds() == true )
+       {
+           SwapThresholdsMask( temp );
+       }
 
        rec.ThresholdDefn.ReadThold = temp;
      }
@@ -776,79 +912,82 @@ cIpmiSensorThreshold::CreateRdr( SaHpiRptEntryT &resource,
      {
        SaHpiSensorThdMaskT temp = 0;
        int val = IsThresholdSettable( eIpmiLowerNonCritical );
-
        if ( val )
-            temp |= SAHPI_STM_LOW_MINOR;
+           temp |= SAHPI_STM_LOW_MINOR;
 
        val = IsThresholdSettable( eIpmiLowerCritical );
+
        if ( val )
-            temp |= SAHPI_STM_LOW_MAJOR;
+           temp |= SAHPI_STM_LOW_MAJOR;
 
        val = IsThresholdSettable( eIpmiLowerNonRecoverable );
        if ( val )
-            temp |= SAHPI_STM_LOW_CRIT;
-
+           temp |= SAHPI_STM_LOW_CRIT;
+			
        val = IsThresholdSettable( eIpmiUpperNonCritical );
        if ( val )
-            temp |= SAHPI_STM_UP_MINOR;
-
+           temp |= SAHPI_STM_UP_MINOR;
+			
        val = IsThresholdSettable( eIpmiUpperCritical );
        if ( val )
-            temp |= SAHPI_STM_UP_MAJOR;
-
+           temp |= SAHPI_STM_UP_MAJOR;
+			
        val = IsThresholdSettable( eIpmiUpperNonRecoverable );
        if ( val )
-            temp |= SAHPI_STM_UP_CRIT;
+           temp |= SAHPI_STM_UP_CRIT;
 
        if ( HysteresisSupport() == eIpmiHysteresisSupportSettable )
             temp |=   SAHPI_STM_UP_HYSTERESIS
                     | SAHPI_STM_LOW_HYSTERESIS;
 
+       if ( SwapThresholds() == true )
+       {
+           SwapThresholdsMask( temp );
+       }
+
        rec.ThresholdDefn.WriteThold = temp;
      }
 
-  rec.ThresholdDefn.FixedThold = 0;
+  if ( SwapThresholds() == true )
+      {
+            SwapEventState(rec.Events);
+            SwapEventState(m_current_hpi_assert_mask);
+            SwapEventState(m_current_hpi_deassert_mask);
+            SwapEventState(m_hpi_assert_mask);
+            SwapEventState(m_hpi_deassert_mask);
+      }
 
-  if ( HysteresisSupport() == eIpmiHysteresisSupportFixed )
-       rec.ThresholdDefn.FixedThold |=   SAHPI_STM_UP_HYSTERESIS
-                                       | SAHPI_STM_LOW_HYSTERESIS;
+  rec.ThresholdDefn.Nonlinear = GetFactors()->IsNonLinear();
 
   return true;
 }
 
 
 SaErrorT
-cIpmiSensorThreshold::GetData( SaHpiSensorReadingT &data )
+cIpmiSensorThreshold::GetSensorReading( SaHpiSensorReadingT &data,
+                                        SaHpiEventStateT &state )
 {
-  if ( Ignore() )
-     {
-       dbg("sensor is ignored");
-       return SA_ERR_HPI_NOT_PRESENT;
-     }
+  if ( m_enabled == SAHPI_FALSE )
+      return SA_ERR_HPI_INVALID_REQUEST;
 
   cIpmiMsg rsp;
-  SaErrorT rv = GetSensorReading( rsp );
+  SaErrorT rv = GetSensorData( rsp );
 
   if ( rv != SA_OK )
        return rv;
 
-  ConvertToInterpreted( rsp.m_data[1], data );
+  if ( &data != NULL )
+      ConvertToInterpreted( rsp.m_data[1], data );
 
-  // add event status
-  data.ValuesPresent |= SAHPI_SRF_EVENT_STATE;
+  if ( &state != NULL )
+  {
+      state = rsp.m_data[3] & 0x3f;
 
-  data.EventStatus.SensorStatus = 0;
-
-  if ( (rsp.m_data[2] & 0x80) != 0 )
-       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
-
-  if ( (rsp.m_data[2] & 0x40) != 0 )
-       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_SCAN_ENABLED;
-
-  if ( rsp.m_data[2] & 0x20 )
-       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_BUSY;
-
-  data.EventStatus.EventStatus = rsp.m_data[3];
+      if ( SwapThresholds() == true )
+      {
+        SwapEventState( state );
+      }
+  }
 
   return SA_OK;
 }
@@ -970,23 +1109,38 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
        return SA_ERR_HPI_INVALID_CMD;
     }
 
-  ConvertToInterpreted( rsp.m_data[1], thres.PosThdHysteresis );
-  ConvertToInterpreted( rsp.m_data[2], thres.NegThdHysteresis );
+  m_current_positive_hysteresis = rsp.m_data[1];
+  m_current_negative_hysteresis = rsp.m_data[2];
+
+  ConvertToInterpreted( rsp.m_data[1], thres.PosThdHysteresis, true );
+  ConvertToInterpreted( rsp.m_data[2], thres.NegThdHysteresis, true );
 
   return SA_OK;
 }
 
+void static
+SwapThresholdsReading( SaHpiSensorThresholdsT &thres )
+{
+  SaHpiSensorThresholdsT tmp_tres;
+
+  memcpy( &tmp_tres, &thres, sizeof( SaHpiSensorThresholdsT ));
+
+  memcpy( &thres.LowCritical, &tmp_tres.UpCritical, sizeof( SaHpiSensorReadingT ) );
+  memcpy( &thres.LowMajor,    &tmp_tres.UpMajor,    sizeof( SaHpiSensorReadingT ) );
+  memcpy( &thres.LowMinor,    &tmp_tres.UpMinor,    sizeof( SaHpiSensorReadingT ) );
+
+  memcpy( &thres.UpCritical, &tmp_tres.LowCritical, sizeof( SaHpiSensorReadingT ) );
+  memcpy( &thres.UpMajor,    &tmp_tres.LowMajor,    sizeof( SaHpiSensorReadingT ) );
+  memcpy( &thres.UpMinor,    &tmp_tres.LowMinor,    sizeof( SaHpiSensorReadingT ) );
+
+  memcpy( &thres.PosThdHysteresis, &tmp_tres.NegThdHysteresis, sizeof( SaHpiSensorReadingT ) );
+  memcpy( &thres.NegThdHysteresis, &tmp_tres.PosThdHysteresis, sizeof( SaHpiSensorReadingT ) );
+}
 
 SaErrorT
 cIpmiSensorThreshold::GetThresholdsAndHysteresis( SaHpiSensorThresholdsT &thres )
 {
   SaErrorT rv;
-
-  if ( Ignore() )
-     {
-       stdlog << "sensor is ignored !\n";
-       return SA_ERR_HPI_NOT_PRESENT;
-     }
 
   memset( &thres, 0, sizeof( SaHpiSensorThresholdsT ) );
 
@@ -1020,6 +1174,11 @@ cIpmiSensorThreshold::GetThresholdsAndHysteresis( SaHpiSensorThresholdsT &thres 
   if ( !found )
        return SA_ERR_HPI_INVALID_CMD;
 
+  if ( SwapThresholds() == true )
+  {
+      SwapThresholdsReading( thres );
+  }
+
   return SA_OK;
 }
 
@@ -1030,20 +1189,13 @@ cIpmiSensorThreshold::ConvertThreshold( const SaHpiSensorReadingT &r,
                                         unsigned char &data,
                                         unsigned char &mask )
 {
-  if ( r.ValuesPresent & SAHPI_SRF_RAW )
-     {
-       data = (unsigned char)r.Raw;
-       mask |= (1 << event);
-       return SA_OK;
-     }
-
-  // Otherwise convert the interpreted data
+  // convert the interpreted data
   SaErrorT rv = ConvertFromInterpreted( r, data );
 
   if ( rv != SA_OK )
        return rv;
 
-  if ( r.ValuesPresent & SAHPI_SRF_INTERPRETED )
+  if ( r.IsSupported == SAHPI_TRUE )
        mask |= (1 << event);
 
   return SA_OK;
@@ -1053,6 +1205,9 @@ cIpmiSensorThreshold::ConvertThreshold( const SaHpiSensorReadingT &r,
 SaErrorT
 cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
 {
+  stdlog << "write thresholds for sensor " << EntityPath() << " num " 
+         << m_num << " " << IdString() << ".\n";
+
   cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdSetSensorThreshold );
   memset( msg.m_data, 0, dIpmiMaxMsgLength );
 
@@ -1133,18 +1288,15 @@ cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
 SaErrorT
 cIpmiSensorThreshold::SetHysteresis( const SaHpiSensorThresholdsT &thres )
 {
+  SaErrorT rv;
+
   // nothing to do
-  if (    !(thres.PosThdHysteresis.ValuesPresent & SAHPI_SRF_INTERPRETED)
-       && !(thres.NegThdHysteresis.ValuesPresent & SAHPI_SRF_INTERPRETED) )
+  if (    (thres.PosThdHysteresis.IsSupported == SAHPI_FALSE)
+       && (thres.NegThdHysteresis.IsSupported == SAHPI_FALSE) )
        return SA_OK;
 
   if ( m_hysteresis_support != eIpmiHysteresisSupportSettable )
        return SA_ERR_HPI_INVALID_CMD;
-
-  // cannot write only one hysteresis
-  if (    !(thres.PosThdHysteresis.ValuesPresent & SAHPI_SRF_INTERPRETED)
-       || !(thres.NegThdHysteresis.ValuesPresent & SAHPI_SRF_INTERPRETED) )
-       return SA_ERR_HPI_UNKNOWN;
 
   cIpmiMsg  msg( eIpmiNetfnSensorEvent, eIpmiCmdSetSensorHysteresis );
   cIpmiMsg  rsp;
@@ -1153,15 +1305,33 @@ cIpmiSensorThreshold::SetHysteresis( const SaHpiSensorThresholdsT &thres )
   msg.m_data[0]  = m_num;
   msg.m_data[1]  = 0xff;
 
-  SaErrorT rv = ConvertFromInterpreted( thres.PosThdHysteresis, msg.m_data[2] );
+  if (thres.PosThdHysteresis.IsSupported == SAHPI_FALSE)
+  {
+      msg.m_data[2] = m_current_positive_hysteresis;
+  }
+  else
+  {
+      rv = ConvertFromInterpreted( thres.PosThdHysteresis, msg.m_data[2], true );
 
-  if ( rv != SA_OK )
-       return rv;
+      if ( rv != SA_OK )
+          return rv;
 
-  rv = ConvertFromInterpreted( thres.NegThdHysteresis, msg.m_data[3] );
+      m_current_positive_hysteresis = msg.m_data[2];
+  }
 
-  if ( rv != SA_OK )
-       return rv;
+  if (thres.NegThdHysteresis.IsSupported == SAHPI_FALSE)
+  {
+      msg.m_data[3] = m_current_negative_hysteresis;
+  }
+  else
+  {
+      rv = ConvertFromInterpreted( thres.NegThdHysteresis, msg.m_data[3], true );
+
+      if ( rv != SA_OK )
+          return rv;
+
+      m_current_negative_hysteresis = msg.m_data[3];
+  }
 
   rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
@@ -1186,16 +1356,19 @@ SaErrorT
 cIpmiSensorThreshold::SetThresholdsAndHysteresis( const SaHpiSensorThresholdsT &thres )
 {
   SaErrorT rv;
+  SaHpiSensorThresholdsT tmp_tres;
 
-  if ( Ignore() )
-     {
-       stdlog << "sensor is ignored !\n";
-       return SA_ERR_HPI_NOT_PRESENT;
-     }
+  memcpy( &tmp_tres, &thres, sizeof( SaHpiSensorThresholdsT ) );
+
+  if ( SwapThresholds() == true )
+  {
+      SwapThresholdsReading( tmp_tres );
+  }
 
   if ( ThresholdAccess() == eIpmiThresholdAccessSupportSettable )
      {
-       rv = SetThresholds( thres );
+
+       rv = SetThresholds( tmp_tres );
 
        if ( rv != SA_OK )
             return rv;
@@ -1205,7 +1378,8 @@ cIpmiSensorThreshold::SetThresholdsAndHysteresis( const SaHpiSensorThresholdsT &
 
   if ( HysteresisSupport() == eIpmiHysteresisSupportSettable )
      { 
-       rv = SetHysteresis( thres );
+
+       rv = SetHysteresis( tmp_tres );
 
        if ( rv != SA_OK )
             return rv;
@@ -1218,10 +1392,15 @@ cIpmiSensorThreshold::SetThresholdsAndHysteresis( const SaHpiSensorThresholdsT &
 
 
 SaErrorT
-cIpmiSensorThreshold::GetEventEnables( SaHpiSensorEvtEnablesT &enables )
+cIpmiSensorThreshold::GetEventMasksHw( SaHpiEventStateT &AssertEventMask,
+                                       SaHpiEventStateT &DeassertEventMask
+                                     )
 {
+  AssertEventMask = 0;
+  DeassertEventMask = 0;
+
   cIpmiMsg rsp;
-  SaErrorT rv = cIpmiSensor::GetEventEnables( enables, rsp );
+  SaErrorT rv = cIpmiSensor::GetEventMasksHw( rsp );
 
   if ( rv != SA_OK )
        return rv;
@@ -1235,28 +1414,39 @@ cIpmiSensorThreshold::GetEventEnables( SaHpiSensorEvtEnablesT &enables )
        unsigned int b2 = 1 << (2*i + 1);
 
        if ( (amask & b1) || (amask & b2) )
-            enables.AssertEvents |= (1 << i);
+            AssertEventMask |= (1 << i);
 
        if ( (dmask & b1) || (dmask & b2) )
-            enables.DeassertEvents |= (1 << i);
+            DeassertEventMask |= (1 << i);
      }
+
+  if ( SwapThresholds() == true )
+  {
+      SwapEventState( AssertEventMask );
+      SwapEventState( DeassertEventMask );
+  }
 
   return SA_OK;
 }
 
 
 SaErrorT
-cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
+cIpmiSensorThreshold::SetEventMasksHw( const SaHpiEventStateT &AssertEventMask,
+                                       const SaHpiEventStateT &DeassertEventMask
+                                     )
 {
   // create de/assertion event mask
   unsigned int amask = 0;
   unsigned int dmask = 0;
 
-  if ( enables.AssertEvents == 0xffff )
-       amask = m_assertion_event_mask;
-  
-  if ( enables.DeassertEvents == 0xffff )
-       dmask = m_deassertion_event_mask;
+  SaHpiEventStateT assert_mask = AssertEventMask;
+  SaHpiEventStateT deassert_mask = DeassertEventMask;
+
+  if ( SwapThresholds() == true )
+  {
+      SwapEventState( assert_mask );
+      SwapEventState( deassert_mask );
+  }
 
   for( int i = 0; i < 6; i++ )
      {
@@ -1264,8 +1454,7 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
        unsigned int b2 = 1 << (2*i + 1);
        unsigned int b  = b1 | b2; // this is 3 << (2*i)
 
-       if (    enables.AssertEvents != 0xffff
-            && (enables.AssertEvents & ( 1 << i )) )
+       if ( assert_mask & ( 1 << i ) )
           {
             if ( (m_assertion_event_mask & b) == 0 )
                {
@@ -1274,14 +1463,13 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
                         << IpmiThresToString( (tIpmiThresh)i )
                         << " not allowed !\n";
 
-                 return SA_ERR_HPI_INVALID_CMD;
+                 return SA_ERR_HPI_INVALID_DATA;
                }
 
             amask |= (m_assertion_event_mask & b);
           }
 
-       if (    enables.DeassertEvents != 0xffff
-            && (enables.DeassertEvents & ( 1 << i )) )
+       if ( deassert_mask & ( 1 << i ) )
           {
             if ( (m_deassertion_event_mask & b) == 0 )
                {
@@ -1290,7 +1478,7 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
                         << IpmiThresToString( (tIpmiThresh)i )
                         << " not allowed !\n";
 
-                 return SA_ERR_HPI_INVALID_CMD; 
+                 return SA_ERR_HPI_INVALID_DATA; 
                }
 
             dmask |= (m_deassertion_event_mask & b);
@@ -1298,10 +1486,31 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
      }
 
   cIpmiMsg msg;
-  IpmiSetUint16( msg.m_data + 2, amask );
-  IpmiSetUint16( msg.m_data + 4, dmask );
+  SaErrorT rv = SA_OK;
 
-  SaErrorT rv = cIpmiSensor::SetEventEnables( enables, msg );
+  if (( amask != 0 )
+      || ( dmask != 0 ))
+  {
+    IpmiSetUint16( msg.m_data + 2, amask );
+    IpmiSetUint16( msg.m_data + 4, dmask );
+
+    rv = cIpmiSensor::SetEventMasksHw( msg, true );
+  }
+
+  if ( rv != SA_OK )
+      return rv;
+
+  amask = ( amask ^ m_assertion_event_mask ) & m_assertion_event_mask;
+  dmask = ( dmask ^ m_deassertion_event_mask ) & m_deassertion_event_mask;
+
+  if (( amask != 0 )
+      || ( dmask != 0 ))
+  {
+    IpmiSetUint16( msg.m_data + 2, amask );
+    IpmiSetUint16( msg.m_data + 4, dmask );
+
+    rv = cIpmiSensor::SetEventMasksHw( msg, false );
+  }
 
   return rv;
 }

@@ -2,6 +2,7 @@
  * ipmi_control.h
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiControl_h
@@ -32,7 +34,6 @@ class cIpmiControl : public cIpmiRdr
 {
 protected:
   unsigned int         m_num; // control num
-  bool                 m_ignore;
   unsigned int         m_oem;
 
   SaHpiCtrlOutputTypeT m_output_type;
@@ -51,8 +52,8 @@ public:
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
   // hpi
-  virtual SaErrorT SetState( const SaHpiCtrlStateT &state ) = 0;
-  virtual SaErrorT GetState( SaHpiCtrlStateT &state ) = 0;
+  virtual SaErrorT SetState( const SaHpiCtrlModeT &mode, const SaHpiCtrlStateT &state ) = 0;
+  virtual SaErrorT GetState( SaHpiCtrlModeT &mode, SaHpiCtrlStateT &state ) = 0;
 
   virtual void Dump( cIpmiLog &dump, const char *name ) const = 0;
 };

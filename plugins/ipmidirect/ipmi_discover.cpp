@@ -4,6 +4,7 @@
  * discover MCs
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,6 +15,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  *
  * This file contains:
  * 1. discover of MCs
@@ -172,6 +174,20 @@ cIpmiMcThread::Run()
 
   if ( m_properties & dIpmiMcThreadInitialDiscover )
      {
+       if ( m_addr != dIpmiBmcSlaveAddr )
+       {
+           stdlog << "Waiting for BMC discovery (" << m_addr << ").\n";
+           while ( m_domain->m_bmc_discovered == false )
+           {
+               usleep( 100000 );
+           }
+           stdlog << "BMC Discovery done, let's go (" << m_addr << ").\n";
+       }
+       else
+       {
+           stdlog << "BMC Discovery Start\n";
+       }
+                
        Discover();
        m_domain->m_initial_discover_lock.Lock();
        m_domain->m_initial_discover--;
@@ -179,6 +195,12 @@ cIpmiMcThread::Run()
 
        // clear initial discover flag
        m_properties &= ~dIpmiMcThreadInitialDiscover;
+
+       if ( m_addr == dIpmiBmcSlaveAddr )
+       {
+           stdlog << "BMC Discovery done\n";
+           m_domain->m_bmc_discovered = true;
+       }
      }
 
   if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
@@ -248,8 +270,8 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
   stdlog << "\tdevice SDR            : " << ((get_device_id_rsp->m_data[2] & 0x80) ? "yes" : "no") << "\n";
   stdlog << "\tdevice revision       : " << (get_device_id_rsp->m_data[2] & 0x0f ) << "\n";
   stdlog << "\tdevice available      : " << ((get_device_id_rsp->m_data[3] & 0x80) ? "update" : "normal operation" ) << "\n";
-  stdlog << "\tmajor firmware revsion: " << (get_device_id_rsp->m_data[3] & 0x7f) << "\n";
-  stdlog << "\tfirmware              : " << (int)((get_device_id_rsp->m_data[4] >>4) & 0xf) << "." 
+  stdlog << "\tmajor FW revision     : " << (get_device_id_rsp->m_data[3] & 0x7f) << "\n";
+  stdlog << "\tminor FW revision     : " << (int)((get_device_id_rsp->m_data[4] >>4) & 0xf)
          << (int)(get_device_id_rsp->m_data[4] & 0xf) << "\n";
   stdlog << "\tIPMI version          : " << (int)(get_device_id_rsp->m_data[5] & 0xf) << "."
          << ((get_device_id_rsp->m_data[5] >> 4) & 0xf) << "\n";
@@ -293,6 +315,25 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        return;
      }
 
+  // ATCA board: Need exact PICMG version
+  if ( m_domain->IsAtca() )
+  {
+      // If board is not ATCA, just give up
+      if (!m_mc->IsAtcaBoard())
+      {
+          delete m_mc;
+          m_mc = 0;
+
+          return;
+      }
+  }
+
+  if (( m_domain->m_enable_sel_on_all == false ) && ( addr.SlaveAddr() != dIpmiBmcSlaveAddr ))
+  {
+    stdlog << "Disabling SEL for MC " << addr.SlaveAddr() << "\n";
+    m_mc->SetSel(false);
+  }
+
   cIpmiMcVendor *mv = cIpmiMcVendorFactory::GetFactory()->Get( mid, pid );
   m_mc->SetVendor( mv );
 
@@ -310,13 +351,18 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
 
   if ( rv != SA_OK )
      {
-       stdlog << "error while discover MC " << m_addr << " !\n";
+       stdlog << "ERROR while discover MC " << m_addr << ", giving up !\n";
 
        delete m_mc;
        m_mc = 0;
 
        return;
      }
+
+  WriteLock();
+  m_domain->AddMc( m_mc );
+  m_mc->Populate();
+  WriteUnlock();
 
   if ( m_properties & dIpmiMcThreadInitialDiscover )
      {
@@ -326,11 +372,6 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        m_mc->GetHotswapStates();
        m_domain->ReadUnlock();
      }
-
-  WriteLock();
-  m_domain->AddMc( m_mc );
-  m_mc->Populate();
-  WriteUnlock();
 
   if ( m_mc->SelDeviceSupport() )
      {
@@ -482,38 +523,6 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
 
   stdlog << "hot swap event at MC " << m_addr << " M" << (int)prev_state << " -> M" 
          << (int)current_state << ".\n";
-
-  if ( current_state == eIpmiFruStateActivationInProgress )
-     {
-       assert( m_mc );
-
-       SaErrorT rv = m_mc->AtcaPowerFru( 0 );
-
-       if ( rv != SA_OK )
-          { 
-            // deactivate fru, because M3 has no representation in 
-            // HPI we try to restart the FRU
-            cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
-
-            msg.m_data[0] = dIpmiPigMgId;
-            msg.m_data[1] = 0; // FRU id
-            msg.m_data[2] = 0; // deactivate fru
-            msg.m_data_len = 3;
-
-            cIpmiMsg rsp;
-
-            rv = m_mc->SendCommand( msg, rsp );
-
-            if ( rv != SA_OK )
-                 stdlog << "cannot send set fru activation: " << rv << " !\n";
-            else if (    rsp.m_data_len != 2
-                      || rsp.m_data[0] != eIpmiCcOk 
-                      || rsp.m_data[1] != dIpmiPigMgId )
-                 stdlog << "cannot set fru activation: " << rsp.m_data[0] << " !\n";
-          }
-       else
-            stdlog << "power fru.\n";
-     }
 
   sensor->Resource()->FruState() = current_state;
   sensor->HandleEvent( event );

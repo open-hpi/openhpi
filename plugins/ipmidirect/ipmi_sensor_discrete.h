@@ -2,6 +2,7 @@
  * ipmi_sensor_discrete.h
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiSensorDiscrete_h
@@ -25,11 +27,6 @@
 
 class cIpmiSensorDiscrete : public cIpmiSensor
 {
-protected:
-  unsigned int m_assertion_event_mask;
-  unsigned int m_deassertion_event_mask;
-  unsigned int m_event_mask;
-
 public:
   cIpmiSensorDiscrete( cIpmiMc *mc );
   virtual ~cIpmiSensorDiscrete();
@@ -44,10 +41,14 @@ public:
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
   // get sensor data
-  virtual SaErrorT GetData( SaHpiSensorReadingT &data );
+  virtual SaErrorT GetSensorReading( SaHpiSensorReadingT &data, SaHpiEventStateT &state );
 
-  virtual SaErrorT GetEventEnables( SaHpiSensorEvtEnablesT &enables );
-  virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables );
+  virtual SaErrorT GetEventMasksHw( SaHpiEventStateT &AssertEventMask,
+                                    SaHpiEventStateT &DeassertEventMask
+                                  );
+  virtual SaErrorT SetEventMasksHw( const SaHpiEventStateT &AssertEventMask,
+                                    const SaHpiEventStateT &DeassertEventMask
+                                  );
 };
 
 

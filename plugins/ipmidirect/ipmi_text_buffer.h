@@ -2,6 +2,7 @@
  * ipmi_text_buffer.h
  *
  * Copyright (c) 2003 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 
@@ -68,7 +70,7 @@ public:
 
   SaHpiUint8T DataLength() const { return m_buffer.DataLength; }
   
-  const unsigned char *SetIpmi( const unsigned char *data,
+  const unsigned char *SetIpmi( const unsigned char *data, bool is_fru = false,
 				SaHpiLanguageT l = SAHPI_LANG_ENGLISH );
 
   SaHpiTextTypeT CheckAscii( const char *s );
