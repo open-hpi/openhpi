@@ -62,4 +62,8 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 			       SaHpiResourceIdT id,
 			       SaHpiEventLogEntryIdT entryId);
+			      
+SaErrorT snmp_bc_sel_overflowreset(void *hnd,
+			       SaHpiResourceIdT id);
+			       
 #endif

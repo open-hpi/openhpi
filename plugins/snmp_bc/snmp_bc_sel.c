@@ -143,6 +143,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 
 
         sel.Entries = snmp_bc_get_sel_size(handle, id);
+	sel.OverflowFlag = handle->elcache->overflow;
         *info = sel;
         return(SA_OK);
 }
@@ -673,3 +674,26 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 		
 	return(SA_OK);
 }
+
+
+/**
+ * snmp_bc_sel_overflowreset:
+ * @hnd: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log.
+ * 
+ * Clear the overflow flag by itself is not supported by snmp_bc plugin.
+ * Rather, it can be cleared implicitly via clear_sel command, saHpiEventLogClear()
+ *
+ * Return values:
+ * SA_ERR_HPI_INVALID_CMD - normal case.
+ * 
+ **/			      
+SaErrorT snmp_bc_sel_overflowreset(void *hnd,
+			           SaHpiResourceIdT id)
+{
+        return(SA_ERR_HPI_INVALID_CMD);
+}
+
+			       
+			    
+
