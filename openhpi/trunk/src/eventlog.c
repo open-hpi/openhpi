@@ -286,15 +286,16 @@ int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
 	return 0;
 }
 
-void rsel_clr(SaHpiResourceIdT res_id) 
+int rsel_clr(SaHpiResourceIdT res_id) 
 {
 	struct oh_resource *res;
 	
 	res = get_resource(res_id);
 	if (!res) {
 		dbg("Invalid resource id");
-		return;
+		return -1;
 	}
 
 	__rsel_clr(res, &res->sel_list);
+	return 0;
 }
