@@ -160,7 +160,9 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
 {
         struct oh_event event;
         struct timeval to = {0, 0};
-        int rv;                
+        int rv;   
+	int has_event = 0;
+
         rv = h->abi->get_event(h->hnd, &event, &to);
         if(rv < 0) {
                 dbg("No event found");
@@ -188,11 +190,14 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         default:
                 dbg("Error! Should not reach here!");
                 return -1;
+
+	has_event = 1;
+
         }
         
         data_access_unlock();
 
-        return 0;
+        return(has_event);
 }
 
 /**
