@@ -80,7 +80,9 @@ struct ohoi_resource_info {
                 ipmi_entity_id_t entity_id;
                 ipmi_mcid_t      mc_id;
         } u;
-        
+
+	int present;
+	
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
 };
