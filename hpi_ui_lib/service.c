@@ -115,9 +115,11 @@ static void clear_inited(Domain_t *Domain)
 {
 	int	i, j;
 
-	for (i = 0; i < Domain->n_rpts; i++)
+	for (i = 0; i < Domain->n_rpts; i++) {
+		Domain->rpts[i].is_inited = 0;
 		for (j = 0; j < Domain->rpts[i].n_rdrs; j++)
 			Domain->rpts[i].rdrs[j].is_inited = 0;
+	}
 }
 
 static void make_rpt_attrs(Rpt_t *Rpt)
@@ -306,9 +308,10 @@ static void free_attrs(Attributes_t *At)
 	attr_t		*attr;
 
 	for (i = 0, attr = At->Attrs; i < At->n_attrs; i++, attr++) {
-		if (attr->type == STRUCT_TYPE)
+		if (attr->type == STRUCT_TYPE) {
 			free_attrs((Attributes_t *)(attr->value.a));
 			free(attr->value.a);
+		}
 	};
 	free(At->Attrs);
 }
@@ -324,7 +327,6 @@ static void delete_rdr(Rpt_t *Rpt, int ind)
 	rdr = Rpt->rdrs + ind;
 	free_attrs(&(rdr->Attrutes));
 	free(rdr->Rdr);
-	free(rdr);
 	if (n == 1) {
 		Rpt->n_rdrs = 0;
 		free(Rpt->rdrs);
@@ -334,6 +336,7 @@ static void delete_rdr(Rpt_t *Rpt, int ind)
 	for (i = 0; i < n; i++)
 		if (i != ind) *rdr1++ = Rpt->rdrs[i];
 	free(Rpt->rdrs);
+	Rpt->n_rdrs--;
 	Rpt->rdrs = rdr;
 }
 
@@ -348,16 +351,17 @@ static void delete_rpt(Domain_t *Domain, int ind)
 	rpt_entry = Domain->rpts + ind;
 	free_attrs(&(rpt_entry->Attrutes));
 	free(rpt_entry->Rpt);
-	free(rpt_entry);
 	if (n == 1) {
 		Domain->n_rpts = 0;
 		free(Domain->rpts);
 		return;
 	};
 	tmp = rpt_entry = (Rpt_t *)malloc(sizeof(Rpt_t) * (n - 1));
-	for (i = 0; i < n; i++)
+	for (i = 0; i < n; i++) {
 		if (i != ind) *tmp++ = Domain->rpts[i];
+	};
 	free(Domain->rpts);
+	Domain->n_rpts--;
 	Domain->rpts = rpt_entry;
 }
 
@@ -535,6 +539,7 @@ static SaErrorT get_resources(Domain_t *Domain)
 			&rptentry);
 		if (ret != SA_OK)
 			return(-1);
+printf("I got ResourceId = %d\n", rptentry.ResourceId);
 		i = find_rpt(Domain, rptentry.ResourceId);
 		if (i != -1) {
 			rpt = Domain->rpts + i;
