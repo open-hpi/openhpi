@@ -25,10 +25,13 @@ void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
        
 	res_info = oh_get_resource_data(table, rid);
 
-	if (present)
+	if (present) {
 		res_info->presence = 1;
-	else
+		dbg("Resource %d present", rid);
+	}else {
+	  	dbg("Resource %d not present", rid);
 		res_info->presence = 0;
+	}
 }
 
 static void entity_presence(ipmi_entity_t	*entity,
@@ -178,7 +181,6 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 {
 		struct ohoi_resource_info *ohoi_res_info;
 		SaHpiRptEntryT	entry;
-		int 		rv;
 
 		dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
 
@@ -199,42 +201,42 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 
 		oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
 
-		/* sensors */
-
-		rv= ipmi_entity_set_sensor_update_handler(entity, ohoi_sensor_event,
-						handler);
-
-		if (rv) {
-				dbg("ipmi_entity_set_sensor_update_handler: %#x", rv);
-				return;
-		}
-
-		/* controls */
 		
-		rv = ipmi_entity_set_control_update_handler(entity, ohoi_control_event,
-							handler);
 
-		if (rv) {
-				dbg("ipmi_entity_set_control_update_handler: %#x", rv);
-				return;
-		}
+		
+		
 
-		/* inventory (a.k.a FRU) */
+		
+		
+		
+		
 
-		rv = ipmi_entity_set_fru_update_handler(entity, ohoi_inventory_event, handler);
+		
+		
+		
+		
 
-		if (rv) {
-                dbg("ipmi_entity_set_fru_update_handler: %#x", rv);
-                return;
-        }
+		
+		
+		
+		
 
-		/* entity presence overall */
+		
 
-		rv = ipmi_entity_set_presence_handler(entity, entity_presence, handler);
-		if (rv) {
-				dbg("ipmi_entity_set_presence_handler: %#x", rv);
-				return;
-		}
+		
+
+		
+                
+                
+        	
+
+		
+
+		
+		
+		
+		
+		
 
 }
 
@@ -261,32 +263,75 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        ipmi_entity_t            *entity,
                        void                     *cb_data)
 {
-		struct oh_handler_state *handler = cb_data;
+  	struct oh_handler_state *handler = cb_data;
+	int rv;
 		
-		if (op == IPMI_ADDED) {
+	switch (op) {
+	  	case IPMI_ADDED:
 		  	add_entity_event(entity, handler);
 
 			dbg("Entity added: %d.%d", 
-						ipmi_entity_get_entity_id(entity), 
-						ipmi_entity_get_entity_instance(entity));
+					ipmi_entity_get_entity_id(entity), 
+					ipmi_entity_get_entity_instance(entity));
 
-			ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
-		
-		} else if (op == IPMI_DELETED) {
-		  	/* we need to remove_entity */
+			/* entity presence overall */
+			rv = ipmi_entity_set_presence_handler(entity,
+							      entity_presence,
+							      handler);       		
+			if (rv) 
+				dbg("ipmi_entity_set_presence_handler: %#x", rv);
 
+			/* hotswap handler */
+			rv = ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
+			if(rv)
+			  	dbg("Failed to set entity hot swap handler");
+
+			/* sensors */
+			rv= ipmi_entity_set_sensor_update_handler(entity,
+								  ohoi_sensor_event,
+								  handler);
+			if (rv) {
+				dbg("ipmi_entity_set_sensor_update_handler: %#x", rv);
+				return;
+			}
+                                                                                
+			/* controls */
+			rv = ipmi_entity_set_control_update_handler(entity,
+								    ohoi_control_event,
+								    handler);
+                                                                                
+			if (rv) {
+				dbg("ipmi_entity_set_control_update_handler: %#x", rv);
+				return;
+			}
+                                                                                
+			/* inventory (a.k.a FRU) */
+			rv = ipmi_entity_set_fru_update_handler(entity,
+								ohoi_inventory_event,
+								handler);
+			if (rv) {
+			  	dbg("ipmi_entity_set_fru_update_handler: %#x", rv);
+				return;
+			}
+				                                                                              
+			break;
+			
+		case IPMI_DELETED:
+			return;              /* we need to remove_entity */
 			dbg("Entity deleted: %d.%d", 
 						ipmi_entity_get_entity_id(entity), 
 						ipmi_entity_get_entity_instance(entity));
-		
-		} else if (op == IPMI_CHANGED) {
+			break;
+			
+		case IPMI_CHANGED:
 			add_entity_event(entity, handler);
 
 			dbg("Entity changed: %d.%d",
 						ipmi_entity_get_entity_id(entity), 
 						ipmi_entity_get_entity_instance(entity));
-		} else {
+			break;
+		default:
 			dbg("Entity: Unknow change?!");
-		}
+	}
 
 }

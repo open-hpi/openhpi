@@ -741,7 +741,6 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 
 	switch (op) {
 		case IPMI_ADDED:
-			dbg("Sensor event: ADD");
 			rpt_entry->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR 
                                                     | SAHPI_CAPABILITY_SENSOR;
 
@@ -765,7 +764,6 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			if (rv)
 				dbg("Unable to reg sensor event handler: %#x\n", rv);
 		case IPMI_CHANGED:
-			dbg("Sensor CHANGED");
 			add_sensor_event(ent, sensor, handler, 
         	                         rpt_entry->ResourceEntity, 
                 	                 rpt_entry->ResourceId);
