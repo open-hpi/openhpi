@@ -351,26 +351,10 @@ int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
  * 
  * Return value: -1
  **/
-int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
+int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
 {
         return SA_ERR_HPI_INVALID_CMD;
 }
-
-/**
- * snmp_bc_del_sel_entry:
- * @hnd: 
- * @id: 
- * @sid: 
- * 
- * Delete is not supported with this hardware, so -1 is always returned
- * 
- * Return value: -1
- **/
-int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
-{
-        return SA_ERR_HPI_INVALID_CMD;
-}
-
 
 /**
  * snmp_bc_sel_read_add:

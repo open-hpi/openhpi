@@ -495,19 +495,6 @@ static int snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSe
         return SA_OK;
 }
 
-/**
- * snmp_bc_get_self_id:
- * @hnd: 
- * @id: 
- * 
- * Return value: 
- **/
-
-static int snmp_bc_get_self_id(void *hnd, SaHpiResourceIdT id)
-{
-        return -1;
-}
-
 static int snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act)
 {
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -529,11 +516,9 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .discover_resources     	= snmp_bc_discover_resources,
         .set_resource_tag               = snmp_bc_set_resource_tag,
         .set_resource_severity          = snmp_bc_set_resource_severity,
-        .get_self_id			= snmp_bc_get_self_id,
         .get_sel_info			= snmp_bc_get_sel_info,
         .set_sel_time			= snmp_bc_set_sel_time,
         .add_sel_entry			= snmp_bc_add_sel_entry,
-        .del_sel_entry			= snmp_bc_del_sel_entry,
         .get_sel_entry			= snmp_bc_get_sel_entry,
 	.clear_sel			= snmp_bc_clear_sel,
         .get_sensor_data		= snmp_bc_get_sensor_data,

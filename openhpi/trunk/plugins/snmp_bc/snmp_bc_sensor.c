@@ -377,7 +377,7 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  SaHpiSensorEvtEnablesT *enables)
+					  SaHpiBoolT *enables)
 {
 	SaHpiSensorEvtEnablesT working;
 
@@ -411,7 +411,7 @@ SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  const SaHpiSensorEvtEnablesT *enables)
+					  const SaHpiBoolT *enables)
 {
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(((struct oh_handler_state *)hnd)->rptcache, 
 					    id, SAHPI_SENSOR_RDR, num);
