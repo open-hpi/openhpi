@@ -2197,8 +2197,26 @@ static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEven
  **/
 static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-	/* FIXME:: Need to implement */
-	printf("Need to implement oh_build_event_oem\n");
+
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaErrorT err;
+	SaHpiTextBufferT tmpbuffer;
+
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OemEvent: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	err = oh_decode_manufacturerid(event->EventDataUnion.OemEvent.MId, &tmpbuffer);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ManufacturerId: %s\n", 
+		 							tmpbuffer.Data);
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OemEventData: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_build_textbuffer(buffer, &event->EventDataUnion.OemEvent.OemEventData, 8+offsets);
 
 	return(SA_OK);
 }
