@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
 
-REMOTE_SOURCES		= epath_utils.c
+REMOTE_SOURCES		= epath_utils.c sahpi_enum_utils.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@ 
 
@@ -43,7 +43,7 @@ $(REMOTE_SOURCES):
 	fi
 
 TESTS = \
-	tepath_utils \
+	epath_utils_test \
 	epath_numeric_000 \
 	epath_numeric_001 \
 	epath_numeric_002 \
@@ -201,166 +201,9 @@ TESTS = \
         print_ep_004 \
         print_ep_005 
 
-check_PROGRAMS = \
-	tepath_utils \
-	epath_numeric_000 \
-	epath_numeric_001 \
-	epath_numeric_002 \
-	epath_numeric_003 \
-	epath_numeric_004 \
-	epath_numeric_005 \
-	epath_conv_000 \
-	epath_conv_001 \
-	epath_conv_002 \
-	epath_conv_003 \
-	epath_conv_004 \
-	epath_conv_005 \
-	epath_conv_006 \
-	epath_conv_007 \
-	epath_conv_008 \
-	epath_conv_009 \
-	epath_conv_010 \
-	epath_conv_011 \
-	epath_conv_012 \
-	epath_conv_013 \
-	epath_conv_014 \
-	epath_conv_015 \
-	epath_conv_016 \
-	epath_conv_017 \
-	epath_conv_018 \
-	epath_conv_019 \
-	epath_conv_020 \
-	epath_conv_021 \
-	epath_conv_022 \
-	epath_conv_023 \
-	epath_conv_024 \
-	epath_conv_025 \
-	epath_conv_026 \
-	epath_conv_027 \
-	epath_conv_028 \
-	epath_conv_029 \
-	epath_conv_030 \
-	epath_conv_031 \
-	epath_conv_032 \
-	epath_conv_033 \
-	epath_conv_034 \
-	epath_conv_035 \
-	epath_conv_036 \
-	epath_conv_037 \
-	epath_conv_038 \
-	epath_conv_039 \
-	epath_conv_040 \
-	epath_conv_041 \
-	epath_conv_042 \
-	epath_conv_043 \
-	epath_conv_044 \
-	epath_conv_045 \
-	epath_conv_046 \
-	epath_conv_047 \
-	epath_conv_048 \
-	epath_conv_049 \
-	epath_conv_050 \
-	epath_conv_051 \
-	epath_conv_052 \
-	epath_conv_053 \
-	epath_conv_054 \
-	epath_conv_055 \
-	epath_conv_056 \
-	epath_conv_057 \
-	epath_conv_058 \
-	epath_conv_059 \
-	epath_conv_060 \
-	epath_conv_061 \
-	epath_conv_062 \
-	epath_conv_063 \
-	epath_conv_064 \
-	epath_conv_065 \
-	epath_conv_066 \
-	epath_conv_067 \
-	epath_conv_068 \
-	epath_conv_069 \
-	epath_conv_070 \
-	epath_conv_071 \
-	epath_conv_072 \
-	epath_conv_073 \
-	epath_conv_074 \
-	epath_conv_075 \
-	epath_conv_076 \
-	epath_conv_077 \
-	epath_conv_078 \
-	epath_conv_079 \
-	epath_conv_080 \
-	epath_conv_081 \
-	epath_conv_082 \
-	epath_conv_083 \
-	epath_conv_084 \
-	epath_conv_085 \
-	epath_conv_086 \
-	epath_conv_087 \
-	epath_conv_088 \
-	epath_conv_089 \
-	epath_conv_090 \
-	epath_conv_091 \
-	epath_conv_092 \
-	epath_conv_093 \
-	epath_conv_094 \
-	epath_conv_095 \
-	epath_conv_096 \
-	epath_conv_097 \
-	epath_conv_098 \
-	epath_conv_099 \
-	epath_conv_100 \
-	epath_conv_101 \
-	ep_cmp_000 \
-	ep_cmp_001 \
-	ep_cmp_002 \
-	ep_cmp_003 \
-	ep_cmp_004 \
-	ep_cmp_005 \
-	ep_cmp_006 \
-	ep_cmp_007 \
-	ep_cmp_008 \
-	ep_cmp_009 \
-	ep_cmp_010 \
-	ep_cmp_011 \
-	ep_concat_000 \
-        ep_concat_001 \
-        ep_concat_002 \
-        ep_concat_003 \
-        ep_concat_004 \
-        ep_concat_005 \
-        ep_concat_006 \
-        ep_concat_007 \
-        ep_concat_008 \
-        ep_concat_009 \
-        ep_concat_010 \
-        ep_concat_011 \
-        ep_concat_012 \
-        ep_concat_013 \
-        ep_concat_014 \
-        ep_concat_015 \
-        set_ep_instance_000 \
-        set_ep_instance_001 \
-        set_ep_instance_002 \
-        set_ep_instance_003 \
-        set_ep_instance_004 \
-        set_ep_instance_005 \
-        set_ep_instance_006 \
-        set_ep_instance_007 \
-        set_ep_instance_008 \
-        set_ep_instance_009 \
-        set_ep_instance_010 \
-        set_ep_instance_011 \
-        set_ep_instance_012 \
-        set_ep_instance_013 \
-        print_ep_000 \
-        print_ep_001 \
-        print_ep_002 \
-        print_ep_003 \
-        print_ep_004 \
-        print_ep_005 
+check_PROGRAMS = $(TESTS)
 
-tepath_utils_SOURCES = tepath_utils.c $(REMOTE_SOURCES)
+epath_utils_test_SOURCES = epath_utils_test.c $(REMOTE_SOURCES)
 
 epath_numeric_000_SOURCES = epath_numeric_000.c $(REMOTE_SOURCES)
 epath_numeric_001_SOURCES = epath_numeric_001.c $(REMOTE_SOURCES)

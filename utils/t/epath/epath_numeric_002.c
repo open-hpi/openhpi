@@ -18,15 +18,14 @@
 #include <string.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 int main (int argc, char **argv) {
 	SaHpiEntityPathT  ep;
 	gchar *test_string;
 	int   err;
 
-        // negativ values are not allowd
+        // negative values are not allowd
         test_string = "{-7,11}";
 
 	err = string2entitypath(test_string, &ep);

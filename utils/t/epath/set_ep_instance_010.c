@@ -11,17 +11,17 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
- *
  */
 
 #include <string.h>
 #include <stdio.h>
+
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /**
  * set_ep_instance test10.
- *   call set_ep_instance with entity type not in multi element entity path
+ *   call set_ep_instance with entity type not in multi-element entity path
  *   expected result: set_ep_instance returns failure
  *
  * Return value: 0 on success, 1 on failure

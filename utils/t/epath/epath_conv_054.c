@@ -11,12 +11,12 @@
  *
  * Authors:
  *     Sean Dague <http://dague.net/sean>
- *
  */
 
 #include <string.h>
+
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /**
  * main: epathstr -> epath test
@@ -24,36 +24,50 @@
  * This test tests whether an entity path string is converted into
  * an entity path properly.  
  *
- * TODO: a more extensive set of tests would be nice, might need to create a
- * perl program to generate that code
- * 
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv) 
 {
         char new[255];
         SaHpiEntityPathT tmp_ep;
-        char *entity_root = "{PERIPHERAL_BAY,30}{FAN,65}";
+        char *entity_root = "{POWER_MODULE,36}{OTHER,36}";
         
         string2entitypath(entity_root, &tmp_ep);
          
-        if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_FAN)
-                return 1;
+        if (tmp_ep.Entry[0].EntityType != SAHPI_ENT_OTHER) {
+	    printf("ERROR! Testcase failed Entry[0].EntityType compare\n");
+	    printf("Received=%d; Expected=%d\n", tmp_ep.Entry[0].EntityType, SAHPI_ENT_OTHER);
+	    return -1;
+	}
                 
-        if(tmp_ep.Entry[0].EntityLocation != 65)
-                return 1;
+        if (tmp_ep.Entry[0].EntityLocation != 36) {
+	    printf("ERROR! Testcase failed Entry[0].EntityLocation compare\n");
+	    printf("Received=%d; Expected=%d\n", tmp_ep.Entry[0].EntityLocation, 36);
+	    return -1;
+	}
         
-        if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_PERIPHERAL_BAY)
-                return 1;
+        if (tmp_ep.Entry[1].EntityType != SAHPI_ENT_POWER_MODULE) {
+	    printf("ERROR! Testcase failed Entry[1].EntityType compare\n");
+	    printf("Received=%d; Expected=%d\n", tmp_ep.Entry[1].EntityType, SAHPI_ENT_POWER_MODULE);
+	    return -1;
+	}
         
-        if(tmp_ep.Entry[1].EntityLocation != 30)
-                return 1;
+        if (tmp_ep.Entry[1].EntityLocation != 36) {
+	    printf("ERROR! Testcase failed Entry[1].EntityLocation compare\n");
+	    printf("Received=%d; Expected=%d\n", tmp_ep.Entry[1].EntityLocation, 36);
+	    return -1;
+	}
 
-        if(entitypath2string(&tmp_ep, new, 255) < 0) 
-                return 1;
+        if (entitypath2string(&tmp_ep, new, 255) < 0) {
+	    printf("ERROR! Testcase failed entitypath2string\n");
+	    return -1;
+	}
         
-        if(strcmp(new,entity_root) != 0)
-                return 1;
+        if (strcmp(new, entity_root) != 0) {
+	    printf("ERROR! Testcase failed strcmp\n");
+	    printf("Received string=%s\n", new);
+	    return -1;
+	}
 
         return 0;
 }
