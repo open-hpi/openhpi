@@ -84,8 +84,8 @@ static void oh_handler_table_discover(gpointer key, gpointer value, gpointer dat
 {
         struct oh_handler *h = (struct oh_handler*)value;
         SaErrorT *error = (SaErrorT *)data;
-
-        if (!(h->abi->discover_resources(h->hnd)))
+        
+        if (h->abi->discover_resources(h->hnd) == SA_OK && *error)
                 *error = SA_OK;
 }
 
@@ -93,7 +93,7 @@ SaErrorT SAHPI_API saHpiDiscover(
         SAHPI_IN SaHpiSessionIdT SessionId)
 {
         SaHpiDomainIdT did;
-        int rv = -1;
+        int rv = SA_ERR_HPI_ERROR;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);

@@ -167,12 +167,8 @@ struct oh_abi_v2 {
          * @return >0 if an event is returned; 0 if timeout; otherwise an error
          * occur.
          * @param event if existing, plugin store the event.
-         * @param timeout is an upper bound on the amount of time elapsed
-         * before returns. It may be zero, causing select to return
-         * immediately.
          */
-        SaErrorT (*get_event)(void *hnd, struct oh_event *event,
-                         struct timeval *timeout);
+        SaErrorT (*get_event)(void *hnd, struct oh_event *event);
 
         /**
          * prompt plug-in to search for new resources
