@@ -62,7 +62,7 @@ typedef enum
   eFsaHpiEventAdd,
   eFsaHpiAlarmGetNext,
   eFsaHpiAlarmGet,
-  eFsaHpiAlarmAcknowledged,
+  eFsaHpiAlarmAcknowledge,
   eFsaHpiAlarmAdd,
   eFsaHpiAlarmDelete,
   eFsaHpiRdrGet,
@@ -75,8 +75,8 @@ typedef enum
   eFsaHpiSensorEnableSet,
   eFsaHpiSensorEventEnableGet,
   eFsaHpiSensorEventEnableSet,
-  eFsaHpiSensorEventMaskGet,
-  eFsaHpiSensorEventMaskSet,
+  eFsaHpiSensorEventMasksGet,
+  eFsaHpiSensorEventMasksSet,
   eFsaHpiControlTypeGet,
   eFsaHpiControlGet,
   eFsaHpiControlSet,
@@ -144,6 +144,7 @@ int HpiMarshalRequest2( cHpiMarshal *m, void *buffer, const void *p1, const void
 int HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3 );
 int HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3, const void *p4 );
 int HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3, const void *p4, const void *p5 );
+int HpiMarshalRequest6( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3, const void *p4, const void *p5, const void * p6 );
 
 int HpiDemarshalRequest ( int byte_order, cHpiMarshal *m, const void *buffer, void **params );
 int HpiDemarshalRequest1( int byte_order, cHpiMarshal *m, const void *buffer, void *p1 );
@@ -151,6 +152,7 @@ int HpiDemarshalRequest2( int byte_order, cHpiMarshal *m, const void *buffer, vo
 int HpiDemarshalRequest3( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3 );
 int HpiDemarshalRequest4( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3, void *p4 );
 int HpiDemarshalRequest5( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3, void *p4, void *p5 );
+int HpiDemarshalRequest6( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3, void *p4, void *p5, void *p6 );
 
 int HpiMarshalReply ( cHpiMarshal *m, void *buffer, const void **params );
 int HpiMarshalReply0( cHpiMarshal *m, void *buffer, const void *result );

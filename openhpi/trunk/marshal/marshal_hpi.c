@@ -424,7 +424,7 @@ static const cMarshalType *saHpiAlarmGetOut[] =
 };
 
 
-static const cMarshalType *saHpiAlarmAcknowledgedIn[] =
+static const cMarshalType *saHpiAlarmAcknowledgeIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiAlarmIdType,
@@ -432,7 +432,7 @@ static const cMarshalType *saHpiAlarmAcknowledgedIn[] =
   0
 };
 
-static const cMarshalType *saHpiAlarmAcknowledgedOut[] =
+static const cMarshalType *saHpiAlarmAcknowledgeOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
@@ -632,7 +632,7 @@ static const cMarshalType *saHpiSensorEventEnableSetOut[] =
 };
 
 
-static const cMarshalType *saHpiSensorEventMaskGetIn[] =
+static const cMarshalType *saHpiSensorEventMasksGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
@@ -640,7 +640,7 @@ static const cMarshalType *saHpiSensorEventMaskGetIn[] =
   0
 };
 
-static const cMarshalType *saHpiSensorEventMaskGetOut[] =
+static const cMarshalType *saHpiSensorEventMasksGetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   &SaHpiEventStateType,
@@ -649,7 +649,7 @@ static const cMarshalType *saHpiSensorEventMaskGetOut[] =
 };
 
 
-static const cMarshalType *saHpiSensorEventMaskSetIn[] =
+static const cMarshalType *saHpiSensorEventMasksSetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
@@ -660,7 +660,7 @@ static const cMarshalType *saHpiSensorEventMaskSetIn[] =
   0
 };
 
-static const cMarshalType *saHpiSensorEventMaskSetOut[] =
+static const cMarshalType *saHpiSensorEventMasksSetOut[] =
 {
   &SaErrorType, // result (SaErrorT)
   0
@@ -1282,7 +1282,7 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( saHpiEventAdd ),
   dHpiMarshalEntry( saHpiAlarmGetNext ),
   dHpiMarshalEntry( saHpiAlarmGet ),
-  dHpiMarshalEntry( saHpiAlarmAcknowledged ),
+  dHpiMarshalEntry( saHpiAlarmAcknowledge ),
   dHpiMarshalEntry( saHpiAlarmAdd ),
   dHpiMarshalEntry( saHpiAlarmDelete ),
   dHpiMarshalEntry( saHpiRdrGet ),
@@ -1295,8 +1295,8 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( saHpiSensorEnableSet ),
   dHpiMarshalEntry( saHpiSensorEventEnableGet ),
   dHpiMarshalEntry( saHpiSensorEventEnableSet ),
-  dHpiMarshalEntry( saHpiSensorEventMaskGet ),
-  dHpiMarshalEntry( saHpiSensorEventMaskSet ),
+  dHpiMarshalEntry( saHpiSensorEventMasksGet ),
+  dHpiMarshalEntry( saHpiSensorEventMasksSet ),
   dHpiMarshalEntry( saHpiControlTypeGet ),
   dHpiMarshalEntry( saHpiControlGet ),
   dHpiMarshalEntry( saHpiControlSet ),
@@ -1438,6 +1438,22 @@ HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
 
 
 int
+HpiMarshalRequest6( cHpiMarshal *m, void *buffer, const void *p1, const void *p2,
+		    const void *p3, const void *p4, const void *p5, const void *p6 )
+{
+  const void *param[6];
+  param[0] = p1;
+  param[1] = p2;
+  param[2] = p3;
+  param[3] = p4;
+  param[4] = p5;
+  param[5] = p6;
+
+  return HpiMarshalRequest( m, buffer, param );
+}
+
+
+int
 HpiDemarshalRequest( int byte_order, cHpiMarshal *m, const void *buffer, void **params )
 {
   return DemarshalArray( byte_order, m->m_request, params, buffer );
@@ -1499,6 +1515,21 @@ HpiDemarshalRequest5( int byte_order, cHpiMarshal *m, const void *buffer, void *
   param[2] = p3;
   param[3] = p4;
   param[4] = p5;
+
+  return HpiDemarshalRequest( byte_order, m, buffer, param );
+}
+
+
+int
+HpiDemarshalRequest6( int byte_order, cHpiMarshal *m, const void *buffer, void *p1, void *p2, void *p3, void *p4, void *p5, void *p6 )
+{
+  void *param[6];
+  param[0] = p1;
+  param[1] = p2;
+  param[2] = p3;
+  param[3] = p4;
+  param[4] = p5;
+  param[5] = p6;
 
   return HpiDemarshalRequest( byte_order, m, buffer, param );
 }
