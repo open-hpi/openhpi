@@ -35,6 +35,10 @@ EXTRA_DIST 		= ipmi.sym
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
+SUBDIRS			= t
+
+DIST_SUBDIRS		= t
+
 AM_CFLAGS		= -g @CFLAGS@
 
 pkglib_LTLIBRARIES	= libipmi.la

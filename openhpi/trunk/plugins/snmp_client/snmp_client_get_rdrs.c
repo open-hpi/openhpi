@@ -500,7 +500,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                                 ntohl(sahpi_ctr_cap[i].CtrlRec.TypeUnion.Discrete.Default);
                                         break;
                                 case SAHPI_CTRL_TYPE_ANALOG:
-                                        data = (int *)vars->val.string;
+                                        data = (int *)(void *)vars->val.string;
                                         sahpi_ctr_cap[i].CtrlRec.TypeUnion.Analog.Min = *data;          
                                         sahpi_ctr_cap[i].CtrlRec.TypeUnion.Analog.Min =
                                                 ntohl(sahpi_ctr_cap[i].CtrlRec.TypeUnion.Analog.Min);
@@ -520,7 +520,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                                repeat, 
                                                sizeof(sahpi_ctr_cap[i].CtrlRec.TypeUnion.Stream.Default.Repeat));
                                         repeat++;
-                                        stream_data = (int *)repeat;
+                                        stream_data = (int *)(void *)repeat;
                                         /* set .StreamLength */
                                         memcpy(&sahpi_ctr_cap[i].CtrlRec.TypeUnion.Stream.Default.StreamLength,
                                                stream_data, 
@@ -541,12 +541,12 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                                         sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.MaxLines = *text_info;
                                         text_info++;
 
-                                        sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.Language = *(SaHpiLanguageT *)text_info;
+                                        sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.Language = *(SaHpiLanguageT *)(void *)text_info;
 					sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.Language =
 						(SaHpiLanguageT)SNMP_ENUM_ADJUST(ntohl(sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.Language));
                                         text_info++;
 
-                                        sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.DataType = *(SaHpiTextTypeT *)text_info;
+                                        sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.DataType = *(SaHpiTextTypeT *)(void *)text_info;
 					sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.DataType = 
 						(SaHpiTextTypeT)SNMP_ENUM_ADJUST(ntohl(sahpi_ctr_cap[i].CtrlRec.TypeUnion.Text.DataType));
                                         text_info++;

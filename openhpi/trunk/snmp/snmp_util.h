@@ -61,7 +61,8 @@
 struct snmp_value {
         u_char type;
         char string[MAX_ASN_STR_LEN];
-        unsigned int str_len;
+        size_t str_len;
+        //unsigned int str_len;
         long integer;
 };
 
