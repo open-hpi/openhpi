@@ -35,8 +35,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_BLADE_VECTOR, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+		return(err);
         }
 	
 	/****************** 
@@ -231,8 +230,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_FAN_VECTOR, get_value.type, oh_lookup_error(err));
-		if (err) { return(err); }
-		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
+		return(err);
         }
 
 	for (i=0; i < strlen(get_value.string); i++) {
