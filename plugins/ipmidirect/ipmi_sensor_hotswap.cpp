@@ -171,9 +171,9 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
        return rv;
      }
 
-  if ( rsp.m_data[2] != 0 )
+  if ( rsp.m_data[1] != 0 )
      {
-       stdlog << "cannot read hotswap sensor " << rsp.m_data[2] << " !\n";
+       stdlog << "cannot read hotswap sensor " << rsp.m_data[1] << " !\n";
        return SA_ERR_HPI_INVALID_SENSOR_CMD;
      }
 
