@@ -77,3 +77,5 @@ endef
 
 tags:
 	$(all-sources) | xargs ctags		
+TAGS:
+	$(all-sources) | xargs etags
