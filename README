@@ -56,17 +56,19 @@ snmp_client plugin
 ---------------------------------------------------------
 BUILD / INSTALLATION
 ---------------------------------------------------------
-First time to extract the code:
-run ./BigBuild
 
-This will generate all files needed to compile.
+FOR RELEASED TARBALLS
 
-Note: by default all plugins that can be built, will be built.
+Use standard UNIX mechanisms:
+./configure && make && make install
 
-If you wish to disable a plugin, any flags you pass to BigBuild 
+Note: by default all plugins that *can* be built, will be built, all
+other plugins will be silently disabled.
+
+If you wish to disable a plugin, any flags you pass to configure
 will be passed to the configure program.
 
-i.e. ./BigBuild --disable-dummy will disable the dummy plugin
+i.e. ./configure --disable-dummy will disable the dummy plugin
 
 then make (or make rpm)
 and then (as root or with proper system install permissions)
@@ -79,6 +81,15 @@ NOTE: the configuration file is only installed by the RPM installation.
 	If you run "make install" manually, you will need to:
 		cp examples/openhpi.conf.example /etc/openhpi/openhpi.conf
 	and modify it for your needs.
+
+FOR CVS EXTRACTS
+
+First time to extract the code:
+run ./bootstrap *first*
+
+This will generate all files needed to compile.
+
+You can then use the instructions provided for RELEASED TARBALLS
 
 ---------------------------------------------------------
 CLEANUP

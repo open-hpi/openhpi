@@ -10,7 +10,8 @@
 
 REMOTE_SOURCES          = el_utils.c
 
-MOSTLYCLEANFILES        = $(REMOTE_SOURCES) @TEST_CLEAN@
+MOSTLYCLEANFILES        = $(shell ls *data) $(REMOTE_SOURCES) @TEST_CLEAN@
+
 DISTCLEANFILES          = $(top_builddir)/src/t/el/elTest.data
 
 INCLUDES                = -I$(top_srcdir)/include -I$(top_srcdir)/utils

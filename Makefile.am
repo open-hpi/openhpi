@@ -94,7 +94,7 @@ documentation:
 	$(MAKE) -C docs
 
 clean-local: am_config_clean-local
-	$(MAKE) -C examples clean
+
 am_config_clean-local:
 	rm -fr $(PACKAGE)-*.tar.gz
 

@@ -422,7 +422,7 @@ AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/${HPI_CLIENT_PKG}.conf",
 
 dnl defines OH_DEFAULT_UID_MAP and VARPATH
 dnl set VARPATH only if unset or null.
-VARPATH=${VARPATH:=/var/lib/${PACKAGE_NAME}}
+VARPATH=${VARPATH:=${localstatedir}/lib/${PACKAGE_NAME}}
 
 AC_ARG_WITH(varpath,
     [[  --with-varpath=PATH     use directory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
