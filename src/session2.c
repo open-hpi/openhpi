@@ -45,7 +45,7 @@ SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did)
         g_mutex_lock(sessions.lock); /* Locked session table */
         session->id = ++id;
         session->did = did;
-        /* TODO - Initialize GAsyncQueue here -- RM */
+        session->eventq2 = g_async_queue_new();
         g_hash_table_insert(sessions.table, &(session->id), session);
         g_mutex_unlock(sessions.lock); /* Unlocked session table */
         g_array_append_val(domain->sessions, session->id);
@@ -176,18 +176,21 @@ SaErrorT oh_set_session_state(SaHpiDomainIdT sid, SaHpiBoolT state)
  * Returns:
  **/
 SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
-{      /* TODO - Will need to adjust this when the eventq's type changes -- RM */
+{      
        struct oh_session *session = NULL;
+       struct oh_event *qevent = NULL;
 
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
 
+       qevent = g_memdup(event, sizeof(struct oh_event));
        g_mutex_lock(sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(sessions.table, &sid);
-       if (!session) {
+       if (!session) {               
                g_mutex_unlock(sessions.lock);
+               g_free(qevent);
                return SA_ERR_HPI_NOT_PRESENT;
        }
-       g_slist_append(session->eventq, event);
+       g_async_queue_push(session->eventq2, qevent);
        g_mutex_unlock(sessions.lock); /* Unlocked session table */
 
        return SA_OK;
@@ -202,23 +205,30 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
  *
  * Returns:
  **/
-SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
-{      /* TODO - Will need to adjust this when the eventq's type changes -- RM */
+SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
+                                  SaHpiTimeoutT timeout,
+                                  struct oh_event *event)
+{      
        struct oh_session *session = NULL;
        struct oh_event *devent = NULL;
+       GTimeVal gtimeval;
 
        if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
 
+       gtimeval.tv_sec = timeout / 1000000000;
+       gtimeval.tv_usec = timeout % 1000000000 / 1000;
+       
        g_mutex_lock(sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(sessions.table, &sid);
        if (!session) {
                g_mutex_unlock(sessions.lock);
                return SA_ERR_HPI_NOT_PRESENT;
        }
-       devent = (struct oh_event *)session->eventq->data;
+
+       devent = g_async_queue_timed_pop(session->eventq2, &gtimeval);
        memcpy(event, devent, sizeof(struct oh_event));
-       session->eventq = g_slist_remove(session->eventq, devent);
        g_free(devent);
+
        g_mutex_unlock(sessions.lock); /* Unlocked session table */
 
        return SA_OK;       
@@ -233,9 +243,9 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
  * Returns:
  **/
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
-{       /* TODO - Will need to adjust this when the eventq's type changes -- RM */
+{       
         struct oh_session *session = NULL;
-        GSList *node = NULL;
+        gpointer event = NULL;
 
         if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -246,13 +256,14 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
                 return SA_ERR_HPI_NOT_PRESENT;                
         }
         
-        for (node = session->eventq; node != NULL; node = node->next) {
-                g_free(node->data);
-        }
-        g_slist_free(session->eventq);
-        
         g_hash_table_remove(sessions.table, &(session->id));
+
+        while ((event = g_async_queue_try_pop(session->eventq2)) != NULL) {
+                g_free(event);
+        }
+        g_async_queue_unref(session->eventq2);
         g_free(session);
+
         g_mutex_unlock(sessions.lock); /* Unlocked session table */
 
         return SA_OK;
