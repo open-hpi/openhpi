@@ -366,6 +366,9 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
         SaHpiRptEntryT *rptentry;
+        
+        if (ResourceTag == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
