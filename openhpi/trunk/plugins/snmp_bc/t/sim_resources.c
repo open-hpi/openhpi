@@ -101,7 +101,7 @@ struct snmp_bc_data sim_resource_array[] = {
 	},
         {
 		/* Clear Event Log */	
-		.oid = ".1.3.6.1.4.1.2.3.51.2.3.4.3",
+		.oid = ".1.3.6.1.4.1.2.3.51.2.3.4.3.0",
 		.mib = {
 			.type = ASN_INTEGER,
 			.value = {
