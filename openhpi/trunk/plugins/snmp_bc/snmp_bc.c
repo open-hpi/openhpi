@@ -37,9 +37,7 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .get_sensor_thresholds		= snmp_bc_get_sensor_thresholds,
         .set_sensor_thresholds		= snmp_bc_set_sensor_thresholds,
         .get_sensor_event_enables	= snmp_bc_get_sensor_event_enables,
-#if 0
 	.set_sensor_event_enables	= snmp_bc_set_sensor_event_enables,
-#endif
         .get_control_state		= snmp_bc_get_control_state,
         .set_control_state		= snmp_bc_set_control_state,
 	.get_idr_info			= snmp_bc_get_idr_info,
