@@ -1861,6 +1861,12 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 
 /**
  * oh_fprint_event:
+ * @stream: File handle.
+ * @event: Pointer to SaHpiEventT to be printed.
+ * @offsets: Number of offsets to start printing structure.
+ * 
+ * Prints the member data contained in SaHpiEventT struct to a file.
+ * The MACRO oh_print_event(), uses this function to print to STDOUT. 
  *
  * Returns:
  * SA_OK - normal operation.
@@ -1887,8 +1893,12 @@ SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets)
 }
 
 /**
+ * oh_build_event:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
- *
+ * 
  * Returns:
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - any of the in pointers is NULL
@@ -1899,8 +1909,8 @@ static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *eve
 	SaErrorT err;
 	SaHpiTextBufferT tmpbuffer;
 
-	memset( buffer, 0, sizeof( oh_big_textbuffer ) );
-	memset( &tmpbuffer, 0, sizeof( SaHpiTextBufferT ) );
+	memset( buffer->Data, 0, OH_MAX_TEXT_BUFFER_LENGTH );
+	memset( tmpbuffer.Data, 0, sizeof( tmpbuffer.Data ) );
 	
 	/* Event Type */
 	oh_append_offset(buffer, offsets);
@@ -1958,14 +1968,19 @@ static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *eve
 		dbg("Unrecognized Event Type=%d.", event->EventType);
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-		
+			
 	if (err) { return(err); }
 
 	return(SA_OK);
 }
 
 
+
 /**
+ * oh_build_event_resource:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -1974,14 +1989,30 @@ static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *eve
  **/
 static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-	/* FIXME:: Need to implement */
-	printf("Need to implement oh_build_event_resource\n");
+
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceEvent: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceEventType: %s\n", 
+		 	oh_lookup_resourceeventtype(event->EventDataUnion.ResourceEvent.ResourceEventType));
+	oh_append_bigtext(buffer, str);
 
 	return(SA_OK);
 }
 
 
 /**
+ * oh_build_event_domain:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -1990,14 +2021,34 @@ static SaErrorT oh_build_event_resource(oh_big_textbuffer *buffer, const SaHpiEv
  **/
 static SaErrorT oh_build_event_domain(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-	/* FIXME:: Need to implement */
-	printf("Need to implement oh_build_event_domain\n");
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DomainEvent: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Type: %s\n", 
+		 	oh_lookup_domaineventtype(event->EventDataUnion.DomainEvent.Type));
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DomainId: %d\n", 
+		 			event->EventDataUnion.DomainEvent.DomainId);
+	oh_append_bigtext(buffer, str);
 
 	return(SA_OK);
 }
 
 
 /**
+ * oh_build_event_resource:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -2009,6 +2060,9 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaErrorT err;
 	SaHpiTextBufferT tmpbuffer;
+
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
 
 	/* Event Sensor Num */
 	oh_append_offset(buffer, offsets);
@@ -2125,6 +2179,10 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
 
 
 /**
+ * oh_build_event_sensor_enable_change:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -2141,6 +2199,10 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
 
 
 /**
+ * oh_build_event_hotswap:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -2149,14 +2211,34 @@ static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, c
  **/
 static SaErrorT oh_build_event_hotswap(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-	/* FIXME:: Need to implement */
-	printf("Need to implement oh_build_event_hotswap\n");
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "HotswapEvent: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "HotSwapState: %s\n", 
+		 	oh_lookup_hsstate(event->EventDataUnion.HotSwapEvent.HotSwapState));
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "PreviousHotSwapState: %s\n", 
+		 	oh_lookup_hsstate(event->EventDataUnion.HotSwapEvent.PreviousHotSwapState));
+	oh_append_bigtext(buffer, str);
 
 	return(SA_OK);
 }
 
 
 /**
+ * oh_build_event_watchdog:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -2173,6 +2255,10 @@ static SaErrorT oh_build_event_watchdog(oh_big_textbuffer *buffer, const SaHpiEv
 
 
 /**
+ * oh_build_event_hpi_sw:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -2189,6 +2275,10 @@ static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEven
 
 
 /**
+ * oh_build_event_oem:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -2197,11 +2287,13 @@ static SaErrorT oh_build_event_hpi_sw(oh_big_textbuffer *buffer, const SaHpiEven
  **/
 static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-
 	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaErrorT err;
 	SaHpiTextBufferT tmpbuffer;
 
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	
 	oh_append_offset(buffer, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OemEvent: \n"); 
 	oh_append_bigtext(buffer, str);
@@ -2223,6 +2315,10 @@ static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT 
 
 
 /**
+ * oh_build_event_user:
+ * @buffer: Pointer to space to decipher SaHpiEventT struct
+ * @event: Pointer to the event to be deciphered
+ * @offset: Number of offsets to start printing structure.
  * 
  *
  * Returns:
@@ -2231,8 +2327,20 @@ static SaErrorT oh_build_event_oem(oh_big_textbuffer *buffer, const SaHpiEventT 
  **/
 static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-	/* FIXME:: Need to implement */
-	printf("Need to implement oh_build_event_user\n");
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UserEvent: \n"); 
+	oh_append_bigtext(buffer, str);
+	
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "UserEventData: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_build_textbuffer(buffer, &event->EventDataUnion.UserEvent.UserEventData, 8+offsets);
 
 	return(SA_OK);
 }
@@ -2240,6 +2348,8 @@ static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT
 #if 0
 
 /**
+ * oh_valid_textbuffer:
+ * @text_buffer: Pointer to space to decipher SaHpiEventT struct
  * 
  *
  * Returns:
