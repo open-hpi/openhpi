@@ -13,7 +13,8 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
- *     David Judkovics <djudkovi@us.ibm.com>  
+ *     David Judkovics <djudkovi@us.ibm.com>
+ *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
 #include <stdio.h>
@@ -79,7 +80,7 @@ int session_del(struct oh_session *session)
 {
         /* cleanup session events */
         while(session->eventq) {
-                struct oh_hpi_event *e = (struct oh_hpi_event *)session->eventq->data;
+                struct oh_session_event *e = (struct oh_session_event *)session->eventq->data;
                 session->eventq = g_slist_remove(session->eventq, e);
                 free(e);
         }
