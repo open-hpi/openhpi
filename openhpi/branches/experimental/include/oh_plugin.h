@@ -240,7 +240,7 @@ struct oh_abi_v1 {
 	/**
 	 * del entry in RSEL
 	 */
-	int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
+        int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
 
 	/**
 	 * get entry in RSEL
@@ -252,6 +252,11 @@ struct oh_abi_v1 {
         int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
                              SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         
+        /**
+         * clear SEL 
+         */
+        int (*clear_sel)(void *hnd, SaHpiResourceIdT id);
+
         /* end of SEL functions */
 	/**
 	 * get sensor data
