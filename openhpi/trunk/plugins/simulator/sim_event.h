@@ -17,7 +17,7 @@
 #define _INC_SIM_EVENT_
 
 struct fe_handler{
-        volatile int done;
+        volatile int closing;
         struct oh_handler_state *ohh;
         GSList * ids;
         pthread_t tid;
