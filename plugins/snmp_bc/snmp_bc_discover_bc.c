@@ -21,14 +21,14 @@
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 
 #define SNMP_BC_IPMI_STRING_DELIMITER "="
-#define SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS 25
+
 #define SNMP_BC_MAX_IPMI_TEMP_SENSORS 6
-#define SNMP_BC_MAX_IPMI_SENSORS (SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS + SNMP_BC_MAX_IPMI_TEMP_SENSORS)
+#define SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS 25
 
 #define SNMP_BC_IPMI_TEMP_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.11.x"
 #define SNMP_BC_IPMI_VOLTAGE_BLADE_OID ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.14.x"
 
-struct SensorMibInfo snmp_bc_ipmi_sensors[SNMP_BC_MAX_IPMI_SENSORS] = {
+struct SensorMibInfo snmp_bc_ipmi_sensors_temp[SNMP_BC_MAX_IPMI_TEMP_SENSORS] = {
 	{ /* Generic IPMI Temp Sensor 1 */
 		.not_avail_indicator_num = 0,
 		.write_only = SAHPI_FALSE,
@@ -89,6 +89,9 @@ struct SensorMibInfo snmp_bc_ipmi_sensors[SNMP_BC_MAX_IPMI_SENSORS] = {
 		},
 		.threshold_write_oids = {},
 	},
+};
+
+struct SensorMibInfo snmp_bc_ipmi_sensors_voltage[SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS] = {
 	{ /* Generic IPMI Voltage Sensor 1 */
 		.not_avail_indicator_num = 0,
 		.write_only = SAHPI_FALSE,
@@ -425,6 +428,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/* Create platform-specific info space to add to infra-structure */
 	res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].res_info),
 				sizeof(struct ResourceInfo));
+	if (!res_info_ptr) {
+		dbg("Out of memory.");
+		g_free(e);
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
         /* Get UUID and convert to GUID */
@@ -435,7 +444,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			      &(e->u.res_event.entry), 
 			      res_info_ptr, 0);
 	if (err) {
-		dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
+		dbg("Cannot add resource. Error=%s.", oh_lookup_error(err));
 		g_free(e);
 		return(err);
 	}
@@ -485,6 +494,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].res_info),
 						sizeof(struct ResourceInfo));
+			if (!res_info_ptr) {
+				dbg("Out of memory.");
+				g_free(e);
+				return(SA_ERR_HPI_OUT_OF_SPACE);
+			}
+
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get UUID and convert to GUID */
@@ -546,6 +561,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					/* Create platform-specific info space to add to infra-structure */
 					res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].res_info),
 								sizeof(struct ResourceInfo));
+					if (!res_info_ptr) {
+						dbg("Out of memory.");
+						g_free(e);
+						return(SA_ERR_HPI_OUT_OF_SPACE);
+					}
+
 					res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                                         /* Get UUID and convert to GUID */
@@ -610,6 +631,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].res_info),
 						sizeof(struct ResourceInfo));
+			if (!res_info_ptr) {
+				dbg("Out of memory.");
+				g_free(e);
+				return(SA_ERR_HPI_OUT_OF_SPACE);
+			}
+
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get UUID and convert to GUID */
@@ -672,6 +699,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_POWER_MODULE].res_info),
 						sizeof(struct ResourceInfo));
+			if (!res_info_ptr) {
+				dbg("Out of memory.");
+				g_free(e);
+				return(SA_ERR_HPI_OUT_OF_SPACE);
+			}
+
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get UUID and convert to GUID */
@@ -734,6 +767,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].res_info),
 						sizeof(struct ResourceInfo));
+			if (!res_info_ptr) {
+				dbg("Out of memory.");
+				g_free(e);
+				return(SA_ERR_HPI_OUT_OF_SPACE);
+			}
+
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get UUID and convert to GUID */
@@ -795,6 +834,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		/* Create platform-specific info space to add to infra-structure */
 		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].res_info),
 					sizeof(struct ResourceInfo));
+		if (!res_info_ptr) {
+			dbg("Out of memory.");
+			g_free(e);
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                 /* Get UUID and convert to GUID */
@@ -866,6 +911,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].res_info),
 						sizeof(struct ResourceInfo));
+			if (!res_info_ptr) {
+				dbg("Out of memory.");
+				g_free(e);
+				return(SA_ERR_HPI_OUT_OF_SPACE);
+			}
+
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get UUID and convert to GUID */
@@ -894,7 +945,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 }
 
 /**
- * snmp_bc_discover_ipmi_sensors: 
+ * snmp_bc_discover_ipmi_sensors:
  * @handler: Pointer to handler's data.
  * @sensor_array: Pointer to resource's static sensor data array.
  * @parent_res_event: Pointer to resource's event structure.
@@ -927,7 +978,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
         }
-	if (get_value.integer == 0) return(SA_OK);
+	if (get_value.integer == 0) return(SA_OK); /* Not an IPMI Blade */
 
 	/* Create an temporary hash table and populate with all of 
            the blade's active IPMI sensors */
@@ -937,24 +988,22 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
-	/* Search for active IPMI sensors */
-	for (i=0; i<SNMP_BC_MAX_IPMI_SENSORS; i++) {
-	
-		err = snmp_bc_oid_snmp_get(custom_handle, 
-					   &(res_oh_event->u.res_event.entry.ResourceEntity),
-					   snmp_bc_ipmi_sensors[i].oid, &get_value, SAHPI_FALSE);
+	/* Search for all the defined IPMI sensors.
+         * Generic IPMI SNMP OID values are populated sequentially. There will not be any valid
+         * sensors after the first "Not Readable!", "(No temperature)", or "(No voltage)" reading.
+	 */
 
-#if 0
-		/* Work around for BC/BCT problem of timing out for each generic IPMI Voltage OID
-                   after the last real one */
-		if (err) {
-			dbg("SNMP error=%s; oid=%s",
-			    oh_lookup_error(err), snmp_bc_ipmi_sensors[i].oid);
+	/* Find blade's defined temperature IPMI sensors */
+	for (i=0; i<SNMP_BC_MAX_IPMI_TEMP_SENSORS; i++) {
+		err = snmp_bc_oid_snmp_get(custom_handle,
+					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   snmp_bc_ipmi_sensors_temp[i].oid, &get_value, SAHPI_FALSE);
+		if (err ||
+		    (strncmp(get_value.string, "(No temperature)", sizeof("(No temperature)")) == 0) ||
+		    (strncmp(get_value.string, "Not Readable!", sizeof("Not Readable!")) == 0)) {
 			break;
 		}
-#endif
-
-		if (!err) {
+		else {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
 			gchar  *ipmi_tag;
@@ -974,7 +1023,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 				continue;
 			}
 
-			trace("Found IPMI TAG=%s; Sensor Num=%d", ipmi_tag, i);
+			trace("Found OID IPMI Sensor=%s", ipmi_tag);
 
 			/* Insert tag and OID info in temporary hash */
 			if (!g_hash_table_lookup_extended(ipmi_sensor_hash,
@@ -982,30 +1031,81 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 							  (gpointer)&hash_existing_key,
 							  (gpointer)&hash_value)) {
 
-				mib_info = (struct SensorMibInfo *)g_malloc0(sizeof(struct SensorMibInfo));
+				mib_info = g_memdup(&(snmp_bc_ipmi_sensors_temp[i]), sizeof(struct SensorMibInfo));
 				if (!mib_info) {
 					dbg("Out of memory.");
 					g_free(ipmi_tag);
 					rtn_code = SA_ERR_HPI_OUT_OF_SPACE;
 					goto CLEANUP;
 				}
-
-				mib_info = g_memdup(&(snmp_bc_ipmi_sensors[i]), sizeof(struct SensorMibInfo));
 				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
 			}
 			else { /* Already exists */
-				dbg("IPMI OID ERROR=%s.", snmp_bc_ipmi_sensors[i].oid);
+				dbg("IPMI OID ERROR=%s.", snmp_bc_ipmi_sensors_temp[i].oid);
 				g_free(ipmi_tag);
 			}
 		}
 	}
 
-	/* Iterate thru all the possible IPMI sensors and see which are active.
-           If sensor is active, push information up to Infra-structure */
-	for (i=0; sensor_array[i].ipmi.index != 0; i++) {
+	/* FIXME:: Make voltage and temperature search into a single routine */
+	/* Find blade's voltage IPMI sensors */
+	for (i=0; i<SNMP_BC_MAX_IPMI_VOLTAGE_SENSORS; i++) {
+		err = snmp_bc_oid_snmp_get(custom_handle,
+					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   snmp_bc_ipmi_sensors_voltage[i].oid, &get_value, SAHPI_FALSE);
+		if (err ||
+		    (strncmp(get_value.string, "(No voltage)", sizeof("(No voltage)")) == 0) ||
+		    (strncmp(get_value.string, "Not Readable!", sizeof("Not Readable!")) == 0)) {
+			break;
+		}
+		else {
+			char *hash_existing_key, *hash_value;
+			gchar  **strparts = NULL;
+			gchar  *ipmi_tag;
+			
+			/* Find IPMI tag in returned value */
+			strparts = g_strsplit(get_value.string, SNMP_BC_IPMI_STRING_DELIMITER, -1);
+			if (strparts == NULL || strparts[0] == '\0') {
+				dbg("Cannot split IPMI returned value=%s.", get_value.string);
+				g_strfreev(strparts);
+				continue;
+			}
+			ipmi_tag = g_strstrip(g_strdup(strparts[0]));
+			g_strfreev(strparts);
+			if (ipmi_tag == NULL || ipmi_tag[0] == '\0') {
+				dbg("Stripped IPMI tag is NULL"); 
+				g_free(ipmi_tag);
+				continue;
+			}
 
-		mib_info = (struct SensorMibInfo *)g_hash_table_lookup(ipmi_sensor_hash,
-								       sensor_array[i].ipmi_tag);
+			trace("Found OID IPMI Sensor=%s", ipmi_tag);
+
+			/* Insert tag and OID info in temporary hash */
+			if (!g_hash_table_lookup_extended(ipmi_sensor_hash,
+							  ipmi_tag,
+							  (gpointer)&hash_existing_key,
+							  (gpointer)&hash_value)) {
+
+				mib_info = g_memdup(&(snmp_bc_ipmi_sensors_voltage[i]), sizeof(struct SensorMibInfo));
+				if (!mib_info) {
+					dbg("Out of memory.");
+					g_free(ipmi_tag);
+					rtn_code = SA_ERR_HPI_OUT_OF_SPACE;
+					goto CLEANUP;
+				}
+				g_hash_table_insert(ipmi_sensor_hash, ipmi_tag, mib_info);
+			}
+			else { /* Already exists */
+				dbg("IPMI OID ERROR=%s.", snmp_bc_ipmi_sensors_voltage[i].oid);
+				g_free(ipmi_tag);
+			}
+		}
+	}
+
+	/* Iterate thru all the possible IPMI sensors, if it's defined for this blade,
+	   push up its RDR info to Infra-structure */
+	for (i=0; sensor_array[i].ipmi.index != 0; i++) {
+		mib_info = (struct SensorMibInfo *)g_hash_table_lookup(ipmi_sensor_hash, sensor_array[i].ipmi_tag);
 		if (mib_info) {
 			struct oh_event *e = NULL;
 			struct SensorInfo *sinfo;
@@ -1027,10 +1127,21 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].ipmi.comment);
 			
-			trace("Discovered IPMI sensor: %s.", e->u.rdr_event.rdr.IdString.Data);
 			sinfo = g_memdup(&(sensor_array[i].ipmi.sensor_info), sizeof(struct SensorInfo));
+			if (!sinfo) {
+				dbg("Out of memory.");
+				rtn_code = SA_ERR_HPI_OUT_OF_SPACE;
+				g_free(e);
+				goto CLEANUP;
+			}
+
 			sinfo->mib = *mib_info;
 			
+			trace("Adding RDR for IPMI sensor=%s; Num=%d; OID=%s",
+			      e->u.rdr_event.rdr.IdString.Data,
+			      e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num,
+			      sinfo->mib.oid);
+
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
