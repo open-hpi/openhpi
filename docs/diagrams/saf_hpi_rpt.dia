@@ -58,14 +58,14 @@
   <dia:layer name="Background" visible="true">
     <dia:object type="UML - Realizes" version="0" id="O0">
       <dia:attribute name="obj_pos">
-        <dia:point val="35.2573,19.15"/>
+        <dia:point val="25.35,19.35"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="18.1771,19.1;36.1073,25.7162"/>
+        <dia:rectangle val="18.1771,19.3;26.2,25.7162"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="35.2573,19.15"/>
-        <dia:point val="35.2573,24.9155"/>
+        <dia:point val="25.35,19.35"/>
+        <dia:point val="25.35,24.9155"/>
         <dia:point val="18.2271,24.9155"/>
         <dia:point val="18.2271,24.9155"/>
       </dia:attribute>
@@ -81,7 +81,7 @@
         <dia:string/>
       </dia:attribute>
       <dia:connections>
-        <dia:connection handle="0" to="O10" connection="6"/>
+        <dia:connection handle="0" to="O10" connection="5"/>
         <dia:connection handle="1" to="O13" connection="13"/>
       </dia:connections>
     </dia:object>
@@ -934,13 +934,13 @@
     </dia:object>
     <dia:object type="UML - Class" version="0" id="O10">
       <dia:attribute name="obj_pos">
-        <dia:point val="29.2,16.75"/>
+        <dia:point val="25.35,16.95"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="29.15,16.7;41.3647,19.2"/>
+        <dia:rectangle val="25.3,16.9;37.5147,19.4"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="29.2,16.75"/>
+        <dia:point val="25.35,16.95"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
         <dia:real val="12.1147"/>
@@ -1029,13 +1029,13 @@
     </dia:object>
     <dia:object type="UML - Class" version="0" id="O11">
       <dia:attribute name="obj_pos">
-        <dia:point val="27.95,20.4"/>
+        <dia:point val="26.45,21"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="27.9,20.35;46.3518,23.65"/>
+        <dia:rectangle val="26.4,20.95;44.8518,24.25"/>
       </dia:attribute>
       <dia:attribute name="elem_corner">
-        <dia:point val="27.95,20.4"/>
+        <dia:point val="26.45,21"/>
       </dia:attribute>
       <dia:attribute name="elem_width">
         <dia:real val="18.3518"/>
@@ -1144,16 +1144,16 @@
     </dia:object>
     <dia:object type="UML - Realizes" version="0" id="O12">
       <dia:attribute name="obj_pos">
-        <dia:point val="37.1259,20.4"/>
+        <dia:point val="35.6259,21"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="35.2073,18.6881;37.9759,20.45"/>
+        <dia:rectangle val="31.3573,19.1677;36.4759,21.05"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="37.1259,20.4"/>
-        <dia:point val="37.1259,19.4874"/>
-        <dia:point val="35.2573,19.4874"/>
-        <dia:point val="35.2573,19.15"/>
+        <dia:point val="35.6259,21"/>
+        <dia:point val="35.6259,19.967"/>
+        <dia:point val="31.4073,19.967"/>
+        <dia:point val="31.4073,19.35"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
         <dia:enum val="1"/>
@@ -1348,15 +1348,15 @@
     </dia:object>
     <dia:object type="UML - Realizes" version="0" id="O14">
       <dia:attribute name="obj_pos">
-        <dia:point val="35.2573,16.75"/>
+        <dia:point val="25.35,16.95"/>
       </dia:attribute>
       <dia:attribute name="obj_bb">
-        <dia:rectangle val="22.6602,15.5662;36.1073,17.1662"/>
+        <dia:rectangle val="22.6602,15.0677;26.2,17"/>
       </dia:attribute>
       <dia:attribute name="orth_points">
-        <dia:point val="35.2573,16.75"/>
-        <dia:point val="35.2573,16.3655"/>
-        <dia:point val="22.7102,16.3655"/>
+        <dia:point val="25.35,16.95"/>
+        <dia:point val="25.35,15.867"/>
+        <dia:point val="22.7102,15.867"/>
         <dia:point val="22.7102,16.3"/>
       </dia:attribute>
       <dia:attribute name="orth_orient">
@@ -1371,7 +1371,7 @@
         <dia:string/>
       </dia:attribute>
       <dia:connections>
-        <dia:connection handle="0" to="O10" connection="1"/>
+        <dia:connection handle="0" to="O10" connection="0"/>
         <dia:connection handle="1" to="O3" connection="15"/>
       </dia:connections>
     </dia:object>
@@ -1811,6 +1811,290 @@
       <dia:connections>
         <dia:connection handle="0" to="O17" connection="3"/>
         <dia:connection handle="1" to="O15" connection="9"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="UML - Class" version="0" id="O19">
+      <dia:attribute name="obj_pos">
+        <dia:point val="25.0104,37.0405"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="24.9604,36.9905;42.4527,46.2905"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="25.0104,37.0405"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="17.3922"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="9.2"/>
+      </dia:attribute>
+      <dia:attribute name="name">
+        <dia:string>#SaHpiSensorRecT#</dia:string>
+      </dia:attribute>
+      <dia:attribute name="stereotype">
+        <dia:string/>
+      </dia:attribute>
+      <dia:attribute name="abstract">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="suppress_attributes">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="suppress_operations">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="visible_attributes">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="visible_operations">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="foreground_color">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="background_color">
+        <dia:color val="#ffffff"/>
+      </dia:attribute>
+      <dia:attribute name="normal_font">
+        <dia:font name="Courier"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_font">
+        <dia:font name="Courier New"/>
+      </dia:attribute>
+      <dia:attribute name="classname_font">
+        <dia:font name="Nimbus Sans L"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_classname_font">
+        <dia:font name="Nimbus Sans L"/>
+      </dia:attribute>
+      <dia:attribute name="font_height">
+        <dia:real val="0.8"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_font_height">
+        <dia:real val="0.8"/>
+      </dia:attribute>
+      <dia:attribute name="classname_font_height">
+        <dia:real val="1"/>
+      </dia:attribute>
+      <dia:attribute name="abstract_classname_font_height">
+        <dia:real val="1"/>
+      </dia:attribute>
+      <dia:attribute name="attributes">
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#Num#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiSensorNumT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#Type#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiSensorTypeT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#Category#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiEventCategoryT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#EventCtrl#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiSensorEventCtrlT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#Events#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiEventStateT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#Ignore#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiBoolT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#DataFormat#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiSensorDataFormatT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#ThresholdDefn#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiSesnorThdDefnT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+        <dia:composite type="umlattribute">
+          <dia:attribute name="name">
+            <dia:string>#Oem#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="type">
+            <dia:string>#SaHpiUint32T#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="value">
+            <dia:string/>
+          </dia:attribute>
+          <dia:attribute name="visibility">
+            <dia:enum val="3"/>
+          </dia:attribute>
+          <dia:attribute name="abstract">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+          <dia:attribute name="class_scope">
+            <dia:boolean val="false"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="operations"/>
+      <dia:attribute name="template">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="templates"/>
+    </dia:object>
+    <dia:object type="UML - Realizes" version="0" id="O20">
+      <dia:attribute name="obj_pos">
+        <dia:point val="25.0104,37.0405"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="18.2021,31.2912;25.8604,37.0905"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="25.0104,37.0405"/>
+        <dia:point val="25.0104,32.0905"/>
+        <dia:point val="18.2521,32.0905"/>
+        <dia:point val="18.2521,32.1155"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+      </dia:attribute>
+      <dia:attribute name="name">
+        <dia:string/>
+      </dia:attribute>
+      <dia:attribute name="stereotype">
+        <dia:string/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O19" connection="0"/>
+        <dia:connection handle="1" to="O15" connection="11"/>
       </dia:connections>
     </dia:object>
   </dia:layer>
