@@ -29,7 +29,7 @@
 #include <oh_error.h>
 #include <oh_domain.h>
 #include <oh_session.h>
-#include <rpt_utils.h>
+#include <oh_utils.h>
 
 #ifdef __cplusplus
 extern "C" {
