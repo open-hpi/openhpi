@@ -21,6 +21,9 @@
 #include <oh_domain.h>
 #include <oh_event.h>
 
+#define OH_MAX_DAT_SIZE_LIMIT 0
+#define OH_MAX_DAT_USER_LIMIT 0
+
 /* Alarm Handling */
 SaHpiAlarmT *oh_add_alarm(struct oh_domain *d, SaHpiAlarmT *alarm);
 SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
@@ -31,7 +34,7 @@ SaHpiAlarmT *oh_get_alarm(struct oh_domain *d,
                           SaHpiManufacturerIdT *mid,
                           SaHpiSensorNumT *num,
                           SaHpiEventStateT *state,
-                          SaHpiBoolT unacknowledged,                          
+                          SaHpiBoolT unacknowledged,
                           int get_next);
 SaErrorT oh_remove_alarm(struct oh_domain *d,
                          SaHpiSeverityT *severity,

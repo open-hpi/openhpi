@@ -24,7 +24,7 @@
 
 #define OH_FIRST_DOMAIN 1
 
-struct oh_domain_table oh_domains = {        
+struct oh_domain_table oh_domains = {
         .table = NULL,
         .lock = G_STATIC_REC_MUTEX_INIT,
 };
@@ -45,7 +45,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
 {
         struct oh_domain *domain = NULL;
         static SaHpiDomainIdT id = OH_FIRST_DOMAIN; /* domain ids will start at 1 */
-        struct oh_global_param param = { .type = OPENHPI_DEL_MAX_SIZE };
+        struct oh_global_param param = { .type = OPENHPI_DEL_SIZE_LIMIT };
 
         domain = g_new0(struct oh_domain,1);
         if (!domain) return 0;
@@ -56,11 +56,11 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
 
         if (tag)
                 memcpy(&(domain->tag), tag, sizeof(SaHpiTextBufferT));
-        
+
         if (oh_get_global_param(&param))
-                param.u.del_max_size = 0;
-                
-        domain->del = oh_el_create(param.u.del_max_size);
+                param.u.del_size_limit = 0;
+
+        domain->del = oh_el_create(param.u.del_size_limit);
         domain->sessions = g_array_sized_new(FALSE, TRUE,
                                              sizeof(SaHpiSessionIdT),
                                              OH_SESSION_PREALLOC);
@@ -99,7 +99,7 @@ static void __inc_domain_refcount(struct oh_domain *d)
         g_static_rec_mutex_lock(&d->refcount_lock);
         d->refcount++;
         g_static_rec_mutex_unlock(&d->refcount_lock);
-        
+
         return;
 }
 
@@ -108,7 +108,7 @@ static void __dec_domain_refcount(struct oh_domain *d)
         g_static_rec_mutex_lock(&d->refcount_lock);
         d->refcount--;
         g_static_rec_mutex_unlock(&d->refcount_lock);
-        
+
         return;
 }
 
@@ -148,7 +148,7 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
         g_static_rec_mutex_unlock(&(oh_domains.lock)); /* Unlocked domain table */
         __dec_domain_refcount(domain);
 
-        
+
         if (domain->refcount < 0)
                 __delete_domain(domain);
 
@@ -168,22 +168,22 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
         struct oh_domain *domain = NULL;
 
         if (did < 1) return NULL;
-        
+
         if (did == SAHPI_UNSPECIFIED_DOMAIN_ID) {
                 did = oh_get_default_domain_id();
         }
 
-	g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
-       	domain = g_hash_table_lookup(oh_domains.table, &did);
-       	if (!domain) {
-               	g_static_rec_mutex_unlock(&(oh_domains.lock));
-               	return NULL;
-	}
+        g_static_rec_mutex_lock(&(oh_domains.lock)); /* Locked domain table */
+        domain = g_hash_table_lookup(oh_domains.table, &did);
+        if (!domain) {
+                g_static_rec_mutex_unlock(&(oh_domains.lock));
+                return NULL;
+        }
 
-	/* Punch in */        
+        /* Punch in */
         __inc_domain_refcount(domain);
         /* Unlock domain table */
-	g_static_rec_mutex_unlock(&(oh_domains.lock));
+        g_static_rec_mutex_unlock(&(oh_domains.lock));
         /* Wait to get domain lock */
         g_static_rec_mutex_lock(&(domain->lock));
 
@@ -235,7 +235,7 @@ SaErrorT oh_release_domain(struct oh_domain *domain)
         __dec_domain_refcount(domain);
         if (domain->refcount < 0)
                 __delete_domain(domain);
-        else        
+        else
                 g_static_rec_mutex_unlock(&(domain->lock));
 
         return SA_OK;
