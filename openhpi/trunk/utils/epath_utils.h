@@ -36,6 +36,10 @@
 #define ESHORTNAMES_THIRD_JUMP 43
 #define ESHORTNAMES_LAST_JUMP 44
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 int string2entitypath(const gchar *epathstr,
 		      SaHpiEntityPathT *epathptr);
 
@@ -52,5 +56,8 @@ int append_root(SaHpiEntityPathT *ep);
 int prt_ep(SaHpiEntityPathT *ep);
 
 int ep_cmp(SaHpiEntityPathT *ep1, SaHpiEntityPathT *ep2);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
