@@ -254,7 +254,10 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
 {       
         struct oh_session *session = NULL;
+        struct oh_domain *domain = NULL;
+        SaHpiDomainIdT did;
         gpointer event = NULL;
+        unsigned int i, len;
 
         if (sid < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -262,18 +265,32 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
         session = g_hash_table_lookup(sessions.table, &sid);
         if (!session) {
                 g_mutex_unlock(sessions.lock);
-                return SA_ERR_HPI_NOT_PRESENT;                
+                return SA_ERR_HPI_NOT_PRESENT;
         }
         
         g_hash_table_remove(sessions.table, &(session->id));
+        g_mutex_unlock(sessions.lock); /* Unlocked session table */
+        did = session->did;
 
+        /* Finalize session */
         while ((event = g_async_queue_try_pop(session->eventq2)) != NULL) {
                 g_free(event);
         }
         g_async_queue_unref(session->eventq2);
         g_free(session);
 
-        g_mutex_unlock(sessions.lock); /* Unlocked session table */
+        /* Update domain of session deletion. */
+        domain = oh_get_domain(did);
+        if (domain) {
+                len = domain->sessions->len;
+                for (i = 0; i < len; i++) {
+                        if (g_array_index(domain->sessions,SaHpiSessionIdT,i) == sid) {
+                                g_array_remove_index(domain->sessions,i);
+                                break;
+                        }
+                }
+                oh_release_domain(did);
+        }        
 
         return SA_OK;
 }
