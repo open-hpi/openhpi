@@ -102,6 +102,9 @@ SaErrorT oh_fprint_ctrlrec(FILE *stream, const SaHpiCtrlRecT *control);
 #define oh_print_watchdogrec(watchdog_ptr) oh_fprint_watchdogrec(stdout, watchdog_ptr)
 SaErrorT oh_fprint_watchdogrec(FILE *stream, const SaHpiWatchdogRecT *watchdog);
 
+#define oh_print_event(event_ptr) oh_fprint_event(stdout, event_ptr)
+SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event);
+
 Need ?????
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
 SaHpiBoolT oh_valid_time(SaHpiTimeT time); - move to sahpi_time_utils.c/h
