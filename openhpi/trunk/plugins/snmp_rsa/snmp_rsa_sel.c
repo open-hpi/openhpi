@@ -134,8 +134,10 @@ SaErrorT snmp_rsa_build_selcache(void *hnd, SaHpiResourceIdT id)
 	
         /* Work around RSA SEL read problem - bug 940051 */
         /* Always load Newest -> Oldest entry order */
-        for (i = 1; i <= current; i++) {
-                rv = snmp_rsa_sel_read_add (hnd, id, i); 
+        if (current > 0) {
+                for (i = 1; i < current; i++) {
+                        rv = snmp_rsa_sel_read_add (hnd, id, i); 
+                }
         }
 	
 	return SA_OK;
