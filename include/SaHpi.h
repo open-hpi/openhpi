@@ -423,10 +423,10 @@ typedef SaHpiUint32T SaHpiEntryIdT;
 typedef SaHpiInt64T SaHpiTimeT;    /* Time in nanoseconds */
 
 /* Unspecified or unknown time */
-#define SAHPI_TIME_UNSPECIFIED     (SaHpiTimeT) 0x8000000000000000
+#define SAHPI_TIME_UNSPECIFIED     ((SaHpiTimeT) 0x8000000000000000LL)
 
 /* Maximum time that can be specified as relative */
-#define SAHPI_TIME_MAX_RELATIVE    (SaHpiTimeT) 0x0C00000000000000
+#define SAHPI_TIME_MAX_RELATIVE    ((SaHpiTimeT) 0x0C00000000000000LL)
 typedef SaHpiInt64T SaHpiTimeoutT; /* Timeout in nanoseconds */
 
 /* Non-blocking call */
