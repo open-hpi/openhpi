@@ -10,7 +10,11 @@
  * full licensing terms.
  *
  * Authors:
+ *     Bill Barkely 
  *     Andy Cress <arcress@users.sourceforge.net>
+ * Changes:
+ * 02/26/04 ARCress - added general search for any Fan sensor.
+ * 03/17/04 ARCress - changed to Temp sensor (always has Lower Major)
  */
 
 #include <stdio.h>
@@ -20,6 +24,7 @@
 #include <getopt.h>
 #include "SaHpi.h"
 
+
 int fdebug = 0;
 int fxdebug = 0;
 int fsensor = 0;
@@ -27,12 +32,16 @@ int slist = 0;
 int i,j,k = 0;
 int sensor_name_len = 0;
 char *sensor_name;
-char s_name[] = "80mm Sys Fan (R)";
-char sm_name[] = "Baseboard Fan 2";
+char s_name[] = "80mm Sys Fan (R)";  /*TSRLT2, default*/
+char sm_name[] = "Baseboard Fan 2";  /*TSRMT2, Mullins*/
+char s_pattn[] = "Temp";  /* else use the first temperature SDR found */
 char progname[] = "hpievent";
-char progver[] = "0.5";
+char progver[] = "1.0";
+char inbuff[1024];
 char outbuff[256];
+SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
+SaHpiInventoryDataT *inv;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
 SaHpiSensorEvtEnablesT enables1;
@@ -57,7 +66,16 @@ char *units[NSU] = {
 	"mm",    "cm"
 };
 
-static void ShowThresh(
+void
+fixstr(SaHpiTextBufferT *strptr)
+{ 
+	size_t datalen;
+	if ((datalen=strptr->DataLength) != 0)
+		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
+	outbuff[datalen] = 0;
+}
+
+void ShowThresh(
    SaHpiSensorThresholdsT *sensbuff)
 {
       printf( "    Supported Thresholds:\n");
@@ -120,7 +138,7 @@ void DoEvent(
 
    rv = saHpiSensorReadingGet( sessionid, resourceid, sensornum, &reading);
    if (rv != SA_OK)  {
-	printf( "\n");
+	printf( "saHpiSensorReadingGet error %d\n",rv);
 /*	printf("ReadingGet ret=%d\n", rv); */
 	return;
    }
@@ -158,12 +176,14 @@ void DoEvent(
    /* Get backup copy */
    rv = saHpiSensorThresholdsGet(
 	sessionid, resourceid, sensornum, &senstbuff1);
-   if (rv != SA_OK) return;
+   if (rv != SA_OK) {
+	printf( "saHpiSensorThresholdsGet error %d\n",rv); return; }
 
    /* Get modification copy */
    rv = saHpiSensorThresholdsGet(
 	sessionid, resourceid, sensornum, &senstbuff2);
-   if (rv != SA_OK) return;
+   if (rv != SA_OK) {
+	printf( "saHpiSensorThresholdsGet error %d\n",rv); return; }
 
    /* Display current thresholds */ 
    if (rv == SA_OK) {
@@ -191,7 +211,8 @@ printf( "ValuesPresent = %x\n", senstbuff2.LowMajor.ValuesPresent);
 
    rv = saHpiSensorEventEnablesGet(
 		sessionid, resourceid, sensornum, &enables1);
-   if (rv != SA_OK) return;
+   if (rv != SA_OK) {
+	printf( "saHpiSensorEventEnablesGet error %d\n",rv); return; }
 
    printf( "Sensor Event Enables: \n");
    printf( "  Sensor Status = %x\n", enables1.SensorStatus);
@@ -216,14 +237,16 @@ printf( "ValuesPresent = %x\n", senstbuff2.LowMajor.ValuesPresent);
 /* Subscribe to New Events, only */
 printf( "Subscribe to events\n");
    rv = saHpiSubscribe( sessionid, (SaHpiBoolT)0 );
-   if (rv != SA_OK) return;
+   if (rv != SA_OK) {
+	printf( "saHpiSubscribe error %d\n",rv); return; }
 
 /* Set new thresholds */
 printf( "Set new thresholds\n");
 
    rv = saHpiSensorThresholdsSet(
 	sessionid, resourceid, sensornum, &senstbuff2);
-   if (rv != SA_OK) return;
+   if (rv != SA_OK) {
+	printf( "saHpiSensorThresholdsSet error %d\n",rv); return; }
 
 /* Go wait on event to occur */
 printf( "Go and get the event\n");
@@ -266,12 +289,14 @@ printf( "Decode event info\n");
 printf( "Reset thresholds\n");
    rv = saHpiSensorThresholdsSet(
 	sessionid, resourceid, sensornum, &senstbuff1);
-   if (rv != SA_OK) return;
+   if (rv != SA_OK) {
+	printf( "saHpiSensorThresholdsSet error %d\n",rv); return; }
 
 /* Re-read threshold values */
    rv = saHpiSensorThresholdsGet(
 	sessionid, resourceid, sensornum, &senstbuff2);
-   if (rv != SA_OK) return;
+   if (rv != SA_OK) {
+	printf( "saHpiSensorThresholdsGet error %d\n",rv); return; }
 
 /* Display reset thresholds */ 
    if (rv == SA_OK) {
@@ -284,6 +309,37 @@ printf( "Unsubscribe\n");
 
    return;
 }  /*end DoEvent*/
+
+/*
+ * findmatch
+ * returns offset of the match if found, or -1 if not found.
+ */
+static int
+findmatch(char *buffer, int sbuf, char *pattern, int spattern, char figncase)
+{
+    int c, j, imatch;
+    j = 0;
+    imatch = 0;
+    for (j = 0; j < sbuf; j++) {
+        if (sbuf - j < spattern && imatch == 0) return (-1);
+        c = buffer[j];
+        if (c == pattern[imatch]) {
+            imatch++;
+            if (imatch == spattern) return (++j - imatch);
+        } else if (pattern[imatch] == '?') {  /*wildcard char*/
+            imatch++;
+            if (imatch == spattern) return (++j - imatch);
+        } else if (figncase == 1) {
+            if ((c & 0x5f) == (pattern[imatch] & 0x5f)) {
+                imatch++;
+                if (imatch == spattern) return (++j - imatch);
+            } else
+                imatch = 0;
+        } else
+            imatch = 0;
+    }
+    return (-1);
+}                               /*end findmatch */
 
 int
 main(int argc, char **argv)
@@ -299,6 +355,7 @@ main(int argc, char **argv)
   SaHpiEntryIdT nextentryid;
   SaHpiResourceIdT resourceid;
   SaHpiRdrT rdr;
+  int firstpass = 1;
 
   printf("%s  ver %s\n", progname,progver);
   sensor_name = (char *)strdup(s_name);
@@ -330,6 +387,7 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
+  inv = (SaHpiInventoryDataT *)&inbuff[0];
 
   rv = saHpiInitialize(&hpiVer);
 
@@ -351,7 +409,7 @@ main(int argc, char **argv)
   rv = saHpiRptInfoGet(sessionid,&rptinfo);
 
   if (fxdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  if (fdebug) printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+  if (fdebug) printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
          rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
   /* walk the RPT list */
@@ -381,23 +439,35 @@ main(int argc, char **argv)
 	  { 
 	    /*type 2 includes sensor and control records*/
 	    rdr.IdString.Data[rdr.IdString.DataLength] = 0;
+#ifdef OLD
 	    if (strncmp(rdr.IdString.Data, sensor_name,
 		rdr.IdString.DataLength) == 0)
+#else
+	    if (findmatch(rdr.IdString.Data,rdr.IdString.DataLength,
+		sensor_name, strlen(sensor_name),0) >= 0)
+#endif
 	    {
 	      printf( "%02d %s\t", rdr.RecordId, rdr.IdString.Data);
 	      DoEvent( sessionid, resourceid, &rdr.RdrTypeUnion.SensorRec);
 	      if (rv != SA_OK)
 	        printf( "Returned Error from DoEvent: rv=%d\n", rv);
+	      break;  /* done with rdr loop */
 	    }
 	  } 
 	  if (rv != SA_OK)
 	      printf( "Returned HPI Error: rv=%d\n", rv);
 	  entryid = nextentryid;
         }
-      }
+	if (firstpass && entryid == SAHPI_LAST_ENTRY) {
+		/* Not found yet, so try again, looking for any Fan */
+		sensor_name = s_pattn;
+		entryid = SAHPI_FIRST_ENTRY;
+		firstpass = 0;
+	}
+      }  /*while rdr loop */
       rptentryid = nextrptentryid;
     }
-  }
+  }  /*while rpt loop*/
   rv = saHpiSessionClose(sessionid);
   rv = saHpiFinalize();
   exit(0);

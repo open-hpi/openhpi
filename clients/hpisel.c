@@ -18,6 +18,7 @@
  * 06/25/03 Andy Cress v1.0 rework event data logic 
  * 07/23/03 Andy Cress workaround for OpenHPI BUGGY stuff
  * 11/12/03 Andy Cress v1.1 check for CAPABILITY_SEL
+ * 03/03/04 Andy Cress v1.2 use better free space logic now 
  * 
  * Note that HPI 1.0 does not return all event data fields, so event
  * types other than 'user' will not have all bytes filled in as they
@@ -58,7 +59,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 #include "SaHpi.h"
 
-char progver[] = "1.1";
+char progver[] = "1.2";
 int fdebug = 0;
 int fclear = 0;
 
@@ -416,6 +417,7 @@ int main(int argc, char **argv)
         SaHpiSelInfoT info;
         SaHpiSelEntryT  sel;
         SaHpiRdrT rdr;
+	int free = 50;
         
         printf("%s: version %s\n",argv[0],progver); 
         
@@ -480,6 +482,7 @@ int main(int argc, char **argv)
                                 char date[30];
                                 printf("EventLog entries=%d, size=%d, enabled=%d\n",
                                        info.Entries,info.Size,info.Enabled);
+				free = info.Size - info.Entries;
                                 saftime2str(info.UpdateTimestamp,date,30);
                                 printf("UpdateTime = %s,", date);
                                 saftime2str(info.CurrentTime,date,30);
@@ -501,6 +504,10 @@ int main(int argc, char **argv)
                                         entryid = nextentryid;
                                 }
                         }
+			if (free < 6) {
+				printf("WARNING: Log free space is very low (%d records)\n"
+				"         Clear log with hpisel -c\n",free);
+			}
                         rptentryid = nextrptentryid;
                 }
         }

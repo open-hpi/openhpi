@@ -259,7 +259,7 @@ int main(int argc, char **argv)
         rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
                 if (rv == SA_ERR_HPI_ERROR) 
-                        printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
+                        printf("saHpiSessionOpen: error %d, daemon not running\n",rv);
                 else
                         printf("saHpiSessionOpen: %s\n",decode_error(rv));
                 exit(-1);

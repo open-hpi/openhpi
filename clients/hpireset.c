@@ -98,7 +98,7 @@ main(int argc, char **argv)
   if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
   rv = saHpiRptInfoGet(sessionid,&rptinfo);
   if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
          rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
 
   /* walk the RPT list */

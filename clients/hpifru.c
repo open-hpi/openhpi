@@ -10,7 +10,10 @@
  * full licensing terms.
  *
  * Authors:
+ *     Bill Barkley
  *     Andy Cress <arcress@users.sourceforge.net>
+ * Changes:
+ * 02/19/04 ARCress - generalized BMC tag parsing, created IsBmcTag()
  */
 
 #include <stdio.h>
@@ -22,7 +25,9 @@
 
 #define NCT 25
 
-char progver[] = "0.8";
+char progver[] = "1.0";
+char progname[] = "hpifru";
+char bmctag[] = "Basbrd Mgmt Ctlr";  /* see also IsBmcTag() */
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
 	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
@@ -35,18 +40,59 @@ int fasset = 0;
 int fdebug = 0;
 int fxdebug = 0;
 int i,j,k = 0;
+SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
-char progname[] = "hpifru";
-char bmctag[] = "Basbrd Mgmt Ctlr";
 char *asset_tag;
+char inbuff[1024];
 char outbuff[256];
 SaHpiInventoryDataT *inv;
-const SaHpiUint32T   invsize = 16384;
 SaHpiInventChassisTypeT chasstype;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
 
-static void
+/*
+ * findmatch
+ * returns offset of the match if found, or -1 if not found.
+ */
+static int
+findmatch(char *buffer, int sbuf, char *pattern, int spattern, char figncase)
+{
+    int c, j, imatch;
+    j = 0;
+    imatch = 0;
+    for (j = 0; j < sbuf; j++) {
+        if (sbuf - j < spattern && imatch == 0) return (-1);
+        c = buffer[j];
+        if (c == pattern[imatch]) {
+            imatch++;
+            if (imatch == spattern) return (++j - imatch);
+        } else if (pattern[imatch] == '?') {  /*wildcard char*/
+            imatch++;
+            if (imatch == spattern) return (++j - imatch);
+        } else if (figncase == 1) {
+            if ((c & 0x5f) == (pattern[imatch] & 0x5f)) {
+                imatch++;
+                if (imatch == spattern) return (++j - imatch);
+            } else
+                imatch = 0;
+        } else
+            imatch = 0;
+    }
+    return (-1);
+}                               /*end findmatch */
+
+int 
+IsTagBmc(char *dstr, int dlen)
+{
+   int ret = 0;
+   if (strncmp(dstr, bmctag, dlen) == 0)  /* Sahalee */
+	ret = 1;
+   else if (findmatch(dstr,dlen,"BMC",3,1) >= 0) /* mBMC or other */
+	ret = 1;
+   return(ret);
+}
+
+void
 fixstr(SaHpiTextBufferT *strptr)
 { 
 	size_t datalen;
@@ -55,12 +101,12 @@ fixstr(SaHpiTextBufferT *strptr)
 	outbuff[datalen] = 0;
 }
 
-static void
+void
 prtchassinfo(void)
 {
   chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
   for (k=0; k<NCT; k++) {
-	  if ((unsigned int)k == chasstype)
+	  if (k == chasstype)
 		  printf( "Chassis Type        : %s\n", chasstypes[k]);
   }	  
 
@@ -106,7 +152,7 @@ prtchassinfo(void)
   }
 }
 
-static void
+void
 prtprodtinfo(void)
 {
   int j;
@@ -163,7 +209,7 @@ prtprodtinfo(void)
   } /*end for*/
 }
 
-static void
+void
 prtboardinfo(void)
 {
   dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.BoardInfo;
@@ -253,7 +299,7 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
-  inv = (SaHpiInventoryDataT *)malloc(invsize);
+  inv = (SaHpiInventoryDataT *)&inbuff[0];
   rv = saHpiInitialize(&hpiVer);
   if (rv != SA_OK) {
     printf("saHpiInitialize error %d\n",rv);
@@ -269,7 +315,7 @@ main(int argc, char **argv)
   if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
   rv = saHpiRptInfoGet(sessionid,&rptinfo);
   if (fxdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  if (fdebug) printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+  if (fdebug) printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
          rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
   /* walk the RPT list */
@@ -299,12 +345,13 @@ main(int argc, char **argv)
 	    rdr.IdString.Data[rdr.IdString.DataLength] = 0;	    
 	    if (fdebug) printf( "RDR[%d]: type=%d num=%d %s\n", rdr.RecordId,
 		    rdr.RdrType, eirid, rdr.IdString.Data);
-	    if (fdebug) printf("BufferSize=%d\n", invsize);
-
-
+	    buffersize = sizeof(inbuff);
+	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%d\n",
+		    buffersize, sizeof(inbuff));
+	    if ( IsTagBmc(rdr.IdString.Data, rdr.IdString.DataLength) )
 	    {
 	      rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-		  eirid, invsize, inv, &actualsize);
+		  eirid, buffersize, inv, &actualsize);
   	      if (fxdebug) printf(
 		    "saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
 	      if (fdebug) printf("ActualSize=%d\n", actualsize);
@@ -346,9 +393,8 @@ main(int argc, char **argv)
 		      }
 		    }
 		  }
-		  if (strncmp(rdr.IdString.Data, bmctag,
-			rdr.IdString.DataLength) == 0)
-			if (fasset == 1)
+		  if (IsTagBmc(rdr.IdString.Data,rdr.IdString.DataLength)
+		      && (fasset == 1))
 		  {
 		    SaHpiTextBufferT aTag;
 		    if (fdebug) printf( "Inventory = %s\n", rdr.IdString.Data);
@@ -372,7 +418,7 @@ main(int argc, char **argv)
 		    {
 		      printf ("Good write - re-reading!\n");
 	              rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-		          eirid, invsize, inv, &actualsize);
+		          eirid, buffersize, inv, &actualsize);
   	              if (fxdebug) printf(
 		      "saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
 	              if (fdebug) printf("ActualSize=%d\n", actualsize);
@@ -427,7 +473,6 @@ main(int argc, char **argv)
   }
   rv = saHpiSessionClose(sessionid);
   rv = saHpiFinalize();
-  free(inv);
   exit(0);
 }
  /* end hpifru.c */

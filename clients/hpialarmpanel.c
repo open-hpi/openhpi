@@ -11,6 +11,8 @@
  *
  * Authors:
  *     Andy Cress <arcress@users.sourceforge.net>
+ * Changes:
+ * 02/23/04 Andy Cress - v1.1 add checking/setting disk LEDs 
  */
 
 #include <stdio.h>
@@ -19,12 +21,14 @@
 #include "SaHpi.h"
 
 #define  uchar  unsigned char
-char *progver  = "1.0";
+#define  SAHPI_OEM_ALARM_LED 0x10 
+#define  SAHPI_OEM_DISK_LED  0x20 
+char *progver  = "1.1";
 char fdebug = 0;
 char *states[3] = {"off", "ON ", "unknown" };
 uchar fsetid = 0;
 uchar fid = 0;
-#define NLEDS  4
+#define NLEDS  6
 struct { 
    uchar fset;
    uchar val;
@@ -32,7 +36,9 @@ struct {
 {/*pwr*/ 0, 0},
 {/*crt*/ 0, 0},
 {/*maj*/ 0, 0},
-{/*min*/ 0, 0} };
+{/*min*/ 0, 0},
+{/*diska*/ 0, 0},
+{/*diskb*/ 0, 0} };
 
 
 int
@@ -57,7 +63,7 @@ main(int argc, char **argv)
   uchar b = 0;
 
   printf("%s ver %s\n", argv[0],progver);
-  while ( (c = getopt( argc, argv,"rxc:m:n:p:i:o?")) != EOF )
+  while ( (c = getopt( argc, argv,"rxa:b:c:m:n:p:i:o?")) != EOF )
      switch(c) {
           
 	case 'c': b = atoi(optarg);      /* set crit alarm value */
@@ -71,6 +77,14 @@ main(int argc, char **argv)
 	case 'n': b = atoi(optarg);      /* set minor alarm value */
 		  leds[3].fset = 1; 
 		  leds[3].val = b;
+                  break;
+	case 'a': b = atoi(optarg);      /* set disk a fault led */
+		  leds[4].fset = 1; 
+		  leds[4].val = b;
+                  break;
+	case 'b': b = atoi(optarg);      /* set disk b fault led */
+		  leds[5].fset = 1; 
+		  leds[5].val = b;
                   break;
 	case 'p': b = atoi(optarg);      /* set power alarm value */
 		  leds[0].fset = 1; 
@@ -87,7 +101,7 @@ main(int argc, char **argv)
                   break;
 	case 'x': fdebug = 1;     break;  /* debug messages */
 	default:
-                printf("Usage: %s [-c -i -m -n -p -o -x]\n", argv[0]);
+                printf("Usage: %s [-a -b -c -i -m -n -p -o -x]\n", argv[0]);
                 printf(" where -c1  sets Critical Alarm on\n");
                 printf("       -c0  sets Critical Alarm off\n");
                 printf("       -m1  sets Major Alarm on\n");
@@ -98,6 +112,10 @@ main(int argc, char **argv)
                 printf("       -p0  sets Power Alarm off\n");
                 printf("       -i5  sets Chassis ID on for 5 sec\n");
                 printf("       -i0  sets Chassis ID off\n");
+                printf("       -a1  sets Disk A fault on\n");
+                printf("       -a0  sets Disk A fault off\n");
+                printf("       -b1  sets Disk B fault on\n");
+                printf("       -b0  sets Disk B fault off\n");
                 printf("       -o   sets all Alarms off\n");
                 printf("       -x   show eXtra debug messages\n");
 		exit(1);
@@ -121,7 +139,7 @@ main(int argc, char **argv)
   if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
   rv = saHpiRptInfoGet(sessionid,&rptinfo);
   if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
          rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
   /* walk the RPT list */
@@ -187,12 +205,12 @@ main(int argc, char **argv)
 			    }
 			} else 
 			if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
-			    (rdr.RdrTypeUnion.CtrlRec.Oem & 0xf0) == 0x10 &&
+			    (rdr.RdrTypeUnion.CtrlRec.Oem & 0xf0) == SAHPI_OEM_ALARM_LED &&
 			    rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) {
 				/* this is an alarm LED */
 				b = (uchar)rdr.RdrTypeUnion.CtrlRec.Oem & 0x0f;
 				if ((b < NLEDS) && leds[b].fset) {
-				   printf("Setting led %d to %d\n",b,leds[b].val);
+				   printf("Setting alarm led %d to %d\n",b,leds[b].val);
 				   if (leds[b].val == 0) 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
@@ -201,6 +219,22 @@ main(int argc, char **argv)
 						resourceid, ctlnum,&ctlstate);
   				   /* if (fdebug)  */
 					printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+				}
+			}
+			else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
+			    (rdr.RdrTypeUnion.CtrlRec.Oem & 0xf0) == SAHPI_OEM_DISK_LED &&
+			    rdr.RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) {
+				/* this is a disk LED */
+				b = (uchar)rdr.RdrTypeUnion.CtrlRec.Oem & 0x0f;
+				if ((b < NLEDS) && leds[b].fset) {
+				   printf("Setting disk led %d to %d\n",b,leds[b].val);
+				   if (leds[b].val == 0) 
+					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
+				   else 
+					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
+				   rv = saHpiControlStateSet(sessionid,
+						resourceid, ctlnum,&ctlstate);
+				   printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
 				}
 			}
 			rv = SA_OK;  /* ignore errors & continue */
