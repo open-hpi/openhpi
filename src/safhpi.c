@@ -1177,6 +1177,8 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         RPTable *rpt;
         struct oh_handler *h;
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiSensorRecT *sensor;
         
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
@@ -1185,6 +1187,20 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+        
+        if (!rdr) {
+                dbg("No Sensor %d found for ResourceId %d", SensorNum, ResourceId);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        sensor = &(rdr->RdrTypeUnion.SensorRec);        
+
+        if(sensor->Ignore) {
+                dbg("Sensor %d, ResourceId %d set to ignore", SensorNum, ResourceId);
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
@@ -1209,6 +1225,7 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
 {
         struct oh_session *s;
         RPTable *rpt;
+        SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
         SaHpiSensorRecT *sensor;
         SaHpiSensorReadingFormatsT format;
@@ -1216,6 +1233,12 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
         OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
         
         rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
 
@@ -1223,6 +1246,11 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
                 return SA_ERR_HPI_NOT_PRESENT;
 
         sensor = &(rdr->RdrTypeUnion.SensorRec);
+
+        if(sensor->Ignore) {
+                dbg("Sensor %d, ResourceId %d set to ignore", SensorNum, ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
         /* if ReadingInput neither contains a raw nor a intepreted value or
            if it contains both, return an error */
@@ -1285,6 +1313,8 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+        SaHpiSensorRecT *sensor;
         struct oh_handler *h;
 
         OH_STATE_READY_CHECK;
@@ -1294,6 +1324,20 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+        
+        if (!rdr) {
+                dbg("No Sensor %d found for ResourceId %d", SensorNum, ResourceId);
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        sensor = &(rdr->RdrTypeUnion.SensorRec);        
+
+        if(sensor->Ignore) {
+                dbg("Sensor %d, ResourceId %d set to ignore", SensorNum, ResourceId);
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
         
@@ -1876,12 +1920,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
         struct oh_session *s;
         
         OH_STATE_READY_CHECK;
-
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+        OH_SESSION_SETUP(SessionId, s);
         
         *Timeout = get_hotswap_auto_insert_timeout();
         
@@ -1895,12 +1934,7 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
         struct oh_session *s;
         
         OH_STATE_READY_CHECK;
-
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+        OH_SESSION_SETUP(SessionId, s);
         
         set_hotswap_auto_insert_timeout(Timeout);
         
@@ -1920,7 +1954,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
         OH_RPT_GET(SessionId, rpt);
-        OH_RESOURCE_GET(rpt, ResourceId, res)
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
@@ -1949,7 +1983,7 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
         OH_RPT_GET(SessionId, rpt);
-        OH_RESOURCE_GET(rpt, ResourceId, res)
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
