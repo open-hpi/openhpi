@@ -386,8 +386,8 @@ SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
         }        
         
         /* Find matching sensor alarms and compare alarm's state with
-           the deassert mask. If deassert for that state is being disabled,
-           then remove the alarm.
+           the deassert mask. If deassert for that state is being disabled
+           on the sensor, then remove the alarm.
         */
         for (alarms = d->dat.list; alarms; alarms = alarms->next) {
                 SaHpiAlarmT *alarm = alarms->data;
