@@ -20,10 +20,10 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <errno.h>
+
 extern "C" {
-#include "SaHpi.h"
+#include <SaHpi.h>
 }
-#include "client.h"
 
 int main (int argc, char *argv []) {
 	SaErrorT 		err;
