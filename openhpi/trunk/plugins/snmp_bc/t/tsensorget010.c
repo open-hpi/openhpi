@@ -29,65 +29,72 @@ int main(int argc, char **argv)
 	SaErrorT expected_err;
 					
 	SaHpiResourceIdT  id;
-        SaHpiSessionIdT sessionid;
-	 
-	SaHpiSensorNumT dd_sid = 0;
-	SaHpiEventStateT state;
+        SaHpiSessionIdT   sessionid;
+        SaHpiRptEntryT    rptentry;
+	SaHpiRdrT         rdr;
+	SaHpiSensorNumT   dd_sid = 0;
+	SaHpiEventStateT  state;
 	SaHpiSensorReadingT reading;
 													    
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
-	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	SaHpiRdrT *rdrptr;
-		
+	 * ************************************* */		
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 
 	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	err = tfind_resource(&sessionid,SAHPI_CAPABILITY_SENSOR,SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return -1;
-
 	}
 
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	id = rptentry.ResourceId;
 	/************************** 
-	 * Test 10 
+	 * Test: find a sensor with desired property
 	 **************************/
-	dd_sid = 0;
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor = SAHPI_FALSE;			
 	do {
-		dd_sid++;
-		rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, dd_sid);
-		if (rdrptr != NULL) {
-			if (rdrptr->RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_FALSE) {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if ((rdr.RdrType == SAHPI_SENSOR_RDR) &&
+				(rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_FALSE))
+			{
+				foundSensor = SAHPI_TRUE;
 				break;
-			} else 
-				rdrptr = NULL;
+														
+			}
+			entryid = nextentryid;
 		}
-	} while ((rdrptr == NULL) && (dd_sid < 128));
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
 
-	if (rdrptr == NULL) testfail = -1;
-
+	if (!foundSensor) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		dd_sid = rdr.RdrTypeUnion.SensorRec.Num; 
+	}	
 	/************************** 
-	 * Test 11 
+	 * Test: Reading sensor with DataFormat.IsSupported == SAHPI_FALSE
 	 **************************/
 	expected_err = SA_OK;                   
-	err = snmp_bc_get_sensor_reading((void *)h->hnd, id, dd_sid, &reading, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorReadingGet(sessionid, id, dd_sid, &reading, &state);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 12 
+	 * Test: Verified returned data
 	 **************************/
 	if (reading.IsSupported ) {
-		printf("\t  Reading Is Supported for sensor %d!\n\n", dd_sid);
+		printf("Error! Invalid returned data\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		testfail = -1;
         }
 
