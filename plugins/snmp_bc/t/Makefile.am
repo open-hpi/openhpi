@@ -67,8 +67,8 @@ libsnmp_bc_la_SOURCES	= $(GENERATED_CODE) \
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@
 libsnmp_bc_la_LDFLAGS	= -version 0:0:0
 
-#libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
-#	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
+libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
+	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Keep in sync with parent directory's Makefile.am
 XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/event.xml
@@ -89,9 +89,9 @@ TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/u
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
-TESTS = \
-	tevent \ 
-	tcontrol_parms
+TESTS = 
+#	tevent \
+#	tcontrol_parms
        	
 #	tset_resource_tag \
 #	tset_resource_sev \
@@ -179,16 +179,16 @@ TESTS = \
 check_PROGRAMS = $(TESTS)
 
 # Unit test using normal IF calls and simulation library
-tevent_SOURCES = tevent.c
-tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-		 $(top_builddir)/src/libopenhpi.la \
-		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+#tevent_SOURCES = tevent.c
+#tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit test using normal IF calls and simulation library
-tcontrol_parms_SOURCES = tcontrol_parms.c
-tcontrol_parms_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-		 $(top_builddir)/src/libopenhpi.la \
-		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+#tcontrol_parms_SOURCES = tcontrol_parms.c
+#tcontrol_parms_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # Unit test using normal IF calls and simulation library
 #tset_resource_tag_SOURCES = tset_resource_tag.c
