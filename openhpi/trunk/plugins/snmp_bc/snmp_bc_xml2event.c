@@ -22,98 +22,98 @@
 GHashTable *errlog2event_hash = NULL;
 unsigned int errlog2event_hash_use_count = 0;
 
-GHashTable *rsa_xml2event_hash = NULL;
-unsigned int rsa_xml2event_hash_use_count = 0;
-
-/* local prototypes */
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 static void event_start_element(GMarkupParseContext *context,
                                 const gchar         *element_name,
-                                const gchar        **attribute_names,
-                                const gchar        **attribute_values,
-                                gpointer             user_data,
-                                GError             **error);
+                                const gchar         **attribute_names,
+                                const gchar         **attribute_values,
+                                gpointer            user_data,
+                                GError              **error);
 
 /**********************************************************************
- * errlog2event_hash_init: Read in the XML with the GLib markup APIs
- * and create the BC or RSA hash table.
+ * errlog2event_hash_init:
+ * @custom_handle: Plugin's data pointer.
+ * 
+ * Initializes the Error Log to event translation hash table.
  *
- * @hashtable: The hash table to use to store events
- * @xmlstr: The string containing the complete xml to parse
- *
- * return value: 0 = hash table created successfully
- *               -1 = An error occured, see the debug messages. In this case
- *                    the caller should attempt to free the hash table
+ * Returns:
+ * SA_OK - Normal operation.
+ * SA_ERR_HPI_OUT_OF_SPACE - No memory to allocate hash table structures.
+ * SA_ERR_HPI_INVALID_PARAMS - @custom_handle NULL
  **********************************************************************/
-
-int errlog2event_hash_init(GHashTable **hashtable, const char *xmlstr) {
+SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         GMarkupParser parser;
         GMarkupParseContext *pcontext;
         gboolean rc;
         GError *err = NULL;
+	struct errlog2event_hash_info user_data;
 
-        /* initialize the parser */
-        memset(&parser, 0, sizeof(parser));
-        parser.start_element = event_start_element;
-        pcontext = g_markup_parse_context_new(&parser, 0, hashtable, NULL);
-        if (pcontext == NULL) {
-		dbg("Cannot create parser context for event XML file");
-		return -1;
-        }
-
-        /* create the hash table */
-	*hashtable = g_hash_table_new(g_str_hash, g_str_equal);
-	if (*hashtable == NULL) {
-                g_markup_parse_context_free(pcontext);
-		dbg("Cannot allocate hash table.");
-		return -1;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        /* parse the xml */
+	/* Initialize hash table */
+	errlog2event_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	if (errlog2event_hash == NULL) {
+		dbg("No memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+	
+	/* Initialize user data used in parsing XML events */
+	user_data.platform = custom_handle->platform;
+	user_data.hashtable = errlog2event_hash;
+
+        /* Initialize XML parser */
+        memset(&parser, 0, sizeof(parser));
+        parser.start_element = event_start_element;
+        pcontext = g_markup_parse_context_new(&parser, 0, (gpointer *)&user_data, NULL);
+        if (pcontext == NULL) {
+		dbg("No memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+        }
+
+        /* Parse XML events */
         rc = g_markup_parse_context_parse(pcontext,
-                                          (const gchar *)xmlstr,
-                                          (gssize)strlen(xmlstr), &err);
+                                          (const gchar *)eventxml,
+                                          (gssize)strlen(eventxml), &err);
         if (rc == FALSE || err != NULL) {
                 if (err != NULL) {
-                        dbg("%s", err->message);
+                        dbg("Parse error=%s.", err->message);
                         g_error_free(err);
                 }
                 else {
-                        dbg("Unknown XML parse error");
+                        dbg("Unknown XML parse error.");
                 }
                 g_markup_parse_context_free(pcontext);
-                return -1;
+                return(SA_ERR_HPI_INTERNAL_ERROR);
         }
         g_markup_parse_context_end_parse(pcontext, &err);
         g_markup_parse_context_free(pcontext);
 
-        /* make sure we have some elements in the hash table */
-        if (g_hash_table_size(*hashtable) == 0) {
-                dbg("Unknown XML parse error, the hash table is empty");
-                return -1;
+        /* Make sure there are elements in the hash table */
+        if (g_hash_table_size(errlog2event_hash) == 0) {
+                dbg("Hash table is empty.");
+                return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
-	return 0;
+	return(SA_OK);
 }
 
 /**********************************************************************
- * errlog2event_hash_free: free the hash table and the internal
- * memory used by the hash value
+ * errlog2event_hash_free:
  *
- * return value: 0 = hash table freed successfully
- *               -1 = An error occured, see the debug messages
+ * Frees Error Log to event translation hash table.
+ *
+ * Returns:
+ * SA_OK - Normal operation.
  **********************************************************************/
-
-int errlog2event_hash_free(GHashTable **hashtable)
+SaErrorT errlog2event_hash_free()
 {
-        if (*hashtable == NULL) {
-                return 0;
-        }
-        g_hash_table_foreach(*hashtable, free_hash_data, NULL);
-	g_hash_table_destroy(*hashtable);
-        *hashtable = NULL;
+        g_hash_table_foreach(errlog2event_hash, free_hash_data, NULL);
+	g_hash_table_destroy(errlog2event_hash);
 
-	return 0;
+	return(SA_OK);
 }
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
@@ -126,123 +126,131 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(value);
 }
 
-
+/* Note: Error messages are passed back to the caller via the GError
+ * mechanism. There is no need for dbg calls in this function. */
 static void event_start_element(GMarkupParseContext *context,
                                 const gchar         *element_name,
-                                const gchar        **attribute_names,
-                                const gchar        **attribute_values,
-                                gpointer             user_data,
-                                GError             **error)
+                                const gchar         **attribute_names,
+                                const gchar         **attribute_values,
+                                gpointer            user_data,
+                                GError              **error)
 {
-	gchar *key = NULL;
-	ErrLog2EventInfoT *xmlinfo;
-        GHashTable **hashtable = (GHashTable **)user_data;
         int i = 0;
+	gchar *key = NULL;
         gint line, pos;
+	ErrLog2EventInfoT *xmlinfo, working;
+	struct errlog2event_hash_info *hash_info;
 
-        /* Note: Error messages are passed back to the caller via the GError
-         * mechanism. There is no need for dbg calls in this function.
-         */
-
-        /* ignore all xml elements except the event tag */
+	hash_info = (struct errlog2event_hash_info *)user_data;
+ 
+        /* Ignore all XML elements except the event tag */
         if (strcmp(element_name, "event") != 0) {
-                /* this is not an error condition! */
+                /* This is normal - not an error condition! */
                 return;
         }
 
-        /* malloc memory for hash value */
-        xmlinfo = g_malloc0(sizeof(ErrLog2EventInfoT));
-        if (!xmlinfo) {
-                g_set_error(error, G_MARKUP_ERROR,G_MARKUP_ERROR_PARSE,
-                            "Cannot allocate memory for hash value");
-                return;
-        }
-
-        /* fetch element attributes and set the hash key and value */
+        /* Fetch XML element attributes and values. Build event info */
         while (attribute_names[i] != NULL) {
                 if (strcmp(attribute_names[i], "name") == 0) {
-                        /* we don't use this attribute so ignore it */
+                        /* Don't use this attribute so ignore it */
                 }
                 else if (strcmp(attribute_names[i], "type") == 0) {
-                        /* we don't use this attribute so ignore it */
-                }
+			/* See if event is for this platform */
+			switch (hash_info->platform) {
+			case SNMP_BC_PLATFORM_BCT:
+				if (strcmp(attribute_values[i], "BCT") != 0) return;
+				break;
+			case SNMP_BC_PLATFORM_BC:
+				if (strcmp(attribute_values[i], "BC") != 0) return;
+				break;
+			case SNMP_BC_PLATFORM_RSA:
+				if (strcmp(attribute_values[i], "RSA") != 0) return;
+				break;
+			default:
+				return;
+			}
+		}
                 else if (strcmp(attribute_names[i], "msg") == 0) {
                         key = g_strdup(attribute_values[i]);
                         if (key == NULL) {
-                                g_set_error(error, G_MARKUP_ERROR,
-                                            G_MARKUP_ERROR_PARSE,
-                                            "Cannot allocate memory for hash key - %s",
+                                g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_PARSE,
+                                            "No memory for hash key - %s",
                                             attribute_values[i]);
                                 return;
                         }
                 }
                 else if (strcmp(attribute_names[i], "hex") == 0) {
-                        xmlinfo->event = g_strdup(attribute_values[i]);
-                        if (xmlinfo->event == NULL) {
-                                g_set_error(error, G_MARKUP_ERROR,
-                                            G_MARKUP_ERROR_PARSE,
-                                            "Cannot allocate memory for hash value");
+                        working.event = g_strdup(attribute_values[i]);
+                        if (working.event == NULL) {
+                                g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_PARSE,
+                                            "No memory for hash value");
                                 return;
                         }
                 }
                 else if (strcmp(attribute_names[i], "severity") == 0) {
                         if (strcmp(attribute_values[i], "SAHPI_CRITICAL") == 0) {
-                                xmlinfo->event_sev = SAHPI_CRITICAL;
+                                working.event_sev = SAHPI_CRITICAL;
                         }
                         else if (strcmp(attribute_values[i], "SAHPI_MAJOR") == 0) {
-                                xmlinfo->event_sev = SAHPI_MAJOR;
+                                working.event_sev = SAHPI_MAJOR;
                         }
                         else if (strcmp(attribute_values[i], "SAHPI_MINOR") == 0) {
-                                xmlinfo->event_sev = SAHPI_MINOR;
+                                working.event_sev = SAHPI_MINOR;
                         }
                         else if (strcmp(attribute_values[i], "SAHPI_INFORMATIONAL") == 0) {
-                                xmlinfo->event_sev = SAHPI_INFORMATIONAL;
+                                working.event_sev = SAHPI_INFORMATIONAL;
                         }
                         else {
-                                g_markup_parse_context_get_position(context,
-                                                                    &line, &pos);
-                                g_set_error(error, G_MARKUP_ERROR,
-                                            G_MARKUP_ERROR_INVALID_CONTENT,
-                                            "Bad severity attribute value on XML event element line %d",
-                                            line);
+                                g_markup_parse_context_get_position(context, &line, &pos);
+                                g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT,
+                                            "Bad severity for XML event element line %d", line);
                                 return;
                         }
                 }
                 else if (strcmp(attribute_names[i], "override") == 0) {
-                        xmlinfo->event_ovr |= NO_OVR;
-                        /* the following are NOT mutually exclusive! */
+                        working.event_ovr |= NO_OVR;
                         if (strstr(attribute_values[i], "OVR_SEV") != NULL) {
-                                xmlinfo->event_ovr |= OVR_SEV;
+                                working.event_ovr |= OVR_SEV;
                         }
                         if (strstr(attribute_values[i], "OVR_RID") != NULL) {
-                                xmlinfo->event_ovr |= OVR_RID;
+                                working.event_ovr |= OVR_RID;
                         }
                         if (strstr(attribute_values[i], "OVR_EXP") != NULL) {
-                                xmlinfo->event_ovr |= OVR_EXP;
+                                working.event_ovr |= OVR_EXP;
                         }
-                        /* ignore any other values */
+                        /* Ignore any other values */
                 }
                 else if (strcmp(attribute_names[i], "dup") == 0) {
-                        xmlinfo->event_dup = (short)atoi(attribute_values[i]);
+                        working.event_dup = (short)atoi(attribute_values[i]);
                 }
                 else {
-                        g_markup_parse_context_get_position(context,
-                                                            &line, &pos);
-                        g_set_error(error, G_MARKUP_ERROR,
-                                    G_MARKUP_ERROR_UNKNOWN_ATTRIBUTE,
-                                    "Bad attribute name on XML event element line %d",
-                                    line);
+                        g_markup_parse_context_get_position(context, &line, &pos);
+                        g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_UNKNOWN_ATTRIBUTE,
+                                    "Bad name for XML event element line %d", line);
                         return;
                 }
                 i++;
         }
+
+	/* Check for valid key */
         if (key == NULL) {
-                g_set_error(error, G_MARKUP_ERROR,
-                            G_MARKUP_ERROR_INVALID_CONTENT,
-                            "No key attribute set from XML event element");
+                g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT,
+                            "No key set from XML event element");
                 return;
         }
 
-        g_hash_table_insert(*hashtable, key, xmlinfo);
+        /* Malloc memory for hash value and set values */
+        xmlinfo = g_malloc0(sizeof(ErrLog2EventInfoT));
+        if (!xmlinfo) {
+                g_set_error(error, G_MARKUP_ERROR,G_MARKUP_ERROR_PARSE,
+                            "No memory for hash value");
+                return;
+        }
+	*xmlinfo = working;
+
+	/* Insert event into hash table */
+        g_hash_table_insert(hash_info->hashtable, key, xmlinfo);
+	trace("Inserted event=%s into hash table.", xmlinfo->event);
+
         return;
 }

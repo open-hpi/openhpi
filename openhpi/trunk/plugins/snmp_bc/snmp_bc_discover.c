@@ -32,15 +32,21 @@
  **/
 SaErrorT snmp_bc_discover_resources(void *hnd)
 {
-
-	if (!hnd) 
-		return(SA_ERR_HPI_INVALID_PARAMS);
-		
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;		
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
         char *root_tuple;
 	SaErrorT err = SA_OK;
         SaHpiEntityPathT ep_root;
+
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}		
+
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;		
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
 
 	/* Find root Entity Path */
 	root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
