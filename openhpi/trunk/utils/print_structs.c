@@ -24,6 +24,12 @@
 #include <print_utils.h>
 #include <print_structs.h>
 
+/*
+ *  setup_text_buffer - internal function to clear out a 
+ *  text buffer and make sure it is really clean.  It assumes
+ *  an english language set.
+ */
+
 static inline SaErrorT setup_text_buffer(SaHpiTextBufferT *buff) 
 {
         memset(buff, 0, sizeof(*buff));            
@@ -32,6 +38,15 @@ static inline SaErrorT setup_text_buffer(SaHpiTextBufferT *buff)
         buff->DataLength = 0;
         return SA_OK;
 }
+
+/*
+ *  oh_text_buffer_append - internal function to added
+ *       char * data to a text buffer.
+ *
+ *  returns:
+ *       SA_OK - success
+ *       SA_ERR_HPI_OUT_OF_SPACE - operation would overun buffer
+ */
 
 static SaErrorT oh_text_buffer_append(SaHpiTextBufferT *text, char * from, size_t size)
 {
@@ -56,6 +71,13 @@ static SaErrorT oh_text_buffer_append(SaHpiTextBufferT *text, char * from, size_
         return SA_OK;
 }
 
+/**
+ * fprint_text_buffer:
+ * @stream: 
+ * @text: 
+ * 
+ * 
+ **/
 void fprint_text_buffer(FILE *stream, const SaHpiTextBufferT *text)
 {
         if(text->DataType == SAHPI_TL_TYPE_TEXT) {
@@ -63,6 +85,21 @@ void fprint_text_buffer(FILE *stream, const SaHpiTextBufferT *text)
         }
 }
 
+
+/**
+ * oh_sensor_reading2str: 
+ * @reading: SaHpiSensorReadingT value to convert
+ * @format: SaHpiDataFormatT for the sensor reading in question
+ * @text: SaHpiTextBufferT to be created
+ * 
+ * Converts a sensor reading & format to an SaHpiTextBufferT
+ * 
+ * Returns: SA_OK - everything worked
+ *          SA_ERR_HPI_INVALID_CMD - format or reading have IsSupported == FALSE
+ *          SA_ERR_HPI_INVALID_DATA - format and reading types don't match
+ *          SA_ERR_HPI_OUT_OF_SPACE - partial write to text buffer because it
+ *                                      ran out of space
+ **/
 SaErrorT oh_sensor_reading2str (SaHpiSensorReadingT reading, 
                                 SaHpiSensorDataFormatT format, 
                                 SaHpiTextBufferT *text)
