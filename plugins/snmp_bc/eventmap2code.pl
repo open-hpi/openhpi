@@ -165,21 +165,16 @@ while ( <FILE_MAP> ) {
 	    goto CLEANUP;
 	}
 	
-	# Check if this string is platform-specific. If it is, tack platform on
-	# end of string to make it unique and put into internal hash.
-	if ($platforms eq "ALL") {
-	    check4dups($line, $event_msg, "ALL");
-	}
-	else {
-	    while ($platforms ne "") {
-		my $hash_msg = $event_msg;
-		$hash_msg =~ s/\"$//;
-		(my $plat, my $platrest) = split/,/,$platforms,2;
-		($plat) =~ s/^\s*(.*?)\s*$/$1/; # strip leading/trailing blanks
-		$hash_msg = $hash_msg . "_HPIPLAT_" . $plat . "\"";
-		check4dups($line, $hash_msg, $plat);
-		$platforms = $platrest;
-	    }
+	# Tack platform on end of message string to make it unique 
+        # and put into internal hash.
+	while ($platforms ne "") {
+	    my $hash_msg = $event_msg;
+	    $hash_msg =~ s/\"$//;
+	    (my $plat, my $platrest) = split/,/,$platforms,2;
+	    ($plat) =~ s/^\s*(.*?)\s*$/$1/; # strip leading/trailing blanks
+	    $hash_msg = $hash_msg . "_HPIPLAT_" . $plat . "\"";
+	    check4dups($line, $hash_msg, $plat);
+	    $platforms = $platrest;
 	}
     }
 }
@@ -231,8 +226,6 @@ exit ($err);
 # external event_msg name. HPI code handles stripping the _HPIDUP
 # string from the external names.
 # The internal tables thus have hash keys that look like:
-#   - msg 
-#   - msg_HPIDUPx
 #   - msg_HPIPLAT_XXX
 #   - msg_HPIPLAT_XXX_HPIDUPx
 # The platform infomation is used by this script to generate the
@@ -241,7 +234,6 @@ exit ($err);
 sub check4dups($$$) {
 
     my ($line, $hash_msg, $plat) = @_;
- 
     my ($event_name, $event_hex, $platforms, $event_severity,
 	$override_flags, $event_msg, $rest) = split/\|/,$line;
 
@@ -249,7 +241,7 @@ sub check4dups($$$) {
 
     if ($eventmap{$hash_msg} ne "") {
 	if ($debug) {
-	    "$0: Warning! $event_msg not unique.\n";
+	    print "$0: Warning! Event=$event_hex; MSG=$event_name not unique.\n";
 	}
 	# Update number of dups in original entry
 	my ($num, $entry) = split/\|/,$eventmap{$hash_msg},2;
@@ -266,10 +258,12 @@ sub check4dups($$$) {
 	$msgdup  = $msgdup   . "_HPIDUP" . $dups . "\"";
 	$eventmap{$hashdup} =
 	    "0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$msgdup|$rest";
+#	 print ("DUPS msg=$hashdup; 0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$msgdup|$rest\n");
     }
     else {
 	$eventmap{$hash_msg} =
 	    "0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$event_msg|$rest";
+#	 print ("NonDUPS msg=$hash_msg; 0|$event_name|$event_hex|$plat|$event_severity|$override_flags|$event_msg|$rest\n");
     }
     
     return 0;
@@ -472,6 +466,9 @@ sub print_c_file_hash_member($) {
     $event_hex_str =~ s/^\"0x/\"/;
 
     my $tab = "";
+    # No "ALL" in Event Map anymore, if need this for code optimization
+    # need to determine platforms based on #defines in resource.h and
+    # figure out when all platforms are defined.
     if ($event_platform ne "ALL") {
 	$tab = "        ";
 #	$event_msg =~ s/_HPIPLAT_$event_platform_//;
