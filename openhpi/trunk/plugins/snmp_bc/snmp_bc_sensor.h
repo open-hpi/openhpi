@@ -35,35 +35,37 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 
 SaErrorT snmp_bc_get_sensor_enable(void *hnd,
 				   SaHpiResourceIdT rid,
-				   SaHpiSensorNumT sensor_num,
+				   SaHpiSensorNumT sid,
 				   SaHpiBoolT *enable);
 
 SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 				   SaHpiResourceIdT rid,
-				   SaHpiSensorNumT sensor_num,
+				   SaHpiSensorNumT sid,
 				   const SaHpiBoolT enable);
 
 SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
-					 SaHpiResourceIdT id,
-					 SaHpiSensorNumT num,
-					 SaHpiBoolT *enables);
+					 SaHpiResourceIdT rid,
+					 SaHpiSensorNumT sid,
+					 SaHpiBoolT *enable);
 
 SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
-					 SaHpiResourceIdT id,
-					 SaHpiSensorNumT num,
-					 const SaHpiBoolT enables);
+					 SaHpiResourceIdT rid,
+					 SaHpiSensorNumT sid,
+					 const SaHpiBoolT enable);
 					  
 SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 					SaHpiResourceIdT rid,
-					SaHpiSensorNumT sensor_num,
+					SaHpiSensorNumT sid,
 					SaHpiEventStateT *AssertEventMask,
 					SaHpiEventStateT *DeassertEventMask);
 
 SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 					SaHpiResourceIdT rid,
-					SaHpiSensorNumT sensor_num,
+					SaHpiSensorNumT sid,
+					SaHpiSensorEventMaskActionT act,
 					const SaHpiEventStateT AssertEventMask,
 					const SaHpiEventStateT DeassertEventMask);
+
 /* FIXME:: Could be static */
 SaErrorT snmp_bc_determine_sensor_eventstates(void *hnd,
 					      SaHpiResourceIdT id,

@@ -109,7 +109,7 @@ static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
 	if (!event) {
-		dbg("Invalid parameters");
+		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -151,7 +151,7 @@ static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiT
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
 	if (!oh_valid_textbuffer(tag)) {
-		dbg("Invalid parameters");
+		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -201,7 +201,7 @@ static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, S
         struct oh_event *e;
 
 	if (oh_lookup_severity(sev) == NULL) {
-		dbg("Invalid parameters");
+		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -246,7 +246,7 @@ static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmA
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
 	if (oh_lookup_parmaction(act) == NULL) {
-		dbg("Invalid parameters");
+		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
