@@ -1209,7 +1209,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         end = now + Timeout;
 
         do {
-                struct oh_hpi_event e;
+                struct oh_session_event e;
 
                 if (get_events() < 0) {
                         return SA_ERR_HPI_UNKNOWN;
@@ -1232,30 +1232,15 @@ SaErrorT SAHPI_API saHpiEventGet (
                         nanosleep(&req, &rem);
 
                 } else { /* Return event, resource and rdr */
-                        SaHpiRptEntryT *res;
-                        SaHpiRdrT *rdr;
-
                         memcpy(Event, &e.event, sizeof(*Event));
 
                         data_access_lock();
 
-                        if (RptEntry) {
-                                res = oh_get_resource_by_id(rpt, e.parent);
+                        if (RptEntry)
+                             memcpy(RptEntry, &e.rpt_entry, sizeof(*RptEntry));
 
-                                if (res)
-                                        memcpy(RptEntry, res, sizeof(*RptEntry));
-                                else
-                                        RptEntry->ResourceCapabilities = 0;
-                        }
-
-                        if (Rdr) {
-                                rdr = oh_get_rdr_by_id(rpt, e.parent, e.id);
-
-                                if (rdr)
-                                        memcpy(Rdr, rdr, sizeof(*Rdr));
-                                else
-                                        Rdr->RdrType = SAHPI_NO_RECORD;
-                        }
+                        if (Rdr)
+                             memcpy(Rdr, &e.rdr, sizeof(*Rdr));
 
                         data_access_unlock();
 
