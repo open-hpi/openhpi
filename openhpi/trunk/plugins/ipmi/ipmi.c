@@ -1332,6 +1332,57 @@ static int ipmi_reset_watchdog(void *hnd,
 	return rv;	
 }
 
+static
+void ohoi_set_resource_tag(ipmi_entity_t *entity, void *cb_data)
+{
+		SaHpiTextBufferT *tag = cb_data;
+		ipmi_entity_set_entity_id_string(entity, (char *)tag);
+		dbg("New resource Tag set");
+}
+
+static SaErrorT ipmi_set_res_tag (void 			*hnd,
+				  SaHpiResourceIdT	id,
+				  SaHpiTextBufferT	*tag)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	SaHpiRptEntryT *rpt_entry;
+	struct ohoi_resource_info *res_info;
+	int rv;
+
+	res_info = oh_get_resource_data(handler->rptcache, id);
+	if (!res_info)
+			dbg("No private resource info for resource %d", id);
+	
+	rpt_entry = oh_get_resource_by_id(handler->rptcache, id);
+	if (!rpt_entry) {
+		dbg("No rpt for resource %d?", id);
+		return  SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	/* do it in openIPMI's memory first for subsequest updates */
+
+	/* but first check if it's an entity or an MC */
+	if (res_info->type == OHOI_RESOURCE_MC) {
+			dbg("Setting custom tag for Management Controllers is not supported");
+			return SA_ERR_HPI_INVALID_CMD;
+	} else {
+			/* can only be an Entity in the ohoi_resource_info struct */
+			dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
+			rv = ipmi_entity_pointer_cb(res_info->u.entity_id, ohoi_set_resource_tag,
+				       			tag->Data);
+			if (rv)
+				dbg("Error retrieving entity pointer for resource %d",
+					       rpt_entry->ResourceId);
+	}
+	
+	/* change it in our memory as well */
+	memcpy(&rpt_entry->ResourceTag.Data, tag->Data, strlen(tag->Data) + 1);
+	oh_add_resource(handler->rptcache, rpt_entry, res_info, 1);
+	return 0;
+}
+				  
+
+
 static struct oh_abi_v2 oh_ipmi_plugin = {
 		
 	/* basic ABI functions */
@@ -1339,6 +1390,7 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.close				= ipmi_close,
 	.get_event			= ipmi_get_event,
 	.discover_resources		= ipmi_discover_resources,
+	.set_resource_tag		= ipmi_set_res_tag,
 
 	/* SEL support */
 	.get_el_info                    = ipmi_get_el_info,
