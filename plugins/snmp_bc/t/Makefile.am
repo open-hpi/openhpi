@@ -31,6 +31,7 @@ REMOTE_SIM_SOURCES   = \
 			snmp_bc_power.c \
 			snmp_bc_reset.c \
 			snmp_bc_resources.c \
+			snmp_bc_resources_rsa.c \
 			snmp_bc_sel.c \
 			snmp_bc_sensor.c \
 			snmp_bc_session.c \
@@ -47,7 +48,6 @@ MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
 
 INCLUDES                = @OPENHPI_INCLUDES@ \
-			   \
 			  -I$(top_srcdir)/snmp \
 			  -I$(SNMPUTILSDIR) \
                           -I$(top_srcdir)/plugins/snmp_bc

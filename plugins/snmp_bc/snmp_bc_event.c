@@ -665,9 +665,9 @@ static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		}
 		
 		/* Search resource array for the duplicate string's event */
-		for (i=0; snmp_rpt_array[resinfo->rpt].res_info.event_array[i].event != NULL; i++) {
+		for (i=0; snmp_bc_rpt_array[resinfo->rpt].res_info.event_array[i].event != NULL; i++) {
 			normalized_event = oh_derive_string(&(resinfo->ep),
-					   snmp_rpt_array[resinfo->rpt].res_info.event_array[i].event);
+					   snmp_bc_rpt_array[resinfo->rpt].res_info.event_array[i].event);
 			if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 				g_free(normalized_event);
 				return(dupstr_hash_data);
@@ -1117,7 +1117,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 				array_ptr = &snmp_bc_switch_sensors[0];
 			}
 		}
-		entity_type = snmp_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
+		entity_type = snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 	}
 	else {
 		ischassis = SAHPI_TRUE;
@@ -1127,7 +1127,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	g_strfreev(src_parts);
 
 	/* Find rest of Entity Path and calculate the RID */
-	err = ep_concat(&ep, &snmp_rpt_array[rpt_index].rpt.ResourceEntity);
+	err = ep_concat(&ep, &snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity);
 	if (err) {
 		dbg("Cannot concat Entity Path. Error=%s.", oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);

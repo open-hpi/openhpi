@@ -28,7 +28,7 @@ SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 
 SUBDIRS		= t
 
-INCLUDES	= @OPENHPI_INCLUDES@ -I$(top_srcdir)/snmp   -I$(SNMPUTILSDIR)
+INCLUDES	= @OPENHPI_INCLUDES@ -I$(top_srcdir)/snmp -I$(SNMPUTILSDIR)
 
 AM_CFLAGS	= @CFLAGS@ @SNMPFLAGS@
 
@@ -71,6 +71,7 @@ libsnmp_bc_la_SOURCES = \
 			snmp_bc_power.c \
 			snmp_bc_reset.c \
 			snmp_bc_resources.c \
+			snmp_bc_resources_rsa.c \
 	    		snmp_bc_sel.c \
 			snmp_bc_sensor.c \
 			snmp_bc_session.c \
