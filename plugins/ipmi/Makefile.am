@@ -54,6 +54,7 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  ipmi_util.c 		\
 			  hotswap.c		\
 			  sync.c 		\
+			  posix_vlog.c		\
 			  ipmi.h
 			  
 libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix
