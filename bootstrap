@@ -1,9 +1,0 @@
-#! /bin/sh
-
-libtoolize -c --automake
-automake -a -c --foreign
-aclocal
-autoconf
-automake --foreign
-
-
