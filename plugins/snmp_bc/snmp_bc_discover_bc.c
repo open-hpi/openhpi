@@ -544,7 +544,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 								sizeof(struct ResourceInfo));
 					res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-                                        /* Get BC UUID and convert to GUID */
+                                        /* Get UUID and convert to GUID */
                                         err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 					/* Add resource to temporary event cache/queue */

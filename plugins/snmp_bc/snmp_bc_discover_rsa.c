@@ -95,22 +95,6 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	 * Discover CPUs
          ***************/
         for (i=0; i<RSA_MAX_CPU; i++) {
-		err = snmp_bc_snmp_get(custom_handle, 
-				       snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.oid,
-				       &get_value, 
-				       SAHPI_TRUE);
-		if (err || get_value.type != ASN_OCTET_STR) {
-			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-			    snmp_bc_cpu_thermal_sensors_rsa[i].sensor_info.mib.oid,
-			    get_value.type, oh_lookup_error(err));
-			if (err) { return(err); }
-			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-		}
-
-		/* FIXME FIXME: he just did a snmp_get above,         */
-		/* why use rdr_exist here? Just check returncode from */
-		/* snmp_bc_snmp_get() above                           */ 
-		/* Roll this code into err check above                */ 
 		/* See if CPU exists */
 		if (!rdr_exists(custom_handle,
 				0,
@@ -169,22 +153,6 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	 * Discover DASDs
          ****************/
         for (i=0; i<RSA_MAX_DASD; i++) {
-		err = snmp_bc_snmp_get(custom_handle, 
-				       snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.oid,
-				       &get_value, 
-				       SAHPI_TRUE);
-		if (err || get_value.type != ASN_OCTET_STR) {
-			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-			    snmp_bc_dasd_thermal_sensors_rsa[i].sensor_info.mib.oid,
-			    get_value.type, oh_lookup_error(err));
-			if (err) { return(err); }
-			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-		}
-
-		/* FIXME FIXME: he just did a snmp_get above,         */
-		/* why use rdr_exist here? Just check returncode from */
-		/* snmp_bc_snmp_get() above                           */
-		/* Roll this code into err check above                */ 		 
 		/* See if DASD exists */
 		if (!rdr_exists(custom_handle,
 				0,
@@ -243,22 +211,6 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	 * Discover Fans
          ***************/
         for (i=0; i<RSA_MAX_FAN; i++) {
-		err = snmp_bc_snmp_get(custom_handle, 
-				       snmp_bc_fan_sensors_rsa[i].sensor_info.mib.oid,
-				       &get_value, 
-				       SAHPI_TRUE);
-		if (err || get_value.type != ASN_OCTET_STR) {
-			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
-			    snmp_bc_fan_sensors_rsa[i].sensor_info.mib.oid,
-			    get_value.type, oh_lookup_error(err));
-			if (err) { return(err); }
-			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
-		}
-
-		/* FIXME FIXME: he just did a snmp_get above,         */
-		/* why use rdr_exist here? Just check returncode from */
-		/* snmp_bc_snmp_get() above.                          */
-		/* Roll this code into err check above */ 
 		/* See if fan exists */
 		if (!rdr_exists(custom_handle,
 				0,

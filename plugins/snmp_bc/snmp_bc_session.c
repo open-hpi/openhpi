@@ -61,7 +61,6 @@ void *snmp_bc_open(GHashTable *handler_config)
         oh_init_rpt(handle->rptcache);
 	 
         /* Initialize event log cache */
-	/* FIXME:: RSA has 512 here */
         handle->elcache = oh_el_create(OH_EL_MAX_SIZE);
 	handle->elcache->gentimestamp = FALSE;
 
