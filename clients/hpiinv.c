@@ -15,6 +15,7 @@
  *     Peter D. Phan <pdphan@users.sourceforge.net>
  *     Renier Morales <renierm@users.sf.net>
  *     Tariq Shureih <tariq.shureih@intel.com>
+ *     Racing Guo <racing.guo@intel.com>
  *
  * Log: 
  *     Copied from hpifru.c and modified for general use
@@ -229,6 +230,7 @@ void walkInventory(	SaHpiSessionIdT sessionid,
 
 			fieldType = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
 			fieldId = SAHPI_FIRST_ENTRY;
+			countFields = 0;
 		
 			do {
 				rvField = saHpiIdrFieldGet(
