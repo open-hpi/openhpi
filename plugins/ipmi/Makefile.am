@@ -50,6 +50,7 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  ipmi_sensor.c 	\
 			  ipmi_sel.c 		\
 			  ipmi_inventory.c	\
+			  ipmi_controls.c	\
 			  ipmi_util.c 		\
 			  hotswap.c		\
 			  sync.c 		\

@@ -137,29 +137,49 @@ void ohoi_control_event(enum ipmi_update_e op,
 {
 	struct oh_handler_state *handler = cb_data;
 	
-	char			name[33];
-	//int			rv;
-	ipmi_entity_id_t	entity_id;
-	
+	ipmi_entity_id_t	entity_id;	
 	SaHpiRptEntryT		*rpt_entry;
-
-	ipmi_control_get_id(control, name, 32);
-	
+        struct ohoi_resource_id *ohoi_res_id;
+        
 	entity_id = ipmi_entity_convert_to_id(ent);
-	
 	rpt_entry = ohoi_get_resource_by_entityid(
 			handler->rptcache,
-			&entity_id);
-
-	if (!rpt_entry) {
+			&entity_id);   
+        ohoi_res_id = oh_get_resource_data(handler->rptcache, 
+                                           rpt_entry->ResourceId);
+	
+        if (!rpt_entry) {
 		dump_entity_id("Control with RPT Entry?!", entity_id);
 		return;
 	}
 
 	if (op == IPMI_ADDED) {
+                int ctrl_type;
+                
 		/* skip Chassis with for now since all we have in hardware
 		   is power and reset */
 		dbg("resource: %s", rpt_entry->ResourceTag.Data);
+                ctrl_type = ipmi_control_get_type(control);
+                switch (ctrl_type) {
+                        case IPMI_CONTROL_RESET:
+                                dbg("Attach reset control into entity");
+                                ohoi_res_id->reset_ctrl
+                                        = ipmi_control_convert_to_id(control);
+                                break;
+                        case IPMI_CONTROL_POWER:
+                                dbg("Attach power control into entity");
+                                ohoi_res_id->power_ctrl
+                                        = ipmi_control_convert_to_id(control);
+                                break;
+
+                        default:
+                                rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_CONTROL;
+                                add_control_event(ent, control, handler,
+                                                  rpt_entry->ResourceEntity,
+                                                  rpt_entry->ResourceId);
+                }
+                                
+#if 0                        
 		if((strcmp(rpt_entry->ResourceTag.Data,"system_chassis")) == 0) {
 			dbg("controls on chassis are probably power/reset...skipping");
 			return;
@@ -170,12 +190,8 @@ void ohoi_control_event(enum ipmi_update_e op,
         	                         rpt_entry->ResourceEntity, 
                 	                 rpt_entry->ResourceId);
 		}
-		
+#endif		
 
 	}
-		
-
-	
-
 }
 	

@@ -670,7 +670,11 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
         .set_hotswap_state              = ohoi_set_hotswap_state,
         .request_hotswap_action         = ohoi_request_hotswap_action,
         .get_indicator_state            = ohoi_get_indicator_state,
-        .set_indicator_state            = ohoi_set_indicator_state
+        .set_indicator_state            = ohoi_set_indicator_state,
+	
+        /* reset support */
+	.get_reset_state                = NULL,
+	.set_reset_state                = ohoi_set_reset_state,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);
