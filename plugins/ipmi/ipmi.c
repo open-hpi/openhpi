@@ -122,6 +122,7 @@ static void *ipmi_open(GHashTable *handler_config)
 			dbg("Cannot setup connection");
 			return NULL;
 		}
+		ipmi_handler->islan = 0;
 	} else if (strcmp(name, "lan") == 0) {
 		static struct in_addr lan_addr;
 		static int lan_port;
@@ -201,6 +202,9 @@ static void *ipmi_open(GHashTable *handler_config)
 					passwd, strlen(passwd),
 					ipmi_handler->os_hnd, ipmi_handler->ohoi_sel,
 					&ipmi_handler->con);
+		if (rv) dbg("ipmi_lan_setup_con rv = %d",rv);
+	        
+		ipmi_handler->islan = 1;
 	} else {
 		dbg("Unsupported IPMI connection method: %s",name);
 		return NULL;
@@ -1077,6 +1081,8 @@ static int ipmi_get_watchdog_info(void *hnd,
          SaHpiWatchdogNumT num,
          SaHpiWatchdogT    *watchdog)
 {
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler =(struct ohoi_handler *)handler->data;
 	unsigned char reqdata[16];
 	unsigned char response[16];
 	int rlen;
@@ -1085,8 +1091,9 @@ static int ipmi_get_watchdog_info(void *hnd,
 	/* 
 	 * OpenIPMI library doesn't have watchdog calls, so talk 
 	 * directly to the driver (via ipmi_drv.c). 
-	 * Currently support only default watchdog num.
+	 * Currently support only default watchdog num, and only local.
 	 */
+	if (ipmi_handler->islan) return(SA_ERR_HPI_UNSUPPORTED_API);
 	if (num != SAHPI_DEFAULT_WATCHDOG_NUM) 
 		return SA_ERR_HPI_INVALID_PARAMS;	
 	rlen = sizeof(response);
@@ -1194,11 +1201,15 @@ static int ipmi_set_watchdog_info(void *hnd,
          SaHpiWatchdogNumT num,
          SaHpiWatchdogT    *watchdog)
 {
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler =(struct ohoi_handler *)handler->data;
 	unsigned char reqdata[16];
 	unsigned char response[16];
 	int rlen;
 	int tv;
 	int rv;
+
+	if (ipmi_handler->islan) return(SA_ERR_HPI_UNSUPPORTED_API);
 
 	if (num != SAHPI_DEFAULT_WATCHDOG_NUM) 
 		return SA_ERR_HPI_INVALID_PARAMS;	
@@ -1301,9 +1312,13 @@ static int ipmi_reset_watchdog(void *hnd,
          SaHpiResourceIdT  id,
          SaHpiWatchdogNumT num)
 {
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler =(struct ohoi_handler *)handler->data;
 	unsigned char response[16];
 	int rlen;
 	int rv;
+
+	if (ipmi_handler->islan) return(SA_ERR_HPI_UNSUPPORTED_API);
 
 	if (num != SAHPI_DEFAULT_WATCHDOG_NUM) 
 		return SA_ERR_HPI_INVALID_PARAMS;	
