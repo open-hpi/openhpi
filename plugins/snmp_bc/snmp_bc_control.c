@@ -46,7 +46,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	/* Special consideration for SAHPI_CTRL_TYPE_TEXT */
 	/* Do we have any control of this type?           */
 	
-	oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
+	oid = snmp_derive_objid(&(rdr->Entity), s->mib.oid);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
 		return SA_ERR_HPI_INTERNAL_ERROR;
@@ -183,7 +183,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			return SA_ERR_HPI_INVALID_CMD;
 		}
 
-		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
+		oid = snmp_derive_objid(&(rdr->Entity), s->mib.oid);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
 			return SA_ERR_HPI_INTERNAL_ERROR;
@@ -204,7 +204,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		break;
 
 	case SAHPI_CTRL_TYPE_DISCRETE:
-		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
+		oid = snmp_derive_objid(&(rdr->Entity), s->mib.oid);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
 			return SA_ERR_HPI_INTERNAL_ERROR;

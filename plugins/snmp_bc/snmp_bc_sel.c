@@ -116,9 +116,8 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 		.OverflowResetable = SAHPI_FALSE,
                 .OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE,
         };
-        
 
-	/* In BladeCenter (bc), the newest entry is index at index 1 */
+	/* In Event Log, the newest entry is index at index 1 */
 	/* Need first value to figure out what update time is */
         snprintf(oid, SNMP_BC_MAX_OID_LENGTH,"%s.%d", SNMP_BC_SEL_ENTRY_OID, 1);
         err = snmp_get(custom_handle->ss, oid, &first_value);
@@ -459,9 +458,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 			       SaHpiResourceIdT id, 
 			       SaHpiEventLogEntryIdT current)
 {
-
 	int isdst=0;
-	int event_enabled;
         char oid[SNMP_BC_MAX_OID_LENGTH];
 	bc_sel_entry sel_entry;
 
@@ -491,7 +488,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	if (err != SA_OK) return(err);
 		
 	isdst = sel_entry.time.tm_isdst;
-	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst, &event_enabled);
+	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst);
 		
 /* FIXME:: Nice to have an event to rdr pointer function - this same code appears in snmp_bc_event.c */
 /* in rpt_utils.c ??? */		
@@ -529,15 +526,13 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	/* just pass the pointers to it.                                            */
 	id = tmpevent.Source;
 	if (NULL == oh_get_resource_by_id(handle->rptcache, id))
-					dbg("NULL RPT for rid %d\n", id);
+					dbg("NULL RPT for rid %d.", id);
 	err = oh_el_append(handle->elcache, &tmpevent,
 			rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
 	
-	if (err != SA_OK)
-		 dbg("Err adding entry to elcache, error %s\n", oh_lookup_error(err));
+	if (err) dbg("Cannot add entry to elcache. Error=%s.", oh_lookup_error(err));
 		
-	if (event_enabled)
-		err = snmp_bc_add_to_eventq(handle, &tmpevent);
+	err = snmp_bc_add_to_eventq(handle, &tmpevent);
 			
         return(err);
 }

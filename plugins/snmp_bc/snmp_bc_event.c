@@ -45,8 +45,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 
 static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle,
 						 SaHpiEventT *event,
-						 int recovery_event,
-						 int *event_enabled_ptr);
+						 int recovery_event);
 
 static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 				bc_sel_entry *sel_entry,
@@ -112,9 +111,14 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
 	SaHpiResourceIdT rid;
+
+	if (!handle || !ep || !res_info_ptr) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-	
-	if (!handle || !ep || !res_info_ptr || !(custom_handle->event2hpi_hash_ptr)) {
+	if (!custom_handle || !custom_handle->event2hpi_hash_ptr) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -127,7 +131,7 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 
 	for (i=0; res_info_ptr->event_array[i].event != NULL && i < max; i++) {
 		/* Normalized and convert event string */
-		normalized_str = snmp_derive_objid(*ep, res_info_ptr->event_array[i].event);
+		normalized_str = snmp_derive_objid(ep, res_info_ptr->event_array[i].event);
 		if (normalized_str == NULL) {
 			dbg("Cannot derive %s.", res_info_ptr->event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -197,10 +201,14 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
 	SaHpiResourceIdT rid;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	if (!handle || !ep || !rpt_sensor || 
-	    !(custom_handle->event2hpi_hash_ptr) || sid <= 0) {
+	if (!handle || !ep || !rpt_sensor || sid <= 0) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle || !custom_handle->event2hpi_hash_ptr) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -213,7 +221,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 		
 	for (i=0; rpt_sensor->sensor_info.event_array[i].event != NULL && i < max; i++) {
 		/* Normalized and convert event string */
-		normalized_str = snmp_derive_objid(*ep, rpt_sensor->sensor_info.event_array[i].event);
+		normalized_str = snmp_derive_objid(ep, rpt_sensor->sensor_info.event_array[i].event);
 		if (normalized_str == NULL) {
 			dbg("Cannot derive %s.", rpt_sensor->sensor_info.event_array[i].event);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -282,8 +290,7 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
  * @handle: Pointer to handler's data.
  * @logstr: Platform Event Log to be mapped.
  * @event: Pointer to put mapped event.
- * @isdst: Boolean to indicate of DST on on/off.
- * @event_enabled_ptr: 
+ * @isdst: Boolean to indicate if DST on on/off.
  *
  * Maps platform error log entries to HPI events.
  * 
@@ -295,13 +302,12 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
  *
  * Return values:
  * SA_OK - normal case.
- * SA_ERR_HPI_INVALID_PARAMS - @handle, @logstr, @event, @event_enabled_ptr NULL.
+ * SA_ERR_HPI_INVALID_PARAMS - @handle, @logstr, @event  NULL.
  **/
 SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   gchar *logstr,
 			   SaHpiEventT *event,
-			   int isdst,
-			   int *event_enabled_ptr)
+			   int isdst)
 {
 	bc_sel_entry        log_entry;
 	gchar               *recovery_str, *login_str;
@@ -315,9 +321,14 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	SaHpiTextBufferT    thresh_read_value, thresh_trigger_value;
 	SaHpiTimeT          event_time;
 	Xml2EventInfoT      *strhash_data;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	if (!handle || !logstr || !event || !event_enabled_ptr) {
+	if (!handle || !logstr || !event) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -344,10 +355,6 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 	event_rid = resinfo.rid;
 	event_time = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 	event_severity = log_entry.sev; 
-
-	/* FIXME:: Do tmp and only set if no errors - really this is a boolean ?? */
-	/* Assume event is enabled; unless we find out differently */
-	*event_enabled_ptr = 1;
 
 	/**********************************************************************
 	 * For some types of events (e.g. thresholds), dynamic data is appended
@@ -464,19 +471,14 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 					working.EventDataUnion.SensorEvent.Assertion = SAHPI_FALSE;
 				}
 
-				/* Set sensor's current/last state; see if sensor's events are disabled */
-				err = snmp_bc_set_previous_event_state(handle, &working,
-								       is_recovery_event, event_enabled_ptr);
+				/* Set sensor's current/last state */
+				err = snmp_bc_set_previous_event_state(handle, &working, is_recovery_event);
 				if (err) {
 					dbg("Cannot set previous state for %s; Error=%s.", 
 					    log_entry.text, oh_lookup_error(err));
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
 				
-				if (!(*event_enabled_ptr)) {
-					return(SA_OK);
-				}
-
 				/* Convert threshold strings into event values */
 				if (is_threshold_event) {
 					/* FIXME:: Do we need to check mib.convert_snmpstr */
@@ -505,7 +507,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 
                         /* Handle hot-swap events */
 			else if (working.EventType == SAHPI_ET_HOTSWAP) {
-				err = snmp_bc_set_previous_event_state(handle, &working, is_recovery_event, event_enabled_ptr);
+				err = snmp_bc_set_previous_event_state(handle, &working, is_recovery_event);
 				if (err) {
 					dbg("Cannot set previous state for %s; Error=%s",
 					    log_entry.text, oh_lookup_error(err));
@@ -549,6 +551,11 @@ static Xml2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 	Xml2EventInfoT *dupstr_hash_data;
 	short strnum;
 
+	if (!search_str || !strhash_data || !resinfo) {
+		dbg("Invalid parameter.");
+		return(NULL);
+	}
+
 	strncpy(dupstr, search_str, SNMP_BC_MAX_SEL_ENTRY_LENGTH);
 	dupstr_hash_data = strhash_data;
 	strnum = strhash_data->event_dup + 1; /* Original string plus dups */
@@ -560,11 +567,11 @@ static Xml2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		/* Search sensor array for the duplicate string's event */
 		for (i=0; (resinfo->sensor_array_ptr + i)->sensor.Num != 0; i++) {
 			for (j=0; (resinfo->sensor_array_ptr + i)->sensor_info.event_array[j].event != NULL; j++) {
-				normalized_event = snmp_derive_objid(resinfo->ep,
+				normalized_event = snmp_derive_objid(&(resinfo->ep),
 						   (resinfo->sensor_array_ptr + i)->sensor_info.event_array[j].event);
 				if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 					g_free(normalized_event);
-					return dupstr_hash_data;
+					return(dupstr_hash_data);
 				}
 				g_free(normalized_event);
 			}
@@ -572,11 +579,11 @@ static Xml2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		
 		/* Search resource array for the duplicate string's event */
 		for (i=0; snmp_rpt_array[resinfo->rpt].res_info.event_array[i].event != NULL; i++) {
-			normalized_event = snmp_derive_objid(resinfo->ep,
+			normalized_event = snmp_derive_objid(&(resinfo->ep),
 					   snmp_rpt_array[resinfo->rpt].res_info.event_array[i].event);
 			if (!strcmp(dupstr_hash_data->event, normalized_event)) {
 				g_free(normalized_event);
-				return dupstr_hash_data;
+				return(dupstr_hash_data);
 			}
 			g_free(normalized_event);
 		}
@@ -600,7 +607,7 @@ static Xml2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
 		}
 	}
 
-	return NULL;
+	return(NULL);
 }
 
 /**
@@ -631,7 +638,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 {
 	gchar  **event_substrs = NULL;
 	gchar  **thresh_substrs = NULL;
-	int rtn_code = SA_OK;
+	SaErrorT err = SA_OK;
 
 	if (!str || !root_str || !read_value_str || !trigger_value_str) {
 		dbg("Invalid parameter.");
@@ -646,14 +653,14 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 	    (thresh_substrs[1] == NULL || thresh_substrs[1][0] == '\0') ||
 	    (thresh_substrs[2] != NULL)) {
 		dbg("Cannot split threshold string=%s.", str);
-		rtn_code = SA_ERR_HPI_INTERNAL_ERROR;
+		err = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
 	}
 
 	if ((strlen(thresh_substrs[0]) > SAHPI_MAX_TEXT_BUFFER_LENGTH) ||
 	    (strlen(thresh_substrs[1]) > SAHPI_MAX_TEXT_BUFFER_LENGTH)) {
 		dbg("Threshold value string(s) exceed max size for %s.", str);
-		rtn_code = SA_ERR_HPI_INTERNAL_ERROR;
+		err = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
 	}
 	
@@ -663,14 +670,14 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
 
 	if (root_str == NULL) {
 		dbg("Cannot parse threshold string=%s.", str);
-		rtn_code = SA_ERR_HPI_INTERNAL_ERROR;
+		err = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
  CLEANUP:
 	g_strfreev(event_substrs);
 	g_strfreev(thresh_substrs);
 
-	return rtn_code;
+	return(err);
 }
 
 /**********************************
@@ -678,8 +685,7 @@ static SaErrorT snmp_bc_parse_threshold_str(gchar *str,
  **********************************/
 static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle,
 						 SaHpiEventT *event,
-						 int recovery_event,
-						 int *event_enabled_ptr)
+						 int recovery_event)
 {
 	switch (event->EventType) {
 	case SAHPI_ET_SENSOR:
@@ -691,22 +697,13 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 			return(SA_ERR_HPI_NOT_PRESENT);
 		}
 		
-		gpointer bc_data = oh_get_rdr_data(handle->rptcache, event->Source, rdr->RecordId);
-		if (bc_data == NULL) {
+		gpointer rdr_data = oh_get_rdr_data(handle->rptcache, event->Source, rdr->RecordId);
+		if (rdr_data == NULL) {
 			dbg("No sensor data. RID=%x; SID=%d.",
 			    event->Source, event->EventDataUnion.SensorEvent.SensorNum);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
-#if 0
-		/* FIXME:: Port to B.1.1. event enablement schemes */
-		/* Check to see if events are disabled for this sensor */
-		if (!((struct SensorInfo *)bc_data)->sensor_evt_enablement.SensorStatus &
-		    SAHPI_SENSTAT_EVENTS_ENABLED) {
-			*event_enabled_ptr = 0;
-			return(SA_OK);
-		}
-#endif
 		/********************************
 		 * Set Current and Previous State 
 		 ********************************/
@@ -718,11 +715,11 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 			   field to hold recovery data */
 			
 			SaHpiEventStateT tmpstate;
-			tmpstate = ((struct SensorInfo *)bc_data)->cur_state;
+			tmpstate = ((struct SensorInfo *)rdr_data)->cur_state;
 
 			/* Set both RDR/event's current state; Remember for recovery 
 			   event hash's previous = recovery state */
-			((struct SensorInfo *)bc_data)->cur_state = 
+			((struct SensorInfo *)rdr_data)->cur_state = 
 				event->EventDataUnion.SensorEvent.PreviousState; 
 			event->EventDataUnion.SensorEvent.EventState = 
 				event->EventDataUnion.SensorEvent.PreviousState;
@@ -730,8 +727,8 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 		}
 		else { /* Normal non-recovery case */
 			event->EventDataUnion.SensorEvent.PreviousState = 
-				((struct SensorInfo *)bc_data)->cur_state;
-			((struct SensorInfo *)bc_data)->cur_state = 
+				((struct SensorInfo *)rdr_data)->cur_state;
+			((struct SensorInfo *)rdr_data)->cur_state = 
 				event->EventDataUnion.SensorEvent.EventState;
 		}
 
@@ -739,10 +736,10 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 	}
 	case SAHPI_ET_HOTSWAP:
 	{
-		gpointer bc_data = 
+		gpointer rdr_data = 
 			oh_get_resource_data(handle->rptcache, event->Source);
 		
-		if (bc_data == NULL) {
+		if (rdr_data == NULL) {
 			dbg("No hotswap data. RID=%x", event->Source);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
@@ -758,11 +755,11 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 			   field to hold recovery data */
 			
 			SaHpiHsStateT tmpstate;
-			tmpstate = ((struct ResourceInfo *)bc_data)->cur_state;
+			tmpstate = ((struct ResourceInfo *)rdr_data)->cur_state;
 
 			/* Set both RDR/event's current state; Remember for recovery 
 			   event hash's previous = recovery state */
-			((struct ResourceInfo *)bc_data)->cur_state = 
+			((struct ResourceInfo *)rdr_data)->cur_state = 
 				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
 			event->EventDataUnion.HotSwapEvent.HotSwapState = 
 				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
@@ -770,8 +767,8 @@ static SaErrorT snmp_bc_set_previous_event_state(struct oh_handler_state *handle
 		}
 		else { /* Normal non-recovery case */
 			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
-				((struct ResourceInfo *)bc_data)->cur_state;
-			((struct ResourceInfo *)bc_data)->cur_state = 
+				((struct ResourceInfo *)rdr_data)->cur_state;
+			((struct ResourceInfo *)rdr_data)->cur_state = 
 				event->EventDataUnion.HotSwapEvent.HotSwapState;
 		}
 		break;
@@ -832,12 +829,12 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
  * snmp_bc_logsrc2rid:
  * @handle: Pointer to handler's data.
  * @src: Log's "Source" field string.
- * @res_info: Location to store HPI mapping data for resource
+ * @resinfo: Location to store HPI mapping data for resource
  * @ovr_flags: Override flags
  *
  * Translates error log's "Source" field into an HPI resource ID
  * and stores HPI mapping info needed by other routines in
- * @res_info. Assume "Source" field text is in the following format:
+ * @resinfo. Assume "Source" field text is in the following format:
  *
  *   "BLADE_0x" - map to blade x RID
  *   "SWITCH_x" - map to switch x RID
@@ -959,7 +956,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	resinfo->ep = ep;
 	resinfo->rid = oh_uid_lookup(&ep);
 	if (resinfo->rid == 0) {
-		dbg("No RID");
+		dbg("No RID.");
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	
