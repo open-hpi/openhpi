@@ -11,7 +11,7 @@
  *
  * Author(s):
  *      Sean Dague
- *	  Christina Hernandez
+ *	Christina Hernandez
  *
  */
 
@@ -77,13 +77,19 @@ SaErrorT sim_discover(void *hnd)
 	struct oh_event event;
 	SaHpiRptEntryT *rpt_entry;
 	SaHpiEntityPathT root_ep;
+	SaHpiTextBufferT build_name;
 	char *entity_root;
+	int i;
+	struct oh_event *e;
+
+        e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
+	
 
 	struct oh_handler_state *oh_hnd = hnd;
 	entity_root=(char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
 	oh_encode_entitypath (entity_root, &root_ep);
 
-       build_rptcache(inst->rptcache, &root_ep);
+        build_rptcache(inst->rptcache, &root_ep);
 
 	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
 
@@ -97,7 +103,18 @@ SaErrorT sim_discover(void *hnd)
 
 		rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);	
         }
+	
+        e->u.res_event.entry.ResourceEntity = root_ep;
+        e->u.res_event.entry.ResourceId =
+	                oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
+	
+	oh_init_textbuffer(&build_name);
 
+	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
+		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep.Entry[i].EntityLocation);
+	}
+	
         return 0;
 }
 

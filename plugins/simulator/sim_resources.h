@@ -59,8 +59,8 @@
  * plugin at run-time during resource discovery.
  *************************************************************************/
 
-#ifndef __BC_RESOURCES_H
-#define __BC_RESOURCES_H
+#ifndef __SIM_RESOURCES_H
+#define __SIM_RESOURCES_H
 
 /* Start HPI location numbers from 1 */
 #define DUMMY_HPI_LOCATION_BASE 1
@@ -169,196 +169,13 @@ struct ResourceInfo {
 struct dummy_rpt {
         SaHpiRptEntryT rpt;
 //        struct ResourceInfo res_info;
-//        const  char *comment;
+        const  char *comment;
 };
 
 extern struct dummy_rpt dummy_rpt_array[];
 // extern struct dummy_rpt dummy_rpt_array_bct[];
 // extern struct dummy_rpt dummy_rpt_array_rsa[];
 
-/********************
- * Sensor Definitions
- ********************/
-
-//struct SnmpSensorThresholdOids {
-//        const char *LowMinor;
-//        const char *LowMajor;
-//        const char *LowCritical;
-//        const char *UpMinor;
-//        const char *UpMajor;
-//        const char *UpCritical;
-//        const char *PosThdHysteresis;
-//        const char *NegThdHysteresis;
-//        const char *TotalPosThdHysteresis;
-//        const char *TotalNegThdHysteresis;
-//};
-
-//struct SnmpSensorWritableThresholdOids {
-//        const char *LowMinor;
-//        const char *LowMajor;
-//        const char *LowCritical;
-//        const char *UpMinor;
-//        const char *UpMajor;
-//        const char *UpCritical;
-//        const char *PosThdHysteresis;
-//        const char *NegThdHysteresis;
-//};
-
-// struct SensorMibInfo {
-//        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-//        SaHpiBoolT write_only; /* TRUE - Write-only SNMP command */
-//        const char *oid;
-//        struct DummySensorThresholdOids threshold_oids;
-//	struct DummySensorWritableThresholdOids threshold_write_oids;
-//};
-
-#define DUMMY_MAX_EVENTS_PER_SENSOR 24
-#define DUMMY_MAX_READING_MAPS_PER_SENSOR 3
-
-/* Includes an ending NULL entry */
-#define DUMMY_MAX_SENSOR_EVENT_ARRAY_SIZE  (DUMMY_MAX_EVENTS_PER_SENSOR + 1)
-#define DUMMY_MAX_SENSOR_READING_MAP_ARRAY_SIZE (DUMMY_MAX_READING_MAPS_PER_SENSOR + 1)
-
-/* If you add to this structure, you may also have to change EventMapInfoT 
-   and event discovery in snmp_bc_event.c */
-//struct sensor_event_map {
-//        char *event;
-//	SaHpiBoolT event_assertion;
-//	SaHpiBoolT event_res_failure;
-//	SaHpiBoolT event_res_failure_unexpected;
-//        SaHpiEventStateT event_state;
-//        SaHpiEventStateT recovery_state;
-//};
-
-//struct sensor_reading_map {
-//	int num;
-//	SaHpiSensorRangeT rangemap;
-//	SaHpiEventStateT state;
-//};
-
-//struct SensorInfo {
-//        struct SensorMibInfo mib;
-//        SaHpiEventStateT cur_state; /* This really records the last state read from the SEL */
-//	                            /* Which probably isn't the current state of the sensor */
-//	SaHpiBoolT sensor_enabled;
-//	SaHpiBoolT events_enabled;
-//        SaHpiEventStateT assert_mask;
-//	SaHpiEventStateT deassert_mask;
-//        struct sensor_event_map event_array[DUMMY_MAX_SENSOR_EVENT_ARRAY_SIZE];
-//	struct sensor_reading_map reading2event[DUMMY_MAX_SENSOR_READING_MAP_ARRAY_SIZE];
-//};
-
-//struct dummy_sensor {
-//        /* Usually sensor.Num = index; index is used to search thru sensor arrays. It allows
-//           sensor.Num to be independent from array index (e.g. for aggregate sensors) */
-//	int index;
-//        SaHpiSensorRecT sensor;
-//        struct SensorInfo sensor_info;
-//        const char *comment;
-//};
-
-//struct dummy_ipmi_sensor {
-//	const char *ipmi_tag;
-//	struct dummy_sensor ipmi;
-//};
-
-//extern struct dummy_sensor dummy_chassis_sensors[];
-//extern struct dummy_sensor dummy_chassis_sensors_bct[];
-//extern struct dummy_sensor dummy_blade_sensors[];
-//extern struct dummy_ipmi_sensor dummy_blade_ipmi_sensors[];
-//extern struct dummy_sensor dummy_blade_addin_sensors[];
-//extern struct dummy_sensor dummy_mgmnt_sensors[];
-//extern struct dummy_sensor dummy_mediatray_sensors[];
-//extern struct dummy_sensor dummy_fan_sensors[];
-//extern struct dummy_sensor dummy_power_sensors[];
-//extern struct dummy_sensor dummy_switch_sensors[];
-
-//extern struct dummy_sensor dummy_chassis_sensors_rsa[];
-//extern struct dummy_sensor dummy_cpu_sensors_rsa[];
-//extern struct dummy_sensor dummy_dasd_sensors_rsa[];
-//extern struct dummy_sensor dummy_fan_sensors_rsa[];
-
-/*********************
- * Control Definitions
- *********************/
-
-//struct ControlMibInfo {
-//        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-//        int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
-//        const char *oid;
-//};
-
-//struct ControlInfo {
-//        struct ControlMibInfo mib;
-//	SaHpiCtrlModeT cur_mode;
-//};
-
-//struct dummy_control {
-//        SaHpiCtrlRecT control;
-//        struct ControlInfo control_info;
-//        const char *comment;
-//};
-
-//extern struct dummy_control dummy_chassis_controls_bc[];
-//extern struct dummy_control dummy_chassis_controls_bct[];
-//extern struct dummy_control dummy_blade_controls[];
-//extern struct dummy_control dummy_blade_addin_controls[];
-//extern struct dummy_control dummy_mgmnt_controls[];
-//extern struct dummy_control dummy_mediatray_controls[];
-//extern struct dummy_control dummy_fan_controls[];
-//extern struct dummy_control dummy_power_controls[];
-//extern struct dummy_control dummy_switch_controls[];
-
-//extern struct dummy_control dummy_chassis_controls_rsa[];
-//extern struct dummy_control dummy_cpu_controls_rsa[];
-//extern struct dummy_control dummy_dasd_controls_rsa[];
-//extern struct dummy_control dummy_fan_controls_rsa[];
-
-/***********************
- * Inventory Definitions
- ***********************/
-
-//struct DummyInventoryOids {
-//        const char *OidChassisType;
-//        const char *OidMfgDateTime;
-//        const char *OidManufacturer;
-//        const char *OidProductName;
-//       const char *OidProductVersion;
-//        const char *OidSerialNumber;
-//        const char *OidPartNumber;
-//        const char *OidFileId;
-//        const char *OidAssetTag;
-//};
-
-//struct InventoryMibInfo {
-//        unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-//        int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
-//        SaHpiIdrAreaTypeT  area_type;
-//        struct DummyInventoryOids oid;
-//};
-
-//struct InventoryInfo {
-//        struct InventoryMibInfo mib;
-//};
-
-//struct dummy_inventory {
-//        SaHpiInventoryRecT  inventory;
-//        struct InventoryInfo inventory_info;
-//        const char *comment;
-//};
-
-//extern struct dummy_inventory dummy_chassis_inventories[];
-//extern struct dummy_inventory dummy_fan_inventories[];
-//extern struct dummy_inventory dummy_mgmnt_inventories[];
-//extern struct dummy_inventory dummy_switch_inventories[];
-//extern struct dummy_inventory dummy_blade_inventories[];
-//extern struct dummy_inventory dummy_blade_addin_inventories[];
-//extern struct dummy_inventory dummy_mediatray_inventories[];
-//extern struct dummy_inventory dummy_power_inventories[];
-
-//extern struct dummy_inventory dummy_chassis_inventories_rsa[];
-//extern struct dummy_inventory dummy_cpu_inventories_rsa[];
-//extern struct dummy_inventory dummy_dasd_inventories_rsa[];
-//extern struct dummy_inventory dummy_fan_inventories_rsa[];
-
+SaErrorT dummy_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc);
 #endif
+
