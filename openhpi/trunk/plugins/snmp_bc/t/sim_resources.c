@@ -35,7 +35,6 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
-
         {
                 /* DATETIME */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.4.4.1.0",
@@ -231,7 +230,27 @@ struct snmp_bc_data sim_resource_array[] = {
                                 .integer = 1, /* 1=execute */
                         },
                 },
-         },
+        },
+        {
+                /* Management module 1 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.6.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "  0000 0000 0000 0000 0000 0000 0000 0000 "
+                        },
+                },
+        },
+        {
+                /* Management module 2 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.2.1.1.6.2",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available"
+                        },
+                },
+        },
         {
                 /* Switch Reset - Switch 1 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.1", /* write-only */
@@ -239,6 +258,16 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_INTEGER,
                         .value = {
                                 .integer = 1, /* 1=execute */
+                        },
+                },
+        },
+        {
+                /* Switch 1 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "EC4E 1D7C 704B 11D7 B69E 0005 5D89 A738 "
                         },
                 },
         },
@@ -253,6 +282,16 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
+                /* Switch 2 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.2",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = { // intentional error
+                                .string = "No value available"
+                        },
+                },
+        },
+        {
                 /* Switch Reset - Switch 3 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.3", /* write-only */
                 .mib = {
@@ -263,12 +302,32 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
+                /* Switch 3 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "21DA E982 1B9E 95B8 7821 00C0 DD01 C65A "
+                        },
+                },
+        },
+        {
                 /* Switch Reset - Switch 4 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.3.1.7.1.8.4", /* write-only */
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
                                 .integer = 1, /* 1=execute */
+                        },
+                },
+        },
+        {
+                /* Switch 4 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.6.1.1.8.4",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = { // intentional error
+                                .string = "                                        "
                         },
                 },
         },
@@ -309,6 +368,196 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_INTEGER,
                         .value = {
                                 .integer = 1, /* poweroff=0; poweron=1 */
+                        },
+                },
+        },
+        {
+                /* Blade 1 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "D63F A294 1BB4 4A12 9D42 48D0 BE6A 3A20 "
+                        },
+                },
+        },
+        {
+                /* Blade 2 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.2",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available"
+                        },
+                },
+        },
+        {
+                /* Blade 3 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {  // intentional error
+                                .string = "06DC 3B85 D61D B211 8576 8CF2 8F52 "
+                        },
+                },
+        },
+        {
+                /* Blade 4 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.4",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "21DA-E8E3-8C36-22E2-92E1-00C0-DD01-C53C "
+                        },
+                },
+        },
+        {
+                /* Blade 5 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.5",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = { // intentional error
+                                .string = "  Z4EE EE02 24B4 4A12 9B01 D094 209B 532C  "
+                        },
+                },
+        },
+        {
+                /* Blade 6 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.6",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available"
+                        },
+                },
+        },
+        {
+                /* Blade 7 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.7",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "64EE EE02 24B4 4A12 9B01 D094 209B 532C "
+                        },
+                },
+        },
+        {
+                /* Blade 8 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.8",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available"
+                        },
+                },
+        },
+        {
+                /* Blade 9 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.9",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                               .string = "Not available" 
+                        },
+                },
+        },
+        {
+                /* Blade 10 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.10",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available"
+                        },
+                },
+        },
+        {
+                /* Blade 11 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.11",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available"
+                        },
+                },
+        },
+        {
+                /* Blade 12 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.12",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                               .string = "Not available" 
+                        },
+                },
+        },
+        {
+                /* Blade 13 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.13",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available" 
+                        },
+                },
+        },
+        {
+                /* Blade 14 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.8.14",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "Not available"
+                        },
+                },
+        },
+        {
+                /* Media Tray UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.9.8.0",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "0000 0000 0000 0000 0000 0000 0000 0000 "
+                        },
+                },
+        },
+        {
+                /* Power module 1 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "22C2 2ADF 51A4 11D7 004B 0090 0005 0047 "
+                        },
+                },
+        },
+        {
+                /* Power module 2 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.2",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = " B62965A8 6EB2 11D7 00D5 007400B00020 "
+                        },
+                },
+        },
+        {
+                /* Power module 3 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "B62965A8-6EB2-11D7-00D5-007400B00020 "
+                        },
+                },
+        },
+        {
+                /* Power module 4 UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.8.1.1.8.4",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "3D2E 1265 6EB2 11D7 001C 007F 00C7 00A5 "
                         },
                 },
         },
@@ -1444,6 +1693,16 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_INTEGER,
                         .value = {
                                 .integer = 255, /* critical=0; nonCritical=2; systemLevel=4; normal=255 */
+                        },
+                },
+        },
+        {
+                /* Chassis UUID */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.1.1.4.0",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "F161 42C1 6593 11D7 8D0E F738 156C AAAC "
                         },
                 },
         },
