@@ -16,60 +16,65 @@
 #include <snmp_bc_plugin.h>
 
 /**
- * snmp_bc_get_hotswap_state:
+ * snmp_bc_get_power_state:
  * @hnd: Handler data pointer.
  * @rid: Resource ID.
- * @state: Location to store resource's hotswap state.
+ * @state: Location to store resource's power state.
  *
- * Retrieves a sensor's value and/or state. Both @data and @state
- * may be NULL, in which case this function can be used to test for
- * sensor presence.
+ * Retrieves a resource's power state.
  *
  * Return values:
  * SA_OK - Normal case.
- * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_SENSOR.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_POWER.
  * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
- * SA_ERR_HPI_INVALID_REQUEST - Sensor is disabled.
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
 SaErrorT snmp_bc_get_power_state(void *hnd,
 				 SaHpiResourceIdT rid,
 				 SaHpiPowerStateT *state)
 {
-	if (!hnd || !state){
-		dbg("Missing handle\n");
+	gchar *oid;
+	SaErrorT err = SA_OK;
+	struct ResourceInfo *resinfo;
+        struct snmp_value get_value;
+
+	if (!hnd || !state) {
+		dbg("Invalid parameter");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	gchar *oid;
-	int rtn_code = SA_OK;
-        struct snmp_value get_value;
-	SaErrorT status;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-        SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, rid);
-	if(res == NULL) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-         struct ResourceInfo *s =
-                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, rid);
-	if(s == NULL) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	if(s->mib.OidPowerState == NULL) { 
-		return SA_ERR_HPI_INVALID_CMD;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	oid = oh_derive_string(&(res->ResourceEntity), s->mib.OidPowerState);
-	if(oid == NULL) {
-		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerState);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+	/* Check if resource exists and has power capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) return(SA_ERR_HPI_CAPABILITY);
+
+	resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, rid);
+ 	if (resinfo == NULL) {
+		dbg("No resource data. Resource=%s", rpt->ResourceTag.Data);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}       
+	if (resinfo->mib.OidPowerState == NULL) {
+		dbg("No Power OID.");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
+	/* Read power state of resource */
+	oid = oh_derive_string(&(rpt->ResourceEntity), resinfo->mib.OidPowerState);
+	if (oid == NULL) {
+		dbg("NULL SNMP OID returned for %s", resinfo->mib.OidPowerState);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
-	status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
-	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
+	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+	if (!err && (get_value.type == ASN_INTEGER)) {
 		switch (get_value.integer) {
 		case 0:
 			*state = SAHPI_POWER_OFF;
@@ -78,88 +83,114 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 			*state = SAHPI_POWER_ON;
 			break;
 		default:
-			dbg("Invalid power state read for oid=%s\n",oid);
-			rtn_code = SA_ERR_HPI_INTERNAL_ERROR;
+			dbg("Invalid power state for OID=%s.", oid);
+		        err = SA_ERR_HPI_INTERNAL_ERROR;
 		}
         } else {
-		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
-		rtn_code = status;
+		dbg("Cannot read SNMP OID=%s; Type=%d.", oid, get_value.type);
 	}
 
 	g_free(oid);
-        return rtn_code;
+        return(err);
 }
 
+/**
+ * snmp_bc_set_power_state:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @state: Resource's power state to set.
+ *
+ * Sets a resource's power state.
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_POWER.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_INVALID_REQUEST - @state invalid.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ **/
 SaErrorT snmp_bc_set_power_state(void *hnd,
 				 SaHpiResourceIdT rid,
 				 SaHpiPowerStateT state)
 {
-	if (!hnd){
-		dbg("Missing handle\n");
-		return SA_ERR_HPI_INVALID_PARAMS;
+	gchar *oid;
+	SaErrorT err = SA_OK;
+	struct ResourceInfo *resinfo;
+        struct snmp_value set_value;
+
+	if (!hnd) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	gchar *oid;
-	int rtn_code = SA_OK;
-	SaErrorT status;
+	if (NULL == oh_lookup_powerstate(state)) {
+		dbg("Invalid power state.");
+		return(SA_ERR_HPI_INVALID_REQUEST);
+	}
 
-        struct snmp_value set_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-        SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, rid);
-	if(res == NULL) {
-		return SA_ERR_HPI_INVALID_RESOURCE;
-	}
-        struct ResourceInfo *s =
-                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, rid);
-	if(s == NULL) {
-		return SA_ERR_HPI_INVALID_CMD;
-	}
-	if(s->mib.OidPowerOnOff == NULL) { 
-		return SA_ERR_HPI_INVALID_CMD; 
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	oid = oh_derive_string(&(res->ResourceEntity), s->mib.OidPowerOnOff);
-	if(oid == NULL) {
-		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerOnOff);
-		return SA_ERR_HPI_INTERNAL_ERROR;
+	/* Check if resource exists and has power capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) return(SA_ERR_HPI_CAPABILITY);
+
+	resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, rid);
+ 	if (resinfo == NULL) {
+		dbg("No resource data. Resource=%s", rpt->ResourceTag.Data);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}       
+	if (resinfo->mib.OidPowerOnOff == NULL) {
+		dbg("No Power OnOff OID.");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+	/* Set power on/off */
+	oid = oh_derive_string(&(rpt->ResourceEntity), resinfo->mib.OidPowerOnOff);
+	if (oid == NULL) {
+		dbg("NULL SNMP OID returned for %s.", resinfo->mib.OidPowerOnOff);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	set_value.type = ASN_INTEGER;
 	set_value.str_len = 1;
+
 	switch (state) {
 	case SAHPI_POWER_OFF:
 		set_value.integer = 0;
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
-		if (status != SA_OK) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
-			if (status == SA_ERR_HPI_BUSY) return status;
-			else return SA_ERR_HPI_NO_RESPONSE;
+		err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+		if (err) {
+			dbg("Cannot set SNMP OID=%s; Type=%d.",
+			    resinfo->mib.OidPowerOnOff, set_value.type);
+			if (err != SA_ERR_HPI_BUSY) err = SA_ERR_HPI_NO_RESPONSE;
 		}
 		break;
-		
 	case SAHPI_POWER_ON:
 		set_value.integer = 1;
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
-		if (status != SA_OK) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
-			if (status == SA_ERR_HPI_BUSY) return status;
-			else return SA_ERR_HPI_NO_RESPONSE;
+		err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+		if (err) {
+			dbg("Cannot set SNMP OID=%s; Type=%d.",
+			    resinfo->mib.OidPowerOnOff, set_value.type);
+			if (err != SA_ERR_HPI_BUSY) err = SA_ERR_HPI_NO_RESPONSE;
 		}
 		break;
-		
 	case SAHPI_POWER_CYCLE:
 	        {
 			SaHpiResetActionT act = SAHPI_COLD_RESET;
-			rtn_code=snmp_bc_set_reset_state(hnd, rid, act);
+			err = snmp_bc_set_reset_state(hnd, rid, act);
 	        }
 		break;
 	default:
 		dbg("Invalid Power Action Type - %d\n", state);
-		rtn_code = SA_ERR_HPI_INVALID_PARAMS;
+		err = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	g_free(oid);
-        return rtn_code;
+        return(err);
 }
