@@ -29,6 +29,7 @@
 #include <oh_error.h>
 #include <oh_domain.h>
 #include <oh_session.h>
+#include <oh_alarm.h>
 #include <oh_hotswap.h>
 #include <oh_utils.h>
 
