@@ -1,0 +1,138 @@
+dnl
+dnl autoconf and automake for openhpi
+dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
+dnl   various hacks by Sean Dague <sean@dague.net> 4/23/03
+
+AC_PREREQ(2.50)
+AC_INIT(openhpi.spec.in)
+AM_INIT_AUTOMAKE(openhpi, 0.1)
+
+dnl AM_CONFIG_HEADER(./config.h)
+
+AC_PROG_CC
+AC_LIBTOOL_DLOPEN
+AM_PROG_LIBTOOL
+
+HPI_PKG=openhpi
+AC_SUBST(HPI_PKG)
+AC_SUBST(ac_configure_args)
+
+dnl Checks for programs
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
+dnl Check fo libraries
+have_uuid=no
+have_openipmi=no
+
+AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
+    echo "************************************************************"
+    echo "* libltdl not found!"
+    echo "* this is require for plugin loading"
+    echo "************************************************************"
+    exit 1
+    ])
+
+dnl AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes],[
+dnl    echo "************************************************************"
+dnl    echo "* OpenIPMI not found!"
+dnl    echo "* currently OpenIPMI is required for build of openhpi"
+dnl    echo "* please download and install the latest version of the software"
+dnl    echo "* from http://openipmi.sf.net"
+dnl    echo "************************************************************"
+dnl    exit 1
+dnl    ])
+    
+AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
+    echo "************************************************************"
+    echo "* libuuid not found!"
+    echo "* Please install e2fsprogs-devel to get the required files" 
+    echo "************************************************************"
+    exit 1
+    ])
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/time.h unistd.h])
+
+dnl Checks for library functions.
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([gettimeofday memset])
+
+dnl Checks for other helper programs
+
+AC_PATH_PROGS(RPM, rpmbuild)
+
+dnl 
+dnl This code was borrowed from linux-ha configure.in file
+dnl and is used for creating the proper substitutions
+dnl in the spec file. Without it, the spec file will
+dnl have ${exec_prefix}, etc. instead of the actual
+dnl directory.
+dnl
+dnl
+
+prefix=`eval echo "$prefix"`
+
+case $prefix in
+  NONE) prefix=/usr/local;;
+esac
+var() {
+  case $1 in
+    *'${'*)     res=`eval echo "$1"`;;
+    *)          res="$1";;
+  esac
+  case "$res" in
+    ""|NONE)    echo "$2";;
+    *)          echo "$res";;
+  esac
+}
+
+exec_prefix=`var "$exec_prefix" "$prefix"`
+bindir=`var "$bindir" "$exec_prefix/bin"`
+sbindir=`var "$sbindir" "$exec_prefix/sbin"`
+libdir=`var "$libdir" "$exec_prefix/lib"`
+includedir=`var "$includedir" "$exec_prefix/include"`
+base_includedir="${includedir}"
+AC_SUBST(base_includedir)
+
+
+AC_C_STRINGIZE
+
+AC_ARG_ENABLE([fatal-warnings],
+[  --enable-fatal-warnings very pedantic and fatal warnings for gcc
+                          [default=yes]])
+
+AC_ARG_ENABLE([no-long-long],
+[  --enable-no-long-long removes no long long warning for gcc
+                          [default=yes]])
+
+AC_ARG_ENABLE([traditional-warnings],
+[  --enable-traditional-warnings
+                          enable traditional warnings gcc (-Wtraditional)
+                          [default=no]])
+CC_WARNINGS="-Wall -Wmissing-prototypes \
+	-Wmissing-declarations \
+	-Wstrict-prototypes \
+	-Wpointer-arith \
+	-Wwrite-strings \
+	-Wcast-qual -Wcast-align \
+	-Werror"
+
+CFLAGS="$CFLAGS $CC_WARNINGS"
+
+AC_OUTPUT(openhpi.spec 		         \
+	Makefile 	 	         \
+	src/Makefile		         \
+	src/plugins/Makefile             \
+	docs/Makefile		         \
+	docs/hld/Makefile	         \
+	examples/Makefile                \
+)
+
+

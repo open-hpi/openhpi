@@ -1,0 +1,93 @@
+Name: @HPI_PKG@
+Summary: @HPI_PKG@ - implementation of SAForum Hardware Platform Interface 
+Version: @VERSION@
+Release: 1
+Copyright: BSD
+URL: http://openhpi.sourceforge.net
+Group: Utilities
+Vendor: Intel Corporation
+Packager: Andrea Brugger <andrea.l.brugger@intel.com>
+Source: @HPI_PKG@-@VERSION@.tar.gz
+Buildroot: /var/tmp/@HPI_PKG@-root
+
+Summary: Library that provides SAForum's HPI
+Group: Utilities
+
+%package dev
+Summary: Development files for HPI
+Group: Utilities
+
+%package examples
+Summary: HPI example applications
+Group: Utilities
+Requires: openhpi
+Requires: openhpi-dev
+
+%description 
+This package contains an implementation of Service Availability Forum's 
+HPI specification.
+
+%description dev
+Contains additional files need for a developer to create applications
+and/or middleware that depends uses the Service Availability Forum's
+HPI specification
+
+%description examples
+This package contains simple example applications that utilize OpenHPI
+
+###################################################
+%prep
+###################################################
+
+###################################################
+%setup
+###################################################
+
+###################################################
+%build
+###################################################
+./configure @ac_configure_args@
+make
+make hpi_examples
+
+###################################################
+%install
+###################################################
+if
+  [ ! -z "${RPM_BUILD_ROOT}"  -a "${RPM_BUILD_ROOT}" != "/" ]
+then
+  rm -rf $RPM_BUILD_ROOT
+fi
+make DESTDIR=$RPM_BUILD_ROOT install
+
+###################################################
+%files
+###################################################
+%defattr(-,root,root)
+@libdir@/
+
+###################################################
+%files dev
+###################################################
+%defattr(-,root,root)
+%dir @includedir@/openhpi
+@includedir@/openhpi
+
+###################################################
+%files examples
+###################################################
+%defattr(-,root,root)
+%dir @bindir@
+@bindir@/
+
+
+###################################################
+%clean
+###################################################
+if
+  [ -z "${RPM_BUILD_ROOT}"  -a "${RPM_BUILD_ROOT}" != "/" ]
+then
+  rm -rf $RPM_BUILD_ROOT
+fi
+rm -rf $RPM_BUILD_DIR/@HPI_PKG@-@VERSION@
+
