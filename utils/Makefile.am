@@ -46,6 +46,7 @@ libopenhpiutils_la_SOURCES = \
 			   rpt_utils.c \
                            epath_utils.c \
 			   sel_utils.c \
-			   uid_utils.c
+			   uid_utils.c \
+			   ecode_utils.c
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
