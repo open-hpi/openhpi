@@ -127,14 +127,14 @@ open (FILE_ERR_H, ">>$file_err_h") or die "$0 Error! Cannot open file $file_err_
 #################################################################
 # Parse event map file information into internal perl hash tables
 #################################################################
-my $err = 1;
+my $err = 0;
 my %eventmap = ();
 my %defmap = ();
 
 while ( <FILE_MAP> ) {
 
     # Skip comments/blank lines
-    next if /^\/\// || /^#.*$/ || /^\s*$/;
+    next if /^\s*\/\// || /^\s*#/ || /^\s*$/;
 
     my $line = $_;
     (my $hpidef_event, my $hpidef, my $def) = split/\|/,$line;
@@ -149,7 +149,7 @@ while ( <FILE_MAP> ) {
 	    print "******************************************************\n";
 	    print "$0: Error! Definition $hpidef not found or not unique.\n";
 	    print "******************************************************\n\n";
-	    $err = 0;
+	    $err = 1;
 	    goto CLEANUP;
 	}
 	$defmap{$hpidef} = $def;
@@ -157,10 +157,11 @@ while ( <FILE_MAP> ) {
     else {
 	if ($event_name eq "" || $event_hex eq "" || $platforms eq "" ||
 	    $event_severity eq "" || $override_flags eq "" || $event_msg eq "") {
+            print "Line is $_\n";
 	    print "*************************************************************\n";
 	    print "$0: Error! Format for event incomplete for event=$event_name.\n";
 	    print "**************************************************************\n\n";
-	    $err = 0;
+	    $err = 1;
 	    goto CLEANUP;
 	}
 	
