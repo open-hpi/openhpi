@@ -29,30 +29,27 @@ INCLUDES 		= -I $(top_srcdir)/include -I $(top_srcdir)/utils -I $(top_srcdir)/ma
 bin_PROGRAMS            = openhpid client
 
 openhpid_SOURCES        = \
-	strmsock.cpp \
-	strmsock.h \
 	openhpid.cpp
 
 client_SOURCES        = \
-	strmsock.cpp \
-	strmsock.h \
 	client.cpp
 
 # this is defined with ./configure --enable-daemon=static 
 #if OPENHPID_STATIC
+openhpid_LDADD          = $(top_builddir)/marshal/libohtcpconnx.la
 #openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
-#openhpid_LDFLAGS        = -static
+openhpid_LDFLAGS        = -static
+client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la
+#client_LDADD            = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
+client_LDFLAGS          = -static
 #else
+openhpid_LDADD          = $(top_builddir)/marshal/libohtcpconnx.la
 #openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la
-#openhpid_LDFLAGS        =
+openhpid_LDFLAGS        =
+client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la
+#client_LDADD            = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la
+client_LDFLAGS          =
 #endif
-
-#noinst_PROGRAMS       = event_get
-
-# check saHpiEventGet function of the daemon
-#event_get_SOURCES     = event_get.c
-#event_get_LDADD       = libopenhpiclient.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
-#event_get_LDFLAGS     = -static
 
 
 clean-local:
