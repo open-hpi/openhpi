@@ -412,7 +412,7 @@ static int str2text(char *str, SaHpiTextBufferT *text)
 {
    int len;
 
-   text->DataType = SAHPI_TL_TYPE_ASCII6;
+   text->DataType = SAHPI_TL_TYPE_LANGUAGE;
    text->Language = SAHPI_LANG_ENGLISH;
  
    len = strlen(str);
