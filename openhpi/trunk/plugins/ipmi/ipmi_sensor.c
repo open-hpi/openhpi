@@ -133,7 +133,7 @@ static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 		rv = ipmi_reading_get(sensor, sensor_reading, reading_data);
 		if (rv) {
 			reading_data->done = 1;
-			reading_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+			reading_data->rvalue = SA_ERR_HPI_INVALID_REQUEST;
 			dbg("Unable to get sensor reading: %s\n", strerror( rv ) );
 			return;
 		}
@@ -141,7 +141,7 @@ static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 		rv = ipmi_states_get(sensor, sensor_read_states, reading_data);
 		if (rv) {
 			reading_data->done = 1;
-			reading_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
+			reading_data->rvalue = SA_ERR_HPI_INVALID_REQUEST;
 			dbg("Unable to get sensor reading states: %s\n",
 					strerror( rv ) );
 		}
