@@ -48,10 +48,10 @@ SaHpiUint8T oh_get_ready_state()
         if (!oh_process_q)
                 ready_state = ready_state & ~OH_PROCESS_Q_READY;
 
-        if (!domains.lock || !domains.table)
+        if (!oh_domains.lock || !oh_domains.table)
                 ready_state = ready_state & ~OH_DOMAINS_READY;
 
-        if (!sessions.lock || !sessions.table)
+        if (!oh_sessions.lock || !oh_sessions.table)
                 ready_state = ready_state & ~OH_SESSIONS_READY;
 
         /* FIXME: No real way of checking for a UID ready state. */        
@@ -147,8 +147,8 @@ SaErrorT oh_initialize()
         oh_event_init();
 
         /* Initialize domain table */
-        domains.lock = g_mutex_new();
-        domains.table = g_hash_table_new(g_int_hash, g_int_equal);
+        oh_domains.lock = g_mutex_new();
+        oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
 
         /* Create first domain */
         tag.DataType = SAHPI_TL_TYPE_TEXT;
@@ -160,8 +160,8 @@ SaErrorT oh_initialize()
         }        
 
         /* Initialize session table */
-        sessions.lock = g_mutex_new();
-        sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
+        oh_sessions.lock = g_mutex_new();
+        oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
         
         /* Initialize uid_utils */
         rval = oh_uid_initialize();

@@ -29,12 +29,12 @@
  *  Global table of all active domains (oh_domain).
  *  Encapsulated in a struct to store a lock alongside of it.
  */
-struct oh_domains {
+struct oh_domain_table {
         GHashTable *table;
         GMutex *lock;
 };
 
-extern struct oh_domains domains;
+extern struct oh_domain_table oh_domains;
 
 /*
  * Representation of an domain

@@ -19,7 +19,7 @@
 #include <el_utils.h>
 #include <string.h>
 
-struct oh_domains domains = {        
+struct oh_domain_table oh_domains = {        
         .table = NULL,
         .lock = NULL
 };
@@ -62,13 +62,13 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                 g_array_free(domain->sessions, TRUE);
                 g_mutex_free(domain->lock);
                 g_free(domain);
-                g_mutex_unlock(domains.lock);
+                g_mutex_unlock(oh_domains.lock);
                 return 0;
         }
-        g_mutex_lock(domains.lock); /* Locked domain table */
+        g_mutex_lock(oh_domains.lock); /* Locked domain table */
         domain->id = id++;
-        g_hash_table_insert(domains.table, &(domain->id), domain);
-        g_mutex_unlock(domains.lock);  /* Unlocked domain table */
+        g_hash_table_insert(oh_domains.table, &(domain->id), domain);
+        g_mutex_unlock(oh_domains.lock);  /* Unlocked domain table */
 
         return domain->id;
 }
@@ -87,10 +87,10 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
 
         if (did < 1) return SA_ERR_HPI_INVALID_PARAMS;
 
-        g_mutex_lock(domains.lock); /* Locked domain table */
-        domain = g_hash_table_lookup(domains.table, &did);
+        g_mutex_lock(oh_domains.lock); /* Locked domain table */
+        domain = g_hash_table_lookup(oh_domains.table, &did);
         if (!domain) {
-                g_mutex_unlock(domains.lock);
+                g_mutex_unlock(oh_domains.lock);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -99,8 +99,8 @@ SaErrorT oh_destroy_domain(SaHpiDomainIdT did)
         oh_el_close(domain->del);
         g_array_free(domain->sessions, TRUE);
 
-        g_hash_table_remove(domains.table, &(domain->id));
-        g_mutex_unlock(domains.lock); /* Unlocked domain table */
+        g_hash_table_remove(oh_domains.table, &(domain->id));
+        g_mutex_unlock(oh_domains.lock); /* Unlocked domain table */
 
         g_mutex_free(domain->lock);
         g_free(domain);
@@ -122,15 +122,15 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
 
         if (did < 1) return NULL;
 
-        g_mutex_lock(domains.lock); /* Locked domain table */
-        domain = g_hash_table_lookup(domains.table, &did);
+        g_mutex_lock(oh_domains.lock); /* Locked domain table */
+        domain = g_hash_table_lookup(oh_domains.table, &did);
         if (!domain) {
-                g_mutex_unlock(domains.lock);
+                g_mutex_unlock(oh_domains.lock);
                 return NULL;
         }
 
         g_mutex_lock(domain->lock);
-        g_mutex_unlock(domains.lock); /* Unlocked domain table */
+        g_mutex_unlock(oh_domains.lock); /* Unlocked domain table */
 
         return domain;
 }
@@ -156,9 +156,9 @@ GArray *oh_list_domains()
         domain_ids = g_array_new(FALSE, TRUE, sizeof(SaHpiDomainIdT));
         if (!domain_ids) return NULL;
 
-        g_mutex_lock(domains.lock);
-        g_hash_table_foreach(domains.table, collect_domain_ids, domain_ids);
-        g_mutex_unlock(domains.lock);
+        g_mutex_lock(oh_domains.lock);
+        g_hash_table_foreach(oh_domains.table, collect_domain_ids, domain_ids);
+        g_mutex_unlock(oh_domains.lock);
 
         return domain_ids;
 }
