@@ -41,8 +41,8 @@ int main(int argc, char **argv)
                 ep3.Entry[i].EntityType = SAHPI_ENT_GROUP;
                 ep3.Entry[i].EntityInstance = 202;
         }
-        ep3.Entry[SAHPI_MAX_ENTITY_PATH].EntityType = SAHPI_ENT_BATTERY;
-        ep3.Entry[SAHPI_MAX_ENTITY_PATH].EntityInstance = 404;
+        ep3.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType = SAHPI_ENT_BATTERY;
+        ep3.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityInstance = 404;
         if (ep_concat(&ep1, &ep2)) {
                 if (mydebug) printf("ep_concat test14 checkpoint 1 failed\n");
                 return 1;
