@@ -80,13 +80,14 @@ enum ipmi_hot_swap_states _hpi_to_ipmi_state_conv(SaHpiHsStateT hpi_state)
 }
 
 static
-int _get_hotswap_state(ipmi_entity_t             *ent,
-                       int                       err,
-                       enum ipmi_hot_swap_states state,
-                       void                      *cb_data)
+int _get_hotswap_state(ipmi_entity_t    *ent,
+                       enum ipmi_hot_swap_states last_state,
+                       enum ipmi_hot_swap_states curr_state,
+                       void                      *cb_data,
+                       ipmi_event_t              *event)
 {
-        *(enum ipmi_hot_swap_states*)cb_data = state;
-        return 0;
+        *(enum ipmi_hot_swap_states*)cb_data = curr_state;
+        return IPMI_EVENT_NOT_HANDLED;
 }
 
 SaErrorT ohoi_get_hotswap_state(void *hnd, SaHpiResourceIdT id, 

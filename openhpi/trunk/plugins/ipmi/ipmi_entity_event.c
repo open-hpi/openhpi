@@ -44,8 +44,7 @@ static void entity_presence(ipmi_entity_t	*entity,
 
 	/* FIXIT! */
 	if (event)
-		e->u.hpi_event.event.Timestamp 
-                        = ipmi_get_uint32(ipmi_event_get_data_ptr(event));
+		e->u.hpi_event.event.Timestamp = ipmi_get_uint32(event->data);
 
 	/* Do not find the severity of hotswap event */
 	e->u.hpi_event.event.Severity = SAHPI_MAJOR;
