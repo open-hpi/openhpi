@@ -43,7 +43,16 @@
 
 static int snmp_rsa_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
-        return 0;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        
+        if(g_slist_length(handle->eventq)>0) {
+                memcpy(event, handle->eventq->data, sizeof(*event));
+                free(handle->eventq->data);
+                handle->eventq = g_slist_remove_link(handle->eventq, handle->eventq);
+                return 1;
+        } else {
+                return 0;
+	}
 }
 
 
