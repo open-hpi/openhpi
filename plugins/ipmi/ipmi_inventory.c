@@ -11,6 +11,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Racing Guo <racing.guo@intel.com>
  */
 
 #include "ipmi.h"
@@ -342,3 +343,47 @@ SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
         return get_inventory_info(ohoi_res_info->u.entity_id, data);;
 }
 #endif
+
+SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo)
+{
+
+	return -1;
+}
+
+SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype,
+                              SaHpiEntryIdT areaid,  SaHpiEntryIdT *nextareaid, SaHpiIdrAreaHeaderT *header)
+{
+	return -1;
+}
+
+SaErrorT ohoi_add_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype, SaHpiEntryIdT *areaid)
+{
+	return -1;
+}
+
+SaErrorT ohoi_del_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid)
+{
+	return -1;
+}
+
+SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
+                             SaHpiEntryIdT areaid, SaHpiIdrFieldTypeT fieldtype, SaHpiEntryIdT fieldid,
+                             SaHpiEntryIdT *nextfieldid, SaHpiIdrFieldT *field)
+{
+	return -1;
+}
+
+SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field )
+{
+	return -1;
+}
+
+SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field )
+{
+	return -1;
+}
+
+SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid, SaHpiEntryIdT fieldid)
+{
+	return -1;
+}

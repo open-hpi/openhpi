@@ -826,50 +826,55 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
 		
-		/* basic ABI functions */
-		.open	 			= ipmi_open,
-		.close				= ipmi_close,
-		.get_event			= ipmi_get_event,
-		.discover_resources		= ipmi_discover_resources,
+	/* basic ABI functions */
+	.open	 			= ipmi_open,
+	.close				= ipmi_close,
+	.get_event			= ipmi_get_event,
+	.discover_resources		= ipmi_discover_resources,
 
-		/* SEL support */
-		.get_el_info                    = ipmi_get_el_info,
-		.set_el_time                    = ipmi_set_el_time,
-		//.add_sel_entry                  = ipmi_add_sel_entry,
-		//.del_sel_entry                  = ipmi_del_sel_entry,
-		.get_el_entry                   = ipmi_get_el_entry,
-		.clear_el                       = ipmi_clear_el, 
+	/* SEL support */
+	.get_el_info                    = ipmi_get_el_info,
+	.set_el_time                    = ipmi_set_el_time,
+	//.add_sel_entry                  = ipmi_add_sel_entry,
+	//.del_sel_entry                  = ipmi_del_sel_entry,
+	.get_el_entry                   = ipmi_get_el_entry,
+	.clear_el                       = ipmi_clear_el, 
 
-		/* Sensor support */
-		.get_sensor_data		= ipmi_get_sensor_data,
-		.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
-		.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
-		//.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
-		//.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
+	/* Sensor support */
+	.get_sensor_data		= ipmi_get_sensor_data,
+	.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
+	.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
+	//.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
+	//.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
 		
-		/* Inventory support */
-		//.get_inventory_size             = ohoi_get_inventory_size,
-		//.get_inventory_info             = ohoi_get_inventory_info,
-		//.set_inventory_info             = NULL,
+	/* Inventory support */
+	.get_idr_info			= ohoi_get_idr_info,
+	.get_idr_area_header		= ohoi_get_idr_area_header,
+	.add_idr_area			= ohoi_add_idr_area,
+	.del_idr_area			= ohoi_del_idr_area,
+	.get_idr_field			= ohoi_get_idr_field,
+	.add_idr_field			= ohoi_add_idr_field,
+	.set_idr_field			= ohoi_set_idr_field,
+	.del_idr_field			= ohoi_del_idr_field,
+ 
+	/* hotswap support */
+	.get_hotswap_state              = ohoi_get_hotswap_state,
+	.set_hotswap_state              = ohoi_set_hotswap_state,
+	.request_hotswap_action         = ohoi_request_hotswap_action,
+	.get_indicator_state            = ohoi_get_indicator_state,
+	.set_indicator_state            = ohoi_set_indicator_state,
         
-        /* hotswap support */
-		.get_hotswap_state              = ohoi_get_hotswap_state,
-		.set_hotswap_state              = ohoi_set_hotswap_state,
-		.request_hotswap_action         = ohoi_request_hotswap_action,
-		.get_indicator_state            = ohoi_get_indicator_state,
-		.set_indicator_state            = ohoi_set_indicator_state,
-        
-        /* power support */
-		.get_power_state                = NULL,
-		.set_power_state                = ohoi_set_power_state,
+	/* power support */
+	.get_power_state                = NULL,
+	.set_power_state                = ohoi_set_power_state,
 	
-        /* reset support */
-		.get_reset_state                = NULL,
-		.set_reset_state                = ohoi_set_reset_state,
+	/* reset support */
+	.get_reset_state                = NULL,
+	.set_reset_state                = ohoi_set_reset_state,
 
         /* control support */
-       .set_control_state = ohoi_set_control_state,
-       .get_control_state = ohoi_get_control_state,
+	.set_control_state = ohoi_set_control_state,
+	.get_control_state = ohoi_get_control_state,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);
