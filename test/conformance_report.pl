@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#       $Id$
+#  $Id$
  
 #  (C) Copyright IBM Corp. 2004
  
@@ -35,4 +35,5 @@ foreach my $dir (@dirs) {
 }
 
 system("./generate_index.pl $outdir > $outdir/index.html");
+
 
