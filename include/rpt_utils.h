@@ -23,13 +23,6 @@
 #define RPT_ENTRY_BEGIN 0xffffffff
 #define RDR_BEGIN       0xffffffff
 
-/* Internally used by the interface. */
-/* Says wether to increment the count in rpt_info,*/
-/* decrement it, or keep it the same.*/
-#define RPT_KEEP_COUNT  3
-#define RPT_INCREMENT   2
-#define RPT_DECREMENT   1
-
 /* oh_add_resource/rdr free-data flag */
 #define FREE_RPT_DATA SAHPI_FALSE
 #define KEEP_RPT_DATA SAHPI_TRUE
