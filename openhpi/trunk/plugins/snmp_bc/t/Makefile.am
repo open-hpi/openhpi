@@ -113,7 +113,11 @@ TESTS = tevent \
 	tsensorget034 \
 	tsensorget036 \
 	tsensorget040 \
-	tsensorget041 
+	tsensorget041 \
+	tsensorset001 \
+	tsensorset002 \
+	tsensorset003 \
+	tsensorset004
 #	thotswap_state_err \
 #	thotswap_reset \
 #	thotswap_reset_err \
@@ -292,6 +296,31 @@ tsensorget041_SOURCES = tsensorget041.c
 tsensorget041_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset001_SOURCES = tsensorset001.c
+tsensorset001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset002_SOURCES = tsensorset002.c
+tsensorset002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset003_SOURCES = tsensorset003.c
+tsensorset003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset004_SOURCES = tsensorset004.c
+tsensorset004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
 
 # Unit tests with IF and snmp calls stubbed out
 #testxml_SOURCES = testxml.c
