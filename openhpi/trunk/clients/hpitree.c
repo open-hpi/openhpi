@@ -424,8 +424,12 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid,
 	SaHpiTextBufferT working;		
 	oh_init_textbuffer(&working);																		
 
-	if (rdrptr->RdrType == SAHPI_SENSOR_RDR) {							
+	if (rdrptr->RdrType == SAHPI_SENSOR_RDR) {
+					
+		if (&rdrptr->RdrTypeUnion.SensorRec == 0) printf("ERROR! Sensor pointer NULL\n");
+		
 		rv = oh_print_sensorrec(&rdrptr->RdrTypeUnion.SensorRec, 4);
+		if (rv) printf("oh_print_sensorrec Error=%s\n", oh_lookup_error(rv));
 		
 		sensor_readingthreshold(sessionid,
 					l_resourceid,
@@ -486,7 +490,7 @@ void sensor_readingthreshold(SaHpiSessionIdT sessionid,
 		printf("\t    ThresholdsGet ret=%s\n\n", oh_lookup_error(rv));
 		return;
 	}
-	printf( "\t    Thresholds::\n" );
+	printf( "\t    Thresholds:\n" );
 
 	if (thresh.LowCritical.IsSupported) {
 		if((rv = oh_decode_sensorreading(thresh.LowCritical, 
