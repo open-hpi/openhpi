@@ -972,7 +972,7 @@ SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	struct SensorInfo *sinfo;
 
-	if (!enable) {
+	if (!hnd || !enable) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
