@@ -60,4 +60,9 @@ libopenhpi_la_SOURCES	= \
 libopenhpi_la_LIBADD    = -lltdl
 libopenhpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
 
-
+# create directory /var/lib/openhpi
+install-data-hook:
+	dir=@VARPATH@; \
+	if test ! -d $$dir; then \
+		$(mkinstalldirs) -m 777 $$dir; \
+	fi

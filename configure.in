@@ -177,6 +177,18 @@ AC_ARG_ENABLE([snmp_bc],
     fi]
     )
 
+dnl defines OH_DEFAULT_UID_MAP and VARPATH
+dnl set VARPATH only if unset or null.
+VARPATH=${VARPATH:=/var/lib/openhpi}
+
+AC_ARG_WITH(varpath,
+    [[  --with-varpath=PATH     use direcory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
+    [VARPATH=$withval])
+dnl substitute @VARPATH@ in all Makefiles
+AC_SUBST(VARPATH)
+dnl create the #define VARPATH and #define OH_DEFAULT_UID_MAP in config.h
+AC_DEFINE_UNQUOTED(VARPATH,"$VARPATH",[openhpi specific data path])
+AC_DEFINE_UNQUOTED(OH_DEFAULT_UID_MAP,"$VARPATH/uid_map",[uid map])
 
 dnl 
 dnl This code was borrowed from linux-ha configure.in file
