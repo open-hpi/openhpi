@@ -381,7 +381,7 @@ int get_events(void);
 
 
 /* howswap */
-void process_hotswap_policy(void);
+void process_hotswap_policy(struct oh_handler *h);
 int hotswap_push_event(struct oh_hpi_event *e);
 int hotswap_pop_event(struct oh_hpi_event *e); 
 int hotswap_has_event(void);
