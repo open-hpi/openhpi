@@ -131,7 +131,8 @@ struct oh_handler *new_handler(const char *plugin_name, const char *name, const 
 		dbg("Out of Memory!");
 		goto err;
 	}
-	
+	memset(handler, '\0', sizeof(*handler));
+
         h = lt_dlopenext(plugin_name);
         if (h == NULL) {
                 dbg("Can not find %s plugin", plugin_name);
