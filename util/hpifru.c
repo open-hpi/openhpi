@@ -40,7 +40,7 @@ SaHpiUint32T actualsize;
 char progname[] = "hpifru";
 char bmctag[] = "Basbrd Mgmt Ctlr";
 char *asset_tag;
-char inbuff[1024];
+char inbuff[10240];
 char outbuff[256];
 SaHpiInventoryDataT *inv;
 SaHpiInventChassisTypeT chasstype;
@@ -303,8 +303,7 @@ main(int argc, char **argv)
 	    buffersize = sizeof(inbuff);
 	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%d\n",
 		    buffersize, sizeof(inbuff));
- 	    if (strncmp(rdr.IdString.Data, bmctag,
-			rdr.IdString.DataLength) == 0)
+
 
 	    {
 	      rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
