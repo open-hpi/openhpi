@@ -217,8 +217,6 @@ static const cMarshalType *saHpiEventLogEntryGetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiEventLogEntryIdType,
-  &SaHpiRdrType,
-  &SaHpiRptEntryType,
   0
 };
 
@@ -367,9 +365,6 @@ static const cMarshalType *saHpiEventGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiTimeoutType,
-  &SaHpiRdrType,
-  &SaHpiRptEntryType,
-  &SaHpiEvtQueueStatusType,
   0
 };
 
@@ -514,8 +509,6 @@ static const cMarshalType *saHpiSensorReadingGetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiSensorNumType,
-  &SaHpiSensorReadingType,
-  &SaHpiEventStateType,
   0
 };
 

@@ -23,7 +23,7 @@
 
 
 // text buffer
-static cMarshalType SaHpiTextBufferDataArray = dVarArray( SaHpiUint8Type, 2 );
+static cMarshalType SaHpiTextBufferDataArray = dArray( SaHpiUint8Type, SAHPI_MAX_TEXT_BUFFER_LENGTH );
 
 static cMarshalType SaHpiTextBufferElements[] =
 {
@@ -432,7 +432,7 @@ cMarshalType SaHpiWatchdogRecType = dStruct( SaHpiWatchdogRecT, SaHpiWatchdogRec
 
 // annunciators
 
-static cMarshalType SaHpiNameDataArray = dVarArray( SaHpiUint8Type, 0 );
+static cMarshalType SaHpiNameDataArray = dArray( SaHpiUint8Type, SA_HPI_MAX_NAME_LENGTH );
 
 static cMarshalType SaHpiNameElements[] =
 {
