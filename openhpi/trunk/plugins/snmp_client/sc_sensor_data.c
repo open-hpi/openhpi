@@ -2420,6 +2420,205 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
 }
 
 
+/*****************************************************************************/
+/*****************************************************************************/
+/**** 									   ***/
+/**** 									   ***/
+/**** 	abi support functions 						   ***/
+/**** 									   ***/
+/**** 									   ***/
+/**** 									   ***/
+/**** 									   ***/
+/**** 									   ***/
+/*****************************************************************************/
+/*****************************************************************************/
+oid **get_thold_table_oids(int index)
+{
+	static oid *sensor_thold_oid_table_index[NUM_THRESHOLD_TABLES][6] = {
+		/* saHpiSensorReadingThdLowCriticalTable */
+		{
+			sa_hpi_sensor_thd_low_critical_calls_readable,	
+			sa_hpi_sensor_thd_low_critical_calls_writeable,  
+			sa_hpi_sensor_thd_low_critical_calls_fixed,	
+			sa_hpi_sensor_thd_low_critical_valuespresent,    
+			sa_hpi_sensor_thd_low_critical_raw,		
+			sa_hpi_sensor_thd_low_critical_interpreted
+		},
+		/* saHpiSensorReadingThdLowMajorlTable */
+		{
+			sa_hpi_sensor_thd_low_major_calls_readable,	
+			sa_hpi_sensor_thd_low_major_calls_writeable,  	
+			sa_hpi_sensor_thd_low_major_calls_fixed,		
+			sa_hpi_sensor_thd_low_major_valuespresent,    	
+			sa_hpi_sensor_thd_low_major_raw,			
+			sa_hpi_sensor_thd_low_major_interpreted		
+		},
+		/* saHpiSensorReadingThdLowMinorlTable */
+		{
+			sa_hpi_sensor_thd_low_minor_calls_readable,	
+			sa_hpi_sensor_thd_low_minor_calls_writeable,  	
+			sa_hpi_sensor_thd_low_minor_calls_fixed,		
+			sa_hpi_sensor_thd_low_minor_valuespresent,    	
+			sa_hpi_sensor_thd_low_minor_raw,			
+			sa_hpi_sensor_thd_low_minor_interpreted
+		},
+		/* saHpiSensorReadingThdUpCriticallTable */
+		{
+			sa_hpi_sensor_thd_up_critical_calls_readable,	
+			sa_hpi_sensor_thd_up_critical_calls_writeable,  	
+			sa_hpi_sensor_thd_up_critical_calls_fixed,	
+			sa_hpi_sensor_thd_up_critical_valuespresent,    	
+			sa_hpi_sensor_thd_up_critical_raw,		
+			sa_hpi_sensor_thd_up_critical_interpreted	
+		},
+		/* saHpiSensorReadingThdUpMajorlTable */
+		{
+			sa_hpi_sensor_thd_up_major_calls_readable,
+			sa_hpi_sensor_thd_up_major_calls_writeable,  	
+			sa_hpi_sensor_thd_up_major_calls_fixed,		
+			sa_hpi_sensor_thd_up_major_valuespresent,    	
+			sa_hpi_sensor_thd_up_major_raw,			
+			sa_hpi_sensor_thd_up_major_interpreted
+		},
+		/* saHpiSensorReadingThdUpMinorlTable */
+		{
+			sa_hpi_sensor_thd_up_minor_calls_readable,	
+			sa_hpi_sensor_thd_up_minor_calls_writeable,  	
+			sa_hpi_sensor_thd_up_minor_calls_fixed,		
+			sa_hpi_sensor_thd_up_minor_valuespresent,    	
+			sa_hpi_sensor_thd_up_minor_raw,			
+			sa_hpi_sensor_thd_up_minor_interpreted		
+		},
+		/* saHpiSensorReadingThdPosHysteresislTable */
+		{
+			sa_hpi_sensor_thd_pos_hysteresis_calls_readable,	
+			sa_hpi_sensor_thd_pos_hysteresis_calls_writeable,
+			sa_hpi_sensor_thd_pos_hysteresis_calls_fixed,	
+			sa_hpi_sensor_thd_pos_hysteresis_valuespresent,  
+			sa_hpi_sensor_thd_pos_hysteresis_raw,		
+			sa_hpi_sensor_thd_pos_hysteresis_interpreted	
+		},
+		/* saHpiSensorReadingThdNegHysteresislTable */
+		{
+			sa_hpi_sensor_thd_neg_hysteresis_calls_readable,	
+			sa_hpi_sensor_thd_neg_hysteresis_calls_writeable,
+			sa_hpi_sensor_thd_neg_hysteresis_calls_fixed,	
+			sa_hpi_sensor_thd_neg_hysteresis_valuespresent,  
+			sa_hpi_sensor_thd_neg_hysteresis_raw,		
+			sa_hpi_sensor_thd_neg_hysteresis_interpreted
+		}
+	
+	};
+
+	return(sensor_thold_oid_table_index[index]);
+}
+
+
+SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
+			  oid **oid_ptr, 
+			  oid *indices, 
+			  SaHpiSensorReadingT *reading)
+{
+	SaErrorT status = SA_OK;
+	struct snmp_value get_value;
+	int is_readable = 0;
+        
+	oid anOID[MAX_OID_LEN];
+
+	/* THOLD_IS_READABLE */
+	build_res_oid(anOID, 
+		      oid_ptr[THOLD_IS_READABLE], 
+		      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+		      indices, 
+		      NUM_SEN_INDICES);	
+	status  = snmp_get2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &get_value);
+
+	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
+		is_readable = (get_value.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
+	else
+		printf("get_sensor_threshold_data: error getting THOLD_IS_READABLE \n");
+
+	/* if the threshold MIB OIDS are not readable return */
+	if (is_readable == SAHPI_FALSE) {
+		printf("RAW and INTERPRETED MIB vars not readable\n");
+		return status;
+	}
+
+	/* VALUES_PRESENT */
+	build_res_oid(anOID, 
+		      oid_ptr[THOLD_VALUES_PRESENT], 
+		      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+		      indices, 
+		      NUM_SEN_INDICES);	
+	status  = snmp_get2(custom_handle->ss,
+			    anOID, 
+			    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+			    &get_value);
+
+	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
+		reading->ValuesPresent = 
+			(SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(get_value.integer);
+	else
+		printf("get_sensor_threshold_data: error getting VALUES_PRESENT \n"); 
+
+	/* RAW_READING */
+	if ((reading->ValuesPresent & SAHPI_SRF_RAW) && (status == SA_OK) ) {
+		
+		build_res_oid(anOID, 
+			      oid_ptr[THOLD_RAW], 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status  = snmp_get2(custom_handle->ss,
+				    anOID, 
+				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				    &get_value);
+
+		if( (status == SA_OK) && (get_value.type == ASN_UNSIGNED) ) {
+			reading->Raw = (SaHpiUint32T)get_value.integer;
+		} else {
+			printf("get_sensor_threshold_data: error getting");
+			printf(" RAW_READING \n");
+		}
+
+	} 
+
+	/* INTERPRETED_READING */
+	if( (reading->ValuesPresent & SAHPI_SRF_INTERPRETED) && (status == SA_OK) ) {
+		build_res_oid(anOID, 
+			      oid_ptr[THOLD_INTREPRETED], 
+			      SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_OID_LENGTH, 
+			      indices, 
+			      NUM_SEN_INDICES);
+	
+		status  = snmp_get2(custom_handle->ss,
+				    anOID, 
+				    SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
+				    &get_value);
+
+		if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {
+			if (get_value.str_len <= SAHPI_SENSOR_BUFFER_LENGTH) {
+				memcpy(&reading->Interpreted.Value, 
+				       get_value.string, 
+				       get_value.str_len);
+				reading->Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER;
+			} else
+				printf("ERROR: get_sensor_threshold_data() buff exceeds max allowed\n");
+
+		} else 
+			printf("get_sensor_threshold_data: INTERPRETED_READING");
+	} 
+
+	return(status);
+
+}
+
+
+
 
 
 
