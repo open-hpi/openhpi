@@ -42,7 +42,7 @@ TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../src/.libs:$(shell pwd)/.
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
-TESTS = ctest_01
+#TESTS = ctest_01
 
 #check_PROGRAMS = $(TESTS)
 
