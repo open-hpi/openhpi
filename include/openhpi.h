@@ -332,6 +332,11 @@ int free_handler(struct oh_handler*);
 
 /* system event log */
 int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info);
+int dsel_get_state(SaHpiDomainIdT domain_id);
+void dsel_set_state(SaHpiDomainIdT domain_id, int enable);
+SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
+void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
+
 /* event handler */
 int get_events(void);
 

@@ -26,3 +26,21 @@ int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info)
 {
 	return 0;
 }
+
+int dsel_get_state(SaHpiDomainIdT domain_id)
+{
+	return 0;
+}
+
+void dsel_set_state(SaHpiDomainIdT domain_id, int enable)
+{
+}
+
+SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id)
+{
+	return 0;
+}
+
+void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time)
+{
+}
