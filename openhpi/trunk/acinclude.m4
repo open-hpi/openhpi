@@ -140,33 +140,44 @@ AC_DEFUN(OH_CHECK_NETSNMP,
 AC_DEFUN(OH_CHECK_OPENIPMI,
 	[
 	AC_MSG_CHECKING(for OpenIPMI)
-		OPENIPMI_VERSION=`cat /usr/local/include/OpenIPMI/ipmiif.h | \
-			grep VERSION | \
-			awk {'print $3'} | \
 
-			awk '{
+	OH_OI_FILE=ipmi_ver
+	OH_OI_SRC="ipmi_ver.c"
+	echo "#include <stdio.h>" > $OH_OI_SRC
+	echo "#include <OpenIPMI/ipmiif.h>" >> $OH_OI_SRC
+	echo "int main() {" >> $OH_OI_SRC
+	echo "printf(\"%d.%d.%d\", OPENIPMI_VERSION_MAJOR, \
+				   OPENIPMI_VERSION_MINOR, \
+				   OPENIPMI_VERSION_RELEASE);" >> $OH_OI_SRC
+	echo "return 0;}" >> $OH_OI_SRC
 
-				if ( $[1] > $1) { \
-        			    print "OK"; \
-        		} \
-		        if ( $[1] == $1 ) { \
-        	
-				    if( $[2] > $2 ) { \
-    	        	    print "OK"; \
-        	   		} \
-	            if( $[2] == $2 ) { \
-    
-	        	    if( $[3] >= $3 ) { \
-    	                print "OK"; \
-        	        } \
-            	} \
-        	} \
-    	}'` \
+	gcc -o $OH_OI_FILE $OH_OI_SRC -lOpenIPMI
+
+	OPENIPMI_VERSION=`./ipmi_ver | \
+	awk -F. '{ \
+		if ( $[1] == $1 ) { \
+			if ( $[2] > $2 ) { \
+				print "OK"; \
+				} \
+
+			if ( $[2] == $2 ) { \
+				if ( $[3] >= $3 ) { \
+					print "OK"; \
+				}
+			}
+		}
+	}'` \
+		
 
 	if test "$OPENIPMI_VERSION" == "OK"; then
 		have_openipmi=yes
 		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no)
+		have_openipmi=no
     	fi
+
+		rm -rf $OH_OI_FILE $OH_OI_SRC
 ])
 
 AC_DEFUN(OH_CHECK_FAM,
