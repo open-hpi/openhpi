@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <SaHpi.h>
 #include <rpt_utils.h>
+#include <sel_utils.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,6 +134,7 @@ struct oh_event {
 
 struct oh_handler_state {
         RPTable *rptcache;
+	oh_sel  *selcache;
         GSList *eventq;
         GHashTable *config;
         void *data;
