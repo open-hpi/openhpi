@@ -21,14 +21,14 @@
 #include <oh_utils.h>
 
 int main (int argc, char **argv) {
-	SaHpiEntityPathT  ep;
-	const int MAX_STRING_SIZE = 512;
-	gchar test_string[MAX_STRING_SIZE];
-	gchar returned_string[MAX_STRING_SIZE];
-	int   err;
+        SaHpiEntityPathT  ep;
+        const int MAX_STRING_SIZE = 512;
+        gchar test_string[MAX_STRING_SIZE];
+        gchar returned_string[MAX_STRING_SIZE];
+        int   err;
 
-        sprintf( test_string, "{%d,13}", SAHPI_ENT_ROOT_VALUE*2);
-
+        snprintf( test_string, MAX_STRING_SIZE, "{%d,13}", SAHPI_ENT_ROOT_VALUE*2);
+        
 	err = string2entitypath(test_string, &ep);
 	if (err)
 		return 1;
