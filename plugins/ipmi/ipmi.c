@@ -78,7 +78,7 @@ static void *ipmi_open(GHashTable *handler_config)
 	ipmi_handler->SDRs_read_done = 0;			/* Domain (main) SDR flag, 1 when done */
     ipmi_handler->SELs_read_done = 0;			/* SEL flag, 1 when done */
 	ipmi_handler->mc_count = 0;					/* MC level SDRs, 0 when done */
-	//ipmi_handler->FRU_done = 0;					/* MC level SDRs, 0 when done */
+	ipmi_handler->FRU_done = 0;					/* MC level SDRs, 0 when done */
 
 	ipmi_handler->entity_root = g_hash_table_lookup(handler_config, "entity_root");
 	
@@ -284,6 +284,7 @@ static int ipmi_discover_resources(void *hnd)
 	SaHpiRptEntryT *rpt_entry;
 	SaHpiRdrT	*rdr_entry;
 
+	int discovered = 0;
 	dbg("ipmi discover_resources");
 	
 	while (0 == ipmi_handler->SDRs_read_done || 0 == ipmi_handler->bus_scan_done
@@ -295,14 +296,19 @@ static int ipmi_discover_resources(void *hnd)
 		}
 	}
 
+rediscover:
 	dbg("ipmi discover_resources, MC count: %d", ipmi_handler->mc_count);
         rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
+				discovered++;
                 event = g_malloc0(sizeof(*event));
                 memset(event, 0, sizeof(*event));
                 event->type = OH_ET_RESOURCE;
-                memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-                handler->eventq = g_slist_append(handler->eventq, event);
+                
+				
+				memcpy(&event->u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
+				handler->eventq = g_slist_append(handler->eventq, event);
+
 
                 dbg("Now adding rdr for resource: %d", event->u.res_event.entry.ResourceId);
                 rdr_entry = oh_get_rdr_next(handler->rptcache,rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
@@ -319,6 +325,18 @@ static int ipmi_discover_resources(void *hnd)
                 
                 rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
         }
+
+		/* check number of entries in rptcache and compare to discovered so far */
+		printf("Discovered %d and in rptcache: %d\n", discovered, g_slist_length(handler->rptcache->rptlist));
+		//if (discovered != g_slist_length(handler->rptcache->rptlist) && ipmi_handler->FRU_done == 0) {
+		if (ipmi_handler->FRU_done == 0) {
+				printf("We have new entries in the rptcache, re-discover!\n");
+				sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
+				goto rediscover;
+		}
+
+		dbg("ipmi discovery done");
+
 
 	return 0;
 }
