@@ -51,7 +51,6 @@ libopenhpi_la_SOURCES	= \
                            domain.c \
                            epath_utils.c \
                            event.c \
-                           eventlog.c \
                            hotswap.c \
                            lock.c \
                            plugin.c \
@@ -61,7 +60,6 @@ libopenhpi_la_SOURCES	= \
 			   uid_utils.c \
 			   sel_utils.c
 
-#                           resource.c \
  
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ -lltdl
 libopenhpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
