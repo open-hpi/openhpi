@@ -12,8 +12,6 @@
 # Source function library.
 . /etc/init.d/functions
 
-# See how we were called.
-
 prog="openhpid"
 
 start() {
@@ -44,19 +42,13 @@ restart() {
 	start
 }	
 
-# reload() {
-# 	echo -n $"Reloading cron daemon configuration: "
-# 	killproc crond -HUP
-# 	RETVAL=$?
-# 	echo
-# 	return $RETVAL
-# }	
-
-reload() {
-	echo -n $"Reload not supported. "
+force-reload() {
+	echo -n $"Force-reload not supported."
 	echo
 	return 0
 }	
+
+# See how we were called.
 
 case "$1" in
   start)
@@ -68,16 +60,13 @@ case "$1" in
   restart)
   	restart
 	;;
-  reload)
-  	reload
-	;;
   status)
   	rhstatus
 	;;
-  condrestart)
-  	[ -f /var/lock/subsys/openhpid ] && restart || :
+  force-reload)
+  	force-reload
 	;;
   *)
-	echo $"Usage: $0 {start|stop|status|reload|restart|condrestart}"
+	echo $"Usage: $0 {start|stop|restart|status|force-reload}"
 	exit 1
 esac
