@@ -1289,14 +1289,6 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
         if (format == 0 || format == (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
-        /* if the sensor does not supports raw and interpreted values,
-           return an error */
-        format = sensor->DataFormat.ReadingFormats
-                 & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
-
-        if (format != (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
-                return SA_ERR_HPI_INVALID_DATA;
-
         /* cannot convert non numeric values */
         if (!sensor->DataFormat.IsNumeric)
                 return SA_ERR_HPI_INVALID_DATA;
@@ -1306,7 +1298,8 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
         if (!sensor->DataFormat.FactorsStatic)
                 return  SA_ERR_HPI_INVALID_DATA;
 
-        if (ReadingInput->ValuesPresent == SAHPI_SRF_RAW) {
+        /* there might be event bits turned on, so we need this to be & not = */
+        if (ReadingInput->ValuesPresent & SAHPI_SRF_RAW) {
                 ConvertedReading->ValuesPresent = SAHPI_SRF_INTERPRETED;
                 ConvertedReading->Interpreted.Type = 
                         SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32;
