@@ -165,8 +165,13 @@
         the RDRs represent a quality of that object.  For instance a
         Motherboard (a Resource) may have many thermal sensors (Sendor
         RDRs), voltage sensors (Sensor RDRs), remote power control
-        (Control RDR), programable leds (Control RDRs), and inventory
+        (Control RDR), programmable leds (Control RDRs), and inventory
         function (Inventory RDR).
+      </para>
+      <para>
+        RDRs are basically the meta information describing a sensor
+        (or other type).  There are a set of functions for accessing
+        the actual hardware for each of the types defined in the HPI.
       </para>
       <para>
         The connecting element in the relationship between RDRs and
@@ -178,12 +183,12 @@
     <sect2>
       <title>Discovering Resources</title>
       <para>
-      HPI specifies that resources should be discovered dynamically.
-      It is expected that over the life of an HPI consuming
-      application the resources represented to it will change.  This
-      may come from a user action (i.e. adding a new blade to the
-      chassis), or from a non user driven action (i.e. disk failure in
-      a rack mount server).
+        HPI specifies that resources should be discovered dynamically.
+        It is expected that over the life of an HPI consuming
+        application the resources represented to it will change.  This
+        may come from a user action (i.e. adding a new blade to the
+        chassis), or from a non user driven action (i.e. disk failure in
+        a rack mount server).
     </para>
     <para>
       Given the dynamic nature of Resources, the first thing that must
