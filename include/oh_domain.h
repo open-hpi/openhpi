@@ -53,12 +53,12 @@ struct oh_domain {
 
 SaErrorT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                           SaHpiBoolT isPeer,
-                          SaHpiTextBufferT tag,
+                          SaHpiTextBufferT *tag,
                           SaHpiDomainIdT *did);
-SaErrorT oh_get_domain_rpt(SaHpiDomainIdT did, RPTable *rptable);
-SaErrorT oh_get_domain_dat(SaHpiDomainIdT did, void *datable);
-SaErrorT oh_get_domain_drt(SaHpiDomainIdT did, void *drtable);
-SaErrorT oh_get_domain_del(SaHpiDomainIdT did, oh_sel *delog);
-SaErrorT oh_get_domain_info(SaHpiDomainIdT did, SaHpiDomainInfoT *info);
+SaErrorT oh_get_domain_rpt(SaHpiDomainIdT did, RPTable **rptable);
+SaErrorT oh_get_domain_dat(SaHpiDomainIdT did, void **datable);
+SaErrorT oh_get_domain_drt(SaHpiDomainIdT did, void **drtable);
+SaErrorT oh_get_domain_del(SaHpiDomainIdT did, oh_sel **delog);
+SaErrorT oh_get_domain_info(SaHpiDomainIdT did, SaHpiDomainInfoT **info);
 
 #endif /* OH_DOMAIN_H */
