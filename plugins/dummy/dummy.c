@@ -25,7 +25,9 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
+#include <oh_error.h>
 
 #define ELEMENT_NUM(x) (sizeof(x)/sizeof(x[0]))
 
@@ -1237,7 +1239,7 @@ static void *dummy_open(GHashTable *handler_config)
                 return(NULL);
         }
 
-        i = malloc(sizeof(*i));
+        i = g_malloc(sizeof(*i));
         if (!i) {
                 dbg("out of memory");
                 return( (struct oh_handler_state *)NULL );
@@ -1256,6 +1258,32 @@ static void *dummy_open(GHashTable *handler_config)
         /* associate the static hotswap_event data with a resource */
         hotswap_event[0].u.hpi_event.res.ResourceId = dummy_resources[1].ResourceId;
         hotswap_event[1].u.hpi_event.res.ResourceId = dummy_resources[1].ResourceId;
+
+	/* add to oh_handler_state */
+	GThread *thread_handle;
+	GError **error;
+        GAsyncQueue *eventq_async;
+
+	/* make sure the glib threading subsystem is initialized */
+	if (!g_thread_supported ()) {
+		g_thread_init (NULL);
+		printf("thread not initialized\n");
+	}
+
+	/* create event queue for async events*/
+	if ( !(i->eventq_async = g_async_queue_new()) ) {
+		printf("g_async_queue_new failed\n");
+		return NULL;
+	}
+	
+	/* spawn a thread */
+	if ( !(thread_handle = g_thread_create (event_thread,
+					 i,		/* oh_handler_state */
+					 FALSE,
+					 error)) ) {
+	     printf("g_thread_create failed\n");
+	     return NULL;
+	}
 
         return( (void *)i );
 }
