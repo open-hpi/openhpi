@@ -26,38 +26,60 @@
 #include <openhpi.h>
 #include <oh_utils.h>
 
-void process_hotswap_policy(struct oh_handler *handler)
+void process_hotswap_policy()
 {
         SaHpiTimeT cur, est;	   
-        struct oh_hpi_event e;
-        RPTable *default_rpt = NULL; /* FIXME: Need to use real rpt based on domain! */
-        
+        struct oh_event e;
+	struct oh_handler *handler;
+	struct oh_domain *domain;
+        RPTable *default_rpt;
+
         int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
         
-        get_hotswap_state = handler->abi->get_hotswap_state;
-        
-        if (!get_hotswap_state) {
-                dbg(" Very bad thing here or hotswap not yet supported");
-                return;
-        }
-        
         while( hotswap_pop_event(&e) > 0 ) {
                 struct oh_resource_data *rd;
-                
-                if (e.event.EventType != SAHPI_ET_HOTSWAP) {
+               
+		if (e.type != OH_ET_HPI) {
+			dbg("Non-hpi event!");
+			return;
+		}
+
+		handler = g_hash_table_lookup(global_handler_table, &e.hid);
+		if (!handler) {
+			dbg("handler is NULL\n");
+			return;
+		}
+
+		domain = oh_get_domain(e.did);
+		if (!domain) {
+			dbg("No domain\n");
+			return;
+		}
+
+		/*default_rpt is impossible NULL */
+		default_rpt = &domain->rpt;
+
+        	get_hotswap_state = handler->abi->get_hotswap_state;
+        
+        	if (!get_hotswap_state) {
+                	dbg(" Very bad thing here or hotswap not yet supported");
+                	return;
+        	}
+
+                if (e.u.hpi_event.event.EventType != SAHPI_ET_HOTSWAP) {
                         dbg("Non-hotswap event!");
                         return;
                 }
                 
-                if (!(e.res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                if (!(e.u.hpi_event.res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                         dbg("Non-hotswapable resource?!");
                         return;
                 }
                 
-                rd = oh_get_resource_data(default_rpt, e.res.ResourceId);
+                rd = oh_get_resource_data(default_rpt, e.u.hpi_event.res.ResourceId);
                 if (!rd) {
-                        dbg( "Can't find resource data for Resource %d", e.res.ResourceId);
+                        dbg( "Can't find resource data for Resource %d", e.u.hpi_event.res.ResourceId);
                         continue;
                 }
 
@@ -68,21 +90,27 @@ void process_hotswap_policy(struct oh_handler *handler)
 
                 oh_gettimeofday(&cur);
 
-                if (e.event.EventDataUnion.HotSwapEvent.HotSwapState 
+                if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState 
                     == SAHPI_HS_STATE_INSERTION_PENDING) {
-                        est = e.event.Timestamp + get_hotswap_auto_insert_timeout();
+                        est = e.u.hpi_event.event.Timestamp + get_hotswap_auto_insert_timeout();
                         
                         if (cur>=est) {
-                                handler->abi->set_hotswap_state( handler->hnd, e.res.ResourceId,
+                                handler->abi->set_hotswap_state( handler->hnd, e.u.hpi_event.res.ResourceId,
                                                                  SAHPI_HS_STATE_ACTIVE);
-                        }
-                } else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
+                        }else {
+				/*push again in order to process in the feature*/
+				hotswap_push_event(&e);
+			}
+                } else if (e.u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
                            == SAHPI_HS_STATE_EXTRACTION_PENDING) {
-                        est = e.event.Timestamp + rd->auto_extract_timeout;
+                        est = e.u.hpi_event.event.Timestamp + rd->auto_extract_timeout;
                         if (cur>=est) {
-                                handler->abi->set_hotswap_state(handler->hnd, e.res.ResourceId,
+                                handler->abi->set_hotswap_state(handler->hnd, e.u.hpi_event.res.ResourceId,
                                                                 SAHPI_HS_STATE_INACTIVE);
-                        }
+                        } else {
+				/*push again in order to process in the feature*/
+                                hotswap_push_event(&e);
+			}
                 } else {
                         dbg();
                 }
@@ -96,7 +124,7 @@ static GSList *hs_eq=NULL;
  * needn't care about ref counter of the event.
 */
 
-int hotswap_push_event(struct oh_hpi_event *e)
+int hotswap_push_event(struct oh_event *e)
 {
         struct oh_event *e1;
 
@@ -124,7 +152,7 @@ int hotswap_push_event(struct oh_hpi_event *e)
  * here doesn't jive with the rest of the exit codes
  */
 
-int hotswap_pop_event(struct oh_hpi_event *e) 
+int hotswap_pop_event(struct oh_event *e) 
 {
         GSList *head;
         
