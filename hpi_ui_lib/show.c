@@ -490,6 +490,7 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
 	SaHpiCtrlRecT		*ctrl;
 	SaHpiInventoryRecT	*inv;
 	SaHpiWatchdogRecT	*wdog;
+	SaHpiAnnunciatorRecT	*ann;
 	SaErrorT		ret;
 	int			res_num = 0;
 
@@ -530,6 +531,10 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
 			case SAHPI_WATCHDOG_RDR:
 				wdog = &(rdr.RdrTypeUnion.WatchdogRec);
 				snprintf(ar, 256, "%3.3d", wdog->WatchdogNum);
+				break;
+			case SAHPI_ANNUNCIATOR_RDR:
+				ann = &(rdr.RdrTypeUnion.AnnunciatorRec);
+				snprintf(ar, 256, "%3.3d", ann->AnnunciatorNum);
 				break;
 			default:
 				snprintf(ar, 256, "%c", '?');

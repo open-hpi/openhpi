@@ -648,6 +648,34 @@ static Attributes_t *make_attrs_wdog(SaHpiWatchdogRecT *wdog)
 	return(at);
 }
 
+#define RDR_ATTRS_ANNUN_NUM	5
+
+attr_t	Def_annun_rdr[] = {
+	{ "Num",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Type",		INT_TYPE,	0, { .d = 0} },	//  1
+	{ "ReadOnly",		INT_TYPE,	0, { .d = 0} },	//  2
+	{ "MaxConditions",	INT_TYPE,	0, { .d = 0} },	//  3
+	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  4
+};
+
+static Attributes_t *make_attrs_annun(SaHpiAnnunciatorRecT *annun)
+{
+	attr_t			*att1;
+	Attributes_t		*at;
+
+	at = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at->n_attrs = RDR_ATTRS_ANNUN_NUM;
+	att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_ANNUN_NUM);
+	memcpy(att1, Def_annun_rdr, sizeof(attr_t) * RDR_ATTRS_ANNUN_NUM);
+	at->Attrs = att1;
+	att1[0].value.i = annun->AnnunciatorNum;
+	att1[1].value.i = annun->AnnunciatorType;
+	att1[2].value.i = annun->ModeReadOnly;
+	att1[3].value.i = annun->MaxConditions;
+	att1[4].value.i = annun->Oem;
+	return(at);
+}
+
 void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 {
 	attr_t			*att;
@@ -658,6 +686,7 @@ void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 	SaHpiCtrlRecT		*ctrl;
 	SaHpiInventoryRecT	*inv;
 	SaHpiWatchdogRecT	*wdog;
+	SaHpiAnnunciatorRecT	*annun;
 
 	Rdr->Record = *rdrentry;
 	obj = &(Rdr->Record);
@@ -693,6 +722,12 @@ void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 			wdog = &(obj->RdrTypeUnion.WatchdogRec);
 			at = make_attrs_wdog(wdog);
 			att[i].name = "Watchdog";
+			att[i++].value.a = at;
+			break;
+		case SAHPI_ANNUNCIATOR_RDR:
+			annun = &(obj->RdrTypeUnion.AnnunciatorRec);
+			at = make_attrs_annun(annun);
+			att[i].name = "Annunciator";
 			att[i++].value.a = at;
 			break;
 		default: break;
