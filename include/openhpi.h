@@ -323,9 +323,9 @@ struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);
 int session_del(struct oh_session*);
 /* malloc/copy/add event into the tail of event_list */
-int session_push_event(struct oh_session*, struct oh_hpi_event*);
+int session_push_event(struct oh_session*, struct oh_session_event*);
 /* del/copy/free event from the head of event_list */
-int session_pop_event(struct oh_session*, struct oh_hpi_event*);
+int session_pop_event(struct oh_session*, struct oh_session_event*);
 /*query if the session has events*/
 int session_has_event(struct oh_session *s);
 
