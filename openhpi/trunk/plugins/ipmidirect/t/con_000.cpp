@@ -161,13 +161,11 @@ public:
 class cIpmiConLanTest : public cIpmiConLan
 {
 public:
-  cIpmiConLanTest( unsigned int timeout, unsigned int atca_timeout,
-                     unsigned int max_outstanding, 
+  cIpmiConLanTest( unsigned int timeout, 
                      struct in_addr addr, int por,
                      tIpmiAuthType aut, tIpmiPrivilege pri, 
                      char *u, char *p )
-    : cIpmiConLan( timeout, atca_timeout, max_outstanding, 
-                   addr, por, aut, pri, 
+    : cIpmiConLan( timeout, addr, por, aut, pri, 
                    u, p )
   {
   }
@@ -198,11 +196,13 @@ main( int /*argc*/, char * /*argv*/[] )
   struct in_addr lan_addr;
   memcpy( &lan_addr, ent->h_addr_list[0], ent->h_length );
 
-  con = new cIpmiConLanTest( 5000, 5000, 4,
+  con = new cIpmiConLanTest( 5000,
                              lan_addr, port,
                              auth, priv,
                              const_cast<char *>(user),
                              const_cast<char *>(passwd) );
+
+  con->SetMaxOutstanding( 4 );
 
   int rv = con->Open() ? 0 : 1;
 
