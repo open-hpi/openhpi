@@ -108,29 +108,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
                 = ipmi_entity_get_entity_instance(entity);
 	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
 	entry->ResourceEntity.Entry[1].EntityLocation = 0;
-	    /* AdvancedTCA fixe-up */
 
-        if (ipmi_entity_get_entity_instance(entity) >= 96) {
-                        entry->ResourceEntity.Entry[0].EntityLocation -= 96;
-                                //|ipmi_entity_get_device_channel(entity)
-                                //|ipmi_entity_get_device_address(entity);
-        }
-
-        if ((ipmi_entity_get_entity_id(entity) == 160) &&
-                        (ipmi_entity_get_entity_instance(entity) == 96)) {
-                dbg("SBC_Blade");
-               entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SBC_BLADE;
-        }
-
-        if ((ipmi_entity_get_entity_id(entity) == 160) &&
-                        (ipmi_entity_get_entity_instance(entity) == 102)) {
-                dbg("DISK Blade");
-               entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_DISK_BLADE;
-        }
-
-        /* End AdvancedTCA Fix-ups */
-
-	
 	/* let's append entity_root from config */
 
 	oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
@@ -174,7 +152,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	{	/* This is the BMC entry, so we need to add watchdog. */
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_WATCHDOG;
 	}
-	entry->ResourceSeverity = SAHPI_OK;	/* Default Value -- not related to IPMI */
+	entry->ResourceSeverity = SAHPI_MAJOR;	/* Default Value -- not related to IPMI */
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
@@ -199,6 +177,50 @@ static void get_entity_event(ipmi_entity_t	*entity,
 				  memcpy(entry->ResourceTag.Data, str2, strlen(str2) + 1);
 			}
 	}
+
+	/* AdvancedTCA fix-up */
+
+	/* Here we start dealing with device relative entities */
+
+        if (ipmi_entity_get_entity_instance(entity) >= 96) {
+                        entry->ResourceEntity.Entry[0].EntityLocation = 
+                                (ipmi_entity_get_device_channel(entity) << 8)
+				| (ipmi_entity_get_entity_instance(entity) - 0x60);
+        }
+
+	/* Since OpenIPMI does not hand us a more descriptive
+	   tag which is an SDR issue inthe chassis really, we'll over-ride
+	   it here until things change
+	*/
+        if ((ipmi_entity_get_entity_id(entity) == 160) &&
+                        (ipmi_entity_get_entity_instance(entity) == 96)) {
+                dbg("SBC Blade");
+		const char sbc_tag[] = "SBC Blade";
+		memcpy(entry->ResourceTag.Data, sbc_tag, strlen(sbc_tag) + 1);
+
+		entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SBC_BLADE;
+        }
+
+        if ((ipmi_entity_get_entity_id(entity) == 160) &&
+                        ((ipmi_entity_get_device_address(entity) == 130)
+       			|| (ipmi_entity_get_device_address(entity) == 132)))	{
+                dbg("Switch Blade");
+		const char switch_tag[] = "Switch Blade";
+		memcpy(entry->ResourceTag.Data, switch_tag, strlen(switch_tag) + 1);
+
+		entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
+        }
+
+        if ((ipmi_entity_get_entity_id(entity) == 160) &&
+                        (ipmi_entity_get_entity_instance(entity) == 102)) {
+                dbg("DISK Blade");
+		const char disk_tag[] = "Storage/Disk Blade";
+		memcpy(entry->ResourceTag.Data, disk_tag, strlen(disk_tag) + 1);
+               entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_DISK_BLADE;
+        }
+
+        /* End AdvancedTCA Fix-ups */
+
 	entry->ResourceTag.DataLength = (SaHpiUint32T)strlen(entry->ResourceTag.Data);
 }
 
