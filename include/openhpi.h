@@ -181,7 +181,7 @@ struct oh_handler {
         /* 
            pointer to associated plugin interface
         */
-        struct oh_abi_v1 *abi;
+        struct oh_abi_v2 *abi;
         
         /*
           private pointer used by plugin implementations to distinguish

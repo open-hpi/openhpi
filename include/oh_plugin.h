@@ -186,13 +186,28 @@ struct oh_handler_state {
         void *data;
 };
 
-/* UUID is ee778a5f-32cf-453b-a650-518814dc956c */
+
+/* Current abi is version 2. Version 1 is out-of-date and nobody
+ * should use it
+ */
+
+#if 0
+/* UUID_OH_ABI_V1 is out-of-date, keep here just for reference 
+ * ee778a5f-32cf-453b-a650-518814dc956c 
+ */
 static const uuid_t UUID_OH_ABI_V1 = {
 	0xee, 0x77, 0x8a, 0x5f, 0x32, 0xcf, 0x45, 0x3b,
 	0xa6, 0x50, 0x51, 0x88, 0x14, 0xdc, 0x95, 0x6c
 };
+#endif
 
-struct oh_abi_v1 {
+/* 13adfcc7-d788-4aaf-b966-5cd30bdcd808 */
+static const uuid_t UUID_OH_ABI_V2 = {
+        0x13, 0xad, 0xfc, 0xc7, 0xd7, 0x88, 0x4a, 0xaf,
+        0xb9, 0x66, 0x5c, 0xd3, 0x0b, 0xdc, 0xd8, 0x08
+};
+
+struct oh_abi_v2 {
 	/**
 	 * The function create an instance 
 	 * @return the handler of the instance, this can be recognised 
@@ -437,6 +452,7 @@ struct oh_abi_v1 {
 			       SaHpiResetActionT act);
 
 };
+
 
 /*The function is used for plugin loader to get interface*/
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak));
