@@ -415,7 +415,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 					   snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment,
-					   i + SNMP_BC_HPI_LOCATION_BASE);
+					   SNMP_BC_HPI_LOCATION_BASE);
 #if 0
 		trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 #endif
@@ -462,7 +462,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
 		}
 
-		/* Is this the active Management module? */
+		/* Find active Management module */
 		if (get_active.integer == i+1) {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
