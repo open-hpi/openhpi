@@ -116,7 +116,7 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 	e->type = OH_ET_HPI;
 	e->u.hpi_event.parent = rpt_entry->ResourceId;
 	
-	e->u.hpi_event.event.Source = 0;
+	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
 	/* Do not find EventType in IPMI */
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
 	e->u.hpi_event.event.Timestamp 
@@ -137,7 +137,9 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 
 	set_discrete_sensor_misc_event
 		(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent);
-
+	
+	handler->eventq = g_slist_append(handler->eventq, e);
+	
 }
 
 static void 
