@@ -21,19 +21,22 @@
 #include <sys/time.h>
 #include <SaHpi.h>
 
-enum oh_id_type {
-	OH_ID_RESOURCE,
-	OH_ID_RDR,
+/* 
+ * struct oh_resource_id is filled by plugin.
+ * Open HPI uses it to identy different resource by the id.
+ * Open HPI never assume any detail in 'ptr' field so plugin 
+ * can store any data pointer in ptr member so that it can map 
+ * id back to solid data
+ */
+struct oh_resource_id {
+	void *ptr;
 };
 
-/* 
- * struct oh_id is filled by plugin and used by Open HPI.
- * Open HPI never assume any detail in struct oh_id.
- * Plugin can store any data pointer in ptr member so that
- * it can map id back to solid data
+/*
+ * struct oh_rdr_id is filled by plugin.
+ * Open HPI use it to identy different rdr by the id.
  */
-struct oh_id {
-	enum oh_id_type type;
+struct oh_rdr_id {
 	void *ptr;
 };
 	
@@ -42,6 +45,8 @@ struct oh_id {
  * (Domain, SEL and RDR etc.).
  */
 struct oh_resource_event {
+	struct oh_resource_id	id;
+	
 	/* XXX: upper layer will fill some fields which does not 
 	 * owned by plugins (such as domain Id)
 	 */
@@ -49,11 +54,29 @@ struct oh_resource_event {
 };
 
 /* 
- * The event is used for plugin to report its RDR against resource.
+ * The event is used for plugin to report its RDRs in resource.
  */
 struct oh_rdr_event {
-	struct oh_id	parent; /*This is resource oid the RDR relate*/
-	SaHpiRdrT	rdr;
+	/*This resource id which the rdr belongs to */
+	struct oh_resource_id	parent;
+	/*This is rdr id the RDR relate*/
+	struct oh_rdr_id	id;
+	
+	SaHpiRdrT		rdr;
+};
+
+/*
+ * The event is used for plugin to notify HPI events
+ */
+struct oh_hpi_event {
+	/*This resource id which the rdr belongs to */
+	struct oh_resource_id	parent;
+	/*This is rdr id the RDR relate*/
+	struct oh_rdr_id	id;
+	
+	/* XXX: upper layer will fill some fields which does not
+	 * owned by plugins (ResourceId etc.). */
+	SaHpiEventT		hpi_event;
 };
 
 /* 
@@ -66,13 +89,10 @@ struct oh_event {
 		OH_ET_RDR,
 		OH_ET_HPI
 	}type;
-	struct oh_id			oid;
 	union {
 		struct oh_resource_event res_event;
 		struct oh_rdr_event	 rdr_event;
-		/* XXX: upper layer will fill some fields which does not
-		 * owned by plugins (ResourceId etc.). */
-		SaHpiEventT		 hpi_event;
+		struct oh_hpi_event	 hpi_event;
 	} u;		    
 };
 
@@ -98,7 +118,7 @@ struct oh_abi_v1 {
 	 * open the domain which is on the corresponding resource oid.
 	 * Note, the id must be resource id.
 	 */
-	void *(*open_domain)(void *hnd, struct oh_id *id);
+	void *(*open_domain)(void *hnd, struct oh_resource_id *id);
 	
 	void (*close)(void *hnd);
 	/**
@@ -125,157 +145,157 @@ struct oh_abi_v1 {
 	/**
 	 * get the id which the caller is running
 	 */
-	int (*get_sel_id)(void *hnd, struct oh_id *id);
+	int (*get_sel_id)(void *hnd, struct oh_resource_id *id);
 
 	/**
 	 * get info from system event log
 	 */
-	int (*get_sel_info)(void *hnd, struct oh_id *id, SaHpiSelInfoT *info);
+	int (*get_sel_info)(void *hnd, struct oh_resource_id *id, SaHpiSelInfoT *info);
 
 	/**
 	 * set time to system event log
 	 */
-	int (*set_sel_time)(void *hnd, struct oh_id *id, struct timeval *time);
+	int (*set_sel_time)(void *hnd, struct oh_resource_id *id, struct timeval *time);
 
 	/**
 	 * set state to system event log
 	 */
-	int (*set_sel_state)(void *hnd, struct oh_id *id, int enabled);
+	int (*set_sel_state)(void *hnd, struct oh_resource_id *id, int enabled);
 	
 	/**
 	 * get sensor info
 	 */
-	int (*get_sensor_info)(void *hnd, struct oh_id *id, 
+	int (*get_sensor_info)(void *hnd, struct oh_rdr_id *id, 
 			       SaHpiSensorDataFormatT *format);
 
 	/**
 	 * get sensor data
 	 */
-	int (*get_sensor_data)(void *hnd, struct oh_id *id, 
+	int (*get_sensor_data)(void *hnd, struct oh_rdr_id *id, 
 			       SaHpiSensorReadingT *data);
 
 	/**
 	 * get sensor thresholds
 	 */
-	int (*get_sensor_thresholds)(void *hnd, struct oh_id *id,
+	int (*get_sensor_thresholds)(void *hnd, struct oh_rdr_id *id,
 				     SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * set sensor thresholds
 	 */
-	int (*set_sensor_thresholds)(void *hnd, struct oh_id *id,
+	int (*set_sensor_thresholds)(void *hnd, struct oh_rdr_id *id,
 				     const SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * get control info
 	 */
-	int (*get_control_info)(void *hnd, struct oh_id *id,
+	int (*get_control_info)(void *hnd, struct oh_rdr_id *id,
 				SaHpiCtrlTypeT *type);
 
 	/**
 	 * get control state
 	 */
-	int (*get_control_state)(void *hnd, struct oh_id *id,
+	int (*get_control_state)(void *hnd, struct oh_rdr_id *id,
 				 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
-	int (*set_control_state)(void *hnd, struct oh_id *id,
+	int (*set_control_state)(void *hnd, struct oh_rdr_id *id,
 				 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set inventory state
 	 */
-	int (*get_inventory_size)(void *hnd, struct oh_id *id,
+	int (*get_inventory_size)(void *hnd, struct oh_rdr_id *id,
 				  size_t *size);
 
 	/**
 	 * get inventory state
 	 */
-	int (*get_inventory_info)(void *hnd, struct oh_id *id,
+	int (*get_inventory_info)(void *hnd, struct oh_rdr_id *id,
 				  SaHpiInventoryDataT *data);
 
 	/**
 	 * set inventory state
 	 */
-	int (*set_inventory_info)(void *hnd, struct oh_id *id,
+	int (*set_inventory_info)(void *hnd, struct oh_rdr_id *id,
 				  SaHpiInventoryDataT *data);
 
 	/**
 	 * get watchdog timer info
 	 */
-	int (*get_watchdog_info)(void *hnd, struct oh_id *id,
+	int (*get_watchdog_info)(void *hnd, struct oh_rdr_id *id,
 				 SaHpiWatchdogT *wdt);
 
 	/** 
 	 * set watchdog timer info
 	 */
-	int (*set_watchdog_info)(void *hnd, struct oh_id *id,
+	int (*set_watchdog_info)(void *hnd, struct oh_rdr_id *id,
 				 SaHpiWatchdogT *wdt);
 
 	/**
 	 * reset watchdog timer info
 	 */
-	int (*reset_watchdog)(void *hnd, struct oh_id *id);
+	int (*reset_watchdog)(void *hnd, struct oh_rdr_id *id);
 
 	/**
 	 * get hotswap state
 	 */
-	int (*get_hotswap_state)(void *hnd, struct oh_id *id, 
+	int (*get_hotswap_state)(void *hnd, struct oh_resource_id *id, 
 				 SaHpiHsStateT *state);
 
 	/**
 	 * set hotswap state
 	 */
-	int (*set_hotswap_state)(void *hnd, struct oh_id *id, 
+	int (*set_hotswap_state)(void *hnd, struct oh_resource_id *id, 
 				 SaHpiHsStateT state);
 
 	/**
 	 * request hotswap state
 	 */
-	int (*request_hotswap_action)(void *hnd, struct oh_id *id, 
+	int (*request_hotswap_action)(void *hnd, struct oh_resource_id *id, 
 				      SaHpiHsActionT act);
 
 	/**
 	 * get power state
 	 */
-	int (*get_power_state)(void *hnd, struct oh_id *id, 
+	int (*get_power_state)(void *hnd, struct oh_resource_id *id, 
 			       SaHpiHsPowerStateT *state);
 
 	/**
 	 * set power state
 	 */
-	int (*set_power_state)(void *hnd, struct oh_id *id, 
+	int (*set_power_state)(void *hnd, struct oh_resource_id *id, 
 			       SaHpiHsPowerStateT state);
 	
 	/**
 	 * get indicator state
 	 */
-	int (*get_indicator_state)(void *hnd, struct oh_id *id, 
+	int (*get_indicator_state)(void *hnd, struct oh_resource_id *id, 
 				   SaHpiHsIndicatorStateT *state);
 
 	/**
 	 * set indicator state
 	 */
-	int (*set_indicator_state)(void *hnd, struct oh_id *id, 
+	int (*set_indicator_state)(void *hnd, struct oh_resource_id *id, 
 				   SaHpiHsIndicatorStateT state);
 
 	/**
 	 * control parameter
 	 */
-	int (*control_parm)(void *hnd, struct oh_id *id, SaHpiParmActionT act);
+	int (*control_parm)(void *hnd, struct oh_resource_id *id, SaHpiParmActionT act);
 
 	/**
 	 * get reset state
 	 */
-	int (*get_reset_state)(void *hnd, struct oh_id *id, 
+	int (*get_reset_state)(void *hnd, struct oh_resource_id *id, 
 			       SaHpiResetActionT *act);
 
 	/**
 	 * set_reset state
 	 */
-	int (*set_reset_state)(void *hnd, struct oh_id *id, 
+	int (*set_reset_state)(void *hnd, struct oh_resource_id *id, 
 			       SaHpiResetActionT act);
 
 };
