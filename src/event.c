@@ -24,7 +24,7 @@
 #include <oh_event.h>
 #include <glib.h>
 
-#define OH_THREAD_SLEEP_TIME 5 * G_USEC_PER_SEC
+#define OH_THREAD_SLEEP_TIME 2 * G_USEC_PER_SEC
 
 /* This is a short term hack to get this running properly.  Will 
    be changed to more robust mechanisms later */
@@ -387,9 +387,9 @@ gpointer oh_event_thread_loop(gpointer data) {
                 dbg("Going to sleep");
 
                 if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-			dbg("Got signal from plugin");
+			dbg("SIGNALED: Got signal from plugin");
 		else
-			dbg("Timed Out: Woke up, am looping again");
+			dbg("TIMEOUT: Woke up, am looping again");
         }
         g_thread_exit(0);
         return 0;
