@@ -32,6 +32,8 @@ void display_oembuffer(SaHpiUint32T length, SaHpiUint8T *string);
 void printreading (SaHpiSensorReadingT reading);
 void time2str( SaHpiTimeT time, char *str );
 const char *eventtype2str(SaHpiEventTypeT type);
+const char *hotswapstate2str(SaHpiHsStateT state);
+
 
 /**
  * main: main program loop
@@ -592,7 +594,7 @@ void time2str(SaHpiTimeT time, char *str)
 
 void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 {
-        char str[30];
+        char str[256];
 
         printf("SEL Info:\n");
 
@@ -655,9 +657,57 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
                 printf("\t\tEntry %d, prev %d, next %d\n", entry.EntryId, prev, next);
                 time2str(entry.Timestamp, str);
-                printf("\t\t\tTimestamp: %s\n", str);
-                printf("\t\t\tEventType: %s\n", eventtype2str(entry.Event.EventType));
+                printf("\t\t\tTimestamp:            %s\n", str);
 
+                SaHpiRptEntryT rres;
+
+                rv = saHpiRptEntryGetByResourceId(session_id, entry.Event.Source, &rres );
+
+                if ( rv != SA_OK )
+                printf("\t\t\tSource:               unknown\n" );
+                else {
+                        entitypath2string( &rres.ResourceEntity, str, sizeof(str));
+                printf("\t\t\tSource:               %s\n", str );
+                }
+
+                printf("\t\t\tEventType:            %s\n", eventtype2str(entry.Event.EventType));
+                time2str(entry.Timestamp, str);
+                printf("\t\t\tEvent timestamp:      %s\n", str);
+                printf("\t\t\tSeverity:             %s\n", severity2str( entry.Event.Severity ) );
+
+                switch(entry.Event.EventType) {
+                case SAHPI_ET_SENSOR:
+                        {
+                                SaHpiSensorEventT *se = &entry.Event.EventDataUnion.SensorEvent;
+                printf("\t\t\tSensorNum:            %d\n", se->SensorNum );
+                printf("\t\t\tSensorType:           %s\n", get_sensor_type(se->SensorType ) );
+                printf("\t\t\tEventCategory:        %s\n", get_sensor_category( se->EventCategory ) );
+                printf("\t\t\tAssertion:            %s\n", se->Assertion ? "TRUE" : "FALSE" );
+                        }
+
+                        break;
+
+                case SAHPI_ET_HOTSWAP:
+                        {
+                                SaHpiHotSwapEventT *he = &entry.Event.EventDataUnion.HotSwapEvent;
+                printf("\t\t\tHotSwapState:         %s\n",
+                                      hotswapstate2str( he->HotSwapState ) );
+                printf("\t\t\tPreviousHotSwapState: %s\n",
+                                        hotswapstate2str( he->PreviousHotSwapState ) );
+                        }
+
+                        break;
+
+                case SAHPI_ET_WATCHDOG:
+                        break;
+
+                case SAHPI_ET_OEM:
+                        break;
+
+                case SAHPI_ET_USER:
+                        break;
+                }
+                
                 current = next;
         } while(current != SAHPI_NO_MORE_ENTRIES);
 }
@@ -902,6 +952,34 @@ const char * get_sensor_type(SaHpiSensorTypeT type)
 return "\0";
 
 }
+
+
+const char *hotswapstate2str( SaHpiHsStateT state )
+{
+        switch(state)
+        {
+        case SAHPI_HS_STATE_INACTIVE:
+                return "SAHPI_HS_STATE_INACTIVE";
+                
+        case SAHPI_HS_STATE_INSERTION_PENDING:
+                return "SAHPI_HS_STATE_INSERTION_PENDING";
+
+        case SAHPI_HS_STATE_ACTIVE_HEALTHY:
+                return "SAHPI_HS_STATE_ACTIVE_HEALTHY";
+
+        case SAHPI_HS_STATE_ACTIVE_UNHEALTHY:
+                return "SAHPI_HS_STATE_ACTIVE_UNHEALTHY";
+
+        case SAHPI_HS_STATE_EXTRACTION_PENDING:
+                return "SAHPI_HS_STATE_EXTRACTION_PENDING";
+
+        case SAHPI_HS_STATE_NOT_PRESENT:
+                return "SAHPI_HS_STATE_NOT_PRESENT";
+        }
+
+        return "Invalid hotswap state";
+}
+
 
 const char * get_sensor_category (SaHpiEventCategoryT category)
 {
