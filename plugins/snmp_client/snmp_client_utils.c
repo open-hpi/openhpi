@@ -193,7 +193,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
 			if (CHECK_END(vars->type)) { 
 				print_variable(vars->name, vars->name_length, vars);  
 			}  else 
-				fprintf(stderr,"No idea.\n");
+				fprintf(stderr,"snmp_get2(): No idea.\n");
 		printf("********************************************************\n");
 
         } else {
@@ -275,7 +275,7 @@ void display_vars( struct snmp_pdu *response)
 		if (CHECK_END(vars->type)) { 
 			print_variable(vars->name, vars->name_length, vars);  
 		}  else 
-			fprintf(stderr,"No idea.\n");
+			fprintf(stderr,"display_vars(): No idea.\n");
 	}
 	printf("********************************************************\n");
 }
