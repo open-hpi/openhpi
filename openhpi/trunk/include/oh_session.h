@@ -60,8 +60,7 @@ struct oh_session {
 
           This is the session specific event queue          
         */
-        GSList *eventq;        
-        GAsyncQueue *eventq2;
+        GAsyncQueue *eventq;
         
 };
 
