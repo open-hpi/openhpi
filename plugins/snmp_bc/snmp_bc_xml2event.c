@@ -20,6 +20,11 @@
 #include <snmp_bc_plugin.h>
 
 GHashTable *errlog2event_hash = NULL;
+ohpi_bc_lock snmp_bc_plock = {
+        .lock = G_STATIC_REC_MUTEX_INIT,
+        .count = 0
+};
+
 unsigned int errlog2event_hash_use_count = 0;
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
@@ -46,18 +51,19 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         GMarkupParseContext *pcontext;
         gboolean rc;
         GError *err = NULL;
-	struct errlog2event_hash_info user_data;
-
-	if (!custom_handle) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-
+        struct errlog2event_hash_info user_data;
+        if (!custom_handle) {
+                dbg("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+        
+        snmp_bc_lock(snmp_bc_plock);
 	/* Initialize hash table */
-	errlog2event_hash = g_hash_table_new(g_str_hash, g_str_equal);
-	if (errlog2event_hash == NULL) {
-		dbg("No memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+        errlog2event_hash = g_hash_table_new(g_str_hash, g_str_equal);
+        if (errlog2event_hash == NULL) {
+                dbg("No memory.");
+                snmp_bc_unlock(snmp_bc_plock);
+                return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 	
 	/* Initialize user data used in parsing XML events */
@@ -70,6 +76,7 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         pcontext = g_markup_parse_context_new(&parser, 0, &user_data, NULL);
         if (pcontext == NULL) {
 		dbg("No memory.");
+                snmp_bc_unlock(snmp_bc_plock);
 		return(SA_ERR_HPI_OUT_OF_SPACE);
         }
 
@@ -86,6 +93,7 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
                         dbg("Unknown XML parse error.");
                 }
                 g_markup_parse_context_free(pcontext);
+                snmp_bc_unlock(snmp_bc_plock);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
         g_markup_parse_context_end_parse(pcontext, &err);
@@ -94,9 +102,11 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         /* Make sure there are elements in the hash table */
         if (g_hash_table_size(errlog2event_hash) == 0) {
                 dbg("Hash table is empty.");
+                snmp_bc_unlock(snmp_bc_plock);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
-
+        
+        snmp_bc_unlock(snmp_bc_plock);
 	return(SA_OK);
 }
 
@@ -110,9 +120,10 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
  **********************************************************************/
 SaErrorT errlog2event_hash_free()
 {
+        snmp_bc_lock(snmp_bc_plock);
         g_hash_table_foreach(errlog2event_hash, free_hash_data, NULL);
 	g_hash_table_destroy(errlog2event_hash);
-
+        snmp_bc_unlock(snmp_bc_plock);
 	return(SA_OK);
 }
 
