@@ -46,7 +46,7 @@ EXTRA_DIST		= openhpi.spec
 
 AUTOMAKE_OPTIONS	= foreign
 
-MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure 
+MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub depcomp $(distdir).tar.gz
 
 SUBDIRS			= include lib test docs
 
