@@ -22,6 +22,7 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
+#if 0
 static inline int __dsel_add(GSList **sel_list, 
                 const SaHpiSelEntryT *entry, int counter)
 {
@@ -343,3 +344,4 @@ int rsel_clr(SaHpiResourceIdT res_id)
         __rsel_clr(res, &res->sel_list);
         return 0;
 }
+#endif

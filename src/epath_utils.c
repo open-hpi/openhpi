@@ -118,7 +118,6 @@ static gchar *eshort_names[] = {
 };
 
 #define ESHORTNAMES_ARRAY_SIZE 61
-#define MAX_INSTANCE_DIGITS 6
 #define ELEMENTS_IN_SaHpiEntityT 2
 #define EPATHSTRING_START_DELIMITER "{"
 #define EPATHSTRING_END_DELIMITER "}"
@@ -191,7 +190,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 
 		/* Save entity path definitions; reverse order */
 		if (num_valid_entities < SAHPI_MAX_ENTITY_PATH) {
-			entityptr = (SaHpiEntityT *)g_malloc(sizeof(*entityptr));
+			entityptr = (SaHpiEntityT *)g_malloc0(sizeof(*entityptr));
 			if (entityptr == NULL) { 
 				dbg("Out of memory"); 
 				rtncode = -1; goto CLEANUP;
@@ -271,24 +270,25 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		rtncode = -1; goto CLEANUP;
 	}
 	
-	for (i=SAHPI_MAX_ENTITY_PATH - 1; i >= 0; i--) {
+	for (i = (SAHPI_MAX_ENTITY_PATH - 1); i >= 0; i--) {
+                guint num_digits, work_instance_num;
 
 		/* Find last element of structure; Current choice not good,
 		   since type=instance=0 is valid */
-		if (epathptr->Entry[i].EntityType == 0 && epathptr->Entry[i].EntityInstance == 0) { continue; }
+		if (epathptr->Entry[i].EntityType == 0){ continue; }
   
 		/* Validate and convert data */
-		/*if (epathptr->Entry[i].EntityType > ESHORTNAMES_ARRAY_SIZE) {
-			dbg("Invalid entity type"); 
-			rtncode = -1; goto CLEANUP;
-		} */
-		memset(instance_str, 0, MAX_INSTANCE_DIGITS);
-		err = sprintf(instance_str, "%d", epathptr->Entry[i].EntityInstance);
-		if (err > MAX_INSTANCE_DIGITS) { 
+                work_instance_num = epathptr->Entry[i].EntityInstance;
+                for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
+		
+		if (num_digits > MAX_INSTANCE_DIGITS) { 
                         g_free(instance_str); 
 			dbg("Instance value too big");
                         rtncode = -1; goto CLEANUP;
 		}
+
+                err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
+                               "%d", epathptr->Entry[i].EntityInstance);
 
 		strcount = strcount + 
 			strlen(EPATHSTRING_START_DELIMITER) + 
@@ -370,6 +370,37 @@ int set_epath_instance(struct oh_event *e, SaHpiEntityTypeT et, SaHpiEntityInsta
                 }
         }
         return retval;
+}
+
+/**
+ * append_root: Append the SAHPI_ENT_ROOT element to an entity path structure.
+ * @ep: IN,OUT Pointer to entity path. SAHPI_ENT_ROOT will be appended to it.
+ *
+ * If an entity path already has a root element, the function returns without
+ * making any changes and reporting success.
+ *
+ * Returns value: 0 on Success, Negative number on Failure.
+ **/
+int append_root(SaHpiEntityPathT *ep)
+{
+        unsigned int i;
+        int rc = -1;
+
+        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if (ep->Entry[i].EntityType == 0 &&
+                    ep->Entry[i-1].EntityType != SAHPI_ENT_ROOT) {
+                        ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
+                        ep->Entry[i].EntityInstance = 0;
+                        rc = 0;
+                        break;
+                } else if (ep->Entry[i].EntityType == 0 &&
+                           ep->Entry[i-1].EntityType == SAHPI_ENT_ROOT) {
+                        rc = 0;
+                        break;
+                }
+        }
+
+        return rc;
 }
 
 static unsigned int index2entitytype(unsigned int i)

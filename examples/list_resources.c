@@ -19,7 +19,7 @@ void display_entity_capabilities(SaHpiCapabilitiesT);
 const char * severity2str(SaHpiSeverityT);
 const char * rdrtype2str(SaHpiRdrTypeT type);
 char * interpreted2str (SaHpiSensorInterpretedT interpreted);
-char * rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
+void rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
 const char * ctrldigital2str(SaHpiCtrlStateDigitalT digstate);
 const char * get_sensor_type(SaHpiSensorTypeT type);
 const char * get_control_type(SaHpiCtrlTypeT type);
@@ -88,7 +88,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                 error("saHpiResourcesDiscover", err);
                 return err;
         }
-        
+ 	warn("list_resources: discover done");       
         /* grab copy of the update counter before traversing RPT */
         err = saHpiRptInfoGet(session_id, &rpt_info_before);
         if (SA_OK != err) {
@@ -99,8 +99,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
         warn("Scanning RPT...");
         next = SAHPI_FIRST_ENTRY;
         do {
-                char * tmp;
-                char tmp_epath[80];
+                char tmp_epath[128];
                 current = next;
                 err = saHpiRptEntryGet(session_id, current, &next, &entry);
                 if (SA_OK != err) {
@@ -115,24 +114,22 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
 
 		printf("***Records:\n");
                 printf("%s\n", (char *)entry.ResourceTag.Data);
-                printf("Entry ID: %x\n", (int) entry.EntryId);
-                printf("Resource ID: %x\n", (int) entry.ResourceId);
-                printf("Domain ID: %x\n", (int) entry.DomainId);
+                printf("Entry ID: %d\n", (int) entry.EntryId);
+                printf("Resource ID: %d\n", (int) entry.ResourceId);
+                printf("Domain ID: %d\n", (int) entry.DomainId);
                 printf("Revision: %c\n", entry.ResourceInfo.ResourceRev);
                 printf("Version: %c\n", entry.ResourceInfo.SpecificVer);
 		printf("Device Support: %c\n", entry.ResourceInfo.DeviceSupport);
-		printf("Manufacturer ID: %x\n", (int) entry.ResourceInfo.ManufacturerId);
-		printf("Product ID: %x\n", (int) entry.ResourceInfo.ProductId);
+		printf("Manufacturer ID: %d\n", (int) entry.ResourceInfo.ManufacturerId);
+		printf("Product ID: %d\n", (int) entry.ResourceInfo.ProductId);
 		printf("Firmware Major, Minor, Aux: %c %c %c\n", 
 		       entry.ResourceInfo.FirmwareMajorRev, 
 		       entry.ResourceInfo.FirmwareMinorRev,
 		       entry.ResourceInfo.AuxFirmwareRev);
                 printf("Severity: %s\n",severity2str(entry.ResourceSeverity));
                 
-                tmp = rpt_cap2str(entry.ResourceCapabilities);
-                printf("Resource Capability: %s\n", tmp);
-                free(tmp);
-                
+                rpt_cap2str(entry.ResourceCapabilities);
+                                
                 printf("Entity Path:\n");
                 entitypath2string(&entry.ResourceEntity, tmp_epath, sizeof(tmp_epath));
                 printf("\t%s\n", tmp_epath);
@@ -151,6 +148,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                                 return err;
                 }
 #endif
+                printf("\tEntryId: %d\n", next);
         } while (next != SAHPI_LAST_ENTRY);
 
 	printf("SAHPI_LAST_ENTRY\n");
@@ -294,15 +292,25 @@ const char * rdrtype2str(SaHpiRdrTypeT type)
 
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 {
-        SaErrorT             err;
-        SaHpiEntryIdT        current_rdr;
-        SaHpiEntryIdT        next_rdr;
-        SaHpiRdrT            rdr;
+        SaErrorT             	err;
+        SaHpiEntryIdT        	current_rdr;
+        SaHpiEntryIdT        	next_rdr;
+        SaHpiRdrT            	rdr;
+
+	SaHpiSensorReadingT	reading;
+	SaHpiSensorTypeT	sensor_type;
+	SaHpiSensorNumT		sensor_num;
+	SaHpiEventCategoryT	category;
+	SaHpiSensorThresholdsT	thres; 
+
+	SaHpiCtrlNumT   	ctrl_num;
+	SaHpiCtrlStateT 	state;
+	SaHpiCtrlTypeT  	ctrl_type;
 
         printf("RDR Info:\n");
         next_rdr = SAHPI_FIRST_ENTRY;
         do {
-                char tmp_epath[80];
+                char tmp_epath[128];
                 current_rdr = next_rdr;
                 err = saHpiRdrGet(session_id, resource_id, current_rdr, 
                                 &next_rdr, &rdr);
@@ -318,26 +326,23 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 printf("\tRdrType: %s\n", rdrtype2str(rdr.RdrType));
 		
 		if (rdr.RdrType == SAHPI_SENSOR_RDR)
-		{
-			SaHpiSensorReadingT	reading;
-			SaHpiSensorTypeT	type;
-			SaHpiSensorNumT		num;
-			SaHpiEventCategoryT	category;
-			SaHpiSensorThresholdsT	thres;
-			//SaHpiSensorReadingT	converted;
-			
+		{			
 			SaErrorT val;
 			
-			num = rdr.RdrTypeUnion.SensorRec.Num;
+			sensor_num = rdr.RdrTypeUnion.SensorRec.Num;
 			
-			val = saHpiSensorTypeGet(session_id, resource_id, num, &type, &category);
+			val = saHpiSensorTypeGet(session_id, resource_id, 
+						 sensor_num, &sensor_type, 
+						 &category);
 			
-			printf("\tSensor num: %i\n\tType: %s\n", num, get_sensor_type(type)); 
+			printf("\tSensor num: %i\n\tType: %s\n", sensor_num, get_sensor_type(sensor_type)); 
 			printf("\tCategory: %s\n", get_sensor_category(category)); 
 
-			err = saHpiSensorReadingGet(session_id, resource_id, num, &reading);
+			memset(&reading, 0, sizeof(SaHpiSensorReadingT));
+
+			err = saHpiSensorReadingGet(session_id, resource_id, sensor_num, &reading);
 			if (err != SA_OK) {
-				printf("Error=%d reading sensor data {sensor, %d}\n", err, num);
+				printf("Error=%d reading sensor data {sensor, %d}\n", err, sensor_num);
 				break;
 			}
 
@@ -356,9 +361,9 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			}
 
 			if (rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
-				err = saHpiSensorThresholdsGet(session_id, resource_id, num, &thres);
+				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num, &thres);
 				if (err != SA_OK) {
-					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, num);
+					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num);
 					break;
 				}
 				
@@ -399,51 +404,53 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 		
 		if (rdr.RdrType == SAHPI_CTRL_RDR)
 		{    
-
-			SaHpiCtrlNumT   num;
-			SaHpiCtrlStateT state;
-			SaHpiCtrlTypeT  type;
-			SaErrorT        err;
-
-			num = rdr.RdrTypeUnion.CtrlRec.Num;
-			err = saHpiControlTypeGet(session_id, resource_id, num, &type);
+			ctrl_num = rdr.RdrTypeUnion.CtrlRec.Num;
+			err = saHpiControlTypeGet(session_id, resource_id, ctrl_num, &ctrl_type);
 			if (err != SA_OK) {
-				printf("Error=%d reading control type {control, %d}\n", err, num);
+				printf("Error=%d reading control type {control, %d}\n", err, ctrl_num);
 				break;
 			}
-			printf("\tControl num: %i\n\tType: %s\n", num, get_control_type(type)); 
+			printf("\tControl num: %i\n\tType: %s\n", ctrl_num, get_control_type(ctrl_type)); 
 		
-			err = saHpiControlStateGet(session_id, resource_id, num, &state);
+			err = saHpiControlStateGet(session_id, resource_id, ctrl_num, &state);
 			if (err != SA_OK) {
-				printf("Error=%d reading control state {control, %d}\n", err, num);
+				printf("Error=%d reading control state {control, %d}\n", err, ctrl_num);
 				break;
 			}
-			if (type != state.Type) {
+			if (ctrl_type != state.Type) {
 				printf("Control Type mismatch between saHpiControlTypeGet=%d and saHpiControlStateGet = %d\n", 
-				       type, state.Type);
+				       ctrl_type, state.Type);
 			}
 
 			switch (state.Type) {
-			case SAHPI_CTRL_TYPE_DIGITAL:
-				printf("Control Digital State=%s\n", ctrldigital2str(state.StateUnion.Digital));
-			case SAHPI_CTRL_TYPE_DISCRETE:
-				printf("Control Discrete State=%x\n", state.StateUnion.Discrete);
-			case SAHPI_CTRL_TYPE_ANALOG:
-				printf("Control Analog State=%x\n", state.StateUnion.Analog);
-			case SAHPI_CTRL_TYPE_STREAM:
-				printf("Control Stream Repeat=%d\n", state.StateUnion.Stream.Repeat);
-				printf("Control Stream Data=");
-				display_oembuffer(state.StateUnion.Stream.StreamLength, state.StateUnion.Stream.Stream);
-			case SAHPI_CTRL_TYPE_TEXT:
-				printf("Control Text Line Num=%c\n", state.StateUnion.Text.Line);
-				display_textbuffer(state.StateUnion.Text.Text);
-			case SAHPI_CTRL_TYPE_OEM:
-				printf("Control OEM Manufacturer=%d\n", state.StateUnion.Oem.MId);
-				printf("Control OEM Data=");
-				display_oembuffer((SaHpiUint32T)state.StateUnion.Oem.BodyLength, 
+				case SAHPI_CTRL_TYPE_DIGITAL:
+					printf("Control Digital State=%s\n", 
+					       ctrldigital2str(state.StateUnion.Digital));
+					break;
+				case SAHPI_CTRL_TYPE_DISCRETE:
+					printf("Control Discrete State=%x\n", state.StateUnion.Discrete);
+					break;
+				case SAHPI_CTRL_TYPE_ANALOG:
+					printf("Control Analog State=%x\n", state.StateUnion.Analog);
+					break;
+				case SAHPI_CTRL_TYPE_STREAM:
+					printf("Control Stream Repeat=%d\n", state.StateUnion.Stream.Repeat);
+					printf("Control Stream Data=");
+					display_oembuffer(state.StateUnion.Stream.StreamLength, state.StateUnion.Stream.Stream);
+					break;
+				case SAHPI_CTRL_TYPE_TEXT:
+					printf("Control Text Line Num=%c\n", state.StateUnion.Text.Line);
+					display_textbuffer(state.StateUnion.Text.Text);
+					break;
+				case SAHPI_CTRL_TYPE_OEM:
+					printf("Control OEM Manufacturer=%d\n", state.StateUnion.Oem.MId);
+					printf("Control OEM Data=");
+					display_oembuffer((SaHpiUint32T)state.StateUnion.Oem.BodyLength, 
 						  state.StateUnion.Oem.Body);
-			default:
-				printf("Invalid control type=%d from saHpiControlStateGet\n", state.Type);
+					break;
+				default:
+					printf("Invalid control type=%d from saHpiControlStateGet\n", 
+					       state.Type);
 			}
 		}
 
@@ -535,40 +542,36 @@ char * interpreted2str (SaHpiSensorInterpretedT interpreted)
 	return str;
 }
 
-char * rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
+void rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
 {
-        /* I'm lazy, lets just make sure we have more than enough space */
-        char *answer = calloc(1,512);
-        strcpy(answer,"\n");
-                
+        printf("\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN)
-                strcat(answer, "\tSAHPI_CAPABILITY_DOMAIN\n");
+                printf("\tSAHPI_CAPABILITY_DOMAIN\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)
-                strcat(answer, "\tSAHPI_CAPABILITY_RESOURCE\n");
+                printf("\tSAHPI_CAPABILITY_RESOURCE\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_SEL)
-                strcat(answer, "\tSAHPI_CAPABILITY_SEL\n");
+                printf("\tSAHPI_CAPABILITY_SEL\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)
-                strcat(answer, "\tSAHPI_CAPABILITY_EVT_DEASSERTS\n");
+                printf("\tSAHPI_CAPABILITY_EVT_DEASSERTS\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_AGGREGATE_STATUS)
-                strcat(answer, "\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n");
+                printf("\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION)
-                strcat(answer, "\tSAHPI_CAPABILITY_CONFIGURATION\n");
+                printf("\tSAHPI_CAPABILITY_CONFIGURATION\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)
-                strcat(answer, "\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n");
+                printf("\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)
-                strcat(answer, "\tSAHPI_CAPABILITY_WATCHDOG\n");
+                printf("\tSAHPI_CAPABILITY_WATCHDOG\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)
-                strcat(answer, "\tSAHPI_CAPABILITY_CONTROL\n");
+                printf("\tSAHPI_CAPABILITY_CONTROL\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_FRU)
-                strcat(answer, "\tSAHPI_CAPABILITY_FRU\n");
+                printf("\tSAHPI_CAPABILITY_FRU\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)
-                strcat(answer, "\tSAHPI_CAPABILITY_INVENTORY_DATA\n");
+                printf("\tSAHPI_CAPABILITY_INVENTORY_DATA\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_RDR)
-                strcat(answer, "\tSAHPI_CAPABILITY_RDR\n");
+                printf("\tSAHPI_CAPABILITY_RDR\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)
-                strcat(answer, "\tSAHPI_CAPABILITY_SENSOR\n");
+                printf("\tSAHPI_CAPABILITY_SENSOR\n");
         
-	return answer;
 }
 
 const char * get_control_type(SaHpiCtrlTypeT type) 
@@ -751,8 +754,12 @@ void printreading (SaHpiSensorReadingT reading)
 	
 	if (reading.ValuesPresent & SAHPI_SRF_INTERPRETED)
 		printf("\t\t\tValues Present: Interpreted\n");
+
 	printf("\t\t\t\tInterpreted value: %s\n", interpreted2str(reading.Interpreted));
 
 	if (reading.ValuesPresent & SAHPI_SRF_EVENT_STATE)
 		printf("\t\t\tValues Present: Event State\n");
 }
+
+
+

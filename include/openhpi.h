@@ -29,6 +29,7 @@
 
 #include <oh_plugin.h>
 #include <oh_config.h>
+#include <rpt_utils.h>
 
 /*
  * Common OpenHPI implementation specific definitions 
@@ -318,11 +319,8 @@ extern GSList *global_session_list;
  * 
  *  This list is populated by calls to saHpiDiscoverResources()
  */
-extern GSList *global_rpt;
-extern unsigned int global_rpt_counter; /*FIXME: I use the couter for two purposes. 
-                                   1) RptInfo counter 2) ResourceId allocation */
-extern struct timeval global_rpt_timestamp;
 
+extern RPTable *default_rpt;
 
 struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);

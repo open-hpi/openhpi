@@ -15,16 +15,20 @@
  */
  
 #include <stdio.h>
+#include <stdlib.h>
 #include <glib.h>
-#include <uuid.h>
+//#include <uuid.h>
 #include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <uid_utils.h>
 
 static GHashTable *ep_hash_table;
 static GHashTable *resource_id_hash_table;
-static GSList *ep_slist;
+//static GSList *ep_slist;
 
 guint resource_id;
 
@@ -58,11 +62,14 @@ guint oh_entity_path_hash(gconstpointer key)
         p += 1;
         
         for( i=0; i<entity_path_len - 1; i++ ){
-                h = (h << 5) - h + *p;
+/*              h = (h << 5) - h + *p; */
+		h = (h * 131) + *p;
                 p++;                          
         }
 
-        return(h);
+/*      return(h); */
+	/* don't change the 1009, its magic */
+    	return( h % 1009 );
 
 }
 
@@ -103,7 +110,7 @@ guint oh_uid_initialize(void)
 
                 initialized = TRUE;
 
-                resource_id = 0;
+                resource_id = 1;
 
                 /* initialize uid map */
                 rval = uid_map_from_file();
@@ -139,19 +146,19 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         char *uid_map_file;
         int file;
-        int map_len;
-        int rval;
+//        int map_len;
+//        int rval;
 
         /* check for presense of EP and */
         /* previously assigned uid      */
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if (ep_xref) {
                 dbg("Entity Path already assigned uid");
-                return(-1);
+                return(ep_xref->resource_id);
         }
 
         /* allocate storage for EP cross reference data structure*/
-        ep_xref = (EP_XREF *)malloc(sizeof(EP_XREF));
+        ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) { 
                 dbg("malloc fialed");
                 return(-1);
@@ -304,8 +311,8 @@ guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
 guint oh_uid_map_to_file(void)
 {
         char *uid_map_file;
-        int map_len;
-        int i;
+//        int map_len;
+//        int i;
         int file;
 
         uid_map_file = (char *)getenv("UID_MAP");
@@ -356,13 +363,12 @@ void write_ep_xref(gpointer key, gpointer value, gpointer file)
  *
  * 
  * 
- * Return value: None (void).
+ * Return value: success 0, error -1.
  **/
 static int uid_map_from_file(void)
 {
         char *uid_map_file;
         int file;
-        int map_len;
         int rval;
 
          /* initialize uid map file */
@@ -374,7 +380,9 @@ static int uid_map_from_file(void)
          if(file < 0) {
                  /* create map file with resource id initial value */
                  dbg("Configuration file '%s' does not exist, initializing", uid_map_file);
-                 file = open(uid_map_file,O_RDWR | O_CREAT | O_TRUNC);
+                 file = open(uid_map_file,
+			     O_RDWR | O_CREAT | O_TRUNC, 
+			     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH );
                  if(file < 0) {
                          dbg("Could not initialize uid map file, %s", uid_map_file );
                                          return(-1);
@@ -416,7 +424,7 @@ static int uid_map_from_file(void)
  *
  * @file: key into a GHashTable
  *
- * Return value: None (void).
+ * Return value: success 0, error -1.
  **/
 static int build_uid_map_data(int file)
 {
@@ -431,7 +439,7 @@ static int build_uid_map_data(int file)
         while ( (rval != EOF) && (rval == sizeof(EP_XREF)) ) {  
 
                 /* copy read record from ep_xref1 to malloc'd ep_xref */
-                ep_xref = (EP_XREF *)malloc(sizeof(EP_XREF));
+                ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
                 if (!ep_xref) 
                         return(-1);
                 memcpy(ep_xref, &ep_xref1, sizeof(EP_XREF));

@@ -33,6 +33,7 @@
 
 int init_plugin()
 {
+        char * path = NULL;
         int err;
         
         err = lt_dlinit();
@@ -41,7 +42,12 @@ int init_plugin()
                 goto err1;
         }
         
-        err = lt_dlsetsearchpath(OH_PLUGIN_PATH);
+        path = getenv("OPENHPI_PATH");
+        if(path == NULL) {
+                path = OH_PLUGIN_PATH;
+        }
+
+        err = lt_dlsetsearchpath(path);
         if (err != 0) {
                 dbg("Can not set lt_dl search path");
                 goto err2;

@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
+ * (C) Copright IBM Corp 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Sean Dague <http://dague.net/sean>
  */
 
 #ifndef __OH_PLUGIN_H
@@ -21,6 +23,7 @@
 
 #include <sys/time.h>
 #include <SaHpi.h>
+#include <rpt_utils.h>
 
 /* 
  * struct oh_domain_id is filled by plugin.
@@ -44,6 +47,7 @@ struct oh_resource_id {
 	void *ptr;
 };
 
+
 /*
  * struct oh_rdr_id is filled by plugin.
  * Open HPI use it to identy different rdr by the id.
@@ -66,7 +70,7 @@ struct oh_sel_id {
  * (Domain, SEL and RDR etc.).
  */
 struct oh_resource_event {
-	struct oh_resource_id	id;
+	struct oh_resource_id id;
 	
 	/* Report domain which belongs to the resource
 	 * Valid if the resource is CAPABILITY_DOMAIN 
@@ -105,9 +109,10 @@ struct oh_rdr_event {
  */
 struct oh_hpi_event {
 	/*This is resource id which the event belongs to */
-	struct oh_resource_id	parent;
+        SaHpiResourceIdT parent;
+        /* struct oh_resource_id	parent; */
 	/*This is rdr id which the event relates*/
-	struct oh_rdr_id	id;
+        SaHpiEntryIdT id;
 	
 	/* XXX: upper layer will fill some fields which does not
 	 * owned by plugins (ResourceId etc.). */
@@ -159,6 +164,13 @@ struct oh_event {
 	} u;		    
 };
 
+struct oh_handler_state {
+        RPTable *rptcache;
+        GSList *eventq;
+        GHashTable *config;
+        void *data;
+};
+
 /* UUID is ee778a5f-32cf-453b-a650-518814dc956c */
 static const uuid_t UUID_OH_ABI_V1 = {
 	0xee, 0x77, 0x8a, 0x5f, 0x32, 0xcf, 0x45, 0x3b,
@@ -199,185 +211,220 @@ struct oh_abi_v1 {
 	 */
 	int (*discover_resources)(void *hnd);
 
-	/**
+        /**
+         * set resource tag, this is passed down so the device has
+         * a chance to set it in nv storage if it likes
+         */
+        int (*set_resource_tag)(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
+        
+        /**
+         * set resource severity is pushed down so the device has
+         * a chance to set it in nv storage
+         */
+        int (*set_resource_severity)(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
+
+        /**
 	 * get the id which the caller is running
 	 */
-	int (*get_self_id)(void *hnd, struct oh_resource_id id);
+	int (*get_self_id)(void *hnd, SaHpiResourceIdT id);
+
+        /******************************************************
+         *
+         *  System Event Log functions
+         *
+         *****************************************************/
 
 	/**
 	 * get info from RSEL
 	 */
-	int (*get_sel_info)(void *hnd, struct oh_resource_id id, SaHpiSelInfoT *info);
+	int (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
 
 	/**
 	 * set time to RSEL
 	 */
-	int (*set_sel_time)(void *hnd, struct oh_resource_id id, const struct timeval *time);
-
-	/**
-	 * set state to RSEL
-	 */
-	int (*set_sel_state)(void *hnd, struct oh_resource_id id, int enabled);
+	int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 
 	/**
 	 * add entry to RSEL
 	 */
-	int (*add_sel_entry)(void *hnd, struct oh_resource_id id, const SaHpiSelEntryT *Event);
+	int (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
 
 	/**
 	 * del entry in RSEL
 	 */
-	int (*del_sel_entry)(void *hnd, struct oh_sel_id id);
+        int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
 
 	/**
 	 * get entry in RSEL
+         * 
+         * although it looks like we need Resource and RDR passed back up, we don't
+         * because SelEntryT has that info stored in it.  We'll just unwind 
+         * that in infrastructure.
 	 */
-	int (*get_sel_entry)(void *hnd, struct oh_sel_id id, SaHpiSelEntryT *Event);
-	
+        int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                             SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
+        
+        /**
+         * clear SEL 
+         */
+        int (*clear_sel)(void *hnd, SaHpiResourceIdT id);
+
+        /* end of SEL functions */
 	/**
 	 * get sensor data
 	 */
-	int (*get_sensor_data)(void *hnd, struct oh_rdr_id id, 
-			       SaHpiSensorReadingT *data);
+	int (*get_sensor_data)(void *hnd, SaHpiResourceIdT id, 
+                               SaHpiSensorNumT num,
+                               SaHpiSensorReadingT *data);
 
 	/**
 	 * get sensor thresholds
 	 */
-	int (*get_sensor_thresholds)(void *hnd, struct oh_rdr_id id,
-				     SaHpiSensorThresholdsT *thres);
+	int (*get_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
+                                     SaHpiSensorNumT num,
+                                     SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * set sensor thresholds
 	 */
-	int (*set_sensor_thresholds)(void *hnd, struct oh_rdr_id id,
-				     const SaHpiSensorThresholdsT *thres);
+	int (*set_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
+                                     SaHpiSensorNumT num,
+                                     const SaHpiSensorThresholdsT *thres);
 
 	/**
 	 * get sensor event enables
 	 */
-	int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
-					SaHpiSensorEvtEnablesT *enables);
+	int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
+                                        SaHpiSensorNumT num,
+                                        SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * set sensor event enables
 	 */
-	int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
-					const SaHpiSensorEvtEnablesT *enables);
-	/**
-	 * get control info
-	 */
-	int (*get_control_info)(void *hnd, struct oh_rdr_id id,
-				SaHpiCtrlTypeT *type);
+	int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
+                                    SaHpiSensorNumT num,
+                                    const SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * get control state
 	 */
-	int (*get_control_state)(void *hnd, struct oh_rdr_id id,
-				 SaHpiCtrlStateT *state);
+	int (*get_control_state)(void *hnd, SaHpiResourceIdT id,
+                                 SaHpiCtrlNumT num,
+                                 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
-	int (*set_control_state)(void *hnd, struct oh_rdr_id id,
-				 SaHpiCtrlStateT *state);
+	int (*set_control_state)(void *hnd, SaHpiResourceIdT id,
+                                 SaHpiCtrlNumT num,
+                                 SaHpiCtrlStateT *state);
 	
 	/**
-	 * set inventory state
+	 * get inventory size
 	 */
-	int (*get_inventory_size)(void *hnd, struct oh_rdr_id id,
-				  size_t *size);
+        int (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
+                                  SaHpiEirIdT num, /* yes, they don't call it a
+                                                    * num, but it still is one
+                                                    */
+                                  size_t *size);
 
 	/**
 	 * get inventory state
 	 */
-	int (*get_inventory_info)(void *hnd, struct oh_rdr_id id,
-				  SaHpiInventoryDataT *data);
+        int (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
+                                  SaHpiEirIdT num,
+                                  SaHpiInventoryDataT *data);
 
 	/**
 	 * set inventory state
 	 */
-	int (*set_inventory_info)(void *hnd, struct oh_rdr_id id,
-				  const SaHpiInventoryDataT *data);
+        int (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
+                                  SaHpiEirIdT num,
+                                  const SaHpiInventoryDataT *data);
 
 	/**
 	 * get watchdog timer info
 	 */
-	int (*get_watchdog_info)(void *hnd, struct oh_rdr_id id,
-				 SaHpiWatchdogT *wdt);
+	int (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
+                                 SaHpiWatchdogNumT num,
+                                 SaHpiWatchdogT *wdt);
 
 	/** 
 	 * set watchdog timer info
 	 */
-	int (*set_watchdog_info)(void *hnd, struct oh_rdr_id id,
-				 SaHpiWatchdogT *wdt);
+	int (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
+                                 SaHpiWatchdogNumT num,
+                                 SaHpiWatchdogT *wdt);
 
 	/**
 	 * reset watchdog timer info
 	 */
-	int (*reset_watchdog)(void *hnd, struct oh_rdr_id id);
+        int (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
+                              SaHpiWatchdogNumT num);
 
 	/**
 	 * get hotswap state
 	 */
-	int (*get_hotswap_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
 				 SaHpiHsStateT *state);
 
 	/**
 	 * set hotswap state
 	 */
-	int (*set_hotswap_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
 				 SaHpiHsStateT state);
 
 	/**
 	 * request hotswap state
 	 */
-	int (*request_hotswap_action)(void *hnd, struct oh_resource_id id, 
+	int (*request_hotswap_action)(void *hnd, SaHpiResourceIdT id, 
 				      SaHpiHsActionT act);
 
 	/**
 	 * get power state
 	 */
-	int (*get_power_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_power_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiHsPowerStateT *state);
 
 	/**
 	 * set power state
 	 */
-	int (*set_power_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_power_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiHsPowerStateT state);
 	
 	/**
 	 * get indicator state
 	 */
-	int (*get_indicator_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_indicator_state)(void *hnd, SaHpiResourceIdT id, 
 				   SaHpiHsIndicatorStateT *state);
 
 	/**
 	 * set indicator state
 	 */
-	int (*set_indicator_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_indicator_state)(void *hnd, SaHpiResourceIdT id, 
 				   SaHpiHsIndicatorStateT state);
 
 	/**
 	 * control parameter
 	 */
-	int (*control_parm)(void *hnd, struct oh_resource_id id, SaHpiParmActionT act);
+	int (*control_parm)(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
 
 	/**
 	 * get reset state
 	 */
-	int (*get_reset_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_reset_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiResetActionT *act);
 
 	/**
 	 * set_reset state
 	 */
-	int (*set_reset_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_reset_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiResetActionT act);
 
 };
 
 /*The function is used for plugin loader to get interface*/
 int get_interface(void **pp, uuid_t uuid);
+
 
 #endif/*__OH_PLUGIN_H*/

@@ -17,7 +17,7 @@
  */
 
 /* default location of uid map file */
-#define OH_DEFAULT_UID_MAP "/etc/openhpi/uid_map.conf"
+#define OH_DEFAULT_UID_MAP "/var/lib/openhpi/uid_map"
 
 /* hpi internal apis */
 guint oh_uid_initialize(void); 

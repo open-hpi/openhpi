@@ -11,7 +11,7 @@ plugin	libdummy
 #plugin libipmi
 
 #Depends on net-snmp being installed on the system:
-#plugin libsnmp_bc
+plugin libsnmp_bc
 
 #############################################################################
 ##**WARNING** System administrators have to make sure that entity paths are
@@ -22,7 +22,7 @@ plugin	libdummy
 #Strings are enclosed by "", numbers are not.
 
 handler	libdummy {
-        entity_root = "{SYSTEM_CHASSIS,0}"
+        entity_root = "{SYSTEM_CHASSIS,1}"
         name = "test"
 	addr =	0
 }
@@ -57,5 +57,5 @@ handler	libdummy {
 #handler libsnmp_bc {
 #        host = "bc.ibm.com"
 #        community = "community"
-#        entity_root = "{SYSTEM_CHASSIS,0}"
+#        entity_root = "{SYSTEM_CHASSIS,1}"
 #}
