@@ -595,11 +595,22 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
         OH_CHECK_INIT_STATE(SessionId);
         
-        if (EvtEntry == NULL ||
-            EvtEntry->EventType != SAHPI_ET_USER ||
-            EvtEntry->Source != SAHPI_UNSPECIFIED_RESOURCE_ID ||
-            !oh_lookup_severity(EvtEntry->Severity) ||
-            !oh_valid_textbuffer(&(EvtEntry->EventDataUnion.UserEvent.UserEventData))) {
+        if (EvtEntry == NULL) {
+                dbg("Error: Event Log Entry is NULL");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (EvtEntry->EventType != SAHPI_ET_USER ||
+            EvtEntry->Source != SAHPI_UNSPECIFIED_RESOURCE_ID) {
+                dbg("Error: Event Log Entry is not USER or has invalid Source");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (!oh_lookup_severity(EvtEntry->Severity)) {
+                dbg("Error: Event Log Entry Severity %s is invalid",
+                    oh_lookup_severity(EvtEntry->Severity));
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if(!oh_valid_textbuffer(&(EvtEntry->EventDataUnion.UserEvent.UserEventData))) {
+                dbg("Error: Event Log UserData is invalid");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         
