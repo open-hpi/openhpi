@@ -1020,7 +1020,7 @@ static cMarshalType SaHpiRptEntryElements[] =
 	dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
 	dStructElement( SaHpiRptEntryT, ResourceCapabilities,SaHpiCapabilitiesType ),
 
-	?dStructElement( SaHpiRptEntryT, HotSwapCapabilities, SaHpiHsCapabilitiesType ),
+	dStructElement( SaHpiRptEntryT, HotSwapCapabilities, SaHpiHsCapabilitiesType ),
 
 	dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ), 
 	dStructElement( SaHpiRptEntryT, ResourceFailed, SaHpiBoolType ),
