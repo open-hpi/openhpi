@@ -272,23 +272,24 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	}
 	
 	for (i = (SAHPI_MAX_ENTITY_PATH - 1); i >= 0; i--) {
+                guint num_digits, work_instance_num;
 
 		/* Find last element of structure; Current choice not good,
 		   since type=instance=0 is valid */
-		if (epathptr->Entry[i].EntityType == 0 && epathptr->Entry[i].EntityInstance == 0) { continue; }
+		if (epathptr->Entry[i].EntityType == 0){ continue; }
   
 		/* Validate and convert data */
-		/*if (epathptr->Entry[i].EntityType > ESHORTNAMES_ARRAY_SIZE) {
-			dbg("Invalid entity type"); 
-			rtncode = -1; goto CLEANUP;
-		} */
-		err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
-                               "%d", epathptr->Entry[i].EntityInstance);
-		if (err > MAX_INSTANCE_DIGITS) { 
+                work_instance_num = epathptr->Entry[i].EntityInstance;
+                for (num_digits = 1; (work_instance_num/10) > 0; num_digits++);
+		
+		if (num_digits > MAX_INSTANCE_DIGITS) { 
                         g_free(instance_str); 
 			dbg("Instance value too big");
                         rtncode = -1; goto CLEANUP;
 		}
+
+                err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
+                               "%d", epathptr->Entry[i].EntityInstance);
 
 		strcount = strcount + 
 			strlen(EPATHSTRING_START_DELIMITER) + 
