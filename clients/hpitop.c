@@ -253,12 +253,14 @@ void same_system(oh_big_textbuffer *bigbuf)
 {
 
 	int size = strcspn(bigbuf->Data, EPATHSTRING_END_DELIMITER);
-	if ( strncmp(bigbuf->Data, previous_system, size) != 0) {
+	int old_size = strcspn(previous_system, EPATHSTRING_END_DELIMITER); 
+	if  ( (old_size != size) || 
+			(strncmp(bigbuf->Data, previous_system, size+1) != 0)) {
 		if (previous_system[0] == '{') show_trailer(previous_system);
 		memset (previous_system, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH); 
 		strncpy (previous_system, bigbuf->Data, size+1);
 		previous_system[size+2] = '\0';
-		printf("\n\n\n%s\n", previous_system);
+		printf("\n\n%s\n", previous_system);
 	} 
 
 }
