@@ -229,7 +229,8 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
 
         SaHpiRptEntryT *res = NULL;
 
-	if (!res_new || !rdr_new || !res_gone || !rdr_gone) return;
+	if (!cur_rpt || !new_rpt ||
+            !res_new || !rdr_new || !res_gone || !rdr_gone) return;
 
         /* Look for absent resources and rdrs */
         for (res = oh_get_resource_by_id(cur_rpt, SAHPI_FIRST_ENTRY);
@@ -262,11 +263,9 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
 
                 SaHpiRptEntryT *tmp_res = oh_get_resource_by_id(cur_rpt, res->ResourceId);
                 SaHpiRdrT *rdr = NULL;
-                if (!tmp_res || memcmp(res, tmp_res, sizeof(SaHpiRptEntryT))) {
+                if (tmp_res == NULL || memcmp(res, tmp_res, sizeof(SaHpiRptEntryT))) {
                         *res_new = g_slist_append(*res_new, (gpointer)res);
                 }
-
-
 
                 for (rdr = oh_get_rdr_by_id(new_rpt, res->ResourceId, SAHPI_FIRST_ENTRY);
                      rdr != NULL;
