@@ -73,6 +73,12 @@ typedef struct {
         oHpiGlobalParamUnionT u;
 } oHpiGlobalParamT;
 
+#define OHVERSION_CLIENT 0x0001
+#define OHVERSION_STANDARD 0x0000
+
+/* Version function */
+SaHpiUint64T oHpiVersionGet(void);
+
 /* Exported OpenHPI plugin prototypes */
 SaErrorT oHpiPluginLoad(char *name);
 SaErrorT oHpiPluginUnload(char *name);
