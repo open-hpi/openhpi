@@ -33,8 +33,6 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 EXTRA_DIST 		= ipmi.sym
 
-AC_LIBOBJ		= ipmi.sym
-
 SUBDIRS			= t
 
 INCLUDES		= @OPENHPI_INCLUDES@
@@ -63,4 +61,5 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  ipmi.h		
 			  
 libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix
-libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-symbols ipmi.sym
+libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ \
+       			-export-symbols $(top_srcdir)/plugins/ipmi/ipmi.sym
