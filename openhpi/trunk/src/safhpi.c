@@ -2326,6 +2326,11 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 {
         SaHpiDomainIdT did;
 
+        if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
+            Timeout != SAHPI_TIMEOUT_BLOCK &&
+            Timeout < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
@@ -2380,6 +2385,11 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         struct oh_resource_data *rd;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
+            Timeout != SAHPI_TIMEOUT_BLOCK &&
+            Timeout < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2457,6 +2467,10 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!oh_lookup_hsaction(Action)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2536,6 +2550,10 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
+        if (!oh_lookup_hsindicatorstate(State)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
@@ -2576,6 +2594,10 @@ SaErrorT SAHPI_API saHpiParmControl (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!oh_lookup_parmaction(Action)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2659,6 +2681,10 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
+        if (!oh_lookup_resetaction(ResetAction)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
@@ -2740,6 +2766,10 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!oh_lookup_powerstate(State)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
