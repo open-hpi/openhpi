@@ -730,29 +730,39 @@ void ohoi_sensor_event(enum ipmi_update_e op,
                 return;
         }
 
-	if ( op == IPMI_ADDED ) {
-                rpt_entry->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR 
+	switch (op) {
+		case IPMI_ADDED:
+			dbg("Sensor event: ADD");
+			rpt_entry->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR 
                                                     | SAHPI_CAPABILITY_SENSOR;
 
-                /* fill in the sensor data, add it to ipmi_event_list
-		 * and finally to the rpt-cache
-		 */		 
-		add_sensor_event(ent, sensor, handler, 
-                                 rpt_entry->ResourceEntity, 
-                                 rpt_entry->ResourceId);
+	                /* fill in the sensor data, add it to ipmi_event_list
+			 * and finally to the rpt-cache
+			 */		 
+			add_sensor_event(ent, sensor, handler, 
+        	                         rpt_entry->ResourceEntity, 
+                	                 rpt_entry->ResourceId);
+		
+			if (ipmi_sensor_get_event_reading_type(sensor) == 
+					IPMI_EVENT_READING_TYPE_THRESHOLD) 
+				rv = ipmi_sensor_threshold_set_event_handler(
+						sensor, sensor_threshold_event,
+						handler);
+			else
+				rv = ipmi_sensor_discrete_set_event_handler(
+						sensor, sensor_discrete_event,
+						handler);
 
-		if (ipmi_sensor_get_event_reading_type(sensor) == 
-				IPMI_EVENT_READING_TYPE_THRESHOLD) 
-			rv = ipmi_sensor_threshold_set_event_handler(
-					sensor, sensor_threshold_event,
-					handler);
-		else
-			rv = ipmi_sensor_discrete_set_event_handler(
-					sensor, sensor_discrete_event,
-					handler);
-
-		if (rv)
-			dbg("Unable to reg sensor event handler: %#x\n", rv);
+			if (rv)
+				dbg("Unable to reg sensor event handler: %#x\n", rv);
+		case IPMI_CHANGED:
+			dbg("Sensor CHANGED");
+			add_sensor_event(ent, sensor, handler, 
+        	                         rpt_entry->ResourceEntity, 
+                	                 rpt_entry->ResourceId);
+		case IPMI_DELETED:
+			dbg("Sensor DELETED");
+		
 	}
 }
 

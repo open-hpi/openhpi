@@ -180,6 +180,7 @@ static void set_sel_time_done(ipmi_mc_t	*mc,
 {
         int *flag = cb_data;
         *flag = 1;
+	dbg("set_sel_time called, err: %d", err);
 }
 
 struct set_sel_time_cb_data {
@@ -190,8 +191,11 @@ struct set_sel_time_cb_data {
 static void set_sel_time(ipmi_mc_t *mc, void *cb_data)
 {
 	struct set_sel_time_cb_data *data = cb_data;
+	int rv;
 
-	ipmi_mc_set_current_sel_time(mc, &data->time, set_sel_time_done, &data->flag);
+	rv = ipmi_mc_set_current_sel_time(mc, &data->time, set_sel_time_done, &data->flag);
+	if (rv) 
+		dbg("Failed to set MC time");
 }
 
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data)

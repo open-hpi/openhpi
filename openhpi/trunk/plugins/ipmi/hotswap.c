@@ -231,7 +231,7 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
         struct oh_handler_state         *handler;
         const struct ohoi_resource_info   *ohoi_res_info;
         struct ohoi_indicator_state     ipmi_state;
-
+	
         SaErrorT rv;
 
         handler = (struct oh_handler_state *)hnd;
@@ -239,18 +239,22 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
-                dbg("BUG: try to get sel in unsupported resource");
+                dbg("BUG: try to get HS in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         ipmi_state.done = 0;
-        ipmi_entity_id_get_hot_swap_indicator(ohoi_res_info->u.entity_id,
-                                              _get_indicator_state,
-                                              &ipmi_state);
+        rv = ipmi_entity_id_get_hot_swap_indicator(ohoi_res_info->u.entity_id,
+							_get_indicator_state,
+							&ipmi_state);
+	if(rv) {
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
 
         rv = ohoi_loop(&ipmi_state.done, ipmi_handler);
-        if (rv != SA_OK)
+        if (rv != SA_OK) {
                 return rv;
+	}
 
         *state = ipmi_state.val;
         return SA_OK;;
