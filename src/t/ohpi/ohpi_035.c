@@ -27,11 +27,7 @@
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
-        char *config_file = NULL;
         char buffer[128];
-        
-        /* Save config file env variable and unset it */
-        config_file = getenv("OPENHPI_CONF");
         
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
