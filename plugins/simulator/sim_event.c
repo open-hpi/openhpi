@@ -181,13 +181,6 @@ static void* fhs_event_process(void *data)
 {
         struct fe_handler *feh = (struct fe_handler*)data;
         FAMEvent fe;
-        FAMRequest fr;
-        char*  root_path;
-
-        root_path = g_hash_table_lookup(feh->ohh->config, "root_path");
-
-        FAMOpen(&feh->fc);
-        FAMMonitorDirectory(&feh->fc, root_path, &fr, REQ_RES);
 
         while(!feh->closing) { 
 /*
@@ -208,8 +201,7 @@ static void* fhs_event_process(void *data)
                         FAMNextEvent(&feh->fc, &fe);
                 }else  continue; 
 
-                if ((fe.userdata == REQ_RES) &&
-                    ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
+                if ((fe.userdata == REQ_RES) && (fe.code == FAMCreated)) {
                         if (!IS_DIR(fe.filename))
                                 fhs_event_add_resource(feh, fe.filename);
                 }else if ((fe.userdata == REQ_RES) && (fe.code == FAMDeleted)) {
@@ -226,7 +218,6 @@ static void* fhs_event_process(void *data)
                 }
         }
            
-        FAMClose(&feh->fc);
         return 0;
 }
 
@@ -234,11 +225,26 @@ struct fe_handler* fhs_event_init(struct oh_handler_state *hnd)
 {
         int retval;     
         struct fe_handler *feh;
+        FAMRequest fr;
+        char*  root_path;
+        DIR *pdir;
+        struct dirent *pd;
+
+        root_path = g_hash_table_lookup(hnd->config, "root_path");
 
         feh = (struct fe_handler *)g_malloc0(sizeof(*feh));
         if (feh == NULL)
                 return NULL;
         feh->ohh = hnd;
+        
+        FAMOpen(&feh->fc);
+        
+        pdir = opendir(root_path);
+        for (pd = readdir(pdir); pd; pd = readdir(pdir))
+            fhs_event_add_resource(feh, pd->d_name);
+
+        FAMMonitorDirectory(&feh->fc, root_path, &fr, REQ_RES);
+  
         retval = pthread_create(&feh->tid, NULL, fhs_event_process, feh);
         if (retval) {
                 free(feh);
@@ -251,5 +257,6 @@ void fhs_event_finish(struct fe_handler *feh)
 {     
         feh->closing = 1;
         pthread_join(feh->tid, NULL);
+        FAMClose(&feh->fc);
         g_free(feh);
 }
