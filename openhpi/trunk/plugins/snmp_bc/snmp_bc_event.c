@@ -43,7 +43,9 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 static int  parse_sel_entry(char *text, bc_sel_entry *sel, int isdst);
 static int  parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_str, gchar *trigger_value_str);
 static int  set_previous_event_state(void *hnd, SaHpiEventT *event);
-static int  map2oem(void *hnd, SaHpiEventT *event, bc_sel_entry *sel_entry, OEMReasonCodeT reason);
+static int  map2oem(void *hnd, SaHpiEventT *event, LogSource2ResourceT *resinfo,
+		    bc_sel_entry *sel_entry, OEMReasonCodeT reason);
+static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *dupstrhash_data, LogSource2ResourceT *resinfo);
 
 int event2hpi_hash_init()
 {
@@ -215,6 +217,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 	gchar thresh_read_value[MAX_THRESHOLD_VALUE_STRINGSIZE]; 
 	gchar thresh_trigger_value[MAX_THRESHOLD_VALUE_STRINGSIZE];
 	int is_recovery_event, is_threshold_event;
+	LogSource2ResourceT resinfo;
 	SaHpiEventT working, *event_ptr;
 	SaHpiSeverityT severity;
 	Str2EventInfoT *strhash_data;
@@ -228,20 +231,30 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 		return -1;
 	}
 
+	/* Find default RID and BladeCenter resource info for error log's source */
+	if (bcsrc2rid(hnd, log_entry.source, &resinfo)) {
+		dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
+		return -1;
+	}
+	
 	/* Fill-in HPI event time */
 	working.Timestamp = (SaHpiTimeT)mktime(&log_entry.time) * 1000000000;
 
         /* Set default severity; usually overwritten below with BCT-level severity */
 	severity = log_entry.sev; 
 
-	/* Set event search string; this is sometimes overwritten below 
-	 * since BC dynamically adds strings to canned event messages */
+	/******************************************************************
+	 * Find event search string
+         *  
+	 * For some types of events (e.g. thresholds), BC appends dynamic
+	 * data which cannot be in the static str2event hash table. Need to
+         * find the non-dynamic root of these strings.
+         ******************************************************************/
+
+	/* Set default search string */
 	strncpy(search_str, log_entry.text, BC_SEL_ENTRY_STRING);
 
-	/************************************************
-	 * Discover Recovery event strings
-	 * Set Assertion to FALSE for sensor events below
-         ************************************************/
+	/* Discover Recovery event strings */
 	recovery_str = strstr(search_str, EVT_RECOVERY);
 	if (recovery_str && (recovery_str == search_str)) {
 		is_recovery_event = 1;
@@ -271,31 +284,43 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 	/* See if adjusted search string is a recognized BC "alertable" event */
 	strhash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, search_str);
 	if (strhash_data) {
+		
+		/* Handle strings that have multiple event numbers */
+		int dupovrovr = 0;
+		if (strhash_data->event_dup) {
+			strhash_data = findevent4dupstr(search_str, strhash_data, &resinfo);
+			if (strhash_data == NULL) {
+				dbg("Could not find valid event for duplicate string=%s and RID=%d", 
+				    search_str, resinfo.rid);
+				if (map2oem(hnd, &working, &resinfo, &log_entry, EVENT_NOT_MAPPED)) {
+					dbg("Cannot map to OEM Event %s", log_entry.text);
+					return -1;
+				}
+				goto DONE;
+			}
+			if (strhash_data->event_ovr & OVR_RID) {
+				dbg("Cannot have RID override on duplicate string=%s", search_str);
+				dupovrovr = 1;
+			}
+		}
 
-
+                /* Use the RID calculated from error log string unless OVR_RID is set. 
+		 * Unless overridden due to a dup string have OVR_RID set incorrectly.
+		 */
+		if (!(strhash_data->event_ovr & OVR_RID) || dupovrovr) {
+			working.Source = resinfo.rid;
+		}
 
 		/* OVR_SEV overrides the event log's severity and uses 
-		 *  BCT-level severity from calculated in off-line scripts */
-                /*###### MOVE THIS TO AFTER PARSE */
+		 *  BCT-level severity from calculated in off-line scripts 
+		 */
 		if (strhash_data->event_ovr & OVR_SEV) {
 			severity = strhash_data->event_sev;
 		}
 
-		/* #### Move error log parse to here ?? */
-		/*
-		  ### Can't have dups and rid override
-		  ### Handle DUPS
-		  ### 
-		  ### Calculate RID and RPT entry
-		  ### Handle RID override
-		  ###
-		*/
-
 		/* Look to see if event is mapped to an HPI entity */
 		event_ptr = (SaHpiEventT *)g_hash_table_lookup(event2hpi_hash, strhash_data->event);
 		if (event_ptr) {
-
-
 			working = *event_ptr;
 
 			/* Handle sensor events */
@@ -340,23 +365,83 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 			}
 		} /* End found mapped event */
 		else { /* Map to OEM Event - Log Not Mapped */
-			if (map2oem(hnd, &working, &log_entry, EVENT_NOT_MAPPED)) {
+			if (map2oem(hnd, &working, &resinfo, &log_entry, EVENT_NOT_MAPPED)) {
 				dbg("Cannot map to OEM Event %s", log_entry.text);
 				return -1;
 			}
 		} /* End found "alertable" event string in hash */
 	}
 	else { /* Map to OEM Event - String not recognized as BC "alertable" */
-		if (map2oem(hnd, &working, &log_entry, EVENT_NOT_ALERTABLE)) {
+		if (map2oem(hnd, &working, &resinfo, &log_entry, EVENT_NOT_ALERTABLE)) {
 			dbg("Cannot map to OEM Event %s", log_entry.text);
 			return -1;
 		}
 	}
 
+ DONE:
 	working.Severity = severity;
 	memcpy((void *)event, (void *)&working, sizeof(SaHpiEventT));
-	
+
 	return 0;
+}
+
+static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strhash_data, LogSource2ResourceT *resinfo)
+{
+	gchar dupstr[BC_SEL_ENTRY_STRING];
+	Str2EventInfoT *dupstr_hash_data;
+	short strnum;
+
+	strncpy(dupstr, search_str, BC_SEL_ENTRY_STRING);
+	dupstr_hash_data = strhash_data;
+	strnum = strhash_data->event_dup + 1; /* Original string plus dups */
+       
+	while (strnum && (dupstr_hash_data != NULL)) {
+		int i,j;
+		gchar *normalized_event; 
+
+		/* Search sensor array for the duplicate string's event */
+		for (i=0; (resinfo->sensor_array_ptr + i)->sensor.Num != 0; i++) {
+			for (j=0; (resinfo->sensor_array_ptr + i)->bc_sensor_info.event_array[j].event != NULL; j++) {
+				normalized_event = snmp_derive_objid(resinfo->ep,
+						   (resinfo->sensor_array_ptr + i)->bc_sensor_info.event_array[j].event);
+				if (!strcmp(dupstr_hash_data->event, normalized_event)) {
+					g_free(normalized_event);
+					return dupstr_hash_data;
+				}
+				g_free(normalized_event);
+			}
+		}
+		
+		/* Search resource array for the duplicate string's event */
+		for (i=0; snmp_rpt_array[resinfo->rpt].bc_res_info.event_array[i].event != NULL; i++) {
+			normalized_event = snmp_derive_objid(resinfo->ep,
+					   snmp_rpt_array[resinfo->rpt].bc_res_info.event_array[i].event);
+			if (!strcmp(dupstr_hash_data->event, normalized_event)) {
+				g_free(normalized_event);
+				return dupstr_hash_data;
+			}
+			g_free(normalized_event);
+		}
+
+		/* Find next duplicate string */
+		strnum--;
+		if (strnum) {
+			gchar strnum_str[6];
+			gchar *tmpstr;
+
+			sprintf(strnum_str,"%d", strnum);
+			tmpstr = g_strconcat(search_str, HPIDUP_STRING, strnum_str, NULL);
+			strncpy(dupstr, tmpstr, BC_SEL_ENTRY_STRING);
+			g_free(tmpstr);
+
+			dupstr_hash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, dupstr);
+			if (dupstr_hash_data == NULL) {
+				dbg("Cannot find duplicate string=%s\n", dupstr);
+			}
+		}
+	}
+
+	return NULL;
 }
 
 /*
@@ -475,23 +560,17 @@ static int set_previous_event_state(void *hnd, SaHpiEventT *event)
 /****************************************************
  * Translate BladeCenter log message to HPI OEM Event
  ****************************************************/
-static int map2oem(void *hnd, SaHpiEventT *event, bc_sel_entry *sel_entry,
-		   OEMReasonCodeT reason)
+static int map2oem(void *hnd, SaHpiEventT *event, LogSource2ResourceT *resinfo,
+		   bc_sel_entry *sel_entry, OEMReasonCodeT reason)
 {
-	/* Set RID for OEM Event */
-	if (bcsrc2rid(hnd, sel_entry->source, &(event->Source))) {
-		dbg("Cannot translate BladeCenter Source string=%s to RID\n", 
-		    sel_entry->source);
-		return -1;
-	}
-
+	event->Source = resinfo->rid;
 	event->EventType = SAHPI_ET_OEM;
 	event->EventDataUnion.OemEvent.MId = IBM_MANUFACTURING_ID;
 	strncpy(event->EventDataUnion.OemEvent.OemEventData,
 		sel_entry->text, SAHPI_OEM_EVENT_DATA_SIZE - 1);
 	event->EventDataUnion.OemEvent.OemEventData
 		[SAHPI_OEM_EVENT_DATA_SIZE - 1] = '\0';
-
+	
 	return 0;
 }
 
@@ -504,13 +583,14 @@ static int map2oem(void *hnd, SaHpiEventT *event, bc_sel_entry *sel_entry,
  *
  * All other Source text strings map to the Chassis's resource ID
  *****************************************************************/
-int bcsrc2rid(void *hnd, gchar *src, SaHpiResourceIdT *rid)
+int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 {
 	int rpt_index, isblade, ischassis, isswitch;
 	guint instance;
 	gchar **src_parts = NULL, *endptr = NULL;
 	SaHpiEntityPathT ep, ep_root;
 	SaHpiEntityTypeT entity_type;
+	struct snmp_bc_sensor *array_ptr;
 
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	char *root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
@@ -540,13 +620,20 @@ int bcsrc2rid(void *hnd, gchar *src, SaHpiResourceIdT *rid)
 
 	if (isblade || isswitch) {
 		instance = strtol(src_parts[1], &endptr, 10);
-		if (isblade) { rpt_index = BC_RPT_ENTRY_BLADE; }
-		else { rpt_index = BC_RPT_ENTRY_SWITCH_MODULE; }
+		if (isblade) { 
+			rpt_index = BC_RPT_ENTRY_BLADE; 
+			array_ptr = &snmp_bc_blade_sensors[0];
+		}
+		else { 
+			rpt_index = BC_RPT_ENTRY_SWITCH_MODULE;
+			array_ptr = &snmp_bc_switch_sensors[0];
+		}
 		entity_type = snmp_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 	}
 	else {
 		ischassis = 1;
 		rpt_index = BC_RPT_ENTRY_CHASSIS;
+		array_ptr = &snmp_bc_chassis_sensors[0];
 	}
 
 	g_strfreev(src_parts);
@@ -556,8 +643,12 @@ int bcsrc2rid(void *hnd, gchar *src, SaHpiResourceIdT *rid)
 	ep_concat(&ep, &ep_root);
 	set_epath_instance(&ep, entity_type, instance);
 
-	*rid = oh_uid_from_entity_path(&ep);
-
+	/* Fill in RID and RPT table info about Error Log's Source */
+	resinfo->rid = oh_uid_from_entity_path(&ep);
+	resinfo->rpt = rpt_index;
+	resinfo->sensor_array_ptr = array_ptr;
+	resinfo->ep = ep;
+	
 	return 0;
 }
 
