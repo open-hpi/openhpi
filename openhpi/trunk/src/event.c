@@ -262,6 +262,7 @@ static int process_resource_event(struct oh_event *e)
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
                 if (!rd) {
+                        oh_release_domain(d);
                         dbg("Couldn't allocate resource data");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
