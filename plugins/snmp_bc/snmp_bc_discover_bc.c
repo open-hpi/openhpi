@@ -355,7 +355,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	int i;
 	SaErrorT err;
         struct oh_event *e;
-	struct snmp_value get_value, get_active;
+	struct snmp_value get_value, get_active, get_blade_resourcetag;
 	struct ResourceInfo *res_info_ptr;
 
 	if (!handle || !ep_root) {
@@ -483,9 +483,25 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					   SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
-			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-						   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].comment,
-						   i + SNMP_BC_HPI_LOCATION_BASE);
+				
+			
+		  	err = snmp_bc_oid_snmp_get(custom_handle,
+					   &(e->u.res_event.entry.ResourceEntity),
+					   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].OidResourceTag,
+					   &get_blade_resourcetag, SAHPI_TRUE);
+					   
+			if (!err && (get_blade_resourcetag.type == ASN_OCTET_STR)) {
+				snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
+							   get_blade_resourcetag.string,
+							   SNMP_BC_NOT_VALID);
+			
+			} else {			
+				snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
+							   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].comment,
+							   i + SNMP_BC_HPI_LOCATION_BASE);
+			}
+			
+
 
 			trace("Discovered resource=%s; ID=%d", 
 			      e->u.res_event.entry.ResourceTag.Data,
