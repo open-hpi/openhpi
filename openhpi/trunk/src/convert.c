@@ -76,11 +76,13 @@ c_1_over_cube(double val)
 
 
 typedef double (*linearizer)(double val);
-static linearizer linearize[11] =
+#define LINEARIZER_SIZE 12
+static linearizer linearize[LINEARIZER_SIZE] =
 {
         c_linear,
         log,
         log10,
+        log2,
         exp,
         c_exp10,
         c_exp2,
@@ -124,7 +126,7 @@ sensor_convert_from_raw (SaHpiSensorRecT *sensor,
 
         if ( factors->Linearization == SAHPI_SL_NONLINEAR )
                 c_func = c_linear;
-        else if ( factors->Linearization <= 11 )
+        else if ( factors->Linearization <= LINEARIZER_SIZE )
                 c_func = linearize[factors->Linearization];
         else
                 return SA_ERR_HPI_INVALID_DATA;
