@@ -46,7 +46,7 @@ struct rdr_data {
  **/
 struct snmp_client_hnd {
         struct snmp_session session;
-        struct snmp_session *ss; /* SNMP Session pointer */
+        void   *sessp; /* opaque pointer, not a pointer to struct snmp_session   */
 };
 
 
