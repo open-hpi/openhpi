@@ -20,10 +20,7 @@
 #include <string.h>
 
 #include <openhpi.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
 #include <oh_event.h>
-#include <event_utils.h>
 #include <glib.h>
 
 GAsyncQueue *oh_process_q;

@@ -19,7 +19,7 @@
 /**************************************************************
  *  
  *  These macros are defined for clarity of the sahpi.c
- *  source file.  The provide standard mechanisms for
+ *  source file.  They provide standard mechanisms for
  *  checking for and populating standard types, as well
  *  as providing consistent debug and error functionality.
  *
@@ -27,73 +27,72 @@
  *  more readable.
  *
  ***********************************************************/
-#define OH_STATE_READY_CHECK
+
+#define OH_CHECK_INIT_STATE(sid) \
+        do { \
+                if (oh_initialized() != SA_OK) { \
+                        dbg("Session %d not initalized", sid); \
+                        return SA_ERR_HPI_INVALID_SESSION; \
+                } else if (!sid) { \
+                        dbg("Session %d is not valid", sid); \
+                        return SA_ERR_HPI_INVALID_PARAMS; \
+                } \
+        } while (0)
+
 
 /*
- * OH_SESSION_SETUP gets the session pointer for the session
- * id.  It returns badly if required.  This is only to be used for sahpi
- * function.
+ * OH_GET_DID gets the domain id of a session and
+ * checks its validity (nonzero). *
  */
-
-#define OH_SESSION_SETUP(sid, ses)                         \
-        do {                                               \
-                ses = session_get(sid);                    \
-                if (!ses) {                                \
-                        dbg("Invalid SessionId %d", sid);  \
-                        data_access_unlock();              \
+#define OH_GET_DID(sid, did) \
+        do { \
+                if (!(did = oh_get_session_domain(sid))) { \
+                        dbg("No domain for session id %d",sid); \
                         return SA_ERR_HPI_INVALID_SESSION; \
-                }                                          \
+                } \
+        } while (0)
+
+/*
+ * OH_GET_DOMAIN gets the domain object which locks it.
+ * Need to call oh_release_domain(domain) after this to unlock it.
+ */
+#define OH_GET_DOMAIN(did, d) \
+        do { \
+                if (!(d = oh_get_domain(did))) { \
+                        dbg("Domain %d doesn't exist", did); \
+                        return SA_ERR_HPI_INVALID_DOMAIN; \
+                } \
         } while (0)
 
 /*
  * OH_HANDLER_GET gets the hander for the rpt and resource id.  It
  * returns INVALID PARAMS if the handler isn't there
  */
-#define OH_HANDLER_GET(rpt,rid,h)                                       \
-        do {                                                            \
-                struct oh_resource_data *rd;                            \
-                if(rpt == NULL) {                                       \
-                        dbg("Invalide RPTable");                        \
-                        data_access_unlock();                           \
-                        return SA_ERR_HPI_INVALID_SESSION;              \
-                }                                                       \
-                rd = oh_get_resource_data(rpt, rid);                    \
-                if(!rd || !rd->handler) {                               \
-                        dbg("Can't find handler for Resource %d", rid); \
-                        data_access_unlock();                           \
-                        return SA_ERR_HPI_INVALID_PARAMS;               \
-                }                                                       \
-                h = rd->handler;                                        \
-        } while(0)
-
-/*
- * OH_RPT_GET - sets up rpt table, and does a sanity check that it
- * is actually valid, returning badly if it isn't
- */
-
-#define OH_RPT_GET(SessionId, rpt)                                     \
-        do {                                                           \
-                rpt = default_rpt;                                     \
-                if(rpt == NULL) {                                      \
-                        dbg("RPT for Session %d not found",SessionId); \
-                        data_access_unlock();                          \
-                        return SA_ERR_HPI_INVALID_SESSION;             \
-                }                                                      \
-        } while(0)
-
+#define OH_HANDLER_GET(d, rid, h) \
+        do { \
+                struct oh_resource_data *rd; \
+                rd = oh_get_resource_data(&(d->rpt), rid); \
+                if(!rd || !rd->handler) { \
+                        dbg("Can't find handler for Resource %d in Domain %d", rid, d->id); \
+                        oh_release_domain(d); \
+                        return SA_ERR_HPI_INVALID_PARAMS; \
+                } \
+                h = rd->handler; \
+        } while (0)
 
 /*
  * OH_RESOURCE_GET gets the resource for an resource id and rpt
  * it returns invalid resource if no resource id is found
  */
-#define OH_RESOURCE_GET(rpt, rid, r)                            \
-        do {                                                    \
-                r = oh_get_resource_by_id(rpt, rid);            \
-                if(!r) {                                        \
-                        dbg("Resource %d doesn't exist", rid);  \
-                        data_access_unlock();                   \
-                        return SA_ERR_HPI_INVALID_RESOURCE;     \
-                }                                               \
-        } while(0)
+
+#define OH_RESOURCE_GET(d, rid, r) \
+        do { \
+                r = oh_get_resource_by_id(&(d->rpt), rid); \
+                if(!r) { \
+                        dbg("Resource %d doesn't exist in Domain %d", rid, d->id); \
+                        oh_release_domain(d); \
+                        return SA_ERR_HPI_INVALID_RESOURCE; \
+                } \
+        } while (0)
 
 #endif

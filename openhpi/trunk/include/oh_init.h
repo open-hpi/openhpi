@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef OH_INIT_H
-#define OH_INIT_H
+#ifndef __OH_INIT_H
+#define __OH_INIT_H
 
 #include <SaHpi.h>
 
@@ -32,4 +32,4 @@ SaErrorT oh_initialize(void);
 /*SaErrorT oh_finalize(void);*/
 SaErrorT oh_initialized(void);
 
-#endif /* OH_INIT_H */
+#endif /* __OH_INIT_H */

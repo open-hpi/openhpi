@@ -177,7 +177,7 @@ SaErrorT oh_get_session_state(SaHpiDomainIdT sid, SaHpiBoolT *state)
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
-                return SA_ERR_HPI_NOT_PRESENT;
+                return SA_ERR_HPI_INVALID_SESSION;
         }
         *state = session->state;
         g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
@@ -204,7 +204,7 @@ SaErrorT oh_set_session_state(SaHpiDomainIdT sid, SaHpiBoolT state)
        session = g_hash_table_lookup(oh_sessions.table, &sid);
        if (!session) {
                g_static_rec_mutex_unlock(&oh_sessions.lock);
-               return SA_ERR_HPI_NOT_PRESENT;
+               return SA_ERR_HPI_INVALID_SESSION;
        }
        session->state = state;
        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
@@ -234,7 +234,7 @@ SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event)
        if (!session) {               
                g_static_rec_mutex_unlock(&oh_sessions.lock);
                g_free(qevent);
-               return SA_ERR_HPI_NOT_PRESENT;
+               return SA_ERR_HPI_INVALID_SESSION;
        }
        g_async_queue_push(session->eventq2, qevent);
        g_static_rec_mutex_unlock(&oh_sessions.lock); /* Unlocked session table */
@@ -266,7 +266,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        session = g_hash_table_lookup(oh_sessions.table, &sid);
        if (!session) {
                g_static_rec_mutex_unlock(&oh_sessions.lock);
-               return SA_ERR_HPI_NOT_PRESENT;
+               return SA_ERR_HPI_INVALID_SESSION;
        }
        eventq = session->eventq2;
        g_async_queue_ref(eventq);
@@ -288,6 +288,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                g_free(devent);
                return SA_OK;
        } else {
+               memset(event, 0, sizeof(struct oh_event));
                return SA_ERR_HPI_TIMEOUT;
        }
 }
@@ -314,7 +315,7 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
         session = g_hash_table_lookup(oh_sessions.table, &sid);
         if (!session) {
                 g_static_rec_mutex_unlock(&oh_sessions.lock);
-                return SA_ERR_HPI_NOT_PRESENT;
+                return SA_ERR_HPI_INVALID_SESSION;
         }
 
         g_hash_table_remove(oh_sessions.table, &(session->id));
