@@ -128,6 +128,12 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
+        /* translate SAHPI_NEWEST_ENTRY to the last entry in the list */
+        /* Note: there is no need to translate SAHPI_OLDEST_ENTRY     */
+        if (entryid == SAHPI_NEWEST_ENTRY) {
+                entryid = sel->nextId - 1;
+        }
+
         sellist = g_list_first(sel->selentries);
         while (sellist != NULL) {
                 myentry = (SaHpiSelEntryT *) sellist->data;
@@ -140,7 +146,7 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
                         else {
                                 *prev = myentry->EntryId - 1;
                         }
-                        /* is this the last entry? (SAHPI_NEWEST_ENTRY) */
+                        /* is this the last entry? */
                         if (myentry->EntryId == sel->nextId - 1) {
                                 *next = SAHPI_NO_MORE_ENTRIES;
                         }
