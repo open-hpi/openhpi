@@ -30,28 +30,42 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_get when entry == NULL
+ * This test verifies failure of oh_el_prepend when el-> gentimestamp == FALSE
  *
  * Return value: 0 on success, 1 on failure
  **/
 
+
 int main(int argc, char **argv)
 {
         oh_el *el;
-	SaHpiBoolT flag;
- 	SaErrorT retc;
+        SaErrorT retc;
+	SaHpiEventT event;
+	static char *data[1] = {
+        	"Test data one"
+	};
 
+
+
+	/*test oh_el_prepend with el->gentimestamp == FALSE*/
 	
-	/* tests oh_el_get for failure when entry == NULL */
+	el = oh_el_create(20);
 
-        el = oh_el_create(20);
+        event.Source = 1;
+        event.EventType = SAHPI_ET_USER;
+        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event.Severity = SAHPI_DEBUG;
+	  
+	el->gentimestamp = SAHPI_FALSE;
 
- 	retc = oh_el_setgentimestampflag(el, flag);
-        if (retc != SA_OK) {
-        	dbg("ERROR: oh_el_get failed.");
-        	return 1;
-        }
+        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
 
+        retc = oh_el_prepend(el, &event, NULL, NULL);
+	if (retc != SA_OK) {
+                dbg("ERROR: oh_el_prepend failed.");
+                return 1;
+        }  
+	
 	/* close el */
         retc = oh_el_close(el);
         if (retc != SA_OK) {
@@ -61,5 +75,8 @@ int main(int argc, char **argv)
 
         return 0;
 }
+
+
+
 
 
