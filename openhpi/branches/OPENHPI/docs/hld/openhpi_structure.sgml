@@ -1,0 +1,27 @@
+<!-- ...................................................................... -->
+<!-- $Id$ ........................................ -->
+<!-- 
+        (C) Copyright IBM Corp
+ 
+        Authors:
+            Sean Dague
+
+        This material may be distributed only subject to the terms and 
+        conditions set forth in the Open Publication License, v1.0 or later 
+        (the latest version is currently available at 
+        http://www.opencontent.org/openpub/).  Distribution of substantively 
+        modified version of this document is prohibited without the explicit 
+        permission of the copyright holder.
+
+        Other company, product, or service names may be trademarks or service 
+        marks of others.
+-->
+
+  <chapter>
+  <title>OpenHPI Structure</title>
+  <para>
+    This chapter is the first that gets into the nitty gritty of the
+    basic mechanisms used by OpenHPI.  It will come slower than the
+    rest, but will be updated constantly.
+  </para>
+  </chapter>
