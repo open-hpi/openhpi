@@ -24,7 +24,8 @@ REMOTE_SIM_SOURCES 	= rsa_resources.c \
 			  snmp_rsa_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
-			  $(REMOTE_SIM_SOURCES) 
+			  $(REMOTE_SIM_SOURCES) \
+			  uidmap
 
 SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
 
@@ -69,11 +70,6 @@ TESTS = tutils_conv \
 # XFAIL_TESTS = thotswap_reset
 
 check_PROGRAMS = $(TESTS)
-
-# Prototype for unit test using normal IF calls and static RSA simulator
-# Remove this code when get a real example. Add xxx to TESTS above
-#xxx_SOURCES = xxx.c
-#xxx_LDADD   = $(top_builddir)/src/libopenhpi.la $(top_builddir)/plugins/snmp_rsa/t/libsnmp_rsa.la
 
 tutils_conv_SOURCES = tutils_conv.c
 tutils_conv_LDADD   = snmp_rsa_utils.o
