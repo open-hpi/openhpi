@@ -40,7 +40,8 @@ RPMDIR			=$(HOME)/rpms
 RPMSRC	=$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
 RPM386	=$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
-EXTRA_DIST		= openhpi.spec openhpi.pc examples/openhpi.conf.example
+EXTRA_DIST		= openhpi.spec \
+	$(shell find include -name '*.h')
 
 AUTOMAKE_OPTIONS	= foreign
 
@@ -61,7 +62,8 @@ ALLSOURCES = $(shell \
 
 includedir=$(base_includedir)/openhpi
 
-include_HEADERS	= $(shell find include -name '*.h')
+# these are the only headers that users should have any access to
+include_HEADERS	= include/SaHpi.h include/epath_utils.h include/uid_utils.h
 
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
