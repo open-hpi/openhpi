@@ -19,7 +19,7 @@ GSList *sim_util_add_res_id(GSList *ids,
                             SaHpiEntityPathT *epath);
 struct sim_res_id *sim_util_get_res_id_by_reqnum(GSList *ids, int reqnum);
 GSList* sim_util_free_res_id(GSList* ids, char *file);
-void sim_util_free_all_res_id(GSList *ids);
+GSList* sim_util_free_all_res_id(GSList *ids);
 
 void sim_util_add_rdr_id(GSList *ids,
                          char *file,
