@@ -613,7 +613,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         SaErrorT rv;
         SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -627,6 +627,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         }
 
         OH_SESSION_SETUP(SessionId,s);
+        OH_RPT_GET(SessionId,rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
         if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
@@ -662,7 +663,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
                                   SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -684,6 +685,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         }
 
         OH_SESSION_SETUP(SessionId,s);
+        
+        OH_RPT_GET(SessionId, rpt);
+        
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
@@ -741,7 +745,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, 
                                   const SaHpiSelEntryT *Event);
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -755,6 +759,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         }
 
         OH_SESSION_SETUP(SessionId,s);
+        OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
         if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
@@ -791,7 +796,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
         SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, 
                                   SaHpiSelEntryIdT sid);
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
                 
@@ -804,6 +809,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
         }
 
         OH_SESSION_SETUP(SessionId,s);
+        OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
         if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
@@ -833,7 +839,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         SaErrorT rv;
         SaErrorT (*clear_sel)(void *hnd, SaHpiResourceIdT id);
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -847,6 +853,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         }
 
         OH_SESSION_SETUP(SessionId,s);
+        OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
         if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
@@ -895,7 +902,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         SaErrorT rv;
         SaErrorT (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
@@ -909,6 +916,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         }
 
         OH_SESSION_SETUP(SessionId,s);
+        OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);  
 
         if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
@@ -957,6 +965,7 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 {
         struct oh_domain *d;
 
+        OH_STATE_READY_CHECK;
         /* test for special domain case */
         if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
@@ -1031,7 +1040,7 @@ SaErrorT SAHPI_API saHpiEventGet (
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         
         SaHpiTimeT now, end;
                 
@@ -1041,6 +1050,7 @@ SaErrorT SAHPI_API saHpiEventGet (
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
 
         if (s->event_state != OH_EVENT_SUBSCRIBE)
                 return SA_ERR_HPI_INVALID_REQUEST;
