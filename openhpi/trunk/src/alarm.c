@@ -21,10 +21,29 @@
 #include <oh_domain.h>
 #include <oh_utils.h>
 
+#define oh_delete_alarm_and_continue() \
+        do { \
+                GList *node = alarms->prev; \
+                g_free(alarms->data); \
+                d->dat.list = g_list_delete_link(d->dat.list, alarms); \
+                if (node) alarms = node; \
+                else { alarms = d->dat.list; continue; } \
+        } while(0)
+        
+#define oh_create_alarm() \
+        do { \
+                struct timeval tv1; \
+                a = g_new0(SaHpiAlarmT, 1); \
+                a->AlarmId = ++(d->dat.next_id); \
+                gettimeofday(&tv1, NULL); \
+                a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000; \
+                a->AlarmCond.DomainId = SAHPI_UNSPECIFIED_DOMAIN_ID; \
+        } while(0)
+
+
 static void oh_detect_oem_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
 {
-        struct oh_domain *d = NULL;
-        struct timeval tv1;
+        struct oh_domain *d = NULL;        
         GList *alarms = NULL;
         SaHpiAlarmT *a = NULL;
         
@@ -43,11 +62,7 @@ static void oh_detect_oem_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
                             alarm->AlarmCond.ResourceId == event->Source &&
                             alarm->AlarmCond.Mid == event->EventDataUnion.OemEvent.MId) {
                                 /* Found. Remove alarm */
-                                GList *node = alarms->prev;
-                                g_free(alarms->data);
-                                d->dat.list = g_list_delete_link(d->dat.list, alarms);
-                                if (node) alarms = node;
-                                else { alarms = d->dat.list; continue; }
+                                oh_delete_alarm_and_continue();
                         }
                 }
                 oh_release_domain(d);
@@ -55,14 +70,10 @@ static void oh_detect_oem_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
         }
         
         /* Severity is "alarming". Add/Create OEM alarm */
-        a = g_new0(SaHpiAlarmT, 1);
-        a->AlarmId = ++(d->dat.next_id);
-        gettimeofday(&tv1, NULL);
-        a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+        oh_create_alarm();
         a->Severity = event->Severity;
         a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_OEM;
-        oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);
-        a->AlarmCond.DomainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
+        oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);        
         a->AlarmCond.ResourceId = event->Source;
         a->AlarmCond.Mid = event->EventDataUnion.OemEvent.MId;
         memcpy(&a->AlarmCond.Data, &event->EventDataUnion.OemEvent.OemEventData, sizeof(SaHpiTextBufferT));
@@ -74,8 +85,7 @@ static void oh_detect_oem_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
 
 static void oh_detect_resource_event_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
 {
-        struct oh_domain *d = NULL;
-        struct timeval tv1;
+        struct oh_domain *d = NULL;        
         GList *alarms = NULL;
         SaHpiAlarmT *a = NULL;
         
@@ -93,11 +103,7 @@ static void oh_detect_resource_event_alarm(SaHpiDomainIdT did, SaHpiEventT *even
                             alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE &&
                             alarm->AlarmCond.ResourceId == event->Source) {
                                 /* Found. Remove alarm */
-                                GList *node = alarms->prev;
-                                g_free(alarms->data);
-                                d->dat.list = g_list_delete_link(d->dat.list, alarms);
-                                if (node) alarms = node;
-                                else { alarms = d->dat.list; continue; }
+                                oh_delete_alarm_and_continue();
                         }
                 }
                 oh_release_domain(d);
@@ -106,14 +112,10 @@ static void oh_detect_resource_event_alarm(SaHpiDomainIdT did, SaHpiEventT *even
         
         /* Failed resource. Add/Create resource alarm if severity is "alarming" */
         if (event->Severity <= SAHPI_MINOR) {
-                a = g_new0(SaHpiAlarmT, 1);
-                a->AlarmId = ++(d->dat.next_id);
-                gettimeofday(&tv1, NULL);
-                a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+                oh_create_alarm();
                 a->Severity = event->Severity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
-                oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);
-                a->AlarmCond.DomainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
+                oh_entity_path_lookup(&event->Source, &a->AlarmCond.Entity);                
                 a->AlarmCond.ResourceId = event->Source;
                 d->dat.list = g_list_append(d->dat.list, a);
         }
@@ -140,16 +142,11 @@ static void oh_remove_resource_alarms(SaHpiDomainIdT did, SaHpiResourceIdT rid, 
         
         for (alarms = d->dat.list; alarms; alarms = alarms->next) {
                 SaHpiAlarmT *alarm = alarms->data;
-                if (alarm &&
-                    alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER &&
+                if (alarm &&                    
                     ((all) ? alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER : alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE) &&
                     alarm->AlarmCond.ResourceId == rid) {
                         /* Found. Remove alarm */
-                        GList *node = alarms->prev;
-                        g_free(alarms->data);
-                        d->dat.list = g_list_delete_link(d->dat.list, alarms);
-                        if (node) alarms = node;
-                        else { alarms = d->dat.list; continue; }
+                        oh_delete_alarm_and_continue();
                 }
         }
         oh_release_domain(d);
@@ -182,8 +179,7 @@ static void oh_detect_hpi_alarm(SaHpiDomainIdT did, SaHpiEventT *event)
 
 static void oh_detect_resource_alarm(SaHpiDomainIdT did, SaHpiRptEntryT *res)
 {
-        struct oh_domain *d = NULL;
-        struct timeval tv1;
+        struct oh_domain *d = NULL;        
         GList *alarms = NULL;
         SaHpiAlarmT *a = NULL;
         
@@ -201,23 +197,15 @@ static void oh_detect_resource_alarm(SaHpiDomainIdT did, SaHpiRptEntryT *res)
                             alarm->AlarmCond.Type == SAHPI_STATUS_COND_TYPE_RESOURCE &&
                             alarm->AlarmCond.ResourceId == res->ResourceId) {
                                 /* Found. Remove alarm */
-                                GList *node = alarms->prev;
-                                g_free(alarms->data);
-                                d->dat.list = g_list_delete_link(d->dat.list, alarms);
-                                if (node) alarms = node;
-                                else { alarms = d->dat.list; continue; }
+                                oh_delete_alarm_and_continue();
                         }
                 }
         } else if (res->ResourceSeverity <= SAHPI_MINOR && res->ResourceFailed) {
                 /* Otherwise, if sev is "alarming" and resource failed, create alarm. */
-                a = g_new0(SaHpiAlarmT, 1);
-                a->AlarmId = ++(d->dat.next_id);
-                gettimeofday(&tv1, NULL);
-                a->Timestamp = (SaHpiTimeT) tv1.tv_sec * 1000000000 + tv1.tv_usec * 1000;
+                oh_create_alarm();
                 a->Severity = res->ResourceSeverity;
                 a->AlarmCond.Type = SAHPI_STATUS_COND_TYPE_RESOURCE;
                 oh_entity_path_lookup(&res->ResourceId, &a->AlarmCond.Entity);
-                a->AlarmCond.DomainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
                 a->AlarmCond.ResourceId = res->ResourceId;
                 a->AlarmCond.Mid = res->ResourceInfo.ManufacturerId;
                 memcpy(&a->AlarmCond.Data, &res->ResourceTag, sizeof(SaHpiTextBufferT));
