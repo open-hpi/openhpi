@@ -16,8 +16,6 @@
 #ifndef __SNMP_BC_EVENT_H
 #define __SNMP_BC_EVENT_H
 
-#define MAX_THRESHOLD_VALUE_STRINGSIZE 10
-
 typedef struct {
 	SaHpiResourceIdT       rid;
 	BCRptEntryT            rpt;
