@@ -436,27 +436,31 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
  **/
 SaErrorT snmp_rsa_clear_sel(void *hnd, SaHpiResourceIdT id) 
 {
-        char oid[50];
-	int retcode;
-	struct snmp_value set_value;
-        struct oh_handler_state *handle = hnd;
-        struct snmp_rsa_hnd *custom_handle = handle->data;
-	SaErrorT rv;
-		
-	rv = oh_sel_clear(handle->selcache);
+        return SA_ERR_HPI_INVALID_CMD;
 
-	sprintf(oid, "%s", RSA_CLEAR_SEL_OID);
-	set_value.type = ASN_INTEGER;
-	set_value.str_len = 1;
-	set_value.integer = (long) clearEventLogExecute;
-	retcode = snmp_set(custom_handle->ss, oid, set_value);
-	
-	if (retcode != 0)
-		rv = SA_ERR_HPI_ERROR;
-	else 
-		rv = SA_OK;
+// The code below can be used if/when RSA begins to support this function
+
+//      char oid[50];
+//	int retcode;
+//	struct snmp_value set_value;
+//      struct oh_handler_state *handle = hnd;
+//      struct snmp_rsa_hnd *custom_handle = handle->data;
+//	SaErrorT rv;
 		
-	return rv;
+//	rv = oh_sel_clear(handle->selcache);
+
+//	sprintf(oid, "%s", RSA_CLEAR_SEL_OID);
+//	set_value.type = ASN_INTEGER;
+//	set_value.str_len = 1;
+//	set_value.integer = (long) clearEventLogExecute;
+//	retcode = snmp_set(custom_handle->ss, oid, set_value);
+	
+//	if (retcode != 0)
+//		rv = SA_ERR_HPI_ERROR;
+//	else 
+//		rv = SA_OK;
+		
+//	return rv;
 
 }
 /* end of snmp_rsa_sel.c */
