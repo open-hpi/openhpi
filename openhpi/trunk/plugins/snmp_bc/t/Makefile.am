@@ -91,6 +91,9 @@ TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
 TESTS = 
 #	tevent 
+#	tcontrol001   \
+#	tcontrol002   \
+#	tcontrol003   \
 #	tcontrol_parms \
 #	tset_resource_tag \
 #	tset_resource_sev \
@@ -654,6 +657,24 @@ check_PROGRAMS = $(TESTS)
 # 
 #tdiscover002_SOURCES = tdiscover002.c 
 #tdiscover002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+
+# 
+#tcontrol001_SOURCES = tcontrol001.c 
+#tcontrol001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+ 
+# 
+#tcontrol002_SOURCES = tcontrol002.c 
+#tcontrol002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+ 
+# 
+#tcontrol003_SOURCES = tcontrol003.c 
+#tcontrol003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #		 $(top_builddir)/src/libopenhpi.la \
 #		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
  
