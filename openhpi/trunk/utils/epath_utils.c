@@ -189,11 +189,11 @@ SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 			      oh_big_textbuffer *bigbuf)
 {
+        char  *typestr;
  	gchar  *locstr, *catstr;
         gchar  typestr_buffer[20];
 	int    i;
 	oh_big_textbuffer tmpbuf;
-        SaHpiUint8T  *typestr;
 	SaErrorT  err = SA_OK;
 
 	if (!bigbuf || !ep) {
@@ -253,7 +253,7 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 		/* Support numeric entity types - need by IPMI Direct plugin */
 		if (typestr == NULL) {
 			snprintf(typestr_buffer, 20, "%d", ep->Entry[i].EntityType);
-			typestr = (SaHpiUint8T *)typestr_buffer;
+			typestr = typestr_buffer;
 		}
 
 		catstr = g_strconcat(EPATHSTRING_START_DELIMITER,
@@ -269,7 +269,7 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 
 	/* Write string */
 	oh_init_bigtext(bigbuf);
-	oh_append_bigtext(bigbuf, tmpbuf.Data);
+	oh_append_bigtext(bigbuf, (char *)tmpbuf.Data);
 
 	dbg("EP String=%s\n", bigbuf->Data);
 
@@ -359,9 +359,8 @@ SaErrorT oh_concat_ep(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
  **/
 SaHpiBoolT oh_valid_ep(const SaHpiEntityPathT *ep)
 {
-
+        char *typestr;
 	int i;
-	SaHpiUint8T *typestr;
 
         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
 		if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
@@ -501,7 +500,7 @@ SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
 	err = oh_decode_entitypath(ep, &bigbuf2);
 	if (err) return(err);
 
-	err = oh_append_bigtext(&bigbuf1, bigbuf2.Data);
+	err = oh_append_bigtext(&bigbuf1, (char *)bigbuf2.Data);
 	if (err) return(err);
 	err = oh_append_bigtext(&bigbuf1, "\n");
 	if (err) return(err);

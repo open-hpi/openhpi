@@ -22,8 +22,8 @@
 
 
 
-SaHpiUint8T PrgVer[]="1.0";
-SaHpiUint8T PrgName[] = "hpipower";
+char PrgVer[]="1.0";
+char PrgName[] = "hpipower";
 
 
 #define  PROGRAM_HEADER (printf("%s ver %s\n", PrgName,PrgVer))

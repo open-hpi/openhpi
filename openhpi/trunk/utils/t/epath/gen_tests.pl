@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	if (strcmp(bigbuf.Data, test_string)) {
+	if (strcmp((char *)bigbuf.Data, test_string)) {
 		printf("  Error! Testcase failed. Line=%d\\n", __LINE__);
 		printf("  Received Entity Path=%s.\\n", bigbuf.Data);
 		return -1;

@@ -813,11 +813,11 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	/*************************************************************
 	 * NOTE! Assuming max format for writable thresholds is ddd.dd
          *************************************************************/
- 	snprintf(buffer.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%'+3.2f", tmp_num);
+ 	snprintf((char *)buffer.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH, "%'+3.2f", tmp_num);
 
 	/* Copy string to SNMP structure */
 	set_value.type = ASN_OCTET_STR;
-	strncpy(set_value.string, buffer.Data, buffer.DataLength);
+	strncpy(set_value.string, (char *)buffer.Data, buffer.DataLength);
 
 	/* Normalize and read sensor's raw SNMP OID */
 	err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), raw_oid, set_value);

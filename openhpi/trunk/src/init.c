@@ -131,7 +131,7 @@ SaErrorT oh_initialize()
         /* Create first domain */
         tag.DataType = SAHPI_TL_TYPE_TEXT;
         tag.Language = SAHPI_LANG_ENGLISH;
-        strcpy(tag.Data, "First Domain");
+        strcpy((char *)tag.Data, "First Domain");
         if (!oh_create_domain(capabilities, SAHPI_FALSE, &tag)) {
                 data_access_unlock();
                 dbg("Could not create first domain!");

@@ -428,7 +428,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		if(s->mib.oid.OidMfgDateTime == NULL){
 			thisField.Field.DataLength = sizeof("SAHPI_TIME_UNSPECIFIED"); /* SaHpiUint8T  */	
 			thisField.Field.DataType = SAHPI_TL_TYPE_TEXT; /* SaHpiTextTypeT */
-			strcpy(thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED");
+			strcpy((char *)thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED");
 		
 		} else {
                         rv = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity),s->mib.oid.OidMfgDateTime, &get_value, SAHPI_TRUE);
@@ -602,8 +602,8 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
 		} else if ( get_value.type == ASN_INTEGER ){
 			thisField->Field.DataLength = sizeof(long);
 			thisField->Field.DataType = SAHPI_TL_TYPE_TEXT;
-			snprintf(thisField->Field.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
-								 "%ld",get_value.integer );
+			snprintf((char *)thisField->Field.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
+				 "%ld",get_value.integer );
 		} else
 			dbg("%s Invalid data type for Chassis data\n",oidstr);
 	}

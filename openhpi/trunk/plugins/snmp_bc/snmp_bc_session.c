@@ -156,7 +156,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 				return NULL;
 			}
 			custom_handle->session.version = SNMP_VERSION_1;
-			custom_handle->session.community = community;
+			custom_handle->session.community = (u_char *)community;
 			custom_handle->session.community_len = strlen(community);
 		} else {
 			dbg("Unrecognized SNMP version=%s.", version);

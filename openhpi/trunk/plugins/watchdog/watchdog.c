@@ -306,7 +306,7 @@ static int watchdog_discover_resources(void *hnd)
 		e->u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 		e->u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 		e->u.res_event.entry.ResourceTag.DataLength = 12;
-		strcpy(e->u.res_event.entry.ResourceTag.Data, "System-Board");
+		strcpy((char *)e->u.res_event.entry.ResourceTag.Data, "System-Board");
 		
 		/* add resource */
 		if (0 != oh_add_resource(tmp->rptcache, &(e->u.res_event.entry), NULL, 0)) {
@@ -339,7 +339,7 @@ static int watchdog_discover_resources(void *hnd)
 		e->u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_ASCII6;
 		e->u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
 		e->u.rdr_event.rdr.IdString.DataLength = 8;
-		strcpy(e->u.rdr_event.rdr.IdString.Data, "Watchdog");
+		strcpy((char *)e->u.rdr_event.rdr.IdString.Data, "Watchdog");
 
 		/* add event */
 		tmp->eventq = g_slist_append(tmp->eventq, e);

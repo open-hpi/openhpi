@@ -65,7 +65,7 @@ SaErrorT oh_decode_eventstate(SaHpiEventStateT event_state,
 		if (state_strings[i].category == event_cat) {
 			if ((state_strings[i].state & event_state) == state_strings[i].state) {
 				found++;
-				err = oh_append_textbuffer(&working, state_strings[i].str);
+				err = oh_append_textbuffer(&working, (char *)state_strings[i].str);
 				if (err != SA_OK) { return(err); }
 				err = oh_append_textbuffer(&working, OH_ENCODE_DELIMITER);
 				if (err != SA_OK) { return(err); }
@@ -79,7 +79,7 @@ SaErrorT oh_decode_eventstate(SaHpiEventStateT event_state,
 			/* Strip any UNSPECIFIED definitions, if another definition found */
 			if (!(found && state_global_strings[i].state == SAHPI_ES_UNSPECIFIED)) {
 				found++;
-				err = oh_append_textbuffer(&working, state_global_strings[i].str);
+				err = oh_append_textbuffer(&working, (char *)state_global_strings[i].str);
 				if (err != SA_OK) { return(err); }
 				err = oh_append_textbuffer(&working, OH_ENCODE_DELIMITER);
 				if (err != SA_OK) { return(err); }
@@ -169,7 +169,7 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 		found_event = found_global_event = 0;
 		/* Look for category event states */
 		for (j=0; j<OH_MAX_STATE_STRINGS; j++) {
-			if (strcasecmp(eventdefs[i], state_strings[j].str) == 0) {
+			if (strcasecmp(eventdefs[i], (char *)state_strings[j].str) == 0) {
 				found_event++;
                                 /* Don't add twice for categories with duplicate events */
 				if (!(working_state & state_strings[j].state)) { 
@@ -180,7 +180,7 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 		}
 		/* Look for global event states */
 		for (j=0; j<OH_MAX_STATE_GLOBAL_STRINGS; j++) {
-			if (strcasecmp(eventdefs[i], state_global_strings[j].str) == 0) {
+			if (strcasecmp(eventdefs[i], (char *)state_global_strings[j].str) == 0) {
 				found_global_event++;
                                 /* Don't add twice for categories with duplicate events */
 				if (!(working_state & state_global_strings[j].state)) { 
