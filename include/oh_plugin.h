@@ -113,13 +113,13 @@ extern "C" {
  */
 
 struct oh_handler_state {
-        RPTable *rptcache;
-        oh_el  *elcache;
-        GSList *eventq;
-        GAsyncQueue *eventq_async;
-        GMutex *handler_lock;
-        GHashTable *config;
-        void *data;
+        RPTable 	*rptcache;
+        oh_el  		*elcache;
+        GSList 		*eventq;
+        GAsyncQueue 	*eventq_async;
+        GStaticRecMutex	*handler_lock;
+        GHashTable 	*config;
+        void 		*data;
 };
 
 /* Current abi is version 2. Version 1 is out-of-date and nobody
