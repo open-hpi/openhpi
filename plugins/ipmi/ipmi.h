@@ -100,6 +100,7 @@ int ohoi_set_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
 void ohoi_get_sel_updatetime(ipmi_mcid_t mc_id, SaHpiTimeT *time);
+void ohoi_get_sel_size(ipmi_mcid_t mc_id, int *size);
 void ohoi_get_sel_count(ipmi_mcid_t mc_id, int *count);
 void ohoi_get_sel_overflow(ipmi_mcid_t mc_id, char *overflow);
 void ohoi_get_sel_support_del(ipmi_mcid_t mc_id, char *support_del);

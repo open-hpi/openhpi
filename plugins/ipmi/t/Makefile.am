@@ -30,12 +30,16 @@
 #  
  
 MAINTAINERCLEANFILES 	= Makefile.in
-noinst_PROGRAMS         = thres_event set_thres
+noinst_PROGRAMS         = thres_event set_thres ipmi_thres_hyst
 INCLUDES                = -I$(top_srcdir)/include
 AM_CFLAGS               = -g
 
 thres_event_SOURCES	= thres_event.c	
 thres_event_LDADD	= -lOpenIPMI -lOpenIPMIposix
 
+ipmi_thres_hyst_SOURCES  =  ipmi_thres_hyst.c
+ipmi_thres_hyst_LDADD    =  -lOpenIPMI -lOpenIPMIposix
+
+
 set_thres_SOURCES       = set_thres.c
-set_thres_LDADD         = -lopenhpi
+set_thres_LDADD        = $(top_builddir)/src/libopenhpi.la

@@ -56,6 +56,23 @@ void ohoi_get_sel_count(ipmi_mcid_t mc_id, int *count)
 		dbg("Unable to convert MC id to a pointer");
 }
 
+static void get_sel_size(ipmi_mc_t *mc, void *cb_data)
+{
+	int *size = cb_data;
+	
+	*size = ipmi_mc_sel_get_free_bytes(mc);
+}
+
+void ohoi_get_sel_size(ipmi_mcid_t mc_id, int *size)
+{
+	int rv;	
+
+	*size = -1;
+	rv = ipmi_mc_pointer_cb(mc_id, get_sel_size, size);
+	if (rv<0)
+		dbg("Unable to convert MC id to a pointer");
+}
+
 /**
  * get_sel_time_cb: callback registered by get_sel_time
  * @mc: management controller pointer
