@@ -17,6 +17,7 @@
  *     Rusty Lynch
  *     David Judkovics <djudkovi@us.ibm.com>
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #include <stdlib.h>
@@ -45,7 +46,7 @@
  *
  *********************************************************************/
 
-SaErrorT static SAHPI_API saHpiFinalize(void)
+static SaErrorT saHpiFinalize(void)
 {
         OH_STATE_READY_CHECK;
 
@@ -99,7 +100,7 @@ SaErrorT static SAHPI_API saHpiFinalize(void)
         return SA_OK;
 }
 
-SaErrorT static SAHPI_API saHpiInitialize()
+static SaErrorT saHpiInitialize(void)
 {
         struct oh_plugin_config *tmpp;
         GHashTable *tmph;
