@@ -367,9 +367,15 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
 /* set the SEL timestamp offset */
 SaErrorT oh_sel_timeset(oh_sel *sel, SaHpiTimeT timestamp)
 {
-        if (sel == NULL || timestamp > SAHPI_TIME_MAX_RELATIVE ||
-            timestamp == SAHPI_TIME_UNSPECIFIED) {
+        if (sel == NULL || timestamp == SAHPI_TIME_UNSPECIFIED) {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (timestamp > SAHPI_TIME_MAX_RELATIVE) {
+                /* We accept absolute timestamp here to be
+                   compliant with the spec. But we set it to zero
+                   anyway because we use time() to get the current
+                   time (absolute) to stamp new entries with.
+                */
+                timestamp = 0;
         }
 
         sel->offset = timestamp;
