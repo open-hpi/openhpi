@@ -171,7 +171,8 @@ SaErrorT SAHPI_API saHpiDomainTagSet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
-        if (!DomainTag) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!DomainTag || !oh_valid_textbuffer(DomainTag))
+                return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -571,11 +572,16 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         struct oh_domain *d;
         SaHpiDomainIdT did;
 
-        if (EvtEntry == NULL) {
+        OH_CHECK_INIT_STATE(SessionId);
+        
+        if (EvtEntry == NULL ||
+            EvtEntry->EventType != SAHPI_ET_USER ||
+            EvtEntry->Source != SAHPI_UNSPECIFIED_RESOURCE_ID ||
+            !oh_lookup_severity(EvtEntry->Severity) ||
+            !oh_valid_textbuffer(&(EvtEntry->EventDataUnion.UserEvent.UserEventData))) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-        OH_CHECK_INIT_STATE(SessionId);
+        
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
 
@@ -770,20 +776,30 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 {
         struct oh_domain *d;
         SaHpiDomainIdT did;
+        SaHpiRptEntryT *res;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
 
         /* test for special domain case */
-        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
-                OH_GET_DOMAIN(did, d); /* Lock domain */
+        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {                
                 d->del->enabled = Enable;
                 oh_release_domain(d); /* Unlock domain */
                 return SA_OK;
         }
+        
+        OH_RESOURCE_GET(d, ResourceId, res);
 
-        /* this request is not valid on an Resource Event Log (REL) */
-        return SA_ERR_HPI_INVALID_REQUEST;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
+                dbg("Resource %d in Domain %d does not have EL",ResourceId,did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        } else {
+                oh_release_domain(d); /* Unlock domain */
+                /* FIXME: Need to add set_el_state abi call */
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        }
 }
 
 SaErrorT SAHPI_API saHpiEventLogOverflowReset (

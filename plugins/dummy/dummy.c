@@ -744,7 +744,7 @@ static struct dummy_rel {
         SaHpiEventLogEntryT entry;
 } rel_entries = {
         .entry = {
-                .EntryId = 0,
+                .EntryId = 1,
                 .Timestamp = 0,
                 .Event = {
                         .Source = 0,
@@ -1251,6 +1251,11 @@ static int dummy_get_sel_entry(void *hnd,
 
 {
         dbg("dummy_get_sel_entry(): This is a very bad implementation");
+	if (current != SAHPI_OLDEST_ENTRY && 
+	    current != SAHPI_NEWEST_ENTRY &&
+	    current != rel_entries.entry.EntryId)
+	    	return SA_ERR_HPI_NOT_PRESENT;
+	
         *prev = SAHPI_NO_MORE_ENTRIES;
         *next = SAHPI_NO_MORE_ENTRIES;
         memcpy(entry, &rel_entries.entry, sizeof(SaHpiEventLogEntryT));
