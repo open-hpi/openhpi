@@ -90,3 +90,29 @@ SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
         return NULL;
 }
 
+SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,
+                                SaHpiResourceIdT rid,
+                                SaHpiRdrTypeT  type, 
+                                void  *data)
+{
+        SaHpiRdrT *rdr;
+        
+        rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
+
+        while (rdr) {
+              void * data2;
+
+              data2 = oh_get_rdr_data(table, rid, rdr->RecordId);
+              if ((type == SAHPI_SENSOR_RDR) && (rdr->RdrType == type)) {
+                      ipmi_sensor_id_t *tid1 = data;
+                      ipmi_sensor_id_t *tid2 = data2;
+                      if (tid1 && tid2) {
+                              if (!ipmi_cmp_sensor_id(*tid1, *tid2))
+                                      return rdr;
+                      }
+              }
+
+              rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
+        }
+        return NULL;
+}
