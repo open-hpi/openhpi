@@ -15,16 +15,20 @@
  */
  
 #include <stdio.h>
+#include <stdlib.h>
 #include <glib.h>
-#include <uuid.h>
+//#include <uuid.h>
 #include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <uid_utils.h>
 
 static GHashTable *ep_hash_table;
 static GHashTable *resource_id_hash_table;
-static GSList *ep_slist;
+//static GSList *ep_slist;
 
 guint resource_id;
 
@@ -58,11 +62,14 @@ guint oh_entity_path_hash(gconstpointer key)
         p += 1;
         
         for( i=0; i<entity_path_len - 1; i++ ){
-                h = (h << 5) - h + *p;
+/*              h = (h << 5) - h + *p; */
+		h = (h * 131) + *p;
                 p++;                          
         }
 
-        return(h);
+/*      return(h); */
+	/* don't change the 1009, its magic */
+    	return( h % 1009 );
 
 }
 
@@ -139,8 +146,8 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         char *uid_map_file;
         int file;
-        int map_len;
-        int rval;
+//        int map_len;
+//        int rval;
 
         /* check for presense of EP and */
         /* previously assigned uid      */
@@ -304,8 +311,8 @@ guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
 guint oh_uid_map_to_file(void)
 {
         char *uid_map_file;
-        int map_len;
-        int i;
+//        int map_len;
+//        int i;
         int file;
 
         uid_map_file = (char *)getenv("UID_MAP");
@@ -356,13 +363,13 @@ void write_ep_xref(gpointer key, gpointer value, gpointer file)
  *
  * 
  * 
- * Return value: None (void).
+ * Return value: success 0, error -1.
  **/
 static int uid_map_from_file(void)
 {
         char *uid_map_file;
         int file;
-        int map_len;
+//        int map_len;
         int rval;
 
          /* initialize uid map file */
@@ -416,7 +423,7 @@ static int uid_map_from_file(void)
  *
  * @file: key into a GHashTable
  *
- * Return value: None (void).
+ * Return value: success 0, error -1.
  **/
 static int build_uid_map_data(int file)
 {
