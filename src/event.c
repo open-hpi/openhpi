@@ -24,16 +24,19 @@
 #include <epath_utils.h>
 #include <uid_utils.h>
 
-static int process_session_event(RPTable *rpt, struct oh_hpi_event *e)
+static unsigned int get_log_severity(char *);
+
+static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_hpi_event *e)
 {
         SaHpiRptEntryT *res;
         GSList *i;
+        unsigned int log_severity;
 
         data_access_lock();
         
         res = oh_get_resource_by_id(rpt, e->parent);
         if (res == NULL) {
-                dbg("No the resource");
+                dbg("No resource");
                 data_access_unlock();
                 return -1;
         }
@@ -44,23 +47,22 @@ static int process_session_event(RPTable *rpt, struct oh_hpi_event *e)
         }
         
         /* 
-           here is where we need to apply rules about what 
-           goes into the domain sel for this event.  Previous implementation
-           is commented out, but not yet deleted.
-        */
-        /*
-        g_slist_for_each(i, res->domain_list) {
-                SaHpiDomainIdT domain_id;
+           Domain System Event Logging Mechanism.
+           Check the handler configuration for the "log_severity" value
+           and log everything equal or above that severity value.
+           If there is no "log_severity" configured for the handler, then
+           the default bar will be SAHPI_INFORMATIONAL.
+        */        
+        log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));
+        printf("SEV NUM = %d, LOG SEV = %s",log_severity,getenv("OPENHPI_LOG_SEV"));
+        if (e->event.Severity <= log_severity) {
                 struct oh_domain *d;
-                GSList *j;
+                SaHpiSelEntryT selentry;
 
-                domain_id = GPOINTER_TO_UINT(i->data);
-                d = get_domain_by_id(domain_id);
-                if (d) 
-                        dsel_add2(d, e);
-                else 
-                        dbg("Invalid domain");
-        */
+                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                selentry.Event = e->event;
+                oh_sel_add(d->sel, &selentry);                
+        }
         
         
         g_slist_for_each(i, global_session_list) {
@@ -186,7 +188,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         switch (event.type) {
         case OH_ET_HPI:
                 /* add the event to session event list */
-                process_session_event(rpt, &event.u.hpi_event);
+                process_session_event(h, rpt, &event.u.hpi_event);
                 break;
         case OH_ET_RESOURCE_DEL:        
         case OH_ET_RESOURCE:
@@ -248,4 +250,21 @@ int get_events(void)
         data_access_unlock();
 
         return 0;
+}
+
+static unsigned int get_log_severity(char *severity) {
+        if (!severity) return SAHPI_INFORMATIONAL;
+        else if (!strcmp("CRITICAL", severity)) {
+                return SAHPI_CRITICAL;
+        } else if (!strcmp("MAJOR",severity)) {
+                return SAHPI_MAJOR;
+        } else if (!strcmp("MINOR",severity)) {
+                return SAHPI_MINOR;
+        } else if (!strcmp("OK",severity)) {
+                return SAHPI_OK;        
+        } else if (!strcmp("DEBUG",severity)) {
+                return SAHPI_DEBUG;
+        } else {
+                return SAHPI_INFORMATIONAL;
+        }
 }
