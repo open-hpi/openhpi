@@ -132,11 +132,6 @@ struct oh_domain {
          */
         SaHpiDomainIdT domain_id;
         
-        /* This id is used to plug-in
-         * to identy domain
-         */
-        struct oh_domain_id domain_oid;
-        
         /* System Event Log */
         enum oh_sel_state sel_state;
         int sel_counter;
@@ -318,12 +313,9 @@ int session_has_event(struct oh_session *s);
 
 
 struct oh_domain *get_domain_by_id(SaHpiDomainIdT did);
-struct oh_domain *get_domain_by_oid(struct oh_domain_id oid);
 int is_in_domain_list(SaHpiDomainIdT domain_id);
 /* this is used to pre-alllocated domainal id in config */
 int add_domain(SaHpiDomainIdT domain_id);
-/* this is used to allocate dynamical domain id for handler */
-SaHpiDomainIdT new_domain(struct oh_domain_id domain_oid);
 
 struct oh_resource *get_resource(SaHpiResourceIdT rid);
 int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT sid);
