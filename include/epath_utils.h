@@ -13,8 +13,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Author:
- *     Steve Sherman <stevees@us.ibm.com>
+ * Authors:
+ *      Steve Sherman <stevees@us.ibm.com>
+ *      Renier Morales <renierm@users.sf.net>
  */
 
 /******************************************************************************
@@ -30,5 +31,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr,
 		      gint strsize);
 
 int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append);
+
+int set_epath_instance(struct oh_event *e, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei);
 
 #endif /* EPATH_UTILS_H */
