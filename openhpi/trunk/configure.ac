@@ -283,7 +283,7 @@ AC_ARG_ENABLE([simulator],
     else
         AC_SUBST(SIMULATOR,"")
     fi],
-    [AC_SUBST(SIMULATOR,simulator)])
+    [AC_SUBST(SIMULATOR,"")])
 
 
 dnl
