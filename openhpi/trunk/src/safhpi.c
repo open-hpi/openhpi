@@ -57,7 +57,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         }
 
         if (DomainId == SAHPI_UNSPECIFIED_RESOURCE_ID)
-                did = OH_FIRST_DOMAIN;
+                did = oh_get_default_domain_id();
         else
                 did = DomainId;
 

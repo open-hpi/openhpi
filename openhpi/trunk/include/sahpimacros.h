@@ -89,7 +89,7 @@
         do { \
                 r = oh_get_resource_by_id(&(d->rpt), rid); \
                 if(!r) { \
-                        dbg("Resource %d doesn't exist in Domain %d", rid, d->id); \
+                        dbg("Resource %d in Domain %d doesn't exist", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_RESOURCE; \
                 } \

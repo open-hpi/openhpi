@@ -30,6 +30,7 @@ void process_hotswap_policy(struct oh_handler *handler)
 {
         SaHpiTimeT cur, est;	   
         struct oh_hpi_event e;
+        RPTable *default_rpt = NULL; /* FIXME: Need to use real rpt based on domain! */
         
         int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);

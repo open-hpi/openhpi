@@ -58,17 +58,6 @@ struct oh_resource_data
 };
 
 /*
- *  Global RPT Table (implemented as a linked list).
- *
- *  This list contains all resources (wrapped as oh_resource structures),
- *  regardless of whether an HPI caller can see the resources for the given
- *  permission level or domain view used.
- *
- *  This list is populated by calls to saHpiDiscoverResources()
- */
-extern RPTable *default_rpt;
-
-/*
  *  Global listing of all active sessions (oh_session).  This list is
  *  populated and depopulated by calls to saHpiSessionOpen() and
  *  saHpiSessionClose()
@@ -114,4 +103,4 @@ void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
 }
 #endif
 
-#endif/*__OPENHPI_H*/
+#endif /* __OPENHPI_H */
