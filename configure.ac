@@ -138,7 +138,7 @@ fi
 AC_SUBST(LIST_RESOURCES_THREADED)
 
 
-dnl Enable the marshal directory only when needed by 
+dnl Enable the marshal directory only when needed by
 dnl the deamon or remote_client plugin
 NEED_MARSHAL=
 openhpid_static="no"
@@ -153,7 +153,7 @@ AC_ARG_ENABLE([daemon],
 	NEED_MARSHAL="yes"
         openhpid_static="yes"
     fi],
-    [   
+    [
     ENABLED_DIRS="$ENABLED_DIRS openhpid2"
     NEED_MARSHAL="yes"
     openhpid_dinamic="yes"])
@@ -249,7 +249,7 @@ AC_ARG_ENABLE([dummy],
         STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
     fi],
     [AC_SUBST(DUMMY,dummy)])
-    
+
 AC_ARG_ENABLE([watchdog],
     [  --enable-watchdog       build watchdog plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
@@ -289,7 +289,7 @@ AC_ARG_ENABLE([ipmi],
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI >= 1.4.13)
-        fi        
+        fi
     fi],
     [if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)
@@ -342,7 +342,7 @@ dnl    [AC_SUBST(IPMIDIRECT,ipmidirect)])
 dnl ipmidirect needs posix threads
 if test "x$IPMIDIRECT" = "xipmidirect"; then
         if test "x$THREAD_SAFE" != "xyes" ; then
-                AC_MSG_ERROR("ipmidirect plugin needs thread support (--enable-thread) !") 
+                AC_MSG_ERROR("ipmidirect plugin needs thread support (--enable-thread) !")
         fi
 fi
 
@@ -429,7 +429,7 @@ AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/${HPI_CLIENT_PKG}.conf",
                    [default client configfile])
 
 
-dnl 
+dnl
 dnl This code was borrowed from linux-ha configure.in file
 dnl and is used for creating the proper substitutions
 dnl in the spec file. Without it, the spec file will
@@ -493,7 +493,7 @@ AC_C_STRINGIZE
 
 dnl getting CFLAGS right takes some effort
 dnl we start with a good base set that has been built up
-CFLAGS="$CFLAGS $GLIB_CFLAGS" 
+CFLAGS="$CFLAGS $GLIB_CFLAGS"
 
 dnl next we have to do transformations to either turn on
 dnl test coverage or debug.
@@ -603,6 +603,7 @@ AC_CONFIG_FILES([openhpi.spec
         docs/Makefile
         docs/hld/Makefile
 	openhpid2/Makefile
+	openhpid2/openhpid.sh
 	openhpid2/t/Makefile
         examples/Makefile
 	hpi_ui_lib/Makefile
