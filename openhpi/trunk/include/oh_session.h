@@ -60,7 +60,9 @@ struct oh_session {
 
           This is the session specific event queue          
         */
-        GSList *eventq;
+        GSList *eventq;        
+        GAsyncQueue *eventq2;
+        
 };
 
 SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did);
@@ -69,7 +71,9 @@ GArray *oh_list_sessions(SaHpiDomainIdT did);
 SaErrorT oh_get_session_state(SaHpiDomainIdT sid, SaHpiBoolT *state);
 SaErrorT oh_set_session_state(SaHpiDomainIdT sid, SaHpiBoolT state);
 SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event);
-SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid, struct oh_event *event);
+SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
+                                  SaHpiTimeoutT timeout,
+                                  struct oh_event *event);
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid);
 
 #endif /* OH_SESSION_H */
