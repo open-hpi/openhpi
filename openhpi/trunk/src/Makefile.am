@@ -36,7 +36,7 @@ EXTRA_DIST              = plugin_static.c.in
 
 INCLUDES		= -I$(top_srcdir)/include
 
-SUBDIRS			= plugins
+SUBDIRS			= plugins t
 
 AM_CFLAGS		= @CFLAGS@
 
