@@ -64,8 +64,9 @@ struct snmp_bc_data sim_resource_array[] = {
         {
                 /* BCT System Health Status
                  *
-                 * This OID is used to determine if the system is a BCT or not
-                 * If integer == SA_ERR_SNMP_NOSUCHOBJECT, system is BC; else its BCT
+                 * This OID is used to determine if the system is a BCT or not.
+                 * If integer == 255 system is a BCT; if integer = SA_ERR_SNMP_NOSUCHOBJECT
+		 * system is not a BCT; Need to coordinate with BCI Health value below.
                  */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.9.1.0",
                 .mib = {
@@ -73,6 +74,22 @@ struct snmp_bc_data sim_resource_array[] = {
                         .value = {
                                 .integer = SA_ERR_SNMP_NOSUCHOBJECT,
                                 /* .integer = 255, BCT */
+                        },
+                },
+        },
+        {
+                /* BCI System Health Status
+                 *
+                 * This OID is used to determine if the system is a BCI or not.
+                 * If integer == 255 system is a BCI; if integer = SA_ERR_SNMP_NOSUCHOBJECT
+		 * system is not a BCI; Need to coordinate with BCT Health value above.
+                 */
+                .oid = ".1.3.6.1.4.1.2.3.51.1.2.7.1.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+				/* .integer = SA_ERR_SNMP_NOSUCHOBJECT, */
+                                .integer = 255,
                         },
                 },
         },

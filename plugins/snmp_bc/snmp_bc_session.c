@@ -195,7 +195,8 @@ void *snmp_bc_open(GHashTable *handler_config)
 				custom_handle->platform = SNMP_BC_PLATFORM_BCT;
 			}
 			else {
-				if (err ==  SA_ERR_HPI_NOT_PRESENT) {
+				err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BC, &get_value, SAHPI_FALSE);
+				if (err == SA_OK) {
 					trace("Found BC");
 					custom_handle->platform = SNMP_BC_PLATFORM_BC;
 				}
