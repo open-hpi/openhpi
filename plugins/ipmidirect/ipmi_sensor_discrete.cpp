@@ -2,6 +2,7 @@
  * ipmi_sensor_discrete.cpp
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include "ipmi_sensor_discrete.h"
@@ -49,13 +51,19 @@ cIpmiSensorDiscrete::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
        return false;
 
   m_assertion_event_mask = IpmiGetUint16( sdr->m_data + 14 );
-  m_assertion_event_mask &= 0x8fff;
+  m_assertion_event_mask &= 0x7fff;
+
+  m_current_hpi_assert_mask = m_assertion_event_mask;
+  m_hpi_assert_mask = m_assertion_event_mask;
 
   m_deassertion_event_mask = IpmiGetUint16( sdr->m_data + 16 );
-  m_deassertion_event_mask &= 0x8fff;
+  m_deassertion_event_mask &= 0x7fff;
 
-  m_event_mask = IpmiGetUint16( sdr->m_data + 18 );
-  m_event_mask &= 0x8fff;
+  m_current_hpi_deassert_mask = m_deassertion_event_mask;
+  m_hpi_deassert_mask = m_deassertion_event_mask;
+
+  m_reading_mask = IpmiGetUint16( sdr->m_data + 18 );
+  m_reading_mask &= 0x7fff;
 
   return true;
 }
@@ -70,91 +78,104 @@ cIpmiSensorDiscrete::CreateRdr( SaHpiRptEntryT &resource,
 
   SaHpiSensorRecT &rec = rdr.RdrTypeUnion.SensorRec;
 
-  rec.Events = m_event_mask;
-  rec.DataFormat.ReadingFormats = SAHPI_SRF_EVENT_STATE;
-  rec.DataFormat.IsNumeric      = SAHPI_FALSE;
-  rec.ThresholdDefn.IsThreshold = SAHPI_FALSE;
+  rec.DataFormat.IsSupported     = SAHPI_FALSE;
+  rec.ThresholdDefn.IsAccessible = SAHPI_FALSE;
 
   return true;
 }
 
 
 SaErrorT
-cIpmiSensorDiscrete::GetData( SaHpiSensorReadingT &data )
+cIpmiSensorDiscrete::GetSensorReading( SaHpiSensorReadingT &data,
+                                       SaHpiEventStateT &state )
 {
-  if ( Ignore() )
-     {
-       dbg("sensor is ignored");
-       return SA_ERR_HPI_NOT_PRESENT;
-     }
+  if ( m_enabled == SAHPI_FALSE )
+      return SA_ERR_HPI_INVALID_REQUEST;
 
   cIpmiMsg rsp;
-  SaErrorT rv = GetSensorReading( rsp );
+  SaErrorT rv = GetSensorData( rsp );
 
   if ( rv != SA_OK )
        return rv;
 
-  memset( &data, 0, sizeof( SaHpiSensorReadingT ) );
+  if ( &data != NULL )
+  {
+      memset( &data, 0, sizeof( SaHpiSensorReadingT ) );
+      data.IsSupported = SAHPI_FALSE;
+  }
 
-  data.ValuesPresent = SAHPI_SRF_EVENT_STATE;
-  data.EventStatus.SensorStatus = 0;
+  if ( &state != NULL )
+  {
+      // only 15 states
+      rsp.m_data[4] &= 0x7f;
 
-  if ( (rsp.m_data[2] & 0x80) != 0 )
-       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
-
-  if ( (rsp.m_data[2] & 0x40) != 0 )
-       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_SCAN_ENABLED;
-
-  if ( rsp.m_data[2] & 0x20 )
-       data.EventStatus.SensorStatus |= SAHPI_SENSTAT_BUSY;
-
-  if ( rsp.m_data_len < 5 )
-       rsp.m_data[4] = 0;
-
-  // only 15 states
-  rsp.m_data[4] &= 0x7f;
-
-  data.EventStatus.EventStatus = IpmiGetUint16( rsp.m_data + 3 );
+      state = IpmiGetUint16( rsp.m_data + 3 );
+  }
 
   return SA_OK;
 }
 
 
 SaErrorT
-cIpmiSensorDiscrete::GetEventEnables( SaHpiSensorEvtEnablesT &enables )
+cIpmiSensorDiscrete::GetEventMasksHw( SaHpiEventStateT &AssertEventMask,
+                                      SaHpiEventStateT &DeassertEventMask
+                                    )
 {
   cIpmiMsg rsp;
-  SaErrorT rv = cIpmiSensor::GetEventEnables( enables, rsp );
+  SaErrorT rv = cIpmiSensor::GetEventMasksHw( rsp );
 
   if ( rv != SA_OK )
        return rv;
 
-  enables.AssertEvents   = IpmiGetUint16( rsp.m_data + 2 );
-  enables.DeassertEvents = IpmiGetUint16( rsp.m_data + 4 );
+  AssertEventMask   = IpmiGetUint16( rsp.m_data + 2 );
+  DeassertEventMask = IpmiGetUint16( rsp.m_data + 4 );
 
   return SA_OK;
 }
 
 
 SaErrorT
-cIpmiSensorDiscrete::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
+cIpmiSensorDiscrete::SetEventMasksHw( const SaHpiEventStateT &AssertEventMask,
+                                      const SaHpiEventStateT &DeassertEventMask
+                                    )
 {
+  // create de/assertion event mask
+  unsigned int amask;
+  unsigned int dmask;
+
+  amask = AssertEventMask;
+  
+  dmask = DeassertEventMask;
+
   cIpmiMsg msg;
-  IpmiSetUint16( msg.m_data + 2, enables.AssertEvents );
-  IpmiSetUint16( msg.m_data + 4, enables.DeassertEvents );
+  SaErrorT rv = SA_OK;
 
-  SaErrorT rv = cIpmiSensor::SetEventEnables( enables, msg );
+  if (( amask != 0 )
+      || ( dmask != 0 ))
+  {
+    IpmiSetUint16( msg.m_data + 2, amask );
+    IpmiSetUint16( msg.m_data + 4, dmask );
+
+    rv = cIpmiSensor::SetEventMasksHw( msg, true );
+  }
+
+  if ( rv != SA_OK )
+      return rv;
+
+  amask = ( amask ^ m_assertion_event_mask ) & m_assertion_event_mask;
+  dmask = ( dmask ^ m_deassertion_event_mask ) & m_deassertion_event_mask;
+
+  if (( amask != 0 )
+      || ( dmask != 0 ))
+  {
+    IpmiSetUint16( msg.m_data + 2, amask );
+    IpmiSetUint16( msg.m_data + 4, dmask );
+
+    rv = cIpmiSensor::SetEventMasksHw( msg, false );
+  }
 
   return rv;
 }
-
-
-enum tIpmiDiscrete
-{
-  eIpmiTransIdle = 0,
-  eIpmiTransActive,
-  eIpmiTransBusy
-};
 
 
 SaErrorT
@@ -169,42 +190,86 @@ cIpmiSensorDiscrete::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   SaHpiSensorEventT &se = h.EventDataUnion.SensorEvent;
 
   se.Assertion = (SaHpiBoolT)!(event->m_data[9] & 0x80);
-  se.PreviousState = EventState();
 
-  tIpmiDiscrete e = (tIpmiDiscrete )(event->m_data[10] & 0x7);
+  se.EventState = (1 << (event->m_data[10] & 0x0f));
 
-  switch( e )
-     {
-       case eIpmiTransIdle:
-            se.EventState = SAHPI_ES_IDLE;
-            break;
+  // default value
+  h.Severity = SAHPI_INFORMATIONAL;
 
-       case eIpmiTransActive:
-            se.EventState = SAHPI_ES_ACTIVE;
-            break;
+  SaHpiSensorOptionalDataT optional_data = 0;
 
-       case eIpmiTransBusy:
-            se.EventState = SAHPI_ES_BUSY;
-            break;
-     }
+  // byte 2
+  tIpmiEventType type = (tIpmiEventType)(event->m_data[10] >> 6);
 
-  EventState() = se.EventState;
-
-  tIpmiEventType type;
-
-  type = (tIpmiEventType)(event->m_data[10] >> 6);
-
-  if ( type == eIpmiEventData2 )
-       se.Oem = (SaHpiUint32T)event->m_data[11];
+  if ( type == eIpmiEventData1 )
+  {
+      if ((event->m_data[11] & 0x0f) != 0x0f)
+      {
+          se.PreviousState = (1 << (event->m_data[11] & 0x0f));
+          optional_data |= SAHPI_SOD_PREVIOUS_STATE;
+      }
+      if ((event->m_data[11] & 0xf0) != 0xf0)
+      {
+          SaHpiEventStateT evt_sec_state = (event->m_data[11]>> 4) & 0x0f;
+          switch (evt_sec_state)
+          {
+          case SAHPI_ES_OK:
+              h.Severity = SAHPI_OK;
+              break;
+          case SAHPI_ES_MINOR_FROM_OK:
+              h.Severity = SAHPI_MINOR;
+              break;
+          case SAHPI_ES_MAJOR_FROM_LESS:
+              h.Severity = SAHPI_MAJOR;
+              break;
+          case SAHPI_ES_CRITICAL_FROM_LESS:
+              h.Severity = SAHPI_CRITICAL;
+              break;
+          case SAHPI_ES_MINOR_FROM_MORE:
+              h.Severity = SAHPI_MINOR;
+              break;
+          case SAHPI_ES_MAJOR_FROM_CRITICAL:
+              h.Severity = SAHPI_MAJOR;
+              break;
+          case SAHPI_ES_CRITICAL:
+              h.Severity = SAHPI_CRITICAL;
+              break;
+          case SAHPI_ES_MONITOR:
+              h.Severity = SAHPI_INFORMATIONAL;
+              break;
+          case SAHPI_ES_INFORMATIONAL:
+              h.Severity = SAHPI_INFORMATIONAL;
+              break;
+          }
+      }
+  }
+  else if ( type == eIpmiEventData2 )
+  {
+       se.Oem = (SaHpiUint32T)event->m_data[11]; 
+       optional_data |= SAHPI_SOD_OEM;
+  }
   else if ( type == eIpmiEventData3 )
+  {
        se.SensorSpecific = (SaHpiUint32T)event->m_data[11]; 
+       optional_data |= SAHPI_SOD_SENSOR_SPECIFIC;
+  }
 
+  // byte 3
   type = (tIpmiEventType)((event->m_data[10] & 0x30) >> 4);
 
   if ( type == eIpmiEventData2 )
-       se.Oem = (SaHpiUint32T)event->m_data[12];
-  else if (type == eIpmiEventData3 )
-       se.SensorSpecific = (SaHpiUint32T)event->m_data[12];
+  {
+       se.Oem |= (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
+       optional_data |= SAHPI_SOD_OEM;
+  }
+  else if ( type == eIpmiEventData3 )
+  {
+       se.SensorSpecific = (SaHpiUint32T)((event->m_data[12] << 8) & 0xff00);
+       optional_data |= SAHPI_SOD_SENSOR_SPECIFIC;
+  }
+
+  se.OptionalDataPresent = optional_data;
+
 
   return SA_OK;
 }

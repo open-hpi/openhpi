@@ -4,6 +4,7 @@
  * Interface for IPMI file connection
  *
  * Copyright (c) 2003,2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,6 +15,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiAddr_h
@@ -37,6 +39,7 @@
 #define dIpmiBmcChannel  0xf
 #define dIpmiNumChannels 0x10
 
+#define dIpmiBmcSlaveAddr   0x20
 
 enum tIpmiAddrType
 {
@@ -61,7 +64,7 @@ public:
 
   cIpmiAddr( tIpmiAddrType type = eIpmiAddrTypeIpmb,
              short channel = 0, unsigned char lun = 0,
-             unsigned char slave_addr = 0x20 )
+             unsigned char slave_addr = dIpmiBmcSlaveAddr )
     : m_type( type ), m_channel( channel ),
       m_lun( lun ), m_slave_addr( slave_addr )
   {

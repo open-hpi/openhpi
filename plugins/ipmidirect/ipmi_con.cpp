@@ -4,6 +4,7 @@
  * Interface code for handling IPMI connections
  *
  * Copyright (c) 2003,2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,6 +15,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <stdlib.h>
@@ -26,7 +28,7 @@
 
 
 cIpmiCon::cIpmiCon( unsigned int timeout, int log_level )
-  : m_is_open( false ), m_fd( -1 ), m_slave_addr( 0x20 ),
+  : m_is_open( false ), m_fd( -1 ), m_slave_addr( dIpmiBmcSlaveAddr ),
     m_max_outstanding( 1 ), m_queue( 0 ),
     m_num_outstanding( 0 ), m_current_seq( 0 ),
     m_exit( false ), m_log_level( log_level ),
@@ -598,7 +600,7 @@ IpmiLogDataMsg( const cIpmiAddr &addr, const cIpmiMsg &msg )
             break;
 
        case eIpmiAddrTypeSystemInterface:
-            s += sprintf( s, "%02x %02x %02x",
+            s += sprintf( s, "%02x %02x %02x   ",
                           eIpmiAddrTypeSystemInterface, addr.m_channel, addr.m_lun );
             break;
 
@@ -607,9 +609,8 @@ IpmiLogDataMsg( const cIpmiAddr &addr, const cIpmiMsg &msg )
                           eIpmiAddrTypeIpmbBroadcast, addr.m_channel, addr.m_lun, addr.m_slave_addr );
      }
 
-  // msg
-  s += sprintf( s, "  %02x %02x %02x ",
-		msg.m_netfn, msg.m_cmd, msg.m_data_len );
+  s += sprintf( s, "  %s (%02d) ",
+		IpmiCmdToString( (tIpmiNetfn)(msg.m_netfn & 0xfe), msg.m_cmd ), msg.m_data_len );
 
   const unsigned char *p = msg.m_data;
 

@@ -1,6 +1,7 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -17,6 +18,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiDomain_h
@@ -33,7 +35,6 @@ extern "C" {
 
 #include <openhpi.h>
 #include <oh_utils.h>
-
 
 #ifndef dIpmiCon_h
 #include "ipmi_con.h"
@@ -91,9 +92,10 @@ class cIpmiDomain : public cIpmiFruInfoContainer
 public:
   unsigned int m_con_ipmi_timeout;
   unsigned int m_con_atca_timeout;
+  bool m_enable_sel_on_all;
 
   unsigned int m_max_outstanding; // 0 => use default
-
+  bool         m_atca_poll_alive_mcs;
 protected:
   // ipmi connection
   cIpmiCon     *m_con;
@@ -174,6 +176,7 @@ public:
 
   // time between sel rescan in ms
   unsigned int m_sel_rescan_interval;
+  bool m_bmc_discovered;
 
   SaErrorT CheckAtca();
   int GetChannels();
@@ -215,9 +218,6 @@ public:
 
   virtual void AddHpiEvent( oh_event *event ) = 0;
   virtual GSList *GetHpiEventList() = 0;
-
-  // set initial hotswap state
-  void IfHotswapSetInitialState( cIpmiResource *res, cIpmiSensorHotswap *sensor );
 
   virtual const cIpmiEntityPath &EntityRoot() = 0;
   virtual oh_handler_state *GetHandler() = 0;

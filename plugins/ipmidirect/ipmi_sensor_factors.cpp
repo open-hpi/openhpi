@@ -2,6 +2,7 @@
  * ipmi_sensor_factors.cpp
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 
@@ -77,6 +79,7 @@ IpmiLinearizationToString( tIpmiLinearization val )
 cIpmiSensorFactors::cIpmiSensorFactors()
   : m_analog_data_format( eIpmiAnalogDataFormatUnsigned ),
     m_linearization( eIpmiLinearizationLinear ),
+    m_is_non_linear( false ),
     m_m( 0 ),
     m_tolerance( 0 ),
     m_b( 0 ),
@@ -109,7 +112,13 @@ cIpmiSensorFactors::GetDataFromSdr( const cIpmiSdr *sdr )
        m_accuracy_exp = (sdr->m_data[28] >> 2) & 0x3;
        m_r_exp        = (sdr->m_data[29] >> 4) & 0xf;
        m_b_exp        = sdr->m_data[29] & 0xf;
+       m_accuracy_factor = (m_accuracy * pow( 10.0, m_accuracy_exp)) / 100.0;
      }
+
+  if ( m_linearization == eIpmiLinearizationLinear )
+      m_is_non_linear = false;
+  else
+      m_is_non_linear = true;
 
   return true;
 }
@@ -231,7 +240,8 @@ sign_extend( int m, int bits )
 
 bool
 cIpmiSensorFactors::ConvertFromRaw( unsigned int val,
-                                    double      &result ) const
+                                    double      &result,
+                                    bool        is_hysteresis) const
 {
   double m, b, b_exp, r_exp, fval;
   linearizer c_func;
@@ -249,6 +259,14 @@ cIpmiSensorFactors::ConvertFromRaw( unsigned int val,
   b     = m_b;
   r_exp = m_r_exp;
   b_exp = m_b_exp;
+
+  if ( is_hysteresis == true )
+  {
+      // For hysteresis : no offset + abs value
+      b = 0;
+      if ( m < 0 )
+          m = -m;
+  }
 
   switch( m_analog_data_format )
      {
@@ -281,7 +299,8 @@ cIpmiSensorFactors::ConvertFromRaw( unsigned int val,
 bool
 cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
                                   double        val,
-                                  unsigned int &result ) const
+                                  unsigned int &result,
+                                  bool        is_hysteresis ) const
 {
   bool rv;
   double cval;
@@ -322,7 +341,7 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
   do
      {
        raw = next_raw;
-       rv = ConvertFromRaw( raw, cval );
+       rv = ConvertFromRaw( raw, cval, is_hysteresis );
 
        if ( !rv )
 	    return false;
@@ -351,7 +370,7 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
                     {
                       double nval;
 
-                      rv = ConvertFromRaw( raw + 1, nval );
+                      rv = ConvertFromRaw( raw + 1, nval, is_hysteresis );
                       if ( !rv )
                            return false;
 
@@ -365,7 +384,7 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
                  if ( raw > minraw )
                     {
                       double pval;
-                      rv = ConvertFromRaw( raw-1, pval );
+                      rv = ConvertFromRaw( raw-1, pval, is_hysteresis );
                       if ( !rv )
                            return false;
 
@@ -397,22 +416,3 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
   return true;
 }
 
-
-bool
-cIpmiSensorFactors::CreateDataFormat( SaHpiSensorDataFormatT &df ) const
-{
-  df.ReadingFormats          = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED;
-  df.IsNumeric               = SAHPI_TRUE;
-  df.SignFormat              = (SaHpiSensorSignFormatT)AnalogDataFormat();
-  df.FactorsStatic           = SAHPI_TRUE;
-  df.Factors.M_Factor        = (SaHpiInt16T)M();
-  df.Factors.B_Factor        = (SaHpiInt16T)B();
-  df.Factors.AccuracyFactor  = (SaHpiUint16T)Accuracy();
-  df.Factors.ToleranceFactor = (SaHpiUint8T)Tolerance();
-  df.Factors.ExpA            = (SaHpiUint8T)AccuracyExp();
-  df.Factors.ExpR            = (SaHpiUint8T)RExp();
-  df.Factors.ExpB            = (SaHpiUint8T)BExp();
-  df.Factors.Linearization   = (SaHpiSensorLinearizationT)Linearization();
-
-  return true;
-}

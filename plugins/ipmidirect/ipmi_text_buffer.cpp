@@ -1,7 +1,8 @@
 /*
- * ipmi_type_code.cpp
+ * ipmi_text_buffer.cpp
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <string.h>
@@ -45,7 +47,7 @@ cIpmiTextBuffer::cIpmiTextBuffer( const char *string, SaHpiTextTypeT type,
 cIpmiTextBuffer::cIpmiTextBuffer( const unsigned char *data,
 				  SaHpiLanguageT l )
 {
-  SetIpmi( data, l );
+  SetIpmi( data, false, l );
 }
 
 
@@ -58,7 +60,7 @@ cIpmiTextBuffer::cIpmiTextBuffer( const SaHpiTextBufferT &buf )
 void 
 cIpmiTextBuffer::Clear()
 {
-  m_buffer.DataType   = SAHPI_TL_TYPE_LANGUAGE;
+  m_buffer.DataType   = SAHPI_TL_TYPE_TEXT;
   m_buffer.Language   = SAHPI_LANG_ENGLISH;
   m_buffer.DataLength = 0;
   memset( m_buffer.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH );
@@ -66,7 +68,7 @@ cIpmiTextBuffer::Clear()
 
 
 const unsigned char *
-cIpmiTextBuffer::SetIpmi( const unsigned char *data, SaHpiLanguageT l )
+cIpmiTextBuffer::SetIpmi( const unsigned char *data, bool is_fru, SaHpiLanguageT l )
 {
   Clear();
   m_buffer.Language = l;
@@ -75,6 +77,12 @@ cIpmiTextBuffer::SetIpmi( const unsigned char *data, SaHpiLanguageT l )
        return 0; // end mark
 
   m_buffer.DataType   = (SaHpiTextTypeT)((*data >> 6) & 3);
+  if (( is_fru == true )
+      && ( m_buffer.DataType == SAHPI_TL_TYPE_UNICODE ))
+  {
+    m_buffer.DataType = SAHPI_TL_TYPE_BINARY;
+  }
+
   m_buffer.DataLength = *data & 0x3f;
 
   data++;
@@ -82,6 +90,22 @@ cIpmiTextBuffer::SetIpmi( const unsigned char *data, SaHpiLanguageT l )
   memcpy( m_buffer.Data, data, m_buffer.DataLength );
 
   data += m_buffer.DataLength;
+
+  if (( m_buffer.DataType == SAHPI_TL_TYPE_BCDPLUS )
+      || ( m_buffer.DataType == SAHPI_TL_TYPE_ASCII6 ))
+    {
+      char tmpstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+      int len;
+
+      len = GetAscii( tmpstr, sizeof (tmpstr) );
+
+      if ( len == -1 )
+          return 0;
+
+      m_buffer.DataLength = len;
+
+      memcpy( m_buffer.Data, tmpstr, m_buffer.DataLength );
+    }
 
   return data;
 }
@@ -251,7 +275,7 @@ cIpmiTextBuffer::AsciiToAscii6( const char *s )
 int
 cIpmiTextBuffer::AsciiToLanguage( const char *s )
 {
-  m_buffer.DataType = SAHPI_TL_TYPE_LANGUAGE;
+  m_buffer.DataType = SAHPI_TL_TYPE_TEXT;
 
   int l = strlen( s );
 
@@ -282,7 +306,7 @@ cIpmiTextBuffer::SetAscii( const char *string, SaHpiTextTypeT type,
 	    AsciiToAscii6( string );	    
 	    return true;
 
-       case SAHPI_TL_TYPE_LANGUAGE:
+       case SAHPI_TL_TYPE_TEXT:
 	    AsciiToLanguage( string );
 	    return true;
 	    
@@ -306,7 +330,7 @@ cIpmiTextBuffer::CheckAscii( const char *s )
 
        if ( type == SAHPI_TL_TYPE_ASCII6 && table_6_bit[(int) *s] == 0 )
           {
-	    type = SAHPI_TL_TYPE_LANGUAGE;
+	    type = SAHPI_TL_TYPE_TEXT;
 	    break;
           }
      }
@@ -397,9 +421,8 @@ cIpmiTextBuffer::Ascii6ToAscii( char *buffer, unsigned int len ) const
                  break;
 
 	    case 2:
-                 val = (*d >> 2) & 3;
+                 val = (*d >> 2) & 0x3f;
                  d++;
-                 val |= (*d & 0xf) << 2;
                  bo = 0;
                  break;
 
@@ -452,7 +475,7 @@ cIpmiTextBuffer::GetAscii( char *buffer, unsigned int len ) const
        case SAHPI_TL_TYPE_ASCII6:
             return Ascii6ToAscii( buffer, len );
 
-       case SAHPI_TL_TYPE_LANGUAGE:
+       case SAHPI_TL_TYPE_TEXT:
             return LanguageToAscii( buffer, len );
 
        default:

@@ -1,6 +1,7 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <netdb.h>
@@ -22,8 +24,6 @@
 #include "ipmi_con_smi.h"
 #include "ipmi_utils.h"
 
-
-#define SA_ERR_INVENT_DATA_TRUNCATED    (SaErrorT)(SA_HPI_ERR_BASE - 1000)
 
 static cIpmi *
 VerifyIpmi( void *hnd )
@@ -126,9 +126,8 @@ VerifyControlAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiCtrlNumT num,
   return control;
 }
 
-
 static cIpmiInventory *
-VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiEirIdT num,
+VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                          cIpmi *&ipmi )
 {
   ipmi = VerifyIpmi( hnd );
@@ -142,7 +141,7 @@ VerifyInventoryAndEnter( void *hnd, SaHpiResourceIdT rid, SaHpiEirIdT num,
   ipmi->IfEnter();
 
   SaHpiRdrT *rdr = oh_get_rdr_by_type( ipmi->GetHandler()->rptcache,
-                                       rid, SAHPI_INVENTORY_RDR, num );
+                                       rid, SAHPI_INVENTORY_RDR, idrid );
   if ( !rdr )
      {
        ipmi->IfLeave();
@@ -346,14 +345,13 @@ IpmiClose( void *hnd )
 
 
 static SaErrorT
-IpmiGetEvent( void *hnd, struct oh_event *event, 
-              struct timeval *timeout )
+IpmiGetEvent( void *hnd, struct oh_event *event )
 {
   cIpmi *ipmi = VerifyIpmi( hnd );
 
   // there is no need to get a lock because
   // the event queue has its own lock
-  SaErrorT rv = ipmi->IfGetEvent( event, *timeout );
+  SaErrorT rv = ipmi->IfGetEvent( event );
 
   return rv;
 }
@@ -365,6 +363,23 @@ IpmiDiscoverResources( void *hnd )
   cIpmi *ipmi = VerifyIpmi( hnd );
 
   SaErrorT rv = ipmi->IfDiscoverResources();
+
+  return rv;
+}
+
+
+static SaErrorT
+IpmiSetResourceTag( void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag )
+{
+  cIpmi *ipmi = 0;
+  cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
+
+  if ( !res )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = ipmi->IfSetResourceTag( res, tag );
+
+  ipmi->IfLeave();
 
   return rv;
 }
@@ -388,10 +403,11 @@ IpmiSetResourceSeverity( void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev )
 
 
 static SaErrorT
-IpmiGetSensorData( void *hnd,
+IpmiGetSensorReading( void *hnd,
                    SaHpiResourceIdT id,
                    SaHpiSensorNumT num,
-                   SaHpiSensorReadingT *data )
+                   SaHpiSensorReadingT *data,
+                   SaHpiEventStateT *state)
 {
   cIpmi *ipmi = 0;
   cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
@@ -399,7 +415,7 @@ IpmiGetSensorData( void *hnd,
   if ( !sensor )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sensor->GetData( *data );
+  SaErrorT rv = sensor->GetSensorReading( *data, *state );
 
   ipmi->IfLeave();
 
@@ -458,10 +474,48 @@ IpmiSetSensorThresholds( void *hnd,
 
 
 static SaErrorT
+IpmiGetSensorEnable( void *hnd, 
+                     SaHpiResourceIdT id,
+                     SaHpiSensorNumT  num,
+                     SaHpiBoolT       *enable )
+{
+  cIpmi *ipmi;
+  cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
+
+  if ( !sensor )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = sensor->GetEnable( *enable );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+
+static SaErrorT
+IpmiSetSensorEnable( void *hnd,
+                     SaHpiResourceIdT id,
+                     SaHpiSensorNumT  num,
+                     SaHpiBoolT       enable )
+{
+  cIpmi *ipmi;
+  cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
+
+  if ( !sensor )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = sensor->SetEnable( enable );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+static SaErrorT
 IpmiGetSensorEventEnables( void *hnd, 
-                           SaHpiResourceIdT        id,
-                           SaHpiSensorNumT         num,
-                           SaHpiSensorEvtEnablesT *enables )
+                           SaHpiResourceIdT id,
+                           SaHpiSensorNumT  num,
+                           SaHpiBoolT       *enables )
 {
   cIpmi *ipmi;
   cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
@@ -479,9 +533,9 @@ IpmiGetSensorEventEnables( void *hnd,
 
 static SaErrorT
 IpmiSetSensorEventEnables( void *hnd,
-                           SaHpiResourceIdT         id,
-                           SaHpiSensorNumT          num,
-                           const SaHpiSensorEvtEnablesT *enables )
+                           SaHpiResourceIdT id,
+                           SaHpiSensorNumT  num,
+                           SaHpiBoolT       enables )
 {
   cIpmi *ipmi;
   cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
@@ -489,7 +543,50 @@ IpmiSetSensorEventEnables( void *hnd,
   if ( !sensor )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sensor->SetEventEnables( *enables );
+  SaErrorT rv = sensor->SetEventEnables( enables );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+static SaErrorT
+IpmiGetSensorEventMasks( void *hnd, 
+                           SaHpiResourceIdT id,
+                           SaHpiSensorNumT  num,
+                           SaHpiEventStateT *AssertEventMask,
+                           SaHpiEventStateT *DeassertEventMask
+                       )
+{
+  cIpmi *ipmi;
+  cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
+
+  if ( !sensor )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = sensor->GetEventMasks( *AssertEventMask, *DeassertEventMask );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+
+static SaErrorT
+IpmiSetSensorEventMasks( void *hnd,
+                           SaHpiResourceIdT id,
+                           SaHpiSensorNumT  num,
+                           SaHpiSensorEventMaskActionT act,
+                           SaHpiEventStateT            AssertEventMask,
+                           SaHpiEventStateT            DeassertEventMask
+                       )
+{
+  cIpmi *ipmi;
+  cIpmiSensor *sensor = VerifySensorAndEnter( hnd, id, num, ipmi );
+
+  if ( !sensor )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = sensor->SetEventMasks( act, AssertEventMask, DeassertEventMask );
 
   ipmi->IfLeave();
 
@@ -500,6 +597,7 @@ IpmiSetSensorEventEnables( void *hnd,
 static SaErrorT
 IpmiGetControlState( void *hnd, SaHpiResourceIdT id,
 		     SaHpiCtrlNumT num,
+		     SaHpiCtrlModeT *mode,
 		     SaHpiCtrlStateT *state )
 {
   cIpmi *ipmi;
@@ -508,7 +606,7 @@ IpmiGetControlState( void *hnd, SaHpiResourceIdT id,
   if ( !control )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = control->GetState( *state );
+  SaErrorT rv = control->GetState( *mode, *state );
 
   ipmi->IfLeave();
 
@@ -519,6 +617,7 @@ IpmiGetControlState( void *hnd, SaHpiResourceIdT id,
 static SaErrorT
 IpmiSetControlState( void *hnd, SaHpiResourceIdT id,
 		     SaHpiCtrlNumT num,
+		     SaHpiCtrlModeT mode,
 		     SaHpiCtrlStateT *state )
 {
   cIpmi *ipmi;
@@ -527,7 +626,110 @@ IpmiSetControlState( void *hnd, SaHpiResourceIdT id,
   if ( !control )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = control->SetState( *state );
+  SaErrorT rv = control->SetState( mode, *state );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiGetIdrInfo( void *hnd,
+                SaHpiResourceIdT id,
+                SaHpiIdrIdT idrid,
+                SaHpiIdrInfoT *idrinfo )
+{
+  cIpmi *ipmi = 0;
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
+
+  if ( !inv )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = inv->GetIdrInfo( idrid, *idrinfo );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiGetIdrAreaHeader( void *hnd,
+                      SaHpiResourceIdT id,
+                      SaHpiIdrIdT idrid,
+                      SaHpiIdrAreaTypeT areatype,
+			          SaHpiEntryIdT areaid,
+                      SaHpiEntryIdT *nextareaid,
+                      SaHpiIdrAreaHeaderT *header )
+{
+  cIpmi *ipmi = 0;
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
+
+  if ( !inv )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = inv->GetIdrAreaHeader( idrid, areatype, areaid, *nextareaid, *header );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiAddIdrArea( void *hnd,
+                SaHpiResourceIdT id,
+                SaHpiIdrIdT idrid,
+                SaHpiIdrAreaTypeT areatype,
+			    SaHpiEntryIdT *areaid )
+{
+  cIpmi *ipmi = 0;
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
+
+  if ( !inv )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = inv->AddIdrArea( idrid, areatype, *areaid );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiDelIdrArea( void *hnd,
+                SaHpiResourceIdT id,
+                SaHpiIdrIdT idrid,
+			    SaHpiEntryIdT areaid )
+{
+  cIpmi *ipmi = 0;
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
+
+  if ( !inv )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = inv->DelIdrArea( idrid, areaid );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiGetIdrField( void *hnd,
+                 SaHpiResourceIdT id,
+                 SaHpiIdrIdT idrid,
+                 SaHpiEntryIdT areaid,
+                 SaHpiIdrFieldTypeT fieldtype,
+                 SaHpiEntryIdT fieldid,
+			     SaHpiEntryIdT *nextfieldid,
+                 SaHpiIdrFieldT *field )
+{
+  cIpmi *ipmi = 0;
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
+
+  if ( !inv )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = inv->GetIdrField( idrid, areaid, fieldtype, fieldid, *nextfieldid, *field );
 
   ipmi->IfLeave();
 
@@ -536,57 +738,67 @@ IpmiSetControlState( void *hnd, SaHpiResourceIdT id,
 
 
 static SaErrorT
-IpmiGetInventorySize( void *hnd, SaHpiResourceIdT id,
-                      SaHpiEirIdT num,
-                      SaHpiUint32T *size )
+IpmiAddIdrField( void *hnd,
+                 SaHpiResourceIdT id,
+                 SaHpiIdrIdT idrid,
+                 SaHpiIdrFieldT *field )
 {
   cIpmi *ipmi = 0;
-  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, num, ipmi );
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
 
   if ( !inv )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  *size = (SaHpiUint32T)inv->HpiSize();
-
-  ipmi->IfLeave();
-
-  return SA_OK;
-}
-
-
-static SaErrorT
-IpmiGetInventoryInfo( void *hnd, SaHpiResourceIdT id,
-                      SaHpiEirIdT num,
-                      SaHpiInventoryDataT *data )
-{
-  cIpmi *ipmi = 0;
-  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, num, ipmi );
-
-  if ( !inv )
-       return SA_ERR_HPI_NOT_PRESENT;
-
-  SaErrorT rv;
-
-  // special case data == 0
-  if ( data == 0 )
-     {
-       assert( 0 );
-
-       rv = SA_ERR_INVENT_DATA_TRUNCATED;
-     }
-  else
-       rv = inv->HpiRead( *data );
+  SaErrorT rv = inv->AddIdrField( idrid, *field );
 
   ipmi->IfLeave();
 
   return rv;
 }
 
+static SaErrorT
+IpmiSetIdrField( void *hnd,
+                 SaHpiResourceIdT id,
+                 SaHpiIdrIdT idrid,
+                 SaHpiIdrFieldT *field )
+{
+  cIpmi *ipmi = 0;
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
+
+  if ( !inv )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = inv->SetIdrField( idrid, *field );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
+
+static SaErrorT
+IpmiDelIdrField( void *hnd,
+                 SaHpiResourceIdT id,
+                 SaHpiIdrIdT idrid,
+                 SaHpiEntryIdT areaid,
+                 SaHpiEntryIdT fieldid )
+{
+  cIpmi *ipmi = 0;
+  cIpmiInventory *inv = VerifyInventoryAndEnter( hnd, id, idrid, ipmi );
+
+  if ( !inv )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  SaErrorT rv = inv->DelIdrField( idrid, areaid, fieldid );
+
+  ipmi->IfLeave();
+
+  return rv;
+}
 
 static SaErrorT
 IpmiGetSelInfo( void *hnd,
                 SaHpiResourceIdT id,
-                SaHpiSelInfoT   *info )
+                SaHpiEventLogInfoT   *info )
 {
   cIpmi *ipmi = 0;
   cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
@@ -621,7 +833,7 @@ IpmiSetSelTime( void *hnd, SaHpiResourceIdT id, SaHpiTimeT t )
 
 static SaErrorT
 IpmiAddSelEntry( void *hnd, SaHpiResourceIdT id,
-                 const SaHpiSelEntryT *Event )
+                 const SaHpiEventT *Event )
 {
   cIpmi *ipmi = 0;
   cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
@@ -636,10 +848,9 @@ IpmiAddSelEntry( void *hnd, SaHpiResourceIdT id,
   return rv;
 }
 
-
 static SaErrorT
 IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
-                 SaHpiSelEntryIdT sid )
+                 SaHpiEventLogEntryIdT sid )
 {
   cIpmi *ipmi = 0;
   cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
@@ -654,12 +865,13 @@ IpmiDelSelEntry( void *hnd, SaHpiResourceIdT id,
   return rv;
 }
 
-
 static SaErrorT
 IpmiGetSelEntry( void *hnd, SaHpiResourceIdT id,
-                 SaHpiSelEntryIdT current,
-                 SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
-                 SaHpiSelEntryT *entry )
+                 SaHpiEventLogEntryIdT current,
+                 SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
+                 SaHpiEventLogEntryT *entry,
+                 SaHpiRdrT *rdr,
+                 SaHpiRptEntryT *rptentry)
 {
   cIpmi *ipmi = 0;
   cIpmiSel *sel = VerifySelAndEnter( hnd, id, ipmi );
@@ -667,7 +879,7 @@ IpmiGetSelEntry( void *hnd, SaHpiResourceIdT id,
   if ( !sel )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = sel->GetSelEntry( current, *prev, *next, *entry );
+  SaErrorT rv = sel->GetSelEntry( current, *prev, *next, *entry, *rdr, *rptentry );
 
   ipmi->IfLeave();
 
@@ -748,7 +960,7 @@ IpmiRequestHotswapAction( void *hnd, SaHpiResourceIdT id,
 
 static SaErrorT
 IpmiGetPowerState( void *hnd, SaHpiResourceIdT id, 
-                   SaHpiHsPowerStateT *state )
+                   SaHpiPowerStateT *state )
 {
   cIpmi *ipmi = 0;
   cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
@@ -766,7 +978,7 @@ IpmiGetPowerState( void *hnd, SaHpiResourceIdT id,
 
 static SaErrorT
 IpmiSetPowerState( void *hnd, SaHpiResourceIdT id, 
-                   SaHpiHsPowerStateT state )
+                   SaHpiPowerStateT state )
 {
   cIpmi *ipmi = 0;
   cIpmiResource *res = VerifyResourceAndEnter( hnd, id, ipmi );
@@ -896,22 +1108,32 @@ get_interface( void **pp, const uuid_t uuid )
        oh_ipmi_plugin.close                    = IpmiClose;
        oh_ipmi_plugin.get_event                = IpmiGetEvent;
        oh_ipmi_plugin.discover_resources       = IpmiDiscoverResources;
+       oh_ipmi_plugin.set_resource_tag         = IpmiSetResourceTag;
        oh_ipmi_plugin.set_resource_severity    = IpmiSetResourceSeverity;
-       oh_ipmi_plugin.get_sel_info             = IpmiGetSelInfo;
-       oh_ipmi_plugin.set_sel_time             = IpmiSetSelTime;
-       oh_ipmi_plugin.add_sel_entry            = IpmiAddSelEntry;
-       oh_ipmi_plugin.del_sel_entry            = IpmiDelSelEntry;
-       oh_ipmi_plugin.get_sel_entry            = IpmiGetSelEntry;
-       oh_ipmi_plugin.clear_sel                = IpmiClearSel;
-       oh_ipmi_plugin.get_sensor_data          = IpmiGetSensorData;
+       oh_ipmi_plugin.get_el_info              = IpmiGetSelInfo;
+       oh_ipmi_plugin.set_el_time              = IpmiSetSelTime;
+       oh_ipmi_plugin.add_el_entry             = IpmiAddSelEntry;
+       oh_ipmi_plugin.get_el_entry             = IpmiGetSelEntry;
+       oh_ipmi_plugin.clear_el                 = IpmiClearSel;
+       oh_ipmi_plugin.get_sensor_reading       = IpmiGetSensorReading;
        oh_ipmi_plugin.get_sensor_thresholds    = IpmiGetSensorThresholds;
        oh_ipmi_plugin.set_sensor_thresholds    = IpmiSetSensorThresholds;
+       oh_ipmi_plugin.get_sensor_enable        = IpmiGetSensorEnable;
+       oh_ipmi_plugin.set_sensor_enable        = IpmiSetSensorEnable;
        oh_ipmi_plugin.get_sensor_event_enables = IpmiGetSensorEventEnables;
        oh_ipmi_plugin.set_sensor_event_enables = IpmiSetSensorEventEnables;
+       oh_ipmi_plugin.get_sensor_event_masks   = IpmiGetSensorEventMasks;
+       oh_ipmi_plugin.set_sensor_event_masks   = IpmiSetSensorEventMasks;
        oh_ipmi_plugin.get_control_state        = IpmiGetControlState;
        oh_ipmi_plugin.set_control_state        = IpmiSetControlState;
-       oh_ipmi_plugin.get_inventory_size       = IpmiGetInventorySize;
-       oh_ipmi_plugin.get_inventory_info       = IpmiGetInventoryInfo;
+       oh_ipmi_plugin.get_idr_info             = IpmiGetIdrInfo;
+       oh_ipmi_plugin.get_idr_area_header      = IpmiGetIdrAreaHeader;
+       oh_ipmi_plugin.add_idr_area             = IpmiAddIdrArea;
+       oh_ipmi_plugin.del_idr_area             = IpmiDelIdrArea;
+       oh_ipmi_plugin.get_idr_field            = IpmiGetIdrField;
+       oh_ipmi_plugin.add_idr_field            = IpmiAddIdrField;
+       oh_ipmi_plugin.set_idr_field            = IpmiSetIdrField;
+       oh_ipmi_plugin.del_idr_field            = IpmiDelIdrField;
        oh_ipmi_plugin.get_hotswap_state        = IpmiGetHotswapState;
        oh_ipmi_plugin.set_hotswap_state        = IpmiSetHotswapState;
        oh_ipmi_plugin.request_hotswap_action   = IpmiRequestHotswapAction;
@@ -1034,6 +1256,18 @@ cIpmi::AllocConnection( GHashTable *handler_config )
   m_con_atca_timeout = GetIntNotNull( handler_config, "AtcaConnectionTimeout", 1000 );
   stdlog << "AllocConnection: AtcaTimeout " << m_con_atca_timeout << " ms.\n";
 
+  unsigned int enable_sel_on_all = GetIntNotNull( handler_config, "EnableSelOnAll", 0 );
+  if ( enable_sel_on_all == 1 )
+     {
+        m_enable_sel_on_all = true;
+        stdlog << "AllocConnection: Enable SEL on all MCs.\n";
+     }
+  else
+     {
+        m_enable_sel_on_all = false;
+        stdlog << "AllocConnection: Enable SEL only on BMC.\n";
+     }
+
   // outstanding messages 0 => read from BMC/ShMc
   m_max_outstanding = GetIntNotNull( handler_config, "MaxOutstanding", 0 );
 
@@ -1042,6 +1276,18 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
   stdlog << "AllocConnection: Max Outstanding IPMI messages "
          << m_max_outstanding << ".\n";
+
+  unsigned int poll_alive = GetIntNotNull( handler_config, "AtcaPollAliveMCs", 0 );
+  if ( poll_alive == 1 )
+     {
+        m_atca_poll_alive_mcs = true;
+        stdlog << "AllocConnection: Poll alive MCs.\n";
+     }
+  else
+     {
+        m_atca_poll_alive_mcs = false;
+        stdlog << "AllocConnection: Don't poll alive MCs.\n";
+     }
 
   const char *name = (const char *)g_hash_table_lookup(handler_config, "name");
 
@@ -1126,7 +1372,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 #endif
             else
                {
-                 stdlog << "Invalid IPMI LAN authenication method '" << value << "' !\n";
+                 stdlog << "Invalid IPMI LAN authentication method '" << value << "' !\n";
                  return 0;
                }
           }
@@ -1138,17 +1384,14 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        if ( value )
           {
-            if ( !strcmp( value, "callback" ) )
-                 priv = eIpmiPrivilegeCallback;
-            else if ( !strcmp( value, "user" ) )
-                 priv = eIpmiPrivilegeUser;
-            else if ( !strcmp( value, "operator" ) )
+            if ( !strcmp( value, "operator" ) )
                  priv = eIpmiPrivilegeOperator;
             else if ( !strcmp( value, "admin" ) )
                  priv = eIpmiPrivilegeAdmin;
             else
                {
                  stdlog << "Invalid authentication method '" << value << "' !\n";
+                 stdlog << "Only operator and admin are supported !\n";
                  return 0;
                }
           }
@@ -1186,7 +1429,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        stdlog << "IpmiAllocConnection: interface number = " << if_num << ".\n";
 
-       return new cIpmiConSmiDomain( this, dIpmiConLogAll, m_con_ipmi_timeout, if_num );
+       return new cIpmiConSmiDomain( this, m_con_ipmi_timeout, dIpmiConLogAll, if_num );
      }
 
   stdlog << "Unknown connection type: " << name << " !\n";
@@ -1201,47 +1444,11 @@ cIpmi::AddHpiEvent( oh_event *event )
   m_event_lock.Lock();
 
   assert( m_handler );
+  event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+
   m_handler->eventq = g_slist_append( m_handler->eventq, event );
 
-/*
-  stdlog << "event ";
-
-  switch( event->type )
-     {
-       case oh_event::OH_ET_RESOURCE:
-	    {
-	      SaHpiRptEntryT *entry = &event->u.res_event.entry;
-	      stdlog << "resource: " << entry->ResourceId << " ";
-	      oh_print_ep( &entry->ResourceEntity, 4 );
-	    }
-
-	    break;
-
-       case oh_event::OH_ET_RESOURCE_DEL:
-	    {
-	      stdlog << "resource del: " << event->u.res_del_event.resource_id << " ";
-	      SaHpiRptEntryT *entry = oh_get_resource_by_id( GetHandler()->rptcache,
-							     event->u.res_del_event.resource_id );
-	      assert( entry );
-	      
-	      oh_print_ep( &entry->ResourceEntity, 4);
-	    }
-
-	    break;
-
-       case oh_event::OH_ET_RDR:
-	    stdlog << "rdr: \n";
-	    break;
-
-       case oh_event::OH_ET_RDR_DEL:
-	    stdlog << "rdr del: \n";
-	    break;
-
-       case oh_event::OH_ET_HPI:
-	    stdlog << "hpi: \n";
-	    break;
-     }
-*/
+  oh_wake_event_thread(SAHPI_FALSE);
 
   m_event_lock.Unlock();
 }
@@ -1292,14 +1499,14 @@ cIpmi::GetParams( GHashTable *handler_config )
 
   for( unsigned int i = 1; i < 0xf1; i++ )
      {
-       sprintf( str, "MC%02x", i );
+       snprintf( str, sizeof(str), "MC%02x", i );
 
        char *value = (char *)g_hash_table_lookup( handler_config,
                                                   str );
 
        if ( value == 0 )
           {
-            sprintf( str, "MC%02X", i );
+            snprintf( str, sizeof(str), "MC%02X", i );
 
             value = (char *)g_hash_table_lookup( handler_config, str );
           }
@@ -1343,7 +1550,7 @@ cIpmi::GetParams( GHashTable *handler_config )
 
        stdlog << "MC " << (unsigned char)i << " properties: " << pp << ".\n";
 
-       // NewFruInfo( i, 0, slot, entity, dIpmiMcTypeBitAll );
+       NewFruInfo( i, 0, SAHPI_ENT_SYS_MGMNT_MODULE, GetFreeSlotForOther( i ), eIpmiAtcaSiteTypeUnknown, properties );
      }
 
   return true;
@@ -1416,7 +1623,7 @@ cIpmi::IfClose()
 
 
 int
-cIpmi::IfGetEvent( oh_event *event, const timeval & /*timeout*/ )
+cIpmi::IfGetEvent( oh_event *event )
 {
   int rv = 0;
 
@@ -1458,16 +1665,19 @@ cIpmi::IfDiscoverResources()
 
 
 SaErrorT
-cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
+cIpmi::IfSetResourceTag( cIpmiResource *ent, SaHpiTextBufferT *tag )
 {
-  // TODO: add real functionality
-
-  // change severity in plugin cache
+  // change tag in plugin cache
   SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache, 
                                                     ent->m_resource_id );
   assert( rptentry );
 
-  rptentry->ResourceSeverity = sev;
+  rptentry->ResourceTag.DataType = tag->DataType;
+  rptentry->ResourceTag.Language = tag->Language;
+  rptentry->ResourceTag.DataLength = tag->DataLength;
+
+  oh_add_resource(ent->Domain()->GetHandler()->rptcache,
+                    rptentry, ent, 1);
 
   // send update event
   struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
@@ -1479,9 +1689,43 @@ cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->type               = oh_event::OH_ET_RESOURCE;
+  e->type               = OH_ET_RESOURCE;
   e->u.res_event.entry = *rptentry;
 
+  stdlog << "IfSetResourceTag OH_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
+  AddHpiEvent( e );
+
+  return SA_OK;
+}
+
+
+SaErrorT
+cIpmi::IfSetResourceSeverity( cIpmiResource *ent, SaHpiSeverityT sev )
+{
+  // change severity in plugin cache
+  SaHpiRptEntryT *rptentry = oh_get_resource_by_id( ent->Domain()->GetHandler()->rptcache, 
+                                                    ent->m_resource_id );
+  assert( rptentry );
+
+  rptentry->ResourceSeverity = sev;
+
+  oh_add_resource(ent->Domain()->GetHandler()->rptcache,
+                    rptentry, ent, 1);
+
+  // send update event
+  struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return SA_ERR_HPI_OUT_OF_SPACE;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+  e->type               = OH_ET_RESOURCE;
+  e->u.res_event.entry = *rptentry;
+
+  stdlog << "IfSetResourceSeverity OH_ET_RESOURCE Event resource " << ent->m_resource_id << "\n";
   AddHpiEvent( e );
 
   return SA_OK;

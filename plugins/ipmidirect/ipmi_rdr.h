@@ -1,5 +1,5 @@
 /*
- * ipmi_rdr.h basecalss for cIpmiSensor, cIpmiControl
+ * ipmi_rdr.h base class for cIpmiSensor, cIpmiControl
  *
  * Copyright (c) 2004 by FORCE Computers.
  *

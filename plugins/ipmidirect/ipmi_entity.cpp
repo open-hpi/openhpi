@@ -2,6 +2,7 @@
  * ipmi_entity.cpp
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <string.h>
@@ -19,13 +21,12 @@
 #include <glib.h>
 #include <assert.h>
 
+#include <oh_utils.h>
+
 #include "ipmi_entity.h"
 #include "ipmi_log.h"
 
-extern "C" {
-#include "epath_utils.h"
-}
-
+#include <oh_utils.h>
 
 static const char *entity_id_types[] =
 {
@@ -89,23 +90,27 @@ IpmiEntityIdToString( tIpmiEntityId val )
 
   switch( val )
      {
-       case eIpmiEntityIdPigMgFrontBoard:
-            return "PigmigFrontBoard";
+       case eIpmiEntityIdPicMgFrontBoard:
+            return "PicmgFrontBoard";
 
-       case eIpmiEntityIdPigMgRearTransitionModule:
-            return "PigmigRearTransitionModule";
+       case eIpmiEntityIdPicMgRearTransitionModule:
+            return "PicmgRearTransitionModule";
 
-       case eIpmiEntityIdAtcaShelfManager:
-            return "AtcaShelfManager";
+       case eIpmiEntityIdPicMgAdvancedMcModule:
+            return "PicMgAdvancedMcModule";
 
-       case eIpmiEntityIdAtcaFiltrationUnit:
-            return "AtcaFiltrationUnit";
+       case eIpmiEntityIdPicmgShelfManager:
+            return "PicmgShelfManager";
 
+       case eIpmiEntityIdPicmgFiltrationUnit:
+            return "PicmgFiltrationUnit";
+
+       case eIpmiEntityIdPicmgShelfFruInformation:
+            return "PicmgShelfFruInformation";
        default:
-            return "Invalid";
+           break;
      }
 
-  // not reached
   return "Invalid";
 }
 
@@ -124,12 +129,12 @@ cIpmiEntityPath::cIpmiEntityPath( const SaHpiEntityPathT &entity_path )
 
 void
 cIpmiEntityPath::SetEntry( int idx, SaHpiEntityTypeT type,
-                           SaHpiEntityInstanceT instance )
+                           SaHpiEntityLocationT instance )
 {
   assert( idx >= 0 && idx < SAHPI_MAX_ENTITY_PATH );
 
   m_entity_path.Entry[idx].EntityType     = type;
-  m_entity_path.Entry[idx].EntityInstance = instance;
+  m_entity_path.Entry[idx].EntityLocation = instance;
 }
 
 
@@ -151,29 +156,29 @@ cIpmiEntityPath::SetEntryType( int idx, SaHpiEntityTypeT type )
 }
 
 
-SaHpiEntityInstanceT 
+SaHpiEntityLocationT 
 cIpmiEntityPath::GetEntryInstance( int idx )
 {
   assert( idx >= 0 && idx < SAHPI_MAX_ENTITY_PATH );
 
-  return m_entity_path.Entry[idx].EntityInstance;
+  return m_entity_path.Entry[idx].EntityLocation;
 }
 
 
 void
 cIpmiEntityPath::SetEntryInstance( int idx,
-                                   SaHpiEntityInstanceT instance )
+                                   SaHpiEntityLocationT instance )
 {
   assert( idx >= 0 && idx < SAHPI_MAX_ENTITY_PATH );
 
-  m_entity_path.Entry[idx].EntityInstance = instance;
+  m_entity_path.Entry[idx].EntityLocation = instance;
 }
 
 
 cIpmiEntityPath &
 cIpmiEntityPath::operator+=( const cIpmiEntityPath &epath )
 {
-  ep_concat( &m_entity_path, &epath.m_entity_path );
+  oh_concat_ep( &m_entity_path, &epath.m_entity_path );
 
   return *this;
 }
@@ -182,14 +187,28 @@ cIpmiEntityPath::operator+=( const cIpmiEntityPath &epath )
 bool
 cIpmiEntityPath::operator==( const cIpmiEntityPath &epath ) const
 {
-  return ep_cmp( &m_entity_path, &epath.m_entity_path ) == 0;
+  SaHpiBoolT cmp_result;
+
+  cmp_result = oh_cmp_ep( &m_entity_path, &epath.m_entity_path );
+
+  if ( cmp_result == SAHPI_TRUE )
+      return true;
+  else
+      return false;
 }
 
 
 bool
 cIpmiEntityPath::operator!=( const cIpmiEntityPath &epath ) const
 {
-  return ep_cmp( &m_entity_path, &epath.m_entity_path ) != 0;
+  SaHpiBoolT cmp_result;
+
+  cmp_result = oh_cmp_ep( &m_entity_path, &epath.m_entity_path );
+
+  if ( cmp_result == SAHPI_TRUE )
+      return false;
+  else
+      return true;
 }
 
 
@@ -203,7 +222,7 @@ cIpmiEntityPath::AppendRoot( int idx )
      }
 
   m_entity_path.Entry[idx].EntityType     = SAHPI_ENT_ROOT;
-  m_entity_path.Entry[idx].EntityInstance = 0;
+  m_entity_path.Entry[idx].EntityLocation = 0;
 
   return true;
 }
@@ -212,9 +231,13 @@ cIpmiEntityPath::AppendRoot( int idx )
 cIpmiLog &
 operator<<( cIpmiLog &log, const cIpmiEntityPath &epath )
 {
-  char str[1024] = "{Invalid}";
+  oh_big_textbuffer path_text;
+  char str[OH_MAX_TEXT_BUFFER_LENGTH+1];
 
-  entitypath2string( &epath.m_entity_path, str, 1024 );
+  oh_decode_entitypath( &epath.m_entity_path, &path_text );
+
+  memcpy( str, path_text.Data, path_text.DataLength );
+  str[path_text.DataLength] = 0;
 
   log << str;
 
@@ -225,5 +248,5 @@ operator<<( cIpmiLog &log, const cIpmiEntityPath &epath )
 bool
 cIpmiEntityPath::FromString( const char *str )
 {
-  return string2entitypath( str, &m_entity_path ) ? false : true;
+  return oh_encode_entitypath( str, &m_entity_path ) ? false : true;
 }

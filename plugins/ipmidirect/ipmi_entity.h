@@ -2,6 +2,7 @@
  * ipmi_entity.h
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiEntity_h
@@ -83,10 +85,12 @@ enum tIpmiEntityId
   eIpmiEntityIdMgmtControllerFirmware       = 46,
 
   // PIGMIG entity ids
-  eIpmiEntityIdPigMgFrontBoard              = 0xa0,
-  eIpmiEntityIdPigMgRearTransitionModule    = 0xc0,
-  eIpmiEntityIdAtcaShelfManager             = 0xf0,
-  eIpmiEntityIdAtcaFiltrationUnit           = 0xf1,
+  eIpmiEntityIdPicMgFrontBoard              = 0xa0,
+  eIpmiEntityIdPicMgRearTransitionModule    = 0xc0,
+  eIpmiEntityIdPicMgAdvancedMcModule        = 0xc1,
+  eIpmiEntityIdPicmgShelfManager            = 0xf0,
+  eIpmiEntityIdPicmgFiltrationUnit          = 0xf1,
+  eIpmiEntityIdPicmgShelfFruInformation     = 0xf2,
 };
 
 const char *IpmiEntityIdToString( tIpmiEntityId id );

@@ -83,6 +83,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_mc_vendor.cpp \
 		ipmi_mc_vendor_force.h \
 		ipmi_mc_vendor_force.cpp \
+		ipmi_mc_vendor_fix_sdr.h \
+		ipmi_mc_vendor_fix_sdr.cpp \
 		ipmi_msg.h \
 		ipmi_msg.cpp \
 		ipmi_rdr.h \
@@ -110,14 +112,8 @@ libipmidirect_la_SOURCES= \
 		thread.h \
 		thread.cpp
 
-libipmidirect_la_LIBADD	= @SSL_LIB@ -luuid -lm
+libipmidirect_la_LIBADD	= @SSL_LIB@ -luuid -lm -lstdc++
 libipmidirect_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
-
-noinst_PROGRAMS         = plugin_test
-
-plugin_test_SOURCES     = plugin_test.cpp
-plugin_test_LDADD       = libipmidirect.la $(top_builddir)/utils/libopenhpiutils.la -luuid -lm @SSL_LIB@
-plugin_test_LDFLAGS     = -static
 
 clean-local:
 	rm -f *~

@@ -2,6 +2,7 @@
  * ipmi_mc_vendor.h
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiMcVendor_h
@@ -77,8 +79,17 @@ public:
   virtual cIpmiResource *FindOrCreateResource( cIpmiDomain *domain, cIpmiMc *mc, unsigned int fru_id,
 					       cIpmiSdr *sdr, cIpmiSdrs *sdrs );
 
+  // find resource
+  virtual cIpmiResource *FindResource( cIpmiDomain *domain, cIpmiMc *mc, unsigned int fru_id,
+					       cIpmiSdr *sdr, cIpmiSdrs *sdrs );
+
+  virtual cIpmiResource *FindResource( cIpmiDomain *domain, cIpmiMc *mc,
+                             unsigned int fru_id,
+                             SaHpiEntityTypeT type,
+                             SaHpiEntityLocationT instance,
+                             cIpmiSdrs *sdrs );
 protected:
-  // create a new entity
+  // create a new resource
   virtual cIpmiResource *CreateResource( cIpmiDomain *domain, cIpmiMc *mc, unsigned int fru_id,
 					 cIpmiSdr *sdr, cIpmiSdrs *sdrs );
   cIpmiEntityPath CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr,
@@ -117,16 +128,15 @@ public:
                                cIpmiSdrs *sdrs );
 
 protected:
-  virtual bool CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
-                                   tIpmiAtcaSiteType type );
+  virtual bool CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
   virtual bool CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res, cIpmiSdrs *sdrs );
 
 public:
-  // create FRUs
-  virtual bool CreateFrus( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
+  // create inventory
+  virtual bool CreateInvs( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
 
 protected:
-  virtual bool CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr,
+  virtual bool CreateInv( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr,
                           cIpmiSdrs *sdrs );
 
 public:
