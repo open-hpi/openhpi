@@ -12,7 +12,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
- *     Sean Dague <sean@dague.net>
+ *     Sean Dague <sdague@users.sf.net>
  *     Rusty Lynch
  *     David Judkovics <djudkovi@us.ibm.com>  
  */
@@ -23,94 +23,73 @@
 #include <openhpi.h>
 #include <oh_plugin.h>
 #include <SaHpi.h>
+#include <uid_utils.h>
 
 #include <pthread.h>
 
-
+/******************************************************************************
+ * 
+ *  Macros needed for clarity
+ *
+ *****************************************************************************/
 static enum {
         OH_STAT_UNINIT,
         OH_STAT_READY,
 } oh_hpi_state = OH_STAT_UNINIT;
-static const int entry_id_offset = 1000;
 
 #define OH_STATE_READY_CHECK                                    \
         do {                                                    \
-                    if (OH_STAT_READY!=oh_hpi_state) {          \
+                if (OH_STAT_READY!=oh_hpi_state) {              \
                         dbg("Uninitialized HPI");               \
                         return SA_ERR_HPI_UNINITIALIZED;        \
                 }                                               \
-        }while(0)                                               
+        } while(0)                                               
 
-#define OH_GET_RESOURCE                                         \
+/*
+ * OH_SESSION_SETUP gets the session pointer for the session
+ * id.  It returns badly if required.  This is only to be used for sahpi 
+ * function.
+ */
+
+#define OH_SESSION_SETUP(sid, ses)      \
+        do {                                              \
+                ses = session_get(sid);                    \
+                if (!s) {                                  \
+                        dbg("Invalid SessionId %d", sid);  \
+                        return SA_ERR_HPI_INVALID_SESSION; \
+                }                                          \
+        } while (0)
+
+/*
+ * OH_HANDLER_GET gets the hander for the rpt and resource id.  It
+ * returns INVALID PARAMS if the handler isn't there
+ */
+#define OH_HANDLER_GET(rpt,rid,h)               \
+        do {                                    \
+                h = oh_get_resource_data(rpt, rid); \
+                if(!h) {                            \
+                        dbg("Can't find handler for Resource %d", rid); \
+                        return SA_ERR_HPI_INVALID_PARAMS; \
+                }                                         \
+        } while(0)
+
+/*
+ * OH_RESOURCE_GET gets the resource for an resource id and rpt
+ * it returns invalid resource if no resource id is found
+ */
+#define OH_RESOURCE_GET(rpt, rid, r)                            \
         do {                                                    \
-                struct oh_session *s;                           \
-                                                                \
-                OH_STATE_READY_CHECK;                           \
-                                                                \
-                s = session_get(SessionId);                     \
-                if (!s) {                                       \
-                        dbg("Invalid session");                 \
-                        return SA_ERR_HPI_INVALID_SESSION;      \
-                }                                               \
-                                                                \
-                res = get_resource(ResourceId);                 \
-                if (!res) {                                     \
-                        dbg("Invalid resource");                \
+                r = oh_get_resource_by_id(rpt, rid);            \
+                if(!r) {                                        \
+                        dbg("Resource %d doesn't exist", rid);  \
                         return SA_ERR_HPI_INVALID_RESOURCE;     \
                 }                                               \
-        }while(0)
+        } while(0)
 
-static inline struct oh_rdr * get_rdr(
-        struct oh_resource *res, 
-        SaHpiRdrTypeT type, 
-        SaHpiUint8T num)
-{
-        GSList *i;
-
-        data_access_lock();
-        
-        g_slist_for_each(i, res->rdr_list) {
-                struct oh_rdr *rdr;
-                rdr = i->data;
-                
-                if (rdr->rdr.RdrType != type)
-                        continue;
-                
-                switch (type) {
-                case SAHPI_CTRL_RDR:
-                        if (rdr->rdr.RdrTypeUnion.CtrlRec.Num == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_SENSOR_RDR:
-                        if (rdr->rdr.RdrTypeUnion.SensorRec.Num == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_INVENTORY_RDR:
-                        if (rdr->rdr.RdrTypeUnion.InventoryRec.EirId == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_WATCHDOG_RDR:
-                        if (rdr->rdr.RdrTypeUnion.WatchdogRec.WatchdogNum == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_NO_RECORD:
-                default:
-                        break;                  
-                }
-        }
-
-        data_access_unlock();
-        
-        return NULL;
-}
+/***********************************************************************
+ * Begin SAHPI functions.  For full documentation please see 
+ * the specification
+ **********************************************************************/
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
@@ -120,11 +99,24 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         unsigned int i;
         char *openhpi_conf;
         
+        *HpiImplVersion = SAHPI_INTERFACE_VERSION;
         /* initialize mutex used for data locking */
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
-         
         data_access_lock();
+        
+        /* setup our global rpt_table */
+        default_rpt = g_malloc0(sizeof(RPTable));
+        if(!default_rpt) {
+                dbg("Couldn't allocate RPT for Default Domain");
+                return SA_ERR_HPI_ERROR;
+        }
+
+	/* initialize uid_utils, and load uid map file if present */
+	if( oh_uid_initialize() ) {
+		dbg("uid_intialization failed");
+		return(SA_ERR_HPI_ERROR);
+	}
 
         if (OH_STAT_UNINIT != oh_hpi_state) {
                 dbg("Cannot initialize twice");
@@ -170,7 +162,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                         dbg("load handler for unknown plugin %s",
                                 (char *)g_hash_table_lookup(tmph, "plugin"));
                 }
-        }
+        } 
         
         oh_hpi_state = OH_STAT_READY;
 
@@ -181,14 +173,22 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 
 SaErrorT SAHPI_API saHpiFinalize(void)
 {
-        OH_STATE_READY_CHECK;   
-        
+        OH_STATE_READY_CHECK;
+
+        /* free mutex */
+	/* TODO: this wasn't here in bracnk, need to resolve history */
+        data_access_lock();
+
+	/* TODO: realy should have a oh_uid_finalize() that */
+	/* frees memory,				    */
+	if(oh_uid_map_to_file())
+		dbg("error writing uid entity path mapping to file");    
         /*
           we should be doing handler shutdown here.
         */
         oh_hpi_state = OH_STAT_UNINIT;
 
-        /* free glib static mutex */
+        /* free mutex */
         data_access_unlock();
 
         return SA_OK;
@@ -291,8 +291,10 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
                 return SA_ERR_HPI_UNKNOWN;
         }
         
-        RptInfo->UpdateCount    = global_rpt_counter;
-        RptInfo->UpdateTimestamp= (SaHpiTimeT)global_rpt_timestamp.tv_sec*1000000000 + global_rpt_timestamp.tv_usec*1000;
+        /* FIXME: we should really be getting event default_rpt from 
+           a domain or session keyed hash */
+        RptInfo->UpdateCount = default_rpt->rpt_info.UpdateCount;
+        RptInfo->UpdateTimestamp= default_rpt->rpt_info.UpdateTimestamp;
         return SA_OK;
 }
 
@@ -303,9 +305,11 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
         struct oh_session *s;
-        
-        int no;
-        GSList *i;
+
+        /* determine the right pointer later when we do multi domains */
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *req_entry;
+        SaHpiRptEntryT *next_entry;
         
         OH_STATE_READY_CHECK;
 
@@ -319,46 +323,24 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         }
         
         if (EntryId == SAHPI_FIRST_ENTRY) {
-                no = 0;
-                g_slist_for_each(i, global_rpt) {
-                        if (resource_is_in_domain(i->data, s->domain_id)) 
-                                break;
-                        no++;
-                }
-                if (!i) {
-                        dbg("Invalid EntryId");
-                        data_access_unlock();
-                        return SA_ERR_HPI_INVALID;
-                }                       
-        }else {
-                no = EntryId - entry_id_offset;
-                if (no < 0 || (unsigned int)no>=g_slist_length(global_rpt)) {
-                        dbg("Invalid EntryId");
-                        data_access_unlock();
-                        return SA_ERR_HPI_INVALID;
-                }
-        
-                i = g_slist_nth(global_rpt, no);
-                if (!resource_is_in_domain(i->data, s->domain_id)) {
-                        dbg("Invalid EntryId");
-                        data_access_unlock();
-                        return SA_ERR_HPI_INVALID;
-                }
+                req_entry = oh_get_resource_next(rpt, RPT_ENTRY_BEGIN);
+        } else {
+                req_entry = oh_get_resource_by_id(rpt, EntryId);
         }
 
-                        
-        memcpy(RptEntry, &((struct oh_resource *)(i->data))->entry, 
-                        sizeof(*RptEntry));
-        i = g_slist_next(i);
-        no++;
-        g_slist_for_each(i, i) {
-                if (resource_is_in_domain(i->data, s->domain_id)) 
-                        break;
-                no++;
+        /* if the entry was NULL, clearly have an issue */
+        if(req_entry == NULL) {
+                dbg("Invalid EntryId");
+                data_access_unlock();
+                return SA_ERR_HPI_INVALID;
         }
         
-        if (no < 0 || (unsigned int)no<g_slist_length(global_rpt)) {
-                *NextEntryId = no+entry_id_offset;
+        memcpy(RptEntry, req_entry, sizeof(*RptEntry));
+
+        next_entry = oh_get_resource_next(rpt, req_entry->EntryId);
+        
+        if(next_entry != NULL) {
+                *NextEntryId = next_entry->EntryId;
         } else {
                 *NextEntryId = SAHPI_LAST_ENTRY;
         }
@@ -373,12 +355,24 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-        struct oh_resource *res;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *req_entry;
 
-        OH_GET_RESOURCE;
+        OH_STATE_READY_CHECK;
+
+        data_access_lock();
+
+        req_entry = oh_get_resource_by_id(rpt, ResourceId);
+
+        if(req_entry == NULL) {
+                dbg("No such resource id");
+                data_access_unlock();
+                return SA_ERR_HPI_INVALID;
+        }
         
-        memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
-
+        memcpy(RptEntry, req_entry, sizeof(*RptEntry));
+        
+        data_access_unlock();
         return SA_OK;
 }
 
@@ -387,11 +381,30 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSeverityT Severity)
 {
-        struct oh_resource *res;
-
-        OH_GET_RESOURCE;
+        /* this requires a new abi call to push down to the plugin */
+        int (*set_res_sev)(void *hnd, SaHpiResourceIdT id, 
+                             SaHpiSeverityT sev);
         
-        res->entry.ResourceSeverity = Severity; 
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
+        
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        set_res_sev = h->abi->set_resource_severity;
+        
+        if (!set_res_sev)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (set_res_sev(h->hnd, ResourceId, Severity) < 0) {
+                dbg("SEL add entry failed");
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* to get rpt entry into infrastructure */
+        get_events();
         return SA_OK;
 }
 
@@ -400,11 +413,29 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiTextBufferT *ResourceTag)
 {
-        struct oh_resource *res;
+        int (*set_res_tag)(void *hnd, SaHpiResourceIdT id, 
+                           SaHpiTextBufferT *ResourceTag);
         
-        OH_GET_RESOURCE;
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
         
-        memcpy(&res->entry.ResourceTag, ResourceTag, sizeof(res->entry.ResourceTag));   
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        set_res_tag = h->abi->set_resource_tag;
+        
+        if (!set_res_tag)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (set_res_tag(h->hnd, ResourceId, ResourceTag) < 0) {
+                dbg("Tage set failed for Resource %d", ResourceId);
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* to get RSEL entry into infrastructure */
+        get_events();
         return SA_OK;
 }
 
@@ -412,6 +443,7 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_OUT SaHpiResourceIdT *ResourceId)
 {
+        /* this is going to be an interesting call to figure out */
         return SA_ERR_HPI_UNKNOWN;
 }
 
@@ -419,8 +451,9 @@ SaErrorT SAHPI_API saHpiEntitySchemaGet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_OUT SaHpiUint32T *SchemaId)
 {
-        /*FIXME: how to determine schema is ongoing*/
-        *SchemaId = ('C'<<24) | ('P'<<16) | ('C'<<8) | 'I';
+        /* we must return 0 for now, as we don't determine 
+           schemas yet */
+        *SchemaId = 0;
         return SA_OK;
 }
 
@@ -430,194 +463,36 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiSelInfoT *Info)
 {
+        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
+        
         struct oh_session *s;
-        struct oh_resource *res;
-
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+        
         OH_STATE_READY_CHECK;
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if(dsel_get_info(s->domain_id, Info)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
         
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
+        OH_HANDLER_GET(rpt, ResourceId, h);
+
+        get_func = h->abi->get_sel_info;
+
+        if (!get_func)
+                return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, Info)<0)
+        if (get_func(h->hnd, ResourceId, Info) < 0) {
+                dbg("SEL info get failed");
                 return SA_ERR_HPI_UNKNOWN;
+        }
         return SA_OK;
 }
-
-struct list_entry_ops {
-        void                    (*get_entry)(void *, SaHpiSelEntryT *);
-        struct oh_resource      *(*get_res)(void *);
-        struct oh_rdr           *(*get_rdr)(void *);
-};
-
-static SaErrorT process_sel_entry(
-                GSList *sel_list, 
-                SaHpiSelEntryIdT EntryId,
-                SaHpiSelEntryIdT *PrevEntryId,
-                SaHpiSelEntryIdT *NextEntryId,
-                SaHpiSelEntryT *EventLogEntry,
-                SaHpiRdrT *Rdr,
-                SaHpiRptEntryT *RptEntry,
-                struct list_entry_ops *ops)
-{
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-        GSList *pi, *i, *ni;
-        SaHpiSelEntryT entry;
-
-        data_access_lock();
-
-        if (sel_list==NULL) {
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID;
-        } else if (EntryId==SAHPI_OLDEST_ENTRY) {
-                pi = NULL;
-                i  = g_slist_nth(sel_list, 0);
-                ni = g_slist_nth(sel_list, 1);
-        } else if (EntryId==SAHPI_NEWEST_ENTRY) {
-                int num = g_slist_length(sel_list);
-                pi  = g_slist_nth(sel_list, num-2);
-                i   = g_slist_nth(sel_list, num-1);
-                ni  = NULL;
-        } else {
-                int num = EntryId;
-                pi = g_slist_nth(sel_list, num-1);
-                i  = g_slist_nth(sel_list, num);
-                ni = g_slist_nth(sel_list, num+1);
-        }
-        
-        if (!i) {
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID;
-        }
-        
-        ops->get_entry(i->data, EventLogEntry);
-        EventLogEntry->EntryId =  EntryId;
-        res = ops->get_res(i->data);
-        
-        if (RptEntry) {
-                if (res) 
-                        memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
-                else
-                        RptEntry->ResourceCapabilities = 0;
-        }
-
-        if (Rdr) {
-                if (res) 
-                        rdr = ops->get_rdr(i->data);
-                else 
-                        rdr = NULL;
-                if (rdr)
-                        memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
-                else 
-                        Rdr->RdrType = SAHPI_NO_RECORD;
-        }
-        
-        if (pi) {
-                ops->get_entry(pi->data, &entry);
-                *PrevEntryId = entry.EntryId;
-        } else 
-                *PrevEntryId = SAHPI_NO_MORE_ENTRIES;
-
-        if (ni) {
-                ops->get_entry(ni->data, &entry);
-                *NextEntryId = entry.EntryId;
-        } else
-                *NextEntryId = SAHPI_NO_MORE_ENTRIES;
-
-        data_access_unlock();
-        
-        return SA_OK;
-}
-
-static void dsel_get_entry(void *ptr, SaHpiSelEntryT *entry)
-{
-        struct oh_dsel *dsel = ptr;
-        memcpy(entry, &dsel->entry, sizeof(*entry));
-}
-
-static struct oh_resource *dsel_get_res(void *ptr)
-{
-        struct oh_dsel *dsel = ptr;
-        return get_res_by_oid(dsel->res_id);
-}
-
-static struct oh_rdr *dsel_get_rdr(void *ptr)
-{
-        struct oh_dsel *dsel = ptr;
-        struct oh_resource *res;
-
-        res = get_res_by_oid(dsel->res_id);
-        if (!res) {
-                dbg("Cannot find resource");
-                return NULL;
-        }
-
-        return get_rdr_by_oid(res, dsel->rdr_id);
-}
-
-static struct list_entry_ops dsel_ops = {
-        .get_entry = dsel_get_entry,
-        .get_res   = dsel_get_res,
-        .get_rdr   = dsel_get_rdr
-};
-
-static void rsel_get_entry(void *ptr, 
-                SaHpiSelEntryT *entry)
-{
-        struct oh_rsel *rsel = ptr;
-        struct oh_resource *res;
-        res = get_res_by_oid(rsel->parent);
-        if (!res) {
-                dbg("Cannot find resource");
-                return;
-        }
-
-        res->handler->abi->get_sel_entry(
-                        res->handler->hnd,
-                        rsel->oid, entry);
-        entry->EntryId = rsel->entry_id;
-}
-
-static struct oh_resource *rsel_get_res(void *ptr)
-{
-        struct oh_rsel *rsel = ptr;
-        return get_res_by_oid(rsel->res_id);
-}
-
-static struct oh_rdr *rsel_get_rdr(void *ptr)
-{
-        struct oh_rsel *rsel = ptr;
-        struct oh_resource *res;
-
-        res = get_res_by_oid(rsel->res_id);
-        if (!res) {
-                dbg("Cannot find resource");
-                return NULL;
-        }
-
-        return get_rdr_by_oid(res, rsel->rdr_id);
-}
-
-static struct list_entry_ops rsel_ops = {
-        .get_entry = rsel_get_entry,
-        .get_res   = rsel_get_res,
-        .get_rdr   = rsel_get_rdr
-};
 
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
@@ -629,43 +504,49 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_INOUT SaHpiRdrT *Rdr,
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
+        int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                             SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
+        
         struct oh_session *s;
-        GSList *sel_list;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+        SaHpiSelInfoT info;
+        SaErrorT rv;
+
+        rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
+        if(rv < 0) 
+                return rv;
+        
+        if(!info.DeleteEntrySupported) {
+                dbg("Detele entry is not supported for this event log");
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
         OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                struct oh_domain *d;
-                
-                d = get_domain_by_id(s->domain_id);
-                if (!d) {
-                        dbg("Internal error?!");
-                        sel_list = NULL;
-                } else 
-                        sel_list = d->sel_list;
-                
-                return process_sel_entry(sel_list, EntryId, 
-                                PrevEntryId, NextEntryId, 
-                                EventLogEntry, Rdr, RptEntry, &dsel_ops);       
-        } else {
-                struct oh_resource *res;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
-                res = get_resource(ResourceId);
-                if (!res) {
-                        dbg("Internal error?!");
-                        sel_list = NULL;
-                } else
-                        sel_list = res->sel_list;
-                return process_sel_entry(sel_list, EntryId, 
-                                PrevEntryId, NextEntryId, 
-                                EventLogEntry, Rdr, RptEntry, &rsel_ops);       
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        get_sel_entry = h->abi->get_sel_entry;
+        
+        if (!get_sel_entry)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
+                          NextEntryId, EventLogEntry) < 0) {
+                dbg("SEL info get failed");
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* TODO: pull RDR and RPTEntry from EventLogEntry for return */
+        return SAHPI_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (
@@ -673,29 +554,36 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSelEntryT *EvtEntry)
 {
+        int (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, 
+                             const SaHpiSelEntryT *Event);
+        
         struct oh_session *s;
-        
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_add(s->domain_id, EvtEntry)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else 
-                        return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
         
-        /* rsel_add will make plug-in send a RSEL event 
-         * for the entry */
-        if (rsel_add(ResourceId, EvtEntry)<0)
-                return SA_ERR_HPI_UNKNOWN;
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
-        /* to get RSEL evtry into infrastructure */
+        add_sel_entry = h->abi->add_sel_entry;
+        
+        if (!add_sel_entry)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (add_sel_entry(h->hnd, ResourceId, EvtEntry) < 0) {
+                dbg("SEL add entry failed");
+                return SA_ERR_HPI_UNKNOWN;
+        }
+        
+        /* to get RSEL entry into infrastructure */
         get_events();
         return SA_OK;
 }
@@ -705,53 +593,70 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSelEntryIdT EntryId)
 {
+        int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, 
+                             SaHpiSelEntryIdT sid);
+        
         struct oh_session *s;
-        
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_del(s->domain_id, EntryId)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else
-                        return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
-
-        if (rsel_del(ResourceId, EntryId)<0)
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        del_sel_entry = h->abi->del_sel_entry;
+        
+        if (!del_sel_entry)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (del_sel_entry(h->hnd, ResourceId, EntryId) < 0) {
+                dbg("SEL delete entry failed");
                 return SA_ERR_HPI_UNKNOWN;
-        else
-                return SA_OK;
+        }
+        
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogClear (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId)
 {
+        int (*clear_sel)(void *hnd, SaHpiResourceIdT id);
+        
         struct oh_session *s;
-        
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
         OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_clr(s->domain_id)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else
-                        return SA_OK;
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
-
-        if (rsel_clr(ResourceId)<0)
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        clear_sel = h->abi->clear_sel;
+        if (!clear_sel)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (clear_sel(h->hnd, ResourceId) < 0) {
+                dbg("SEL delete entry failed");
                 return SA_ERR_HPI_UNKNOWN;
-        return SA_OK;
+        }
+        
+        return SA_OK; 
 }
 
 SaErrorT SAHPI_API saHpiEventLogTimeGet (
@@ -759,32 +664,17 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiTimeT *Time)
 {
-        struct oh_session *s;
-        struct oh_resource *res;
-        SaHpiSelInfoT info;
-        
-        OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                *Time = dsel_get_time(s->domain_id);
-                return SA_OK;
+        SaHpiSelInfoT info;        
+        SaErrorT rv;
+
+        rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
+
+        if(rv < 0) {
+                return rv;
         }
-        
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
-        
-        if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, &info)<0)
-                return SA_ERR_HPI_UNKNOWN;
+
         *Time = info.CurrentTime;
+        
         return SA_OK;
 }
 
@@ -793,33 +683,34 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiTimeT Time)
 {
+        int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
+
         struct oh_session *s;
-        struct oh_resource *res;
-        struct timeval time;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
         OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                dsel_set_time(s->domain_id, Time);
-                return SA_OK;
+        OH_SESSION_SETUP(SessionId,s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);  
+
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
+        OH_HANDLER_GET(rpt, ResourceId, h);
+
+        set_sel_time = h->abi->set_sel_time;
+
+        if (!set_sel_time)
+                return SA_ERR_HPI_UNSUPPORTED_API;
         
-        time.tv_sec  = Time / 1000000000;
-        time.tv_usec = Time % 1000000000 * 1000;
-        if (res->handler->abi->set_sel_time(res->handler->hnd, res->oid, &time)<0)
+        if (set_sel_time(h->hnd, ResourceId, Time) < 0) {
+                dbg("Set SEL time failed");
                 return SA_ERR_HPI_UNKNOWN;
+        }
+        
         return SA_OK;
 }
 
@@ -828,32 +719,17 @@ SaErrorT SAHPI_API saHpiEventLogStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiBoolT *Enable)
 {
-        struct oh_session *s;
-        struct oh_resource *res;
-        SaHpiSelInfoT info;
+        SaHpiSelInfoT info;        
+        SaErrorT rv;
+        
+        rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
 
-        OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                *Enable = dsel_get_state(s->domain_id);
-                return SA_OK;
+        if(rv < 0) {
+                return rv;
         }
 
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
-        
-        if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, &info)<0)
-                return SA_ERR_HPI_UNKNOWN;
         *Enable = info.Enabled;
+        
         return SA_OK;
 }
 
@@ -862,33 +738,8 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiBoolT Enable)
 {
-        struct oh_session *s;
-        struct oh_resource *res;
-        
-        OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_set_state(s->domain_id, Enable)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else
-                        return SA_OK;
-        }
-
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
-        
-        if (res->handler->abi->set_sel_state(res->handler->hnd, res->oid, Enable)<0)
-                return SA_ERR_HPI_UNKNOWN;
-        return SA_OK;
+        /* this request is not valid on an RSEL */
+        return SA_ERR_HPI_INVALID_REQUEST;
 }
 
 SaErrorT SAHPI_API saHpiSubscribe (
@@ -898,12 +749,8 @@ SaErrorT SAHPI_API saHpiSubscribe (
         struct oh_session *s;
         
         OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+
+        OH_SESSION_SETUP(SessionId,s);
         
         if (s->event_state == OH_EVENT_SUBSCRIBE) {
                 dbg("Duplicate subscribe");
@@ -926,11 +773,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         
         OH_STATE_READY_CHECK;
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+        OH_SESSION_SETUP(SessionId,s);
 
         if (s->event_state == OH_EVENT_UNSUBSCRIBE) {
                 dbg("Duplicate subscribe");
@@ -949,15 +792,14 @@ SaErrorT SAHPI_API saHpiEventGet (
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
         struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        
         SaHpiTimeT now, end;
-        OH_STATE_READY_CHECK;
         int value;
-
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+        
+        OH_STATE_READY_CHECK;
+        
+        OH_SESSION_SETUP(SessionId, s);
         
         gettimeofday1(&now);
         if (Timeout== SAHPI_TIMEOUT_BLOCK) {
@@ -991,8 +833,8 @@ SaErrorT SAHPI_API saHpiEventGet (
         
         if (value==SA_OK) {
                 struct oh_hpi_event e;
-                struct oh_resource *res;
-                struct oh_rdr *rdr;
+                SaHpiRptEntryT *res;
+                SaHpiRdrT *rdr;
                 
                 if (session_pop_event(s, &e)<0) {
                         dbg("Empty event queue?!");
@@ -1000,29 +842,31 @@ SaErrorT SAHPI_API saHpiEventGet (
                 }
 
                 memcpy(Event, &e.event, sizeof(*Event));
-
+                
                 if (Rdr)
                         Rdr->RdrType = SAHPI_NO_RECORD;
 
                 if (RptEntry)
                         RptEntry->ResourceCapabilities = 0;
 
-                res = get_res_by_oid(e.parent);
+                res = oh_get_resource_by_id(rpt,e.parent);
 
                 if (res) {
                         if (Rdr) {
-                                rdr = get_rdr_by_oid(res, e.id);
-
-                                if (rdr)
-                                        memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
-                                else
+                                rdr = oh_get_rdr_by_id(rpt,res->ResourceId,e.id);
+                                if (rdr) {
+                                        memcpy(Rdr, rdr, sizeof(*Rdr));
+                                } else {
                                         dbg("Event without resource");
+                                }
                         }
 
-                        if (RptEntry)
-                                memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
-                } else
-                        dbg("Event without resource");
+                        if (RptEntry) {
+                                memcpy(RptEntry, res, sizeof(*RptEntry));
+                        }
+                } else {
+                        dbg("Event without resource");  
+                }
         }
         
         return value;
@@ -1037,38 +881,35 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 SAHPI_OUT SaHpiEntryIdT *NextEntryId,
                 SAHPI_OUT SaHpiRdrT *Rdr)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;     
-        unsigned int no;
-        
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRdrT *rdr_cur;
+        SaHpiRdrT *rdr_next;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+
         data_access_lock();
         
-        OH_GET_RESOURCE;
-
-        switch (EntryId) {
-        case SAHPI_FIRST_ENTRY:
-                no = 0;
-                break;
-        default:
-                no = EntryId - entry_id_offset;
-                break;
+        if(EntryId == SAHPI_FIRST_ENTRY) {
+                rdr_cur = oh_get_rdr_next(rpt, ResourceId, RDR_BEGIN);
+        } else {
+                rdr_cur = oh_get_rdr_by_id(rpt, ResourceId, EntryId);
         }
-        
-        if (no>=g_slist_length(res->rdr_list)) {
-                dbg("Invalid EntryId");
+
+        if(rdr_cur == NULL) {
+                dbg("No RDR available");
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID;
         }
-
-        rdr = g_slist_nth_data(res->rdr_list, no);
-        memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
         
-        no++;
-                
-        if (no < g_slist_length(res->rdr_list)) {
-                *NextEntryId = no+entry_id_offset;
-        } else {
+        memcpy(Rdr, rdr_cur, sizeof(*Rdr));
+
+        rdr_next = oh_get_rdr_next(rpt, ResourceId, rdr_cur->RecordId);
+        if(rdr_next == NULL) {
                 *NextEntryId = SAHPI_LAST_ENTRY;
+        } else {
+                *NextEntryId = rdr_next->RecordId;
         }
         
         data_access_unlock();
@@ -1084,24 +925,30 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorReadingT *Reading)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
+        
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
+        SaHpiRptEntryT *res;
+        
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
-        int (*get_func) (void *, struct oh_rdr_id, SaHpiSensorReadingT *);
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
-        OH_GET_RESOURCE;
+        OH_HANDLER_GET(rpt, ResourceId, h);
 
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
-
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        get_func = res->handler->abi->get_sensor_data;
+        get_func = h->abi->get_sensor_data;
 
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_func(res->handler->hnd, rdr->oid, Reading))
+        if (get_func(h->hnd, ResourceId, SensorNum, Reading))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1114,31 +961,29 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
                 SAHPI_IN SaHpiSensorReadingT *ReadingInput,
                 SAHPI_OUT SaHpiSensorReadingT *ConvertedReading)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        RPTable *rpt = default_rpt;
+        SaHpiRdrT *rdr;
         SaHpiSensorRecT *sensor;
         SaHpiSensorReadingFormatsT format;
 
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
 
         if (!rdr)
                 return SA_ERR_HPI_NOT_PRESENT;
 
-        sensor = &rdr->rdr.RdrTypeUnion.SensorRec;
+        sensor = &(rdr->RdrTypeUnion.SensorRec);
 
         /* if ReadingInput neither contains a raw nor a intepreted value or
            if it contains both, return an error */
-        format =   ReadingInput->ValuesPresent
-                 & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
-
+        format = ReadingInput->ValuesPresent
+                & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
+        
         if (format == 0 || format == (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         /* if the sensor does not supports raw and interpreted values,
            return an error */
-        format =   sensor->DataFormat.ReadingFormats
+        format = sensor->DataFormat.ReadingFormats
                  & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
 
         if (format != (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
@@ -1183,24 +1028,31 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-
-        int (*set_func) (void *, struct oh_rdr_id,const SaHpiSensorThresholdsT *);
-
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
-
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        int (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, 
+                         const SaHpiSensorThresholdsT *);
         
-        set_func = res->handler->abi->set_sensor_thresholds;
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        set_func = h->abi->set_sensor_thresholds;
 
         if (!set_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(res->handler->hnd, rdr->oid, SensorThresholds))
+        if (set_func(h->hnd, ResourceId, SensorNum, SensorThresholds) < 0)
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1212,33 +1064,39 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_IN SaHpiSensorThresholdsT *SensorThresholds)
 {
-        struct oh_resource *res;     
-        struct oh_rdr *rdr;
+        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorThresholdsT *);
 
-        int (*get_func) (void *, struct oh_rdr_id,SaHpiSensorThresholdsT *);
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
 
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
-
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        get_func = res->handler->abi->get_sensor_thresholds;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        get_func = h->abi->get_sensor_thresholds;
 
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_func(res->handler->hnd, rdr->oid, SensorThresholds))
+        if (get_func(h->hnd, ResourceId, SensorNum, SensorThresholds) < 0)
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
 }
 
-        /* Function: SaHpiSensorTypeGet */
-        /* Core SAF_HPI function */
-        /* Not mapped to plugin */
-        /* Data in RDR */
+/* Function: SaHpiSensorTypeGet */
+/* Core SAF_HPI function */
+/* Not mapped to plugin */
+/* Data in RDR */
 SaErrorT SAHPI_API saHpiSensorTypeGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -1246,22 +1104,26 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
                 SAHPI_OUT SaHpiSensorTypeT *Type,
                 SAHPI_OUT SaHpiEventCategoryT *Category)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRdrT *rdr;
 
-        OH_GET_RESOURCE;
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
 
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
         
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        if (!memcpy(Type, &rdr->rdr.RdrTypeUnion.SensorRec.Type,
-                        sizeof(SaHpiSensorTypeT)))
+        if (!rdr) {
+                dbg("No Sensor num %d found for Resource %d", SensorNum, ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        if (!memcpy(Type, &(rdr->RdrTypeUnion.SensorRec.Type),
+                    sizeof(SaHpiSensorTypeT)))
                 return SA_ERR_HPI_ERROR;
 
-        if (!memcpy(Category, &rdr->rdr.RdrTypeUnion.SensorRec.Category,
-                        sizeof(SaHpiEventCategoryT)))
+        if (!memcpy(Category, &(rdr->RdrTypeUnion.SensorRec.Category),
+                    sizeof(SaHpiEventCategoryT)))
                 return SA_ERR_HPI_ERROR;
         
         return SA_OK;
@@ -1273,23 +1135,31 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorEvtEnablesT *Enables)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-        int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
+        int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT, 
+                                        SaHpiSensorNumT,
                                         SaHpiSensorEvtEnablesT *enables);
         
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        get_sensor_event_enables = res->handler->abi->get_sensor_event_enables;
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        get_sensor_event_enables = h->abi->get_sensor_event_enables;
         
         if (!get_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (get_sensor_event_enables(res->handler->hnd, rdr->oid, Enables))
+        if (get_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables) < 0)
                 return SA_ERR_HPI_UNKNOWN;
         return SA_OK;
 }
@@ -1300,23 +1170,31 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_IN SaHpiSensorEvtEnablesT *Enables)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-        int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
+        int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
+                                        SaHpiSensorNumT,
                                         const SaHpiSensorEvtEnablesT *enables);
         
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        set_sensor_event_enables = res->handler->abi->set_sensor_event_enables;
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        set_sensor_event_enables = h->abi->set_sensor_event_enables;
         
         if (!set_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (set_sensor_event_enables(res->handler->hnd, rdr->oid, Enables))
+        if (set_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables) < 0)
                 return SA_ERR_HPI_UNKNOWN;
         return SA_OK;
 }
@@ -1331,18 +1209,28 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
                 SAHPI_OUT SaHpiCtrlTypeT *Type)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
+                dbg("Resource %d doesn't have .ResourceCapabilities flag:" 
+		    " SAHPI_CAPABILITY_CONTROL set ",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+        
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_CTRL_RDR, CtrlNum);
         if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_REQUEST;
 
-        if (!memcpy(Type, &rdr->rdr.RdrTypeUnion.CtrlRec.Type, 
+        if (!memcpy(Type, &(rdr->RdrTypeUnion.CtrlRec.Type), 
                     sizeof(SaHpiCtrlTypeT)))
-            return SA_ERR_HPI_ERROR;
+                return SA_ERR_HPI_ERROR;
 
         return SA_OK;
 }
@@ -1353,24 +1241,31 @@ SaErrorT SAHPI_API saHpiControlStateGet (
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
                 SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
+        
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
+                dbg("Resource %d doesn't have controls",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
-        int (*get_func)(void *, struct oh_rdr_id,SaHpiCtrlStateT *);
-
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        get_func = res->handler->abi->get_control_state;
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        get_func = h->abi->get_control_state;
         if (!get_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
-
-        if (get_func(res->handler->hnd, rdr->oid, CtrlState))
+        
+        if (get_func(h->hnd, ResourceId, CtrlNum, CtrlState))
                 return SA_ERR_HPI_UNKNOWN;
-
+        
         return SA_OK;
 }
 
@@ -1380,22 +1275,29 @@ SaErrorT SAHPI_API saHpiControlStateSet (
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
                 SAHPI_IN SaHpiCtrlStateT *CtrlState)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
 
-        int (*set_func)(void *, struct oh_rdr_id,SaHpiCtrlStateT *);
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
+                dbg("Resource %d doesn't have controls",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        set_func = res->handler->abi->set_control_state;
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
+        set_func = h->abi->set_control_state;
         if (!set_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
-
-        if (set_func(res->handler->hnd, rdr->oid, CtrlState))
+        
+        if (set_func(h->hnd, ResourceId, CtrlNum, CtrlState))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1415,30 +1317,37 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
                 SAHPI_OUT SaHpiInventoryDataT *InventData,
                 SAHPI_OUT SaHpiUint32T *ActualSize)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, size_t *);
+        int (*get_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiInventoryDataT *);
+        
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
-        int (*get_size)(void *, struct oh_rdr_id, size_t *);
-        int (*get_func)(void *, struct oh_rdr_id, SaHpiInventoryDataT *);
-
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_INVENTORY_RDR, EirId);
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        get_size = res->handler->abi->get_inventory_size;
-        get_func = res->handler->abi->get_inventory_info;
+        OH_HANDLER_GET(rpt, ResourceId, h);
+                
+        get_size = h->abi->get_inventory_size;
+        get_func = h->abi->get_inventory_info;
         if (!get_func || !get_size)             
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_size(res->handler->hnd, rdr->oid, ActualSize))
+        if (get_size(h->hnd, ResourceId, EirId, ActualSize))
                 return SA_ERR_HPI_UNKNOWN;
         
         if (*ActualSize>BufferSize)
                 return SA_ERR_INVENT_DATA_TRUNCATED;
         
-        if (get_func(res->handler->hnd, rdr->oid, InventData))
+        if (get_func(h->hnd, ResourceId, EirId, InventData))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1450,22 +1359,29 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
                 SAHPI_IN SaHpiEirIdT EirId,
                 SAHPI_IN SaHpiInventoryDataT *InventData)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*set_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, const SaHpiInventoryDataT *);
 
-        int (*set_func)(void *, struct oh_rdr_id, const SaHpiInventoryDataT *);
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
-        OH_GET_RESOURCE;
+        OH_HANDLER_GET(rpt, ResourceId, h);
 
-        rdr = get_rdr(res, SAHPI_INVENTORY_RDR, EirId);
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        set_func = res->handler->abi->set_inventory_info;
+        set_func = h->abi->set_inventory_info;
         if (!set_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(res->handler->hnd, rdr->oid, InventData))
+        if (set_func(h->hnd, ResourceId, EirId, InventData))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1477,24 +1393,31 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
                 SAHPI_IN SaHpiWatchdogNumT WatchdogNum,
                 SAHPI_OUT SaHpiWatchdogT *Watchdog)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*get_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
+        
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
+                dbg("Resource %d doesn't have watchdog",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
-        int (*get_func)(void *, struct oh_rdr_id,SaHpiWatchdogT *);
+        OH_HANDLER_GET(rpt, ResourceId, h);
 
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_WATCHDOG_RDR, WatchdogNum);
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        get_func = res->handler->abi->get_watchdog_info;
+        get_func = h->abi->get_watchdog_info;
         if (!get_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
-
-        if (get_func(res->handler->hnd, rdr->oid, Watchdog))
+        
+        if (get_func(h->hnd, ResourceId, WatchdogNum, Watchdog))
                 return SA_ERR_HPI_UNKNOWN;
-
+        
         return SA_OK;
 }
 
@@ -1504,22 +1427,29 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
                 SAHPI_IN SaHpiWatchdogNumT WatchdogNum,
                 SAHPI_IN SaHpiWatchdogT *Watchdog)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*set_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
 
-        int (*set_func)(void *, struct oh_rdr_id,SaHpiWatchdogT *);
+        struct oh_session *s;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
+                dbg("Resource %d doesn't have watchdog",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
 
-        OH_GET_RESOURCE;
+        OH_HANDLER_GET(rpt, ResourceId, h);
 
-        rdr = get_rdr(res, SAHPI_WATCHDOG_RDR, WatchdogNum);
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
-        set_func = res->handler->abi->set_watchdog_info;
+        set_func = h->abi->set_watchdog_info;
         if (!set_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(res->handler->hnd, rdr->oid, Watchdog))
+        if (set_func(h->hnd, ResourceId, WatchdogNum, Watchdog))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1530,62 +1460,87 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiWatchdogNumT WatchdogNum)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        int (*reset_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT);
 
-        int (*reset_func)(void *, struct oh_rdr_id);
-
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_WATCHDOG_RDR, WatchdogNum);
-        if (!rdr)
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
+        
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
                 return SA_ERR_HPI_INVALID_PARAMS;
-
-        reset_func = res->handler->abi->reset_watchdog;
+        }
+        
+        reset_func = h->abi->reset_watchdog;
         if (!reset_func)                
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (reset_func(res->handler->hnd, rdr->oid))
+        if (reset_func(h->hnd, ResourceId, WatchdogNum))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapControlRequest (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId)
+        SAHPI_IN SaHpiSessionIdT SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        struct oh_resource *res;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         
-        OH_GET_RESOURCE;
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
-        res->controlled = 1;
+        
+        /* TODO: make a better symbolic constant */
+        oh_set_resource_managed(ResourceId, 1);
+
         return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceActiveSet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId)
+        SAHPI_IN SaHpiSessionIdT SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        struct oh_resource *res;
-        int (*set_hotswap_state)(void *hnd, struct oh_resource_id id,
+        int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT,
                         SaHpiHsStateT state);
         
-        OH_GET_RESOURCE;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
-        if (!res->controlled)
+        if (!oh_is_resource_managed(ResourceId)) 
                 return SA_ERR_HPI_INVALID_CMD;
         
-        set_hotswap_state = res->handler->abi->set_hotswap_state;
+        set_hotswap_state = h->abi->set_hotswap_state;
         if (!set_hotswap_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        /* this was done in the old code, so we do it here */
+        oh_set_resource_managed(ResourceId, 0);
 
-        res->controlled = 0;
-        if (set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_ACTIVE_HEALTHY)<0) 
+        if (set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE_HEALTHY)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1595,23 +1550,37 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        struct oh_resource *res;
-        int (*set_hotswap_state)(void *hnd, struct oh_resource_id id,
-                        SaHpiHsStateT state);
+        int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+                                 SaHpiHsStateT state);
         
-        OH_GET_RESOURCE;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
-        if (!res->controlled)
+        if (!oh_is_resource_managed(ResourceId))
                 return SA_ERR_HPI_INVALID_CMD;
         
-        set_hotswap_state = res->handler->abi->set_hotswap_state;
+        set_hotswap_state = h->abi->set_hotswap_state;
         if (!set_hotswap_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        res->controlled = 0;
-        if (set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_INACTIVE)<0) 
+        oh_set_resource_managed(ResourceId, 0);
+        if (set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1660,32 +1629,46 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiTimeoutT *Timeout)
 {
-        struct oh_resource *res;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         
-        OH_GET_RESOURCE;
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
         
-        *Timeout = res->auto_extract_timeout;
-        
+        /*
+          I think we need to push this down to the plugin
+          *Timeout = res->auto_extract_timeout;
+          */
         return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiTimeoutT Timeout)
+        SAHPI_IN SaHpiSessionIdT SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN SaHpiTimeoutT Timeout)
 {
-        struct oh_resource *res;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         
-        OH_GET_RESOURCE;
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
         
-        res->auto_extract_timeout = Timeout;
-
+        /* 
+           I think we need to push this down to the plugin
+           res->auto_extract_timeout = Timeout;
+        */
         return SA_OK;
 }
 
@@ -1694,20 +1677,33 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiHsStateT *State)
 {
-        struct oh_resource *res;
-        int (*get_hotswap_state)(void *hnd, struct oh_resource_id id,
-                        SaHpiHsStateT *state);
+        int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+                                 SaHpiHsStateT *state);
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        OH_GET_RESOURCE;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
         
-        get_hotswap_state = res->handler->abi->get_hotswap_state;
+        get_hotswap_state = h->abi->get_hotswap_state;
         if (!get_hotswap_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_hotswap_state(res->handler->hnd, res->oid, State)<0) 
+        if (get_hotswap_state(h->hnd, ResourceId, State)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1718,20 +1714,34 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiHsActionT Action)
 {
-        struct oh_resource *res;
-        int (*request_hotswap_action)(void *hnd, struct oh_resource_id id,
+        int (*request_hotswap_action)(void *hnd, SaHpiResourceIdT rid,
                         SaHpiHsActionT act);
         
-        OH_GET_RESOURCE;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
         
-        request_hotswap_action = res->handler->abi->request_hotswap_action;
+        request_hotswap_action = h->abi->request_hotswap_action;
         if (!request_hotswap_action) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (request_hotswap_action(res->handler->hnd, res->oid, Action)<0) 
+        if (request_hotswap_action(h->hnd, ResourceId, Action)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         get_events();
@@ -1744,17 +1754,23 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiHsPowerStateT *State)
 {
-        struct oh_resource *res;
-        int (*get_power_state)(void *hnd, struct oh_resource_id id,
-                        SaHpiHsPowerStateT *state);
+        int (*get_power_state)(void *hnd, SaHpiResourceIdT id,
+                               SaHpiHsPowerStateT *state);
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
         
-        OH_GET_RESOURCE;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        get_power_state = res->handler->abi->get_power_state;
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        get_power_state = h->abi->get_power_state;
         if (!get_power_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_power_state(res->handler->hnd, res->oid, State)<0) 
+        if (get_power_state(h->hnd, ResourceId, State)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1765,17 +1781,30 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiHsPowerStateT State)
 {
-        struct oh_resource *res;
-        int (*set_power_state)(void *hnd, struct oh_resource_id id,
-                        SaHpiHsPowerStateT state);
+        int (*set_power_state)(void *hnd, SaHpiResourceIdT id,
+                               SaHpiHsPowerStateT state);
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        OH_GET_RESOURCE;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        set_power_state = res->handler->abi->set_power_state;
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        set_power_state = h->abi->set_power_state;
         if (!set_power_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_power_state(res->handler->hnd, res->oid, State)<0) 
+        if (set_power_state(h->hnd, ResourceId, State)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1786,17 +1815,23 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiHsIndicatorStateT *State)
 {
-        struct oh_resource *res;
-        int (*get_indicator_state)(void *hnd, struct oh_resource_id id,
-                        SaHpiHsIndicatorStateT *state);
+        int (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
+                                   SaHpiHsIndicatorStateT *state);
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
         
-        OH_GET_RESOURCE;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        get_indicator_state = res->handler->abi->get_indicator_state;
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+                
+        get_indicator_state = h->abi->get_indicator_state;
         if (!get_indicator_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_indicator_state(res->handler->hnd, res->oid, State)<0) 
+        if (get_indicator_state(h->hnd, ResourceId, State)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1807,17 +1842,23 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiHsIndicatorStateT State)
 {
-        struct oh_resource *res;
-        int (*set_indicator_state)(void *hnd, struct oh_resource_id id,
-                        SaHpiHsIndicatorStateT state);
+        int (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
+                                   SaHpiHsIndicatorStateT state);
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
         
-        OH_GET_RESOURCE;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        set_indicator_state = res->handler->abi->set_indicator_state;
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        set_indicator_state = h->abi->set_indicator_state;
         if (!set_indicator_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_indicator_state(res->handler->hnd, res->oid, State)<0) 
+        if (set_indicator_state(h->hnd, ResourceId, State)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1828,19 +1869,32 @@ SaErrorT SAHPI_API saHpiParmControl (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiParmActionT Action)
 {
-        struct oh_resource *res;
-        int (*control_parm)(void *, struct oh_resource_id, SaHpiParmActionT);
+        int (*control_parm)(void *, SaHpiResourceIdT, SaHpiParmActionT);
         
-        OH_GET_RESOURCE;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
         
-        if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION))
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        res = oh_get_resource_by_id(rpt, ResourceId);
+        if(res == NULL) {
+                dbg("No such resouce");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION))
                 return SA_ERR_HPI_INVALID;
         
-        control_parm = res->handler->abi->control_parm;
+        control_parm = h->abi->control_parm;
         if (!control_parm) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (control_parm(res->handler->hnd, res->oid, Action)<0) 
+        if (control_parm(h->hnd, ResourceId, Action)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1851,16 +1905,23 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiResetActionT *ResetAction)
 {
-        struct oh_resource *res;
-        int (*get_func)(void *, struct oh_resource_id, SaHpiResetActionT *);
+        int (*get_func)(void *, SaHpiResourceIdT, SaHpiResetActionT *);
+
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
         
-        OH_GET_RESOURCE;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        get_func = res->handler->abi->get_reset_state;
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        get_func = h->abi->get_reset_state;
         if (!get_func) 
                 return SA_ERR_HPI_INVALID_CMD;
 
-        if (get_func(res->handler->hnd, res->oid, ResetAction)<0) 
+        if (get_func(h->hnd, ResourceId, ResetAction)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;
@@ -1871,16 +1932,22 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiResetActionT ResetAction)
 {
-        struct oh_resource *res;
-        int (*set_func)(void *, struct oh_resource_id, SaHpiResetActionT);
+        int (*set_func)(void *, SaHpiResourceIdT, SaHpiResetActionT);
+        RPTable *rpt = default_rpt;
+        struct oh_handler *h;
         
-        OH_GET_RESOURCE;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        set_func = res->handler->abi->set_reset_state;
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        set_func = h->abi->set_reset_state;
         if (!set_func) 
                 return SA_ERR_HPI_INVALID_CMD;
 
-        if (set_func(res->handler->hnd, res->oid, ResetAction)<0) 
+        if (set_func(h->hnd, ResourceId, ResetAction)<0) 
                 return SA_ERR_HPI_UNKNOWN;
         
         return SA_OK;

@@ -53,6 +53,10 @@ SUBDIRS			= src @ENABLED_DIRS@
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
+ALL_SOURCES = $(shell \
+	find . \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
+	-name '*.[chS]' -print )
+
 includedir=$(base_includedir)/openhpi
 
 include_HEADERS	= include/SaHpi.h include/openhpi.h \
@@ -73,14 +77,13 @@ clean: am_config_clean
 	$(MAKE) -C examples clean
 am_config_clean:
 	rm -fr $(PACKAGE)-*.tar.gz
-define all-sources
-	(find . \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
-	-name '*.[chS]' -print )
-endef
 
-tags:
-	$(all-sources) | xargs ctags		
-TAGS:
-	$(all-sources) | xargs etags
-cscope:
-	$(all-sources) > cscope.files && cscope -b
+tags:   $(ALL_SOURCES)
+	@echo making tags		
+	@echo $(ALL_SOURCES) | xargs ctags
+TAGS:   $(ALL_SOURCES)
+	@echo making TAGS
+	@echo $(ALL_SOURCES) | xargs etags
+cscope: $(ALL_SOURCES)
+	@echo making cscope
+	@echo $(ALL_SOURCES) > cscope.files && cscope -b

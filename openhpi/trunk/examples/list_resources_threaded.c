@@ -150,13 +150,15 @@ int main(int arc, const char *argv[])
 }
 
 /**
- * thread spawned after all discover_domain threads exit, 
+ * pthread_event_get: 
+ * @arg: struct contains all necessary data
+ *
+ * thread spawned after all 
+ * discover_domain threads exit, 
  * this thread loops until any key is pressed
  * each loop queries plugin for doamin events
- * 
- * 
- * @return void
- * @param arg,  struct contains all necessary data
+ *
+ * Return Value: void
  */
 void *pthread_event_get(void *arg)
 {
