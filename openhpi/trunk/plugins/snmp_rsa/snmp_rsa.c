@@ -23,7 +23,7 @@
 #include <epath_utils.h>
 
 #include <rsa_resources.h>
-// #include <snmp_rsa_control.h>
+#include <snmp_rsa_control.h>
 #include <snmp_rsa_discover.h>
 #include <snmp_rsa_sel.h>
 #include <snmp_rsa_sensor.h>
@@ -484,10 +484,8 @@ struct oh_abi_v2 oh_snmp_rsa_plugin = {
         .set_sensor_thresholds		= snmp_rsa_set_sensor_thresholds,
         .get_sensor_event_enables	= snmp_rsa_get_sensor_event_enables,
         .set_sensor_event_enables	= snmp_rsa_set_sensor_event_enables,
-//      .get_control_state		= snmp_rsa_get_control_state,
-        .get_control_state		= NULL,
-//      .set_control_state		= snmp_rsa_set_control_state,
-        .set_control_state		= NULL,
+        .get_control_state		= snmp_rsa_get_control_state,
+        .set_control_state		= snmp_rsa_set_control_state,
         .get_inventory_size		= snmp_rsa_get_inventory_size,
         .get_inventory_info		= snmp_rsa_get_inventory_info,
         .set_inventory_info		= snmp_rsa_set_inventory_info,
