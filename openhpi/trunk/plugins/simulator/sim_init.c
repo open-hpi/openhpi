@@ -11,10 +11,15 @@
  *
  * Author(s):
  *      Sean Dague
+ *	  Christina Hernandez
  *
  */
 
+#ifdef O 
+
 #include <sim_init.h>
+#include <sim_resources.c>
+#include <sim_resources.h>
 
 void *sim_open(GHashTable *handler_config)
 {
@@ -57,28 +62,53 @@ void *sim_open(GHashTable *handler_config)
                 g_free(state);
                 return NULL;
         }
-        
+       
+       build_rptcache(state);
+
         return ( (void *) state);
 }
 
+
+
+
+
 SaErrorT sim_discover(void *hnd) 
 {
-        return SA_OK;
+
+	struct oh_handler_state *inst = (struct oh_handler_state *) hnd;
+	struct oh_event event;
+	SaHpiRptEntryT *rpt_entry;
+
+	rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
+
+	while (rpt_entry) {
+		/*dbg("here resource event id %d", rpt_entry->ResourceId);*/
+		memset(&event, 0, sizeof(event));
+		event.type = OH_ET_RESOURCE;
+		memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
+		g_async_queue_push(inst->eventq_async, eventdup(&event));
+
+		rpt_entry = oh_get_resource_next(inst->rptcache, rpt_entry->ResourceId);	
+        }
+
+        return 0;
 }
+
+
 
 int sim_get_event(void *hnd, struct oh_event *event)
 {
-        struct oh_handler_state *handle = hnd;
-        struct oh_event *e = NULL;
-        
-        if ( (e = g_async_queue_try_pop(handle->eventq_async)) ) {
-                trace("retrieving sim event from async q");
-		memcpy(event, e, sizeof(*event));
-                event->did = oh_get_default_domain_id(); 
-                g_free(e);
-                return 1;
-        } else {
-                trace("no more events for sim instance");
+	struct oh_handler_state *handle = hnd;
+	struct oh_event *e = NULL;
+
+	if ( (e = g_async_queue_try_pop(handle->eventq_async)) ) {
+		trace("retrieving sim event from async q");
+		memcpy(event, e, sizeof(*event));		
+		event->did = oh_get_default_domain_id(); 		
+		g_free(e);
+		return 1;
+	} else {
+		trace("no more events for sim instance");
                 return 0;
         }
 }
@@ -87,6 +117,30 @@ void sim_close(void *hnd)
 {
         /* TODO: clean up state */
         return;
+}
+
+
+SaErrorT build_rptcache(RPTable *rptcache) 
+{
+	int i;
+	for(i=0; i<sizeof(SaHpiRptEntryT)/sizeof(dummy_rpt_array); i++){
+		oh_add_resource(&rptcache, &dummy_rpt_array[i], NULL, FREE_RPT_DATA);
+		i++;
+        }
+
+        return 0;
+}
+
+SaErrorT oh_event *eventdup(const struct oh_event *event)
+{
+        struct oh_event *e;
+        e = g_malloc0(sizeof(*e));
+        if (!e) {
+                dbg("Out of memory!");
+                return NULL;
+        }
+        memcpy(e, event, sizeof(*e));
+        return e;
 }
 
 /*
@@ -116,3 +170,4 @@ int sim_get_interface(void **pp, const uuid_t uuid)
 }
 
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("sim_get_interface")));
+#endif
