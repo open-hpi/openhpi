@@ -46,7 +46,7 @@ INCLUDES                = -I$(top_srcdir)/include \
 
 AM_CFLAGS		= -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
 
-EXTRA_DIST		= sim_resources.h
+EXTRA_DIST		= sim_resources.h openhpi.conf
 
 noinst_LTLIBRARIES	= libsnmp_bc.la
 
