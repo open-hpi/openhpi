@@ -24,18 +24,18 @@
 static inline int __dsel_add(GSList **sel_list, 
 		const SaHpiSelEntryT *entry, int counter)
 {
-	struct oh_sel *sel;
+	struct oh_dsel *dsel;
 	
-	sel = malloc(sizeof(*sel));
-	if (!sel) {
+	dsel = malloc(sizeof(*dsel));
+	if (!dsel) {
 		dbg("Out of memory");
 		return -1;
 	}
-	memset(sel, 0, sizeof(*sel));
+	memset(dsel, 0, sizeof(*dsel));
 
-	memcpy(&sel->entry, entry, sizeof(*entry));
-	sel->entry.EntryId = counter;
-	*sel_list = g_slist_append(*sel_list, sel);
+	memcpy(&dsel->entry, entry, sizeof(*entry));
+	dsel->entry.EntryId = counter;
+	*sel_list = g_slist_append(*sel_list, dsel);
 	return 0;
 }
 
@@ -143,24 +143,24 @@ int dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
 
 int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 {
-	struct oh_sel *sel;
+	struct oh_dsel *dsel;
 	
 	dbg("DSEL from plugin!");
-	sel = malloc(sizeof(*sel));
-	if (!sel) {
+	dsel = malloc(sizeof(*dsel));
+	if (!dsel) {
 		dbg("Out of memory");
 		return -1;
 	}
-	memset(sel, 0, sizeof(*sel));
+	memset(dsel, 0, sizeof(*dsel));
 
-	sel->res_id		= e->parent;
-	sel->rdr_id		= e->id;
-	sel->entry.EntryId	= d->sel_counter++;
-	gettimeofday1(&sel->entry.Timestamp);
+	dsel->res_id		= e->parent;
+	dsel->rdr_id		= e->id;
+	dsel->entry.EntryId	= d->sel_counter++;
+	gettimeofday1(&dsel->entry.Timestamp);
 	
-	memcpy(&sel->entry.Event, &e->event, sizeof(sel->entry.Event));
+	memcpy(&dsel->entry.Event, &e->event, sizeof(dsel->entry.Event));
 	
-	d->sel_list = g_slist_append(d->sel_list, sel);
+	d->sel_list = g_slist_append(d->sel_list, dsel);
 	return 0;
 }
 
@@ -176,11 +176,11 @@ int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
 	}
 
 	g_slist_for_each(i, d->sel_list) {
-		struct oh_sel *sel;
-		sel = i->data;
-		if (sel->entry.EntryId == id) {
+		struct oh_dsel *dsel;
+		dsel = i->data;
+		if (dsel->entry.EntryId == id) {
 			d->sel_list = g_slist_remove_link(d->sel_list, i);
-			free(sel);
+			free(dsel);
 			break;
 		}
 	}
