@@ -49,6 +49,7 @@ cMarshalType SaHpiEntityType = dStruct( SaHpiEntityT, SaHpiEntityElements );
 // entity path
 static cMarshalType SaHpiEntityPathEntryArray = dArray( SaHpiEntityType, SAHPI_MAX_ENTITY_PATH );
 
+
 static cMarshalType SaHpiEntityPathElements[] =
 {
   dStructElement( SaHpiEntityPathT, Entry, SaHpiEntityPathEntryArray ),
@@ -978,6 +979,8 @@ cMarshalType SaHpiEventType = dStruct( SaHpiEventT, SaHpiEventElements );
 
 
 // resource presence table
+// TODO DJ
+#if 0
 static cMarshalType SaHpiRptInfoElements[] =
 {
   dStructElement( SaHpiRptInfoT, UpdateCount, SaHpiUint32Type ),
@@ -986,19 +989,24 @@ static cMarshalType SaHpiRptInfoElements[] =
 };
 
 cMarshalType SaHpiRptInfoType = dStruct( SaHpiRptInfoT, SaHpiRptInfoElements );
+#endif
 
+
+static cMarshalType GuidDataArray = dVarArray( SaHpiUint8Type, 16 );
 
 static cMarshalType SaHpiResourceInfoElements[] =
 {
-  dStructElement( SaHpiResourceInfoT, ResourceRev, SaHpiUint8Type ),
-  dStructElement( SaHpiResourceInfoT, SpecificVer, SaHpiUint8Type ),
-  dStructElement( SaHpiResourceInfoT, DeviceSupport, SaHpiUint8Type ),
-  dStructElement( SaHpiResourceInfoT, ManufacturerId, SaHpiManufacturerIdType ),
-  dStructElement( SaHpiResourceInfoT, ProductId, SaHpiUint16Type ),
-  dStructElement( SaHpiResourceInfoT, FirmwareMajorRev, SaHpiUint8Type ),
-  dStructElement( SaHpiResourceInfoT, FirmwareMinorRev, SaHpiUint8Type ),
-  dStructElement( SaHpiResourceInfoT, AuxFirmwareRev, SaHpiUint8Type ),
-  dStructElementEnd()
+	dStructElement( SaHpiResourceInfoT, ResourceRev, SaHpiUint8Type ),
+	dStructElement( SaHpiResourceInfoT, SpecificVer, SaHpiUint8Type ),
+	dStructElement( SaHpiResourceInfoT, DeviceSupport, SaHpiUint8Type ),
+	dStructElement( SaHpiResourceInfoT, ManufacturerId, SaHpiManufacturerIdType ),
+	dStructElement( SaHpiResourceInfoT, ProductId, SaHpiUint16Type ),
+	dStructElement( SaHpiResourceInfoT, FirmwareMajorRev, SaHpiUint8Type ),
+	dStructElement( SaHpiResourceInfoT, FirmwareMinorRev, SaHpiUint8Type ),
+	dStructElement( SaHpiResourceInfoT, AuxFirmwareRev, SaHpiUint8Type ),
+	dStructElement( SaHpiResourceInfoT, AuxFirmwareRev, SaHpiUint8Type ),
+	dStructElement( SaHpiResourceInfoT, Guid, GuidDataArray ),
+	dStructElementEnd()
 };
 
 cMarshalType SaHpiResourceInfoType = dStruct( SaHpiResourceInfoT, SaHpiResourceInfoElements );
@@ -1006,15 +1014,18 @@ cMarshalType SaHpiResourceInfoType = dStruct( SaHpiResourceInfoT, SaHpiResourceI
 
 static cMarshalType SaHpiRptEntryElements[] =
 {
-  dStructElement( SaHpiRptEntryT, EntryId, SaHpiEntryIdType ),
-  dStructElement( SaHpiRptEntryT, ResourceId, SaHpiResourceIdType ),
-  dStructElement( SaHpiRptEntryT, ResourceInfo, SaHpiResourceInfoType ),
-  dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
-  dStructElement( SaHpiRptEntryT, ResourceCapabilities, SaHpiCapabilitiesType ),
-  dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ),
-  dStructElement( SaHpiRptEntryT, DomainId, SaHpiDomainIdType ),
-  dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),
-  dStructElementEnd()
+	dStructElement( SaHpiRptEntryT, EntryId, SaHpiEntryIdType ),
+	dStructElement( SaHpiRptEntryT, ResourceId, SaHpiResourceIdType ),
+	dStructElement( SaHpiRptEntryT, ResourceInfo, SaHpiResourceInfoType ),	
+	dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
+	dStructElement( SaHpiRptEntryT, ResourceCapabilities,SaHpiCapabilitiesType ),
+
+	?dStructElement( SaHpiRptEntryT, HotSwapCapabilities, SaHpiHsCapabilitiesType ),
+
+	dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ), 
+	dStructElement( SaHpiRptEntryT, ResourceFailed, SaHpiBoolType ),
+	dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),	
+	dStructElementEnd()
 };
 
 cMarshalType SaHpiRptEntryType = dStruct( SaHpiRptEntryT, SaHpiRptEntryElements );
