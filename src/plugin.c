@@ -15,6 +15,7 @@
  *     Sean Dague <http://dague.net/sean>
  * Contributors:
  *     David Judkovics <djudkovi@us.ibm.com>
+ *     Renier Morales <renierm@users.sourceforge.net>
  */
 
 #include <string.h>
@@ -49,7 +50,7 @@ int oh_init_ltdl()
         err = lt_dlinit();
         if (err != 0) {
                 dbg("Can not init ltdl");
-                goto err1;
+                return -1;
         }
 
         path = getenv("OPENHPI_PATH");
@@ -60,15 +61,11 @@ int oh_init_ltdl()
         err = lt_dlsetsearchpath(path);
         if (err != 0) {
                 dbg("Can not set lt_dl search path");
-                goto err2;
+                oh_exit_ltdl();
+                return -1;
         }
 
         return 0;
-
- err2:
-        lt_dlexit();
- err1:
-        return -1;
 }
 
 /**
@@ -82,7 +79,7 @@ void oh_exit_ltdl()
 
         rv = lt_dlexit();
         if (rv < 0)
-                dbg("Can not exit ltdl right");
+                dbg("Could not exit ltdl!");
 }
 
 /*******************************************************************************
@@ -99,6 +96,11 @@ int load_plugin(struct oh_plugin_config *config)
         int err;
         struct oh_static_plugin *p = static_plugins;
 
+        if (!config) {
+                dbg("ERROR loading plugin. NULL plugin configuration passed.");
+                return -1;
+        }
+
         /* first take search plugin in the array of static plugin */
         while( p->name ) {
                 if ( !strcmp( config->name, p->name ) ) {
@@ -109,7 +111,7 @@ int load_plugin(struct oh_plugin_config *config)
                                 goto err1;
                         }
 
-                        dbg( "found static plugin %s", p->name );
+                        trace( "found static plugin %s", p->name );
 
                         config->dl_handle = 0;
 
@@ -150,6 +152,11 @@ int load_plugin(struct oh_plugin_config *config)
 
 void unload_plugin(struct oh_plugin_config *config)
 {
+        if (!config) {
+                dbg("ERROR unloading plugin. Invalid plugin configuration passed.");
+                return;
+        }
+
         if (config->dl_handle)
         {
                 lt_dlclose(config->dl_handle);
@@ -175,10 +182,15 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         struct oh_handler *handler;
         static unsigned int handler_id = 1;
 
+        if (!handler_config) {
+                dbg("ERROR creating new handler");
+                return NULL;
+        }
+
         handler = g_malloc0(sizeof(struct oh_handler));
         if (!handler) {
                 dbg("Out of Memory!");
-                goto err;
+                return NULL;
         }        
 
         if(plugin_refcount((char *)g_hash_table_lookup(handler_config, "plugin")) < 1) {
@@ -207,13 +219,18 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
 
         return handler;
 err:
-        free(handler);
+        g_free(handler);
         return NULL;
 }
 
 int load_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
+
+        if (!handler_config) {
+                dbg("ERROR loading handler. Invalid handler configuration passed.");
+                return -1;
+        }
 
         data_access_lock();
 
@@ -235,6 +252,11 @@ int load_handler (GHashTable *handler_config)
 
 void unload_handler(struct oh_handler *handler)
 {
+        if (!handler) {
+                dbg("ERROR unloading handler. Invalid handler passed.");
+                return;
+        }
+
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
 
