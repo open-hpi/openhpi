@@ -27,44 +27,27 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
+				
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	SaHpiEventLogInfoT info;
-        /* *************************************                 
-	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
+		
+	struct oh_handler_state l_handle;
+	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		return -1;
-	}
-
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_EVENT_LOG, h, &rptentry);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		err = tcleanup(&sessionid);
-		return -1;
-	}
-
-	id = rptentry.ResourceId;
 	/************************** 
-	 * Test 001: snmp_bc_get_sel_info()
+	 * Test: Invalid handle
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	err = snmp_bc_get_sel_info(NULL, id, &info);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 2  
+	 * Test: Invalid info space
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_get_sel_info((void *)h->hnd, id, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_get_sel_info(&l_handle, id, NULL);
+	checkstatus(err, expected_err, testfail);
 
 	/***************************
 	 * Cleanup after all tests

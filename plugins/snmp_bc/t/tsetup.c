@@ -55,7 +55,7 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
         SaHpiRptEntryT l_rptentry;
         SaHpiEntryIdT  rptentryid;
         SaHpiEntryIdT  nextrptentryid;
-        
+  	     
         if (!sessionid_ptr) {
                 printf("Error! Invalid test setup.\n");
 		printf("   File=%s, Line=%d\n", __FILE__, __LINE__);
@@ -92,18 +92,16 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
 		rvRptGet = saHpiRptEntryGet(*sessionid_ptr,rptentryid,&nextrptentryid,&l_rptentry);
 		if (rvRptGet != SA_OK) printf("RptEntryGet error %s\n",oh_lookup_error(rvRptGet));
 
-		if ( (rvRptGet == SA_OK) && (rptentryid > i_rptentryid)) {
+		if ( (rvRptGet == SA_OK) ) {
 		 
 		 	if (samecap) {
-				if ( (l_rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) && 
-                    	     		(l_rptentry.ResourceCapabilities & search_rdr_type)) 
+				if ((l_rptentry.ResourceCapabilities & search_rdr_type)) 
 				{
                 			memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
 			     		break;
 				}
 			} else {
-				if ( (l_rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) && 
-                    	     		   !(l_rptentry.ResourceCapabilities & search_rdr_type))
+				if (!(l_rptentry.ResourceCapabilities & search_rdr_type))
 				{
                 			memcpy(rptentry,&l_rptentry, sizeof(SaHpiRptEntryT));	
 			     		break;

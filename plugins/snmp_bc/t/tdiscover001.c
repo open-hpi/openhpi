@@ -27,61 +27,16 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
-        SaHpiSessionIdT sessionid;
-        /* *************************************                 
-	 * Find a resource 
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
-
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		return -1;
-	}
-
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_POWER, h, &rptentry);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		err = tcleanup(&sessionid);
-		return -1;
-	}
-
 	/************************** 
-	 * Test :
+	 * Test : Invalid handle
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	err = snmp_bc_discover_resources(NULL);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
-	GHashTable *sav_config = handle->config;
-	handle->config = NULL;
-
-	expected_err = SA_ERR_HPI_INTERNAL_ERROR;                   
-	err = snmp_bc_discover_resources((void *)h->hnd);
-	checkstatus(&err, &expected_err, &testfail);
-
-	handle->config = sav_config;
-	 **************************/
-	/************************** 
-	 * Test :
-	 * expected_err = SA_ERR_HPI_INTERNAL_ERROR;                   
-	 
-	g_hash_table_insert(handle->config, "entity_root", "");
-
-	err = snmp_bc_discover_resources((void *)h->hnd);
-	checkstatus(&err, &expected_err, &testfail);
-	**************************/
+	checkstatus(err, expected_err, testfail);
 
 	/**************************
 	 * Cleanup after all tests
 	 ***************************/
-	err = tcleanup(&sessionid);
 	return testfail;
 
 }

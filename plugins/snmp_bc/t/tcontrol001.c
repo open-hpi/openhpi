@@ -85,7 +85,6 @@ int main(int argc, char **argv)
 	 *************************/
 	struct oh_handler_state l_handle;
 	memset(&l_handle, 0, sizeof(struct oh_handler_state));
-
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	err = snmp_bc_get_control_state(NULL, id, cid, &mode, &state);
 	checkstatus(err, expected_err, testfail);
@@ -94,7 +93,7 @@ int main(int argc, char **argv)
 	 * Test 2: Resource ID with no RPT
 	 *************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
-	err = snmp_bc_get_control_state(&l_handle, 5000, cid, &mode, &state);
+	err = saHpiControlGet(sessionid, 5000, cid, &mode, &state);
 	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
@@ -120,8 +119,7 @@ int main(int argc, char **argv)
 		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return SA_OK;
-	}
-		
+	}		
 	expected_err = SA_ERR_HPI_CAPABILITY;
 	err = saHpiControlGet(sessionid, rptentry.ResourceId, cid, &mode, &state);
 	checkstatus(err, expected_err, testfail);

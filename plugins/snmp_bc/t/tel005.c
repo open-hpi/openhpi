@@ -36,64 +36,48 @@ int main(int argc, char **argv)
 	SaHpiEventLogEntryT   entry;
 	SaHpiRdrT             rdr;
 	SaHpiRptEntryT        rptentry;
-        /* *************************************                 
-	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
 
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		return -1;
-	}
-
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_EVENT_LOG, h, &rptentry);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		err = tcleanup(&sessionid);
-		return -1;
-	}
-
-	id = rptentry.ResourceId;
+	struct oh_handler_state l_handle;
+	memset(&l_handle, 0, sizeof(struct oh_handler_state));
+	
 	/************************** 
-	 * Test 001: snmp_bc_get_sel_info()
+	 * Test: NULL handle, rdr, rpt
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	err = snmp_bc_get_sel_entry(NULL, id, current, &previd, &nextid, &entry, NULL, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err,testfail);
 
 	/************************** 
-	 * Test   
+	 * Test: NULL previd   
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current,
+	err = snmp_bc_get_sel_entry(&l_handle, id, current,
 		       	          NULL, &nextid, &entry, NULL, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test   
+	 * Test: NULL nextid   
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current,
+	err = snmp_bc_get_sel_entry(&l_handle, id, current,
 		       	          &previd, NULL, &entry, NULL, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test   
+	 * Test: NULL nextid   
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_get_sel_entry((void *)h->hnd, id, current,
+	err = snmp_bc_get_sel_entry(&l_handle, id, current,
 		       	          &previd, &nextid, NULL, NULL, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test   
+	 * Test: NULL handle   
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
 	err = snmp_bc_get_sel_entry(NULL, id, current,
 		       	          &previd, &nextid, &entry, &rdr, &rptentry);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/***************************
 	 * Cleanup after all tests

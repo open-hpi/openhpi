@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	 * Test 2: Resource ID with no RPT
 	 *************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
-	err = snmp_bc_set_control_state(&l_handle, 5000, cid, mode, &state);
+	err = saHpiControlSet(sessionid, 5000, cid, mode, &state);
 	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
