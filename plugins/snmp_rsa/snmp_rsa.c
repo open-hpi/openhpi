@@ -124,7 +124,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                    (get_value.type != ASN_OCTET_STR) ||
                    (strcmp(get_value.string, "Not Readable!") == 0)) {
                         /* If we get here the CPU is not installed */
-                        dbg("CPU %d not found.\n", i);
+                        dbg("CPU %d not found.\n", i+RSA_HPI_INSTANCE_BASE);
                         continue;
                 }
 
@@ -144,12 +144,12 @@ static int snmp_rsa_discover_resources(void *hnd)
 
         /* discover all dasd */
         for (i = 0; i < RSA_MAX_DASD; i++) {
-                /* see if the cpu exists by querying the thermal sensor */
+                /* see if the dasd exists by querying the thermal sensor */
                 if((snmp_get(custom_handle->ss,rsa_oid_dasd_detect[i],&get_value) != 0) ||
                    (get_value.type != ASN_OCTET_STR) ||
                    (strcmp(get_value.string, "Not Readable!") == 0)) {
-                        /* If we get here the CPU is not installed */
-                        dbg("CPU %d not found.\n", i);
+                        /* If we get here the DASD is not installed */
+                        dbg("DASD %d not found.\n", i+RSA_HPI_INSTANCE_BASE);
                         continue;
                 }
 
