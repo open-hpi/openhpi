@@ -30,6 +30,8 @@
 #define SENMODU_PROC	6
 #define SENTYPE_PROC	7
 #define CATEGORY_PROC	8
+#define CTRLTYPE_PROC	9
+#define CTRLMODE_PROC	10
 
 //	function numbers for decode_proc
 
@@ -99,6 +101,10 @@ char *lookup_proc(int num, int val)
 			string = oh_lookup_sensortype(val); break;
 		case CATEGORY_PROC:
 			string = oh_lookup_eventcategory(val); break;
+		case CTRLTYPE_PROC:
+			string = oh_lookup_ctrltype(val); break;
+		case CTRLMODE_PROC:
+			string = oh_lookup_ctrlmode(val); break;
 	};
 	if (string == (char *)NULL)
 		return("");
@@ -359,13 +365,119 @@ attr_t	Range_rdr[] = {
 	{ "NormalMin",		READING_TYPE,	0, { .d = 0} }	//  5
 };
 
+static Attributes_t *make_attrs_sensor(SaHpiSensorRecT *sensor)
+{
+	attr_t		*att1, *att2, *att3;
+	Attributes_t	*at, *at2, *at3;
+	
+	at = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at->n_attrs = RDR_ATTRS_SENSOR_NUM;
+	att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
+	memcpy(att1, Def_sensor_rdr, sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
+	at->Attrs = att1;
+	att1[0].value.i = sensor->Num;
+	att1[1].value.i = sensor->Type;
+	att1[2].value.i = sensor->Category;
+	att1[3].value.i = sensor->EnableCtrl;
+	att1[4].value.i = sensor->EventCtrl;
+	att1[5].value.i = sensor->Events;
+
+	at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at2->n_attrs = ATTRS_SENSOR_DATAFORMAT;
+	att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_SENSOR_DATAFORMAT);
+	memcpy(att2, DataForm_rdr, sizeof(attr_t) * ATTRS_SENSOR_DATAFORMAT);
+	at2->Attrs = att2;
+	att2[0].value.i = sensor->DataFormat.IsSupported;
+	att2[1].value.i = sensor->DataFormat.ReadingType;
+	att2[2].value.i = sensor->DataFormat.BaseUnits;
+	att2[3].value.i = sensor->DataFormat.ModifierUnits;
+	att2[4].value.i = sensor->DataFormat.ModifierUse;
+	att2[5].value.i = sensor->DataFormat.Percentage;
+
+	at3 = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at3->n_attrs = ATTRS_SENSOR_RANGE;
+	att3 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_SENSOR_RANGE);
+	memcpy(att3, Range_rdr, sizeof(attr_t) * ATTRS_SENSOR_RANGE);
+	at3->Attrs = att3;
+	att3[0].value.i = sensor->DataFormat.Range.Flags;
+	att3[1].value.a = &(sensor->DataFormat.Range.Max);
+	att3[2].value.a = &(sensor->DataFormat.Range.Min);
+	att3[3].value.a = &(sensor->DataFormat.Range.Nominal);
+	att3[4].value.a = &(sensor->DataFormat.Range.NormalMax);
+	att3[5].value.a = &(sensor->DataFormat.Range.NormalMin);
+
+	att2[6].value.a = at3;
+	att2[7].value.d = sensor->DataFormat.AccuracyFactor;
+
+	att1[6].value.a = at2;
+
+	at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at2->n_attrs = ATTRS_SENSOR_THDDEF;
+	att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_SENSOR_THDDEF);
+	memcpy(att2, ThresDef_rdr, sizeof(attr_t) * ATTRS_SENSOR_THDDEF);
+	att2[0].value.i = sensor->ThresholdDefn.IsAccessible;
+	att2[1].value.i = sensor->ThresholdDefn.ReadThold;
+	att2[2].value.i = sensor->ThresholdDefn.WriteThold;
+	at2->Attrs = att2;
+	att1[7].value.a = at2;
+
+	att1[8].value.i = sensor->Oem;
+	return(at);
+}
+
+#define RDR_ATTRS_CTRL_NUM	7
+
+attr_t	Def_ctrl_rdr[] = {
+	{ "Num",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Type",		LOOKUP_TYPE,	CTRLTYPE_PROC, { .d = 0} }, //  1
+	{ "OutputType",		NO_TYPE,	0, { .d = 0} }, //  2
+	{ "TypeUnion",		NO_TYPE,	0, { .d = 0} },	//  3
+	{ "DefaultMode",	STRUCT_TYPE,	0, { .d = 0} },	//  4
+	{ "WriteOnly",		INT_TYPE,	0, { .d = 0} },	//  5
+	{ "Oem",		NO_TYPE,	0, { .d = 0} }	//  6
+};
+
+#define ATTRS_CTRL_MODE		2
+
+attr_t	Def_ctrl_mode[] = {
+	{ "Mode",		LOOKUP_TYPE,	CTRLMODE_PROC, { .d = 0} },	//  0
+	{ "ReadOnly",		INT_TYPE,	0, { .d = 0} } //  1
+};
+
+static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
+{
+	attr_t		*att1, *att2;
+	Attributes_t	*at, *at2;
+
+	at = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at->n_attrs = RDR_ATTRS_CTRL_NUM;
+	att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_CTRL_NUM);
+	memcpy(att1, Def_ctrl_rdr, sizeof(attr_t) * RDR_ATTRS_CTRL_NUM);
+	at->Attrs = att1;
+	att1[0].value.i = ctrl->Num;
+	att1[1].value.i = ctrl->Type;
+
+	at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at2->n_attrs = ATTRS_CTRL_MODE;
+	att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_MODE);
+	memcpy(att2, Def_ctrl_mode, sizeof(attr_t) * ATTRS_CTRL_MODE);
+	at2->Attrs = att2;
+	att2[0].value.i = ctrl->DefaultMode.Mode;
+	att2[1].value.i = ctrl->DefaultMode.ReadOnly;
+
+	att1[4].value.a = at2;
+	att1[5].value.i = ctrl->WriteOnly;
+	return(at);
+}
+
 void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 {
-	attr_t		*att, *att1, *att2, *att3;
+	attr_t		*att;
 	int		len, i = 0;
-	Attributes_t	*at, *at2, *at3;
+	Attributes_t	*at;
 	SaHpiRdrT	*obj;
 	SaHpiSensorRecT	*sensor;
+	SaHpiCtrlRecT	*ctrl;
 
 	Rdr->Record = *rdrentry;
 	obj = &(Rdr->Record);
@@ -380,61 +492,16 @@ void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 	len = obj->IdString.DataLength;
 	switch (obj->RdrType) {
 		case SAHPI_SENSOR_RDR:
-			at = (Attributes_t *)malloc(sizeof(Attributes_t));
-			at->n_attrs = RDR_ATTRS_SENSOR_NUM;
-			att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
-			memcpy(att1, Def_sensor_rdr, sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
-			at->Attrs = att1;
+			sensor = &(obj->RdrTypeUnion.SensorRec);
+			at = make_attrs_sensor(sensor);
 			att[i].name = "Sensor";
 			att[i++].value.a = at;
-			sensor = &(obj->RdrTypeUnion.SensorRec);
-			att1[0].value.i = sensor->Num;
-			att1[1].value.i = sensor->Type;
-			att1[2].value.i = sensor->Category;
-			att1[3].value.i = sensor->EnableCtrl;
-			att1[4].value.i = sensor->EventCtrl;
-			att1[5].value.i = sensor->Events;
-
-			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
-			at2->n_attrs = ATTRS_SENSOR_DATAFORMAT;
-			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_SENSOR_DATAFORMAT);
-			memcpy(att2, DataForm_rdr, sizeof(attr_t) * ATTRS_SENSOR_DATAFORMAT);
-			at2->Attrs = att2;
-			att2[0].value.i = sensor->DataFormat.IsSupported;
-			att2[1].value.i = sensor->DataFormat.ReadingType;
-			att2[2].value.i = sensor->DataFormat.BaseUnits;
-			att2[3].value.i = sensor->DataFormat.ModifierUnits;
-			att2[4].value.i = sensor->DataFormat.ModifierUse;
-			att2[5].value.i = sensor->DataFormat.Percentage;
-
-			at3 = (Attributes_t *)malloc(sizeof(Attributes_t));
-			at3->n_attrs = ATTRS_SENSOR_RANGE;
-			att3 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_SENSOR_RANGE);
-			memcpy(att3, Range_rdr, sizeof(attr_t) * ATTRS_SENSOR_RANGE);
-			at3->Attrs = att3;
-			att3[0].value.i = sensor->DataFormat.Range.Flags;
-			att3[1].value.a = &(sensor->DataFormat.Range.Max);
-			att3[2].value.a = &(sensor->DataFormat.Range.Min);
-			att3[3].value.a = &(sensor->DataFormat.Range.Nominal);
-			att3[4].value.a = &(sensor->DataFormat.Range.NormalMax);
-			att3[5].value.a = &(sensor->DataFormat.Range.NormalMin);
-
-			att2[6].value.a = at3;
-			att2[7].value.d = sensor->DataFormat.AccuracyFactor;
-
-			att1[6].value.a = at2;
-
-			at2 = (Attributes_t *)malloc(sizeof(Attributes_t));
-			at2->n_attrs = ATTRS_SENSOR_THDDEF;
-			att2 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_SENSOR_THDDEF);
-			memcpy(att2, ThresDef_rdr, sizeof(attr_t) * ATTRS_SENSOR_THDDEF);
-			att2[0].value.i = sensor->ThresholdDefn.IsAccessible;
-			att2[1].value.i = sensor->ThresholdDefn.ReadThold;
-			att2[2].value.i = sensor->ThresholdDefn.WriteThold;
-			at2->Attrs = att2;
-			att1[7].value.a = at2;
-
-			att1[8].value.i = sensor->Oem;
+			break;
+		case SAHPI_CTRL_RDR:
+			ctrl = &(obj->RdrTypeUnion.CtrlRec);
+			at = make_attrs_ctrl(ctrl);
+			att[i].name = "Control";
+			att[i++].value.a = at;
 			break;
 		default: break;
 	};
