@@ -3116,11 +3116,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorDelete(
         struct oh_handler *h;
         struct oh_domain *d = NULL;
 
-        if (EntryId == SAHPI_ENTRY_UNSPECIFIED) {
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        if (!oh_lookup_severity(Severity)) {
+        if ((EntryId == SAHPI_ENTRY_UNSPECIFIED) && !oh_lookup_severity(Severity)) {
                  return SA_ERR_HPI_INVALID_PARAMS;
         }
 
