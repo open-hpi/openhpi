@@ -61,7 +61,8 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         char  *path, *root_path;
         int len;
         struct oh_event *event;
-
+        SaHpiResourceIdT  res_id;   
+ 
 #ifndef UNIT_TEST
         root_path = g_hash_table_lookup(feh->ohh->config, "root_path");
 #else
@@ -83,8 +84,10 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         event->type = OH_ET_RESOURCE;
         sprintf(path, "%s/%s/rpt", root_path, fe->filename);
         sim_parser_get_rpt(path, &event->u.res_event.entry);
-        event->u.res_event.entry.ResourceId = oh_uid_from_entity_path(
-                                     &event->u.res_event.entry.ResourceEntity);
+        res_id = oh_uid_from_entity_path(&event->u.res_event.entry.ResourceEntity);
+        event->u.res_event.entry.ResourceId = res_id;
+        oh_add_resource(feh->ohh->rptcache, &event->u.res_event.entry,
+                        g_strdup(fe->filename),1);
         sim_util_insert_event(&feh->ohh->eventq, event);
 #endif
 
@@ -101,8 +104,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                 event->type = OH_ET_RDR;
                 sprintf(path, "%s/%s/%s/rdr", root_path, fe->filename, pd->d_name);
                 sim_parser_get_rdr(path, &event->u.rdr_event.rdr);
-                event->u.res_event.entry.ResourceId = oh_uid_from_entity_path(
-                                     &event->u.res_event.entry.ResourceEntity);
+                oh_add_rdr(feh->ohh->rptcache, res_id, &event->u.rdr_event.rdr, 0, 0);
                 sim_util_insert_event(&feh->ohh->eventq, event);
                 printf("add rdr:%s\n", pd->d_name);
 #endif

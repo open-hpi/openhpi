@@ -240,6 +240,33 @@ char* sim_util_get_rdr_dir(struct oh_handler_state *inst,
         return str;
 }
 
+char *sim_util_get_res_dir(struct oh_handler_state *inst, SaHpiResourceIdT res_id)
+{
+        GHashTable *handler_config;
+        char *str1, *str2, *str;
+        int len1, len2;
+
+        handler_config = inst->config;
+        str1 = g_hash_table_lookup(handler_config, "root_path");
+        if (str1 == NULL)
+        return NULL;
+        len1 = strlen(str1);
+
+        str2 = (char*) oh_get_resource_data(inst->rptcache, res_id);
+        if (str2 == NULL) return NULL;
+        len2 = strlen(str2);
+
+        str = (char *)g_malloc0(len1 + len2 + 20);
+        if (str == NULL)
+                return NULL;
+
+        sprintf(str, "%s/%s/", str1, str2);
+        return str;
+}
+
+
+
+
 static pthread_mutex_t util_mutext = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 int sim_util_insert_event(GSList **eventq, struct oh_event *event)
 {

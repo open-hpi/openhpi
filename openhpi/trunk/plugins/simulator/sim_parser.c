@@ -1601,6 +1601,38 @@ out:
     return retval;
 }
 
+int sim_parser_rpt_set_tag(char *filename, SaHpiTextBufferT *tag)
+{
+    GSList *fhs;
+    GSList *list;
+    SaHpiUint8T  data[SAHPI_MAX_TEXT_BUFFER_LENGTH+1];
+
+    fhs = sim_parser(filename);
+    if (fhs == NULL)
+        return -1;
+    memcpy(data, tag->Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+    data[tag->DataLength] = 0;
+
+    for (list = fhs; list; list = g_slist_next(list)) {
+       fhs_node *n;
+       n = (fhs_node*) list->data;
+
+       if (!strcmp("ResourceTag", n->name)) {
+          if (n->type == SIM_FHS_STRING) {
+              g_free(n->value.str);
+              n->value.str = g_strdup(data);
+              break;
+          }
+       }
+    }
+    sim_generate(filename, fhs);
+    free_fhs_node(fhs);
+    return 0;
+}
+
+
+
+
 int sim_parser_get_rdr(char *filename, SaHpiRdrT *rdr)
 {
     GSList *fhs;
