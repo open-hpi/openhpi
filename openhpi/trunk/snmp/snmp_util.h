@@ -17,13 +17,14 @@
 #ifndef SNMP_BC_UTIL_H
 #define SNMP_BC_UTIL_H
 
-/*#include <net-snmp/net-snmp-config.h>*/
+/* #include <net-snmp/net-snmp-config.h> */
 #define NET_SNMP_CONFIG_H
 #define HAVE_STDARG_H 1
 #define RETSIGTYPE void
 #define NETSNMP_INLINE inline
 #define HAVE_STRDUP 1
 #define HAVE_NETINET_IN_H 1
+
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/library/transform_oids.h>
 
