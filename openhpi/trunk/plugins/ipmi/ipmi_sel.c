@@ -122,6 +122,7 @@ void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data)
         rv = ohoi_loop(&data.flag, ipmi_handler);
         if (rv)
                 dbg("Unable to get sel time: Timeout!");
+		dbg("sel time raw: %llx", data.time);
         
         *time = (SaHpiTimeT)data.time*1000000000;
 }
@@ -189,9 +190,9 @@ struct set_sel_time_cb_data {
 
 static void set_sel_time(ipmi_mc_t *mc, void *cb_data)
 {
-        struct set_sel_time_cb_data *data = cb_data;
-        
-	ipmi_mc_set_current_sel_time(mc, &data->time, set_sel_time_done, &data->flag);
+		struct set_sel_time_cb_data *data = cb_data;
+
+		ipmi_mc_set_current_sel_time(mc, &data->time, set_sel_time_done, &data->flag);
 }
 
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data)

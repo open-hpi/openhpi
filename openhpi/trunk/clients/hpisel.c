@@ -181,6 +181,7 @@ int main(int argc, char **argv)
 																printf("saHpiEventLogEntryGet %s\n",
 																				decode_error(rv));
 														if (rv == SA_OK) {
+
 																ShowSel(&sel, &rdr, &rptentry);
 																preventryid = entryid;
 																entryid = nextentryid;

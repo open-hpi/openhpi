@@ -500,9 +500,8 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 				SaHpiSelEntryIdT current,
 				SaHpiSelEntryIdT *prev,
 				SaHpiSelEntryIdT *next,
-	       			SaHpiSelEntryT *entry)
+				SaHpiSelEntryT *entry)
 {
-		
         struct ohoi_resource_info *ohoi_res_info;
 		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
         ipmi_event_t *event;
@@ -512,42 +511,63 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
-         
 
-	switch (current) {
-        case SAHPI_OLDEST_ENTRY:
-		ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
-                
-		ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
-		
-                *prev = SAHPI_NO_MORE_ENTRIES;
-                break;
-		
-        case SAHPI_NEWEST_ENTRY:
-                ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
+		switch (current) {
+				case SAHPI_OLDEST_ENTRY:
+						ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
 
-                *next = SAHPI_NO_MORE_ENTRIES;
+						ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
-                ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
-                break;
+						*prev = SAHPI_NO_MORE_ENTRIES;
 
-		case SAHPI_NO_MORE_ENTRIES:
-				dbg("SEL is empty!");
-				goto out;
-                
-        default:                		
-		/* get the entry requested by id */
-		ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
+						break;
 
-		ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+				case SAHPI_NEWEST_ENTRY:
 
-                ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
-                break; 
-	}
+						ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
+
+						*next = SAHPI_NO_MORE_ENTRIES;
+
+						ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+
+						break;
+
+				case SAHPI_NO_MORE_ENTRIES:
+						dbg("SEL is empty!");
+
+						goto out;
+
+				default:                		
+						/* get the entry requested by id */
+						ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
+						ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+
+						ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+
+						break; 
+
+		}
+
         entry->Event.EventType = SAHPI_ET_USER;
+
+		/* get the event time */
+		SaHpiTimeT event_timestamp;
+		event_timestamp = ipmi_event_get_timestamp(event);
+		memcpy (&entry->Event.Timestamp, &event_timestamp, sizeof(event_timestamp));
+
+		/* get record id */
+		 SaHpiSelEntryIdT event_record_id;
+
+		 event_record_id = ipmi_event_get_record_id(event);
+		 event_record_id = event_record_id;
+
+		 memcpy(&entry->EntryId, &event_record_id, sizeof(event_record_id));
+		
         memcpy(&entry->Event.EventDataUnion.UserEvent.UserEventData[3],
                ipmi_event_get_data_ptr(event), 
                ipmi_event_get_data_len(event));	
+
+
 out:
 		
 	return 0;		
@@ -720,40 +740,47 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 }
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
-	.open	 			= ipmi_open,
-	.close				= ipmi_close,
-	.get_event			= ipmi_get_event,
-	.discover_resources		= ipmi_discover_resources,
-	.get_sel_info                   = ipmi_get_sel_info,
-        .set_sel_time                   = ipmi_set_sel_time,
-        //.add_sel_entry                  = ipmi_add_sel_entry,
-        //.del_sel_entry                  = ipmi_del_sel_entry,
-        .get_sel_entry                  = ipmi_get_sel_entry,
-        .clear_sel                      = ipmi_clear_sel, 
-        //.add_sel_entry                  = ipmi_add_sel_entry,
-	.get_sensor_data		= ipmi_get_sensor_data,
-	.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
-	.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
-	.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
-	.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
-        .get_inventory_size             = ohoi_get_inventory_size,
-        .get_inventory_info             = ohoi_get_inventory_info,
-        .set_inventory_info             = NULL,
+		
+		/* basic ABI functions */
+		.open	 			= ipmi_open,
+		.close				= ipmi_close,
+		.get_event			= ipmi_get_event,
+		.discover_resources		= ipmi_discover_resources,
+
+		/* SEL support */
+		.get_sel_info                   = ipmi_get_sel_info,
+		.set_sel_time                   = ipmi_set_sel_time,
+		//.add_sel_entry                  = ipmi_add_sel_entry,
+		//.del_sel_entry                  = ipmi_del_sel_entry,
+		.get_sel_entry                  = ipmi_get_sel_entry,
+		.clear_sel                      = ipmi_clear_sel, 
+
+		/* Sensor support */
+		.get_sensor_data		= ipmi_get_sensor_data,
+		.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
+		.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
+		.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
+		.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
+		
+		/* Inventory support */
+		.get_inventory_size             = ohoi_get_inventory_size,
+		.get_inventory_info             = ohoi_get_inventory_info,
+		.set_inventory_info             = NULL,
         
         /* hotswap support */
-        .get_hotswap_state              = ohoi_get_hotswap_state,
-        .set_hotswap_state              = ohoi_set_hotswap_state,
-        .request_hotswap_action         = ohoi_request_hotswap_action,
-        .get_indicator_state            = ohoi_get_indicator_state,
-        .set_indicator_state            = ohoi_set_indicator_state,
+		.get_hotswap_state              = ohoi_get_hotswap_state,
+		.set_hotswap_state              = ohoi_set_hotswap_state,
+		.request_hotswap_action         = ohoi_request_hotswap_action,
+		.get_indicator_state            = ohoi_get_indicator_state,
+		.set_indicator_state            = ohoi_set_indicator_state,
         
         /* power support */
-	.get_power_state                = NULL,
-	.set_power_state                = ohoi_set_power_state,
+		.get_power_state                = NULL,
+		.set_power_state                = ohoi_set_power_state,
 	
         /* reset support */
-	.get_reset_state                = NULL,
-	.set_reset_state                = ohoi_set_reset_state,
+		.get_reset_state                = NULL,
+		.set_reset_state                = ohoi_set_reset_state,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);

@@ -580,7 +580,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                      SaHpiRptEntryT *rptentry )
 {
         unsigned char evtype;
-        char timestr[40];
+        char timestr[256];
         time_t tt1;
         int ec, eci;
         int es, esi;
@@ -594,6 +594,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
         char outbuf[132];
         char mystr[26];
         unsigned char data1, data2, data3;
+		//char date[30];
 
         if (!sel || !rdr || !rptentry) return;
 	
@@ -603,10 +604,14 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                 tt1 = sel->Event.Timestamp / 1000000000;
                 strftime(timestr,sizeof(timestr),"%F %T", localtime(&tt1));
         } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
+				printf("timestamp: %llx\n", sel->Event.Timestamp);
                 strcpy(timestr,"invalid time     ");
         } else {   /*relative time*/
                 tt1 = sel->Event.Timestamp / 1000000000;
                 sprintf(timestr,"rel(%lx)", (unsigned long)tt1);
+				//saftime2str(sel->Event.Timestamp, date, 30);
+				//printf("timestamp = %s\n", date);
+
         }
         if (rptentry->ResourceId == sel->Event.Source)
                 srctag = rptentry->ResourceTag.Data;
@@ -623,7 +628,7 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
                 rdr->IdString.Data[rdr->IdString.DataLength] = 0;
                 rdrtag = &rdr->IdString.Data[0];
         }
-        sprintf(outbuf,"%04x %s %s ", sel->EntryId,
+        sprintf(outbuf,"%i %s %s ", sel->EntryId,
                 timestr, evtypes[evtype] );
         outlen = strlen(outbuf);
         pstr = "";
