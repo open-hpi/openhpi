@@ -42,6 +42,8 @@ libsnmp_bc_la_SOURCES	=	bc_resources.c \
 				sim_init.c \
 				snmp_bc.c \
 	     			snmp_bc_discover.c \
+				snmp_bc_discover_bc.c \
+				snmp_bc_discover_rsa.c \
 				snmp_bc_session.c \
 				stubs.c
 
