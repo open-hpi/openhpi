@@ -102,12 +102,14 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
  
-	if (fdebug) printf("saHpiDiscover\n");
-	rv = saHpiDiscover(sessionid);
-	if (rv != SA_OK) {
-		printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
-		exit(-1);
-	}
+	if (!do_discover_after_subscribe) {
+        	if (fdebug) printf("saHpiDiscover\n");
+        	rv = saHpiDiscover(sessionid);
+        	if (rv != SA_OK) {
+        		printf("saHpiDiscover: %s\n", oh_lookup_error(rv));
+        		exit(-1);
+        	}
+        }
 	
         if (fdebug) printf( "Subscribe to events\n");
         rv = saHpiSubscribe( sessionid );
