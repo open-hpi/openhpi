@@ -1,44 +1,54 @@
 #File foramt is easy
 
-#first section, declare plugin to use:
+###First section, declare plugin to use:
 #example:
 
 #plugin	plugin-name
 
 plugin	libdummy
 
-#Depends on openipmi to be installed on this system
+#Depends on openipmi to be installed on this system:
 #plugin libipmi
 
+#Depends on net-snmp being installed on the system:
+#plugin libsnmp_bc
 
-#Second section is a handler (instance) declaration with arguments understood by plugin
-#Only arguments starting with numbers, should be enclosed in quotes " "
+
+###Second section is a handler (instance) declaration with arguments understood by plugin
+#Strings are enclosed by "", numbers are not.
 
 handler	libdummy {
-	addr =	"0"
+        name = "test"
+	addr =	0
 }
 
 # Dummy allows you open second virtual by addr 1
 handler	libdummy {
-	addr =	"1"
+	addr =	1
 }
 
 #section for ipmi plugin using SMI -- local interface
 
 #handler libipmi	{
 #	name = "smi"
-#	addr = "0"
+#	addr = 0
 #}
 
-#Section for ipmi plugin based on OpenIPMI
+#Section for ipmi plugin based on OpenIPMI:
 
 #handler libipmi {
-#	name = lan
+#	name = "lan"
 #	addr = "x.x.x.x" 	#ipaddress
-#	port = "999"
-#	auth_type = straight
-#	auth_level= user
-#	username = joe
-#	password = blow
+#	port = 999
+#	auth_type = "straight"
+#	auth_level= "user"
+#	username = "joe"
+#	password = "blow"
 #}
 
+#Section for snmp_bc plugin:
+#handler libsnmp_bc {
+        host = "bc.ibm.com"
+        community = "community"
+        entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
