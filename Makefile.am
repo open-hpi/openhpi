@@ -68,7 +68,7 @@ include_HEADERS	= include/SaHpi.h include/epath_utils.h include/uid_utils.h
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
-	$(mkinstalldirs) $(DESTDIR)/var/lib/$(PACKAGE)
+	$(mkinstalldirs) -m 777 $(DESTDIR)$(VARPATH)
 
 rpm: dist
 	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
