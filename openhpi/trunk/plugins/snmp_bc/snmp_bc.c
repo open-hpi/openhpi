@@ -284,7 +284,7 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
         struct snmp_session *ss = custom_handle->ss;
 	
         err = snmp_get(ss, objid, value);
-        if (err == SA_ERR_SNMP_TIMEOUT) {
+        if (err == SA_ERR_HPI_TIMEOUT) {
                 if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
                         custom_handle->handler_retries = 0;
                         err = SA_ERR_HPI_NO_RESPONSE;
@@ -296,7 +296,15 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
         } 
 	else {
                 custom_handle->handler_retries = 0;
-        }
+		if ((err == SA_OK) && (value->type == ASN_OCTET_STR)) {
+			if ( (strncmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
+			     (strncmp(value->string,"(No voltage)", sizeof("(No voltage)")) == 0) ||
+			     (strncmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) )
+			{
+				err = SA_ERR_HPI_BUSY;
+			}
+		}
+        }               
 
         return(err);
 }
@@ -325,7 +333,7 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
 	struct snmp_session *ss = custom_handle->ss;
 
         err = snmp_set(ss, objid, value);
-        if (err == SA_ERR_SNMP_TIMEOUT) {
+        if (err == SA_ERR_HPI_TIMEOUT) {
                 if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
                         custom_handle->handler_retries = 0;
                         err = SA_ERR_HPI_NO_RESPONSE;
