@@ -37,7 +37,10 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
     exit 1
     ])
 
-dnl AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes],[
+AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
+
+dnl  old test case for no OpenIPMI
+dnl ,[
 dnl    echo "************************************************************"
 dnl    echo "* OpenIPMI not found!"
 dnl    echo "* currently OpenIPMI is required for build of openhpi"
@@ -70,19 +73,29 @@ AC_PATH_PROGS(RPM, rpmbuild)
 
 dnl plugin enablement stanzas
 
-PLUGINS=dummy
-
 AC_ARG_ENABLE([dummy],
-    [  --enable-dummy          build dummy plugin [default=yes]],)
-dnl    [PLUGINS="$PLUGINS dummy"],[PLUGINS=`echo $PLUGINS | sed 's/dummy//'`])
+    [  --enable-dummy          build dummy plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        PLUGINS="$PLUGINS dummy"
+    fi],
+    [PLUGINS="$PLUGINS dummy"])
 
 AC_ARG_ENABLE([watchdog],
-    [  --enable-watchdog       build watchdog plugin [default=no]],
+    [  --enable-watchdog       build watchdog plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        PLUGINS="$PLUGINS watchdog"
+    fi],
     [PLUGINS="$PLUGINS watchdog"])
+
+dnl
+dnl We really need to make ipmi enablement be contigent on OpenIPMI
+dnl
 
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=no]],
-    [PLUGINS="$PLUGINS ipmi"])
+    [if test "x$enableval" = "xyes"; then
+        PLUGINS="$PLUGINS ipmi"
+    fi])
 
 
 dnl plugin replacement stuff
