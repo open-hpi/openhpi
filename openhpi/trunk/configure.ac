@@ -8,6 +8,9 @@ AC_INIT(openhpi.spec.in)
 AM_INIT_AUTOMAKE(openhpi, 0.6.0)
 
 AM_CONFIG_HEADER(config.h)
+AH_TOP([#ifndef OPENHPI_CONFIG_H
+#define OPENHPI_CONFIG_H])
+AH_BOTTOM([#endif /* OPENHPI_CONFIG_H */])
 
 dnl AM_CONFIG_HEADER(./config.h)
 
