@@ -70,6 +70,8 @@ static gpointer oh_event_thread_loop(gpointer data)
  */
 int oh_event_init()
 {
+        struct oh_global_param threaded_param = { .type = OPENHPI_THREADED };
+        
         trace("Attempting to init event");
         if (!g_thread_supported()) {
                 trace("Initializing thread support");
@@ -79,8 +81,9 @@ int oh_event_init()
         }
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
-                
-        if (oh_get_global_bool(OPENHPI_THREADED)) {
+        
+        oh_get_global_param(&threaded_param);
+        if (threaded_param.u.threaded) {
                 oh_is_threaded = TRUE;
                 oh_thread_wait = g_cond_new();
                 oh_thread_mutex = g_mutex_new();
