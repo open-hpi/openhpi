@@ -104,7 +104,9 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                 event->type = OH_ET_RDR;
                 sprintf(path, "%s/%s/%s/rdr", root_path, fe->filename, pd->d_name);
                 sim_parser_get_rdr(path, &event->u.rdr_event.rdr);
-                oh_add_rdr(feh->ohh->rptcache, res_id, &event->u.rdr_event.rdr, 0, 0);
+                event->u.rdr_event.rdr.RecordId = index;
+                oh_add_rdr(feh->ohh->rptcache, res_id, &event->u.rdr_event.rdr, 
+                           g_strdup(pd->d_name), 1);
                 sim_util_insert_event(&feh->ohh->eventq, event);
                 printf("add rdr:%s\n", pd->d_name);
 #endif
