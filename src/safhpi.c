@@ -1015,7 +1015,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
 	struct oh_resource *res;
 	struct oh_rdr *rdr;
 	int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
-					SaHpiSensorEvtEnablesT *enables);
+					const SaHpiSensorEvtEnablesT *enables);
 	
 	OH_GET_RESOURCE;
 
