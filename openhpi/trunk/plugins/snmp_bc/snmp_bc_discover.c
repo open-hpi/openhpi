@@ -97,7 +97,7 @@ struct oh_event * snmp_bc_discover_chassis(char *blade_vector, SaHpiEntityPathT 
                 working.u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
                 working.u.res_event.entry.ResourceEntity = *ep;
                 e = eventdup(&working);
-
+		
 		find_res_events(ep, &snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info);
         }
  
@@ -172,7 +172,7 @@ struct oh_event * snmp_bc_discover_mediatray(long exists, SaHpiEntityPathT *ep, 
                                    SAHPI_ENT_PERIPHERAL_BAY, mtnum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
-                e = eventdup(&working);
+                 e = eventdup(&working);
 
 		find_res_events(&working.u.res_event.entry.ResourceEntity, 
 				&snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].bc_res_info);
@@ -479,20 +479,29 @@ struct oh_event * snmp_bc_discover_sensors(struct snmp_session *ss,
                                            SaHpiEntityPathT parent_ep,                                           
                                            const struct snmp_bc_sensor *sensor)
 {
-	gchar *oid;
-	int len;
+	gchar *oid=NULL;
+	int len, sensor_event_only=0;
         struct oh_event working;
         struct oh_event *e = NULL;
 
         memset(&working, 0, sizeof(struct oh_event));
 	
-	oid = snmp_derive_objid(parent_ep, sensor->bc_sensor_info.mib.oid);
-	if (oid == NULL) {
-		dbg("NULL SNMP OID returned\n");
-		return e;
+	/* Check for Event-only sensor - no OID */
+	if ((sensor->bc_sensor_info.mib.oid == NULL) &&
+	    (sensor->sensor.DataFormat.ReadingFormats & SAHPI_SRF_EVENT_STATE)) {
+		sensor_event_only = 1;
 	}
 
-	if (rdr_exists(ss, oid, sensor->bc_sensor_info.mib.not_avail_indicator_num,sensor->bc_sensor_info.mib.write_only)) {
+	if (!sensor_event_only) { 
+		oid = snmp_derive_objid(parent_ep, sensor->bc_sensor_info.mib.oid);
+		if (oid == NULL) {
+			dbg("NULL SNMP OID returned\n");
+			return e;
+		}
+	}
+
+	if (sensor_event_only ||
+	    rdr_exists(ss, oid, sensor->bc_sensor_info.mib.not_avail_indicator_num,sensor->bc_sensor_info.mib.write_only)) {
 		working.type = OH_ET_RDR;
 		working.u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
 		working.u.rdr_event.rdr.Entity = parent_ep;
@@ -508,7 +517,7 @@ struct oh_event * snmp_bc_discover_sensors(struct snmp_session *ss,
 			dbg("Comment string too long - %s\n",sensor->comment);
 		}
 		e = eventdup(&working);
-		
+
 		find_sensor_events(&parent_ep, sensor->sensor.Num, sensor);
 	}
 

@@ -396,11 +396,16 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 	snmp_get(custom_handle->ss,oid,&get_value);
 
 	if(get_value.type == ASN_OCTET_STR) {
-                log2event(hnd, get_value.string, &tmpentry.Event, isdst);
+		int event_enabled;
+
+                log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
                 tmpentry.EntryId = current;
                 tmpentry.Timestamp = tmpentry.Event.Timestamp;
                 rv = oh_sel_add(handle->selcache, &tmpentry);
-                rv = snmp_bc_add_to_eventq(hnd, &tmpentry.Event);
+		
+		if (event_enabled) {
+			rv = snmp_bc_add_to_eventq(hnd, &tmpentry.Event);
+		}
 	} else {
 		dbg("Couldn't fetch SEL Entry from BladeCenter snmp");
 		return -1;

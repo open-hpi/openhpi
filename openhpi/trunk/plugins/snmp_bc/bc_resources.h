@@ -123,12 +123,12 @@ struct BC_ResourceMibInfo {
 struct res_event_map {
         char *event;
 	SaHpiHsStateT event_state;
+	SaHpiHsStateT recovery_state;
 };
 
 struct BC_ResourceInfo {
 	struct BC_ResourceMibInfo mib;
         SaHpiHsStateT cur_state;
-	SaHpiHsStateT def_state;
         struct res_event_map event_array[MAX_RESOURCE_EVENT_ARRAY_SIZE];
 };
 
@@ -186,16 +186,13 @@ struct BC_SensorMibInfo {
 struct sensor_event_map {
         char *event;
 	SaHpiEventStateT event_state;
+	SaHpiEventStateT recovery_state;
 };
 
-/* 
- * Don't need a default state for sensors, since sensor code never
- * sets state back to default - just define cur_state to the "default"
- * in bc_resources.c 
-*/
 struct BC_SensorInfo {
 	struct BC_SensorMibInfo mib;
         SaHpiEventStateT cur_state;
+	SaHpiSensorEvtEnablesT sensor_evt_enablement;
         struct sensor_event_map event_array[MAX_SENSOR_EVENT_ARRAY_SIZE];
 };
 

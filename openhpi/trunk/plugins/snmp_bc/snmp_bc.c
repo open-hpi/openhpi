@@ -59,10 +59,11 @@ static int snmp_bc_get_event(void *hnd, struct oh_event *event, struct timeval *
 	}
 }
 
+/* Search for sensor.Num, since some sensors may not have an OID */
 #define find_sensors(rdr_array) \
 do { \
         int j; \
-	for(j=0; rdr_array[j].bc_sensor_info.mib.oid != NULL; j++) { \
+	for(j=0; rdr_array[j].sensor.Num != 0; j++) { \
 		e = snmp_bc_discover_sensors(custom_handle->ss, \
                                              parent_ep, \
                                              &rdr_array[j]); \
@@ -131,6 +132,7 @@ static int snmp_bc_discover_resources(void *hnd)
                         struct BC_ResourceInfo *bc_data =
                                 g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info),
                                          sizeof(struct BC_ResourceInfo));
+			bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                         tmpqueue = g_slist_append(tmpqueue, e);
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -146,6 +148,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -160,6 +163,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
 				tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -185,6 +189,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -209,6 +214,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -233,6 +239,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -256,6 +263,7 @@ static int snmp_bc_discover_resources(void *hnd)
                         struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
+			bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
 			tmpqueue = g_slist_append(tmpqueue, e);
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -281,6 +289,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                         struct BC_ResourceInfo *bc_data =
                                             g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].bc_res_info),
                                                      sizeof(struct BC_ResourceInfo));
+					bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
                                         oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
 					tmpqueue = g_slist_append(tmpqueue, e);
                                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -581,7 +590,16 @@ static int snmp_bc_set_inventory_info(void *hnd, SaHpiResourceIdT id,
 
 static int snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act)
 {
-        return -1;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
+	
+	if (res->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
+		dbg("ERROR: BladeCenter does not yet support Resource Configuration saving");
+		return -1;
+	}
+	else {
+		return SA_ERR_HPI_INVALID_CMD;
+	}
 }
 
 struct oh_abi_v2 oh_snmp_bc_plugin = {
