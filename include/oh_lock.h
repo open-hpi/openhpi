@@ -24,6 +24,16 @@
 extern int oh_will_block;
 
 int data_access_block_times(void);
+
+#define dbg_lock(format, ...)                                           \
+        do {                                                            \
+                if (getenv("OPENHPI_DEBUG_LOCK") != NULL) {             \
+                        if (strcmp((char *)getenv("OPENHPI_DEBUG_LOCK"),"YES") == 0) { \
+                                fprintf(stderr, "        LOCK: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                                fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                        }                                               \
+                }                                                       \
+        } while(0)
 		 
 #ifdef HAVE_THREAD_SAFE
 /* multi-threading support, use Posix mutex for data access */
@@ -36,19 +46,18 @@ extern GStaticRecMutex oh_main_lock;
 #define data_access_lock()                                          \
         do {                                                        \
                 if (!g_static_rec_mutex_trylock(&oh_main_lock)) {    \
-                        dbg("Going to block for a lock now");       \
+                        dbg_lock("Going to block for a lock now");       \
                         oh_will_block++;                            \
                         g_static_rec_mutex_lock(&oh_main_lock);      \
                 } else {                                            \
-                        dbg("Got the lock because no one had it");  \
+                        dbg_lock("Got the lock because no one had it");  \
                 }                                                   \
         } while(0)
 
-#define data_access_unlock()                             \
-        do {                                             \
-                dbg("trying to release the lock");       \
-                g_static_rec_mutex_unlock(&oh_main_lock); \
-                dbg("released the lock");                \
+#define data_access_unlock()                              \
+        do {                                              \
+                g_static_rec_mutex_unlock(&oh_main_lock);     \
+                dbg_lock("released the lock");                \
         } while(0)
 
 #else 
