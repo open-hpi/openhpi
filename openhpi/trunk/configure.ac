@@ -448,6 +448,8 @@ fi
 # this has to come last
 NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
 AC_SUBST(NOCFLAGS)
+NOCXXFLAGS=`echo $CXXFLAGS | perl -p -e 's/-O\S*//g'`
+AC_SUBST(NOCXXFLAGS)
 
 # Set up libs that will be linked to
 LIBS="$LIBS $GLIB_LIBS -lm"
@@ -475,6 +477,7 @@ AC_CONFIG_FILES([openhpi.spec
         src/plugins/snmp_bc/t/Makefile
         src/plugins/sysfs/Makefile
         src/plugins/ipmidirect/Makefile
+        src/plugins/ipmidirect/t/Makefile
         src/plugins/simulator/Makefile
         test/Makefile
         docs/Makefile
