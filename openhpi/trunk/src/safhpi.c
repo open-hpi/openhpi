@@ -187,9 +187,8 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         dconf = (struct oh_config *) calloc(1, sizeof(struct oh_config));
         load_domain_config(&dconf, DomainId);
 */
-	if(!domain_exists(SAHPI_DEFAULT_DOMAIN_ID)) {
-		dbg("Default domain not open!");
-		dbg("No other domains may be openned before it");
+	if(!domain_exists(DomainId)) {
+		dbg("domain does not exist!");
 		return SA_ERR_HPI_INVALID_DOMAIN;
 	}
         
