@@ -196,7 +196,7 @@ static struct oh_event *sensor_discrete_map_event(
 
 }
 
-static void sensor_discrete_event(ipmi_sensor_t	*sensor,
+static int sensor_discrete_event(ipmi_sensor_t	*sensor,
 				  enum ipmi_event_dir_e		dir,
 				  int				offset,
 				  int				severity,
@@ -209,10 +209,12 @@ static void sensor_discrete_event(ipmi_sensor_t	*sensor,
 	e = sensor_discrete_map_event(dir, offset, severity,
 					prev_severity, event);
 	if (e == NULL) {
-		return;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 	set_event_sensor_num(sensor, e, handler);
 	handler->eventq = g_slist_append(handler->eventq, e);
+
+	return SA_OK;
 }
 
 
@@ -374,7 +376,7 @@ static struct oh_event *sensor_threshold_map_event(
 }
 
 
-static void sensor_threshold_event(ipmi_sensor_t		*sensor,
+static int sensor_threshold_event(ipmi_sensor_t		*sensor,
 				   enum ipmi_event_dir_e	dir,
 				   enum ipmi_thresh_e		threshold,
 				   enum ipmi_event_value_dir_e	high_low,
@@ -390,10 +392,12 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 	e = sensor_threshold_map_event(dir, threshold, high_low,
 			value_present, raw_value, value, event);
 	if (e == NULL) {
-		return;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 	set_event_sensor_num(sensor, e, handler);
 	handler->eventq = g_slist_append(handler->eventq, e);
+
+	return SA_OK;
 }
 
 
@@ -766,11 +770,11 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 		
 			if (ipmi_sensor_get_event_reading_type(sensor) == 
 						IPMI_EVENT_READING_TYPE_THRESHOLD)
-			      	rv = ipmi_sensor_threshold_set_event_handler(sensor,
+			      	rv = ipmi_sensor_add_threshold_event_handler(sensor,
 									     sensor_threshold_event,
 									     handler);
 			else
-			      	rv = ipmi_sensor_discrete_set_event_handler(sensor,
+			      	rv = ipmi_sensor_add_discrete_event_handler(sensor,
 									    sensor_discrete_event,
 									    handler);
 			if (rv)

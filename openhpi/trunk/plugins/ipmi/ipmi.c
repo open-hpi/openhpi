@@ -1184,30 +1184,35 @@ static int ipmi_get_watchdog_info(void *hnd,
 
 	/* Translate IPMI response to HPI format */
 	memset(watchdog, 0, sizeof(SaHpiWatchdogT));
-	if (response[1] & 0x80) watchdog->Log = SAHPI_FALSE;
-	else watchdog->Log = SAHPI_TRUE;
-	if (response[1] & 0x40) watchdog->Running = SAHPI_TRUE;
-	else watchdog->Running = SAHPI_FALSE;
-	switch(response[1] & 0x07)
-	{
-	case 0x01:
-            watchdog->TimerUse = SAHPI_WTU_BIOS_FRB2;
-            break;
-        case 0x02:
-            watchdog->TimerUse = SAHPI_WTU_BIOS_POST;
-            break;
-        case 0x03:
-            watchdog->TimerUse = SAHPI_WTU_OS_LOAD;
-            break;
-        case 0x04:
-            watchdog->TimerUse = SAHPI_WTU_SMS_OS;
-            break;
-        case 0x05:
-            watchdog->TimerUse = SAHPI_WTU_OEM;
-            break;
-        default:
-            watchdog->TimerUse = SAHPI_WTU_UNSPECIFIED;
-            break;
+	if (response[1] & 0x80)
+	      	watchdog->Log = SAHPI_FALSE;
+	else
+	      	watchdog->Log = SAHPI_TRUE;
+
+	if (response[1] & 0x40)
+	      	watchdog->Running = SAHPI_TRUE;
+	else
+	      	watchdog->Running = SAHPI_FALSE;
+
+	switch(response[1] & 0x07) {
+	      	case 0x01:
+		    	watchdog->TimerUse = SAHPI_WTU_BIOS_FRB2;
+			break;
+		case 0x02:
+			watchdog->TimerUse = SAHPI_WTU_BIOS_POST;
+			break;
+		case 0x03:
+			 watchdog->TimerUse = SAHPI_WTU_OS_LOAD;
+			 break;
+		case 0x04:
+			 watchdog->TimerUse = SAHPI_WTU_SMS_OS;
+			 break;
+		case 0x05:
+			 watchdog->TimerUse = SAHPI_WTU_OEM;
+			 break;
+		default:
+			 watchdog->TimerUse = SAHPI_WTU_UNSPECIFIED;
+			 break;
 	}
 
 	switch (response[2] & 0x70)
@@ -1452,8 +1457,34 @@ static SaErrorT ipmi_set_res_tag (void 			*hnd,
 	oh_add_resource(handler->rptcache, rpt_entry, res_info, 1);
 	return 0;
 }
-				  
 
+static SaErrorT ipmi_set_res_sev(void 			*hnd,
+				 SaHpiResourceIdT	res_id,
+				 SaHpiSeverityT		severity)
+{
+      	struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
+	struct ohoi_resource_inf *res_info;
+
+	SaHpiRptEntryT	*rpt_entry;
+
+	res_info = oh_get_resource_data(handler->rptcache, res_id);
+
+	rpt_entry = oh_get_resource_by_id(handler->rptcache, res_id);
+
+	if (!rpt_entry) {
+	      	dbg("Can't find RPT for resource id: %d", res_id);
+		return  SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	dbg("Current Severity: %d\n", rpt_entry->ResourceSeverity);
+	dbg("To be set New Severity: %d\n", severity);
+
+	rpt_entry->ResourceSeverity = severity;
+
+	ipmi_discover_resources(handler);
+	dbg("New Severity: %d\n", rpt_entry->ResourceSeverity);
+	return SA_OK;
+}
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
 		
@@ -1463,15 +1494,21 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.get_event			= ipmi_get_event,
 	.discover_resources		= ipmi_discover_resources,
 	.set_resource_tag		= ipmi_set_res_tag,
+	.set_resource_severity		= ipmi_set_res_sev,
 
 	/* SEL support */
 	.get_el_info                    = ipmi_get_el_info,
 	.set_el_time                    = ipmi_set_el_time,
-	//.add_sel_entry                  = ipmi_add_sel_entry,
-	//.del_sel_entry                  = ipmi_del_sel_entry,
 	.get_el_entry                   = ipmi_get_el_entry,
 	.clear_el                       = ipmi_clear_el,
 	.set_el_state                 =  ipmi_set_sel_state,
+	/* On IPMI Platform, it's discouraged to add
+	 * events manually
+	 */
+	//.add_sel_entry                  = ipmi_add_sel_entry,
+
+	/* Not supported on IPMI platform */
+	//.del_sel_entry                  = ipmi_del_sel_entry,
 
 	/* Sensor support */
 	.get_sensor_reading		= ipmi_get_sensor_reading,

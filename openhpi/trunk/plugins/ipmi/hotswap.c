@@ -95,7 +95,7 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	entity_id = ipmi_entity_convert_to_id(ent);
 	
 	rpt_entry = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
-	
+
 	if (!rpt_entry) {
 		dbg(" No rpt\n");
 		return IPMI_EVENT_NOT_HANDLED;
@@ -110,10 +110,21 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	e->type = OH_ET_HPI;
 	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
 	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
-/* Fix Me in Severity */
-	e->u.hpi_event.event.Severity = SAHPI_MINOR;
-/* Fix Me in TimeStamp*/
-	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	/* Real severity is in the sensor event and not
+	 * in the hotswap (presence) event itself
+	 * We should ignore this but will set to SAHPI_INFORMATIONAL
+	 */
+	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
+
+	/* FIXME: Possible bug with OpenIPMI, event is always NULL so we don't get 
+	 * timestamp?? 
+	 */
+	if (event != NULL) {
+	      	e->u.hpi_event.event.Timestamp =
+		    (SaHpiTimeT)ipmi_event_get_timestamp(event);
+	} else
+	      	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	      	
 	
 	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
 			= _ipmi_to_hpi_state_conv(curr_state);
