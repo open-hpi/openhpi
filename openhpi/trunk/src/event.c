@@ -101,7 +101,7 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
                 /* yes, we need to add real domain support later here */
                 d = oh_get_domain(did);
                 if(d) {
-                        rv = oh_el_add(d->del, &e->event);
+                        rv = oh_el_append(d->del, &e->event, &e->rdr, &e->res);
                         oh_release_domain(d);
                 } else {
                         rv = SA_ERR_HPI_ERROR;

@@ -469,7 +469,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
-        SaHpiEventLogEntryT *elentry;
+        oh_el_entry *elentry;
         SaErrorT retc;
         SaHpiDomainIdT did;
 
@@ -489,7 +489,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 retc = oh_el_get(d->del, EntryId, PrevEntryId, NextEntryId,
                                  &elentry);
                 if (retc == SA_OK)
-                        memcpy(EventLogEntry, elentry, sizeof(SaHpiEventLogEntryT));
+                        memcpy(EventLogEntry, &elentry->event, sizeof(SaHpiEventLogEntryT));
                 oh_release_domain(d); /* Unlock domain */
                 return retc;
         }
@@ -574,16 +574,16 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_GET_DOMAIN(did, d); /* Lock domain */        
 
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
-                rv = oh_el_add(d->del, EvtEntry);
+                rv = oh_el_append(d->del, EvtEntry, NULL, NULL);
                 oh_release_domain(d); /* Unlock domain */
                 return rv;
         }
 
-        OH_RESOURCE_GET(d, ResourceId, res);
+        OH_RESOURCE_GET(d, ResourceId, res);        
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                 dbg("Resource %d in Domain %d does not have EL.",ResourceId,did);
