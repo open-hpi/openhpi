@@ -73,14 +73,14 @@ static cConfigEntry config_table[] =
     .m_name = "max_outstanding",
     .m_type = eConfigTypeInt,
     .m_offset = dConfigOffset( cOpenHpiClientConf, m_max_outstanding ),
-    .m_default.m_int = 255
+    .m_default.m_int = dDefaultMaxOutstanding
   },
   {
     // timeout in ms
     .m_name = "timeout",
     .m_type = eConfigTypeInt,
     .m_offset = dConfigOffset( cOpenHpiClientConf, m_timeout ),
-    .m_default.m_int = 30000 // 30s
+    .m_default.m_int = dDefaultMessageTimeout // 30s
   },
   {
     .m_type = eConfigTypeUnknown
@@ -94,8 +94,19 @@ InitClient( cOpenHpiClientConf *c )
 {
   assert( c->m_client_connection == 0 );
 
-  memset( c, 0, sizeof( cOpenHpiClientConf ) );
+  c->m_num_sessions = 0;
+  c->m_client_connection = 0;
   c->m_lock = lock_tmpl;
+  c->m_queue = 0;
+
+  int i;
+  for( i = 0; i < 256; i++ )
+       c->m_outstanding[i] = 0;
+
+  c->m_num_outstanding = 0;
+  c->m_current_seq = 0;
+  c->m_thread_state = eOpenHpiClientThreadStateSuspend;
+  c->m_thread_exit = 0;
 
 #ifdef dOpenHpiClientWithConfig
   char *openhpi_client_conf = getenv( "OPENHPICLIENT_CONF" );
@@ -112,8 +123,6 @@ InitClient( cOpenHpiClientConf *c )
        return 0;
 
   // start reader thread
-  c->m_thread_state = eOpenHpiClientThreadStateSuspend;
-
   int rv = pthread_create( &c->m_thread, 0, ReaderThread, c );
 
   if ( rv )
@@ -416,8 +425,6 @@ Reader( cOpenHpiClientConf *c )
 static void
 HandlePing(cOpenHpiClientConf *c, cMessageHeader *request_header )
 {
-  printf( "read ping: send pong.\n" );
-  
   // send pong
   cMessageHeader header;
   MessageHeaderInit( &header, eMhPong, request_header->m_seq, request_header->m_id, 0 );
@@ -561,7 +568,7 @@ dOpenHpiClientFunction(SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT
 
   PreMarshal( eFsaHpiSessionOpen );
 
-  HpiMarshalRequest1( hm, request, &DomainId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &DomainId );
 
   Send();
 
@@ -592,7 +599,7 @@ dOpenHpiClientFunction(SessionClose)dOpenHpiClientParam( SAHPI_IN SaHpiSessionId
   CheckSession();
 
   PreMarshal( eFsaHpiSessionClose );
-  HpiMarshalRequest1( hm, request, &SessionId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
 
   Send();
 
@@ -620,7 +627,7 @@ dOpenHpiClientFunction(ResourcesDiscover)dOpenHpiClientParam( SAHPI_IN SaHpiSess
   CheckSession();
 
   PreMarshal( eFsaHpiResourcesDiscover );
-  HpiMarshalRequest1( hm, request, &SessionId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
 
   Send();
 
@@ -639,7 +646,7 @@ dOpenHpiClientFunction(RptInfoGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT 
   CheckSession();
 
   PreMarshal( eFsaHpiRptInfoGet );
-  HpiMarshalRequest1( hm, request, &SessionId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
 
   Send();
 
@@ -660,7 +667,7 @@ dOpenHpiClientFunction(RptEntryGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT
   CheckSession();
 
   PreMarshal( eFsaHpiRptEntryGet );
-  HpiMarshalRequest2( hm, request, &SessionId, &EntryId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &EntryId );
 
   Send();
 
@@ -682,7 +689,7 @@ dOpenHpiClientFunction(RptEntryGetByResourceId)dOpenHpiClientParam( SAHPI_IN  Sa
 
   PreMarshal( eFsaHpiRptEntryGetByResourceId );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -703,7 +710,7 @@ dOpenHpiClientFunction(ResourceSeveritySet)dOpenHpiClientParam( SAHPI_IN  SaHpiS
 
   PreMarshal( eFsaHpiResourceSeveritySet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Severity);
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Severity);
   
   Send();
 
@@ -724,7 +731,7 @@ dOpenHpiClientFunction(ResourceTagSet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessio
 
   PreMarshal( eFsaHpiResourceTagSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, ResourceTag );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, ResourceTag );
   
   Send();
 
@@ -744,7 +751,7 @@ dOpenHpiClientFunction(ResourceIdGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSession
 
   PreMarshal( eFsaHpiResourceIdGet );
 
-  HpiMarshalRequest1( hm, request, &SessionId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
   
   Send();
 
@@ -764,7 +771,7 @@ dOpenHpiClientFunction(EntitySchemaGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessi
 
   PreMarshal( eFsaHpiEntitySchemaGet );
 
-  HpiMarshalRequest1( hm, request, &SessionId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
 
   Send();
 
@@ -785,7 +792,7 @@ dOpenHpiClientFunction(EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessi
 
   PreMarshal( eFsaHpiEventLogInfoGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -811,7 +818,7 @@ dOpenHpiClientFunction(EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSe
 
   PreMarshal( eFsaHpiEventLogEntryGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &EntryId );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &EntryId );
 
   Send();
 
@@ -843,7 +850,7 @@ dOpenHpiClientFunction(EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessi
 
   PreMarshal( eFsaHpiEventLogEntryAdd );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, EvtEntry );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, EvtEntry );
 
   Send();
 
@@ -864,7 +871,7 @@ dOpenHpiClientFunction(EventLogEntryDelete)dOpenHpiClientParam( SAHPI_IN SaHpiSe
 
   PreMarshal( eFsaHpiEventLogEntryDelete );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &EntryId );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &EntryId );
   
   Send();
 
@@ -884,7 +891,7 @@ dOpenHpiClientFunction(EventLogClear)dOpenHpiClientParam( SAHPI_IN  SaHpiSession
 
   PreMarshal( eFsaHpiEventLogClear );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -905,7 +912,7 @@ dOpenHpiClientFunction(EventLogTimeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessi
 
   PreMarshal( eFsaHpiEventLogTimeGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -926,7 +933,7 @@ dOpenHpiClientFunction(EventLogTimeSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessio
 
   PreMarshal( eFsaHpiEventLogTimeSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Time );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Time );
   
   Send();
 
@@ -947,7 +954,7 @@ dOpenHpiClientFunction(EventLogStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSess
 
   PreMarshal( eFsaHpiEventLogStateGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -968,7 +975,7 @@ dOpenHpiClientFunction(EventLogStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessi
 
   PreMarshal( eFsaHpiEventLogStateSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Enable );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Enable );
   
   Send();
 
@@ -988,7 +995,7 @@ dOpenHpiClientFunction(Subscribe)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  
 
   PreMarshal( eFsaHpiSubscribe );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ProvideActiveAlarms );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ProvideActiveAlarms );
 
   Send();
 
@@ -1007,7 +1014,7 @@ dOpenHpiClientFunction(Unsubscribe)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT
 
   PreMarshal( eFsaHpiUnsubscribe );
 
-  HpiMarshalRequest1( hm, request, &SessionId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
   
   Send();
 
@@ -1030,7 +1037,7 @@ dOpenHpiClientFunction(EventGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT
 
   PreMarshal( eFsaHpiEventGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &Timeout );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &Timeout );
   
   Send();
 
@@ -1063,7 +1070,7 @@ dOpenHpiClientFunction(RdrGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT    
 
   PreMarshal( eFsaHpiRdrGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &EntryId );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &EntryId );
   
   Send();
 
@@ -1086,7 +1093,7 @@ dOpenHpiClientFunction(SensorReadingGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSess
 
   PreMarshal( eFsaHpiSensorReadingGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
   
   Send();
 
@@ -1110,7 +1117,7 @@ dOpenHpiClientFunction(SensorReadingConvert)dOpenHpiClientParam( SAHPI_IN  SaHpi
 
   PreMarshal( eFsaHpiSensorReadingConvert );
 
-  HpiMarshalRequest4( hm, request, &SessionId, &ResourceId,
+  request_header.m_len = HpiMarshalRequest4( hm, request, &SessionId, &ResourceId,
 		     &SensorNum, ReadingInput );
   
   Send();
@@ -1134,7 +1141,7 @@ dOpenHpiClientFunction(SensorThresholdsGet)dOpenHpiClientParam( SAHPI_IN  SaHpiS
 
   PreMarshal( eFsaHpiSensorThresholdsGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
 
   Send();
 
@@ -1160,7 +1167,7 @@ dOpenHpiClientFunction(SensorThresholdsSet)dOpenHpiClientParam( SAHPI_IN  SaHpiS
 
   PreMarshal( eFsaHpiSensorThresholdsSet );
 
-  HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &SensorNum, SensorThresholds );
+  request_header.m_len = HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &SensorNum, SensorThresholds );
   
   Send();
 
@@ -1183,7 +1190,7 @@ dOpenHpiClientFunction(SensorTypeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSession
 
   PreMarshal( eFsaHpiSensorTypeGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
   
   Send();
 
@@ -1206,7 +1213,7 @@ dOpenHpiClientFunction(SensorEventEnablesGet)dOpenHpiClientParam( SAHPI_IN  SaHp
 
   PreMarshal( eFsaHpiSensorEventEnablesGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
   
   Send();
 
@@ -1229,7 +1236,7 @@ dOpenHpiClientFunction(SensorEventEnablesSet)dOpenHpiClientParam( SAHPI_IN SaHpi
 
   PreMarshal( eFsaHpiSensorEventEnablesSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &SensorNum );
   
   Send();
 
@@ -1252,7 +1259,7 @@ dOpenHpiClientFunction(ControlTypeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessio
 
   PreMarshal( eFsaHpiControlTypeGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &CtrlNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &CtrlNum );
   
   Send();
 
@@ -1275,7 +1282,7 @@ dOpenHpiClientFunction(ControlStateGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSes
 
   PreMarshal( eFsaHpiControlStateGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &CtrlNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &CtrlNum );
   
   Send();
 
@@ -1298,7 +1305,7 @@ dOpenHpiClientFunction(ControlStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessio
 
   PreMarshal( eFsaHpiControlStateSet );
 
-  HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &CtrlNum, CtrlState );
+  request_header.m_len = HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &CtrlNum, CtrlState );
   
   Send();
 
@@ -1322,7 +1329,7 @@ dOpenHpiClientFunction(EntityInventoryDataRead)dOpenHpiClientParam( SAHPI_IN    
 
   PreMarshal( eFsaHpiEntityInventoryDataRead );
 
-  HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &EirId, &BufferSize );
+  request_header.m_len = HpiMarshalRequest4( hm, request, &SessionId, &ResourceId, &EirId, &BufferSize );
   
   Send();
 
@@ -1344,7 +1351,7 @@ dOpenHpiClientFunction(EntityInventoryDataWrite)dOpenHpiClientParam( SAHPI_IN Sa
 
   PreMarshal( eFsaHpiEntityInventoryDataWrite );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, InventData );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, InventData );
 
   Send();
 
@@ -1366,7 +1373,7 @@ dOpenHpiClientFunction(WatchdogTimerGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSess
 
   PreMarshal( eFsaHpiWatchdogTimerGet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &WatchdogNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &WatchdogNum );
   
   Send();
 
@@ -1389,7 +1396,7 @@ dOpenHpiClientFunction(WatchdogTimerSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessi
 
   PreMarshal( eFsaHpiWatchdogTimerSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &WatchdogNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &WatchdogNum );
   
   Send();
 
@@ -1411,7 +1418,7 @@ dOpenHpiClientFunction(WatchdogTimerReset)dOpenHpiClientParam( SAHPI_IN SaHpiSes
 
   PreMarshal( eFsaHpiWatchdogTimerReset );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &WatchdogNum );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &WatchdogNum );
   
   Send();
 
@@ -1431,7 +1438,7 @@ dOpenHpiClientFunction(HotSwapControlRequest)dOpenHpiClientParam( SAHPI_IN SaHpi
 
   PreMarshal( eFsaHpiHotSwapControlRequest );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -1451,7 +1458,7 @@ dOpenHpiClientFunction(ResourceActiveSet)dOpenHpiClientParam( SAHPI_IN SaHpiSess
 
   PreMarshal( eFsaHpiResourceActiveSet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -1471,7 +1478,7 @@ dOpenHpiClientFunction(ResourceInactiveSet)dOpenHpiClientParam( SAHPI_IN SaHpiSe
 
   PreMarshal( eFsaHpiResourceInactiveSet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -1491,7 +1498,7 @@ dOpenHpiClientFunction(AutoInsertTimeoutGet)dOpenHpiClientParam( SAHPI_IN  SaHpi
 
   PreMarshal( eFsaHpiAutoInsertTimeoutGet );
 
-  HpiMarshalRequest1( hm, request, &SessionId );
+  request_header.m_len = HpiMarshalRequest1( hm, request, &SessionId );
   
   Send();
 
@@ -1512,7 +1519,7 @@ dOpenHpiClientFunction(AutoInsertTimeoutSet)dOpenHpiClientParam( SAHPI_IN SaHpiS
 
   PreMarshal( eFsaHpiAutoInsertTimeoutSet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &Timeout );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &Timeout );
   
   Send();
 
@@ -1533,7 +1540,7 @@ dOpenHpiClientFunction(AutoExtractTimeoutGet)dOpenHpiClientParam( SAHPI_IN  SaHp
 
   PreMarshal( eFsaHpiAutoExtractTimeoutGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -1554,7 +1561,7 @@ dOpenHpiClientFunction(AutoExtractTimeoutSet)dOpenHpiClientParam( SAHPI_IN  SaHp
 
   PreMarshal( eFsaHpiAutoExtractTimeoutSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Timeout );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Timeout );
   
   Send();
 
@@ -1575,7 +1582,7 @@ dOpenHpiClientFunction(HotSwapStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessi
 
   PreMarshal( eFsaHpiHotSwapStateGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -1597,7 +1604,7 @@ dOpenHpiClientFunction(HotSwapActionRequest)dOpenHpiClientParam( SAHPI_IN SaHpiS
 
   PreMarshal( eFsaHpiHotSwapActionRequest );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Action );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Action );
   
   Send();
 
@@ -1618,7 +1625,7 @@ dOpenHpiClientFunction(ResourcePowerStateGet)dOpenHpiClientParam( SAHPI_IN  SaHp
 
   PreMarshal( eFsaHpiResourcePowerStateGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -1640,7 +1647,7 @@ dOpenHpiClientFunction(ResourcePowerStateSet)dOpenHpiClientParam( SAHPI_IN SaHpi
 
   PreMarshal( eFsaHpiResourcePowerStateSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &State );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &State );
   
   Send();
 
@@ -1661,7 +1668,7 @@ dOpenHpiClientFunction(HotSwapIndicatorStateGet)dOpenHpiClientParam( SAHPI_IN  S
 
   PreMarshal( eFsaHpiHotSwapIndicatorStateGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
   
   Send();
 
@@ -1683,7 +1690,7 @@ dOpenHpiClientFunction(HotSwapIndicatorStateSet)dOpenHpiClientParam( SAHPI_IN Sa
 
   PreMarshal( eFsaHpiHotSwapIndicatorStateSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &State );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &State );
 
   Send();
 
@@ -1704,7 +1711,7 @@ dOpenHpiClientFunction(ParmControl)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT
 
   PreMarshal( eFsaHpiParmControl );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Action );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &Action );
   
   Send();
 
@@ -1725,7 +1732,7 @@ dOpenHpiClientFunction(ResourceResetStateGet)dOpenHpiClientParam( SAHPI_IN SaHpi
 
   PreMarshal( eFsaHpiResourceResetStateGet );
 
-  HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
+  request_header.m_len = HpiMarshalRequest2( hm, request, &SessionId, &ResourceId );
 
   Send();
 
@@ -1747,7 +1754,7 @@ dOpenHpiClientFunction(ResourceResetStateSet)dOpenHpiClientParam( SAHPI_IN SaHpi
 
   PreMarshal( eFsaHpiResourceResetStateSet );
 
-  HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &ResetAction );
+  request_header.m_len = HpiMarshalRequest3( hm, request, &SessionId, &ResourceId, &ResetAction );
   
   Send();
 
