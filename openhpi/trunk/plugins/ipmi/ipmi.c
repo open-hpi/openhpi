@@ -817,19 +817,11 @@ static int ipmi_get_sensor_event_enable(void *hnd, SaHpiResourceIdT id,
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-#if 0
-	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
-		dbg("sensor is not present");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#endif
 
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 	if (rv!=SA_OK)
 		return rv;
 	return ohoi_get_sensor_event_enable(*sensor, enable, ipmi_handler);
-
-	return SA_OK;
 }
 
 static int ipmi_set_sensor_event_enable(void *hnd,
@@ -837,8 +829,6 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 					 SaHpiSensorNumT num,
 					 const SaHpiBoolT enable)
 {
-#if 0
-	
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	
@@ -852,20 +842,12 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 		dbg("no rdr");
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-#if 0
-	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
-		dbg("sensor is not present");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#endif
 	
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
 		(void *)&sensor);
 	if (rv!=SA_OK)
 		return rv;
 	return ohoi_set_sensor_event_enable(*sensor, enable, ipmi_handler);
-#endif
-	return SA_OK;
 }
 static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 				       SaHpiSensorNumT  num,
