@@ -3,12 +3,13 @@ dnl autoconf and automake for openhpi
 dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
 dnl
 
-AC_INIT
+AC_INIT(openhpi.spec.in)
 AM_INIT_AUTOMAKE(openhpi, 0.1)
 
 dnl AM_CONFIG_HEADER(./config.h)
 
 AC_PROG_CC
+AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
 HPI_PKG=openhpi
@@ -48,6 +49,32 @@ libdir=`var "$libdir" "$exec_prefix/lib"`
 includedir=`var "$includedir" "$exec_prefix/include"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
+
+
+AC_C_STRINGIZE
+
+AC_ARG_ENABLE([fatal-warnings],
+[  --enable-fatal-warnings very pedantic and fatal warnings for gcc
+                          [default=yes]])
+
+AC_ARG_ENABLE([no-long-long],
+[  --enable-no-long-long removes no long long warning for gcc
+                          [default=yes]])
+
+AC_ARG_ENABLE([traditional-warnings],
+[  --enable-traditional-warnings
+                          enable traditional warnings gcc (-Wtraditional)
+                          [default=no]])
+CC_WARNINGS="-Wall -Wmissing-prototypes \
+	-Wmissing-declarations \
+	-Wstrict-prototypes \
+	-Wpointer-arith \
+	-Wwrite-strings \
+	-Wcast-qual -Wcast-align \
+	-Werror"
+
+CFLAGS="$CFLAGS $CC_WARNINGS"
+
 
 AC_OUTPUT(openhpi.spec 		\
 Makefile 			\
