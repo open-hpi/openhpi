@@ -42,7 +42,7 @@ static cMarshalType oHpiTextBufferDataArray = dArray( SaHpiUint8Type, OH_GLOBAL_
 
 static cMarshalType oHpiTextBufferElements[] =
 {
-  dStructElement( SaHpiTextBufferT, DataLength, SaHpiUint16Type ),
+  dStructElement( oHpiTextBufferT, DataLength, SaHpiUint16Type ),
   dStructElement( oHpiTextBufferT, Data, oHpiTextBufferDataArray ),
   dStructElementEnd()
 };
@@ -806,7 +806,7 @@ static cMarshalType oHpiHandlerInfoElements[] =
   dStructElementEnd()
 };
 
-cMarshalType oHpiHandlerInfoType = dStruct( oHpiPluginInfoT, oHpiHandlerInfoElements );
+cMarshalType oHpiHandlerInfoType = dStruct( oHpiHandlerInfoT, oHpiHandlerInfoElements );
 
 
 // global param
