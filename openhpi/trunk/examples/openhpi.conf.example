@@ -19,4 +19,12 @@ handler	libdummy {
 	value =	"0"
 }
 
-#handler libipmi	lan "ip.address port	auth_type	auth_level	username	password"
+#handler libipmi	{
+#	name = "smi"
+#	addr = "0"
+#}
+
+#handler libipmi {
+#	name = "lan"
+#	addr = "ip.address port	auth_type auth_level username password"
+#}
