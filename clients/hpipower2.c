@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include "SaHpi.h"
@@ -126,21 +127,37 @@ main(int argc, char **argv)
 			state2str(current_state);
 
 			/* set new power state */
-			printf("Setting power state to:");
-			state2str(in_state);
-				rv1 = saHpiResourcePowerStateSet(sessionid, resourceid, in_state);
-			if (rv1 != SA_OK)
-			       printf("PowerStateSet status = %d\n",rv1);
-				/* check new state again */
+			switch (in_state) {
+			      	case SAHPI_POWER_OFF:
+				case SAHPI_POWER_ON:
+				    	printf("Setting power state to:");
+					state2str(in_state);
+					rv1 = saHpiResourcePowerStateSet(sessionid, resourceid, in_state);
+					if (rv1 != SA_OK)
+					      	printf("PowerStateSet status = %d\n",rv1);
+					sleep(2);
+					break;
+				case SAHPI_POWER_CYCLE:
+					printf("Cycling system power\n");
+					rv1 = saHpiResourcePowerStateSet(sessionid, resourceid, in_state);
+					if (rv1 != SA_OK)
+					      	printf("PowerStateSet status = %d\n",rv1);
+						
+					printf("Cycling power, please wait a moment...\n");
+					sleep(8);
+					break;
+			}
+			/* check new state again */
 			rv1 = saHpiResourcePowerStateGet(sessionid, resourceid,
-							&current_state);
-			if (rv1 != SA_OK)
-				printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
-			else {
-				printf("New power state:");
-				state2str(current_state);
-			}	
-		};
+									&current_state);
+			if (rv1 != SA_OK) {
+				      	printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
+					break;
+			} else {
+				      	printf("New power state:");
+					state2str(current_state);
+			}
+		}
 		rptentryid = nextrptentryid;
 	}
 
@@ -158,7 +175,9 @@ void state2str(SaHpiPowerStateT state)
 		printf("\tSAHPI_POWER_ON\n");
 	if (state == SAHPI_POWER_OFF)
 		printf("\tSAHPI_POWER_OFF\n");
-	if (state != SAHPI_POWER_ON && state != SAHPI_POWER_OFF)
+	if (state == SAHPI_POWER_CYCLE)
+	      	printf("\tCycling System Power\n");
+	if (state != SAHPI_POWER_ON && state != SAHPI_POWER_OFF && state != SAHPI_POWER_CYCLE)
 		printf("\tInvalid Power State\n");
 }
 	
