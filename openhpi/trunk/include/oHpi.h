@@ -36,6 +36,7 @@ typedef struct {
 typedef enum {
         OHPI_ON_EP = 1,
         OHPI_LOG_ON_SEV,
+        OHPI_EVT_QUEUE_LIMIT,
         OHPI_DEL_SIZE_LIMIT,
         OHPI_DAT_SIZE_LIMIT,
         OHPI_DAT_USER_LIMIT,
@@ -51,6 +52,7 @@ typedef union {
         SaHpiEntityPathT OnEP; /* Entity path where this openhpi instance runs */
         /* Log events of severity equal to ore more critical than this */
         SaHpiSeverityT LogOnSev;
+        SaHpiUint32T EvtQueueLimit; /* Max events # allowed in session queue */
         SaHpiUint32T DelSizeLimit; /* Maximum size of domain event log */
         SaHpiUint32T DatSizeLimit; /* Max alarms allowed in alarm table */
         SaHpiUint32T DatUserLimit; /* Max number of user alarms allowed */
