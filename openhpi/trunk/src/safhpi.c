@@ -71,7 +71,12 @@ static enum {
  */
 #define OH_HANDLER_GET(rpt,rid,h)                                       \
         do {                                                            \
-                struct oh_resource_data *rd = oh_get_resource_data(rpt, rid); \
+                struct oh_resource_data *rd;                            \
+                if(rpt != NULL) {                                       \
+                        dbg("Invalide RPTable");                        \
+                        return SA_ERR_HPI_INVALID_SESSION;              \
+                }                                                       \
+                rd = oh_get_resource_data(rpt, rid);                    \
                 if(!rd || !rd->handler) {                               \
                         dbg("Can't find handler for Resource %d", rid); \
                         data_access_unlock();                           \
@@ -479,6 +484,10 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
         return SA_OK;
 }
 
+/*
+ * Question: do we need a lock here?
+ */
+
 SaErrorT SAHPI_API saHpiResourceSeveritySet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -489,11 +498,15 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
                              SaHpiSeverityT sev);
         
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         struct oh_handler *h;
         
         OH_STATE_READY_CHECK;
+        
         OH_SESSION_SETUP(SessionId,s);
+        
+        OH_RPT_GET(SessionId, rpt);
+
         OH_HANDLER_GET(rpt, ResourceId, h);
         
         set_res_sev = h->abi->set_resource_severity;
@@ -521,11 +534,15 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
                                 SaHpiTextBufferT *ResourceTag);
 
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
         struct oh_handler *h;
         
         OH_STATE_READY_CHECK;
+        
         OH_SESSION_SETUP(SessionId,s);
+        
+        OH_RPT_GET(SessionId, rpt);
+        
         OH_HANDLER_GET(rpt, ResourceId, h);
         
         set_res_tag = h->abi->set_resource_tag;
