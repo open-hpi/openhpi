@@ -65,6 +65,7 @@ static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 #define PID_FILE "/var/run/openhpid.pid"
 
 static bool stop_server = FALSE;
+static int sock_timeout = CLIENT_TIMEOUT;
 
 /* options set by the command line */
 static char *pid_file = NULL;
@@ -74,6 +75,7 @@ static struct option long_options[] = {
         {"config",  required_argument, NULL, 'c'},
         {"port",    required_argument, NULL, 'p'},
         {"pidfile", required_argument, NULL, 'f'},
+        {"timeout", required_argument, NULL, 's'},
         {0, 0, 0, 0}
 };
 
@@ -98,6 +100,8 @@ void display_help(void)
         printf("                 the daemon. This option is optional.\n");
         printf("   -f pidfile    This overrides the default name/location for the daemon.\n");
         printf("                 pid file. This option is optional.\n\n");
+        printf("   -s seconds    This overrides the default socket read timeout of 30\n");
+        printf("                 minutes. This option is optional.\n\n");
         printf("A typical invocation might be\n\n");
         printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
 }
@@ -141,6 +145,12 @@ int main (int argc, char *argv[])
                         pid_file = (char *)malloc(strlen(optarg) + 1);
                         strcpy(pid_file, optarg);
                         break;
+                case 's':
+                        sock_timeout = atoi(optarg);
+                        if (sock_timeout < 0) {
+                                sock_timeout = CLIENT_TIMEOUT;
+                        }
+                        break;
                 case '?':
                         display_help();
                         exit(0);
@@ -179,7 +189,7 @@ int main (int argc, char *argv[])
 
         // see if we are trying to use the wrong library
         version = oHpiVersionGet();
-        if((version & 0x000000000000ffff) != 0) { 
+        if((version & 0x000000000000ffff) != 0) {
                 // we're trying to run against the client lib
                 // danger will robinson!
                 printf("Error: Trying to run with the OpenHPI client library.\n");
@@ -348,7 +358,7 @@ static void service_thread(gpointer data, gpointer user_data)
 	PVERBOSE1("Servicing connection.\n");
 
         /* set the read timeout for the socket */
-        thrdinst->SetReadTimeout(CLIENT_TIMEOUT);
+        thrdinst->SetReadTimeout(sock_timeout);
 
 	while (stop == false) {
                 if (thrdinst->ReadMsg(buf)) {
