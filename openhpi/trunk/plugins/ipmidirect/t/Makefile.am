@@ -37,7 +37,7 @@ MOSTLYCLEANFILES 	= \
 
 CLEANFILES		= @CLEANFILES@ $(MOSTLYCLEANFILES)
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/src/plugins/ipmidirect
+INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/plugins/ipmidirect
 
 AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 AM_CXXFLAGS 		= @NOCXXFLAGS@ -ftest-coverage -fprofile-arcs
@@ -66,7 +66,7 @@ TESTS = \
 con_000_SOURCES = con_000.cpp $(CON_REMOTE_SOURCES)
 con_000_LDADD   = @SSL_LIB@
 
-con_001_SOURCES = con_001.c
+con_001_SOURCES = con_001.c $(CON_REMOTE_SOURCES)
 con_001_LDADD   = @SSL_LIB@
 
 thread_000_SOURCES = thread_000.cpp test.h $(THREAD_REMOTE_SOURCES)
