@@ -65,7 +65,7 @@ SaErrorT populate_range_max(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
+dbg("**** # of range readings of type max, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_MAX_VALUE_PRESENT */
         snmp_status = snmp_getn_bulk(custom_handle->ss, 
@@ -89,7 +89,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_MAX_VALUE_PRESENT:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MAX_VALUE_PRESENT:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -119,7 +119,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
 				sen_max_reading[i].Raw =
                                         (SaHpiSensorReadingFormatsT)*vars->val.integer; 
                         else
-                                printf("SA_HPI_SENSOR_READING_MAX_RAW:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MAX_RAW:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -151,7 +151,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
 					       vars->val.string,
 					       vars->val_len);
                         } else
-                                printf("SA_HPI_SENSOR_READING_MAX_INTERPRETED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MAX_INTERPRETED:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -181,7 +181,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
 				sen_max_reading[i].EventStatus.SensorStatus =
 					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_READING_MAX_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MAX_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -212,7 +212,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
 						  vars->val_len,
 						  &sen_max_reading[i].EventStatus.EventStatus);
                         else
-                                printf("SA_HPI_SENSOR_READING_MAX_EVENT_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MAX_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -222,9 +222,9 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
 
 	/* SENSOR READINGS MAX  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** Adding sen_max_reading[] to cap[]             	 **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** Adding sen_max_reading[] to cap[]             	      **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_rdrs; i++) {
                         if (sahpi_sensor_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_MAX ) {
@@ -283,7 +283,7 @@ SaErrorT populate_range_min(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
+dbg("**** # of range readings of type min, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_MIN_VALUE_PRESENT */
         snmp_status = snmp_getn_bulk(custom_handle->ss, 
@@ -307,7 +307,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_MIN_VALUE_PRESENT:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MIN_VALUE_PRESENT:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -337,7 +337,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
 				sen_min_reading[i].Raw =
                                         (SaHpiSensorReadingFormatsT)*vars->val.integer; 
                         else
-                                printf("SA_HPI_SENSOR_READING_MIN_RAW:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MIN_RAW:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -369,7 +369,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
 					       vars->val.string,
 					       vars->val_len);
                         } else
-                                printf("SA_HPI_SENSOR_READING_MIN_INTERPRETED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MIN_INTERPRETED:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -399,7 +399,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
 				sen_min_reading[i].EventStatus.SensorStatus =
 					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_READING_MIN_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MIN_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -430,7 +430,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
 						  vars->val_len,
 						  &sen_min_reading[i].EventStatus.EventStatus);
                         else
-                                printf("SA_HPI_SENSOR_READING_MIN_EVENT_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_MIN_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -440,9 +440,9 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
 
 	/* SENSOR READINGS MIN  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** Adding sen_min_reading[] to cap[]             	 **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** Adding sen_min_reading[] to cap[]             	 **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_MIN ) {
@@ -500,7 +500,7 @@ SaErrorT populate_range_nominal(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
+dbg("**** # of range readings of type nominal, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_NOMINAL_VALUE_PRESENT */
         snmp_status = snmp_getn_bulk(custom_handle->ss, 
@@ -524,7 +524,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_NOMINAL_VALUE_PRESENT:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NOMINAL_VALUE_PRESENT:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -554,7 +554,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
 				sen_nominal_reading[i].Raw =
                                         (SaHpiSensorReadingFormatsT)*vars->val.integer; 
                         else
-                                printf("SA_HPI_SENSOR_READING_NOMINAL_RAW:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NOMINAL_RAW:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -586,7 +586,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
 					       vars->val.string,
 					       vars->val_len);
                         } else
-                                printf("SA_HPI_SENSOR_READING_NOMINAL_INTERPRETED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NOMINAL_INTERPRETED:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -616,7 +616,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
 				sen_nominal_reading[i].EventStatus.SensorStatus =
 					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_READING_NOMINAL_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NOMINAL_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -647,7 +647,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
 						  vars->val_len,
 						  &sen_nominal_reading[i].EventStatus.EventStatus);
                         else
-                                printf("SA_HPI_SENSOR_READING_NOMINAL_EVENT_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NOMINAL_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -657,9 +657,9 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
 
 	/* SENSOR READINGS NOMINAL  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** Adding sen_nominal_reading[] to cap[]             	 **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** Adding sen_nominal_reading[] to cap[]             	 **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NOMINAL ) {
@@ -717,7 +717,7 @@ SaErrorT populate_range_normal_max(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num);
+dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_NORMAL_MAX_VALUE_PRESENT */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -741,7 +741,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MAX_VALUE_PRESENT:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MAX_VALUE_PRESENT:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -771,7 +771,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 				sen_normal_max_reading[i].Raw =
                                         (SaHpiSensorReadingFormatsT)*vars->val.integer; 
                         else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MAX_RAW:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MAX_RAW:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -803,7 +803,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 					       vars->val.string,
 					       vars->val_len);
                         } else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MAX_INTERPRETED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MAX_INTERPRETED:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -833,7 +833,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 				sen_normal_max_reading[i].EventStatus.SensorStatus =
 					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MAX_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MAX_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -864,7 +864,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 						  vars->val_len,
 						  &sen_normal_max_reading[i].EventStatus.EventStatus);
                         else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MAX_EVENT_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MAX_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -874,9 +874,9 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 
 	/* SENSOR READINGS NORMAL_MAX  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** Adding sen_normal_max_reading[] to cap[]             	 **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** Adding sen_normal_max_reading[] to cap[]             	 **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MAX ) {
@@ -934,7 +934,7 @@ SaErrorT populate_range_normal_min(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num);
+dbg("**** # of range readings of type normal max, rr_num %d *****" ,rr_num);
 
         /* SA_HPI_SENSOR_READING_NORMAL_MIN_VALUE_PRESENT */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -958,7 +958,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MIN_VALUE_PRESENT:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MIN_VALUE_PRESENT:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -988,7 +988,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 				sen_normal_min_reading[i].Raw =
                                         (SaHpiSensorReadingFormatsT)*vars->val.integer; 
                         else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MIN_RAW:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MIN_RAW:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1020,7 +1020,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 					       vars->val.string,
 					       vars->val_len);
                         } else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MIN_INTERPRETED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MIN_INTERPRETED:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1050,7 +1050,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 				sen_normal_min_reading[i].EventStatus.SensorStatus =
 					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MIN_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MIN_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1081,7 +1081,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 						  vars->val_len,
 						  &sen_normal_min_reading[i].EventStatus.EventStatus);
                         else
-                                printf("SA_HPI_SENSOR_READING_NORMAL_MIN_EVENT_STATUS:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_NORMAL_MIN_EVENT_STATUS:something terrible has happened");
                         vars = vars->next_variable;
                 }
                 display_vars(get_cap_response);
@@ -1091,9 +1091,9 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
 
 	/* SENSOR READINGS NORMAL_MIN  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** Adding sen_normal_min_reading[] to cap[]             	 **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** Adding sen_normal_min_reading[] to cap[]             	 **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.DataFormat.Range.Flags & SAHPI_SRF_NORMAL_MIN ) {
@@ -1151,7 +1151,7 @@ SaErrorT populate_thld_low_crit(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_low_crit, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -1175,7 +1175,7 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1204,7 +1204,7 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_CRIT : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1233,7 +1233,7 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_CRIT : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1243,9 +1243,9 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
 
 	/* SA_HPI_SENSOR_READING_THD_LOW_CRITICAL  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** LOW_CRITICAL: AND'ING sen_defn[] to sahpi_sensor_cap[]**\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** LOW_CRITICAL: AND'ING sen_defn[] to sahpi_sensor_cap[]**");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -1308,7 +1308,7 @@ SaErrorT populate_thld_low_major(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_low_major, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -1332,7 +1332,7 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1361,7 +1361,7 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_MAJOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1390,7 +1390,7 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_MAJOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1400,9 +1400,9 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
 
 	/* SA_HPI_SENSOR_READING_THD_LOW_MAJOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** LOW_MAJOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** LOW_MAJOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -1465,7 +1465,7 @@ SaErrorT populate_thld_low_minor(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_low_minor, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -1489,7 +1489,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1518,7 +1518,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_MINOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1547,7 +1547,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_MINOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1557,9 +1557,9 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
 
 	/* SA_HPI_SENSOR_READING_THD_LOW_MINOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** LOW_MINOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** LOW_MINOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -1623,7 +1623,7 @@ SaErrorT populate_thld_up_critical(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_up_critical, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -1647,7 +1647,7 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1676,7 +1676,7 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_CRIT : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1705,7 +1705,7 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_CRIT : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1715,9 +1715,9 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
 
 	/* SA_HPI_SENSOR_READING_THD_UP_CRITICAL  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** UP_CRITICAL: AND'ING sen_defn[] to sahpi_sensor_cap[]   **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** UP_CRITICAL: AND'ING sen_defn[] to sahpi_sensor_cap[]   **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -1780,7 +1780,7 @@ SaErrorT populate_thld_up_major(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_up_major, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -1804,7 +1804,7 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1833,7 +1833,7 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_MAJOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1862,7 +1862,7 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_MAJOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1872,9 +1872,9 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
 
 	/* SA_HPI_SENSOR_READING_THD_UP_MAJOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** UP_MAJOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** UP_MAJOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -1938,7 +1938,7 @@ SaErrorT populate_thld_up_minor(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_up_minor, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -1962,7 +1962,7 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -1991,7 +1991,7 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_MINOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2020,7 +2020,7 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_MINOR : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2030,9 +2030,9 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
 
 	/* SA_HPI_SENSOR_READING_THD_UP_MINOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** UP_MINOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** UP_MINOR: AND'ING sen_defn[] to sahpi_sensor_cap[]   **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -2095,7 +2095,7 @@ SaErrorT populate_thld_pos_hysteresis(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -2119,7 +2119,7 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2148,7 +2148,7 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_HYSTERESIS : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2177,7 +2177,7 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_UP_HYSTERESIS : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2187,9 +2187,9 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
 
 	/* SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** POS_HYSTERESIS: AND'ING sen_defn[] to sahpi_sensor_cap[]   **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** POS_HYSTERESIS: AND'ING sen_defn[] to sahpi_sensor_cap[]   **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -2253,7 +2253,7 @@ SaErrorT populate_thld_neg_hysteresis(struct snmp_client_hnd *custom_handle,
                 return(SA_ERR_HPI_ERROR);
         }
 
-printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd_num);
+dbg("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****" ,thd_num);
 
         /* SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_READABLE */
         snmp_status = snmp_getn_bulk(custom_handle->ss,
@@ -2277,7 +2277,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                                 indices[1] = vars->name[vars->name_length - 2];
                                 indices[2] = vars->name[vars->name_length - 1]; 
                         } else
-                                printf("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_READABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_READABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2306,7 +2306,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
 				sen_defn[i].WriteThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_HYSTERESIS : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_WRITEABLE:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_WRITEABLE:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2335,7 +2335,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
 				sen_defn[i].FixedThold = 
 					(*vars->val.integer == 1) ? SAHPI_STM_LOW_HYSTERESIS : SAHPI_FALSE;
                         else
-                                printf("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_FIXED:something terrible has happened\n");
+                                dbg("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_FIXED:something terrible has happened");
                         vars = vars->next_variable;  
                 }
                 display_vars(get_cap_response);
@@ -2345,9 +2345,9 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
 
 	/* SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
-		printf("***********************************************************\n");
-		printf("** NEG_HYSTERESIS: AND'ING sen_defn[] to sahpi_sensor_cap[]   **\n");
-		printf("***********************************************************\n");
+		dbg("***********************************************************");
+		dbg("** NEG_HYSTERESIS: AND'ING sen_defn[] to sahpi_sensor_cap[]   **");
+		dbg("***********************************************************");
                 int ii = 0;
                 for( i = 0; i < num_sen_rdrs; i++) {
                         if ( sahpi_sensor_cap[i].SensorRec.ThresholdDefn.IsThreshold  ) {
@@ -2500,11 +2500,11 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
 		is_readable = (get_value.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
 	else
-		printf("get_sensor_threshold_data: error getting THOLD_IS_READABLE \n");
+		dbg("get_sensor_threshold_data: error getting THOLD_IS_READABLE ");
 
 	/* if the threshold MIB OIDS are not readable return */
 	if (is_readable == SAHPI_FALSE) {
-		printf("RAW and INTERPRETED MIB vars not readable\n");
+		dbg("RAW and INTERPRETED MIB vars not readable");
 		return status;
 	}
 
@@ -2523,7 +2523,7 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 		reading->ValuesPresent = 
 			(SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(get_value.integer);
 	else
-		printf("get_sensor_threshold_data: error getting VALUES_PRESENT \n"); 
+		dbg("get_sensor_threshold_data: error getting VALUES_PRESENT "); 
 
 	/* RAW_READING */
 	if ((reading->ValuesPresent & SAHPI_SRF_RAW) && (status == SA_OK) ) {
@@ -2542,8 +2542,8 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 		if( (status == SA_OK) && (get_value.type == ASN_UNSIGNED) ) {
 			reading->Raw = (SaHpiUint32T)get_value.integer;
 		} else {
-			printf("get_sensor_threshold_data: error getting");
-			printf(" RAW_READING \n");
+			dbg("get_sensor_threshold_data: error getting");
+			dbg(" RAW_READING ");
 		}
 
 	} 
@@ -2568,10 +2568,10 @@ SaErrorT get_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 				       get_value.str_len);
 				reading->Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER;
 			} else
-				printf("ERROR: get_sensor_threshold_data() buff exceeds max allowed\n");
+				dbg("ERROR: get_sensor_threshold_data() buff exceeds max allowed");
 
 		} else 
-			printf("get_sensor_threshold_data: INTERPRETED_READING");
+			dbg("get_sensor_threshold_data: INTERPRETED_READING");
 	} 
 
 	return(status);
@@ -2604,11 +2604,11 @@ SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
 		is_writable = (get_value.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
 	else
-		printf("get_sensor_threshold_data: error getting THOLD_WRITEABLE \n");
+		dbg("get_sensor_threshold_data: error getting THOLD_WRITEABLE ");
 
 	/* if the threshold MIB OIDS are not writable return */
 	if (is_writable == SAHPI_FALSE) {
-		printf("RAW and INTERPRETED MIB vars not writable\n");
+		dbg("RAW and INTERPRETED MIB vars not writable");
 		return status;
 	}
 
