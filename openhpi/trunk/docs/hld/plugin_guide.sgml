@@ -136,8 +136,8 @@ static void *my_open(GHashTable *config_file);
 	access to the hardware management protocol.
 	</para>
 	<para>
-	Further, you would initialize the oh_handler_state elements, allocate the 
-	handler structureparse the plug-in parameters from the confi hash, allocate
+	Further, you would initialize the oh_handler_state elements. Allocate the 
+	handler structure, parse the plug-in parameters from the confi hash, allocate
 	the rptcache and initialize any private data structures in your plug-in.
     	</para>
 	<para>
@@ -165,8 +165,21 @@ static void *my_close(void *hnd);
     <sect2>
     <title>The <literal>discover_resources</literal> function</title>
     <para>
+	<programlisting>
+prototype:
+static void *discover_resources(*hnd);
+	</programlisting>
+    </para>
+    <para>
 	The discover_resources function is the function which reports the plug-in's
 	findings of resources, sensors, controls, etc. to the infrastructure.
+    </para>
+
+    <para>
+	In most existing plug-ins, the code would retrieve RPT entries from the rptcache
+	and format then into oh_event(s) structures and append them into the eventq.
+	The infrastructure would retrieve these events from each plug-in defined in the
+	config file and store them in the main RPT table of the infrastructure.
     </para>
 
    </sect2>
