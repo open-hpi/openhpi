@@ -60,6 +60,20 @@ handler libsnmp_bc {
 
         </literallayout></literal>
     </para>
+    <para>
+      The <literal>plugin</literal> stanza tells OpenHPI that there is
+      a plugin file of the name libsnmp_bc.la in the
+      LTDL_LIBRARY_PATH that it should load on startup.  This path
+      defaults to /usr/lib:/usr/local/lib.
+    </para>
+    <para>
+      The <literal>handler</literal> stanza creates and instance of an
+      OpenHPI plugin.  It includes a block stanza which lets the
+      plugin take those configuration stanzas that it wishes, and use
+      them for instantiation.  At minimum, the entity_root must be
+      specified to instruct OpenHPI where in the Entity hierarchy the
+      entities discovered by the handler should go.
+    </para>
   </sect1>
   <sect1>
     <title>Dummy Plugin</title>
