@@ -72,6 +72,10 @@ SaErrorT getcontrolstate(SaHpiSessionIdT sessionid,
 			SaHpiResourceIdT l_resourceid,
 			SaHpiCtrlNumT num);
 
+static 
+void sensor_readingthreshold(SaHpiSessionIdT sessionid,
+			SaHpiResourceIdT resourceid,
+			SaHpiRdrT *rdrptr);
 
 #define all_resources 255
 
@@ -273,7 +277,7 @@ SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 		printf("\n+%s\n",working.Data);
 		
 		if (!f_listall && !f_rpt) 
-		printf(" Desc: %s, ResourceId %d\n\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
+		printf(" Tag: %s, ResourceId %d\n\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
 
 
 		/* Print details when asked */
@@ -420,13 +424,137 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid,
 	oh_init_textbuffer(&working);																		
 
 	if (rdrptr->RdrType == SAHPI_SENSOR_RDR) {							
-		rv = oh_print_sensorrec(&rdrptr->RdrTypeUnion.SensorRec, 4);	
+		rv = oh_print_sensorrec(&rdrptr->RdrTypeUnion.SensorRec, 4);
+		
+		sensor_readingthreshold(sessionid,
+					l_resourceid,
+					rdrptr);
+	
 		
 	} 
-
+	
 	return(rv);
 }
 
+/* 
+ * This routine get sensor reading and threshold, and display them.
+ *
+**/
+static 
+void sensor_readingthreshold(SaHpiSessionIdT sessionid,
+			SaHpiResourceIdT resourceid,
+			SaHpiRdrT *rdrptr)
+{
+
+	SaHpiSensorRecT *sensorrec;
+        SaHpiSensorNumT sensornum;
+        SaHpiSensorReadingT reading;
+        SaHpiSensorThresholdsT thresh;
+        SaHpiEventStateT events;
+        SaHpiTextBufferT text;
+        SaErrorT rv;
+        
+	
+	sensorrec = &rdrptr->RdrTypeUnion.SensorRec;
+        sensornum = sensorrec->Num;
+        rv = saHpiSensorReadingGet(sessionid,resourceid, sensornum, &reading, &events);
+        if (rv != SA_OK)  {
+                printf("\nReadingGet ret=%s\n", oh_lookup_error(rv));
+                return;
+        }
+        
+        if (!reading.IsSupported ) {
+                printf("\t  Reading Not Supported for sensor %d!\n\n", sensornum);
+                return;
+        } 
+        
+        if((rv = oh_decode_sensorreading(reading, sensorrec->DataFormat, &text)) == SA_OK) {
+                printf("\t  Sensor %d reading = %s\n", sensornum, text.Data);
+        } else {
+                printf("\n\t  Sensor %d Reading FAILED, %s\n", sensornum, oh_lookup_error(rv));
+        }
+	
+	rv = saHpiSensorThresholdsGet(sessionid,resourceid, sensornum, &thresh);
+	if (rv != SA_OK)  {
+		printf("\t    ThresholdsGet ret=%s\n\n", oh_lookup_error(rv));
+		return;
+	}
+	printf( "\t    Thresholds::\n" );
+
+	if (thresh.LowCritical.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.LowCritical, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tLow Critical Threshold: %s\n", text.Data);
+		} else {
+			printf( "\t\tLow Critical Threshold: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+	
+	if (thresh.LowMajor.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.LowMajor, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tLow Major Threshold: %s\n", text.Data);
+		} else {
+			printf( "\t\tLow Major Threshold: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+	
+	if (thresh.LowMinor.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.LowMinor, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tLow Minor Threshold: %s\n", text.Data);
+		} else {
+			printf( "\t\tLow Minor Threshold: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+
+	if (thresh.UpCritical.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.UpCritical, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tUp Critical Threshold: %s\n", text.Data);
+		} else {
+			printf( "\t\tUp Critical Threshold: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+	
+	if (thresh.UpMajor.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.UpMajor, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tUp Major Threshold: %s\n", text.Data);
+		} else {
+			printf( "\t\tUp Major Threshold: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+	
+	if (thresh.UpMinor.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.UpMinor, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tUp Minor Threshold: %s\n", text.Data);
+		} else {
+			printf( "\t\tUp Minor Threshold: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+	
+	if (thresh.PosThdHysteresis.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.PosThdHysteresis, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tPos Threshold Hysteresis: %s\n", text.Data);
+		} else {
+			printf( "\t\tPos Threshold Hysteresis: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+	
+	if (thresh.NegThdHysteresis.IsSupported) {
+		if((rv = oh_decode_sensorreading(thresh.NegThdHysteresis, 
+				sensorrec->DataFormat, &text)) == SA_OK) {
+			printf( "\t\tNeg Threshold Hysteresis: %s\n", text.Data);
+		} else {
+			printf( "\t\tNeg Threshold Hysteresis: FAILED %s\n", oh_lookup_error(rv));
+		}
+	}
+
+	printf("\n\n\n");
+}
 /* 
  *
  */
