@@ -68,6 +68,12 @@ int main (int argc, char *argv[])
 {
 	GThreadPool *thrdpool;
 
+        // use config file given by the command line
+        if (argc > 1) {
+                printf("Using configuration file: %s.\n", argv[1]);
+                setenv("OPENHPI_CONF", argv[1], 1);
+        }
+
         // become a daemon
 	if (!morph2daemon(FALSE)) {	// this is an error condition
 		exit(8);
@@ -279,6 +285,7 @@ static tResult HandleMsg(psstrmsock thrdinst, const void *data)
 	      SaHpiDomainIdT domain_id;
 	      SaHpiSessionIdT session_id = 0;
 
+              printf("Processing saHpiSessionOpen.\n");
 	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, (void *)&domain_id ) < 0 )
 		   return eResultError;
 
@@ -295,6 +302,7 @@ static tResult HandleMsg(psstrmsock thrdinst, const void *data)
        case eFsaHpiSessionClose: {
 	      SaHpiSessionIdT session_id;
 
+              printf("Processing saHpiSessionClose.\n");
 	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
 		   return eResultError;
 
@@ -311,6 +319,7 @@ static tResult HandleMsg(psstrmsock thrdinst, const void *data)
        case eFsaHpiDiscover: {
 	      SaHpiSessionIdT session_id;
 
+              printf("Processing saHpiDiscover.\n");
 	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
 		   return eResultError;
 
