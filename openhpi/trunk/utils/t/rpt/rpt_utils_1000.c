@@ -11,14 +11,13 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
- *
  */
+#include <glib.h>
 #include <stdio.h>
 #include <sys/time.h>
 
 #include <SaHpi.h>
-#include <glib.h>
-#include <rpt_utils.h>
+#include <oh_utils.h>
 #include <rpt_resources.h>
 
 /**

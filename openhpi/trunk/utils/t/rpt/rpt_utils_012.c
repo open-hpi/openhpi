@@ -11,14 +11,14 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
- *
  */
 
-#include <SaHpi.h>
+#include <glib.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glib.h>
-#include <rpt_utils.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 #include <rpt_resources.h>
 
 /**
