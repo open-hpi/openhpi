@@ -203,25 +203,20 @@ void rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
 	res->handler->abi->add_sel_entry(res->handler->hnd, res->oid, entry);
 }
 
-void rsel_add2(struct oh_resource *res, struct oh_sel_event *e)
+void rsel_add2(struct oh_resource *res, struct oh_rsel_event *e)
 {
-	struct oh_sel *sel;
+	struct oh_rsel *rsel;
 	
-	sel = malloc(sizeof(*sel));
-	if (!sel) {
+	rsel = malloc(sizeof(*rsel));
+	if (!rsel) {
 		dbg("Out of memory");
 		return;
 	}
-	memset(sel, 0, sizeof(*sel));
+	memset(rsel, 0, sizeof(*rsel));
 
-	sel->res_id		= e->res_id;
-	sel->rdr_id		= e->rdr_id;
-	sel->entry.EntryId	= res->sel_counter++;
+	*rsel = e->rsel;
 	
-	memcpy(&sel->entry, &e->entry, sizeof(sel->entry));
-	
-	res->sel_list = g_slist_append(res->sel_list, sel);
-
+	res->sel_list = g_slist_append(res->sel_list, rsel);
 }
 
 void rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)

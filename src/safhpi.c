@@ -388,6 +388,160 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 	return SA_OK;
 }
 
+struct list_entry_ops {
+	void			(*get_entry)(void *, SaHpiSelEntryT *);
+	struct oh_resource	*(*get_res)(void *);
+	struct oh_rdr		*(*get_rdr)(void *);
+};
+
+static SaErrorT process_sel_entry(
+		GSList *sel_list, 
+		SaHpiSelEntryIdT EntryId,
+		SaHpiSelEntryIdT *PrevEntryId,
+		SaHpiSelEntryIdT *NextEntryId,
+		SaHpiSelEntryT *EventLogEntry,
+		SaHpiRdrT *Rdr,
+		SaHpiRptEntryT *RptEntry,
+		struct list_entry_ops *ops)
+{
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+	GSList *pi, *i, *ni;
+
+	if (sel_list==NULL) {
+		return SA_ERR_HPI_INVALID;
+	} else if (EntryId==SAHPI_OLDEST_ENTRY) {
+		pi = NULL;
+		i  = g_slist_nth(sel_list, 0);
+		ni = g_slist_nth(sel_list, 1);
+	} else if (EntryId==SAHPI_NEWEST_ENTRY) {
+		int num;
+		num = g_slist_length(sel_list);
+		pi  = g_slist_nth(sel_list, num-2);
+		i   = g_slist_nth(sel_list, num-1);
+		ni  = NULL;
+	} else {
+		g_slist_for_each(pi, sel_list) {
+			i = g_slist_next(pi);
+			ni= g_slist_next(i);
+			if (i) {
+				ops->get_entry(i->data, EventLogEntry);
+				if (EventLogEntry->EntryId == EntryId)					
+					break;
+			}
+		}
+	}
+	
+	if (!i)
+		return SA_ERR_HPI_INVALID;
+	
+	res = ops->get_res(i->data);
+	
+	if (RptEntry) {
+		if (res) 
+			memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
+		else
+			RptEntry->ResourceCapabilities = 0;
+	}
+
+	if (Rdr) {
+		if (res) 
+			rdr = ops->get_rdr(i->data);
+		else 
+			rdr = NULL;
+		if (rdr)
+			memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
+		else 
+			Rdr->RdrType = SAHPI_NO_RECORD;
+	}
+	
+	if (pi) 
+		*PrevEntryId = ((struct oh_sel*)(pi->data))->entry.EntryId;
+	else 
+		*PrevEntryId = SAHPI_NO_MORE_ENTRIES;
+
+	if (ni) 
+		*NextEntryId = ((struct oh_sel*)(ni->data))->entry.EntryId;
+	else
+		*NextEntryId = SAHPI_NO_MORE_ENTRIES;
+	
+	return SA_OK;
+}
+
+static void dsel_get_entry(void *ptr, SaHpiSelEntryT *entry)
+{
+	struct oh_sel *dsel = ptr;
+	memcpy(entry, &dsel->entry, sizeof(*entry));
+}
+
+static struct oh_resource *dsel_get_res(void *ptr)
+{
+	struct oh_sel *dsel = ptr;
+	return get_res_by_oid(dsel->res_id);
+}
+
+static struct oh_rdr *dsel_get_rdr(void *ptr)
+{
+	struct oh_sel *dsel = ptr;
+	struct oh_resource *res;
+
+	res = get_res_by_oid(dsel->res_id);
+	if (!res) {
+		dbg("Cannot find resource");
+		return NULL;
+	}
+
+	return get_rdr_by_oid(res, dsel->rdr_id);
+}
+
+static struct list_entry_ops dsel_ops = {
+	.get_entry = dsel_get_entry,
+	.get_res   = dsel_get_res,
+	.get_rdr   = dsel_get_rdr
+};
+
+static void rsel_get_entry(void *ptr, 
+		SaHpiSelEntryT *entry)
+{
+	struct oh_rsel *rsel = ptr;
+	struct oh_resource *res;
+	res = get_res_by_oid(rsel->res_id);
+	if (!res) {
+		dbg("Cannot find resource");
+		return;
+	}
+
+	res->handler->abi->get_sel_entry(
+			res->handler->hnd,
+			rsel->oid, entry);
+}
+
+static struct oh_resource *rsel_get_res(void *ptr)
+{
+	struct oh_rsel *rsel = ptr;
+	return get_res_by_oid(rsel->res_id);
+}
+
+static struct oh_rdr *rsel_get_rdr(void *ptr)
+{
+	struct oh_rsel *rsel = ptr;
+	struct oh_resource *res;
+
+	res = get_res_by_oid(rsel->res_id);
+	if (!res) {
+		dbg("Cannot find resource");
+		return NULL;
+	}
+
+	return get_rdr_by_oid(res, rsel->rdr_id);
+}
+
+static struct list_entry_ops rsel_ops = {
+	.get_entry = rsel_get_entry,
+	.get_res   = rsel_get_res,
+	.get_rdr   = rsel_get_rdr
+};
+
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -419,6 +573,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 		} else 
 			sel_list = d->sel_list;
 		
+		return process_sel_entry(sel_list, EntryId, 
+				PrevEntryId, NextEntryId, 
+				EventLogEntry, Rdr, RptEntry, &dsel_ops);	
 	} else {
 		struct oh_resource *res;
 
@@ -428,73 +585,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 			sel_list = NULL;
 		} else
 			sel_list = res->sel_list;
-	}
-	
-	{
-		struct oh_sel *sel;
-		struct oh_resource *res;
-		struct oh_rdr *rdr;
-		GSList *pi, *i, *ni;
-
-		if (sel_list==NULL) {
-			return SA_ERR_HPI_INVALID;
-		} else if (EntryId==SAHPI_OLDEST_ENTRY) {
-			pi = NULL;
-			i  = g_slist_nth(sel_list, 0);
-			ni = g_slist_nth(sel_list, 1);
-		} else if (EntryId==SAHPI_NEWEST_ENTRY) {
-			int num;
-			num = g_slist_length(sel_list);
-			pi  = g_slist_nth(sel_list, num-2);
-			i   = g_slist_nth(sel_list, num-1);
-			ni  = NULL;
-		} else {
-			g_slist_for_each(pi, sel_list) {
-				i = g_slist_next(pi);
-				ni= g_slist_next(i);
-				if (i && ((struct oh_sel*)(i->data))->entry.EntryId == EntryId)
-					break;
-			}
-		}
-		
-		if (!i)
-			return SA_ERR_HPI_INVALID;
-		sel = (struct oh_sel*)(i->data);
-		memcpy( EventLogEntry, 
-			&sel->entry, 
-			sizeof(*EventLogEntry));
-		
-		res = get_res_by_oid(sel->res_id);
-		
-		if (RptEntry) {
-			if (res) 
-				memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
-			else
-				RptEntry->ResourceCapabilities = 0;
-		}
-
-		if (Rdr) {
-			if (res) 
-				rdr = get_rdr_by_oid(res, sel->rdr_id);
-			else 
-				rdr = NULL;
-			if (rdr)
-				memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
-			else 
-				Rdr->RdrType = SAHPI_NO_RECORD;
-		}
-		
-		if (pi) 
-			*PrevEntryId = ((struct oh_sel*)(pi->data))->entry.EntryId;
-		else 
-			*PrevEntryId = SAHPI_NO_MORE_ENTRIES;
-
-		if (ni) 
-			*NextEntryId = ((struct oh_sel*)(ni->data))->entry.EntryId;
-		else
-			*NextEntryId = SAHPI_NO_MORE_ENTRIES;
-		
-		return SA_OK;
+		return process_sel_entry(sel_list, EntryId, 
+				PrevEntryId, NextEntryId, 
+				EventLogEntry, Rdr, RptEntry, &rsel_ops);	
 	}
 }
 
@@ -575,7 +668,9 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
 		SAHPI_OUT SaHpiTimeT *Time)
 {
         struct oh_session *s;
-        
+	struct oh_resource *res;
+	SaHpiSelInfoT info;
+	
         OH_STATE_READY_CHECK;
         
         s = session_get(SessionId);
@@ -588,9 +683,17 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
 		*Time = dsel_get_time(s->domain_id);
 		return SA_OK;
 	}
-
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	
+	res = get_resource(ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}						
+	
+	if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, &info)<0)
+		return SA_ERR_HPI_UNKNOWN;
+	*Time = info.CurrentTime;
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogTimeSet (
@@ -599,7 +702,9 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
 		SAHPI_IN SaHpiTimeT Time)
 {
         struct oh_session *s;
-        
+	struct oh_resource *res;
+	struct timeval time;
+	
         OH_STATE_READY_CHECK;
         
         s = session_get(SessionId);
@@ -613,8 +718,17 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
 		return SA_OK;
 	}
 
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	res = get_resource(ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}						
+	
+	time.tv_sec  = Time / 1000000000;
+	time.tv_usec = Time % 1000000000 * 1000;
+	if (res->handler->abi->set_sel_time(res->handler->hnd, res->oid, &time)<0)
+		return SA_ERR_HPI_UNKNOWN;
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogStateGet (
@@ -623,8 +737,10 @@ SaErrorT SAHPI_API saHpiEventLogStateGet (
 		SAHPI_OUT SaHpiBoolT *Enable)
 {
         struct oh_session *s;
-        
-        OH_STATE_READY_CHECK;
+	struct oh_resource *res;
+	SaHpiSelInfoT info;
+
+	OH_STATE_READY_CHECK;
         
         s = session_get(SessionId);
         if (!s) {
@@ -637,8 +753,16 @@ SaErrorT SAHPI_API saHpiEventLogStateGet (
 		return SA_OK;
 	}
 
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	res = get_resource(ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}						
+	
+	if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, &info)<0)
+		return SA_ERR_HPI_UNKNOWN;
+	*Enable = info.Enabled;
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogStateSet (
@@ -647,7 +771,8 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 		SAHPI_IN SaHpiBoolT Enable)
 {
         struct oh_session *s;
-        
+	struct oh_resource *res;
+	
         OH_STATE_READY_CHECK;
         
         s = session_get(SessionId);
@@ -661,8 +786,15 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
 		return SA_OK;
 	}
 
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	res = get_resource(ResourceId);
+	if (!res) {
+		dbg("Invalid resource");
+		return SA_ERR_HPI_INVALID_RESOURCE;
+	}						
+	
+	if (res->handler->abi->set_sel_state(res->handler->hnd, res->oid, Enable)<0)
+		return SA_ERR_HPI_UNKNOWN;
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiSubscribe (
