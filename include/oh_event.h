@@ -18,7 +18,7 @@
 #define __OH_EVENT_H
 
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {

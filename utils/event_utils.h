@@ -31,7 +31,7 @@
                 memcpy(new, old, sizeof(*new));  \
         } while(0)
 
-struct oh_event* oh_new_oh_event(oh_event_type);
+struct oh_event* oh_new_oh_event(oh_event_type t);
 
 #define oh_dup_oh_event(old) g_memdup(old, sizeof(*old))
 
