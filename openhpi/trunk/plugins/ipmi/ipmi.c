@@ -224,7 +224,9 @@ static int ipmi_get_event(void *hnd, struct oh_event *event,
 			  struct timeval *timeout)
 {
 	struct oh_handler_state *handler = hnd;
-
+        struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+   
+        sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
 	if(g_slist_length(handler->eventq)>0) {
 		
 		memcpy(event, handler->eventq->data, sizeof(*event));
