@@ -38,7 +38,7 @@ int sim_util_add_resource(RPTable *table,  SaHpiRptEntryT *rpt, char *file)
         int retval;
 
         pthread_mutex_lock(&util_mutext);
-        retval = oh_add_resource(table, rpt, g_strdup(file), 1);
+        retval = oh_add_resource(table, rpt, g_strdup(file), 0);
         pthread_mutex_unlock(&util_mutext);
 
         return retval;
@@ -56,9 +56,9 @@ int sim_util_remove_resource(RPTable *table, SaHpiResourceIdT rid,
       
         eid = SAHPI_FIRST_ENTRY;
         rdr = oh_get_rdr_next(table, rid, eid);
-        for ( ; rdr; eid = rdr->RecordId, oh_get_rdr_next(table, rid, eid)) {
+        for ( ; rdr; eid = rdr->RecordId, rdr = oh_get_rdr_next(table, rid, eid)) {
                 sid = oh_get_rdr_data(table, rid, eid);
-                if (sid && fc){
+                if (sid){
                         if (fc) {
                                 FAMRequest fr;
                                 fr.reqnum = sid->reqnum;
@@ -81,7 +81,7 @@ int sim_util_add_rdr(RPTable *table, SaHpiResourceIdT rid,
         int retval;
 
         pthread_mutex_lock(&util_mutext);
-        retval = oh_add_rdr(table, rid, rdr, sid, 0);
+        retval = oh_add_rdr(table, rid, rdr, sid, 1);
         pthread_mutex_unlock(&util_mutext);
 
         return retval;
@@ -142,7 +142,7 @@ int sim_util_get_res_id(RPTable *table, char *filename, SaHpiResourceIdT *rid)
         }
 out:
         pthread_mutex_unlock(&util_mutext);
-        return -1;
+        return retval;
 }
 
 char *sim_util_get_rpt_file(struct oh_handler_state *inst,
