@@ -20,6 +20,7 @@
 #define __OPENHPI_H
 
 #include <config.h>
+#include <oh_lock.h>
 
 #ifdef HAVE_THREAD_SAFE
 #include <pthread.h>
@@ -254,6 +255,7 @@ extern RPTable *default_rpt;
 struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);
 int session_del(struct oh_session*);
+int session_count(void);
 /* malloc/copy/add event into the tail of event_list */
 int session_push_event(struct oh_session*, struct oh_session_event*);
 /* del/copy/free event from the head of event_list */
@@ -299,10 +301,6 @@ int rsel_add(SaHpiResourceIdT res_id, SaHpiEventLogEntryT *entry);
 /*int rsel_add2(struct oh_resource *d, struct oh_rsel_event *e);*/
 int rsel_del(SaHpiResourceIdT res_id, SaHpiEventLogEntryIdT id);
 int rsel_clr(SaHpiResourceIdT res_id); 
-
-
-/* event handler */
-int get_events(void);
 
 
 /* howswap */

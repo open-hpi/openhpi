@@ -94,7 +94,9 @@ struct oh_event {
 
 /* function definitions */
 int oh_event_init(void);
+int oh_event_final(void);
 unsigned int get_log_severity(char *);
+SaErrorT get_events(RPTable *rpt);
 SaErrorT harvest_events(void);
 SaErrorT process_events(RPTable *rpt);
 

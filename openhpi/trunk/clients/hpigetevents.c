@@ -74,6 +74,10 @@ int main(int argc, char **argv)
                 exit(-1);
         }
  
+	printf( "Subscribe to events\n");
+	rv = saHpiSubscribe( sessionid );
+	if (rv != SA_OK) return rv;
+
         rv = saHpiDiscover(sessionid);
         if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
 //        rv = saHpiRptInfoGet(sessionid,&rptinfo);
@@ -81,9 +85,6 @@ int main(int argc, char **argv)
 //        printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
         //              rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
         
-	printf( "Subscribe to events\n");
-	rv = saHpiSubscribe( sessionid );
-	if (rv != SA_OK) return rv;
 
 
         /* walk the RPT list */
