@@ -147,15 +147,15 @@ openhpid_static="no"
 AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=no]],
     [if test "x$enableval" = "xyes"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid"
+        ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
      elif test "x$enableval" = "xstatic"; then
-        ENABLED_DIRS="$ENABLED_DIRS openhpid"
+        ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
         openhpid_static="yes"
     fi])
 
-dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
+dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
@@ -587,9 +587,7 @@ AC_CONFIG_FILES([openhpi.spec
         test/Makefile
         docs/Makefile
         docs/hld/Makefile
-	openhpid/Makefile
-	openhpid/t/Makefile
-        openhpid/openhpiclient.pc
+	openhpid2/Makefile
         examples/Makefile
 	clients/Makefile])
 
