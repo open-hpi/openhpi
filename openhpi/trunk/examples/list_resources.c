@@ -6,6 +6,7 @@
 #include <SaHpi.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include <epath_utils.h>
 
 /* debug macros */
@@ -24,10 +25,13 @@ const char * ctrldigital2str(SaHpiCtrlStateDigitalT digstate);
 const char * get_sensor_type(SaHpiSensorTypeT type);
 const char * get_control_type(SaHpiCtrlTypeT type);
 const char * get_sensor_category(SaHpiEventCategoryT category);
+void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
 void display_textbuffer(SaHpiTextBufferT string);
 void display_oembuffer(SaHpiUint32T length, SaHpiUint8T *string);
 void printreading (SaHpiSensorReadingT reading);
+void time2str( SaHpiTimeT time, char *str );
+const char *eventtype2str(SaHpiEventTypeT type);
 
 /**
  * main: main program loop
@@ -83,8 +87,6 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
 	SaHpiEntryIdT	current;
 	SaHpiEntryIdT   next;
 
-	SaHpiSelInfoT	info;
-
         err = saHpiResourcesDiscover(session_id);
         if (SA_OK != err) {
                 error("saHpiResourcesDiscover", err);
@@ -138,12 +140,11 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                 printf("\tResourceTag: ");
                        display_textbuffer(entry.ResourceTag);
 
-                if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL) {
-			saHpiEventLogInfoGet(session_id, entry.ResourceId, &info);
-			printf("\t\tEntries in SEL: %d", info.Entries);
-		}
-                if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
+                if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
                         list_rdr(session_id, entry.ResourceId);
+
+                if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
+                        list_sel(session_id, entry.ResourceId);
 #if 0
                 /* if the resource is also a domain, then 
                  * traverse its RPT */        
@@ -312,7 +313,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 	SaHpiCtrlStateT 	state;
 	SaHpiCtrlTypeT  	ctrl_type;
 
-        char                    inbuff[1024];
+        char                    inbuff[10240];
         SaHpiEirIdT             l_eirid;
         SaHpiUint32T            l_buffersize = sizeof(inbuff);
         SaHpiUint32T            l_actualsize;
@@ -517,6 +518,148 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 printf("\n"); /* Produce blank line between rdrs. */
         }while(next_rdr != SAHPI_LAST_ENTRY);
 }
+
+
+/**
+ * eventtype2str:
+ * @type: HPI event type
+ *
+ * Convert event type to string.
+ **/
+
+const char *eventtype2str(SaHpiEventTypeT type)
+{
+        switch( type ) {
+        case SAHPI_ET_SENSOR:
+                return "SAHPI_ET_SENSOR";
+                
+        case SAHPI_ET_HOTSWAP:
+                return "SAHPI_ET_HOTSWAP";
+
+        case SAHPI_ET_WATCHDOG:
+                return "SAHPI_ET_WATCHDOG";
+
+        case SAHPI_ET_OEM:
+                return "SAHPI_ET_OEM";
+
+        case SAHPI_ET_USER:
+                return "SAHPI_ET_USER";
+        }
+
+        return "INVALID_EVENT_TYPE";
+}
+
+
+/**
+ * time2str:
+ * @time: HPI time
+ * @str: time string
+ *
+ * Convert SaHpiTimeT into a string.
+ **/
+
+void time2str(SaHpiTimeT time, char *str)
+{
+        if (time == SAHPI_TIME_UNSPECIFIED) {
+                strcpy( str, "SAHPI_TIME_UNSPECIFIED" );
+                return;
+        }
+
+        int nano = time % 1000000000;
+
+        time /= 1000000000;
+        time_t t = (time_t)time;
+
+        struct tm tm;
+        localtime_r(&t, &tm);
+
+        char s[30];
+        strftime(s, 30, "%Y.%m.%d %H:%M:%S", &tm);
+
+        sprintf(str, "%s.%09d", s, nano);
+}
+
+
+/**
+ * list_sel:
+ * @session_id: session id
+ * @resource_id: resource id with capability SAHPI_CAPABILITY_SEL
+ *
+ * Print out information about event log.
+ **/
+
+void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
+{
+        char str[30];
+
+        printf("SEL Info:\n");
+
+        SaHpiSelInfoT info;        
+        SaErrorT rv = saHpiEventLogInfoGet(session_id, resource_id, &info);
+
+        if (rv != SA_OK) {
+                printf( "Error=%d reading SEL info\n", rv);
+                return;
+        }
+
+        printf("\tEntries in SEL: %d\n", info.Entries);
+        printf("\tSize: %d\n", info.Size);
+
+        time2str(info.UpdateTimestamp, str);
+        printf("\tUpdateTimestamp: %s\n", str);
+
+        time2str(info.CurrentTime, str);
+        printf("\tCurrentTime    : %s\n", str);
+        printf("\tEnabled: %s\n", info.Enabled ? "true" : "false");
+        printf("\tOverflowFlag: %s\n", info.OverflowFlag ? "true" : "false");
+        printf("\tOverflowAction: " );
+
+        switch(info.OverflowAction) {
+        case SAHPI_SEL_OVERFLOW_DROP:
+                printf("SAHPI_SEL_OVERFLOW_DROP\n");
+                break;
+
+        case SAHPI_SEL_OVERFLOW_WRAP:
+                printf("SAHPI_SEL_OVERFLOW_WRAP\n");
+                break;
+
+        case SAHPI_SEL_OVERFLOW_WRITELAST:
+                printf("SAHPI_SEL_OVERFLOW_WRITELAST\n");
+                break;
+
+        default:
+                printf("unknown(0x%x)\n", info.OverflowAction);
+                break;
+        }
+
+        printf("\tDeleteEntrySupported: %s\n", info.DeleteEntrySupported ? "true" : "false" );
+
+        // read sel records
+        SaHpiSelEntryIdT current = SAHPI_OLDEST_ENTRY;
+
+        do {
+                SaHpiSelEntryIdT prev;
+                SaHpiSelEntryIdT next;
+                SaHpiSelEntryT   entry;
+                SaHpiRdrT        rdr;
+                SaHpiRptEntryT   res;
+
+                rv = saHpiEventLogEntryGet(session_id, resource_id, current, &prev, &next, &entry, &rdr, &res);
+
+                if (rv != SA_OK) {
+                        printf( "Error=%d reading SEL entry %d\n", rv, current);
+                        return;
+                }
+
+                printf("\t\tEntry %d, prev %d, next %d\n", entry.EntryId, prev, next);
+                time2str(entry.Timestamp, str);
+                printf("\t\t\tTimestamp: %s\n", str);
+                printf("\t\t\tEventType: %s\n", eventtype2str(entry.Event.EventType));
+
+                current = next;
+        } while(current != SAHPI_NO_MORE_ENTRIES);
+}
+
 
 void display_oembuffer(SaHpiUint32T length, SaHpiUint8T *string)
 {
