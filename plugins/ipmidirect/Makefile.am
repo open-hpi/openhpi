@@ -119,5 +119,5 @@ plugin_test_SOURCES     = plugin_test.cpp
 plugin_test_LDADD       = libipmidirect.la $(top_builddir)/utils/libopenhpiutils.la -luuid -lm @SSL_LIB@
 plugin_test_LDFLAGS     = -static
 
-clean:
+clean-local:
 	rm -f *~
