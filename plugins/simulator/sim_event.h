@@ -19,6 +19,7 @@
 struct fe_handler{
         volatile int closing;
         struct oh_handler_state *ohh;
+        FAMConnection fc;
         pthread_t tid;
 };
 
