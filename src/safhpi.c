@@ -514,15 +514,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         /* test for special domain case */
         if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
-                Info->Entries = d->sel->nextId;
-                Info->Size = -1; /* unlimited */
-                Info->UpdateTimestamp = d->sel->lastUpdate;
-                Info->CurrentTime = d->sel->offset;
-                Info->Enabled = d->sel->enabled;
-                Info->OverflowFlag = d->sel->overflow;
-                Info->OverflowAction = SAHPI_SEL_OVERFLOW_DROP;
-                Info->DeleteEntrySupported = d->sel->deletesupported;
-                return SA_OK;
+                return oh_sel_info(d->sel, Info);
         }
 
         OH_SESSION_SETUP(SessionId,s);
