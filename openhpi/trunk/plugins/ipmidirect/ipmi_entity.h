@@ -106,8 +106,20 @@ public:
     return m_entity_path;
   }
 
+  void SetEntry( int idx, SaHpiEntityTypeT type, SaHpiEntityInstanceT instance );
+  SaHpiEntityTypeT GetEntryType( int idx );
+  void SetEntryType( int idx, SaHpiEntityTypeT type );
+
+  SaHpiEntityInstanceT GetEntryInstance( int idx );
+  void SetEntryInstance( int idx, SaHpiEntityInstanceT instance );
+
   cIpmiEntityPath &operator+=( const cIpmiEntityPath &epath );
+  bool operator==( const cIpmiEntityPath &epath ) const;
+  bool operator!=( const cIpmiEntityPath &epath ) const;
+  
   bool AppendRoot();
+
+  bool FromString( const char *str );
 };
 
 

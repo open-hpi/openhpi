@@ -39,7 +39,7 @@ MapAtcaSiteTypeToEntity( tIpmiAtcaSiteType type )
        assert( 0 );
        return SAHPI_ENT_UNKNOWN;
      }
- 
+
   return et[type];
 }
 
@@ -65,13 +65,14 @@ cIpmiFruInfo::CreateEntityPath( const cIpmiEntityPath &top,
 				const cIpmiEntityPath &bottom )
 {
   cIpmiEntityPath middle;
-  middle.m_entity_path.Entry[0].EntityType     = m_entity;
-  middle.m_entity_path.Entry[0].EntityInstance = m_slot;
+
+  middle.SetEntry( 0, SAHPI_ENT_GROUP, m_fru_id );
+  middle.SetEntry( 1, m_entity, m_slot );
+  middle.AppendRoot();
 
   cIpmiEntityPath ep = bottom;
   ep += middle;
   ep += top;
-  ep.AppendRoot();
 
   return ep;
 }
@@ -103,7 +104,7 @@ cIpmiFruInfoContainer::FindFruInfo( unsigned int addr, unsigned int fru_id ) con
      {
        cIpmiFruInfo *fi = (cIpmiFruInfo *)m_fru_info->data;
 
-       if ( fi->Address() == addr 
+       if ( fi->Address() == addr
 	    && fi->FruId() == fru_id )
 	    return fi;
 

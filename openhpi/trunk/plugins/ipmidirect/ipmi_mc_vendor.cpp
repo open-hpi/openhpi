@@ -148,6 +148,9 @@ cIpmiMcVendorFactory::Get( unsigned int manufacturer_id,
 }
 
 
+SaHpiEntityInstanceT cIpmiMcVendor::m_unique_instance = 256;
+
+
 cIpmiMcVendor::cIpmiMcVendor( unsigned int manufacturer_id,
                               unsigned int product_id,
                               const char *desc )
@@ -283,11 +286,22 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
   cIpmiResource *res = new cIpmiResource( mc, fru_id );
   assert( res );
 
-  if ( CreateResourceEntityPath( res, sdr, sdrs ) == false )
+  SaHpiEntityTypeT type;
+  SaHpiEntityInstanceT instance;
+
+  if ( sdr )
      {
-       delete res;
-       return 0;
+       type     = (SaHpiEntityTypeT)sdr->m_data[12];
+       instance = (SaHpiEntityInstanceT)sdr->m_data[13];
      }
+  else
+     {
+       type = SAHPI_ENT_UNKNOWN;
+       instance = GetUniqueInstance();
+     }
+
+  res->EntityPath() = CreateEntityPath( domain, mc->GetAddress(), fru_id,
+                                        type, instance, sdrs );
 
   if (    sdr
        && (    sdr->m_type == eSdrTypeMcDeviceLocatorRecord 
@@ -340,39 +354,43 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
 }
 
 
-bool
-cIpmiMcVendor::CreateResourceEntityPath( cIpmiResource *res, cIpmiSdr *sdr,
-					 cIpmiSdrs * /*sdrs*/ )
+// TODO:
+//    Handling of entity association records.
+//    This is the reason for the parameter sdrs.
+cIpmiEntityPath 
+cIpmiMcVendor::CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr, unsigned int fru_id, 
+                                 SaHpiEntityTypeT type,
+                                 SaHpiEntityInstanceT instance, cIpmiSdrs * /*sdrs*/ )
 {
-  SaHpiEntityPathT &ep = res->EntityPath().m_entity_path;
-  int idx = 0;
+  // find fru info
+  cIpmiFruInfo *fi = domain->FindFruInfo( mc_addr, fru_id );
 
-  if ( sdr )
+  cIpmiEntityPath bottom;
+
+  if ( instance < 0x60 )
      {
-       ep.Entry[idx].EntityType     = (SaHpiEntityTypeT)sdr->m_data[12];
-       ep.Entry[idx].EntityInstance = (SaHpiEntityInstanceT)sdr->m_data[13];
-       idx++;
+       if ( fi )
+            // if there is fru info => slot id already in the entity path
+            instance = 0;
      }
-  else
-     {
-       ep.Entry[idx].EntityType     = SAHPI_ENT_SYSTEM_BOARD;
-       ep.Entry[idx].EntityInstance = 0;
-       idx++;
-     }
+  else if ( instance <= 0x7f )
+       instance -= 0x60;
 
-  ep.Entry[idx].EntityType     = SAHPI_ENT_UNSPECIFIED;
-  ep.Entry[idx].EntityInstance = 0;
+  bottom.SetEntry( 0, type, instance );
 
-  // let's append entity_root from config
-  const char *entity_root = res->Domain()->EntityRoot();
+  bottom.AppendRoot();
 
-  SaHpiEntityPathT entity_ep;
-  string2entitypath( entity_root, &entity_ep );
-  append_root( &entity_ep );
+  cIpmiEntityPath top = domain->EntityRoot();
 
-  ep_concat( &ep, &entity_ep );
+  if ( fi )
+       return fi->CreateEntityPath( top, bottom );
 
-  return true;
+  // fru info not found => use default entity path
+  cIpmiEntityPath ep = bottom;
+  ep += top;
+  ep.AppendRoot();
+
+  return ep;
 }
 
 
@@ -505,7 +523,6 @@ cIpmiMcVendor::GetSensorsFromSdrs( cIpmiDomain *domain, cIpmiMc *source_mc,
 }
 
 
-// this routine is completly untested !!!
 GList *
 cIpmiMcVendor::ConvertToFullSensorRecords( cIpmiDomain *domain, cIpmiMc * /*_source_mc*/, cIpmiSdr *sdr )
 {
@@ -608,7 +625,7 @@ cIpmiMcVendor::CreateSensorFromFullSensorRecord( cIpmiDomain *domain, cIpmiMc *s
 
 GList *
 cIpmiMcVendor::CreateSensorHotswap( cIpmiDomain *domain, cIpmiMc *source_mc,
-                                    cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
+                                    cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
   cIpmiMc *mc = FindMcBySdr( domain, sdr );
   assert( mc );
@@ -622,13 +639,15 @@ cIpmiMcVendor::CreateSensorHotswap( cIpmiDomain *domain, cIpmiMc *source_mc,
        return 0;
      }
 
+  CreateSensorEntityPath( domain, hs, source_mc, sdr, sdrs );
+
   return g_list_append( 0, hs );
 }
 
 
 GList *
 cIpmiMcVendor::CreateSensorThreshold( cIpmiDomain *domain, cIpmiMc *source_mc,
-                                      cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
+                                      cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
   cIpmiMc *mc = FindMcBySdr( domain, sdr );
   assert( mc );
@@ -643,13 +662,15 @@ cIpmiMcVendor::CreateSensorThreshold( cIpmiDomain *domain, cIpmiMc *source_mc,
        return 0;
      }
 
+  CreateSensorEntityPath( domain, ts, source_mc, sdr, sdrs );
+
   return g_list_append( 0, ts );
 }
 
 
 GList *
 cIpmiMcVendor::CreateSensorDiscrete( cIpmiDomain *domain, cIpmiMc *source_mc,
-                                     cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
+                                     cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
   cIpmiMc *mc = FindMcBySdr( domain, sdr );
   assert( mc );
@@ -664,6 +685,8 @@ cIpmiMcVendor::CreateSensorDiscrete( cIpmiDomain *domain, cIpmiMc *source_mc,
        return 0;
      }
 
+  CreateSensorEntityPath( domain, ds, source_mc, sdr, sdrs );
+
   return g_list_append( 0, ds );
 }
 
@@ -673,6 +696,30 @@ cIpmiMcVendor::CreateSensorDefault( cIpmiDomain *domain, cIpmiMc *source_mc,
                                     cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
   return CreateSensorDiscrete( domain, source_mc, sdr, sdrs );
+}
+
+
+void 
+cIpmiMcVendor::CreateSensorEntityPath( cIpmiDomain *domain, cIpmiSensor *s, 
+                                       cIpmiMc *source_mc,
+                                       cIpmiSdr *sdr, cIpmiSdrs *sdrs )
+{
+  SaHpiEntityTypeT     type;
+  SaHpiEntityInstanceT instance;
+
+  if ( sdr )
+     {
+       type     = (SaHpiEntityTypeT)sdr->m_data[8];
+       instance = (SaHpiEntityInstanceT)sdr->m_data[9];
+     }
+  else
+     {
+       type     = SAHPI_ENT_UNKNOWN;
+       instance = GetUniqueInstance();
+     }
+
+  s->EntityPath() = CreateEntityPath( domain, source_mc->GetAddress(), 0,
+                                      type, instance, sdrs );
 }
 
 

@@ -946,8 +946,7 @@ GetIntNotNull( GHashTable *handler_config, const char *str, unsigned int def = 0
 
 cIpmi::cIpmi()
   : m_magic( dIpmiMagic ),
-    m_handler( 0 ),
-    m_entity_root( 0 )
+    m_handler( 0 )
 {
 }
 
@@ -1211,7 +1210,7 @@ cIpmi::AddHpiEvent( oh_event *event )
 }
 
 
-const char *
+const cIpmiEntityPath &
 cIpmi::EntityRoot()
 {
   return m_entity_root;
@@ -1317,13 +1316,21 @@ cIpmi::GetParams( GHashTable *handler_config )
 bool
 cIpmi::IfOpen( GHashTable *handler_config )
 {
-  m_entity_root = (const char *)g_hash_table_lookup( handler_config, "entity_root" );
+  const char *entity_root = (const char *)g_hash_table_lookup( handler_config, "entity_root" );
 
-  if ( !m_entity_root )
+  if ( !entity_root )
      {
        dbg( "entity_root is missing in config file" );
        return false;
      }
+
+  if ( !m_entity_root.FromString( entity_root ) )
+     {
+       dbg( "cannot decode entity path string" );
+       return false;
+     }
+
+  m_entity_root.AppendRoot();
 
   cIpmiCon *con = AllocConnection( handler_config );
 

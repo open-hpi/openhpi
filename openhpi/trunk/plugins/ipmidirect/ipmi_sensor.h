@@ -163,10 +163,12 @@ protected:
   unsigned char m_channel;
   unsigned char m_num;
 
+  /*
   tIpmiEntityId m_entity_id;
   unsigned int  m_entity_instance;
-
   bool          m_entity_instance_logical;
+  */
+
   bool          m_sensor_init_scanning;
   bool          m_sensor_init_events;
   bool          m_sensor_init_type;
@@ -197,9 +199,6 @@ public:
   virtual unsigned int Num() const { return m_num; }
 
   SaHpiEventStateT &EventState() { return m_event_state; }
-
-  tIpmiEntityId EntityId() const { return m_entity_id; }
-  unsigned char EntityInstance() const { return m_entity_instance; }
 
   tIpmiSensorType SensorType() const { return m_sensor_type; }
   tIpmiEventReadingType EventReadingType() const { return m_event_reading_type; }

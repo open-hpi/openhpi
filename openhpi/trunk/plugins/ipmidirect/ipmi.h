@@ -36,7 +36,7 @@ class cIpmi : public cIpmiDomain
 {
   unsigned int      m_magic;
   oh_handler_state *m_handler;
-  const char       *m_entity_root;
+  cIpmiEntityPath   m_entity_root;
 
   bool GetParams( GHashTable *handler_config );
 
@@ -97,7 +97,7 @@ public:
   void SetHandler( oh_handler_state *handler );
   oh_handler_state *GetHandler();
 
-  virtual const char *EntityRoot();
+  virtual const cIpmiEntityPath &EntityRoot();
   virtual SaHpiRptEntryT *FindResource( SaHpiResourceIdT id );
 };
 

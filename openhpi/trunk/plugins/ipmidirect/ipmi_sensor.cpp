@@ -153,9 +153,7 @@ cIpmiSensor::cIpmiSensor( cIpmiMc *mc )
     m_event_state( SAHPI_ES_UNSPECIFIED ), m_destroyed( false ),
     m_use_count( 0 ),
     m_owner( 0 ), m_channel( 0 ),
-     m_num( 0 ),
-    m_entity_id( eIpmiEntityInvalid ), m_entity_instance( 0 ),
-    m_entity_instance_logical( false ),
+    m_num( 0 ),
     m_sensor_init_scanning( false ),
     m_sensor_init_events( false ),
     m_sensor_init_type( false ),
@@ -203,9 +201,6 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_channel                 = sdr->m_data[6] >> 4;
   m_lun                     = sdr->m_data[6] & 0x03;
   m_num                     = sdr->m_data[7];
-  m_entity_id               = (tIpmiEntityId)sdr->m_data[8];
-  m_entity_instance_logical = sdr->m_data[9] >> 7;
-  m_entity_instance         = sdr->m_data[9] & 0x7f;
   m_sensor_init_scanning    = (sdr->m_data[10] >> 6) & 1;
   m_sensor_init_events      = (sdr->m_data[10] >> 5) & 1;
   m_sensor_init_type        = (sdr->m_data[10] >> 2) & 1;
@@ -236,7 +231,7 @@ cIpmiSensor::HandleNew( cIpmiDomain *domain )
 bool
 cIpmiSensor::Cmp( const cIpmiSensor &s2 ) const
 {
-  if ( m_entity_instance_logical != s2.m_entity_instance_logical )
+  if ( m_entity_path != s2.m_entity_path )
        return false;
 
   if ( m_sensor_init_scanning    != s2.m_sensor_init_scanning )
