@@ -640,8 +640,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },
@@ -732,8 +734,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },
@@ -824,8 +828,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },
@@ -916,8 +922,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },
@@ -1008,8 +1016,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },
@@ -1100,8 +1110,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },
@@ -1192,8 +1204,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },
@@ -1284,8 +1298,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                         .ThresholdDefn = {
                                 .IsThreshold = SAHPI_TRUE,
 				.TholdCapabilities = SAHPI_STC_INTERPRETED,
-				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
-				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR,
+				.ReadThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				             SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
+				.FixedThold = SAHPI_STM_LOW_MAJOR | SAHPI_STM_UP_MAJOR |
+				              SAHPI_STM_LOW_HYSTERESIS | SAHPI_STM_UP_HYSTERESIS,
                         },
                         .Oem = 0
                 },

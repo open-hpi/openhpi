@@ -28,6 +28,17 @@ SaErrorT get_inventory_data(	void *hnd, SaHpiRdrT *rdr,
 				SaHpiInventoryDataT *l_data,
 				SaHpiInventGeneralDataT *working,
 				SaHpiUint32T  *vpdrecordlength);
+int snmp_rsa_get_inventory_info(void *hnd, SaHpiResourceIdT id,
+                                SaHpiEirIdT num,
+                                SaHpiInventoryDataT *data);
+int snmp_rsa_get_inventory_size(void *hnd, SaHpiResourceIdT id,
+                               SaHpiEirIdT num,  /* yes, they don't call it a
+                                                  * num, but it still is one
+                                                 */
+                               SaHpiUint32T *size);
+int snmp_rsa_set_inventory_info(void *hnd, SaHpiResourceIdT id,
+                               SaHpiEirIdT num,
+                               const SaHpiInventoryDataT *data);
 
 /*
 SaErrorT find_inventories(	struct snmp_rsa_hnd *custom_handle,
