@@ -21,7 +21,9 @@ list_resources_threaded_LDFLAGS =
 
 install-data-local: openhpi.conf.example
 	$(mkinstalldirs) $(DESTDIR)/etc/$(PACKAGE)
-	$(INSTALL_DATA) openhpi.conf.example $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf
+	if test ! -e  $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf; then \
+		$(INSTALL_DATA) openhpi.conf.example $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf; \
+	fi
 
 # comment out for now, we do install in rpm
 #pkgsysconfdir = $(sysconfdir)/$(PACKAGE)

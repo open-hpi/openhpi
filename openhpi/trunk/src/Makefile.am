@@ -31,7 +31,8 @@
  
 
 
-MAINTAINERCLEANFILES 	= Makefile.in
+MAINTAINERCLEANFILES 	= Makefile.in plugin_static.c
+EXTRA_DIST              = plugin_static.c.in
 
 INCLUDES		= -I$(top_srcdir)/include
 
@@ -52,12 +53,13 @@ libopenhpi_la_SOURCES	= \
                            hotswap.c \
                            lock.c \
                            plugin.c \
+                           plugin_static.c \
                            resource.c \
                            safhpi.c \
                            session.c \
 			   uid_utils.c
  
-libopenhpi_la_LIBADD    = -lltdl
+libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ -lltdl
 libopenhpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
 
 # create directory /var/lib/openhpi

@@ -424,7 +424,15 @@ struct oh_abi_v1 {
 };
 
 /*The function is used for plugin loader to get interface*/
-int get_interface(void **pp, uuid_t uuid);
+int get_interface(void **pp, const uuid_t uuid);
 
+/* Structure for static plugins */
+typedef int (*get_interface_t)( void **pp, const uuid_t uuid );
+
+struct oh_static_plugin
+{
+        char           *name;
+        get_interface_t get_interface;
+};
 
 #endif/*__OH_PLUGIN_H*/
