@@ -103,6 +103,7 @@ SaErrorT oh_initialize()
         }
 
         /* Initialize handlers */
+        global_handler_table = g_hash_table_new(g_int_hash, g_int_equal);
         for(i = 0; i < g_slist_length(global_handler_configs); i++) {
                 tmph = (GHashTable *) g_slist_nth_data(
                         global_handler_configs, i);
@@ -115,13 +116,13 @@ SaErrorT oh_initialize()
                                         (char *)g_hash_table_lookup(tmph, "plugin"));
                         }
                 } else {
-                        dbg("load handler for unknown plugin %s",
+                        dbg("Can not load handler for unknown plugin %s",
                                 (char *)g_hash_table_lookup(tmph, "plugin"));
                 }
         }
 
         /* Check if we have at least one handler */
-        if ( global_handler_list == 0 ) {
+        if (g_hash_table_size(global_handler_table) < 1 ) {
                 /* there is no handler => this can not work */
                 dbg("no handler found. please check %s!", openhpi_conf);
 

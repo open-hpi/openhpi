@@ -97,37 +97,47 @@ int oh_event_final()
  *
  */
 
-static int harvest_events_for_handler(struct oh_handler *h)
+static SaErrorT harvest_events_for_handler(struct oh_handler *h)
 {
         struct oh_event event;
         struct oh_event *e2;
         struct timeval to = {0, 0};
 
-        int rv;
+        SaErrorT error = SA_OK;
 
         do {
-                rv = h->abi->get_event(h->hnd, &event, &to);
-                if(rv < 1) {
-                        trace("Handler is out of Events");
-                        return rv;
+                error = h->abi->get_event(h->hnd, &event, &to);
+                if(error < 1) {
+                        trace("Handler is out of Events");                        
                 } else {
                         trace("Found event for handler %p", h);
                         e2 = oh_dup_oh_event(&event);
-                        e2->from = h;
+                        e2->hid = h->id;
                         g_async_queue_push(oh_process_q, e2);
                 }
-        } while(1);
+        } while(error > 0);
+
+        return error;
+}
+
+static void harvest_events(gpointer key, gpointer value, gpointer data)
+{
+        struct oh_handler *h = (struct oh_handler *)value;
+        SaErrorT *error = (SaErrorT *)data;
+
+        if (*error && harvest_events_for_handler(h) == SA_OK)
+                *error = SA_OK;        
 }
 
 SaErrorT oh_harvest_events()
 {
-        GSList *i;
+        SaErrorT error = SA_ERR_HPI_ERROR;
+        
         data_access_lock();
-        g_slist_for_each(i, global_handler_list) {
-                harvest_events_for_handler(i->data);
-        }
+        g_hash_table_foreach(global_handler_table, harvest_events, &error);
         data_access_unlock();
-        return SA_OK;
+        
+        return error;
 }
 
 static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
@@ -194,7 +204,7 @@ static int process_hpi_event(struct oh_event *full_event)
         /* FIXME: yes, we need to figure out the real domain at some point */
         trace("About to get session list");
         sessions = oh_list_sessions(oh_get_default_domain_id());
-dbg("process_hpi_event, done oh_list_sessions");
+        trace("process_hpi_event, done oh_list_sessions");
 
         /* multiplex event to the appropriate sessions */
         for(i = 0; i < sessions->len; i++) {
@@ -207,10 +217,10 @@ dbg("process_hpi_event, done oh_list_sessions");
                 }
         }
         g_array_free(sessions, TRUE);
-dbg("process_hpi_event, done multiplex event => sessions");
+        trace("process_hpi_event, done multiplex event => sessions");
         
         oh_release_domain(d);
-dbg("process_hpi_event, done oh_release_domain");
+        trace("process_hpi_event, done oh_release_domain");
         
         return 0;
 }
@@ -251,7 +261,7 @@ static int process_resource_event(struct oh_event *e)
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
 
-                rd->handler = e->from;
+                rd->hid = e->hid;
                 rd->controlled = 0;
                 rd->auto_extract_timeout = get_default_hotswap_auto_extract_timeout();
 
@@ -415,14 +425,12 @@ SaErrorT oh_get_events()
 	dbg("About to harvest events in the loop");
         rv = oh_harvest_events();
         if(rv != SA_OK) {
-		dbg("Error on harvest of events, aborting");
-                return rv;
+		dbg("Error on harvest of events.");
         }
 
         rv = oh_process_events();
         if(rv != SA_OK) {
 		dbg("Error on processing of events, aborting");
-                return rv;
         }
 
         return rv;
