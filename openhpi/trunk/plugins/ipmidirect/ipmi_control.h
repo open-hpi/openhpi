@@ -54,11 +54,11 @@ public:
   // create an RDR sensor record
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
-  // virtual void Log();
-
   // hpi
   virtual SaErrorT SetState( const SaHpiCtrlStateT &state ) = 0;
   virtual SaErrorT GetState( SaHpiCtrlStateT &state ) = 0;
+
+  virtual void Dump( cIpmiLog &dump, const char *name ) const = 0;
 };
 
 

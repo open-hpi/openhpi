@@ -73,8 +73,8 @@ public:
   cIpmiSensorFactors();
   virtual ~cIpmiSensorFactors();
 
-  virtual bool GetDataFromSdr( cIpmiSdr *sdr );
-  virtual bool Cmp( const cIpmiSensorFactors &sf );
+  virtual bool GetDataFromSdr( const cIpmiSdr *sdr );
+  virtual bool Cmp( const cIpmiSensorFactors &sf ) const;
 
   tIpmiAnalogeDataFormat m_analog_data_format;
   tIpmiLinearization     m_linearization;
@@ -104,10 +104,10 @@ public:
       eRoundUp
   };
 
-  bool ConvertFromRaw( unsigned int val, double &result );
-  bool ConvertToRaw( tIpmiRound rounding, double val, unsigned int &result );
+  bool ConvertFromRaw( unsigned int val, double &result ) const;
+  bool ConvertToRaw( tIpmiRound rounding, double val, unsigned int &result ) const;
 
-  bool CreateDataFormat( SaHpiSensorDataFormatT &df );
+  bool CreateDataFormat( SaHpiSensorDataFormatT &df ) const;
 };
 
 

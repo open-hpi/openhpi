@@ -615,13 +615,13 @@ cIpmiSensorThreshold::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 
 
 void 
-cIpmiSensorThreshold::Log()
+cIpmiSensorThreshold::Dump( cIpmiLog &dump ) const
 {
-  cIpmiSensor::Log();
+  cIpmiSensor::Dump( dump );
 
-  stdlog << "\tthreshold_access " << IpmiThresholdAccessSupportToString( m_threshold_access )
-         << ", hysteresis_support " << IpmiHysteresisSupportToString( m_hysteresis_support )
-         << " !\n";
+  dump << "\tthreshold_access " << IpmiThresholdAccessSupportToString( m_threshold_access )
+       << ", hysteresis_support " << IpmiHysteresisSupportToString( m_hysteresis_support )
+       << " \n";
 }
 
 

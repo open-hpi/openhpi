@@ -94,7 +94,7 @@ cIpmiSensorFactors::~cIpmiSensorFactors()
 
 
 bool
-cIpmiSensorFactors::GetDataFromSdr( cIpmiSdr *sdr )
+cIpmiSensorFactors::GetDataFromSdr( const cIpmiSdr *sdr )
 {
   m_analog_data_format = (tIpmiAnalogeDataFormat)((sdr->m_data[20] >> 6) & 3);
   m_linearization = (tIpmiLinearization)(sdr->m_data[23] & 0x7f);
@@ -116,7 +116,7 @@ cIpmiSensorFactors::GetDataFromSdr( cIpmiSdr *sdr )
 
 
 bool
-cIpmiSensorFactors::Cmp( const cIpmiSensorFactors &sf )
+cIpmiSensorFactors::Cmp( const cIpmiSensorFactors &sf ) const
 {
   if ( m_analog_data_format != sf.m_analog_data_format )
        return false;
@@ -231,7 +231,7 @@ sign_extend( int m, int bits )
 
 bool
 cIpmiSensorFactors::ConvertFromRaw( unsigned int val,
-                                    double      &result )
+                                    double      &result ) const
 {
   double m, b, b_exp, r_exp, fval;
   linearizer c_func;
@@ -281,7 +281,7 @@ cIpmiSensorFactors::ConvertFromRaw( unsigned int val,
 bool
 cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
                                   double        val,
-                                  unsigned int &result )
+                                  unsigned int &result ) const
 {
   bool rv;
   double cval;
@@ -399,7 +399,7 @@ cIpmiSensorFactors::ConvertToRaw( tIpmiRound    rounding,
 
 
 bool
-cIpmiSensorFactors::CreateDataFormat( SaHpiSensorDataFormatT &df )
+cIpmiSensorFactors::CreateDataFormat( SaHpiSensorDataFormatT &df ) const
 {
   df.ReadingFormats          = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED;
   df.IsNumeric               = SAHPI_TRUE;

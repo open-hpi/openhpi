@@ -282,25 +282,18 @@ cIpmiSensor::Cmp( const cIpmiSensor &s2 ) const
 bool
 cIpmiSensor::Ignore()
 {
-  // not ipmlemented 
+  // not ipmlemented
   return false;
 }
 
 
-void 
-cIpmiSensor::Log()
+void
+cIpmiSensor::Dump( cIpmiLog &dump ) const
 {
-/*
-  cIpmiEntity *ent = GetEntity();
+  char str[256];
+  IdString().GetAscii( str, 256 );
 
-  IpmiLog( "sensor: mc = 0x%02x, num 0x%02x, %d.%d (%s), %s\n",
-           m_mc->GetAddress(), m_num,
-           ent->EntityId(), ent->EntityInstance(),
-           ent->EntityIdString(), m_id );
-
-  IpmiLog( "\tevent_support %s\n",
-           IpmiEventSupportToString( m_event_support ) );
-*/
+  dump << "Sensor: " << m_num << " " << str << "\n";
 }
 
 

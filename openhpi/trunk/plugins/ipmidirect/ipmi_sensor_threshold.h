@@ -277,7 +277,7 @@ public:
   // create an hpi event from ipmi event
   virtual SaErrorT CreateEvent( cIpmiEvent *event, SaHpiEventT &h );
 
-  virtual void Log();
+  virtual void Dump( cIpmiLog &dump ) const;
   bool Cmp( const cIpmiSensor &s2 ) const;
 
 protected:
@@ -329,9 +329,6 @@ protected:
 public:
   virtual SaErrorT GetEventEnables( SaHpiSensorEvtEnablesT &enables );
   virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables );
-
-public:
-  
 };
 
 

@@ -473,7 +473,7 @@ cIpmiMc::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
 
 
 unsigned int
-cIpmiMc::GetChannel()
+cIpmiMc::GetChannel() const
 {
   if ( m_addr.m_type == eIpmiAddrTypeSystemInterface )
        return dIpmiBmcChannel;
@@ -483,7 +483,7 @@ cIpmiMc::GetChannel()
 
 
 unsigned int
-cIpmiMc::GetAddress()
+cIpmiMc::GetAddress() const
 {
   if ( m_addr.m_type == eIpmiAddrTypeIpmb )
        return m_addr.m_slave_addr;
@@ -575,14 +575,144 @@ cIpmiMc::AtcaPowerFru( int fru_id )
 }
 
 
+bool
+cIpmiMc::DumpFrus( cIpmiLog &dump, const char *name ) const
+{
+  GList *list;
+
+  // create a list of frus
+  GList *frus = 0;
+
+  for( list = m_rdrs; list; list = g_list_next( list ) )
+     {
+       cIpmiRdr *rdr = (cIpmiRdr *)list->data;
+            
+       cIpmiFru *fru = dynamic_cast<cIpmiFru *>( rdr );
+
+       if ( fru )
+            frus = g_list_append( frus, fru );
+     }
+
+  if ( frus == 0 )
+       return false;
+
+  char fru_device_name[80];
+  sprintf( fru_device_name, "FruDevice%02x_", GetAddress() );
+
+  // dump frus
+  for( list = frus; list; list = g_list_next( list ) )
+     {
+       cIpmiFru *fru = (cIpmiFru *)frus->data;
+
+       char str[80];
+       sprintf( str, "%s%d", fru_device_name, fru->Num() );
+       fru->Dump( dump, str );
+     }
+
+  // dump fru device
+  dump.Begin( "Fru", name );
+  dump.Entry( "FruDevices" );
+
+  bool first = true;
+
+  while( frus )
+     {
+       cIpmiFru *fru = (cIpmiFru *)frus->data;
+       frus = g_list_remove( frus, fru );
+
+       if ( first )
+            first = false;
+       else
+            dump << ", ";
+
+       dump << fru_device_name << fru->Num();
+     }
+
+  dump << ";\n";
+
+  dump.End();
+
+  return true;
+}
+
+
+bool
+cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
+{
+  GList *list;
+
+  // create a list of controls
+  GList *controls = 0;
+
+  for( list = m_rdrs; list; list = g_list_next( list ) )
+     {
+       cIpmiRdr *rdr = (cIpmiRdr *)list->data;
+
+       cIpmiControl *control = dynamic_cast<cIpmiControl *>( rdr );
+
+       if ( control )
+            controls = g_list_append( controls, control );
+     }
+
+  if ( controls == 0 )
+       return false;
+
+  char control_device_name[80];
+  sprintf(  control_device_name, "ControlDevice%02x_", GetAddress() );
+
+  // dump controls
+  for( list = controls; list; list = g_list_next( list ) )
+     {
+       cIpmiControl *control = (cIpmiControl *)controls->data;
+
+       char str[80];
+       sprintf( str, "%s%d", control_device_name, control->Num() );
+       control->Dump( dump, str );
+     }
+
+  // dump control device
+  dump.Begin( "Control", name );
+  dump.Entry( "ControlDevices" );
+
+  bool first = true;
+
+  while( controls )
+     {
+       cIpmiControl *control = (cIpmiControl *)controls->data;
+       controls = g_list_remove( controls, control );
+
+       if ( first )
+            first = false;
+       else
+            dump << ", ";
+
+       dump << control_device_name << control->Num();
+     }
+
+  dump << ";\n";
+
+  dump.End();
+
+  return true;
+}
+
+
 void
-cIpmiMc::Dump( cIpmiLog &dump, const char *name )
+cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
 {
   char sdr_name[80];
   sprintf( sdr_name, "Sdr%02x", GetAddress() );
 
   char sel_name[80];
   sprintf( sel_name, "Sel%02x", GetAddress() );
+
+  char fru_name[80];
+  sprintf( fru_name, "Fru%02x", GetAddress() );
+  bool fru_inventory = false;
+
+  char control_name[80];
+  sprintf( control_name, "Control%02x", GetAddress() );
+  bool control = false;
 
   if ( dump.IsRecursive() )
      {
@@ -591,6 +721,9 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name )
 
        if ( m_sel && m_sel_device_support )
 	    m_sel->Dump( dump, sel_name );
+
+       fru_inventory = DumpFrus( dump, fru_name );
+       control = DumpControls( dump, control_name );
      }
 
   dump.Begin( "Mc", name );
@@ -602,6 +735,12 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name )
 
        if ( m_sel && m_sel_device_support )
 	    dump.Entry( "Sel" ) << sel_name << ";\n";
+
+       if ( fru_inventory )
+            dump.Entry( "Fru" ) << fru_name << "\n";
+
+       if ( control )
+            dump.Entry( "Control" ) << control_name << "\n";
      }
 
   dump.Entry( "DeviceId" ) << (int)m_device_id << ";\n";
