@@ -33,7 +33,8 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 			      SaHpiEventCategoryT *event_cat);
 
 SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
-			       SaHpiEventCategoryT event_cat);
+			       SaHpiEventCategoryT event_cat,
+			       SaHpiBoolT check_mutal_exclusion);
 
 SaErrorT oh_valid_addevent(SaHpiEventT *event);
 

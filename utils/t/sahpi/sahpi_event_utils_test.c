@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_CRIT;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_LOWER_MAJOR;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_CRIT;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			return -1;
                 }
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_UPPER_MAJOR;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_THRESHOLD, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_STATE_DEASSERTED | SAHPI_ES_STATE_ASSERTED;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_STATE)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_STATE, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_PRED_FAILURE_DEASSERT | SAHPI_ES_PRED_FAILURE_ASSERT;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_PRED_FAIL)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_PRED_FAIL, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_LIMIT_NOT_EXCEEDED | SAHPI_ES_LIMIT_EXCEEDED;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_LIMIT)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_LIMIT, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_PERFORMANCE_MET | SAHPI_ES_PERFORMANCE_LAGS;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_PERFORMANCE)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_PERFORMANCE, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -262,7 +262,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_ABSENT | SAHPI_ES_PRESENT;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_PRESENCE)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_PRESENCE, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_DISABLED | SAHPI_ES_ENABLED;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_ENABLE)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_ENABLE, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_FULLY_REDUNDANT | SAHPI_ES_REDUNDANCY_LOST;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 	{
 		event_state =  SAHPI_ES_REDUNDANCY_DEGRADED | SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -302,7 +302,7 @@ int main(int argc, char **argv)
 	{
 		event_state = SAHPI_ES_REDUNDANCY_LOST | SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 			      SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL |
 			      SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -326,7 +326,7 @@ int main(int argc, char **argv)
 			      SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES |
  			      SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES;
 		
-		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY)) {
+		if (oh_valid_eventstate(event_state, SAHPI_EC_REDUNDANCY, SAHPI_TRUE)) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }

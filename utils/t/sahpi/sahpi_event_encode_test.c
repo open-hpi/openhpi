@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_UNSPECIFIED - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_UNSPECIFIED)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_UNSPECIFIED, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_LIMIT - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_LIMIT)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_LIMIT, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -683,7 +683,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_SENSOR_SPECIFIC - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_SENSOR_SPECIFIC)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_SENSOR_SPECIFIC, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -796,7 +796,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_USAGE - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_USAGE)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_USAGE, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -874,7 +874,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_PRED_FAIL - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRED_FAIL)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRED_FAIL, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -1092,7 +1092,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_THRESHOLD - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_THRESHOLD)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_THRESHOLD, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -1170,7 +1170,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_ENABLE - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_ENABLE)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_ENABLE, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -1248,7 +1248,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_PRESENCE - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRESENCE)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRESENCE, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -1571,7 +1571,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_SEVERITY - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_SEVERITY)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_SEVERITY, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -1649,7 +1649,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_PERFORMANCE - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PERFORMANCE)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PERFORMANCE, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -1727,7 +1727,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_STATE - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_STATE)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_STATE, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -2050,7 +2050,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_AVAILABILITY - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_AVAILABILITY)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_AVAILABILITY, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -2338,7 +2338,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_REDUNDANCY - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_REDUNDANCY)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_REDUNDANCY, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
@@ -2871,7 +2871,7 @@ int main(int argc, char **argv)
 	    
         /* SAHPI_EC_GENERIC - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_GENERIC)) {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_GENERIC, SAHPI_FALSE)) {
                         printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
