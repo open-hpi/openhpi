@@ -11,6 +11,8 @@
  *
  * Authors:
  *     Andy Cress <arcress@users.sourceforge.net>
+ * Changes:
+ *     10/13/2004  kouzmich   porting to HPI B
  */
 
 #include <stdio.h>
@@ -27,14 +29,10 @@ static void Usage(char *pname)
                 printf("Usage: %s [-r -d -x]\n", pname);
                 printf(" where -r  hard Resets the system\n");
                 printf("       -d  powers Down the system\n");
-#ifdef MAYBELATER
-/*++++ not implemented in HPI 1.0 ++++
                 printf("       -c  power Cycles the system\n");
                 printf("       -n  sends NMI to the system\n");
                 printf("       -o  soft-shutdown OS\n");
                 printf("       -s  reboots to Service Partition\n");
- ++++*/
-#endif
                 printf("       -x  show eXtra debug messages\n");
 }
 
@@ -42,10 +40,10 @@ int
 main(int argc, char **argv)
 {
   int c;
+  int is_reset = 0;
   SaErrorT rv;
-  SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
-  SaHpiRptInfoT rptinfo;
+  SaHpiDomainInfoT domainInfo;
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -54,6 +52,7 @@ main(int argc, char **argv)
   SaHpiResourceIdT resourceid;
   SaHpiRdrT rdr;
   SaHpiCtrlNumT   ctlnum;
+  SaHpiResetActionT resetact;
   int j;
   uchar breset;
   uchar bopt;
@@ -63,29 +62,22 @@ main(int argc, char **argv)
   printf("%s ver %s\n", argv[0],progver);
   breset = 3; /* hard reset as default */
   bopt = 0;    /* Boot Options default */
-  while ( (c = getopt( argc, argv,"rdx?")) != EOF )
+  while ( (c = getopt( argc, argv,"rdconsx?")) != EOF )
      switch(c) {
           case 'd': breset = 0;     break;  /* power down */
           case 'r': breset = 3;     break;  /* hard reset */
           case 'x': fdebug = 1;     break;  /* debug messages */
-#ifdef MAYBELATER
           case 'c': breset = 2;     break;  /* power cycle */
           case 'o': fshutdown = 1;  break;  /* shutdown OS */
           case 'n': breset = 4;     break;  /* interrupt (NMI) */
           case 's': bopt   = 1;     break;  /* hard reset to svc part */
-#endif
           default:
 		Usage(argv[0]);
                 exit(1);
   }
   if (fshutdown) breset = 5;     /* soft shutdown option */
 
-  rv = saHpiInitialize(&hpiVer);
-  if (rv != SA_OK) {
-	printf("saHpiInitialize error %d\n",rv);
-	exit(-1);
-	}
-  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
            printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -94,12 +86,12 @@ main(int argc, char **argv)
 	exit(-1);
 	}
  
-  rv = saHpiResourcesDiscover(sessionid);
-  if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
-  rv = saHpiRptInfoGet(sessionid,&rptinfo);
-  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
-         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+  rv = saHpiDiscover(sessionid);
+  if (fdebug) printf("saHpiDiscover rv = %d\n",rv);
+  rv = saHpiDomainInfoGet(sessionid, &domainInfo);
+  if (fdebug) printf("saHpiDomainInfoGet rv = %d\n",rv);
+  printf("DomainInfo: UpdateCount = %x, UpdateTime = %lx\n",
+         domainInfo.RptUpdateCount, (unsigned long)domainInfo.RptUpdateTimestamp);
 
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -114,8 +106,10 @@ main(int argc, char **argv)
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
 		entryid,resourceid, rptentry.ResourceTag.Data);
-	while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
+	while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY) &&
+		rptentry.ResourceCapabilities & SAHPI_CAPABILITY_POWER)
 	{
+		is_reset = 1;
 		rv = saHpiRdrGet(sessionid,resourceid,
 				entryid,&nextentryid, &rdr);
   		if (fdebug) printf("saHpiRdrGet[%d] rv = %d\n",entryid,rv);
@@ -136,9 +130,6 @@ main(int argc, char **argv)
 				rdr.RdrTypeUnion.CtrlRec.Type,
 				rdr.RdrTypeUnion.CtrlRec.OutputType,
 				rdr.IdString.Data);
-#ifdef MAYBELATER
-			{
-			   SaHpiResetActionT resetact;
 			   rv = saHpiResourceResetStateGet(sessionid, 
 					resourceid, &resetact);
 			   printf("ResetStateGet status = %d, act=%d\n",
@@ -146,8 +137,6 @@ main(int argc, char **argv)
 			   rv = saHpiResourceResetStateSet(sessionid, 
 					resourceid, resetact);
 			   printf("ResetStateSet status = %d\n",rv);
-			}
-#endif
 
 			   ctlstate.Type = SAHPI_CTRL_TYPE_DIGITAL;
 			   if (breset == 0) {  /*power off*/ 
@@ -157,8 +146,8 @@ main(int argc, char **argv)
 			     ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
 			     printf("Resetting ... \n");
 			   }
-			   rv = saHpiControlStateSet(sessionid, 
-					resourceid, ctlnum,&ctlstate);
+			   rv = saHpiControlSet(sessionid, resourceid, ctlnum,
+			   	SAHPI_CTRL_MODE_AUTO, &ctlstate);
 			   printf("Reset status = %d\n",rv);
 			   break;
 			}
@@ -167,14 +156,14 @@ main(int argc, char **argv)
 		    entryid = nextentryid;
 		}
 	}
-	rptentryid = nextrptentryid;
      }
+     rptentryid = nextrptentryid;
   }
  
   rv = saHpiSessionClose(sessionid);
-  rv = saHpiFinalize();
 
-  exit(0);
+	if (is_reset == 0)
+		printf("No resources with Reset capability found\n");
   return(0);
 }
  

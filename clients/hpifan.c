@@ -12,6 +12,8 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *
+ *     10/13/2004  kouzmich   porting to HPI B
  */
 
 #include <stdio.h>
@@ -46,22 +48,22 @@ display_textbuffer( SaHpiTextBufferT string )
                 for( i = 0; i < string.DataLength; i++ )
                         printf( "%x", string.Data[i] );
                 break;
-
         case SAHPI_TL_TYPE_BCDPLUS:
-                for( i = 0; i < string.DataLength; i++ )
-                        printf("%c", string.Data[i] );
+                 for( i = 0; i < string.DataLength; i++ )
+                        printf( "%c", string.Data[i] );
                 break;
-
-        case SAHPI_TL_TYPE_ASCII6:
+       case SAHPI_TL_TYPE_ASCII6:
+                 for( i = 0; i < string.DataLength; i++ )
+                        printf( "%c", string.Data[i] );
+                break;
+       case SAHPI_TL_TYPE_UNICODE:
                 for( i = 0; i < string.DataLength; i++ )
                         printf( "%c", string.Data[i] );
                 break;
-
-        case SAHPI_TL_TYPE_LANGUAGE:
+	case SAHPI_TL_TYPE_TEXT:
                 for( i = 0; i < string.DataLength; i++ )
                         printf( "%c", string.Data[i] );
                 break;
-
         default:
                 printf("Invalid string data type=%d", string.DataType );
         }
@@ -72,11 +74,12 @@ static SaErrorT
 get_fan_speed( SaHpiSessionIdT session_id,
                SaHpiResourceIdT resource_id,
                SaHpiCtrlNumT ctrl_num,
-               SaHpiCtrlStateAnalogT *speed )
+               SaHpiCtrlStateAnalogT *speed,
+	       SaHpiCtrlModeT *mode )
 {
         SaHpiCtrlStateT state;
 
-        SaErrorT rv = saHpiControlStateGet( session_id, resource_id, ctrl_num, &state );
+        SaErrorT rv = saHpiControlGet( session_id, resource_id, ctrl_num, mode, &state );
 
         if ( rv != SA_OK ) {
                 fprintf( stderr, "cannot get fan state: %s!\n", oh_lookup_error( rv ) );
@@ -98,14 +101,15 @@ static SaErrorT
 set_fan_speed( SaHpiSessionIdT session_id,
                SaHpiResourceIdT resource_id,
                SaHpiCtrlNumT ctrl_num,
-               SaHpiCtrlStateAnalogT speed )
+               SaHpiCtrlStateAnalogT speed,
+	       SaHpiCtrlModeT mode )
 {
         SaErrorT rv;
         SaHpiCtrlStateT state;
         state.Type = SAHPI_CTRL_TYPE_ANALOG;
         state.StateUnion.Analog = speed;
 
-        rv = saHpiControlStateSet( session_id, resource_id, ctrl_num, &state );
+        rv = saHpiControlSet( session_id, resource_id, ctrl_num, mode, &state );
 
         if ( rv != SA_OK ) {
                 fprintf( stderr, "cannot set fan state: %s!\n", oh_lookup_error( rv ) );
@@ -122,6 +126,7 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
 {
         SaErrorT rv;
         SaHpiCtrlRecT *ctrl_rec = &rdr->RdrTypeUnion.CtrlRec;
+	SaHpiCtrlModeT ctrl_mode;
 
         printf( "\tfan: num %d, id ", ctrl_rec->Num );
         display_textbuffer( rdr->IdString );
@@ -138,7 +143,7 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
 
         SaHpiCtrlStateAnalogT speed;
 
-        rv = get_fan_speed( session_id, resource_id, ctrl_rec->Num, &speed );
+        rv = get_fan_speed( session_id, resource_id, ctrl_rec->Num, &speed, &ctrl_mode);
 
         if ( rv != SA_OK )
                 return 0;
@@ -157,12 +162,12 @@ do_fan( SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         }
 
         speed = fan_speed;
-        rv = set_fan_speed( session_id, resource_id, ctrl_rec->Num, speed );
+        rv = set_fan_speed( session_id, resource_id, ctrl_rec->Num, speed, ctrl_mode);
 
         if ( rv != SA_OK )
                 return 0;
   
-        rv = get_fan_speed( session_id, resource_id, ctrl_rec->Num, &speed );
+        rv = get_fan_speed( session_id, resource_id, ctrl_rec->Num, &speed, &ctrl_mode);
 
         if ( rv != SA_OK )
                 return 0;
@@ -269,26 +274,18 @@ main( int argc, char *argv[] )
         if ( help )
                 return usage();
 
-        SaHpiVersionT hpiVer;
-        rv = saHpiInitialize( &hpiVer );
-
-        if ( rv != SA_OK ) {
-                fprintf( stderr, "saHpiInitialize: %s\n",oh_lookup_error( rv ) );
-                return 1;
-        }
-
         SaHpiSessionIdT sessionid;
-        rv = saHpiSessionOpen( SAHPI_DEFAULT_DOMAIN_ID, &sessionid, 0 );
+        rv = saHpiSessionOpen( SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, 0 );
 
         if ( rv != SA_OK ) {
                 printf( "saHpiSessionOpen: %s\n", oh_lookup_error( rv ) );
                 return 1;
         }
 
-        rv = saHpiResourcesDiscover( sessionid );
+        rv = saHpiDiscover( sessionid );
 
         if ( rv != SA_OK ) {
-                printf( "saHpiResourcesDiscover: %s\n", oh_lookup_error( rv ) );
+                printf( "saHpiDiscover: %s\n", oh_lookup_error( rv ) );
                 return 1;
         }
 
@@ -298,11 +295,6 @@ main( int argc, char *argv[] )
 
         if ( rv != SA_OK )
                 printf( "saHpiSessionClose: %s\n", oh_lookup_error( rv ) );
-
-        rv = saHpiFinalize();
-
-        if ( rv != SA_OK )
-                printf( "saHpiFinalize: %s\n", oh_lookup_error( rv ) );
 
         return  rc;
 }
