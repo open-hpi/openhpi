@@ -11,12 +11,12 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
- *
  */
 
 #include <string.h>
+
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /**
  * main: set_ep_instance test.

@@ -18,8 +18,7 @@
 #include <string.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 int main (int argc, char **argv) {
 	SaHpiEntityPathT  ep;

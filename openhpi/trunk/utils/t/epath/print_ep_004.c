@@ -1,4 +1,4 @@
-                                            /* -*- linux-c -*-
+/* -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004
  *
@@ -11,17 +11,17 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
- *
  */
 
 #include <string.h>
 #include <stdio.h>
+
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /**
  * print_ep test4
- *          call print_ep with multi element entity path and expect inspect result
+ *          call print_ep with multi-element entity path and expect inspect result
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv)

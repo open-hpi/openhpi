@@ -11,13 +11,13 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
- *
  */
 
 #include <string.h>
 #include <stdio.h>
+
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /**
  * set_ep_instance test13

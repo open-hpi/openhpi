@@ -11,17 +11,17 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
- *
  */
 
 #include <string.h>
+
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /**
  * main: ep_concat test.
  *
- * This will call ep_concat with NULL as the second parameter.
+ * This calls ep_concat with NULL as the second parameter.
  * Should get a return of 0 from the call exiting gracefully.
  * Returning 0 is considered ok with a NULL second param.
  *

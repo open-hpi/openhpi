@@ -11,17 +11,17 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
- *
  */
 
 #include <string.h>
 #include <stdio.h>
+
 #include <SaHpi.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 /**
  * ep_cmp test11
- *   unidentical multi element entity path comarison, expect failure
+ *   unidentical multi-element entity path comparison, expect failure
  *
  * Return value: 0 on success, 1 on failure
  **/
