@@ -132,7 +132,61 @@ static enum {
  * the specification
  **********************************************************************/
 
-SaErrorT static SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
+SaErrorT static SAHPI_API saHpiFinalize(void)
+{
+        OH_STATE_READY_CHECK;
+
+        /* free mutex */
+        /* TODO: this wasn't here in branch, need to resolve history */
+        data_access_lock();
+
+        /* TODO: realy should have a oh_uid_finalize() that */
+        /* frees memory,                                    */
+        if(oh_uid_map_to_file())
+                dbg("error writing uid entity path mapping to file");
+
+        /* check for open sessions */
+        if ( global_session_list ) {
+                dbg("cannot saHpiFinalize because of open sessions" );
+                data_access_unlock();
+                return SA_ERR_HPI_BUSY;
+        }
+
+        /* close all plugins */
+        while(global_handler_list) {
+                struct oh_handler *handler = (struct oh_handler *)global_handler_list->data;
+                /* unload_handler will remove handler from global_handler_list */
+                unload_handler(handler);
+        }
+
+        /* unload plugins */
+        while(global_plugin_list) {
+                struct oh_plugin_config *plugin = (struct oh_plugin_config *)global_plugin_list->data;
+                unload_plugin(plugin);
+        }
+
+        /* free global rpt */
+        if (default_rpt) {
+                oh_flush_rpt(default_rpt);
+                g_free(default_rpt);
+                default_rpt = 0;
+        }
+
+        /* free global_handler_configs and uninit_plugin */
+        oh_unload_config();
+
+        /* free domain list */
+        oh_cleanup_domain();
+
+        oh_hpi_state = OH_STAT_UNINIT;
+
+        /* free mutex */
+        data_access_unlock();
+
+        return SA_OK;
+}
+
+SaErrorT static SAHPI_API saHpiInitialize()
 {
         struct oh_plugin_config *tmpp;
         GHashTable *tmph;
@@ -150,7 +204,6 @@ SaErrorT static SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersio
                 return SA_ERR_HPI_DUPLICATE;
         }
 
-        *HpiImplVersion = SAHPI_INTERFACE_VERSION;
         /* initialize mutex used for data locking */
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
@@ -236,60 +289,6 @@ SaErrorT static SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersio
         return SA_OK;
 }
 
-SaErrorT static SAHPI_API saHpiFinalize(void)
-{
-        OH_STATE_READY_CHECK;
-
-        /* free mutex */
-        /* TODO: this wasn't here in branch, need to resolve history */
-        data_access_lock();
-
-        /* TODO: realy should have a oh_uid_finalize() that */
-        /* frees memory,                                    */
-        if(oh_uid_map_to_file())
-                dbg("error writing uid entity path mapping to file");
-
-        /* check for open sessions */
-        if ( global_session_list ) {
-                dbg("cannot saHpiFinalize because of open sessions" );
-                data_access_unlock();
-                return SA_ERR_HPI_BUSY;
-        }
-
-        /* close all plugins */
-        while(global_handler_list) {
-                struct oh_handler *handler = (struct oh_handler *)global_handler_list->data;
-                /* unload_handler will remove handler from global_handler_list */
-                unload_handler(handler);
-        }
-
-        /* unload plugins */
-        while(global_plugin_list) {
-                struct oh_plugin_config *plugin = (struct oh_plugin_config *)global_plugin_list->data;
-                unload_plugin(plugin);
-        }
-
-        /* free global rpt */
-        if (default_rpt) {
-                oh_flush_rpt(default_rpt);
-                g_free(default_rpt);
-                default_rpt = 0;
-        }
-
-        /* free global_handler_configs and uninit_plugin */
-        oh_unload_config();
-
-        /* free domain list */
-        oh_cleanup_domain();
-
-        oh_hpi_state = OH_STAT_UNINIT;
-
-        /* free mutex */
-        data_access_unlock();
-
-        return SA_OK;
-}
-
 SaErrorT SAHPI_API saHpiSessionOpen(
                 SAHPI_IN SaHpiDomainIdT DomainId,
                 SAHPI_OUT SaHpiSessionIdT *SessionId,
@@ -297,6 +296,15 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 {
         struct oh_session *s;
         int rv;
+
+        /* SLD 6/8/2004
+          This is the worst of all possible solutions, however
+          it should make us work for now.  We need a much better
+          mechanism for making this actually init on first session open.
+        */
+        if(OH_STAT_READY != oh_hpi_state) {
+                saHpiInitialize();
+        }
 
         if (SecurityParams != NULL) {
                 dbg("SecurityParams must be NULL");
