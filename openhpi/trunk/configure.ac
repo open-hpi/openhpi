@@ -7,7 +7,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 AC_PREREQ(2.57)
 AC_INIT(openhpi, 2.1.1)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([1.8])
 
 AM_CONFIG_HEADER(config.h)
 AH_TOP([#ifndef __OPENHPI_CONFIG_H
