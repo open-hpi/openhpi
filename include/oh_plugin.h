@@ -120,7 +120,7 @@ struct oh_abi_v1 {
 	/**
 	 * set sensor thresholds
 	 */
-	int (*set_sensoor_thresholds)(void *hnd, struct oh_id *id, const SaHpiSensorThresholdsT *thres);
+	int (*set_sensor_thresholds)(void *hnd, struct oh_id *id, const SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * get control info
@@ -155,12 +155,12 @@ struct oh_abi_v1 {
 	/**
 	 * get watchdog timer info
 	 */
-	int (*get_wwatchdog_info)(void *hnd, struct oh_id *id, SaHpiWatchdogT *wdt);
+	int (*get_watchdog_info)(void *hnd, struct oh_id *id, SaHpiWatchdogT *wdt);
 
 	/** 
 	 * set watchdog timer info
 	 */
-	int (*set_wwatchdog_info)(void *hnd, struct oh_id *id, SaHpiWatchdogT *wdt);
+	int (*set_watchdog_info)(void *hnd, struct oh_id *id, SaHpiWatchdogT *wdt);
 
 	/**
 	 * reset watchdog timer info
