@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	SaHpiCtrlModeT mode = SAHPI_CTRL_MODE_AUTO;
 	SaHpiCtrlStateT state;
 	/* *************************************	 	 
-	 * Find a resource with Sensor type rdr
+	 * Find a resource with Control type rdr
 	 * ************************************* */
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
