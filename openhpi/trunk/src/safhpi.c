@@ -1647,7 +1647,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 	SaErrorT rv = SA_OK;	/* Default to SA_OK */
         struct oh_handler *h;
         struct oh_session *s;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, const SaHpiIdrInfoT *);
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrInfoT *);
 	
 	
         data_access_lock();
@@ -1703,7 +1703,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         struct oh_handler *h;
         struct oh_session *s;
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
-			      SaHpiEntryIdT, const SaHpiEntryIdT *, const SaHpiIdrAreaHeaderT *);
+			      SaHpiEntryIdT, SaHpiEntryIdT *,  SaHpiIdrAreaHeaderT *);
 	
 	
         data_access_lock();
@@ -1763,7 +1763,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         struct oh_handler *h;
         struct oh_session *s;
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
-			      const  SaHpiEntryIdT *);
+			        SaHpiEntryIdT *);
 	
 	
         data_access_lock();
@@ -1881,7 +1881,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         struct oh_session *s;
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT,
 	                     SaHpiEntryIdT, SaHpiIdrFieldTypeT, SaHpiEntryIdT,
-			     const  SaHpiEntryIdT *, const SaHpiIdrFieldT * );
+			     SaHpiEntryIdT *, SaHpiIdrFieldT * );
 	
 	
         data_access_lock();
@@ -1940,7 +1940,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
 	SaErrorT rv = SA_OK;	/* Default to SA_OK */
         struct oh_handler *h;
         struct oh_session *s;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, const SaHpiIdrFieldT * );
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT,  SaHpiIdrFieldT * );
 	
 	
         data_access_lock();
@@ -1998,7 +1998,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
 	SaErrorT rv = SA_OK;	/* Default to SA_OK */
         struct oh_handler *h;
         struct oh_session *s;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, const SaHpiIdrFieldT * );
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT * );
 	
 	
         data_access_lock();
