@@ -30,8 +30,10 @@
 #  
 
 REPORTDIR = report_html
+CONFORMDIR = conform_html
 SERVER = shell1.sf.net
 RDIR = /home/groups/o/op/openhpi/htdocs/coverage_report
+CONFORMRDIR = /home/groups/o/op/openhpi/htdocs/conform_report
 
 MAINTAINERCLEANFILES 	= Makefile.in @TEST_CLEAN@
 
@@ -56,6 +58,18 @@ clean-local:
 report:
 	./testcoverage.pl
 	./coverage_report.pl
+
+conform:
+	./testconformance.pl
+	./conformance_report.pl
+
+publish-conform: conform
+	-chmod a+x $(shell echo $(CONFORMDIR)/*html)
+	-echo "XBitHack on" > $(CONFORMDIR)/.htaccess
+	-echo "Options +Indexes" >> $(CONFORMDIR)/.htaccess 
+	-rsync -e ssh -rP --delete $(CONFORMDIR)/ $(SERVER):$(CONFORMRDIR)
+	-ssh $(SERVER) "find $(CONFORMRDIR) -user `whoami` -exec chmod g+w {} \;"
+	-ssh $(SERVER) "find $(CONFORMRDIR) -user `whoami` -type d -exec chmod g+s {} \;"
 
 publish-report: report
 	-chmod a+x $(shell echo $(REPORTDIR)/*html)
