@@ -34,7 +34,7 @@
       file is shown below.
     </para>
     <para>
-      <literal><literallayout>
+  <programlisting role="config">
 # Sample /etc/openhpi/openhpi.conf
 # comments start with # character
 
@@ -57,8 +57,7 @@ handler libsnmp_bc {
           host = "10.0.0.21"
           entity_root = "{ROOT,0}{SYSTEM_CHASSIS,1}"
 }
-
-        </literallayout></literal>
+  </programlisting>
     </para>
     <para>
       The <literal>plugin</literal> stanza tells OpenHPI that there is
@@ -155,8 +154,7 @@ handler libsnmp_bc {
         Below is an example configuration stanza:
       </para>
       <para>
-        <literal>
-          <literallayout>
+        <programlisting role="config">
 plugin libsnmp_bc
 
 handler libsnmp_bc {
@@ -164,8 +162,7 @@ handler libsnmp_bc {
           host = "192.168.64.52"
 	  entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
 }
-          </literallayout>
-        </literal>
+            </programlisting>
       </para>
     </sect2>
   </sect1>
@@ -213,16 +210,14 @@ handler libsnmp_bc {
         Below is an example configuration stanza:
       </para>
       <para>
-        <literal>
-          <literallayout>
+        <programlisting role="config">
 plugin libwatchdog
 
 handler libwatchdog {
           name="0"
           addr="/dev/watchdog"
 }
-          </literallayout>
-        </literal>
+        </programlisting>
       </para>
     </sect2>
   </sect1>
@@ -257,8 +252,7 @@ handler libwatchdog {
         The 0.2.0 release has a bug that needs to be fixed before using this
         plugin.  Applying the following patch will fix this bug (or you may
         take the latest code from the libsysfs repository):
-        <literal>
-          <literallayout>
+        <programlisting role="C">
 --- sysfsutils-0_2_0/lib/sysfs_device.c.orig    2003-10-17 11:25:37.000000000 -0
 700
 +++ sysfsutils-0_2_0/lib/sysfs_device.c 2003-10-20 12:41:59.000000000 -0700
@@ -268,8 +262,7 @@ handler libwatchdog {
         }
 +       strcpy(attrname, name);
         dlist_for_each_data(dev->directory->attributes, cur,
-          </literallayout>
-        </literal>
+        </programlisting>
       </para>
       <para>
         Follow the libsysfs instructions for installing libsysfs and also copy
@@ -282,16 +275,14 @@ handler libwatchdog {
         Below is an example configuration stanza:
       </para>
       <para>
-        <literal>
-          <literallayout>
+        <programlisting role="config">
 plugin libsysfs
 
 handler libsysfs {
           name="0"
           addr="0"
 }
-          </literallayout>
-        </literal>
+        </programlisting>
       </para>
     </sect2>
   </sect1>
