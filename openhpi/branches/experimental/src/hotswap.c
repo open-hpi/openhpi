@@ -25,12 +25,11 @@
 
 void process_hotswap_policy(void)
 {
-#if 0
         SaHpiTimeT cur, est;
         struct oh_hpi_event e;
         struct oh_resource *res;
-        int (*set_hotswap_state)(void *hnd, struct oh_resource_id id,
-                                                SaHpiHsStateT state);   
+
+	int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id, SaHpiHsStateT state);
         
         while(hotswap_pop_event(&e)>0) {
         
@@ -61,19 +60,22 @@ void process_hotswap_policy(void)
                                 == SAHPI_HS_STATE_INSERTION_PENDING) {
                         est = e.event.Timestamp + get_hotswap_auto_insert_timeout();
                         if (cur>=est) {
-                                set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_ACTIVE_HEALTHY);
+/* TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid */
+dbg("TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid");
+//                                set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_ACTIVE_HEALTHY);
                         }
                 } else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
                                 == SAHPI_HS_STATE_EXTRACTION_PENDING) {
                         est = e.event.Timestamp + res->auto_extract_timeout;
                         if (cur>=est) {
-                                set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_INACTIVE);
+/* TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid */
+dbg("TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid");
+//                                set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_INACTIVE);
                         }
                 } else {
                         dbg();
                 }
         }
-#endif
 }
 
 static GSList *hs_eq=NULL;
