@@ -107,6 +107,11 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         /* mutexes, one for each hash list        */
         data_access_lock();
         
+        /* set up our global domain */
+        if (add_domain(OH_DEFAULT_DOMAIN_ID)) {
+                return SA_ERR_HPI_ERROR;
+        }
+
         /* setup our global rpt_table */
         default_rpt = g_malloc0(sizeof(RPTable));
         if(!default_rpt) {
@@ -501,9 +506,25 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
+        struct oh_domain *d;
         
         OH_STATE_READY_CHECK;
         OH_STATE_READY_CHECK;
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                Info->Entries = d->sel->nextId;
+                Info->Size = -1; /* unlimited */
+                Info->UpdateTimestamp = d->sel->lastUpdate;
+                Info->CurrentTime = d->sel->offset;
+                Info->Enabled = d->sel->enabled;
+                Info->OverflowFlag = d->sel->overflow;
+                Info->OverflowAction = SAHPI_SEL_OVERFLOW_DROP;
+                Info->DeleteEntrySupported = d->sel->deletesupported;
+                return SA_OK;
+        }
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
@@ -544,8 +565,24 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
+        struct oh_domain *d;
+        SaHpiSelEntryT *selentry;
+        SaErrorT retc;
 
         OH_STATE_READY_CHECK;
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                retc = oh_sel_get(d->sel, EntryId, PrevEntryId, NextEntryId,
+                                  &selentry);
+                if (retc != SA_OK) {
+                        return retc;
+                }
+                memcpy(EventLogEntry, selentry, sizeof(SaHpiSelEntryT));
+                return SA_OK;
+        }
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
@@ -587,8 +624,16 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
+        struct oh_domain *d;
 
         OH_STATE_READY_CHECK;
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                return oh_sel_add(d->sel, EvtEntry);
+        }
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
@@ -632,6 +677,13 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
         struct oh_handler *h;
                 
         OH_STATE_READY_CHECK;
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                dbg("SEL does not support delete");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
@@ -666,8 +718,16 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
+        struct oh_domain *d;
                 
         OH_STATE_READY_CHECK;
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                return oh_sel_clear(d->sel);
+        }
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
@@ -721,8 +781,16 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
+        struct oh_domain *d;
         
         OH_STATE_READY_CHECK;
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                return oh_sel_timeset(d->sel, Time);
+        }
+
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);  
 
@@ -770,6 +838,15 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiBoolT Enable)
 {
+        struct oh_domain *d;
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
+                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                d->sel->enabled = Enable;
+                return SA_OK;
+        }
+
         /* this request is not valid on an RSEL */
         return SA_ERR_HPI_INVALID_REQUEST;
 }

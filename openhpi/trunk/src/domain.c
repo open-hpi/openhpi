@@ -22,6 +22,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
+#include <sel_utils.h>
 
 /*
  *  Global list of all available domain id's (SaHpiDomainIdT).
@@ -96,6 +97,7 @@ int add_domain(SaHpiDomainIdT did)
         }
         
         d->domain_id = did;
+        d->sel = oh_sel_create();
  
         global_domain_list = g_slist_append(global_domain_list, d);
 
