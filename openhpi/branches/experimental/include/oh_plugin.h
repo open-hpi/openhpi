@@ -240,31 +240,36 @@ struct oh_abi_v1 {
 	 * get sensor data
 	 */
 	int (*get_sensor_data)(void *hnd, SaHpiResourceIdT id, 
-			       SaHpiSensorReadingT *data);
+                           SaHpiSensorNumT num,
+                           SaHpiSensorReadingT *data);
 
 	/**
 	 * get sensor thresholds
 	 */
 	int (*get_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
-				     SaHpiSensorThresholdsT *thres);
+                                 SaHpiSensorNumT num,
+                                 SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * set sensor thresholds
 	 */
 	int (*set_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
-				     const SaHpiSensorThresholdsT *thres);
+                                 SaHpiSensorNumT num,
+                                 const SaHpiSensorThresholdsT *thres);
 
 	/**
 	 * get sensor event enables
 	 */
 	int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
-					SaHpiSensorEvtEnablesT *enables);
+                                    SaHpiSensorNumT num,
+                                    SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * set sensor event enables
 	 */
 	int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
-					const SaHpiSensorEvtEnablesT *enables);
+                                    SaHpiSensorNumT num,
+                                    const SaHpiSensorEvtEnablesT *enables);
 	/**
 	 * get control info
 	 */

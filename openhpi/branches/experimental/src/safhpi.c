@@ -1067,16 +1067,22 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
         
-        
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        RPTable *rpt = &default_rpt;
+        struct oh_handler *h;
 
-        get_func = res->handler->abi->get_sensor_data;
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        get_func = h->abi->get_sensor_data;
 
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_func(res->handler->hnd, rdr->oid, Reading))
+        if (get_func(h->hnd, ResourceId, SensorNum, Reading))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
