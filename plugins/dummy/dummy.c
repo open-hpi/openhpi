@@ -227,8 +227,8 @@ static SaHpiRdrT dummy_rdrs[] = {
                                          .IsSupported = SAHPI_TRUE,
                                          .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                          .ModifierUse = SAHPI_SMUU_NONE,
-                                         .Percentage = SAHPI_FALSE,
-                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_BUFFER,
+                                         .Percentage = SAHPI_TRUE,
+                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
                                          .Range = {
                                                   .Flags = SAHPI_SRF_MIN | 
                                                   SAHPI_SRF_MAX | 
@@ -634,9 +634,9 @@ static struct dummy_sensor {
 	/*This is temp sensor on system board*/
             .reading = {
                     .IsSupported = SAHPI_TRUE,
-                    .Type = SAHPI_SENSOR_READING_TYPE_BUFFER,
+                    .Type = SAHPI_SENSOR_READING_TYPE_INT64,
                     .Value = {
-                             .SensorBuffer = "12 pence",
+                             .SensorInt64 = 50,
                      },
             },
             .thresholds = {
