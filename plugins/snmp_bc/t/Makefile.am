@@ -45,7 +45,7 @@ INCLUDES                = -I$(top_srcdir)/include \
 
 AM_CFLAGS		= -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
 
-EXTRA_DIST		= sim_resources.h openhpi.conf
+EXTRA_DIST		= sim_resources.h openhpi.conf tsetup.h
 
 noinst_LTLIBRARIES	= libsnmp_bc.la
 
@@ -59,6 +59,7 @@ libsnmp_bc_la_SOURCES	= $(GENERATED_CODE) \
 			  sim_init.c \
 			  sim_resources.c \
 			  snmp_utils.c \
+			  tsetup.c     \
 			  $(top_srcdir)/snmp/snmp_derive_oid.c 
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@
