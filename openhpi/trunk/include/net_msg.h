@@ -87,7 +87,8 @@ typedef struct {
         NETWORK_HDR_STR header;
         int error;
         int num_resource_events;
-        struct oh_event oh_event_arry[3];
+	struct oh_event event;
+//        struct oh_event oh_event_arry[3];
 } DISCOVER_RESOURCES_MSG_STR;
 
 typedef struct {
