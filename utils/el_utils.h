@@ -61,6 +61,7 @@ SaErrorT oh_el_clear(oh_el *el);
 SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
                     SaHpiEventLogEntryIdT *next, oh_el_entry **entry);
 SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info);
+SaErrorT oh_el_overflowreset(oh_el *el);
 SaErrorT oh_el_map_to_file(oh_el *el, char *filename);
 SaErrorT oh_el_map_from_file(oh_el *el, char *filename);
 SaErrorT oh_el_timeset(oh_el *el, SaHpiTimeT timestamp);
