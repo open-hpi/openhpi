@@ -206,7 +206,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data)
 
         /* Check to see if the entry is in the RPTable already */
         if (entry->ResourceId == 0) {
-                dbg("Failed to add. RPT entry needs an id before being added");
+                dbg("Failed to add. RPT entry needs a resource id before being added");
                 return -2;                
         }
 
@@ -373,19 +373,28 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
         }
 
         if (rid_prev == RPT_ENTRY_BEGIN) {
-                rptentry = (table->rptable) ? (RPTEntry *)(table->rptable->data) : NULL;
+                if (table->rptable) {
+                        rptentry = (RPTEntry *)(table->rptable->data);
+                } else {
+                        /*dbg("Info: RPT is empty. Returning NULL.");*/
+                        return NULL;
+                }
         } else {
                 for (node = table->rptable; node != NULL; node = node->next) {
                         rptentry = (RPTEntry *) node->data;
                         if (rptentry->rpt_entry.ResourceId == rid_prev) {
-                                rptentry = (node->next) ? (RPTEntry *)(node->next->data) : NULL;
+                                if (node->next) rptentry = (RPTEntry *)(node->next->data);
+                                else {
+                                        /*dbg("Info: Reached end of RPT.");*/
+                                        return NULL;
+                                }
                                 break;
                         } else rptentry = NULL;
                 }                
         }                
 
         if (!rptentry) {
-                dbg("Warning: Previous RPT entry not found. Returning NULL.");
+                dbg("Warning: RPT entry not found. Returning NULL.");
                 return NULL;
         }
         
@@ -647,12 +656,21 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         }
         
         if (rdrid_prev == RDR_BEGIN) {
-                rdrecord = (rptentry->rdrtable) ? (RDRecord *)(rptentry->rdrtable->data) : NULL;
+                if (rptentry->rdrtable) {
+                        rdrecord = (RDRecord *)(rptentry->rdrtable->data);                        
+                } else {
+                        /*dbg("Info: RDR repository is empty. Returning NULL.");*/
+                        return NULL;
+                }
         } else {
                 for (node = rptentry->rdrtable; node != NULL; node = node->next) {
                         rdrecord = (RDRecord *)node->data;
                         if (rdrecord->rdr.RecordId == rdrid_prev) {
-                                rdrecord = (node->next) ? (RDRecord *)(node->next->data) : NULL;
+                                if (node->next) rdrecord = (RDRecord *)(node->next->data);
+                                else {
+                                        /*dbg("Info: Reached end of RDR repository.")*/
+                                        return NULL;
+                                }
                                 break;
                         }
                         else rdrecord = NULL;
