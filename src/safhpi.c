@@ -724,12 +724,12 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         SaErrorT rv;
         SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
                                   SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
-        struct oh_session *s;
-        RPTable *rpt;
-        SaHpiRptEntryT *res;
-        struct oh_handler *h;
-        struct oh_domain *d;
-        SaHpiSelEntryT *selentry;
+        struct oh_session *s = NULL;
+        RPTable *rpt = NULL;
+	SaHpiRptEntryT *res = NULL;
+        struct oh_handler *h = NULL;
+        struct oh_domain *d = NULL;
+        SaHpiSelEntryT *selentry = NULL;
         SaErrorT retc;
         
         /* Test pointer parameters for invalid pointers */
@@ -764,7 +764,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
-        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID_CMD;
@@ -783,19 +783,22 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         rv = get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
                            NextEntryId, EventLogEntry);
 
-        if(rv != SA_OK) {
+        if (rv != SA_OK) {
                 dbg("SEL entry get failed");
         }
 
-        if ((RptEntry != NULL) && 
-            (EventLogEntry != NULL) &&
-            (EventLogEntry->Event.Source)) {
-                
-                res = oh_get_resource_by_id(rpt, EventLogEntry->Event.Source);
-                if(res != NULL) {
+        res = NULL;
+	if ((RptEntry != NULL) && 
+            (EventLogEntry != NULL)) {
+	    	trace("EventLogEntry's Source ID is %d", EventLogEntry->Event.Source);
+		if (EventLogEntry->Event.Source)	
+	                res = oh_get_resource_by_id(rpt, EventLogEntry->Event.Source);
+
+                if (res != NULL) {
                         *RptEntry = *res;
                 }
         }
+
         if ((EventLogEntry != NULL) &&
             (res != NULL) &&
             (Rdr != NULL)) {
@@ -805,20 +808,16 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                         case SAHPI_ET_SENSOR:
                                 num = EventLogEntry->Event.EventDataUnion.SensorEvent.SensorNum;
                                 tmprdr = oh_get_rdr_by_type(rpt,res->ResourceId,SAHPI_SENSOR_RDR,num);
-                                if (tmprdr)
-                                         memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
-                                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
                                 break;
                         case SAHPI_ET_WATCHDOG:
                                 num = EventLogEntry->Event.EventDataUnion.WatchdogEvent.WatchdogNum;
                                 tmprdr = oh_get_rdr_by_type(rpt,res->ResourceId,SAHPI_WATCHDOG_RDR,num);
-                                if (tmprdr)
-                                         memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
-                                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
                                 break;
                         default:
                                 ;
                 }
+                if (tmprdr) memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
+                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
         }
 
         data_access_unlock();
