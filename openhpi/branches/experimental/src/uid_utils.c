@@ -110,7 +110,7 @@ guint oh_uid_initialize(void)
 
                 initialized = TRUE;
 
-                resource_id = 0;
+                resource_id = 1;
 
                 /* initialize uid map */
                 rval = uid_map_from_file();
