@@ -55,7 +55,8 @@ libopenhpi_la_SOURCES = \
 	openhpiclient.h
 
 libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++
+libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++ \
+                        $(top_builddir)/utils/libopenhpiutils.la
 
 clean-local:
 	rm -f *~ core core.*

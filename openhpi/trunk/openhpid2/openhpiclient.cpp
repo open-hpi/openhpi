@@ -344,10 +344,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionClose);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose,
@@ -386,10 +386,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiDiscover);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover,
@@ -429,11 +429,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainInfoGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
-        if (!DomainInfo)
+		return SA_ERR_HPI_INVALID_SESSION;
+        if (DomainInfo == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiDomainInfoGet);
@@ -474,10 +474,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DrtEntryGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if((DrtEntry == NULL) ||
            (NextEntryId == NULL) ||
            (EntryId == SAHPI_LAST_ENTRY)) {
@@ -520,10 +520,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainTagSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!DomainTag)
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (!oh_lookup_texttype(DomainTag->DataType))
@@ -567,10 +567,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if ((NextEntryId == NULL) || (RptEntry == NULL)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -615,10 +615,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGetByResourceId)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID ||
             RptEntry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -661,10 +661,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceSeveritySet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -707,10 +707,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceTagSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceTag == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -750,10 +750,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceIdGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (ResourceId == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -794,10 +794,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogInfoGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Info == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -845,10 +845,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!PrevEntryId || !EventLogEntry || !NextEntryId ||
             EntryId == SAHPI_NO_MORE_ENTRIES) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -898,10 +898,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (EvtEntry == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (EvtEntry->EventType != SAHPI_ET_USER ||
@@ -946,10 +946,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogClear)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiEventLogClear);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogClear, hm->m_request_len);
@@ -988,10 +988,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Time == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1032,10 +1032,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiEventLogTimeSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogTimeSet, hm->m_request_len);
@@ -1074,10 +1074,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (EnableState == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1118,10 +1118,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiEventLogStateSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogStateSet, hm->m_request_len);
@@ -1159,10 +1159,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogOverflowReset)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiEventLogOverflowReset);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogOverflowReset, hm->m_request_len);
@@ -1199,10 +1199,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Subscribe)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSubscribe);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSubscribe, hm->m_request_len);
@@ -1239,10 +1239,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Unsubscribe)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiUnsubscribe);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiUnsubscribe, hm->m_request_len);
@@ -1287,10 +1287,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1340,10 +1340,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventAdd)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Event)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1385,10 +1385,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGetNext)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Alarm)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -1433,10 +1433,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Alarm)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1477,10 +1477,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAcknowledge)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1521,10 +1521,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Alarm ||
             !oh_lookup_severity(Alarm->Severity) ||
             Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER)
@@ -1567,10 +1567,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmDelete)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1614,10 +1614,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (EntryId == SAHPI_LAST_ENTRY || !Rdr || !NextEntryId)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1660,10 +1660,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGetByInstrumentId)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_rdrtype(RdrType) ||
             RdrType == SAHPI_NO_RECORD || !Rdr)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1709,10 +1709,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorReadingGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSensorReadingGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorReadingGet, hm->m_request_len);
@@ -1759,10 +1759,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Thresholds)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1804,10 +1804,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Thresholds)
                 return SA_ERR_HPI_INVALID_DATA;
 
@@ -1850,10 +1850,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorTypeGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Type || !Category)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1895,10 +1895,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Enabled)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1940,10 +1940,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSensorEnableSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEnableSet, hm->m_request_len);
@@ -1983,10 +1983,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Enabled)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2028,10 +2028,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSensorEventEnableSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventEnableSet, hm->m_request_len);
@@ -2072,10 +2072,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Assert)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Deassert)
@@ -2121,10 +2121,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSensorEventMasksSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorEventMasksSet, hm->m_request_len);
@@ -2164,10 +2164,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlTypeGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Type)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2212,10 +2212,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         if (State != NULL) {
                 memcpy(&tmp_state, State, sizeof(SaHpiCtrlStateT));
@@ -2273,10 +2273,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_ctrlmode(Mode) ||
             (Mode != SAHPI_CTRL_MODE_AUTO && !State) ||
             (State && State->Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -2325,10 +2325,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrInfoGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Info == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2373,10 +2373,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaHeaderGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
              ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
              (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
@@ -2425,10 +2425,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaAdd)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
              ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
              (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
@@ -2474,10 +2474,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaDelete)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (AreaId == SAHPI_LAST_ENTRY)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2523,10 +2523,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if ((((FieldType > SAHPI_IDR_FIELDTYPE_CUSTOM) &&
              (FieldType != SAHPI_IDR_FIELDTYPE_UNSPECIFIED)) ||
              (AreaId == SAHPI_LAST_ENTRY) ||
@@ -2573,10 +2573,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldAdd)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Field)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM)
@@ -2620,10 +2620,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Field)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM)
@@ -2668,10 +2668,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldDelete)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (FieldId == SAHPI_LAST_ENTRY || AreaId == SAHPI_LAST_ENTRY)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2713,10 +2713,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Watchdog)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2758,10 +2758,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Watchdog ||
             (Watchdog && (!oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
                           !oh_lookup_watchdogaction(Watchdog->TimerAction) ||
@@ -2806,10 +2806,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerReset)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiWatchdogTimerReset);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiWatchdogTimerReset, hm->m_request_len);
@@ -2851,10 +2851,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGetNext)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -2899,10 +2899,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2945,10 +2945,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAcknowledge)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (EntryId == SAHPI_ENTRY_UNSPECIFIED)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -2992,10 +2992,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAdd)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if(Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3038,10 +3038,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorDelete)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (EntryId == SAHPI_ENTRY_UNSPECIFIED)
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_severity(Severity))
@@ -3085,10 +3085,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Mode == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3130,10 +3130,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_annunciatormode(Mode))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3173,10 +3173,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapPolicyCancel)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiHotSwapPolicyCancel);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiHotSwapPolicyCancel, hm->m_request_len);
@@ -3214,10 +3214,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceActiveSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiResourceActiveSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceActiveSet, hm->m_request_len);
@@ -3255,10 +3255,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceInactiveSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
 
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiResourceInactiveSet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiResourceInactiveSet, hm->m_request_len);
@@ -3296,10 +3296,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3339,10 +3339,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
             Timeout < 0)
@@ -3385,10 +3385,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Timeout)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3429,10 +3429,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
             Timeout < 0)
@@ -3475,10 +3475,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapStateGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3519,10 +3519,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapActionRequest)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_hsaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3563,10 +3563,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3607,10 +3607,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_hsindicatorstate(State))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3651,10 +3651,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ParmControl)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_parmaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3695,10 +3695,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!Action)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3739,10 +3739,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_resetaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3783,10 +3783,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateGet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3827,10 +3827,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateSet)
         pcstrmsock pinst;
 
 	if (SessionId == 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         pinst = GetConnx(SessionId);
 	if (pinst == NULL )
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return SA_ERR_HPI_INVALID_SESSION;
         if (!oh_lookup_powerstate(State))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
