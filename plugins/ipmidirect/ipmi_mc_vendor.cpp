@@ -330,10 +330,9 @@ cIpmiMcVendor::ConvertToFullSensorRecords( cIpmiMc */*mc*/, cIpmiSdr *sdr )
 }
 
 
-cIpmiSensor **
-cIpmiMcVendor::GetSensorsFromSdrs( cIpmiMc      *mc,
-                                   cIpmiSdrs    *sdrs,
-                                   unsigned int &sensor_count )
+GList *
+cIpmiMcVendor::GetSensorsFromSdrs( cIpmiMc   *mc,
+                                   cIpmiSdrs *sdrs )
 {
   unsigned int i;
 
@@ -375,174 +374,91 @@ cIpmiMcVendor::GetSensorsFromSdrs( cIpmiMc      *mc,
        delete s;
      }
 
-  // create an array from list
-  sensor_count = g_list_length( list );
+  return list;
+}
 
-  if ( sensor_count == 0 )
-       return 0;
 
-  cIpmiSensor **sensors = new cIpmiSensor *[sensor_count];
-
-  for( i = 0; i < sensor_count; i++ )
+static cIpmiSensor *
+FindSensor( GList *list, unsigned int num, unsigned char lun )
+{
+  for( ; list; list = g_list_next( list ) )
      {
-       cIpmiSensor *s = (cIpmiSensor *)list->data;
-
-       s->SourceIdx() = i;
-       s->SetSourceArray( sensors );
-
-       sensors[i] = s;
-
-       list = g_list_remove( list, s );
+       cIpmiSensor *sensor = (cIpmiSensor *)list->data;
+       
+       if (    sensor->Num() == num
+            && sensor->Lun() == lun )
+            return sensor;
      }
 
-  return sensors;
+  return 0;
 }
 
 
 bool
 cIpmiMcVendor::CreateSensors( cIpmiMc *mc, cIpmiSdrs *sdrs )
 {
-  unsigned int   i;
-  unsigned int   j;
-  cIpmiSensor  **sdr_sensors;
-  cIpmiSensor  **old_sdr_sensors;
-  unsigned int   old_count;
-  unsigned int   count;
-  cIpmiDomain *domain = mc->Domain();
+  GList *old_sensors = mc->GetSdrSensors();
+  GList *new_sensors = 0;
+  GList *sensors     = GetSensorsFromSdrs( mc, sdrs );
 
-  sdr_sensors = GetSensorsFromSdrs( mc, sdrs, count );
-
-  if ( !sdr_sensors )
-       return true;
-
-  for( i = 0; i < count; i++ )
+  while( sensors )
      {
-       cIpmiSensor *nsensor = sdr_sensors[i];
+       cIpmiSensor *sensor = (cIpmiSensor *)sensors->data;
+       sensors = g_list_remove( sensors, sensor );
 
-       if ( nsensor == 0 )
+       cIpmiSensor *old_sensor = FindSensor( old_sensors, sensor->Num(), sensor->Lun() );
+
+       if ( old_sensor && sensor->Cmp( *old_sensor ) )
+          {
+            // sensor already there, use old one
+            delete sensor;
+            old_sensor->HandleNew( mc->Domain() );
+            old_sensors = g_list_remove( old_sensors, old_sensor );
+            new_sensors = g_list_append( new_sensors, old_sensor );
             continue;
-
-       if ( domain->Entities().Add( nsensor->Mc(),
-                                    i, // is this right (lun) ?
-                                    nsensor->EntityId(),
-                                    (unsigned int)nsensor->EntityInstance(),
-                                    "" ) == 0 )
-            goto out_err;
-
-       cIpmiSensorInfo *sensors = nsensor->Mc()->Sensors();
-
-       // There's not enough room in the sensor repository for the new
-       // item, so expand the array.
-       if ( nsensor->Num() >= (unsigned int)sensors->m_idx_size[nsensor->Lun()] )
-          {
-            unsigned int  new_size = nsensor->Num() + 10;
-            cIpmiSensor **new_by_idx = new cIpmiSensor *[new_size];
-            if ( !new_by_idx )
-                 goto out_err;
-
-            if ( sensors->m_sensors_by_idx[nsensor->Lun()] )
-               {
-                 memcpy( new_by_idx,
-                        sensors->m_sensors_by_idx[nsensor->Lun()],
-                        (sensors->m_idx_size[nsensor->Lun()]
-                         * sizeof( cIpmiSensor *) ) );
-
-                 delete [] sensors->m_sensors_by_idx[nsensor->Lun()];
-               }
-
-            for( j = sensors->m_idx_size[nsensor->Lun()]; j < new_size; j++)
-                 new_by_idx[j] = 0;
-
-            sensors->m_sensors_by_idx[nsensor->Lun()] = new_by_idx;
-            sensors->m_idx_size[nsensor->Lun()] = new_size;
           }
-     }
 
-  // After this point, the operation cannot fail.
-  old_sdr_sensors = domain->GetSdrSensors( mc, old_count );
+       if ( old_sensor )
+          {
+            // remove the old sensor
+            old_sensors = g_list_remove( old_sensors, old_sensor );
+            old_sensor->Entity()->Rem( old_sensor );
+            delete old_sensor;
+          }
 
-  // For each new sensor, put it into the MC it belongs with.
-  for( i = 0; i < count; i++ )
-     {
-       cIpmiSensor *nsensor = sdr_sensors[i];
-
-       if ( !nsensor )
+       // check if the sensor is defined twice
+       if ( FindSensor( new_sensors, sensor->Num(), sensor->Lun() ) )
+          {
+            stdlog << "sensor " << sensor->IdString() << " define twice in SDR !\n";
+            delete sensor;
             continue;
-
-       cIpmiSensorInfo *sensors = nsensor->Mc()->Sensors();
-
-       if (    sensors->m_sensors_by_idx[nsensor->Lun()]
-            && (nsensor->Num() < (unsigned int)sensors->m_idx_size[nsensor->Lun()])
-            && sensors->m_sensors_by_idx[nsensor->Lun()][nsensor->Num()])
-          {
-            // It's already there.
-            cIpmiSensor *osensor
-              = sensors->m_sensors_by_idx[nsensor->Lun()][nsensor->Num()];
-
-            if ( osensor->SourceArray() == sdr_sensors )
-               {
-                 // It's from the same SDR repository, log an error
-                 // and continue to delete the first one.
-                 stdlog << "Sensor " << osensor->SourceIdx() << " is the same as sensor "
-                        << nsensor->SourceIdx() << " in the repository !\n";
-               }
-
-            // Delete the sensor from the source array it came
-            // from.
-            if ( osensor->SourceArray() )
-               {
-                 osensor->SetSourceArray( osensor->SourceIdx(), 0 );
-                 osensor->SetSourceArray( 0 );
-               }
-
-            if ( nsensor->Cmp( *osensor ) )
-               {
-                 // They compare, prefer to keep the old data.
-                 delete nsensor;
-                 sdr_sensors[i] = osensor;
-                 osensor->SourceIdx() = i;
-                 osensor->SetSourceArray( sdr_sensors );
-               }
-            else
-               {
-                 osensor->Destroy();
-
-                 sensors->m_sensors_by_idx[nsensor->Lun()][nsensor->Num()]
-                   = nsensor;
-                 nsensor->HandleNew( domain );
-               }
           }
-       else
-          {
-            // It's a new sensor.
-            sensors->m_sensors_by_idx[nsensor->Lun()][nsensor->Num()] = nsensor;
-            sensors->m_sensor_count++;
-            nsensor->HandleNew( domain );
-          }
+
+       // create entity
+       cIpmiEntity *ent = mc->Domain()->Entities().Add( sensor->Mc(), sensor->Lun(),
+                                                        sensor->EntityId(),
+                                                        (unsigned int)sensor->EntityInstance(),
+                                                        "" );
+
+       assert( ent );
+       new_sensors = g_list_append( new_sensors, sensor );
+       sensor->HandleNew( mc->Domain() );
+       ent->Add( sensor );
      }
 
-  domain->SetSdrSensors( mc, sdr_sensors, count );
-
-  if ( old_sdr_sensors )
+  // destry old sensors
+  while( old_sensors )
      {
-       for( i = 0; i < old_count; i++ )
-          {
-            cIpmiSensor *osensor = old_sdr_sensors[i];
-            if ( osensor != 0 )
-               {
-                 // This sensor was not in the new repository, so it must
-                 // have been deleted.
-                 osensor->Destroy();
-               }
-          }
-
-       delete [] old_sdr_sensors;
+       cIpmiSensor *sensor = (cIpmiSensor *)old_sensors->data;
+       old_sensors = g_list_remove( old_sensors, sensor );
+       sensor->Entity()->Rem( sensor );
+       delete sensor;
      }
+
+  // set new sdr sensors
+  mc->SetSdrSensors( new_sensors );
 
   return true;
-
-out_err:
-  return false;
 }
 
 

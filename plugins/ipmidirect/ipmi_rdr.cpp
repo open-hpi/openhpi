@@ -20,7 +20,8 @@
 
 
 cIpmiRdr::cIpmiRdr( cIpmiMc *mc, SaHpiRdrTypeT type )
-  : m_mc( mc ), m_entity( 0 ), m_type( type )
+  : m_mc( mc ), m_entity( 0 ), m_type( type ),
+    m_lun( 0 )
 {
 }
 
@@ -53,17 +54,37 @@ cIpmiRdrContainer::~cIpmiRdrContainer()
   assert( m_rdrs == 0 );
 }
 
-  
+
+GList *
+cIpmiRdrContainer::GetRdrList( cIpmiMc *mc, SaHpiRdrTypeT type )
+{
+  GList *list = 0;
+
+  for( GList *l = m_rdrs; l; l = g_list_next( l ) )
+     {
+       cIpmiRdr *r = (cIpmiRdr *)l->data;
+
+       if (    r->Mc()   == mc 
+            && r->Type() == type )
+	    list = g_list_append( list, r );
+     }
+
+  return list;
+}
+
+
 cIpmiRdr *
-cIpmiRdrContainer::Find( cIpmiMc *mc, SaHpiRdrTypeT type, unsigned int num )
+cIpmiRdrContainer::Find( cIpmiMc *mc, SaHpiRdrTypeT type,
+                         unsigned int num, unsigned int lun )
 {
   for( GList *list = m_rdrs; list; list = g_list_next( list ) )
      {
        cIpmiRdr *r = (cIpmiRdr *)list->data;
-       
+
        if (    r->Mc()   == mc 
             && r->Type() == type
-            && r->Num()  == num )
+            && r->Num()  == num
+            && r->Lun()  == lun )
 	    return r;
      }
 

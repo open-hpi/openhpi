@@ -202,11 +202,12 @@ c_1_over_cube( double val )
 
 
 typedef double (*linearizer)( double val );
-static linearizer linearize[11] =
+static linearizer linearize[12] =
 {
   c_linear,
   log,
   log10,
+  log2,
   exp,
   c_exp10,
   c_exp2,
