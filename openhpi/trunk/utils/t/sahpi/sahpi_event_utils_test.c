@@ -20,6 +20,7 @@
 #include <oh_utils.h>
 
 #define BAD_CAT -1
+#define BAD_TYPE -1
 
 int main(int argc, char **argv) 
 {
@@ -329,6 +330,71 @@ int main(int argc, char **argv)
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
+	}
+
+	/******************************
+	 * oh_valid_add_event testcases
+         ******************************/
+	{
+		SaHpiEventT default_event, event;
+		memset(&default_event, 0, sizeof(SaHpiEventT));
+		
+		default_event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+		default_event.EventType = SAHPI_ET_USER;
+		default_event.Severity = SAHPI_CRITICAL;
+		default_event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_TEXT;
+		default_event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_ENGLISH;
+		default_event.EventDataUnion.UserEvent.UserEventData.DataLength = strlen("Test");
+		strncpy(default_event.EventDataUnion.UserEvent.UserEventData.Data, "Test",
+			strlen("Test"));
+
+		/* oh_valid_add_event: Normal testcase */
+		event = default_event;
+		expected_err = SA_OK;
+
+		err = oh_valid_addevent(&event);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+		
+		/* oh_valid_add_event: Bad Source testcase */
+		event = default_event;
+		event.Source = 1;
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_valid_addevent(&event);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_add_event: Bad Type testcase */
+		event = default_event;
+		event.EventType = BAD_TYPE;
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_valid_addevent(&event);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_add_event: Bad Text testcase */
+		event = default_event;
+		event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_TEXT;
+		event.EventDataUnion.UserEvent.UserEventData.Language = BAD_TYPE;
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_valid_addevent(&event);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
 	}
 
         return 0;
