@@ -21,6 +21,7 @@
 #include <openhpi.h>
 #include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
+#include <net-snmp/library/transform_oids.h>
 
 /**
  * This handle will be unique per instance of
