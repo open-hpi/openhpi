@@ -301,7 +301,7 @@ main(int argc, char **argv)
 	    if (fdebug) printf( "RDR[%d]: type=%d num=%d %s\n", rdr.RecordId,
 		    rdr.RdrType, eirid, rdr.IdString.Data);
 	    buffersize = sizeof(inbuff);
-	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%d\n",
+	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%zd\n",
 		    buffersize, sizeof(inbuff));
 
 

@@ -308,7 +308,7 @@ struct oh_abi_v2 {
                                   SaHpiEirIdT num, /* yes, they don't call it a
                                                     * num, but it still is one
                                                     */
-                                  size_t *size);
+                                  SaHpiUint32T *size);
 
 	/**
 	 * get inventory state

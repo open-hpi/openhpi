@@ -282,9 +282,9 @@ void *discover_domain(void *arg)
 					break;
 				}
 			}
-      			printf("                       address   rpt_entries %d\n", (int)rpt_entries);
+      			printf("                       address   rpt_entries %p\n", rpt_entries);
 			manage_rpt_entries(&rpt_entries, &last_rpt_entries, &entry, ADD);
-			printf("                       address   rpt_entries %d\n", (int)rpt_entries);
+			printf("                       address   rpt_entries %p\n", rpt_entries);
 
 			
 			printf("***Records:\n");
@@ -866,7 +866,7 @@ int manage_rpt_entries(GSList **rpt_entries, GSList **last_rpt_entries, SaHpiRpt
 		memcpy((void *)ep, entry, sizeof(SaHpiRptEntryT));
 
 		*rpt_entries = g_slist_append(*rpt_entries, ep);
-		printf("                       address   rpt_entries %d\n", (int)*rpt_entries);
+		printf("                       address   rpt_entries %p\n", *rpt_entries);
 		printf("                       lenght of rpt_entries %d\n", g_slist_length(*rpt_entries));
 		printf("                       lenght of last_rpt_entries %d\n", g_slist_length(*last_rpt_entries));
 	}
