@@ -120,69 +120,93 @@ int main(int argc, char **argv)
         /* walk the RPT list */
         rptentryid = SAHPI_FIRST_ENTRY;
         while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-        {
-                rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-                if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
-                if (rv == SA_OK) {
-                        resourceid = rptentry.ResourceId;
-                        if (fdebug) printf("RPT %d capabilities = %x\n", resourceid,
-                                           rptentry.ResourceCapabilities);
-                        if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
-                                if (fdebug) printf("RPT doesn't have SEL\n");
-                                rptentryid = nextrptentryid;
-                                continue;  /* no SEL here, try next RPT */
-                        }
-                        if (fclear) {
-                                rv = saHpiEventLogClear(sessionid,resourceid);
-                                if (rv == SA_OK) printf("EventLog successfully cleared\n");
-                                else printf("EventLog clear, error = %d, %s\n",rv, decode_error(rv));
-                                break;
-                        }
-                        rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
-                        printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
-                        
-                        rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
-                        if (fdebug) printf("saHpiEventLogInfoGet %s\n",decode_error(rv));
-                        if (rv == SA_OK) {
-                                char date[30];
-                                printf("EventLog entries=%d, size=%d, enabled=%d\n",
-                                       info.Entries,info.Size,info.Enabled);
-				free = info.Size - info.Entries;
-                                saftime2str(info.UpdateTimestamp,date,30);
-                                printf("UpdateTime = %s,", date);
-                                saftime2str(info.CurrentTime,date,30);
-                                printf("CurrentTime = %s\n", date);
-				printf("Overflow = %d\n", info.OverflowFlag);
-				printf("DeleteEntrySupported = %d\n", info.DeleteEntrySupported);
-                        }
-                        
-                        entryid = SAHPI_OLDEST_ENTRY;
-                        while ((rv == SA_OK) && (entryid != SAHPI_NO_MORE_ENTRIES))
-                        {
-                                rv = saHpiEventLogEntryGet(sessionid,resourceid,entryid,
-                                                           &preventryid,&nextentryid,&sel,&rdr,NULL);
-                                if (fdebug) printf("saHpiEventLogEntryGet %s\n",
-                                                   decode_error(rv));
-                                if (rv == SA_OK) {
-                                        ShowSel(&sel, &rdr, &rptentry);
-                                        preventryid = entryid;
-                                        entryid = nextentryid;
-                                }
-                        }
-			if (free < 6) {
-				printf("WARNING: Log free space is very low (%d records)\n"
-				"         Clear log with hpisel -c\n",free);
-			}
-                        rptentryid = nextrptentryid;
-                }
-        }
-       
-	printf("ALL DONE!!\n"); 
-        rv = saHpiSessionClose(sessionid);
-        rv = saHpiFinalize();
-        
-        exit(0);
-        return(0);
+				{
+	    	            rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
+						
+    	    	        if (fdebug)
+								printf("saHpiRptEntryGet %s\n",decode_error(rv));
+						
+                		if (rv == SA_OK) {
+								resourceid = rptentry.ResourceId;
+								
+								if (fdebug)
+										printf("RPT %d capabilities = %x\n", resourceid,
+                                        				   rptentry.ResourceCapabilities);
+								
+								if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+										if (fdebug)
+												printf("RPT doesn't have SEL\n");
+										rptentryid = nextrptentryid;
+										continue;  /* no SEL here, try next RPT */
+								}
+
+								rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
+								printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
+
+								/* initialize structure */
+								info.Entries = 0;
+								info.Size = 0;
+								info.Enabled = 0;
+
+								rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
+		                        if (fdebug)
+										printf("saHpiEventLogInfoGet %s\n",decode_error(rv));
+								if (rv == SA_OK) {
+										char date[30];
+										printf("EventLog entries=%d, size=%d, enabled=%d\n",
+														info.Entries,info.Size,info.Enabled);
+										free = info.Size - info.Entries;
+										saftime2str(info.UpdateTimestamp,date,30);
+										printf("UpdateTime = %s,", date);
+										saftime2str(info.CurrentTime,date,30);
+										printf("CurrentTime = %s\n", date);
+										printf("Overflow = %d\n", info.OverflowFlag);
+										printf("DeleteEntrySupported = %d\n", info.DeleteEntrySupported);
+								}
+
+								if (fclear) {
+										rv = saHpiEventLogClear(sessionid,resourceid);
+										if (rv == SA_OK)
+												printf("EventLog successfully cleared\n");
+										else 
+												printf("EventLog clear, error = %d, %s\n",rv, decode_error(rv));
+										break;
+								}
+
+								if (info.Entries != 0){
+										entryid = SAHPI_OLDEST_ENTRY;
+										while ((rv == SA_OK) && (entryid != SAHPI_NO_MORE_ENTRIES))
+												{
+														rv = saHpiEventLogEntryGet(sessionid,resourceid,
+																		entryid,&preventryid,&nextentryid,
+																		&sel,&rdr,NULL);
+														if (fdebug)
+																printf("saHpiEventLogEntryGet %s\n",
+																				decode_error(rv));
+														if (rv == SA_OK) {
+																ShowSel(&sel, &rdr, &rptentry);
+																preventryid = entryid;
+																entryid = nextentryid;
+														}
+												}
+								} else
+										printf("SEL is empty\n");
+
+								if (free < 6) {
+										printf("WARNING: Log free space is very low (%d records)\n",free);
+										printf("\tClear log with hpisel -c\n");
+								}
+
+								rptentryid = nextrptentryid;
+						}
+				}
+		printf("ALL DONE!!\n"); 
+		rv = saHpiSessionClose(sessionid);
+		rv = saHpiFinalize();
+
+//		exit(0);
+
+		return(0);
 }
  
 /* end hpisel.c */
