@@ -466,10 +466,16 @@
 /* end of #include <net-snmp/net-snmp-config.h> substitution */
 /*************************************************************/
 
+#include <SaHpi.h>
+
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/library/transform_oids.h>
 
 #define MAX_ASN_STR_LEN 300
+
+#define CHECK_END(a) ((a != SNMP_ENDOFMIBVIEW) &&  \
+                  (a != SNMP_NOSUCHOBJECT) &&  \
+                  (a != SNMP_NOSUCHINSTANCE))? 1:0 
 
 /* Place-holder for values set and returned by snmp
  */
@@ -489,5 +495,24 @@ int snmp_set(
         struct snmp_session *ss,
         char *objid,
         struct snmp_value value);
+
+SaErrorT snmp_get2(struct snmp_session *ss, 
+		   oid *objid, 
+		   size_t objid_len,
+		   struct snmp_value *value);
+
+SaErrorT snmp_set2(struct snmp_session *ss, 
+	           oid *objid,
+	           size_t objid_len,
+                   struct snmp_value *value);
+
+int snmp_getn_bulk( struct snmp_session *ss, 
+		    oid *bulk_objid, 
+		    size_t bulk_objid_len,
+		    struct snmp_pdu *bulk_pdu, 
+		    struct snmp_pdu **bulk_response,
+		    int num_repetitions );
+
+void sc_free_pdu(struct snmp_pdu **p);
 
 #endif
