@@ -35,7 +35,13 @@ TESTS = el_test_001 \
 	el_test_010 \
 	el_test_011 \
 	el_test_012 \
-	el_test_013 
+	el_test_013 \
+        el_test_014 \
+	el_test_015 \
+	el_test_016 \
+	el_test_017 \
+	el_test_018 \
+	el_test_019	
 
 
 check_PROGRAMS = $(TESTS)
@@ -53,3 +59,9 @@ el_test_010_SOURCES = el_test.h el_test_010.c $(REMOTE_SOURCES)
 el_test_011_SOURCES = el_test.h el_test_011.c $(REMOTE_SOURCES)
 el_test_012_SOURCES = el_test.h el_test_012.c $(REMOTE_SOURCES)
 el_test_013_SOURCES = el_test.h el_test_013.c $(REMOTE_SOURCES)
+el_test_014_SOURCES = el_test.h el_test_014.c $(REMOTE_SOURCES)
+el_test_015_SOURCES = el_test.h el_test_015.c $(REMOTE_SOURCES)
+el_test_016_SOURCES = el_test.h el_test_016.c $(REMOTE_SOURCES)
+el_test_017_SOURCES = el_test.h el_test_017.c $(REMOTE_SOURCES)
+el_test_018_SOURCES = el_test.h el_test_018.c $(REMOTE_SOURCES)
+el_test_019_SOURCES = el_test.h el_test_019.c $(REMOTE_SOURCES)
