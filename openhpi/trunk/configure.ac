@@ -54,6 +54,11 @@ if test "x$found_pkg_config" != "xyes"; then
     OH_CHECK_FAIL(pkg-config,pkg-config)
 fi
 
+# check for gcc version
+
+AC_MSG_CHECKING(gcc >= 3.2.0)
+OH_CHECK_GCC(3,2,0)
+
 GLIB_REQUIRED_VERSION=1.2.0
 
 AC_ARG_WITH([glib],
