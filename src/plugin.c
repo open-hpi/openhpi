@@ -26,6 +26,12 @@
 #include <oh_error.h>
 #include <oh_lock.h>
 
+extern GCond *oh_thread_wait;
+
+void oh_cond_signal(void) 
+{
+	g_cond_signal(oh_thread_wait);
+}
 
 /**
  * oh_init_ltdl
@@ -239,3 +245,5 @@ void unload_handler(struct oh_handler *handler)
 
         free(handler);
 }
+
+
