@@ -69,6 +69,12 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 	/* Create platform-specific info space to add to infra-structure */
 	res_info_ptr = g_memdup(&(snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_CHASSIS].res_info),
 				sizeof(struct ResourceInfo));
+	if (!res_info_ptr) {
+		dbg("Out of memory.");
+		g_free(e);
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
         /* Get UUID and convert to GUID */
@@ -127,6 +133,12 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		/* Create platform-specific info space to add to infra-structure */
 		res_info_ptr = g_memdup(&(snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_CPU].res_info),
 					sizeof(struct ResourceInfo));
+		if (!res_info_ptr) {
+			dbg("Out of memory.");
+			g_free(e);
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 		
 		/* Get UUID and convert to GUID */
@@ -186,6 +198,12 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		/* Create platform-specific info space to add to infra-structure */
 		res_info_ptr = g_memdup(&(snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_DASD].res_info),
 					sizeof(struct ResourceInfo));
+		if (!res_info_ptr) {
+			dbg("Out of memory.");
+			g_free(e);
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 		
 		/* Get UUID and convert to GUID */
@@ -245,6 +263,12 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		/* Create platform-specific info space to add to infra-structure */
 		res_info_ptr = g_memdup(&(snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_FAN].res_info),
 					sizeof(struct ResourceInfo));
+		if (!res_info_ptr) {
+			dbg("Out of memory.");
+			g_free(e);
+			return(SA_ERR_HPI_OUT_OF_SPACE);
+		}
+
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 		
 		/* Get UUID and convert to GUID */
