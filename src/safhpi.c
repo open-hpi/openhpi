@@ -25,113 +25,25 @@
 #include <openhpi.h>
 #include <oh_plugin.h>
 #include <SaHpi.h>
-//#include <sahelper.h>
+#include <sahpimacros.h>
 #include <uid_utils.h>
 #include <epath_utils.h>
 
 #include <pthread.h>
 
-/******************************************************************************
- *
- *  Macros needed for clarity
- *
- *****************************************************************************/
-
-/* TODOs for this file
- *
- *  - change INVALID_CMD to CAPABILITY errors
- *  - add CAP check for POWER and RESET
- */
-
-/* defines needed as part of the converstion */
-
-
-
-static enum {
-        OH_STAT_UNINIT,
-        OH_STAT_READY,
-} oh_hpi_state = OH_STAT_UNINIT;
-
-#define OH_STATE_READY_CHECK                                      \
-        do {                                                      \
-                if (OH_STAT_READY != oh_hpi_state) {              \
-                        dbg("Uninitialized HPI");                 \
-                        data_access_unlock();                     \
-                        return SA_ERR_HPI_ERROR;          \
-                }                                                 \
-        } while(0)
-
-/*
- * OH_SESSION_SETUP gets the session pointer for the session
- * id.  It returns badly if required.  This is only to be used for sahpi
- * function.
- */
-
-#define OH_SESSION_SETUP(sid, ses)                         \
-        do {                                               \
-                ses = session_get(sid);                    \
-                if (!ses) {                                \
-                        dbg("Invalid SessionId %d", sid);  \
-                        data_access_unlock();              \
-                        return SA_ERR_HPI_INVALID_SESSION; \
-                }                                          \
-        } while (0)
-
-/*
- * OH_HANDLER_GET gets the hander for the rpt and resource id.  It
- * returns INVALID PARAMS if the handler isn't there
- */
-#define OH_HANDLER_GET(rpt,rid,h)                                       \
-        do {                                                            \
-                struct oh_resource_data *rd;                            \
-                if(rpt == NULL) {                                       \
-                        dbg("Invalide RPTable");                        \
-                        data_access_unlock();                           \
-                        return SA_ERR_HPI_INVALID_SESSION;              \
-                }                                                       \
-                rd = oh_get_resource_data(rpt, rid);                    \
-                if(!rd || !rd->handler) {                               \
-                        dbg("Can't find handler for Resource %d", rid); \
-                        data_access_unlock();                           \
-                        return SA_ERR_HPI_INVALID_PARAMS;               \
-                }                                                       \
-                h = rd->handler;                                        \
-        } while(0)
-
-/*
- * OH_RPT_GET - sets up rpt table, and does a sanity check that it
- * is actually valid, returning badly if it isn't
- */
-
-#define OH_RPT_GET(SessionId, rpt)                                     \
-        do {                                                           \
-                rpt = default_rpt;                                     \
-                if(rpt == NULL) {                                      \
-                        dbg("RPT for Session %d not found",SessionId); \
-                        data_access_unlock();                          \
-                        return SA_ERR_HPI_INVALID_SESSION;             \
-                }                                                      \
-        } while(0)
-
-
-/*
- * OH_RESOURCE_GET gets the resource for an resource id and rpt
- * it returns invalid resource if no resource id is found
- */
-#define OH_RESOURCE_GET(rpt, rid, r)                            \
-        do {                                                    \
-                r = oh_get_resource_by_id(rpt, rid);            \
-                if(!r) {                                        \
-                        dbg("Resource %d doesn't exist", rid);  \
-                        data_access_unlock();                   \
-                        return SA_ERR_HPI_INVALID_RESOURCE;     \
-                }                                               \
-        } while(0)
-
 /***********************************************************************
  * Begin SAHPI functions.  For full documentation please see
  * the specification
  **********************************************************************/
+
+/**********************************************************************
+ *
+ *  Finalize and Initialize were dropped in HPI B.  We keep
+ *  them as a hold over for now, however once new plugin
+ *  and handler utilities are provided, we'll rewrite them to 
+ *  be cleaner.
+ *
+ *********************************************************************/
 
 SaErrorT static SAHPI_API saHpiFinalize(void)
 {
@@ -290,9 +202,11 @@ SaErrorT static SAHPI_API saHpiInitialize()
         return SA_OK;
 }
 
-/* 
- * Begin SAHPI functions
- */
+/*********************************************************************
+ * 
+ *  Begin SAHPI B.1.1 Functions
+ *
+ ********************************************************************/
 
 SaHpiVersionT SAHPI_API saHpiVersionGet () 
 {
