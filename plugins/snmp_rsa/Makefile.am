@@ -30,6 +30,7 @@ EXTRA_DIST		=	rsa_resources.h \
 	     			snmp_rsa_discover.h \
 	     			snmp_rsa_event.h \
 	     			snmp_rsa_hotswap.h \
+	     			snmp_rsa_inventory.h \
 	     			snmp_rsa_sel.h \
 	     			snmp_rsa_sensor.h \
 	     			snmp_rsa_session.h \
@@ -42,6 +43,7 @@ libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
 	     			snmp_rsa_discover.c \
 	     			snmp_rsa_event.c \
 	     			snmp_rsa_hotswap.c \
+	     			snmp_rsa_inventory.c \
 	     			snmp_rsa_sel.c \
 	     			snmp_rsa_sensor.c \
 	     			snmp_rsa_session.c \
