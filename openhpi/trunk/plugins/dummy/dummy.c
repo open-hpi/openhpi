@@ -34,8 +34,6 @@
 
 #define VIRTUAL_NODES 2
 
-gpointer event_thread(gpointer data);
-
 /* static int remove_resource(struct oh_handler_state *inst); */
 
 
@@ -1259,29 +1257,6 @@ static void *dummy_open(GHashTable *handler_config)
         hotswap_event[0].u.hpi_event.parent = dummy_resources[1].ResourceId;
         hotswap_event[1].u.hpi_event.parent = dummy_resources[1].ResourceId;
 
-	/* add to oh_handler_state */
-	GThread *thread_handle;
-	GError **error;
-        GAsyncQueue *eventq_async;
-
-	/* make sure the glib threading subsystem is initialized */
-	if (!g_thread_supported ()) {
-		g_thread_init (NULL);
-		printf("thread not initialized\n");
-	}
-
-	/* create event queue for async events*/
-	if ( !(i->eventq_async = g_async_queue_new()) )
-		printf("g_async_queue_new failed\n");
-
-	
-	/* spawn a thread */
-	if ( !(thread_handle = g_thread_create (event_thread,
-					 i,		/* oh_handler_state */
-					 FALSE,
-					 error)) ) 
-	     printf("g_thread_create failed\n");
-
         return( (void *)i );
 }
 
@@ -2294,21 +2269,53 @@ int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("dum
 /*******************************************************************/
 /*******************************************************************/
 
-//gpointer    (*GThreadFunc)                  (gpointer data);
+#if 0
 
 
-gpointer event_thread(gpointer data)
-{
-	
-	int i = 0;
 
-	for (i=0; i< 100; i++) {
-		sleep(5);
-		printf("event burp!\n");
-	}
-	
-	g_thread_exit(0);
+/* The event is used to fill event list */
+static struct oh_event user_event[] = {
+/*
+        {
+        .type = OH_ET_HPI,
+        .u = {
+                .hpi_event = {
+                        .parent = {
+                                .ptr  = &dummy_resources[0][1],
+                        },
+                        .id = {
+                                .ptr = NULL,
+                        },
+                        .event = {
+                                .Source = 0,
+                                .EventType = SAHPI_ET_USER,
+                                .Timestamp = 0,
+                                .Severity = SAHPI_CRITICAL,
+                        },
+                },
+        },
+        },
+        {
+        .type = OH_ET_HPI,
+        .u = {
+                .hpi_event = {
+                        .parent = {
+                                .ptr  = &dummy_resources[1][1],
+                        },
+                        .id = {
+                                .ptr = NULL,
+                        },
+                        .event = {
+                                .Source = 0,
+                                .EventType = SAHPI_ET_USER,
+                                .Timestamp = 0,
+                                .Severity = SAHPI_CRITICAL,
+                        },
+                },
+        },
+        },
+*/
+};
 
+#endif
 
-	return 0 ;
-}
