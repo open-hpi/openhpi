@@ -186,7 +186,9 @@ static void *ipmi_open(GHashTable *handler_config)
 			dbg("Unsupported IPMI connection method: %s",name);
 			return NULL;
 	}
-	
+
+	ipmi_handler->connected = 0;
+
 	rv = ipmi_init_domain(&ipmi_handler->con, 1, NULL, NULL, NULL, &ipmi_handler->domain_id);
 	if (rv) {
 			fprintf(stderr, "ipmi_init_domain: %s\n", strerror(rv));
@@ -216,23 +218,34 @@ static void *ipmi_open(GHashTable *handler_config)
  **/
 static void ipmi_close(void *hnd)
 {
+
 	struct oh_handler_state *handler = (struct oh_handler_state *) hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-	dbg("ipmi_refcount :%d", ipmi_refcount);
-	if(ipmi_refcount > 1) {
-			ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_close_connection, handler);
-			
-			ipmi_refcount--;
-			dbg("ipmi instances remaining: %d", ipmi_refcount);
-	} else {
-			/* last connection and in case other instances didn't
-			   close correctly we clean up all connections */
-			dbg("Last connection :%d closing", ipmi_refcount);
-			ipmi_shutdown();
-			g_free(ipmi_handler);
-			g_free(handler);
+
+	if (ipmi_handler->connected) {
+		dbg("close connection");
+		ohoi_close_connection(ipmi_handler->domain_id, ipmi_handler);
 	}
+	
+	ipmi_refcount--;	
+	dbg("ipmi_refcount :%d", ipmi_refcount);
+	
+	if(ipmi_refcount == 0) {
+		/* last connection and in case other instances didn't
+		   close correctly we clean up all connections */
+		dbg("Last connection :%d closing", ipmi_refcount);
+		ipmi_shutdown();
+	}
+	
+	oh_flush_rpt(handler->rptcache);
+	g_free(handler->rptcache);
+	
+	g_slist_foreach(handler->eventq, (GFunc)g_free, NULL);
+	g_slist_free(handler->eventq);
+	
+	g_free(ipmi_handler);
+	g_free(handler);
 }
 
 /**
