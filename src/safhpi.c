@@ -58,7 +58,7 @@ static enum {
 #define OH_SESSION_SETUP(sid, ses)                         \
         do {                                               \
                 ses = session_get(sid);                    \
-                if (!s) {                                  \
+                if (!ses) {                                \
                         dbg("Invalid SessionId %d", sid);  \
                         data_access_unlock();              \
                         return SA_ERR_HPI_INVALID_SESSION; \
