@@ -1,7 +1,7 @@
-prefix=/usr
-exec_prefix=/usr
-libdir=/usr/lib
-includedir=/usr/include
+prefix=${prefix}
+exec_prefix=${prefix}
+libdir=${libdir}
+includedir=${includedir}
 
 Name: OpenHPI
 Description: Implementation of SA Forum's Hardware Platform Interface
