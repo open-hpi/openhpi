@@ -14,6 +14,41 @@ OpenHPI 2.x.
 
 OpenHPI 2.x implements the HPI B.01.01 specification.
 
+=head1 ENVIRONMENTAL VARIABLES
+
+Some of OpenHPI's functioning can be changed by setting environment
+variables.  This documents all known environmental settings and how
+they affect OpenHPI.
+
+=over 4
+
+=item B<OPENHPI_THREADED>=YES
+
+Turns on threading engine in OpenHPI, which spawns a thread to handle
+event harvesting and processing.  This is off by default, as it isn't
+strictly needed for many uses of HPI.  However the BLOCK and TIMED
+wait on the I<saHpiEventGet> function can only be supported if this is
+set.
+
+=item B<OPENHPI_UID_MAP>=FILENAME
+
+The map file to use for persistant entitypath to resource id
+database.  By default /var/lib/openhpi/uid_map is used.  This allows
+you to override that at run time.
+
+=item B<OPENHPI_DEBUG>=YES
+
+Turns on debugging messages.  This will print additional text when any
+error conditions arise.  If a problem is happening with OpenHPI, it
+is good to turn on debugging to see if that shows more information.
+
+=item B<OPENHPI_CONF>=FILENAME
+
+Location of openhpi.conf file.  Default location is
+/etc/openhpi/openhpi.conf.
+
+=back
+
 =head1 HARDWARE SUPPORT
 
 OpenHPI provides a number of plugins that talk to different hardware
