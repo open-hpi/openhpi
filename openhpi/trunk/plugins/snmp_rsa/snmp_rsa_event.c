@@ -39,13 +39,35 @@ typedef enum {
 	EVENT_NOT_ALERTABLE,
 } OEMReasonCodeT;
 
-static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
-static int  parse_sel_entry(char *text, rsa_sel_entry *sel, int isdst);
-static int  parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_str, gchar *trigger_value_str);
-static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_event, int *event_enabled);
-static int  map2oem(void *hnd, SaHpiEventT *event, LogSource2ResourceT *resinfo,
-		    rsa_sel_entry *sel_entry, OEMReasonCodeT reason);
-static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *dupstrhash_data, LogSource2ResourceT *resinfo);
+
+static void free_hash_data(gpointer key, 
+			   gpointer value, 
+			   gpointer user_data);
+
+static int parse_sel_entry(char *text, 
+			   rsa_sel_entry *sel, 
+			   int isdst);
+
+static int parse_threshold_str(gchar *str, 
+			       gchar *root_str, 
+			       gchar *read_value_str, 
+			       gchar *trigger_value_str);
+
+static int set_previous_event_state(void *hnd, 
+				    SaHpiEventT *event, 
+				    int recovery_event, 
+				    int *event_enabled);
+
+static int map2oem(void *hnd, 
+		   SaHpiEventT *event, 
+		   LogSource2ResourceT *resinfo,
+		   rsa_sel_entry *sel_entry,
+		   OEMReasonCodeT reason);
+
+static Str2EventInfoT *findevent4dupstr(gchar *search_str, 
+					Str2EventInfoT *dupstrhash_data, 
+					LogSource2ResourceT *resinfo);
+
 
 int event2hpi_hash_init()
 {
@@ -72,7 +94,6 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(value);
 }
 
-
 int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res_info)
 {
 	int i;
@@ -96,6 +117,7 @@ int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res
 		if (g_hash_table_lookup_extended(event2hpi_hash, normalized_str,
 						 (gpointer)&hash_existing_key,
 						 (gpointer)&hash_value)) {
+
 			hpievent = g_malloc0(sizeof(SaHpiEventT));
 			if (!hpievent) {
 				dbg("Cannot allocate memory for HPI event");
@@ -113,17 +135,12 @@ int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res
 			hpievent->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
 				rsa_res_info->event_array[i].recovery_state;
 
-
 			g_hash_table_insert(event2hpi_hash, normalized_str, hpievent);
 		}
-
-		/* Recover space created in snmp_derive_objid */
-		g_free(normalized_str);
-	}
-
-	if (i >= max) { 
-		dbg("Warning! Too many events defined for Res=%d\n", rid);
-		dbg("Warning! Last event was %s\n", rsa_res_info->event_array[max].event);
+		else {
+			/* Event already exists */
+			g_free(normalized_str);
+		}
 	}
 
 	return 0;
@@ -142,6 +159,7 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 	
 		/* Normalized and convert event string */
 		normalized_str = snmp_derive_objid(*ep, rpt_sensor->rsa_sensor_info.event_array[i].event);
+
 		if (normalized_str == NULL) {
 			dbg("NULL string returned for event=%s\n", 
 			    rpt_sensor->rsa_sensor_info.event_array[i].event);
@@ -149,18 +167,15 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 		}
 
 		/*  Add to hash; Set HPI values */
-		if (g_hash_table_lookup_extended(event2hpi_hash, 
-						 normalized_str,
-						 (gpointer)&hash_existing_key, 
-						 (gpointer)&hash_value)) {
-			
-                        /* Recover space created in snmp_derive_objid */
-			g_free(normalized_str); 
-		}		
-		else {
+		if (!g_hash_table_lookup_extended(event2hpi_hash, 
+						  normalized_str,
+						  (gpointer)&hash_existing_key, 
+						  (gpointer)&hash_value)) {
+
 			hpievent = g_malloc0(sizeof(SaHpiEventT));
 			if (!hpievent) {
 				dbg("Cannot allocate memory for HPI event");
+				g_free(normalized_str);
 				return -1;
 			}
 
@@ -171,6 +186,13 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 			hpievent->EventDataUnion.SensorEvent.SensorType = rpt_sensor->sensor.Type;
 			hpievent->EventDataUnion.SensorEvent.EventCategory = rpt_sensor->sensor.Category;
 			hpievent->EventDataUnion.SensorEvent.Assertion = SAHPI_TRUE;
+			hpievent->EventDataUnion.SensorEvent.EventState = 
+				rpt_sensor->rsa_sensor_info.event_array[i].event_state;
+
+			/* Overload field with recovery state - this will be overwritten
+			   when event is processed with current resource's state */
+			hpievent->EventDataUnion.SensorEvent.PreviousState = 
+				rpt_sensor->rsa_sensor_info.event_array[i].recovery_state;
 
 			/* Setup trigger values for threshold sensors */
 			if (rpt_sensor->sensor.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
@@ -188,22 +210,21 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 						rpt_sensor->sensor.DataFormat.Range.Max.Interpreted.Type;
 				}
 				else {
-					dbg("DataFormat.Range.Max.Interpreted must be defined for threshold sensor=%s\n",
+					dbg("Max.Interpreted must be defined for threshold sensor=%s\n",
 					    rpt_sensor->comment);
 					g_free(normalized_str);
+					g_free(hpievent);
 					return -1;
 				}
 			}
 
 			g_hash_table_insert(event2hpi_hash, normalized_str, hpievent);
+			/* normalized_str space is recovered when hash is freed */
 		}
-	}
-
-	if (i >= max) { 
-		dbg("Warning! Too many events defined for Sensor=%d\n", sid);
-		dbg("Warning! Last event was %s\n", 
-		    rpt_sensor->rsa_sensor_info.event_array[max].event);
-		return -1;
+		else {
+			/* Event already exists */
+			g_free(normalized_str);
+		}
 	}
 
 	return 0;
@@ -267,6 +288,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 
 	/* Discover Recovery event strings */
 	recovery_str = strstr(search_str, EVT_RECOVERY);
+
 	if (recovery_str && (recovery_str == search_str)) {
 		is_recovery_event = 1;
 		strcpy(search_str, (log_entry.text + strlen(EVT_RECOVERY)));
@@ -318,6 +340,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
                 /* Use the RID calculated from error log string unless OVR_RID is set. 
 		 * Unless overridden due to a dup string have OVR_RID set incorrectly.
 		 */
+
 		if (!(strhash_data->event_ovr & OVR_RID) || dupovrovr) {
 			working.Source = resinfo.rid;
 		}
@@ -520,8 +543,6 @@ static int parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_st
  **********************************/
 static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_event, int *event_enabled) 
 {
-	*event_enabled = 1;
-
 	switch (event->EventType) {
 	case SAHPI_ET_SENSOR:
 	{
@@ -654,6 +675,7 @@ int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 
 	/* Find top-level chassis entity path */
 	memset(&ep, 0, sizeof(SaHpiEntityPathT));
+	append_root(&ep);
         string2entitypath(root_tuple, &ep_root);
         append_root(&ep_root);
 
@@ -735,7 +757,6 @@ static int parse_sel_entry(char *text, rsa_sel_entry *sel, int isdst)
         if(sscanf(start,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
                   &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
                   &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-		ent.time.tm_isdst = isdst;
                 ent.time.tm_mon--;
                 ent.time.tm_year += 100;
         } else {
@@ -755,7 +776,9 @@ static int parse_sel_entry(char *text, rsa_sel_entry *sel, int isdst)
         return 0;
 }
 
-
+/*******************************************
+ * Add event to Infrastructure's event queue
+ *******************************************/
 int snmp_rsa_add_to_eventq(void *hnd, SaHpiEventT *thisEvent)
 {
         struct oh_event working;
@@ -792,9 +815,7 @@ int snmp_rsa_add_to_eventq(void *hnd, SaHpiEventT *thisEvent)
         working.u.hpi_event.parent  = thisEvent->Source;       
         memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
 
-        /* 
-         * Insert entry to eventq for processing
-        */
+        /* Insert entry to eventq for processing */
         e = g_malloc0(sizeof(struct oh_event));
         if (!e) {
                 dbg("Out of memory!\n");
