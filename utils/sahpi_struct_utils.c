@@ -160,7 +160,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
                 break;
 	case SAHPI_SENSOR_READING_TYPE_FLOAT64:
                 snprintf(text, SAHPI_MAX_TEXT_BUFFER_LENGTH, 
-			 "%le", reading.Value.SensorFloat64);
+			 "%5.3lf", reading.Value.SensorFloat64);
 		err = oh_append_textbuffer(&working, text);
 		if (err) { return(err); }
  		break;
@@ -951,7 +951,7 @@ static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer,
 
 			/* Sensor Data Format Accuracy Factor */
 			oh_append_offset(buffer, offsets);
-			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Accuracy: %le\n", format->AccuracyFactor);	
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Accuracy: %lf\n", format->AccuracyFactor);	
 			oh_append_bigtext(buffer, str);
 		}
 	}
