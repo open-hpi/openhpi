@@ -285,14 +285,6 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		rtncode = -1;
 	}
 
-	// append root
-	if (    num_valid_entities < SAHPI_MAX_ENTITY_PATH
-             && ( num_valid_entities == 0 
-	          || epathptr->Entry[num_valid_entities-1].EntityType != SAHPI_ENT_ROOT ) ) {
-	        epathptr->Entry[num_valid_entities].EntityType     = SAHPI_ENT_ROOT;
-                epathptr->Entry[num_valid_entities].EntityInstance = 0;
-	}
-
  CLEANUP:
 	g_free(gstr);
 	g_strfreev(epathdefs);
