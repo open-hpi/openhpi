@@ -28,6 +28,7 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .add_el_entry			= snmp_bc_add_sel_entry,
         .get_el_entry			= snmp_bc_get_sel_entry,
 	.clear_el			= snmp_bc_clear_sel,
+	.reset_el_overflow		= snmp_bc_sel_overflowreset,
         .get_sensor_reading		= snmp_bc_get_sensor_reading,
         .get_sensor_thresholds		= snmp_bc_get_sensor_thresholds,
         .set_sensor_thresholds		= snmp_bc_set_sensor_thresholds,

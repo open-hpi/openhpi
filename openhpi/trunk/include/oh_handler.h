@@ -226,6 +226,12 @@ struct oh_abi_v2 {
          */
         SaErrorT (*clear_el)(void *hnd, SaHpiResourceIdT id);
 
+
+        /**
+         * reset EL overflow
+         */
+        SaErrorT (*reset_el_overflow)(void *hnd, SaHpiResourceIdT id);
+
         /* end of EL functions */
 
         /**
