@@ -12,7 +12,7 @@
 #    W. David Ashley <dashley@us.ibm.com>
 #
 
-pkglibdir = $(libdir)/openhpi/standard
+pkglibdir = $(libdir)/openhpi/client
 
 .NOTPARALLEL:
 
