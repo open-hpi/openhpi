@@ -889,13 +889,15 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
-        OH_HANDLER_GET(rpt, ResourceId, h);
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
                 dbg("Resource %d doesn't have sensors",ResourceId);
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+
         get_func = h->abi->get_sensor_data;
 
         if (!get_func)
@@ -981,24 +983,31 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds)
 {
-        int (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, const SaHpiSensorThresholdsT *);
+        int (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, 
+                         const SaHpiSensorThresholdsT *);
         
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
 
-        h = oh_get_resource_data(rpt, ResourceId);
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
-
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
         set_func = h->abi->set_sensor_thresholds;
 
         if (!set_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(h->hnd, ResourceId, SensorNum, SensorThresholds))
+        if (set_func(h->hnd, ResourceId, SensorNum, SensorThresholds) < 0)
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1012,22 +1021,28 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorThresholdsT *);
 
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
 
-        h = oh_get_resource_data(rpt, ResourceId);
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
         get_func = h->abi->get_sensor_thresholds;
 
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_func(h->hnd, ResourceId, SensorNum, SensorThresholds))
+        if (get_func(h->hnd, ResourceId, SensorNum, SensorThresholds) < 0)
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1044,14 +1059,19 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
                 SAHPI_OUT SaHpiSensorTypeT *Type,
                 SAHPI_OUT SaHpiEventCategoryT *Category)
 {
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRdrT *rdr;
 
-        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
 
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
         
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!rdr) {
+                dbg("No Sensor num %d found for Resource %d", SensorNum, ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
         
         if (!memcpy(Type, &(rdr->RdrTypeUnion.SensorRec.Type),
                     sizeof(SaHpiSensorTypeT)))
@@ -1074,21 +1094,27 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
                                         SaHpiSensorNumT,
                                         SaHpiSensorEvtEnablesT *enables);
         
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
-
-        h = oh_get_resource_data(rpt, ResourceId);
         
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
-
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        
         get_sensor_event_enables = h->abi->get_sensor_event_enables;
         
         if (!get_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (get_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables))
+        if (get_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables) < 0)
                 return SA_ERR_HPI_UNKNOWN;
         return SA_OK;
 }
@@ -1103,21 +1129,27 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
                                         SaHpiSensorNumT,
                                         const SaHpiSensorEvtEnablesT *enables);
         
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
         
-        h = oh_get_resource_data(rpt, ResourceId);
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
+        
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
         set_sensor_event_enables = h->abi->set_sensor_event_enables;
         
         if (!set_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (set_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables))
+        if (set_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables) < 0)
                 return SA_ERR_HPI_UNKNOWN;
         return SA_OK;
 }
