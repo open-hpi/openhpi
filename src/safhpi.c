@@ -1345,7 +1345,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
 	
 	get_func = res->handler->abi->get_reset_state;
 	if (!get_func) 
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 
 	if (get_func(res->handler->hnd, res->oid, ResetAction)<0) 
 		return SA_ERR_HPI_UNKNOWN;
@@ -1365,7 +1365,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
 	
 	set_func = res->handler->abi->set_reset_state;
 	if (!set_func) 
-		return SA_ERR_HPI_UNSUPPORTED_API;
+		return SA_ERR_HPI_INVALID_CMD;
 
 	if (set_func(res->handler->hnd, res->oid, ResetAction)<0) 
 		return SA_ERR_HPI_UNKNOWN;
