@@ -374,8 +374,8 @@ main(int argc, char **argv)
 				} /* Inventory Data Records - Type 3 */
 				entryid = nextentryid;
 			}
-			rptentryid = nextrptentryid;
 		}
+		rptentryid = nextrptentryid;
 	}
 	rv = saHpiSessionClose(sessionid);
 	rv = saHpiFinalize();
