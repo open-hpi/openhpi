@@ -2187,19 +2187,19 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
  ******************************************************************************/
  
 SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
-        SAHPI_IN SaHpiSessionIdT      SessionId,
-        SAHPI_IN SaHpiResourceIdT     ResourceId)
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId)
 {
         return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
 SaErrorT SAHPI_API saHpiResourceActiveSet (
-        SAHPI_IN SaHpiSessionIdT SessionId,
+        SAHPI_IN SaHpiSessionIdT  SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId)
 {
         SaErrorT rv;
         SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT,
-                        SaHpiHsStateT state);
+                                      SaHpiHsStateT state);
 
         SaHpiRptEntryT *res;
         struct oh_handler *h;
@@ -2213,28 +2213,32 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
-
-        OH_HANDLER_GET(d, ResourceId, h);
-
+                
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
-                dbg( "Can't find resource data for Resource %d", ResourceId);
+                dbg( "Can't find resource data for Resource %d in Domain %d",ResourceId,did);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         if (!rd->controlled) {
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        set_hotswap_state = h->abi->set_hotswap_state;
-        if (!set_hotswap_state) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         /* this was done in the old code, so we do it here */
         rd->controlled = 0;
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+        
+        set_hotswap_state = h->abi->set_hotswap_state;
+        if (!set_hotswap_state) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }       
 
         rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE);
 
@@ -2243,8 +2247,8 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
 }
 
 SaErrorT SAHPI_API saHpiResourceInactiveSet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId)
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId)
 {
         SaErrorT rv;
         SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
@@ -2261,27 +2265,31 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
-        }
-
-        OH_HANDLER_GET(d, ResourceId, h);
+        }        
 
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
-                dbg( "Can't find resource data for Resource %d", ResourceId);
+                dbg("Can't find resource data for Resource %d in Domain %d",ResourceId,did);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         if (!rd->controlled) {
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        set_hotswap_state = h->abi->set_hotswap_state;
-        if (!set_hotswap_state) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         rd->controlled = 0;
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        set_hotswap_state = h->abi->set_hotswap_state;
+        if (!set_hotswap_state) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }       
 
         rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE);
 
@@ -2289,8 +2297,8 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
 }
 
 SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_OUT SaHpiTimeoutT *Timeout)
+        SAHPI_IN  SaHpiSessionIdT SessionId,
+        SAHPI_OUT SaHpiTimeoutT   *Timeout)
 {
 
         SaHpiDomainIdT did;
@@ -2304,8 +2312,8 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 }
 
 SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiTimeoutT Timeout)
+        SAHPI_IN SaHpiSessionIdT SessionId,
+        SAHPI_IN SaHpiTimeoutT   Timeout)
 {
         SaHpiDomainIdT did;
 
@@ -2318,9 +2326,9 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 }
 
 SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_OUT SaHpiTimeoutT *Timeout)
+        SAHPI_IN  SaHpiSessionIdT  SessionId,
+        SAHPI_IN  SaHpiResourceIdT ResourceId,
+        SAHPI_OUT SaHpiTimeoutT    *Timeout)
 {
         SaHpiRptEntryT *res;
         struct oh_resource_data *rd;
@@ -2333,24 +2341,27 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
-                dbg("Cannot find resource data for Resource %d", ResourceId);
+                dbg("Cannot find resource data for Resource %d in Domain %d",ResourceId,did);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         *Timeout = rd->auto_extract_timeout;
+        oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
-        SAHPI_IN SaHpiSessionIdT SessionId,
+        SAHPI_IN SaHpiSessionIdT  SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId,
-        SAHPI_IN SaHpiTimeoutT Timeout)
+        SAHPI_IN SaHpiTimeoutT    Timeout)
 {
         SaHpiRptEntryT *res;
         struct oh_resource_data *rd;
@@ -2363,28 +2374,31 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
-                dbg("Cannot find resource data for Resource %d", ResourceId);
+                dbg("Cannot find resource data for Resource %d in Domain %d",ResourceId,did);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         rd->auto_extract_timeout = Timeout;
+        oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapStateGet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_OUT SaHpiHsStateT *State)
+        SAHPI_IN  SaHpiSessionIdT  SessionId,
+        SAHPI_IN  SaHpiResourceIdT ResourceId,
+        SAHPI_OUT SaHpiHsStateT    *State)
 {
         SaErrorT rv;
         SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
-                                 SaHpiHsStateT *state);
+                                      SaHpiHsStateT *state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -2396,10 +2410,12 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         get_hotswap_state = h->abi->get_hotswap_state;
         if (!get_hotswap_state) {
@@ -2412,13 +2428,13 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
 }
 
 SaErrorT SAHPI_API saHpiHotSwapActionRequest (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiHsActionT Action)
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN SaHpiHsActionT   Action)
 {
         SaErrorT rv;
         SaErrorT (*request_hotswap_action)(void *hnd, SaHpiResourceIdT rid,
-                        SaHpiHsActionT act);
+                                           SaHpiHsActionT act);
 
         SaHpiRptEntryT *res;
         struct oh_handler *h;
@@ -2431,10 +2447,12 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         request_hotswap_action = h->abi->request_hotswap_action;
         if (!request_hotswap_action) {
@@ -2449,9 +2467,9 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
 }
 
 SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_OUT SaHpiHsIndicatorStateT *State)
+        SAHPI_IN  SaHpiSessionIdT        SessionId,
+        SAHPI_IN  SaHpiResourceIdT       ResourceId,
+        SAHPI_OUT SaHpiHsIndicatorStateT *State)
 {
         SaErrorT rv;
         SaErrorT (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
@@ -2467,10 +2485,12 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         get_indicator_state = h->abi->get_indicator_state;
         if (!get_indicator_state) {
@@ -2483,9 +2503,9 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
 }
 
 SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiHsIndicatorStateT State)
+        SAHPI_IN SaHpiSessionIdT        SessionId,
+        SAHPI_IN SaHpiResourceIdT       ResourceId,
+        SAHPI_IN SaHpiHsIndicatorStateT State)
 {
         SaErrorT rv;
         SaErrorT (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
@@ -2501,10 +2521,12 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         set_indicator_state = h->abi->set_indicator_state;
         if (!set_indicator_state) {
@@ -2523,9 +2545,9 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
  ******************************************************************************/
 
 SaErrorT SAHPI_API saHpiParmControl (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiParmActionT Action)
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN SaHpiParmActionT Action)
 {
         SaErrorT rv;
         SaErrorT (*control_parm)(void *, SaHpiResourceIdT, SaHpiParmActionT);
@@ -2540,10 +2562,12 @@ SaErrorT SAHPI_API saHpiParmControl (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         control_parm = h->abi->control_parm;
         if (!control_parm) {
@@ -2563,9 +2587,9 @@ SaErrorT SAHPI_API saHpiParmControl (
 
 
 SaErrorT SAHPI_API saHpiResourceResetStateGet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_OUT SaHpiResetActionT *ResetAction)
+        SAHPI_IN  SaHpiSessionIdT   SessionId,
+        SAHPI_IN  SaHpiResourceIdT  ResourceId,
+        SAHPI_OUT SaHpiResetActionT *ResetAction)
 {
         SaErrorT rv;
         SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiResetActionT *);
@@ -2581,10 +2605,12 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_RESET)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         get_func = h->abi->get_reset_state;
         if (!get_func) {
@@ -2597,9 +2623,9 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
 }
 
 SaErrorT SAHPI_API saHpiResourceResetStateSet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiResetActionT ResetAction)
+        SAHPI_IN SaHpiSessionIdT   SessionId,
+        SAHPI_IN SaHpiResourceIdT  ResourceId,
+        SAHPI_IN SaHpiResetActionT ResetAction)
 {
         SaErrorT rv;
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiResetActionT);
@@ -2614,10 +2640,12 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_RESET)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         set_func = h->abi->set_reset_state;
         if (!set_func) {
@@ -2636,13 +2664,13 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
  ******************************************************************************/
 
 SaErrorT SAHPI_API saHpiResourcePowerStateGet (
-        SAHPI_IN SaHpiSessionIdT SessionId,
-        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN  SaHpiSessionIdT  SessionId,
+        SAHPI_IN  SaHpiResourceIdT ResourceId,
         SAHPI_OUT SaHpiPowerStateT *State)
 {
         SaErrorT rv;
         SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiPowerStateT *state);
+                                    SaHpiPowerStateT *state);
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         SaHpiDomainIdT did;
@@ -2654,10 +2682,12 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         get_power_state = h->abi->get_power_state;
         if (!get_power_state) {
@@ -2670,9 +2700,9 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
 }
 
 SaErrorT SAHPI_API saHpiResourcePowerStateSet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiPowerStateT State)
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN SaHpiPowerStateT State)
 {
         SaErrorT rv;
         SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id,
@@ -2688,10 +2718,12 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
 
         set_power_state = h->abi->set_power_state;
         if (!set_power_state) {
