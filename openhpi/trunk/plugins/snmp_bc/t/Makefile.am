@@ -92,14 +92,14 @@ TESTS = tevent \
 	tset_resource_tag \
 	tset_resource_sev \
 	tsnmp_bc_getset \
-	tsensorget001 \ 
-	tsensorget002 \ 
-	tsensorget003 \ 
-	tsensorget004 \ 
-	tsensorget005 \ 
-	tsensorget006 \ 
-	tsensorget008 \ 
-	tsensorget010 \ 
+	tsensorget001 \
+	tsensorget002 \
+	tsensorget003 \
+	tsensorget004 \
+	tsensorget005 \
+	tsensorget006 \
+	tsensorget008 \
+	tsensorget010 \
 	tsensorget013 \
 	tsensorget016 \
 	tsensorget020 \
