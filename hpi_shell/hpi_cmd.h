@@ -68,13 +68,17 @@ extern ret_code_t	shell_error;
 extern int		debug_flag;
 
 extern int		add_domain(Domain_t *domain);
+extern ret_code_t	ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type, SaHpiInstrumentIdT *ret);
+extern ret_code_t	ask_rpt(SaHpiResourceIdT *ret);
 extern int		close_session(void);
 extern void		cmd_shell(void);
 extern ret_code_t	ctrl_block(void);
 extern void		delete_progress(void);
 extern int		do_discover(Domain_t *domain);
 extern void		do_progress(char *mes);
+extern int		get_hex_int_param(char *mes, int *val);
 extern int		get_int_param(char *mes, int *val);
+extern int		get_new_command(char *mes);
 extern int		get_string_param(char *mes, char *string, int len);
 extern term_def_t	*get_next_term(void);
 extern int		get_sessionId(Domain_t *domain);

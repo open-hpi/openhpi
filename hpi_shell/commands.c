@@ -27,6 +27,24 @@
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
 
+#define	SEV_BUF_SIZE	32
+
+typedef struct {
+	char		*name;
+	SaHpiSeverityT	val;
+} Sev_def_t;
+
+static Sev_def_t Sev_array[] = {
+	{"crit", 	SAHPI_CRITICAL},
+	{"maj", 	SAHPI_MAJOR},
+	{"min", 	SAHPI_MINOR},
+	{"inf", 	SAHPI_INFORMATIONAL},
+	{"ok", 		SAHPI_OK},
+	{"debug", 	SAHPI_DEBUG},
+	{"all", 	SAHPI_ALL_SEVERITIES},
+	{NULL,	 	0}
+};
+
 int ui_print(char *Str)
 {
 	printf("%s", Str);
@@ -166,15 +184,20 @@ static ret_code_t debugset(void)
 	return SA_OK;
 }
 
-static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
+static ret_code_t hotswap_stat(void)
 {
-	SaErrorT rv;
-	SaHpiHsStateT state;
+	SaHpiResourceIdT	resourceid;
+	SaErrorT		rv;
+	SaHpiHsStateT		state;
+	ret_code_t		ret;
+
+	ret = ask_rpt(&resourceid);
+	if (ret != HPI_SHELL_OK) return(ret);
 
 	rv = saHpiHotSwapStateGet(Domain->sessionId, resourceid, &state);
 	if (rv != SA_OK) { 
 		printf("saHpiHotSwapStateGet error %s\n", oh_lookup_error(rv));
-		return -1;
+		return HPI_SHELL_CMD_ERROR;
 	}
 
 	printf("Current hot swap state of resource %d is:", resourceid);
@@ -198,7 +221,7 @@ static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
 		printf("  Unknown.\n");
 	}
 
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t power(void)
@@ -208,11 +231,10 @@ static ret_code_t power(void)
 	SaHpiPowerStateT	state;
 	int			do_set = 1;
 	term_def_t		*term;
+	ret_code_t		ret;
 
-	term = get_next_term();
-	if (term == NULL) return HPI_SHELL_PARM_ERROR;
-
-        resourceid = (SaHpiResourceIdT)atoi(term->term);
+	ret = ask_rpt(&resourceid);
+	if (ret != HPI_SHELL_OK) return(ret);
 
 	term = get_next_term();
 	if (term == NULL) do_set = 0;
@@ -231,15 +253,15 @@ static ret_code_t power(void)
        		if (rv != SA_OK) {
 			printf("saHpiResourcePowerStateSet error %s\n",
 				oh_lookup_error(rv));
-			return -1;
+			return HPI_SHELL_CMD_ERROR;
 		};
-		return SA_OK;
+		return HPI_SHELL_OK;
 	}
 
         rv = saHpiResourcePowerStateGet(Domain->sessionId, resourceid, &state);
         if (rv != SA_OK) {
                 printf("saHpiResourcePowerStateGet error %s\n", oh_lookup_error(rv));
-		return -1;
+		return HPI_SHELL_CMD_ERROR;
 	}
 	if (state == SAHPI_POWER_ON) {
                 printf("Resource %d is power on now.\n",resourceid);
@@ -247,7 +269,7 @@ static ret_code_t power(void)
                 printf("Resource %d is power off now.\n",resourceid);
 	}
 
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t reset(void)
@@ -257,11 +279,10 @@ static ret_code_t reset(void)
 	SaHpiResetActionT	state;
 	int			do_set = 1;
 	term_def_t		*term;
+	ret_code_t		ret;
 
-	term = get_next_term();
-	if (term == NULL) return HPI_SHELL_PARM_ERROR;
-
-        resourceid = (SaHpiResourceIdT)atoi(term->term);
+	ret = ask_rpt(&resourceid);
+	if (ret != HPI_SHELL_OK) return(ret);
 
 	term = get_next_term();
 	if (term == NULL) do_set = 0;
@@ -282,14 +303,14 @@ static ret_code_t reset(void)
 		if (rv != SA_OK) {
 			printf("saHpiResourceResetStateSet error %s\n",
 				oh_lookup_error(rv));
-			return -1;
+			return HPI_SHELL_CMD_ERROR;
 		}
 	}
 
 	rv = saHpiResourceResetStateGet(Domain->sessionId, resourceid, &state);
 	if (rv != SA_OK) {
 		printf("saHpiResourceResetStateGet error %s\n", oh_lookup_error(rv));
-		return -1;
+		return HPI_SHELL_CMD_ERROR;
 	}
 	if (state == SAHPI_RESET_ASSERT) {
 		printf("Entity's reset of %d is asserted now.\n",resourceid);
@@ -299,12 +320,20 @@ static ret_code_t reset(void)
 		printf("Entity's reset of %d is not setted now.\n",resourceid);
 	}
 
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
-static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
+static ret_code_t clear_evtlog(void)
 {
-	SaErrorT rv = SA_OK;
+	SaHpiResourceIdT	resourceid;
+	term_def_t		*term;
+	SaErrorT		rv;
+
+	term = get_next_term();
+	if (term == NULL)
+		resourceid = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	else
+		resourceid = (SaHpiResourceIdT)atoi(term->term);
 
 	rv = saHpiEventLogClear(Domain->sessionId, resourceid);
 	if (rv != SA_OK) {
@@ -313,7 +342,7 @@ static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
 	}
 
 	printf("EventLog successfully cleared\n");
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t show_hs_ind(void)
@@ -323,11 +352,10 @@ static ret_code_t show_hs_ind(void)
 	SaHpiResourceIdT	rid;
 	int			do_set = 0;
 	term_def_t		*term;
+	ret_code_t		ret;
 
-	term = get_next_term();
-	if (term == NULL) return HPI_SHELL_PARM_ERROR;
-
-	rid = (SaHpiResourceIdT)atoi(term->term);
+	ret = ask_rpt(&rid);
+	if (ret != HPI_SHELL_OK) return(ret);
 	term = get_next_term();
 	if (term != NULL) {
 		do_set = 1;
@@ -338,10 +366,11 @@ static ret_code_t show_hs_ind(void)
 	if (do_set) {
 		rv = saHpiHotSwapIndicatorStateSet(Domain->sessionId, rid, state);
 		if (rv != SA_OK) { 
-			printf("saHpiHotSwapIndicatorStateSet error %s\n", oh_lookup_error(rv));
+			printf("saHpiHotSwapIndicatorStateSet error %s\n",
+				oh_lookup_error(rv));
 			return HPI_SHELL_CMD_ERROR;
 		};
-		return(SA_OK);
+		return(HPI_SHELL_OK);
 	};
 
 	rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId, rid, &state);
@@ -361,48 +390,26 @@ static ret_code_t show_hs_ind(void)
 		default:
 			printf(" Unknown.\n");
 	}
-	return SA_OK;
-}
-
-static ret_code_t hotswap_stat(void)
-{
-	term_def_t		*term;
-
-	term = get_next_term();
-	if (term == NULL) return HPI_SHELL_PARM_ERROR;
-			
-	return sa_hotswap_stat((SaHpiResourceIdT)atoi(term->term));
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t set_tag(void)
 {
 	SaHpiResourceIdT	resid = 0;
 	SaHpiTextBufferT	tbuf;
-	int			res, i;
+	int			i;
 	char			buf[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1];
 	SaErrorT		rv;
 	SaHpiRptEntryT		rpt_entry;
 	Rpt_t			tmp_rpt;
-	term_def_t		*term;
+	ret_code_t		ret;
 
-	term = get_next_term();
-	if (term == NULL) {
-		if (read_file) return(HPI_SHELL_PARM_ERROR);
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
-		if (i == 0) {
-			printf("NO rpt!\n");
-			return(SA_OK);
-		};
-		i = get_int_param("RPT ID ==> ", &res);
-		if (i == 1) resid = (SaHpiResourceIdT)res;
-		else return SA_OK;
-	} else {
-		resid = (SaHpiResourceIdT)atoi(term->term);
-	};
+	ret = ask_rpt(&resid);
+	if (ret != HPI_SHELL_OK) return(ret);
 	i = get_string_param("New tag: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	if (i != 0) {
 		printf("Invalid tag: %s\n", buf);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	strcpy(tbuf.Data, buf);
 	tbuf.DataType = SAHPI_TL_TYPE_TEXT;
@@ -411,62 +418,33 @@ static ret_code_t set_tag(void)
 	rv = saHpiResourceTagSet(Domain->sessionId, resid, &tbuf);
 	if (rv != SA_OK) {
 		printf("saHpiResourceTagSet error = %s\n", oh_lookup_error(rv));
-		return -1;
+		return HPI_SHELL_CMD_ERROR;
 	};
 	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
 	make_attrs_rpt(&tmp_rpt, &rpt_entry);
 	show_Rpt(&tmp_rpt, ui_print);
 	free_attrs(&(tmp_rpt.Attrutes));
-	return (SA_OK);
+	return (HPI_SHELL_OK);
 }
-
-#define	SEV_BUF_SIZE	32
-
-typedef struct {
-	char		*name;
-	SaHpiSeverityT	val;
-} Sev_def_t;
-
-static Sev_def_t Sev_array[] = {
-	{"crit", 	SAHPI_CRITICAL},
-	{"maj", 	SAHPI_MAJOR},
-	{"min", 	SAHPI_MINOR},
-	{"inf", 	SAHPI_INFORMATIONAL},
-	{"ok", 		SAHPI_OK},
-	{"debug", 	SAHPI_DEBUG},
-	{"all", 	SAHPI_ALL_SEVERITIES},
-	{NULL,	 	0}
-};
 
 static ret_code_t set_sever(void)
 {
-	SaHpiResourceIdT	resid = 0;
+	SaHpiResourceIdT	resid;
 	SaHpiSeverityT		sev = SAHPI_OK;
-	int			res, i;
+	int			i;
 	char			buf[SEV_BUF_SIZE + 1];
 	SaErrorT		rv;
 	SaHpiRptEntryT		rpt_entry;
 	Rpt_t			tmp_rpt;
-	term_def_t		*term;
+	ret_code_t		ret;
 
-	term = get_next_term();
-	if (term == NULL) {
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
-		if (i == 0) {
-			printf("NO rpt!\n");
-			return(SA_OK);
-		};
-		i = get_int_param("RPT ID ==> ", &res);
-		if (i == 1) resid = (SaHpiResourceIdT)res;
-		else return SA_OK;
-	} else {
-		resid = (SaHpiResourceIdT)atoi(term->term);
-	};
+	ret = ask_rpt(&resid);
+	if (ret != HPI_SHELL_OK) return(ret);
 	i = get_string_param("New severity (crit, maj, min, inf, ok, debug, all): ",
 		buf, SEV_BUF_SIZE);
 	if (i != 0) {
 		printf("Invalid sevetity: %s\n", buf);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	for (i = 0; Sev_array[i].name != (char *)NULL; i++)
 		if (strcmp(buf, Sev_array[i].name) == 0) {
@@ -475,18 +453,18 @@ static ret_code_t set_sever(void)
 		};
 	if (Sev_array[i].name == (char *)NULL) {
 		printf("Invalid sevetity type: %s\n", buf);
-		return(-1);
+		return(HPI_SHELL_PARM_ERROR);
 	};
 	rv = saHpiResourceSeveritySet(Domain->sessionId, resid, sev);
 	if (rv != SA_OK) {
 		printf("saHpiResourceSeveritySet error = %s\n", oh_lookup_error(rv));
-		return -1;
+		return HPI_SHELL_CMD_ERROR;
 	};
 	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
 	make_attrs_rpt(&tmp_rpt, &rpt_entry);
 	show_Rpt(&tmp_rpt, ui_print);
 	free_attrs(&(tmp_rpt.Attrutes));
-	return (SA_OK);
+	return (HPI_SHELL_OK);
 }
 
 static ret_code_t discovery(void)
@@ -513,20 +491,6 @@ static ret_code_t listres(void)
 {
 	show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
 	return(SA_OK);
-}
-
-static ret_code_t clear_evtlog(void)
-{
-	SaHpiResourceIdT	rid;
-	term_def_t		*term;
-
-	term = get_next_term();
-	if (term == NULL)
-		rid = SAHPI_UNSPECIFIED_RESOURCE_ID;
-	else
-		rid = (SaHpiResourceIdT)atoi(term->term);
-
-	return sa_clear_evtlog(rid);
 }
 
 static ret_code_t show_evtlog(void)
@@ -714,24 +678,12 @@ static ret_code_t show_rpt(void)
 {
 	Rpt_t			tmp_rpt;
 	SaHpiRptEntryT		rpt_entry;
-	int			i, res;
 	SaErrorT		rv;
-	SaHpiResourceIdT	resid = 0;
-	term_def_t		*term;
+	SaHpiResourceIdT	resid;
+	ret_code_t		ret;
 
-	term = get_next_term();
-	if (term == NULL) {
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
-		if (i == 0) {
-			printf("NO rpt!\n");
-			return(SA_OK);
-		};
-		i = get_int_param("RPT ID ==> ", &res);
-		if (i == 1) resid = (SaHpiResourceIdT)res;
-		else return SA_OK;
-	} else {
-		resid = (SaHpiResourceIdT)atoi(term->term);
-	};
+	ret = ask_rpt(&resid);
+	if (ret != HPI_SHELL_OK) return(ret);
 	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
 	if (rv != SA_OK) {
 		printf("NO rpt: %d\n", resid);
@@ -751,9 +703,10 @@ static ret_code_t show_rdr(void)
 	SaHpiInstrumentIdT	rdrnum;
 	SaHpiRdrTypeT		type;
 	SaErrorT		rv;
-	int			res, i;
+	int			i;
 	char			buf[10], t;
 	term_def_t		*term;
+	ret_code_t		ret;
 
 	term = get_next_term();
 	if (term == NULL) {
@@ -797,20 +750,8 @@ static ret_code_t show_rdr(void)
 	else if (t == 'w') type = SAHPI_WATCHDOG_RDR;
 	else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
 	else type = SAHPI_NO_RECORD;
-	term = get_next_term();
-	if (term == NULL) {
-		if (read_file) return(HPI_SHELL_CMD_ERROR);
-		i = show_rdr_list(Domain, rptid, type, ui_print);
-		if (i == 0) {
-			printf("No rdr for rpt: %d\n", rptid);
-			return(SA_OK);
-		};
-		i = get_int_param("RDR NUM ==> ", &res);
-		if (i != 1) return SA_OK;
-		rdrnum = (SaHpiInstrumentIdT)res;
-	} else {
-		rdrnum = (SaHpiInstrumentIdT)atoi(term->term);
-	};
+	ret = ask_rdr(rptid, type, &rdrnum);
+	if (ret != HPI_SHELL_OK) return(ret);
 	if (type == SAHPI_NO_RECORD)
 		rv = find_rdr_by_num(Domain->sessionId, rptid, rdrnum, type, 0,
 			&rdr_entry);
@@ -825,33 +766,18 @@ static ret_code_t show_rdr(void)
 	make_attrs_rdr(&tmp_rdr, &rdr_entry);
 	show_Rdr(&tmp_rdr, ui_print);
 	free_attrs(&(tmp_rdr.Attrutes));
-	return SA_OK;
+	return HPI_SHELL_OK;
 }
 
 static ret_code_t quit(void)
 {
+	if (block_type != MAIN_COM) {
+		unget_term();
+		return(HPI_SHELL_OK);
+	};
         printf("quit\n");
         close_session();
         exit(0);
-}
-
-ret_code_t open_file(char *path)
-{
-	int		i;
-
-	i = access(path, R_OK | F_OK);
-	if (i != 0) {
-		printf("Can not access file: %s\n", path);
-		return(HPI_SHELL_PARM_ERROR);
-	};
-	input_file = fopen(path, "r");
-	if (input_file == (FILE *)NULL) {
-		printf("Can not open file: %s\n", path);
-		return(HPI_SHELL_PARM_ERROR);
-	};
-	read_file = 1;
-	read_stdin = 0;
-	return(HPI_SHELL_OK);
 }
 
 static ret_code_t run(void)
@@ -895,14 +821,18 @@ static ret_code_t domain_info(void)
 	if (buf->DataLength > 0)
 		printf("    Tag: %s\n", buf->Data);
 	time2str(info.DrtUpdateTimestamp, date, 30);
-	printf("    DRT update count: %d   DRT Timestamp : %s\n", info.DrtUpdateCount, date);
+	printf("    DRT update count: %d   DRT Timestamp : %s\n",
+		info.DrtUpdateCount, date);
 	time2str(info.RptUpdateTimestamp, date, 30);
-	printf("    RPT update count: %d   RPT Timestamp : %s\n", info.RptUpdateCount, date);
+	printf("    RPT update count: %d   RPT Timestamp : %s\n",
+		info.RptUpdateCount, date);
 	time2str(info.DatUpdateTimestamp, date, 30);
-	printf("    DAT update count: %d   DAT Timestamp : %s\n", info.DatUpdateCount, date);
-	printf("        ActiveAlarms: %d   CriticalAlarms: %d   Major: %d   Minor: %d   Limit: %d\n",
-		info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms, info.MinorAlarms,
-		info.DatUserAlarmLimit);
+	printf("    DAT update count: %d   DAT Timestamp : %s\n",
+		info.DatUpdateCount, date);
+	printf("        ActiveAlarms: %d   CriticalAlarms: %d   Major: %d"
+		"Minor: %d   Limit: %d\n",
+		info.ActiveAlarms, info.CriticalAlarms, info.MajorAlarms,
+		info.MinorAlarms, info.DatUserAlarmLimit);
 	printf("        DatOverflow : %d\n", info.DatOverflow);
 	return(SA_OK);
 }
@@ -936,7 +866,8 @@ static ret_code_t domain_proc(void)
 		entryid = SAHPI_FIRST_ENTRY;
 		first = 1;
 		while (entryid != SAHPI_LAST_ENTRY) {
-			rv = saHpiDrtEntryGet(Domain->sessionId, entryid, &nextentryid, &drtentry);
+			rv = saHpiDrtEntryGet(Domain->sessionId, entryid,
+				&nextentryid, &drtentry);
 			if (rv != SA_OK) break;
 			if (first) {
 				first = 0;
@@ -1119,7 +1050,7 @@ command_def_t commands[] = {
     { "lsres",		listres,	lreshelp,	MAIN_COM },
     { "lsensor",	list_sensor,	lsorhelp,	MAIN_COM },
     { "power",		power,		powerhelp,	MAIN_COM },
-    { "quit",		quit,		quithelp,	MAIN_COM },
+    { "quit",		quit,		quithelp,	UNDEF_COM },
     { "rdr",		show_rdr,	showrdrhelp,	MAIN_COM },
     { "reset",		reset,		resethelp,	MAIN_COM },
     { "rpt",		show_rpt,	showrpthelp,	MAIN_COM },
