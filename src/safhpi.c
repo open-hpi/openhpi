@@ -673,7 +673,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 data_access_unlock();
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_CAPABILITY;
         }
 
         OH_HANDLER_GET(rpt, ResourceId, h);
