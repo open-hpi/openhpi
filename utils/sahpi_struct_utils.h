@@ -90,19 +90,6 @@ SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrInfo, int space
 #define oh_print_idrareaheader(areaHeader, space) oh_fprint_idrareaheader(stdout, areaHeader, space)
 SaErrorT oh_fprint_idrareaheader(FILE *stream, const SaHpiIdrAreaHeaderT *areaHeader, int space);
 
-#define put_spacing(space) \
-do { \
-        int j; \
-	for(j=0; j < space; j++) \
-		fprintf(stream, " "); \
-} while(0)
- 
-#define check_err(err) \
-do { \
-	if (err < 0) \
-		return(SA_ERR_HPI_INVALID_PARAMS); \
-} while(0)
-
   
 /* FIXME:: */
 #if 0
