@@ -28,8 +28,8 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
- 
+
 MAINTAINERCLEANFILES 	= Makefile.in
 
-SUBDIRS = @SNMP_RSA@ @SNMP_CLIENT@ @DUMMY@ @IPMI@ @WATCHDOG@ @SYSFS@ @SNMP_BC@ @IPMIDIRECT@ @SIMULATOR@
-DIST_SUBDIRS = snmp_rsa snmp_client dummy ipmi watchdog sysfs snmp_bc ipmidirect simulator
+SUBDIRS = @SNMP_RSA@ @SNMP_CLIENT@ @DUMMY@ @IPMI@ @WATCHDOG@ @SYSFS@ @SNMP_BC@ @IPMIDIRECT@ @SIMULATOR@ @REMOTE_CLIENT@
+DIST_SUBDIRS = snmp_rsa snmp_client dummy ipmi watchdog sysfs snmp_bc ipmidirect simulator remote_client
