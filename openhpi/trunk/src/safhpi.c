@@ -482,19 +482,19 @@ static SaErrorT process_sel_entry(
 
 static void dsel_get_entry(void *ptr, SaHpiSelEntryT *entry)
 {
-	struct oh_sel *dsel = ptr;
+	struct oh_dsel *dsel = ptr;
 	memcpy(entry, &dsel->entry, sizeof(*entry));
 }
 
 static struct oh_resource *dsel_get_res(void *ptr)
 {
-	struct oh_sel *dsel = ptr;
+	struct oh_dsel *dsel = ptr;
 	return get_res_by_oid(dsel->res_id);
 }
 
 static struct oh_rdr *dsel_get_rdr(void *ptr)
 {
-	struct oh_sel *dsel = ptr;
+	struct oh_dsel *dsel = ptr;
 	struct oh_resource *res;
 
 	res = get_res_by_oid(dsel->res_id);
