@@ -88,14 +88,14 @@ SaErrorT oh_initialize()
                 data_access_unlock();
                 return(rval);
         }        
-        dbg("Initialized UID");
+        trace("Initialized UID");
 
         /* Initialize plugins */
         for(i = 0; i < g_slist_length(global_plugin_list); i++) {
                 tmpp = (struct oh_plugin_config *) g_slist_nth_data(
                         global_plugin_list, i);
                 if(load_plugin(tmpp) == 0) {
-                        dbg("Loaded plugin %s", tmpp->name);
+                        trace("Loaded plugin %s", tmpp->name);
                         tmpp->refcount++;
                 } else {
                         dbg("Couldn't load plugin %s", tmpp->name);
@@ -108,7 +108,7 @@ SaErrorT oh_initialize()
                         global_handler_configs, i);
                 if(plugin_refcount((char *)g_hash_table_lookup(tmph, "plugin")) > 0) {
                         if(load_handler(tmph) == 0) {
-                                dbg("Loaded handler for plugin %s",
+                                trace("Loaded handler for plugin %s",
                                         (char *)g_hash_table_lookup(tmph, "plugin"));
                         } else {
                                 dbg("Couldn't load handler for plugin %s",
@@ -132,7 +132,7 @@ SaErrorT oh_initialize()
 
         /* Initialize domain table */
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
-        dbg("Initialized domain table");
+        trace("Initialized domain table");
 
         /* Create first domain */
         tag.DataType = SAHPI_TL_TYPE_TEXT;
@@ -142,14 +142,14 @@ SaErrorT oh_initialize()
                 dbg("Could not create first domain!");
                 return SA_ERR_HPI_ERROR;
         }        
-        dbg("Created first domain");
+        trace("Created first domain");
 
         /* Initialize session table */        
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        dbg("Initialized session table");
+        trace("Initialized session table");
         
         oh_init_state = INIT;
-        dbg("Set init state");
+        trace("Set init state");
 
         data_access_unlock();
 

@@ -42,9 +42,18 @@ extern "C" {
                 fprintf(stderr, "\t" format "\n", ## __VA_ARGS__); \
         } while(0)
 
-#define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
-#define error(f, ...) fprintf(stderr, "ERROR: " f "\n", ## __VA_ARGS__)
-#define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)
+#define info trace
+#define error dbg
+
+#define trace(format, ...)                                                   \
+        do {                                                            \
+                if (getenv("OPENHPI_DEBUG_TRACE") != NULL) {                  \
+                        if (strcmp((char *)getenv("OPENHPI_DEBUG_TRACE"),"YES") == 0) { \
+                                fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                                fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                        }                                               \
+                }                                                       \
+        } while(0)
 
 #ifdef __cplusplus
 }

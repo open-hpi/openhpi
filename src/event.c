@@ -33,14 +33,14 @@ GAsyncQueue *oh_process_q;
 
 int oh_event_init()
 {
-        dbg("Attempting to init event");
+        trace("Attempting to init event");
         if(!g_thread_supported()) {
-                dbg("Initializing thread support");
+                trace("Initializing thread support");
                 g_thread_init(NULL);
         } else {
-                dbg("Already supporting threads");
+                trace("Already supporting threads");
         }
-        dbg("Setting up event processing queue");
+        trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
         return 1;
 }
@@ -68,10 +68,10 @@ static int harvest_events_for_handler(struct oh_handler *h)
         do {
                 rv = h->abi->get_event(h->hnd, &event, &to);
                 if(rv < 1) {
-                        dbg("Handler is out of Events");
+                        trace("Handler is out of Events");
                         return rv;
                 } else {
-                        dbg("Found event for handler %p", h);
+                        trace("Found event for handler %p", h);
                         e2 = oh_dup_oh_event(&event);
                         e2->from = h;
                         g_async_queue_push(oh_process_q, e2);
@@ -123,20 +123,20 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
         if (e->res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
                 hotswap_push_event(e);
-                dbg("Pushed hotswap event");
+                trace("Pushed hotswap event");
         }
         
         /* FIXME: Add event to DEL */
-        // dbg("About to add to EL");
+        // trace("About to add to EL");
         oh_add_event_to_del(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
-        // dbg("Added event to EL");
+        // trace("Added event to EL");
 
         /*
          * TODO: Here is where we need the SESSION MULTIPLEXING code
          */
         
         /* FIXME: yes, we need to figure out the real domain at some point */
-        dbg("About to get session list");
+        trace("About to get session list");
         sessions = oh_list_sessions(1);
 
         for(i = 0; i < sessions->len; i++) {
@@ -195,27 +195,27 @@ SaErrorT process_events(RPTable *rpt)
         while((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
                 switch(e->type) {
                 case OH_ET_RESOURCE:
-                        dbg("Resource");
+                        trace("Event Type = Resource");
                         process_resource_event(rpt, e);
                         break;
                 case OH_ET_RESOURCE_DEL:
-                        dbg("Resource Delete");
+                        trace("Event Type = Resource Delete");
                         process_resource_event(rpt, e);
                         break;
                 case OH_ET_RDR:
-                        dbg("RDR");
+                        trace("Event Type = RDR");
                         process_rdr_event(rpt, e);
                         break;
                 case OH_ET_RDR_DEL:
-                        dbg("RDR Delete");
+                        trace("Event Type = RDR Delete");
                         process_rdr_event(rpt, e);
                         break;
                 case OH_ET_HPI:
-                        dbg("HPI Event");
+                        trace("Event Type = HPI Event");
                         process_hpi_event(rpt, e);
                         break;
                 default:
-                        dbg("Unknown Event");
+                        trace("Event Type = Unknown Event");
                 }
         }
         g_free(e);

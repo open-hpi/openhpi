@@ -915,8 +915,9 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 static void *dummy_open(GHashTable *handler_config)
 {
         struct oh_handler_state *i;
-        char *tok;
-
+        char *tok = NULL;
+        tok = g_hash_table_lookup(handler_config, "entity_root");
+        
         if (!handler_config) {
                 dbg("GHashTable *handler_config is NULL!");
                 return(NULL);
@@ -925,7 +926,7 @@ static void *dummy_open(GHashTable *handler_config)
         trace("%s, %s, %s",
               (char *)g_hash_table_lookup(handler_config, "plugin"),
               (char *)g_hash_table_lookup(handler_config, "name"),
-              tok = g_hash_table_lookup(handler_config, "entity_root"));
+              tok);
 
         if (!tok) {
                 dbg("entity_root is needed and not present");
@@ -1078,13 +1079,14 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         static unsigned int toggle = 0;
 
         if (g_slist_length(inst->eventq)>0) {
-                dbg("List has an event, send it up");
+                trace("List has an event, send it up");
                 memcpy(event, inst->eventq->data, sizeof(*event));
+                event->did = 1; /* FIXME: use real domain lookup */
                 free(inst->eventq->data);
                 inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
                 return(1);
         } else if (count == 0) {
-                dbg("List is empty, getting next resource");
+                trace("List is empty, getting next resource");
 
                 count++;
 
@@ -1101,11 +1103,11 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                 return(1);
 
         } else if (count == 1) {
-                dbg("Count is 1, not sure what that means");
+                trace("Count is 1, not sure what that means");
                 count++;
                 return(-1);
         } else {
-                dbg("We fell through");
+                trace("We fell through");
         }
 
         toggle++;
