@@ -107,14 +107,6 @@
  *
  */
 
-/*
- *  Global list of all available domain id's (SaHpiDomainIdT).
- *  The intent is that this list is maintained as new RPT entries
- *  are added and removed from the global RPT table, and used by
- *  saHpiSessionOpen() to determine if the requested domain exist
- *  without doing a full search of the RPT. 
- */
-extern GSList *global_domain_list;
 
 #if 0
 /*
