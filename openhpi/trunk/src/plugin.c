@@ -1,7 +1,18 @@
-/* -*- linux-c -*-
- * BSD License
- * Copyright (C) by Intel Crop.
- * Author: Louis Zhuang <louis.zhuang@linux.intel.com>
+/*      -*- linux-c -*-
+ * 
+ * Copyright (c) 2003 by Intel Corp.
+ * Copyright (c) 2003 by International Business Machines.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Sean Dague <sean@dague.net>
  */
 
 #include <stdio.h>
@@ -11,7 +22,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <oh_plugin.h>
+#include <oh_config.h>
 
 /*
  * This initializes the plugin loader.  Don't load anything
