@@ -498,3 +498,18 @@ static int entitytype2index(unsigned int i)
 
         return -1;
 }
+
+int prt_ep(SaHpiEntityPathT *ep) 
+{
+        gchar epstr[512];
+	int len;
+
+	len = entitypath2string(ep, epstr, sizeof(epstr));
+	if (len < 0) {
+		dbg("Cannot translate Entity Path to string");
+		return -1;
+	}
+
+	printf("Entity Path=\"%s\"\n", epstr);
+	return 0;
+} 
