@@ -1018,5 +1018,276 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/******************************
+	 * oh_valid_threshold testcases
+         ******************************/
+	{
+		SaHpiSensorThresholdsT default_thresholds_int64, test_thresholds_int64;
+		SaHpiSensorThresholdsT default_thresholds_float64, test_thresholds_float64;
+		SaHpiSensorThresholdsT default_thresholds_uint64, test_thresholds_uint64;
+		SaHpiSensorDataFormatT default_format_int64, test_format_int64;
+		SaHpiSensorDataFormatT default_format_float64, test_format_float64;
+		SaHpiSensorDataFormatT default_format_uint64, test_format_uint64;
+		SaHpiSensorThdMaskT default_writable_thresholds, test_writable_thresholds;
+		
+		default_thresholds_int64.UpCritical.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.UpCritical.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.UpCritical.Value.SensorInt64 = 50;
+		default_thresholds_int64.UpMajor.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.UpMajor.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.UpMajor.Value.SensorInt64 = 40;
+		default_thresholds_int64.UpMinor.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.UpMinor.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.UpMinor.Value.SensorInt64 = 30;
+		default_thresholds_int64.LowMinor.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.LowMinor.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.LowMinor.Value.SensorInt64 = 20;
+		default_thresholds_int64.LowMajor.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.LowMajor.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.LowMajor.Value.SensorInt64 = 10;
+		default_thresholds_int64.LowCritical.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.LowCritical.Value.SensorInt64 = 0;
+		default_thresholds_int64.PosThdHysteresis.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.PosThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.PosThdHysteresis.Value.SensorInt64 = 2;
+		default_thresholds_int64.NegThdHysteresis.IsSupported = SAHPI_TRUE;
+		default_thresholds_int64.NegThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_thresholds_int64.NegThdHysteresis.Value.SensorInt64 = 2;
+
+		default_format_int64.IsSupported = SAHPI_TRUE;
+		default_format_int64.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64;
+		default_format_int64.Range.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+		default_format_int64.Range.Max.Value.SensorInt64 = 60;
+		default_format_int64.Range.Min.Value.SensorInt64 = 0;
+
+		default_writable_thresholds = 
+			SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT |
+			SAHPI_STM_UP_MINOR | SAHPI_STM_UP_MAJOR |  SAHPI_STM_UP_CRIT |
+			SAHPI_STM_UP_HYSTERESIS | SAHPI_STM_LOW_HYSTERESIS;
+
+		/* oh_valid_threshold: Bad parameters testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+		err = oh_valid_threshold(0, 0, default_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+		
+		/* oh_valid_threshold: Bad threshold type testcase */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+		
+		expected_err = SA_ERR_HPI_INVALID_CMD;
+		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_threshold: Bad text buffer type threshold testcase */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+		
+		expected_err = SA_ERR_HPI_INVALID_CMD;
+		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_threshold: Bad threshold hysteresis testcase */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+		
+		expected_err = SA_ERR_HPI_INVALID_DATA;
+		test_thresholds_int64.PosThdHysteresis.Value.SensorInt64 = -1;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_threshold: Bad range threshold testcase */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+		
+		expected_err = SA_ERR_HPI_INVALID_CMD;
+		test_format_int64.Range.Max.Value.SensorInt64 = 0;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+		
+		/* oh_valid_threshold: Bad order threshold testcase */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+
+		test_thresholds_int64.LowCritical.Value.SensorInt64 = 20;
+		expected_err = SA_ERR_HPI_INVALID_DATA;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_threshold: Bad writable threshold testcase */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+
+		test_writable_thresholds = SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT;
+		expected_err = SA_ERR_HPI_INVALID_CMD;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_threshold: Normal threshold testcase - int64 */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+
+		expected_err = SA_OK;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_threshold: Normal subset testcase */
+		test_thresholds_int64 = default_thresholds_int64;
+		test_format_int64 = default_format_int64;
+		test_writable_thresholds = default_writable_thresholds;
+
+		test_thresholds_int64.UpCritical.IsSupported = SAHPI_FALSE;
+		test_thresholds_int64.UpCritical.Type = BAD_TYPE; /* This should be ignored */
+		test_thresholds_int64.LowCritical.IsSupported = SAHPI_FALSE;
+		test_thresholds_int64.LowCritical.Type = BAD_TYPE; /* This should be ignored */
+
+		expected_err = SA_OK;
+		
+		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+ 		default_thresholds_float64.UpCritical.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.UpCritical.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.UpCritical.Value.SensorFloat64 = 50.3;
+		default_thresholds_float64.UpMajor.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.UpMajor.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.UpMajor.Value.SensorFloat64 = 40.2;
+		default_thresholds_float64.UpMinor.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.UpMinor.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.UpMinor.Value.SensorFloat64 = 30.1;
+		default_thresholds_float64.LowMinor.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.LowMinor.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.LowMinor.Value.SensorFloat64 = 20.3;
+		default_thresholds_float64.LowMajor.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.LowMajor.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.LowMajor.Value.SensorFloat64 = 10.2;
+		default_thresholds_float64.LowCritical.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.LowCritical.Value.SensorFloat64 = 0.5;
+		default_thresholds_float64.PosThdHysteresis.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.PosThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.PosThdHysteresis.Value.SensorFloat64 = 2;
+		default_thresholds_float64.NegThdHysteresis.IsSupported = SAHPI_TRUE;
+		default_thresholds_float64.NegThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_thresholds_float64.NegThdHysteresis.Value.SensorFloat64 = 2;
+
+		default_format_float64.IsSupported = SAHPI_TRUE;
+		default_format_float64.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_format_float64.Range.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+		default_format_float64.Range.Max.Value.SensorFloat64 = 60;
+		default_format_float64.Range.Min.Value.SensorFloat64 = 0;
+
+                /* oh_valid_threshold: Normal threshold testcase - float64 */
+		test_thresholds_float64 = default_thresholds_float64;
+		test_format_float64 = default_format_float64;
+		test_writable_thresholds = default_writable_thresholds;
+
+		expected_err = SA_OK;
+		
+		err = oh_valid_threshold(&test_thresholds_float64, &test_format_float64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+ 		default_thresholds_uint64.UpCritical.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.UpCritical.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.UpCritical.Value.SensorUint64 = 50.3;
+		default_thresholds_uint64.UpMajor.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.UpMajor.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.UpMajor.Value.SensorUint64 = 40.2;
+		default_thresholds_uint64.UpMinor.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.UpMinor.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.UpMinor.Value.SensorUint64 = 30.1;
+		default_thresholds_uint64.LowMinor.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.LowMinor.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.LowMinor.Value.SensorUint64 = 20.3;
+		default_thresholds_uint64.LowMajor.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.LowMajor.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.LowMajor.Value.SensorUint64 = 10.2;
+		default_thresholds_uint64.LowCritical.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.LowCritical.Value.SensorUint64 = 0.5;
+		default_thresholds_uint64.PosThdHysteresis.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.PosThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.PosThdHysteresis.Value.SensorUint64 = 2;
+		default_thresholds_uint64.NegThdHysteresis.IsSupported = SAHPI_TRUE;
+		default_thresholds_uint64.NegThdHysteresis.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_thresholds_uint64.NegThdHysteresis.Value.SensorUint64 = 2;
+
+		default_format_uint64.IsSupported = SAHPI_TRUE;
+		default_format_uint64.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64;
+		default_format_uint64.Range.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+		default_format_uint64.Range.Max.Value.SensorUint64 = 60;
+		default_format_uint64.Range.Min.Value.SensorUint64 = 0;
+
+		/* oh_valid_threshold: Normal threshold testcase - uint64*/
+		test_thresholds_uint64 = default_thresholds_uint64;
+		test_format_uint64 = default_format_uint64;
+		test_writable_thresholds = default_writable_thresholds;
+
+		expected_err = SA_OK;
+		
+		err = oh_valid_threshold(&test_thresholds_uint64, &test_format_uint64, test_writable_thresholds);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+	}
+
 	return(0);
 }

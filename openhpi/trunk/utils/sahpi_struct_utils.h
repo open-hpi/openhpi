@@ -40,7 +40,6 @@ typedef struct {
 SaErrorT oh_init_textbuffer(SaHpiTextBufferT *buffer);
 SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from);
 SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from);
-SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
 
 /* Print just the Data portions of the text structures */
 #define oh_print_text(buf_ptr)  oh_fprint_text(stdout, buf_ptr)
@@ -72,6 +71,10 @@ SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
 /************************* 
  * Validate HPI structures
  *************************/
+SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
+SaErrorT oh_valid_threshold(SaHpiSensorThresholdsT *thds,
+			    SaHpiSensorDataFormatT *format,
+			    SaHpiSensorThdMaskT writable_thds);
 
 /***************************
  * Print HPI data structures
