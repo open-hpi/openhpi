@@ -14,7 +14,7 @@
  *     Andy Cress <arcress@users.sourceforge.net>
  *     Peter D. Phan <pdphan@users.sourceforge.net>
  *     Renier Morales <renierm@users.sf.net>
- *     Tariq Shureih <tariq.shureih@intel.com?
+ *     Tariq Shureih <tariq.shureih@intel.com>
  *
  * Log: 
  *     Copied from hpifru.c and modified for general use
@@ -27,11 +27,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
-#include "SaHpi.h"
+#include <SaHpi.h> 
+#include <oh_utils.h>
 
 #define NCT 25
 
-char progver[] = "0.a";
+char progver[] = "0.1 HPI-B";
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
 	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
@@ -43,198 +44,38 @@ char *chasstypes[NCT] = {
 int fasset = 0;
 int fdebug = 0;
 int fxdebug = 0;
-int i,j,k = 0;
-SaHpiUint32T actualsize;
-char progname[] = "hpi_invent";
+char progname[] = "hpiinv";
 char *asset_tag;
 char outbuff[256];
-SaHpiInventoryDataT *inv;
-SaHpiInventChassisTypeT chasstype;
-SaHpiInventGeneralDataT *dataptr;
-SaHpiTextBufferT *strptr;
 
-static void
-fixstr(SaHpiTextBufferT *strptr)
-{ 
-	size_t datalen;
-	
-       	memset(outbuff,0,256);        
-	if (!strptr) return;
+/* 
+ * Function prototypes
+**/
+void walkInventory(	SaHpiSessionIdT sessionid,
+			SaHpiResourceIdT resourceid,
+			SaHpiIdrInfoT	*idrInfo);
 
- 	datalen = strptr->DataLength;
-	if (datalen > 0) {
-		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
-		outbuff[datalen] = 0;
-	}
+void prt_idrField(SaHpiIdrFieldT *thisField);
+void prt_areaHeader(SaHpiIdrAreaHeaderT *areaHeader);
 
-}
+void prt_idrInfo(SaHpiSessionIdT sessionid,
+		 SaHpiResourceIdT resourceid,
+		 SaHpiIdrInfoT *idrInfo);
 
-static void
-prtchassinfo(void)
-{
-	chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
-	for (k=0; k<NCT; k++) {
-		if ((unsigned int)k == chasstype)
-			printf( "\tChassis Type        : %s\n", chasstypes[k]);
-	}	  
 
-	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.ChassisInfo.GeneralData;
-	strptr=dataptr->Manufacturer;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Manufacturer: %s\n", outbuff);
-
-	strptr=dataptr->ProductName;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Name        : %s\n", outbuff);
-
-	strptr=dataptr->ProductVersion;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Version     : %s\n", outbuff);
-
-	strptr=dataptr->ModelNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Model Number: %s\n", outbuff);
-
-	strptr=dataptr->SerialNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Serial #    : %s\n", outbuff);
-
-	strptr=dataptr->PartNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Part Number : %s\n", outbuff);
-
-	strptr=dataptr->FileId;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis FRU File ID : %s\n", outbuff);
-
-	strptr=dataptr->AssetTag;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tChassis Asset Tag   : %s\n", outbuff);
-	if (dataptr->CustomField[0] != 0)
-	{
-		if (dataptr->CustomField[0]->DataLength != 0)
-		strncpy ((char *)outbuff, (char *)dataptr->CustomField[0]->Data,
-						dataptr->CustomField[0]->DataLength);
-		outbuff[dataptr->CustomField[0]->DataLength] = 0;
-		printf( "\tChassis OEM Field   : %s\n", outbuff);
-	}
-}
-
-static void
-prtprodtinfo(void)
-{
-	int j;
-	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.ProductInfo;
-	strptr=dataptr->Manufacturer;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Manufacturer: %s\n", outbuff);
-
-	strptr=dataptr->ProductName;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Name        : %s\n", outbuff);
-
-	strptr=dataptr->ProductVersion;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Version     : %s\n", outbuff);
-
-	strptr=dataptr->ModelNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Model Number: %s\n", outbuff);
-
-	strptr=dataptr->SerialNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Serial #    : %s\n", outbuff);
-
-	strptr=dataptr->PartNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Part Number : %s\n", outbuff);
-
-	strptr=dataptr->FileId;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct FRU File ID : %s\n", outbuff);
-
-	strptr=dataptr->AssetTag;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tProduct Asset Tag   : %s\n", outbuff);
-
-	for (j = 0; j < 10; j++) {
-		int ii;
-		if (dataptr->CustomField[j] != NULL) {
-			if ((dataptr->CustomField[j]->DataType == 0) &&
-				(dataptr->CustomField[j]->DataLength == 16)) { /*binary GUID*/
-				printf( "IPMI SystemGUID     : ");
-				for (ii=0; ii< dataptr->CustomField[j]->DataLength; ii++)
-					printf("%02x", dataptr->CustomField[j]->Data[ii]);
-				printf("\n");
-			} else {  /* other text field */
-				dataptr->CustomField[j]->Data[
-				dataptr->CustomField[j]->DataLength] = 0;
-				printf( "\tProduct OEM Field   : %s\n",
-				dataptr->CustomField[j]->Data);
-			}
-		} else /* NULL pointer */
-			break;
-	}/*end for*/
-}
-
-static void
-prtboardinfo(void)
-{
-	dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.BoardInfo;
-	strptr=dataptr->Manufacturer;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Manufacturer  : %s\n", outbuff);
-
-	strptr=dataptr->ProductName;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Product Name  : %s\n", outbuff);
-
-	strptr=dataptr->ModelNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Model Number  : %s\n", outbuff);
-
-	strptr=dataptr->PartNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Part Number   : %s\n", outbuff);
-
-	strptr=dataptr->ProductVersion;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Version       : %s\n", outbuff);
-
-	strptr=dataptr->SerialNumber;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Serial #      : %s\n", outbuff);
-
-	strptr=dataptr->FileId;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard FRU File ID   : %s\n", outbuff);
-
-	strptr=dataptr->AssetTag;
-	fixstr((SaHpiTextBufferT *)strptr);
-	printf( "\tBoard Asset Tag     : %s\n", outbuff);
-
-	for (j = 0; j < 10 && dataptr->CustomField[j] ; j++) {
-		if (dataptr->CustomField[j]->DataLength != 0) {
-                        strncpy ((char *)outbuff, (char *)dataptr->CustomField[j]->Data,
-							dataptr->CustomField[j]->DataLength);
-                        outbuff[dataptr->CustomField[j]->DataLength] = 0;
-                        printf( "\tBoard OEM Field     : %s\n", outbuff);
-                }
-        }
-}
-
+/* 
+ * Function prototypes
+**/
 int
 main(int argc, char **argv)
 {
-	int prodrecindx=0;
 	int asset_len=0;
 	int c;
-	SaErrorT rv;
-	SaErrorT rvx;
-	SaErrorT rvxx;
-	SaHpiVersionT hpiVer;
+	SaErrorT rv = SA_OK,
+		 rvRdrGet = SA_OK,
+		 rvRptGet = SA_OK, 
+		 rvInvent = SA_OK;
 	SaHpiSessionIdT sessionid;
-	SaHpiRptInfoT rptinfo;
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
@@ -242,7 +83,8 @@ main(int argc, char **argv)
 	SaHpiEntryIdT nextentryid;
 	SaHpiResourceIdT resourceid;
 	SaHpiRdrT rdr;
-	SaHpiEirIdT eirid;
+	SaHpiIdrInfoT	idrInfo;
+	SaHpiIdrIdT	idrid;
 
 	int inv_discovered = 0;
 		
@@ -259,10 +101,6 @@ main(int argc, char **argv)
 					asset_tag = (char *)strdup(optarg);
 					asset_len = strlen(optarg);
 				}
-				/*
-				printf( "String Length = %d\n", asset_len);
-				printf( "String Length = %d\n", strlen(optarg));
-				*/
 				break;
 			default:
 				printf("Usage: %s [-x] [-a asset_tag]\n", progname);
@@ -273,145 +111,207 @@ main(int argc, char **argv)
 		}
 	}
 	
-	rv = saHpiInitialize(&hpiVer);
+        rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
 	if (rv != SA_OK) {
-		printf("saHpiInitialize error %d\n",rv);
-		exit(-1);
-	}
-	
-	rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
-	if (rv != SA_OK) {
-		printf("saHpiSessionOpen error %d\n",rv);
+		printf("saHpiSessionOpen error %s\n",oh_lookup_error(rv));
 		exit(-1);
 	}
 
-	rv = saHpiResourcesDiscover(sessionid);
-	if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+	printf("SessionId %d opened\n", sessionid);
 
-restart: 
-	rv = saHpiRptInfoGet(sessionid,&rptinfo);
-	if (fxdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-	printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
-			rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
- 
-	/* walk the RPT list */
-	rptentryid = SAHPI_FIRST_ENTRY;
-	rvx = SA_OK;
-	while ((rvx == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-	{
-		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if (rvx != SA_OK) printf("RptEntryGet: rv = %d\n",rv);
-		if (rvx == SA_OK 
-                    && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
-                    && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA))
-		{
-			/* walk the RDR list for this RPT entry */
-			entryid = SAHPI_FIRST_ENTRY;			
-			resourceid = rptentry.ResourceId;
-
-			if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
-			printf("Resource Tag: %s\n", rptentry.ResourceTag.Data);
-
-			rvxx = SA_OK;
-			while ((rvxx == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
-			{
-				rv = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
-				if (fxdebug) printf("saHpiRdrGet[%d] rv = %d\n",entryid,rv);
-				if (rv == SA_OK)
-				{
-					if (rdr.RdrType == SAHPI_INVENTORY_RDR)
-					{
-                                                unsigned int invsize = 0;
-                                                
-                                                inv_discovered = 1;
-						/*type 3 includes inventory records*/
-						eirid = rdr.RdrTypeUnion.InventoryRec.EirId;
-						rdr.IdString.Data[rdr.IdString.DataLength] = 0;	    
-
-						if (fdebug) printf( "RDR[%d]: type=%d num=%d %s\n",
-								rdr.RecordId,
-								rdr.RdrType, eirid, rdr.IdString.Data);
-                                                actualsize = 0;                
-                                                rv = saHpiEntityInventoryDataRead(sessionid, resourceid,
-                                                                                  eirid, 0, NULL, &actualsize);
-                                                invsize = actualsize;                                                
-                                                if (fdebug) printf("BufferSize=%d\n", invsize);
-
-                                                inv = (SaHpiInventoryDataT *)malloc(invsize);
-                                                memset(inv,0,invsize);
-						rv = saHpiEntityInventoryDataRead(sessionid, resourceid,
-									eirid, invsize, inv, &actualsize);                                                
-
-						if (fxdebug) printf(
-							"saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
-						if (fdebug) printf("ActualSize=%d\n", actualsize);
-
-						if (rv == SA_OK)
-	      					{
-	 						/* Walk thru the list of inventory data */
-		 					if (inv->Validity == SAHPI_INVENT_DATA_VALID) 
-		  					{
-                                                                for( i = 0; inv->DataRecords[i] != NULL; i++ )
-                                                                {
-                                                                        if (fdebug) printf( "Record = %d Index = %d type=%x len=%d\n", i, 
-                                                                                            i, inv->DataRecords[i]->RecordType, 
-                                                                                            inv->DataRecords[i]->DataLength);
-                                                                        switch (inv->DataRecords[i]->RecordType)
-                                                                        {
-									case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
-										if (fdebug) printf( "Internal Use\n");
-										break;
-									case SAHPI_INVENT_RECTYPE_PRODUCT_INFO:
-										if (fdebug) printf( "Product Info\n");
-										prodrecindx = 0;
-										prtprodtinfo();
-										break;
-									case SAHPI_INVENT_RECTYPE_CHASSIS_INFO:
-										if (fdebug) printf( "Chassis Info\n");
-										prtchassinfo();
-										break;
-									case SAHPI_INVENT_RECTYPE_BOARD_INFO:
-										if (fdebug) printf( "Board Info\n");
-										prtboardinfo();
-										break;
-									case SAHPI_INVENT_RECTYPE_OEM:
-										if (fdebug) printf( "OEM Record\n");
-										break;
-									default:
-										printf(" Invalid Invent Rec Type =%x\n",  
-                                                                                       inv->DataRecords[i]->RecordType);
-										break;
-                                                                        }
-                                                                }
-                                                        }
-						} else { printf(" InventoryDataRead returns HPI Error: rv=%d\n", rv); }
-                                                free(inv);
-					} 
-				} /* Inventory Data Records - Type 3 */
-				entryid = nextentryid;
-			}
+	do {
+		rv = saHpiDiscover(sessionid);
+		if (fxdebug) printf("saHpiDiscover rv = %s\n",oh_lookup_error(rv));
+		if (rv != SA_OK) {
+			printf("saHpiDiscover error %s\n",oh_lookup_error(rv));
+			exit(-1);
 		}
-		rptentryid = nextrptentryid;
-	}
-        
+
+		/* walk the RPT list */
+		rptentryid = SAHPI_FIRST_ENTRY;
+		do {
+			rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
+			if (rv != SA_OK) printf("RptEntryGet error %s\n",oh_lookup_error(rvRptGet));
+
+			if (rvRptGet == SA_OK 
+                    		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
+                    		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA))
+			{
+				/* walk the RDR list for this RPT entry */
+				entryid = SAHPI_FIRST_ENTRY;			
+				resourceid = rptentry.ResourceId;
+
+				if (fdebug) printf("rptentry[%d] resourceid=%d\n", entryid,resourceid);
+
+				 do {
+					rvRdrGet = saHpiRdrGet(sessionid,resourceid, entryid,&nextentryid, &rdr);
+					if (fxdebug) printf("saHpiRdrGet[%d] rv = %s\n",entryid,oh_lookup_error(rvRdrGet));
+
+					if (rvRdrGet == SA_OK)
+					{
+						if (rdr.RdrType == SAHPI_INVENTORY_RDR)
+						{
+                                                	inv_discovered = 1;
+														
+							idrid = rdr.RdrTypeUnion.InventoryRec.IdrId;
+							rvInvent = saHpiIdrInfoGet(
+										sessionid,
+										resourceid,
+										idrid,
+										&idrInfo);		
+
+							if (rvInvent !=SA_OK) {
+								printf("saHpiIdrInfoGet error %s\n", oh_lookup_error(rvInvent));
+							} else {
+								prt_idrInfo(sessionid, resourceid, &idrInfo);
+								walkInventory(sessionid, resourceid, &idrInfo);
+							}
+													} 
+					}
+					entryid = nextentryid;
+				} while ((rvRdrGet == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
+			}
+			rptentryid = nextrptentryid;
+		} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
+
 
 	/* 
-	   because INVENTORY RDR will be added after some time, 
-	   we need to monitor RptInfo here 
-	 */
-						/* Try again */
-	if (!inv_discovered) {
-			rv = saHpiResourcesDiscover(sessionid);
-			if (fxdebug) {
-					printf("saHpiResourcesDiscover rv = %d\n",rv);
-			}
-			goto restart;
-	} 
-
+	   Because INVENTORY RDR will be added after some time, 
+	   we need to monitor RptInfo here. 
+	
+	   Try again if none was found this pass 
+	*/        
+	} while (!inv_discovered);
 	rv = saHpiSessionClose(sessionid);
-	rv = saHpiFinalize();	
+	/* rv = saHpiFinalize();	*/
 	
 	exit(0);
 }
 
- /* end hpi_invent.c */
+
+/* 
+ * This routine walks the complete inventory idr for this resource.
+ * It does not look for a particular IdrAreaType or IdrFieldType.
+ * Particular type tests are coverred in respecting routines.
+ *
+**/
+void walkInventory(	SaHpiSessionIdT sessionid,
+			SaHpiResourceIdT resourceid,
+			SaHpiIdrInfoT	*idrInfo)
+{
+
+	SaErrorT 	rv = SA_OK, 
+			rvField = SA_OK;
+
+	SaHpiUint32T	numAreas;
+	SaHpiUint32T	countAreas = 0;
+	SaHpiUint32T	countFields = 0;
+
+	SaHpiEntryIdT	areaId;
+	SaHpiEntryIdT	nextareaId;
+	SaHpiIdrAreaTypeT areaType;
+	SaHpiIdrAreaHeaderT  areaHeader;
+
+	SaHpiEntryIdT	fieldId;
+	SaHpiEntryIdT	nextFieldId;
+	SaHpiIdrFieldTypeT fieldType;
+	SaHpiIdrFieldT	      thisField;
+
+
+
+	numAreas = idrInfo->NumAreas;
+	areaType = SAHPI_IDR_AREATYPE_UNSPECIFIED;
+	/* areaId = SAHPI_FIRST_ENTRY; */
+	areaId = 1;
+
+	do {
+		rv = saHpiIdrAreaHeaderGet(sessionid,
+					   resourceid,
+					   idrInfo->IdrId,
+					   areaType,
+					   areaId,
+					   &nextareaId,
+					   &areaHeader);
+		if (rv == SA_OK) {
+			countAreas++;
+			prt_areaHeader(&areaHeader);
+
+			fieldType = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+			fieldId = SAHPI_FIRST_ENTRY;
+		
+			do {
+				rvField = saHpiIdrFieldGet(
+							sessionid,	
+							resourceid,
+							idrInfo->IdrId,
+							areaId, 
+							fieldType,
+							fieldId,
+							&nextFieldId,
+							&thisField);
+				if (rvField == SA_OK) {
+					countFields++; 
+					prt_idrField(&thisField);
+				}
+ 
+				if (fdebug) printf("saHpiIdrFieldGet  error %s\n",oh_lookup_error(rvField));
+				fieldId = nextFieldId;
+			} while ((rvField == SA_OK) && (fieldId != SAHPI_LAST_ENTRY));
+			
+			if ( countFields != areaHeader.NumFields) 
+				printf("Area Header error! areaHeader.NumFields %d, countFields %d\n",
+					areaHeader.NumFields, countFields);
+		} else {
+			printf("saHpiIdrAreaHeaderGet error %s\n",oh_lookup_error(rv));
+		}
+		areaId = nextareaId;
+	
+	} while ((rv == SA_OK) && (areaId != SAHPI_LAST_ENTRY)); 
+
+	if ((rv == SA_OK) && (countAreas != numAreas)) 
+		printf("idrInfo error! idrInfo.NumAreas = %d; countAreas = %d\n", 
+				numAreas, countAreas);
+ 	
+}
+
+void prt_idrField(SaHpiIdrFieldT *thisField) 
+{
+	printf("\t\tField Id:\t%d\n", thisField->FieldId);
+
+	printf("\t\tField Type:\t%s\n", oh_lookup_idrfieldtype(thisField->Type)); 
+	printf("\t\tReadOnly:\t%d\n", thisField->ReadOnly); 
+	printf("\t\tDataType:\t%s\n", oh_lookup_texttype(thisField->Field.DataType));
+	printf("\t\tLanguage:\t%s\n", oh_lookup_language(thisField->Field.Language));;
+	oh_print_textbuffer((SaHpiTextBufferT *)&thisField->Field);
+	
+	return;
+}
+
+
+
+void prt_areaHeader(SaHpiIdrAreaHeaderT *areaHeader)
+{
+	printf("\tAreaId %d\n", areaHeader->AreaId);
+	printf("\tAreaType: %s\n", oh_lookup_idrareatype(areaHeader->Type));
+	printf("\tReadOnly %d\n",  areaHeader->ReadOnly);
+	printf("\tNumFields %d\n",areaHeader->NumFields);
+	return;
+}
+
+void prt_idrInfo( SaHpiSessionIdT sessionid,
+                  SaHpiResourceIdT resourceid,
+                  SaHpiIdrInfoT   *idrInfo)
+{
+
+	printf("Inventory Data Record\n");
+	printf("    SessionId   %d\n", sessionid);
+	printf("    ResourceId  %d\n", resourceid);
+	printf("    IdrId       %d\n", idrInfo->IdrId);
+	printf("    UpdateCount %d\n", idrInfo->UpdateCount);
+	printf("    ReadOnly    %d\n",idrInfo->ReadOnly); 
+	printf("    NumAreas    %d\n", idrInfo->NumAreas);
+	return;
+}
+
+
+ /* end hpiinv.c */
