@@ -325,13 +325,12 @@ FindUnionModifierType( const cMarshalType *type, cMarshalType *st_type, const vo
 
        case eMtUint16:
        case eMtInt16:
-	    m = (tUint32)*so;
-	    //memcpy(m,so,sizeof(m));
+	    m = (tUint32)*(const tUint16 *)so;
 	    break;
 
        case eMtUint32:
        case eMtInt32:
-	    m = *so;
+	    m = *(const tUint32 *)so;
 	    break;
 
        default:
@@ -371,12 +370,12 @@ FindArraySize( const cMarshalType *type, cMarshalType *st_type, const void *d )
 
        case eMtUint16:
        case eMtInt16:
-	    size = *so;
+	    size = (tUint32)*(const tUint16 *)so;
 	    break;
 
        case eMtUint32:
        case eMtInt32:
-	    size = *so;
+	    size = *(const tUint32 *)so;
 	    break;
 
        default:

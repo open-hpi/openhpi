@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 
 // text buffer
@@ -393,10 +394,7 @@ SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
   b    += s;
 
   // placeholder for number of entries
-  tUint32 *num;
-  num = malloc(sizeof(tUint32 *));
-  memcpy(&num, b, sizeof(num));
-  //tUint32 *num = (tUint32 *)b;
+  tUint32 *num = (tUint32 *)b;
   b += sizeof( tUint32 );
   size += sizeof( tUint32 );
 
@@ -482,13 +480,10 @@ SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
   size += s;
   b    += s;
 
-  tUint32 *len;
-  len = malloc(sizeof(tUint32 *));
-  memcpy(&len, b, sizeof(len));
-  //tUint32 *len = (tUint32 *)b;
+  tUint32 *len = (tUint32 *)b;
   size += sizeof( tUint32 );
   b += sizeof( tUint32 );
-  
+
   tUint32 l;
 
   switch( r->RecordType )
@@ -625,8 +620,7 @@ SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
        size += s;
        b    += s;
 
-       //*tbp = (SaHpiTextBufferT *)data;
-	memcpy(tbp, data, sizeof(tbp));
+       *tbp = (SaHpiTextBufferT *)data;
 
        data += sizeof( SaHpiTextBufferT );
        *data_size += sizeof( SaHpiTextBufferT );
@@ -767,8 +761,7 @@ SaHpiInventoryDataDemarshaller( int byte_order, const cMarshalType *type, void *
      {
        tUint32 data_size;
 
-       //id->DataRecords[i] = (SaHpiInventDataRecordT *)data_ptr;
-	memcpy(id->DataRecords[i], data_ptr, sizeof(id->DataRecords[i]));
+       id->DataRecords[i] = (SaHpiInventDataRecordT *)data_ptr;
        s = SaHpiInventDataRecordDemarshaller( byte_order, id->DataRecords[i], b, &data_size );
        b    += s;
        size += s;
