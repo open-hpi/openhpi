@@ -18,7 +18,7 @@ DIST_SUBDIRS 		= t
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 AM_CFLAGS		= @CFLAGS@
-INCLUDES 		= -I $(top_srcdir)/include -I $(top_srcdir)/utils -I $(top_srcdir)/marshal
+INCLUDES 		= @OPENHPI_INCLUDES@  -I $(top_srcdir)/marshal
 
 #EXTRA_DIST              = README openhpiclient.conf openhpid.conf
 

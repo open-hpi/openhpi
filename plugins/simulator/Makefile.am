@@ -31,7 +31,7 @@
  
 MAINTAINERCLEANFILES 	= Makefile.in
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
+INCLUDES		= @OPENHPI_INCLUDES@ 
 
 AM_CFLAGS		= -g @CFLAGS@
 

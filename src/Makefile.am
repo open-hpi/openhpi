@@ -36,7 +36,7 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 EXTRA_DIST              = plugin_static.c.in hpi.sym
 
-INCLUDES                = -I$(top_srcdir)/include -I$(top_srcdir)/utils
+INCLUDES                = @OPENHPI_INCLUDES@ 
 
 SUBDIRS                 = t
 DIST_SUBDIRS            = t

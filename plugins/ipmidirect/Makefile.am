@@ -31,7 +31,7 @@
 
 MAINTAINERCLEANFILES    = Makefile.in *~ core core.*
 
-INCLUDES                = -I$(top_srcdir)/include -I$(top_srcdir)/utils
+INCLUDES                = @OPENHPI_INCLUDES@ 
 
 SUBDIRS                 = t
 DIST_SUBDIRS            = t

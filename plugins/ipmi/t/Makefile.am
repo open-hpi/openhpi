@@ -31,7 +31,7 @@
  
 MAINTAINERCLEANFILES 	= Makefile.in
 noinst_PROGRAMS         = thres_event set_thres ipmi_thres_hyst
-INCLUDES                = -I$(top_srcdir)/include
+INCLUDES                = @OPENHPI_INCLUDES@
 AM_CFLAGS               = -g
 
 thres_event_SOURCES	= thres_event.c	

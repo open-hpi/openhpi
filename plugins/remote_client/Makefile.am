@@ -31,7 +31,7 @@
 
 MAINTAINERCLEANFILES    = Makefile.in *~ core core.*
 MOSTLYCLEANFILES 	= openhpiclient.cpp
-INCLUDES                = -I$(top_srcdir)/utils -I$(top_srcdir)/include -I$(top_srcdir)/openhpid -I$(top_srcdir)/marshal
+INCLUDES                =  @OPENHPI_INCLUDES@ -I$(top_srcdir)/openhpid -I$(top_srcdir)/marshal
 
 AM_CFLAGS               = @CFLAGS@
 

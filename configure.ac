@@ -545,6 +545,10 @@ AC_SUBST(NOCFLAGS)
 NOCXXFLAGS=`echo $CXXFLAGS | perl -p -e 's/-O\S*//g'`
 AC_SUBST(NOCXXFLAGS)
 
+OPENHPI_INCLUDES="-I\$(top_srcdir)/include -I\$(top_srcdir)/utils -I\$(top_builddir)/utils"
+dnl replace common includes here
+AC_SUBST(OPENHPI_INCLUDES)
+
 dnl Set up libs that will be linked to
 LIBS="$LIBS $GLIB_LIBS -lm"
 if test "x$THREAD_SAFE" = "xyes" ; then

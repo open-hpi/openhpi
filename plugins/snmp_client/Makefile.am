@@ -20,7 +20,7 @@ EXTRA_DIST 		= \
 			  snmp_client_utils.h \
 			  sc_sensor_data.h
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils -I$(SNMPUTILSDIR)
+INCLUDES		= @OPENHPI_INCLUDES@  -I$(SNMPUTILSDIR)
 
 AM_CFLAGS		= -g @CFLAGS@ @SNMPFLAGS@
 
