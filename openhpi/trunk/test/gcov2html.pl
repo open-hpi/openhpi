@@ -39,20 +39,18 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>GCOV execution analyis for $title</title>
-<style>
-<!--#include virtual="/openhpi.css" -->
-</style>
+<link rel="stylesheet" href="openhpi.css" type="text/css">
 </head>
 <body>
+<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>
 <table>
 <tr>
 <!--#include virtual="/sidebar.html" -->
-<td valign="top">
-<h1>GCOV Execution Analysis for $title</h1>
-<p>
+<td id="maincolumn"><div class="mainsegment">
+<h3>GCOV Execution Analysis for $title</h3>
+<div>
 The left column is the number of times the code was executed
 during the unit test suites.
-</p>
 <table>
 <tr><th>Exec</th><th>&nbsp;</th><th>Code</th></tr>
 END
@@ -60,8 +58,8 @@ END
 
 sub make_html_tail {
     return <<END;
-</table>
-</td></tr></table>
+</table></div>
+</div></td></tr></table>
 </body>
 </html>
 END

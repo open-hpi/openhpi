@@ -41,23 +41,23 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>GCOV Report for $title</title>
-<style>
-<!--#include virtual="/openhpi.css" -->
-</style>
+<link rel="stylesheet" href="openhpi.css" type="text/css">
 </head>
 <body>
+<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>
 <table>
 <tr>
 <!--#include virtual="/sidebar.html" -->
-<td valign="top">
-<h1>GCOV Summary for $title</h1>
+<td id="maincolumn"><div class="mainsegment">
+<h3>GCOV Summary for $title</h3>
+<div>
 END
 }
 
 sub make_html_tail {
     return <<END;
-</table>
-</td></tr></table>
+</table></div>
+</div></td></tr></table>
 </body>
 </html>
 END
