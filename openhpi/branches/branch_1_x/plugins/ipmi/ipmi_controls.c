@@ -142,9 +142,12 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_ERROR;
 	}
 
-        ohoi_loop(&info.done, ipmi_handler);
-
-	return SA_OK;
+        if (info.done<0) {
+                dbg("Invalid control state data");
+                return SA_ERR_HPI_INVALID;
+        }
+        
+        return ohoi_loop(&info.done, ipmi_handler);
 }
 
 static void set_reset_state(ipmi_control_t *control,
