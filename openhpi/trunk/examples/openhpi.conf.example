@@ -14,6 +14,9 @@ plugin	libdummy
 #Second section is a handler (instance) declaration with arguments understood by plugin
 #Only arguments starting with numbers, should be enclosed in quotes " "
 
-handler	libdummy	"0"	"0"
+handler	libdummy {
+	name = "0"
+	value =	"0"
+}
 
 #handler libipmi	lan "ip.address port	auth_type	auth_level	username	password"

@@ -282,7 +282,7 @@ struct oh_dsel {
 extern GSList *global_plugin_list;
 
 /*
- *  Global listing of handler configs (oh_handler_config).  This list is 
+ *  Global listing of handler configs (GHashTable).  This list is 
  *  populated during config file parse, and used to build 
  *  global_handler_list
  */

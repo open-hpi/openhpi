@@ -99,7 +99,7 @@ static inline struct oh_rdr * get_rdr(
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
         struct oh_plugin_config *tmpp;
-        struct oh_handler_config *tmph;
+        GHashTable *tmph;
       
         int i;
         char *openhpi_conf;
@@ -132,16 +132,21 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         }
         
         for(i = 0; i < g_slist_length(global_handler_configs); i++) {
-                tmph = (struct oh_handler_config *) g_slist_nth_data(
+                tmph = (GHashTable *) g_slist_nth_data(
                         global_handler_configs, i);
-                if(plugin_refcount(tmph->plugin) > 0) {
-                        if(load_handler(tmph->plugin, tmph->name, tmph->addr) == 0) {
-                                dbg("Loaded handler for plugin %s", tmph->plugin);
+                if(plugin_refcount((char *)g_hash_table_lookup(tmph, "plugin")) > 0) {
+                        if(load_handler((char *)g_hash_table_lookup(tmph, "plugin"),
+                                (char *)g_hash_table_lookup(tmph, "name"),
+                                (char *)g_hash_table_lookup(tmph, "addr")) == 0) {
+                                dbg("Loaded handler for plugin %s",
+                                        (char *)g_hash_table_lookup(tmph, "plugin"));
                         } else {
-                                dbg("Couldn't load handler for plugin %s", tmph->plugin);
+                                dbg("Couldn't load handler for plugin %s",
+                                        (char *)g_hash_table_lookup(tmph, "plugin"));
                         }
                 } else {
-                        dbg("load handler for unknown plugin %s", tmph->plugin);
+                        dbg("load handler for unknown plugin %s",
+                                (char *)g_hash_table_lookup(tmph, "plugin"));
                 }
         }
         

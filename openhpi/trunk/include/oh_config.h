@@ -42,11 +42,11 @@ struct oh_plugin_config {
         struct oh_abi_v1 *abi;
 };
 
-struct oh_handler_config {
+/*struct oh_handler_config {
         char *plugin;
         char *name;
         char *addr;
-};
+};*/
 
 int oh_load_config(char *);
 

@@ -99,7 +99,7 @@ static GScannerConfig oh_scanner_config =
                 FALSE			/* int_2_float */,
                 TRUE			/* identifier_2_string */,
                 FALSE			/* char_2_token */,
-                TRUE			/* symbol_2_token */,
+                FALSE			/* symbol_2_token */,
                 FALSE			/* scope_0_fallback */,
         };
 
@@ -111,9 +111,10 @@ GTokenType get_next_token_if (GScanner *, GTokenType);
 int process_plugin_token (GScanner *);
 
 int process_handler_token (GScanner *);
+void free_hash_table (gpointer key, gpointer value, gpointer user_data);
 
 struct oh_plugin_config * new_plugin_config (char *);
-struct oh_handler_config * new_handler_config (char *, char *, char *);
+/*struct oh_handler_config * new_handler_config (char *, char *, char *);*/
 
 
 /**
@@ -152,7 +153,7 @@ struct oh_plugin_config *new_plugin_config (char *plugin)
  * 
  * Return value: 
  **/
-struct oh_handler_config *new_handler_config (char *plugin, char *name, char *addr) 
+/*struct oh_handler_config *new_handler_config (char *plugin, char *name, char *addr) 
 {
         struct oh_handler_config *hc;
         
@@ -173,7 +174,7 @@ struct oh_handler_config *new_handler_config (char *plugin, char *name, char *ad
         }
         
         return hc;
-}
+}*/
 
 /**
  * get_next_token_if:  returns the next token if it matches an expected type
@@ -185,7 +186,7 @@ struct oh_handler_config *new_handler_config (char *plugin, char *name, char *ad
  * Return value: expected on success, G_TOKEN_ERROR on fail
  **/
 
-GTokenType get_next_token_if (GScanner* oh_scanner, GTokenType expected)
+/*GTokenType get_next_token_if (GScanner* oh_scanner, GTokenType expected)
 { 
         GTokenType my_token;
         
@@ -198,7 +199,7 @@ GTokenType get_next_token_if (GScanner* oh_scanner, GTokenType expected)
         }
         
         return G_TOKEN_ERROR;
-}
+}*/
 
 /**
  * process_plugin_token:
@@ -284,55 +285,99 @@ struct oh_plugin_config * plugin_config (char *name)
  **/
 int process_handler_token (GScanner* oh_scanner) 
 {
-        int i;
-        int numstanza = 3;
-        GSList *templist = NULL;
-        struct oh_handler_config *temp_config;
-        char *temps;
-        guint my_token;
+        GHashTable *handler_stanza = NULL;
+        char *tablekey;
+        int foundRightCurly = 0;
+
         
-        my_token = get_next_token_if(oh_scanner, 
-                                     HPI_CONF_TOKEN_HANDLER);
-        
-        if (my_token != HPI_CONF_TOKEN_HANDLER) {
-                dbg("Token is not what I was promissed");
+        if (g_scanner_get_next_token(oh_scanner) != HPI_CONF_TOKEN_HANDLER) {
+                dbg("Processing handler: Expected handler token.");
                 return -1;
         }
-        
-        for(i = 0; i < numstanza; i++) {
-                my_token = get_next_token_if(oh_scanner, G_TOKEN_STRING);
-                if(my_token != G_TOKEN_STRING) {
-                        dbg("String expected");
-                        goto free_temp;
+
+        /* Get the plugin type and store in Hash Table */
+        if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
+                dbg("Processing handler: Expected string token.");
+                return -1;
+        } else {
+                handler_stanza = g_hash_table_new(g_str_hash, g_str_equal);
+                tablekey = "plugin";
+                g_hash_table_insert(handler_stanza,
+                                    (gpointer) g_strdup(tablekey),
+                                    (gpointer) g_strdup(oh_scanner->value.v_string));
+        }        
+
+        /* Check for Left Brace token type. If we have it, then continue parsing. */
+        if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_LEFT_CURLY) {
+                dbg("Processing handler: Expected left curly token.");
+                goto free_table;
+        }
+
+        while(!foundRightCurly) {
+                /* get key token in key\value pair set (e.g. key = value) */
+                if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
+                        dbg("Processing handler: Expected string token.");
+                        goto free_table;
                 } else {
-                        templist = g_slist_append(
-                                templist, 
-                                (gpointer *) g_strdup(oh_scanner->value.v_string)
-                                );
+                        tablekey = g_strdup(oh_scanner->value.v_string);                        
+                }
+
+                /* Check for the equal sign next. If we have it, continue parsing */
+                if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_EQUAL_SIGN) {
+                        dbg("Processing handler: Expected equal sign token.");
+                        free(tablekey);
+                        goto free_table;
+                }
+
+                /**
+                Now check for the value token in the key\value set. Store the key\value value pair
+                in the hash table and continue on.
+                */
+                if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
+                        dbg("Processing handler: Expected string token.");
+                        free(tablekey);
+                        goto free_table;
+                } else {
+                        g_hash_table_insert(handler_stanza,
+                                    (gpointer) g_strdup(tablekey),
+                                    (gpointer) g_strdup(oh_scanner->value.v_string));
+                                    free(tablekey);
+                }
+
+                if (g_scanner_peek_next_token(oh_scanner) == G_TOKEN_RIGHT_CURLY) {
+                        foundRightCurly = 1;
                 }
         }
 
-        temp_config = new_handler_config(
-                g_slist_nth_data(templist, 0),
-                g_slist_nth_data(templist, 1),
-                g_slist_nth_data(templist, 2)
-                );
-        
-        if(temp_config != NULL) {
+        /* Attach table describing handler stanza to the global linked list of handlers */
+        if(handler_stanza != NULL) {
                 global_handler_configs = g_slist_append(
                         global_handler_configs,
-                        (gpointer *) temp_config
-                        );
+                        (gpointer) handler_stanza);
         }
-        
- free_temp:
-        for(i = 0; i < g_slist_length(templist); i++) {
-                temps = (char *) g_slist_nth_data(templist, i);
-                free(temps);
-        }
-        g_slist_free(templist);
         
         return 0;
+
+free_table:
+        /**
+        There was an error reading a token so we need to error out,
+        but not before cleaning up. Iterate through the table
+        freeing each key and value set. Then destroy the table.
+        */
+        g_hash_table_foreach(handler_stanza, free_hash_table, NULL);
+        g_hash_table_destroy(handler_stanza);        
+        return -1;
+}
+
+/**
+free_hash_table: used in the g_hash_table_foreach call in process_handler_token.
+This funtion is passed to that table call by reference. Frees the memory allocated
+for the key and value arguments it receives.
+*/
+void free_hash_table (gpointer key, gpointer value, gpointer user_data)
+{
+        free(key);
+        free(value);
 }
 
 /**
