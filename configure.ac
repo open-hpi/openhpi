@@ -157,12 +157,12 @@ AC_ARG_ENABLE([examples],
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS examples"])
 
-AC_ARG_ENABLE([utilities],
-    [  --enable-utilities      build HPI utilities [default=yes]],
+AC_ARG_ENABLE([clients],
+    [  --enable-clients        build HPI client programs [default=yes]],
     [if test "x$enableval" = "xyes"; then
-	ENABLED_DIRS="$ENABLED_DIRS util"
+	ENABLED_DIRS="$ENABLED_DIRS clients"
     fi],
-    [ENABLED_DIRS="$ENABLED_DIRS util"])
+    [ENABLED_DIRS="$ENABLED_DIRS clients"])
 
 AC_SUBST(ENABLED_DIRS)
 
@@ -500,7 +500,7 @@ AC_CONFIG_FILES([openhpi.spec
         docs/Makefile
         docs/hld/Makefile
         examples/Makefile
-	util/Makefile])
+	clients/Makefile])
 
 AC_OUTPUT
 
