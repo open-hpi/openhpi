@@ -51,7 +51,9 @@
  *      |
  *      +-- {PROCESSOR,[1-8]}        (CPUs)
  *      |
- *      +-- {DISK_BAY,[1-4]}         (DASD)
+ *      +-- {DISK_BAY,[1-4]}         (DASDs)
+ *      |
+ *      +-- {FAN,[1-8]}              (Fans)
  *
  * Differences between the models are discovered dynamically by this
  * plugin at run-time during resource discovery.
