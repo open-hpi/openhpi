@@ -279,18 +279,23 @@ int get_events(void)
 }
 
 static unsigned int get_log_severity(char *severity) {
-        if (!severity) return SAHPI_INFORMATIONAL;
-        else if (!strcmp("CRITICAL", severity)) {
-                return SAHPI_CRITICAL;
-        } else if (!strcmp("MAJOR",severity)) {
-                return SAHPI_MAJOR;
-        } else if (!strcmp("MINOR",severity)) {
-                return SAHPI_MINOR;
-        } else if (!strcmp("OK",severity)) {
-                return SAHPI_OK;        
-        } else if (!strcmp("DEBUG",severity)) {
-                return SAHPI_DEBUG;
-        } else {
-                return SAHPI_INFORMATIONAL;
-        }
+	unsigned int sev = SAHPI_MINOR;
+
+	if (!severity) {
+	       	return sev;
+	} else if (!strcmp("CRITICAL", severity)) {
+                sev = SAHPI_CRITICAL;
+        } else if (!strcmp("MAJOR", severity)) {
+                sev = SAHPI_MAJOR;
+        } else if (!strcmp("MINOR", severity)) {
+                sev = SAHPI_MINOR;
+        } else if (!strcmp("OK", severity)) {
+                sev = SAHPI_OK;        
+        } else if (!strcmp("DEBUG", severity)) {
+                sev = SAHPI_DEBUG;
+        } else if (!strcmp("INFORMATIONAL", severity)) {
+		sev = SAHPI_INFORMATIONAL;
+	}
+
+	return sev;
 }
