@@ -787,21 +787,31 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 dbg("SEL entry get failed");
         }
 
-        if (RptEntry) *RptEntry = *res;
-        if (Rdr) {
+        if ((RptEntry != NULL) && 
+            (EventLogEntry != NULL) &&
+            (EventLogEntry->Event.Source)) {
+                
+                OH_RESOURCE_GET(rpt, EventLogEntry->Event.Source, res);
+                if(res != NULL) {
+                        *RptEntry = *res;
+                }
+        }
+        if ((EventLogEntry != NULL) &&
+            (res != NULL) &&
+            (Rdr != NULL)) {
                 SaHpiRdrT *tmprdr = NULL;
                 SaHpiUint8T num;
                 switch (EventLogEntry->Event.EventType) {
                         case SAHPI_ET_SENSOR:
                                 num = EventLogEntry->Event.EventDataUnion.SensorEvent.SensorNum;
-                                tmprdr = oh_get_rdr_by_type(rpt,ResourceId,SAHPI_SENSOR_RDR,num);
+                                tmprdr = oh_get_rdr_by_type(rpt,res->ResourceId,SAHPI_SENSOR_RDR,num);
                                 if (tmprdr)
                                          memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
                                 else dbg("saHpiEventLogEntryGet: Could not find rdr.");
                                 break;
                         case SAHPI_ET_WATCHDOG:
                                 num = EventLogEntry->Event.EventDataUnion.WatchdogEvent.WatchdogNum;
-                                tmprdr = oh_get_rdr_by_type(rpt,ResourceId,SAHPI_WATCHDOG_RDR,num);
+                                tmprdr = oh_get_rdr_by_type(rpt,res->ResourceId,SAHPI_WATCHDOG_RDR,num);
                                 if (tmprdr)
                                          memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
                                 else dbg("saHpiEventLogEntryGet: Could not find rdr.");
