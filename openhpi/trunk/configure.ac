@@ -177,11 +177,21 @@ STATIC_PLUGIN_EXTRA_LIBS=
 AC_ARG_ENABLE([snmp_client],
     [  --enable-snmp_client          build snmp_client plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
-        AC_SUBST(SNMP_CLIENT,snmp_client)
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_CLIENT,snmp_client)
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build SNMP client support without net-snmp)
+        fi
      elif test "x$enableval" = "xstatic"; then
-        AC_SUBST(SNMP_CLIENT,snmp_client)
-        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
-        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_CLIENT,snmp_client)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build SNMP client support without net-snmp)
+        fi
     fi],
     [if test "x$have_netsnmp" = "xyes"; then
         AC_SUBST(SNMP_CLIENT,snmp_client)
@@ -246,7 +256,6 @@ AC_ARG_ENABLE([snmp_bc],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
-#            CFLAGS="$CFLAGS" $SNMPFLAGS"
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM Blade Center support without net-snmp)
@@ -254,7 +263,6 @@ AC_ARG_ENABLE([snmp_bc],
     fi],
     [if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
-#            CFLAGS="$CFLAGS $SNMPFLAGS"
     fi]
     )
 
@@ -359,7 +367,7 @@ includedir=`var "$includedir" "$exec_prefix/include"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
 
-TEST_CLEAN='$(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)'
+TEST_CLEAN='$(shell ls *.bb* *.da *.gcov *.summary)'
 AC_SUBST(TEST_CLEAN)
 
 AC_C_STRINGIZE
