@@ -144,6 +144,8 @@ int main (int argc, char *argv[])
                         display_help();
                         exit(0);
                 default:
+			/* they obviously need it */
+			display_help();
                         exit(-1);
                 }
         }
@@ -153,7 +155,8 @@ int main (int argc, char *argv[])
         }
         if (optind < argc) {
                 printf("Error: Unknown command line option specified .\n");
-                printf("       Aborting execution.\n");
+                printf("       Aborting execution.\n\n");
+		display_help();
                 exit(-1);
         }
 
@@ -178,7 +181,8 @@ int main (int argc, char *argv[])
         if (pfile == -1) {
                 // there is already a server running
                 printf("Error: Cannot open PID file .\n");
-                printf("       Aborting execution.\n");
+                printf("       Aborting execution.\n\n");
+                display_help();
                 exit(1);
         }
         snprintf(pid_buf, sizeof(pid_buf), "%d\n", (int)getpid());
@@ -189,12 +193,14 @@ int main (int argc, char *argv[])
         char *cfgfile = getenv("OPENHPI_CONF");
         if (cfgfile == NULL) {
                 printf("Error: Configuration file not specified .\n");
-                printf("       Aborting execution.\n");
+                printf("       Aborting execution.\n\n");
+		display_help();
                 exit(-1);
         }
         if (!g_file_test(cfgfile, G_FILE_TEST_EXISTS)) {
                 printf("Error: Configuration file does not exist.\n");
-                printf("       Aborting execution.\n");
+                printf("       Aborting execution.\n\n");
+		display_help();
                 exit(-1);
         }
         configfile = (char *) malloc(strlen(cfgfile) + 1);
