@@ -79,10 +79,10 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id):
         (029) Destroy handler twice.        
         
 SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info):
-        () Pass null as argument.
-        () Pass bogus handler id.
+        (030) Pass null as argument.
+        (031) Pass bogus handler id.
         
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id):
-        () Pass null as arguments (for each argument).
-        () Get next bogus handler.
-        () Create three handlers, destroy one, and get next that one.
+        (032) Pass null as arguments (for each argument).
+        (033) Get next bogus handler.
+        (034) Create three handlers, destroy one, and get next that one.
