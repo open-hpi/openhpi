@@ -17,13 +17,6 @@
 #include "marshal_hpi.h"
 
 
-static const cMarshalType *saHpiSessionOpenIn[] =
-{
-  &SaHpiDomainIdType, // domain id (SaHpiDomainIdT)
-  0
-};
-
-
 static const cMarshalType *saHpiSessionOpenOut[] =
 {
   &SaErrorType, // result (SaErrorT)
