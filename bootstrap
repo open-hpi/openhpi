@@ -35,6 +35,7 @@
 
 aclocal
 libtoolize -c --automake
+autoheader
 automake -a -c --foreign
 aclocal
 autoconf

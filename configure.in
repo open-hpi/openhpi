@@ -7,6 +7,8 @@ AC_PREREQ(2.50)
 AC_INIT(openhpi.spec.in)
 AM_INIT_AUTOMAKE(openhpi, 0.1)
 
+AM_CONFIG_HEADER(config.h)
+
 dnl AM_CONFIG_HEADER(./config.h)
 
 AC_PROG_CC
