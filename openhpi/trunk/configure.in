@@ -26,9 +26,28 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
 dnl Check fo libraries
-AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con])
-AC_CHECK_LIB([ltdl], [lt_dlopen])
-AC_CHECK_LIB([uuid], [uuid_generate], [], [
+have_uuid=no
+have_openipmi=no
+
+AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
+    echo "************************************************************"
+    echo "* libltdl not found!"
+    echo "* this is require for plugin loading"
+    echo "************************************************************"
+    exit 1
+    ])
+
+AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes],[
+    echo "************************************************************"
+    echo "* OpenIPMI not found!"
+    echo "* currently OpenIPMI is required for build of openhpi"
+    echo "* please download and install the latest version of the software"
+    echo "* from http://openipmi.sf.net"
+    echo "************************************************************"
+    exit 1
+    ])
+    
+AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     echo "************************************************************"
     echo "* libuuid not found!"
     echo "* Please install e2fsprogs-devel to get the required files" 
