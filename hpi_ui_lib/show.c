@@ -385,11 +385,25 @@ void show_short_event(SaHpiEventT *event)
 			if (rv == SA_OK) {
 				printf("%s:", tmbuf.Data);
 				if (sen->Assertion == SAHPI_TRUE)
-					printf("TRUE ");
+					printf("ASSERTED ");
 				else
-					printf("FALSE ");
+					printf("DISASSERTED ");
 			};
 			break;
+		case SAHPI_ET_RESOURCE:
+			printf("%d ", event->Source);
+			printf("%s ", oh_lookup_severity(event->Severity));
+			printf("%s  ", oh_lookup_resourceeventtype(event->EventDataUnion.
+					ResourceEvent.ResourceEventType)); 
+			break;
+		case SAHPI_ET_HOTSWAP:
+			printf("%d ", event->Source);
+			printf("%s ", oh_lookup_severity(event->Severity));
+			printf("%s -> %s", oh_lookup_hsstate(
+				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState),
+				oh_lookup_hsstate(
+				event->EventDataUnion.HotSwapEvent.HotSwapState));
+			break;						 
 		default:
 			printf("%d", event->Source);
 			break;
