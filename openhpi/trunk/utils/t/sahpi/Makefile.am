@@ -8,7 +8,7 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-REMOTE_SOURCES		= SaHpi_struct_utils.c
+REMOTE_SOURCES		= SaHpi_enum_utils.c SaHpi_struct_utils.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
@@ -21,10 +21,10 @@ $(REMOTE_SOURCES):
 		ln -sf ../../$@; \
 	fi
 
-TESTS = \
+TESTS = tSaHpi_enum_utils \
 	tSaHpi_struct_utils
 
-check_PROGRAMS = \
-	tSaHpi_struct_utils
+check_PROGRAMS = $(TESTS)
 
+tSaHpi_enum_utils_SOURCES = tSaHpi_enum_utils.c  $(REMOTE_SOURCES)
 tSaHpi_struct_utils_SOURCES = tSaHpi_struct_utils.c $(REMOTE_SOURCES)
