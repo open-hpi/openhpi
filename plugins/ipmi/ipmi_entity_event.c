@@ -122,6 +122,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->ResourceEntity.Entry[1].EntityLocation = 0;
 
 	entry->EntryId = 0;
+	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
 	entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
 	
 	entry->HotSwapCapabilities = 0;
@@ -147,10 +148,10 @@ static void get_entity_event(ipmi_entity_t	*entity,
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU;
 	}
 
-	if (ipmi_entity_get_is_fru(entity)) {
-		dbg("Entity supports FRU Inventory Data");
-		entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
-	}
+//	if (ipmi_entity_get_is_fru(entity)) {
+//		dbg("Entity supports FRU Inventory Data");
+//		entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
+//	}
 			
 	if (entry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BOARD)
 	{	/* This is the BMC entry, so we need to add watchdog. */
@@ -552,7 +553,6 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 			if(inst >=96) {
 				inst = inst - 96;
 			}
-
 			dbg("***Entity changed: %d.%d",
 						ipmi_entity_get_entity_id(entity), 
 						inst);
