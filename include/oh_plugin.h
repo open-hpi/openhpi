@@ -299,19 +299,24 @@ struct oh_abi_v2 {
                                     SaHpiSensorNumT num,
                                     const SaHpiBoolT enables);
 
-	/**
+        /* SLD - 6/8/2004 we might want to change the names of these calls
+           as control calls also get mode now */
+        
+        /**
 	 * get control state
 	 */
 	SaErrorT (*get_control_state)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiCtrlNumT num,
-                                 SaHpiCtrlStateT *state);
+                                  SaHpiCtrlNumT num,
+                                  SaHpiCtrlModeT *mode,
+                                  SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
 	SaErrorT (*set_control_state)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiCtrlNumT num,
-                                 SaHpiCtrlStateT *state);
+                                  SaHpiCtrlNumT num,
+                                  SaHpiCtrlModeT mode,
+                                  SaHpiCtrlStateT *state);
 
 #if 0
 	/**
