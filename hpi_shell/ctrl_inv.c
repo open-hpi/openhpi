@@ -131,6 +131,7 @@ static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 	char		buf[256];
 	int		res, i;
 
+	memset(&field, 0, sizeof(SaHpiIdrFieldT));
 	i = get_int_param("Area Id: ", &res);
 	if (i != 1) {
 		printf("Error!!! Invalid Area Id\n");
@@ -156,17 +157,11 @@ static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 		};
 		field.Type = Field_types[i].val;
 	};
-	i = get_string_param("Field value: ", buf, 256);
+	printf("Field value: ");
+	i = set_text_buffer(&(field.Field));
 	if (i != 0) {
-		printf("Error!!! Invalid Field value: %s\n", buf);
-		return(-1);
-	};
-	i = strlen(buf);
-	if (i > 0) {
-		field.Field.DataType = SAHPI_TL_TYPE_TEXT;
-		field.Field.Language = SAHPI_LANG_ENGLISH;
-		field.Field.DataLength = i;
-		strcpy(field.Field.Data, buf);
+		printf("Invalid text\n");
+		return(HPI_SHELL_CMD_ERROR);
 	};
 	rv = saHpiIdrFieldSet(sessionId, rptid, rdrnum, &field);
 	if (rv != SA_OK) {
@@ -457,20 +452,12 @@ static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 				return HPI_SHELL_CMD_ERROR;
 			};
 			state.StateUnion.Text.Line = res;
-			i = get_string_param("Text: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-			str = buf;
-			while (*str == ' ') str++;
-			i = strlen(str);
-			while ((i > 0) && (str[i - 1] == ' ')) i--;
-			str[i] = 0;
-			if (i == 0) {
-				printf("Invalid text: %s\n", buf);
+			printf("Text: ");
+			i = set_text_buffer(&(state.StateUnion.Text.Text));
+			if (i != 0) {
+				printf("Invalid text\n");
 				return(HPI_SHELL_CMD_ERROR);
 			};
-			strcpy(state.StateUnion.Text.Text.Data, str);
-			state.StateUnion.Text.Text.DataType = SAHPI_TL_TYPE_TEXT;
-			state.StateUnion.Text.Text.Language = SAHPI_LANG_ENGLISH;
-			state.StateUnion.Text.Text.DataLength = i;
 			break;
 		case SAHPI_CTRL_TYPE_OEM:
 			i = get_int_param("Manufacturer Id: ", &res);
@@ -563,4 +550,109 @@ ret_code_t ctrl_block(void)
 	};
 	block_type = MAIN_COM;
 	return SA_OK;
+}
+
+static int stringtoascii6(char *str, char *ascii)
+{
+	int	ascii_ind = 0, ascii_len, i, j;
+	int	res = 0, n;
+	char	byte = 0, c;
+
+	n = strlen(str);
+	if (n == 0) return(0);
+	ascii_len = (n * 6 + 7) / 8;
+	memset(ascii, 0, ascii_len);
+	for (i = 0; i < n; i++) {
+		c = str[i];
+		for (j = 0; j < 64; j++)
+			if (c == ascii6_codes[j]) break;
+		if (byte >= 64) return(-1);
+		byte = j;
+		switch (i % 4) {
+			case 0:
+				ascii[ascii_ind] |= (byte & 0x3F);
+				break;
+			case 1:
+				res = (byte & 0x03) << 6;
+				ascii[ascii_ind++] |= res;
+				res = (byte & 0x3C) >> 2;
+				ascii[ascii_ind] |= res;
+				break;
+			case 2:
+				res = (byte & 0x0F) << 4;
+				ascii[ascii_ind++] |= res;
+				res = (byte & 0x30) >> 4;
+				ascii[ascii_ind] |= res;
+				break;
+			case 3:
+				res = byte << 2;
+				ascii[ascii_ind++] |= res;
+				break;
+		}
+	};
+	return(ascii_len);
+}
+
+int set_text_buffer(SaHpiTextBufferT *buf)
+{
+	int		i, j, ind;
+	char		str[SAHPI_MAX_TEXT_BUFFER_LENGTH], *str1;
+	SaHpiTextTypeT	type = SAHPI_TL_TYPE_TEXT;
+	SaHpiLanguageT	lang = SAHPI_LANG_ENGLISH;
+
+	i = get_string_param("DataType(text|bcd|ascii6|bin|unicode): ", str, 10);
+	if (i != 0) return(-1);
+	if (strcmp(str, "text") == 0) type = SAHPI_TL_TYPE_TEXT;
+	else if (strcmp(str, "bcd") == 0) type = SAHPI_TL_TYPE_BCDPLUS;
+	else if (strcmp(str, "ascii6") == 0) type = SAHPI_TL_TYPE_ASCII6;
+	else if (strcmp(str, "bin") == 0) type = SAHPI_TL_TYPE_BINARY;
+	else if (strcmp(str, "unicode") == 0) type = SAHPI_TL_TYPE_UNICODE;
+
+	/*
+	 *   ask a language for unicode and text: Fix me
+	 */
+
+	i = get_string_param("Text: ", str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	if (i != 0) return(-1);
+	buf->DataType = type;
+	switch (type) {
+		case SAHPI_TL_TYPE_UNICODE:
+			printf("UNICODE: not implemented");
+			return(-1);
+		case SAHPI_TL_TYPE_BCDPLUS:
+			str1 = (char *)&(buf->Data);
+			ind = 0;
+			for (i = 0; i < strlen(str); i++) {
+				for (j = 0; j < 0x0D; j++)
+					if (bcdplus_codes[j] == str[i]) break;
+				if (j >= 0x0D) return(-1);
+				if (i % 2) str1[ind++] += j;
+				else str1[ind] = j << 4;
+			};
+			buf->DataLength = (i + 1)/ 2;
+			break;
+		case SAHPI_TL_TYPE_ASCII6:
+			i = stringtoascii6(str, (char *)&(buf->Data));
+			if (i < 0) return(-1);
+			buf->DataLength = i;
+			break;
+		case SAHPI_TL_TYPE_TEXT:
+			snprintf((char *)&(buf->Data), SAHPI_MAX_TEXT_BUFFER_LENGTH, "%s", str);
+			buf->DataLength = strlen(str);
+			buf->Language = lang;
+			break;
+		case SAHPI_TL_TYPE_BINARY:
+			str1 = (char *)&(buf->Data);
+			ind = 0;
+			for (i = 0; i < strlen(str); i++) {
+				for (j = 0; j < 16; j++)
+					if (hex_codes[j] == str[i]) break;
+				if (j >= 16) return(-1);
+				if (i % 2) str1[ind++] += j;
+				else str1[ind] = j << 4;
+			};
+			buf->DataLength = (i + 1)/ 2;
+			break;
+	};
+	return(0);
 }

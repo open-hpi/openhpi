@@ -95,6 +95,7 @@ extern int		open_session(int eflag);
 extern int		run_command(void);
 extern ret_code_t	sen_block(void);
 extern void		set_Subscribe(Domain_t *domain, int as);
+extern int		set_text_buffer(SaHpiTextBufferT *buf);
 extern ret_code_t	show_inv(void);
 extern int		ui_print(char *Str);
 extern ret_code_t	unget_term(void);

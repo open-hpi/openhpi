@@ -863,7 +863,7 @@ static ret_code_t domain_info(void)
 		info.DomainId, info.DomainCapabilities,
 		info.IsPeer, info.Guid);
 	buf = &(info.DomainTag);
-	print_text_buffer("    Tag: ", buf, 0, 0, 0, ui_print);
+	print_text_buffer_text("    Tag: ", buf, NULL, ui_print);
 	printf("\n");
 	time2str(info.DrtUpdateTimestamp, date, 30);
 	printf("    DRT update count: %d   DRT Timestamp : %s\n",
@@ -885,7 +885,6 @@ static ret_code_t domain_info(void)
 static ret_code_t domain_proc(void)
 {
 	SaHpiDomainInfoT	info;
-	SaHpiTextBufferT	*buf;
 	SaHpiEntryIdT		entryid, nextentryid;
 	SaHpiDrtEntryT		drtentry;
 	SaErrorT		rv;
@@ -904,9 +903,7 @@ static ret_code_t domain_proc(void)
 			Domain->sessionId);
 		rv = saHpiDomainInfoGet(Domain->sessionId, &info);
 		if (rv == SA_OK) {
-			buf = &(info.DomainTag);
-			if (buf->DataLength > 0)
-				printf("    Tag: %s", buf->Data);
+			print_text_buffer_text("    Tag: ",  &(info.DomainTag), NULL, ui_print);
 		};
 		printf("\n");
 		entryid = SAHPI_FIRST_ENTRY;
@@ -929,9 +926,7 @@ static ret_code_t domain_proc(void)
 			};
 			rv = saHpiDomainInfoGet(sessionId, &info);
 			if (rv == SA_OK) {
-				buf = &(info.DomainTag);
-				if (buf->DataLength > 0)
-					printf("    Tag: %s", buf->Data);
+				print_text_buffer_text("    Tag: ",  &(info.DomainTag), NULL, ui_print);
 			};
 			saHpiSessionClose(sessionId);
 			printf("\n");
