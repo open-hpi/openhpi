@@ -11,7 +11,7 @@
 #include <openhpi.h>
 
 GSList *global_rpt = NULL;
-unsigned int global_rpt_counter = 0; /*FIXME: I use the couter for two purposes. 
+unsigned int global_rpt_counter = 0; /*XXX: I use the couter for two purposes. 
 				   1) RptInfo counter 2) ResourceId allocation */
 struct timeval global_rpt_timestamp = {0, 0};
 
