@@ -65,7 +65,6 @@ TESTS = rpt_utils_000 \
         rpt_utils_033 \
         rpt_utils_034 \
         rpt_utils_035 \
-        rpt_utils_036 \
         rpt_utils_037 \
         rpt_utils_038 \
         rpt_utils_039 \
@@ -148,7 +147,6 @@ rpt_utils_032_SOURCES = rpt_utils_032.c $(REMOTE_SOURCES)
 rpt_utils_033_SOURCES = rpt_utils_033.c $(REMOTE_SOURCES)
 rpt_utils_034_SOURCES = rpt_utils_034.c $(REMOTE_SOURCES)
 rpt_utils_035_SOURCES = rpt_utils_035.c $(REMOTE_SOURCES)
-rpt_utils_036_SOURCES = rpt_utils_036.c $(REMOTE_SOURCES)
 rpt_utils_037_SOURCES = rpt_utils_037.c $(REMOTE_SOURCES)
 rpt_utils_038_SOURCES = rpt_utils_038.c $(REMOTE_SOURCES)
 rpt_utils_039_SOURCES = rpt_utils_039.c $(REMOTE_SOURCES)
