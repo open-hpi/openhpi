@@ -122,20 +122,20 @@ int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   SaHpiBoolT   enable,
 			   void *cb_data);
 
-int ohoi_get_sensor_event_enable(ipmi_sensor_id_t              sensor_id,
+int ohoi_get_sensor_event_enable(struct ohoi_sensor_info *sensor_info,
 				 SaHpiBoolT   *enable,
 				 void *cb_data);
 
-int ohoi_set_sensor_event_enable(ipmi_sensor_id_t              sensor_id,
-			         const SaHpiBoolT enable,
+int ohoi_set_sensor_event_enable(struct ohoi_sensor_info *sensor_info,
+			         SaHpiBoolT enable,
 				 void *cb_data);
 
-int ohoi_get_sensor_event_masks(ipmi_sensor_id_t  sensor_id,
+int ohoi_get_sensor_event_masks(struct ohoi_sensor_info *sensor_info,
 			 	SaHpiEventStateT  *assert,
 				SaHpiEventStateT  *deassert,
 				void *cb_data);
 
-int ohoi_set_sensor_event_masks(ipmi_sensor_id_t  sensor_id,
+int ohoi_set_sensor_event_masks(struct ohoi_sensor_info *sensor_info,
 			 	SaHpiEventStateT  assert,
 				SaHpiEventStateT  deassert,
 				void *cb_data);
