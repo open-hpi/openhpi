@@ -165,7 +165,7 @@ public:
                      struct in_addr addr, int por,
                      tIpmiAuthType aut, tIpmiPrivilege pri, 
                      char *u, char *p )
-    : cIpmiConLan( timeout, addr, por, aut, pri, 
+    : cIpmiConLan( timeout, 0, addr, por, aut, pri, 
                    u, p )
   {
   }
