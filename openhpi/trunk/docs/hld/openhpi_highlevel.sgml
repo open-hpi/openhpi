@@ -20,9 +20,9 @@
 -->
 
   <chapter>
-  <title>Current Design</title>
+  <title>OpenHPI 10,000 foot view</title>
   <para>
-    This chapter attempts to give an over view of the current OpenHPI
+    This chapter attempts to give an overview of the current OpenHPI
     implementation.  It will always lag behind the actually source
     code base, so interested parties are best served by retrieving
     OpenHPI from our CVS repository, and joining the OpenHPI mailing
