@@ -98,12 +98,10 @@ static SaErrorT oh_add_event_to_dsel(SaHpiDomainIdT did, struct oh_hpi_event *e)
         
         log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));        
         if (e->event.Severity <= log_severity) {
-                struct oh_domain *d;
-                SaHpiEventLogEntryT selentry;
+                struct oh_domain *d;                
                 /* yes, we need to add real domain support later here */
                 d = get_domain_by_id(did);
-                selentry.Event = e->event;
-                return oh_sel_add(d->sel, &selentry);
+                return oh_sel_add(d->sel, &(e->event));
         }
         return SA_OK;
 }

@@ -386,7 +386,7 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
-        SaHpiEventLogEntryT tmpentry;
+        SaHpiEventT tmpevent;
         char oid[50];
         SaErrorT rv;
 	int isdst = 0;
@@ -399,10 +399,9 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT 
 
 		/*snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);*/
 		/* isdst = sel_entry.time.tm_isdst;*/
-                log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
-                tmpentry.EntryId = current;
-                tmpentry.Timestamp = tmpentry.Event.Timestamp;
-                rv = oh_sel_add(handle->selcache, &tmpentry);
+                log2event(hnd, get_value.string, &tmpevent, isdst, &event_enabled);
+                handle->selcache->nextId = current;                
+                rv = oh_sel_add(handle->selcache, &tmpevent);
 		
 		if (event_enabled) {
 			rv = snmp_bc_add_to_eventq(hnd, &tmpentry.Event);

@@ -99,8 +99,8 @@ SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session **session)
 
 /**
  * oh_list_sessions
- * @sid:
- * @session:
+ * @did:
+ * @session_ids:
  *
  *
  *
@@ -114,7 +114,6 @@ SaErrorT oh_list_sessions(SaHpiDomainIdT did, GSList **session_ids)
 /**
  * oh_is_session_subscribed
  * @sid:
- * @session:
  *
  *
  *
