@@ -823,7 +823,48 @@ SaErrorT SAHPI_API saHpiEventLogOverflowReset (
         SAHPI_IN SaHpiSessionIdT  SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        struct oh_handler *h;
+        struct oh_domain *d;
+        SaHpiDomainIdT did;
+	SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;
+	SaErrorT (*reset_el_overflow)(void *hnd, SaHpiResourceIdT id);
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+
+        /* test for special domain case */
+        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
+                rv = oh_el_overflowreset(d->del);
+                oh_release_domain(d); /* Unlock domain */
+                return rv;
+        }
+
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
+                dbg("Resource %d in Domain %d does not have EL",ResourceId,did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        reset_el_overflow = h->abi->reset_el_overflow;
+
+        if (!reset_el_overflow) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = reset_el_overflow(h->hnd, ResourceId);
+        if(rv != SA_OK) {
+                trace("Reset EL Oveerflow not SA_OK");
+        }
+
+        return rv;
+
 }
 
 /*********************************************************************
