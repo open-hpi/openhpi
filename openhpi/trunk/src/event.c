@@ -257,6 +257,8 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_FAILURE;
+                if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
+                    hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
 
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
@@ -282,6 +284,8 @@ static int process_resource_event(struct oh_event *e)
                 hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
                 hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType =
                         SAHPI_RESE_RESOURCE_ADDED;
+                if (oh_gettimeofday(&hpie.u.hpi_event.event.Timestamp) != SA_OK)
+                    hpie.u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
         }
         oh_release_domain(d);
 
