@@ -118,7 +118,7 @@ extern cMarshalType SaHpiSensorThdDefnType;
 extern cMarshalType SaHpiSensorRecType;
 
 // controls
-#define SaHpiCtrlNumType SaHpiUint8Type
+#define SaHpiCtrlNumType SaHpiUint32Type
 #define SaHpiCtrlTypeType SaHpiUint32Type
 #define SaHpiCtrlStateDigitalType SaHpiUint32Type
 #define SaHpiCtrlStateDiscreteType SaHpiUint32Type
