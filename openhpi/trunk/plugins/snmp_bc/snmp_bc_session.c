@@ -203,6 +203,9 @@ void *snmp_bc_open(GHashTable *handler_config)
 	{
 		struct snmp_value get_value;
 
+		snmp_get(custom_handle->ss,SNMP_BC_TIME_DST,&get_value); 
+		strcpy(custom_handle->handler_timezone, get_value.string);
+
 		if ((snmp_get(custom_handle->ss, SNMP_BC_BLADECENTER_TYPE, &get_value) != 0) ||
 		    (get_value.type != ASN_OCTET_STR)) {
 			dbg("SNMP could not read %s; Type=%d.\n", 
