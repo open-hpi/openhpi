@@ -84,11 +84,7 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
        }
 
        if (op == IPMI_ADDED) {
-               struct ohoi_resource_id *ohoi_res_id;
-               
-               ohoi_res_id = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
                rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
-               oh_add_resource(handler->rptcache, rpt_entry, ohoi_res_id, 0);
 
                add_inventory_event(entity, handler, 
                                rpt_entry->ResourceEntity,

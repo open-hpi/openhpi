@@ -594,14 +594,8 @@ void ohoi_sensor_event(enum ipmi_update_e op,
         }
 
 	if ( op == IPMI_ADDED ) {
-                /* XXX Ugly! Need to change rtp_util */
-                struct ohoi_resource_id *ohoi_res_id;     
-                ohoi_res_id = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
-		
                 rpt_entry->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR 
                                                     | SAHPI_CAPABILITY_SENSOR;
-                /* we update the resource in the cache with new capability */
-                oh_add_resource(handler->rptcache, rpt_entry, ohoi_res_id, 1);
 
                 /* fill in the sensor data, add it to ipmi_event_list
 		 * and finally to the rpt-cache
