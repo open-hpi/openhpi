@@ -464,6 +464,12 @@ void sensor_readingthreshold(SaHpiSessionIdT sessionid,
                 return;
         }
         
+        if((rv = oh_decode_eventstate(events, sensorrec->Category, &text)) == SA_OK) {
+                printf("\t  Sensor %d state = %s\n", sensornum, text.Data);
+        } else {
+                printf("\n\t  Sensor %d state FAILED, %s\n", sensornum, oh_lookup_error(rv));
+        }
+        
         if (!reading.IsSupported ) {
                 printf("\t  Reading Not Supported for sensor %d!\n\n", sensornum);
                 return;
