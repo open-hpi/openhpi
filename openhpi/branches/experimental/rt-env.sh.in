@@ -3,6 +3,6 @@
 OPENHPI_CONF=@abs_top_srcdir@/examples/openhpi.conf
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:@abs_top_builddir@/src/.libs 
 PLUGIN_ROOT=@abs_top_builddir@/src/plugins
-LTDL_LIBRARY_PATH=${LTDL_LIBRARY_PATH}:${PLUGIN_ROOT}/dummy:${PLUGIN_ROOT}/ipmi:${PLUGIN_ROOT}/watchdog:${PLUGIN_ROOT}/sysfs:${PLUGIN_ROOT}/text_remote:${PLUGIN_ROOT}/snmp_bc
+OPENHPI_PATH=${PLUGIN_ROOT}/dummy:${PLUGIN_ROOT}/ipmi:${PLUGIN_ROOT}/watchdog:${PLUGIN_ROOT}/sysfs:${PLUGIN_ROOT}/text_remote:${PLUGIN_ROOT}/snmp_bc:${LTDL_LIBRARY_PATH}
 
-export OPENHPI_CONF LD_LIBRARY_PATH LTDL_LIBRARY_PATH
+export OPENHPI_CONF LD_LIBRARY_PATH OPENHPI_PATH
