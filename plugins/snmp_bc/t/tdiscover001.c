@@ -71,11 +71,12 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 * expected_err = SA_ERR_HPI_INTERNAL_ERROR;                   
-	 **************************/
+	 
 	g_hash_table_insert(handle->config, "entity_root", "");
 
 	err = snmp_bc_discover_resources((void *)h->hnd);
 	checkstatus(&err, &expected_err, &testfail);
+	**************************/
 
 	/**************************
 	 * Cleanup after all tests
