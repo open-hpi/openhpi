@@ -52,7 +52,12 @@ libopenhpiutils_la_SOURCES = \
 			   sel_utils.c \
 			   uid_utils.c \
 			   ecode_utils.c \
+			   print_utils.c \
 			   printevent_utils.c \
-			   sensor_utils.c
+			   sensor_utils.c 
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+
+print_utils.c: $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/gen_string_tables.pl
+	$(top_srcdir)/scripts/gen_string_tables.pl $(top_srcdir)/include/SaHpi.h print_utils.h print_utils.c
+
