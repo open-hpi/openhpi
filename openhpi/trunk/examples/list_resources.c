@@ -11,6 +11,9 @@ const char * get_error_string(SaErrorT);
 void display_entity_capabilities(SaHpiCapabilitiesT);
 const char * severity2str(SaHpiSeverityT);
 const char * type2string(SaHpiEntityTypeT type);
+const char * rdrtype2str(SaHpiRdrTypeT type);
+void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
+void display_id_string(SaHpiTextBufferT string);
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +36,6 @@ int main(int argc, char *argv[])
 		error("saHpiFinalize", err);
 		exit(-1);
 	}
-
 	return 0;
 }
 
@@ -47,9 +49,6 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 	SaHpiEntryIdT	next = SAHPI_FIRST_ENTRY;
 	SaHpiRptEntryT	entry;
 	
-	if (next == SAHPI_LAST_ENTRY)
-		return SA_OK;
-
 	/* every domain requires a new session */
   	err = saHpiSessionOpen(domain_id, &session_id, NULL);
 	if (SA_OK != err) {
@@ -100,6 +99,10 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 		}
 
 		display_entity_capabilities(entry.ResourceCapabilities);
+	
+		if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
+			list_rdr(session_id, entry.ResourceId);
+		
 		printf("\n");
 
 		/* if the resource is also a domain, then 
@@ -339,4 +342,76 @@ const char * type2string(SaHpiEntityTypeT type)
 		return "(invalid entity type)";
 	}
 	return "\0";
+}
+
+const char * rdrtype2str(SaHpiRdrTypeT type)
+{
+	switch (type) {
+	case SAHPI_NO_RECORD:
+		return "SAHPI_NO_RECORD";
+	case SAHPI_CTRL_RDR:
+		return "SAHPI_CTRL_RDR";
+	case SAHPI_SENSOR_RDR:
+		return "SAHPI_SENSOR_RDR";
+	case SAHPI_INVENTORY_RDR:
+		return "SAHPI_INVENTORY_RDR";
+	case SAHPI_WATCHDOG_RDR:
+		return "SAHPI_WATCHDOG_RDR";
+	default:
+		return "(invalid rdr type)";
+	}
+	return "\0";
+}
+
+void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
+{
+        SaErrorT        err;
+	SaHpiEntryIdT	current_rdr;
+	SaHpiEntryIdT	next_rdr;
+	SaHpiRdrT	rdr;
+
+	printf("RDR Info:\n");
+	next_rdr = SAHPI_FIRST_ENTRY;
+	do {
+		int i;
+		current_rdr = next_rdr;
+		err = saHpiRdrGet(session_id, resource_id, current_rdr, 
+				&next_rdr, &rdr);
+		if (SA_OK != err) {
+			if (current_rdr == SAHPI_FIRST_ENTRY)
+				printf("Empty RDR table\n");
+			else
+				error("saHpiRdrGet", err);
+			return;			
+		}
+		
+		printf("\tRecordId: %x\n", rdr.RecordId);
+		printf("\tRdrType: %s\n", rdrtype2str(rdr.RdrType));
+		printf("\tEntity: \n");
+		for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++)
+		{
+			SaHpiEntityT tmp = rdr.Entity.Entry[i];
+			if (tmp.EntityType <= SAHPI_ENT_UNSPECIFIED)
+				break;
+				printf("\t\t{%s, %i}\n", 
+				type2string(tmp.EntityType),
+				tmp.EntityInstance);
+		}
+		printf("\tIdString: ");
+	       	display_id_string(rdr.IdString);
+	}while(next_rdr != SAHPI_LAST_ENTRY);
+}
+
+void display_id_string(SaHpiTextBufferT string)
+{
+	int i;
+	switch(string.DataType) {
+	case SAHPI_TL_TYPE_ASCII6:
+		for (i = 0; i < string.DataLength; i++)
+			printf("%c", string.Data[i]);
+		break;
+	default:
+		printf("Unsupported string type");
+	}
+	printf("\n");
 }
