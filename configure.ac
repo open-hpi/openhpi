@@ -590,6 +590,8 @@ AC_CONFIG_FILES([openhpi.spec
 	snmp/t/Makefile
         src/Makefile
         src/plugin_static.c
+        src/t/Makefile
+        src/t/ohpi/Makefile
         test/Makefile
         docs/Makefile
         docs/hld/Makefile

@@ -14,9 +14,18 @@
  */
 
 #include <oHpi.h>
+#include <oh_init.h>
 #include <oh_plugin.h>
 #include <oh_error.h>
 #include <oh_lock.h>
+
+#define OH_CHECK_STATE \
+        do { \
+                if (oh_initialized() != SA_OK) { \
+                        dbg("OpenHPI is not initialized"); \
+                        return SA_ERR_HPI_INVALID_SESSION; \
+                } \
+        } while (0)        
 
 /* Plugin operations */
 
@@ -26,6 +35,8 @@ SaErrorT oHpiPluginLoad(char *name)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        OH_CHECK_STATE;
         
         if (oh_load_plugin(name))
                 return SA_ERR_HPI_ERROR;
@@ -39,6 +50,8 @@ SaErrorT oHpiPluginUnload(char *name)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        OH_CHECK_STATE;
 
         if (oh_unload_plugin(name))
                 return SA_ERR_HPI_ERROR;
@@ -54,6 +67,8 @@ SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        OH_CHECK_STATE;
 
         data_access_lock();
         p = oh_lookup_plugin(name);
@@ -75,6 +90,8 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        OH_CHECK_STATE;
 
         if (oh_lookup_next_plugin(name, next_name, size))
                 return SA_ERR_HPI_NOT_PRESENT;
@@ -93,7 +110,9 @@ SaErrorT oHpiHandlerCreate(GHashTable *config,
         if (!config || !id) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }                
+        }
+        
+        OH_CHECK_STATE;
 
         if (!(hid = oh_load_handler(config))) {
              *id = 0;
@@ -110,6 +129,8 @@ SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id)
         if (!id)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
+        OH_CHECK_STATE;
+        
         if (oh_unload_handler(id))
                 return SA_ERR_HPI_ERROR;
 
@@ -122,6 +143,8 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info)
 
         if (!id || !info)
                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        OH_CHECK_STATE;
 
 	data_access_lock();
         h = oh_lookup_handler(id);
@@ -143,10 +166,11 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
+        
+        OH_CHECK_STATE;
 
         if (oh_lookup_next_handler(id, next_id))
                 return SA_ERR_HPI_NOT_PRESENT;
 
         return SA_OK;
 }
-

@@ -1,0 +1,88 @@
+Unit Test plan for the OpenHPI API extensions
+---------------------------------------------
+
+Notes:
+Tests described here are numbered so that they correspond to the program where
+they are implemented (e.g. ohpi_<three-digit test number>.c).
+
+**Positive Tests** (expect a good return code.)
+
+SaErrorT oHpiPluginLoad(char *name):
+        (000) Pass 'libdummy' as argument.
+                
+SaErrorT oHpiPluginUnload(char *name):
+        () Load 'libdummy' and unload it.
+        () Load 'libdummy', unload it, and load it again.
+        () Load 'libdummy', create and destroy handler on it, and
+           unload plugin.
+        
+SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info):
+        () Load 'libdummy', get plugin info, compare it with the known
+              value (1) , and unload the plugins.
+        () Load 'libdummy', create two handlers, get plugin info and
+              compare with known value (3), destroy handlers, get info again
+              and compare with known value (1), unload plugin.
+          
+SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size):
+        () Load 'libdummy', load 'libsnmp_client', iterate through the names
+              and make sure they match with the expected values.
+              Unload the plugins.
+              
+SaErrorT oHpiHandlerCreate(GHashTable *config,
+                           oHpiHandlerIdT *id):
+        () Load 'libdummy' and create a handler on it.
+
+SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id):
+        () Load 'libdummy', create handler, destroy handler, unload plugin.
+
+SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info):
+        () Load 'libdummy', create handler, get handler info and check for
+              expected information. Destroy handler, unload plugin.
+
+SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id):
+        () Load 'libdummy', create three handlers, iterate through them
+              making sure they match with the expected values.
+              Destroy handlers, unload plugin.
+
+**Negative Tests** (expect a bad return code)
+
+SaErrorT oHpiPluginLoad(char *name):
+        () Pass null as argument.
+        () Load bogus plugin.
+        () Load same plugin 'libdummy' twice.
+        
+SaErrorT oHpiPluginUnload(char *name):
+        () Pass null as argument.
+        () Unload bogus plugin.
+        () Unload plugin when there is a handler opened on it.
+        () Unload plugin twice.
+        
+SaErrorT oHpiPluginInfo(char *name, oHpiPluginInfoT *info):
+        () Pass null as arguments (for each argument).
+        () Get info on bogus plugin.
+        () Load plugin, unload plugin, and try to get info on it.
+        
+SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size):
+        () Pass null as arguments (for each argument, n<0 for size).
+        () Get next bogus plugin
+        () Load two plugins, unload one, and get next the unloaded one.
+
+SaErrorT oHpiHandlerCreate(GHashTable *config,
+                           oHpiHandlerIdT *id):
+        () Pass null as arguments (for each argument).
+        () Create handler for plugin that doesn't have a "plugin" key.
+        () Create handler for non-loaded plugin.
+        
+SaErrorT oHpiHandlerDestroy(oHpiHandlerIdT id):
+        () Pass null as argument.
+        () Destroy bogus handler.
+        () Destroy handler twice.        
+        
+SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info):
+        () Pass null as argument.
+        () Pass bogus handler id.
+        
+SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id):
+        () Pass null as arguments (for each argument).
+        () Get next bogus handler.
+        () Create three handlers, destroy one, and get next that one.
