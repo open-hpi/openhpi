@@ -1,40 +1,19 @@
-<!doctype book PUBLIC "-//Davenport//DTD DocBook V3.0//EN" [
+<!doctype book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+  <!ENTITY intel-copyright "<YEAR>2003</YEAR><HOLDER>Intel Corporation</HOLDER>">
+  <!ENTITY ibm-copyright "<YEAR>2003</YEAR><HOLDER>IBM Corporation</HOLDER>">
 
-  <!ENTITY openhpi-copyright "<YEAR>2003</YEAR><HOLDER>Intel Corporation</HOLDER>">
-  <!ENTITY openhpi-code-copyright "
-
- Copyright (c) 2003, Intel Corporation
- All rights reserved.
- 
- Redistribution and use in source and binary forms, with or
- without modification, are permitted provided that the following
- conditions are met:
- 
- Redistributions of source code must retain the above copyright
- notice, this list of conditions and the following disclaimer.
- Redistributions in binary form must reproduce the above copyright
- notice, this list of conditions and the following disclaimer in
- the documentation and/or other materials provided with the distribution.
- 
- Neither the name of Intel Corporation nor the names
- of its contributors may be used to endorse or promote products
- derived from this software without specific prior written permission.
- 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
- TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
- OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
- OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-">
  <!ENTITY openhpi-legal-notice "
-This document may be freely redistributed according to the terms
-of the BSD License.
+<para>
+This material may be distributed only subject to the terms and conditions
+set forth in the Open Publication License, v1.0 or later (the latest version
+is currently available at http://www.opencontent.org/openpub/).  Distribution
+of substantively modified version of this document is prohibited without the
+explicit permission of the copyright holder.
+</para>
+<para>
+Other company, product, or service names may be trademarks or service marks of 
+others.
+</para>
 ">
 
 ]>
@@ -50,8 +29,16 @@ of the BSD License.
           <surname>Brugger</surname>
        </author>
        <author>
+          <firstname>Sean</firstname>
+          <surname>Dague</surname>
+       </author>
+       <author>
           <firstname>Kevin</firstname>
           <surname>Gao</surname>
+       </author>
+       <author>
+          <firstname>David</firstname>
+          <surname>Judkovics</surname>
        </author>
        <author>
           <firstname>Rusty</firstname>
@@ -63,8 +50,9 @@ of the BSD License.
        </author>
      </authorgroup>
 
-     <copyright>&openhpi-copyright;</copyright>
-     <legalnotice><para>&openhpi-legal-notice;</para></legalnotice>
+     <copyright>&intel-copyright;</copyright>
+     <copyright>&ibm-copyright;</copyright>
+     <legalnotice>&openhpi-legal-notice;</legalnotice>
      <revhistory>
       <revision>
 	<revnumber>0.1</revnumber>
@@ -146,14 +134,14 @@ the project must be:
       <listitem>
       <para>
 <emphasis>Simple</emphasis> - the easier the code is to follow, the easier it is to find and fix bugs.
-      </param
+      </para>
       </listitem>
       <listitem>
       <para>
 <emphasis>Lightweight</emphasis> - targets for the project range from large servers with 
 lots of resources to embedded devices with minimal footprints. To that end, 
 the implementation must not be reliant on a lot of external libraries. 
-      </param
+      </para>
       </listitem>
       <listitem>
       <para>
@@ -162,7 +150,7 @@ For performance, the reasons are obvious; you don't want your management layers
 to bring down the performance of your system. In regard to code re-use--the more 
 that pieces of code can be re-used the faster that others can develop hardware 
 specific components to sit within the OpenHPI domain. 
-      </param
+      </para>
       </listitem>
       </itemizedlist>
     <para>
@@ -171,9 +159,13 @@ Each of these areas will eventually be defined in detail on subsequent pages. Br
 descriptions are provided below.
     </para>
     <para>
-      <imagedata fileref="hld_diagram.gif" />
+<mediaobject>
+  <imageobject>
+        <imagedata fileref="hld_diagram.gif">
+  </imageobject>
+</mediaobject>
     </para>
-    <sect2>
+    <section>
         <title>Application Interface Stubs</title>
         <para>This portion deals with the code that provides the entry points into 
 the libhpi.so. Initially this will literally just contain stubs that provide 
@@ -181,16 +173,16 @@ API compliance without any features. Stub APIs will output to the stderr a
 TODO: Implement _api_ message. As the api is implemented, these output messages 
 will be removed.
         </para>
-    </sect2>
-    <sect2>
+    </section>
+    <section>
         <title>Utility Functions</title>
         <para>The utility functions provide a lot of the reusable coding 
 components such as lists, events, hash tables, etc. In addition, it provides 
 general management and organizational functions for sessions, domains, entities,
  and resources. 
         </para>
-    </sect2>
-    <sect2>
+    </section>
+    <section>
         <title>Hardware Abstractions</title>
         <para>In order to be portable to various different hardware platforms 
 there needs to be a standard set of calls to and from the hardware to the 
@@ -199,8 +191,8 @@ represents that abstraction. An example of capability that this piece would
 enable is interfacing between the hardware enumneration and discovery to the 
 above components. 
         </para>
-    </sect2>
-    <sect2>
+    </section>
+    <section>
         <title>Hardware Specific Components</title>
         <para>This is the meat of what enables an HPI implementation. This 
 is the component that is custom built for each targetted hardware platform. 
@@ -208,7 +200,7 @@ At a minimum, the OpenHPI project will provide specific components for
 AdvancedTCA, CompactPCI, and a sample module for managing a traditional 
 development machine. 
         </para>
-    </sect2>
+    </section>
   </chapter>
 
   <chapter>
@@ -372,7 +364,11 @@ and other FRU's all connected together via a common IPMI management bus
       </listitem>
       </itemizedlist>
       <para>
-      <imagedata fileref="physical_view.png" />
+<mediaobject>
+  <imageobject>
+      <imagedata fileref="physical_view.png">
+  </imageobject>
+</mediaobject>
       </para>
       <para>
 As mentioned before, the full rack of computers is tightly coupled together 
@@ -382,13 +378,21 @@ separate computer systems into a single tree as described in the HPI specificati
 our scenario is configured to see the following HPI view: 
       </para>
       <para>
-      <imagedata fileref="domain_view.png" />
+<mediaobject>
+  <imageobject>
+      <imagedata fileref="domain_view.png">
+  </imageobject>
+</mediaobject>
       </para>
       <para>
 One possible high level design for enabling such a remotely pluggable capabilities could be done like: 
       </para>
       <para>
-      <imagedata fileref="implementation_view.png" />
+<mediaobject>
+  <imageobject>
+      <imagedata fileref="implementation_view.png">
+  </imageobject>
+</mediaobject>
       </para>
       <para>
 In the above diagram, the software components that understands specific hardware 
