@@ -1,6 +1,7 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -17,6 +18,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <string.h>
@@ -368,8 +370,6 @@ cIpmiConLan::AuthCap()
   msg.m_data[1] = m_priv;
   msg.m_data_len = 2;
 
-  // dbg( "RMCP: sending GetChannelAuthCapabilitiesCmd" );
-
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
@@ -425,8 +425,6 @@ cIpmiConLan::SetSessionPriv()
   msg.m_data[0]  = m_priv;
   msg.m_data_len = 1;
 
-  // dbg( "RMCP: sending SetSessionPrivilegeCmd" );
-
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
@@ -442,7 +440,7 @@ cIpmiConLan::SetSessionPriv()
   if ( rsp_msg.m_data_len < 2 )
      {
        stdlog << "set session priv: msg to small: " << rsp_msg.m_data_len << " !\n";
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( (unsigned char)m_priv != (rsp_msg.m_data[1] & 0xf))
@@ -473,8 +471,6 @@ cIpmiConLan::ActiveSession()
   IpmiSetUint32( msg.m_data + 18, m_inbound_seq_num );
   msg.m_data_len = 22;
 
-  // dbg( "RMCP: sending ActivateSessionCmd" );
-
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
@@ -490,7 +486,7 @@ cIpmiConLan::ActiveSession()
   if ( rsp_msg.m_data_len < 11 )
      {
        stdlog << "active session: msg to small: " << rsp_msg.m_data_len << " !\n";
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   m_working_auth = (tIpmiAuthType)(rsp_msg.m_data[1] & 0xf);
@@ -505,9 +501,6 @@ cIpmiConLan::ActiveSession()
 
   m_session_id = IpmiGetUint32( rsp_msg.m_data + 2 );
   m_outbound_seq_num = IpmiGetUint32( rsp_msg.m_data + 6 );
-
-  //        dbg( "reading: sid = 0x%x, seq = 0x%x", 
-  //             m_session_id, m_outbound_seq_num );
 
   return SA_OK;
 }
@@ -527,8 +520,6 @@ cIpmiConLan::Challange()
   memcpy( msg.m_data + 1, m_username, dIpmiUsernameMax );
   msg.m_data_len += dIpmiUsernameMax;
 
-  // dbg( "RMCP: sending GetSessionChallengeCmd" );
-
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
@@ -544,7 +535,7 @@ cIpmiConLan::Challange()
   if ( rsp_msg.m_data_len < 21 )
      {
        stdlog << "Challange response to small !\n";
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   // Get the temporary session id.
@@ -749,7 +740,7 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
   if ( r->m_send_addr.m_type == eIpmiAddrTypeSystemInterface )
      {
        // It's a message straight to the BMC.
-       tmsg[0] = 0x20; // To the BMC.
+       tmsg[0] = dIpmiBmcSlaveAddr; // To the BMC.
        tmsg[1] = (r->m_msg.m_netfn << 2) | r->m_send_addr.m_lun;
        tmsg[2] = Checksum( tmsg, 2 );
        tmsg[3] = 0x81; // Remote console IPMI Software ID
@@ -765,7 +756,7 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
        // It's an IPMB address, route it using a send message
        // command.
        pos = 0;
-       tmsg[pos++] = 0x20; // BMC is the bridge.
+       tmsg[pos++] = dIpmiBmcSlaveAddr; // BMC is the bridge.
        tmsg[pos++] = (eIpmiNetfnApp << 2) | 0;
        tmsg[pos++] = Checksum( tmsg, 2 );
        tmsg[pos++] = 0x81; // Remote console IPMI Software ID
@@ -782,7 +773,7 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
        tmsg[pos++] = (r->m_msg.m_netfn << 2) | r->m_send_addr.m_lun;
        tmsg[pos++] = Checksum( tmsg + msgstart, 2 );
        msgstart = pos;
-       tmsg[pos++] = 0x20;
+       tmsg[pos++] = dIpmiBmcSlaveAddr;
        tmsg[pos++] = (r->m_seq << 2) | 2; // Add 2 as the SMS Lun
        tmsg[pos++] = r->m_msg.m_cmd;
        memcpy( tmsg + pos, r->m_msg.m_data, r->m_msg.m_data_len );
@@ -849,9 +840,6 @@ cIpmiConLan::ReadResponse( int &seq, cIpmiAddr &addr, cIpmiMsg &msg )
 
   if ( len < 0 )
        return eResponseTypeError;
-
-  //stdlog << "rmcp msg: " );
-  //IpmiLogHex( data, len );
 
   // Make sure the source IP matches what we expect the other end to
   // be.

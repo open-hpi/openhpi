@@ -2,6 +2,7 @@
  * ipmi_sensor_hotswap.cpp
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include "ipmi_sensor_hotswap.h"
@@ -33,6 +35,10 @@
 
 cIpmiSensorHotswap::cIpmiSensorHotswap( cIpmiMc *mc )
   : cIpmiSensorDiscrete( mc )
+#ifdef FAKE_ECN_BEHAVIOR
+  ,m_deactivation_locked( 1 ),
+  m_fake_deactivation_locked( false )
+#endif
 {
 }
 
@@ -47,6 +53,11 @@ cIpmiSensorHotswap::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 {
   if ( !cIpmiSensorDiscrete::GetDataFromSdr( mc, sdr ) )
        return false;
+
+#ifdef FAKE_ECN_BEHAVIOR
+  if ( mc->IsNotEcn() )
+      m_fake_deactivation_locked = true;
+#endif
 
   return true;
 }
@@ -63,6 +74,7 @@ cIpmiSensorHotswap::CreateRdr( SaHpiRptEntryT &resource,
      {
        // update resource capabilities
        resource.ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
+       resource.HotSwapCapabilities = SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
 
        struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
@@ -73,9 +85,10 @@ cIpmiSensorHotswap::CreateRdr( SaHpiRptEntryT &resource,
           }
 
        memset( e, 0, sizeof( struct oh_event ) );
-       e->type               = oh_event::OH_ET_RESOURCE;
+       e->type               = OH_ET_RESOURCE;
        e->u.res_event.entry = resource;
 
+       stdlog << "cIpmiSensorHotswap::CreateRdr OH_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
        m_mc->Domain()->AddHpiEvent( e );
      }
 
@@ -101,7 +114,7 @@ cIpmiSensorHotswap::ConvertIpmiToHpiHotswapState( tIpmiFruState h )
             return SAHPI_HS_STATE_INSERTION_PENDING;
 
        case eIpmiFruStateActive:
-            return SAHPI_HS_STATE_ACTIVE_HEALTHY;
+            return SAHPI_HS_STATE_ACTIVE;
 
        case eIpmiFruStateDeactivationRequest:
             return SAHPI_HS_STATE_EXTRACTION_PENDING;
@@ -130,28 +143,31 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   h.Source    = res->m_resource_id;
   h.EventType = SAHPI_ET_HOTSWAP;
 
-/*
-  h.Timestamp = (SaHpiTimeT)IpmiGetUint32( event->m_data );
-
-  if ( h.Timestamp == 0 )
-       h.Timestamp = SAHPI_TIME_UNSPECIFIED;
-  else
-       h.Timestamp *= 1000000000;
-*/
-  // hotswap event needs exact time, because
-  // of auto extraction/insertion
-  oh_gettimeofday( &h.Timestamp );
+  // Hot swap events must be dated here otherwise
+  // hot swap policy won't work properly !
+  oh_gettimeofday(&h.Timestamp);
 
   // Do not find the severity of hotswap event
-  h.Severity = SAHPI_MAJOR;
+  h.Severity = SAHPI_INFORMATIONAL;
 
   SaHpiHotSwapEventT &he = h.EventDataUnion.HotSwapEvent;
 
-  tIpmiFruState state = (tIpmiFruState)(event->m_data[10] & 0x0f);
+  tIpmiFruState state = (tIpmiFruState)(event->m_data[10] & 0x07);
   he.HotSwapState = ConvertIpmiToHpiHotswapState( state );
 
-  state    = (tIpmiFruState)(event->m_data[11] & 0x0f);
+  state    = (tIpmiFruState)(event->m_data[11] & 0x07);
   he.PreviousHotSwapState = ConvertIpmiToHpiHotswapState( state );
+
+  // Nothing changed -> no HS event will be sent
+  if (he.HotSwapState == he.PreviousHotSwapState)
+      return SA_ERR_HPI_ERROR;
+
+#ifdef FAKE_ECN_BEHAVIOR
+  if (he.HotSwapState == SAHPI_HS_STATE_ACTIVE)
+      m_deactivation_locked = 1;
+  else
+      m_deactivation_locked = 0;
+#endif
 
   return SA_OK;
 }
@@ -163,7 +179,10 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
   // read hotswap state
   cIpmiMsg rsp;
 
-  SaErrorT rv = GetSensorReading( rsp );
+  // Default value just in case
+  state = eIpmiFruStateCommunicationLost;
+
+  SaErrorT rv = GetSensorData( rsp );
 
   if ( rv != SA_OK )
      {
@@ -171,10 +190,10 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
        return rv;
      }
 
-  if ( rsp.m_data[2] != 0 )
+  if ( rsp.m_data[1] != 0 )
      {
-       stdlog << "cannot read hotswap sensor " << rsp.m_data[2] << " !\n";
-       return SA_ERR_HPI_INVALID_SENSOR_CMD;
+       stdlog << "cannot read hotswap sensor " << rsp.m_data[1] << " !\n";
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   unsigned int value = rsp.m_data[3];
@@ -186,7 +205,8 @@ cIpmiSensorHotswap::GetState( tIpmiFruState &state )
             return SA_OK;
           }
 
-  assert( 0 );
+  stdlog << "WRONG Hot Swap State " << value << "\n";
+
   return SA_ERR_HPI_INVALID_CMD;
 }
 
@@ -202,5 +222,11 @@ cIpmiSensorHotswap::GetState( SaHpiHsStateT &state )
 
   state = ConvertIpmiToHpiHotswapState( fs );
 
+#ifdef FAKE_ECN_BEHAVIOR
+  if (( state == SAHPI_HS_STATE_ACTIVE )
+      && ( m_fake_deactivation_locked )
+      && ( m_deactivation_locked == 0 ))
+                state = SAHPI_HS_STATE_EXTRACTION_PENDING;
+#endif
   return SA_OK;
 }

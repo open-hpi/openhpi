@@ -2,6 +2,7 @@
  * ipmi_sensor.cpp
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <stdio.h>
@@ -91,6 +93,9 @@ IpmiSensorTypeToString( tIpmiSensorType val )
        if ( val == eIpmiSensorTypeAtcaHotSwap )
             return "AtcaHotswap";
 
+       if ( val == eIpmiSensorTypeAtcaIpmb )
+           return "AtcaIpmb";
+
        return "Invalid";
      }
 
@@ -128,7 +133,7 @@ static const char *event_reading_types[] =
   "DiscretePerformanceMet",
   "DiscreteSeverity",
   "DiscreteDevicePresense",
-  "DiscreteDevice_enable",
+  "DiscreteDeviceEnable",
   "DiscreteAvailability",
   "DiscreteRedundancy",
   "DiscreteAcpiPower",
@@ -141,6 +146,10 @@ IpmiEventReadingTypeToString( tIpmiEventReadingType val )
   if ( val == eIpmiEventReadingTypeSensorSpecific )
        return "SensorSpecific";
 
+  if (( val >= eIpmiEventReadingTypeOemFirst )
+      && ( val <= eIpmiEventReadingTypeOemLast ))
+      return "Oem";
+
   if ( val > eIpmiEventReadingTypeDiscreteAcpiPower )
        return "Invalid";
 
@@ -150,7 +159,7 @@ IpmiEventReadingTypeToString( tIpmiEventReadingType val )
 
 cIpmiSensor::cIpmiSensor( cIpmiMc *mc )
   : cIpmiRdr( mc, SAHPI_SENSOR_RDR ), m_source_mc( 0 ),
-    m_event_state( SAHPI_ES_UNSPECIFIED ), m_destroyed( false ),
+    m_destroyed( false ),
     m_use_count( 0 ),
     m_owner( 0 ), m_channel( 0 ),
     m_num( 0 ),
@@ -161,6 +170,10 @@ cIpmiSensor::cIpmiSensor( cIpmiMc *mc )
     m_sensor_init_pu_scanning( false ),
     m_ignore_if_no_entity( false ),
     m_supports_auto_rearm( false ),
+    m_assertion_event_mask( 0 ),
+    m_deassertion_event_mask( 0 ),
+    m_reading_mask( 0 ),
+    m_enabled( SAHPI_TRUE ),
     m_event_support( eIpmiEventSupportPerState ),
     m_sensor_type( eIpmiSensorTypeInvalid ),
     m_event_reading_type( eIpmiEventReadingTypeInvalid ),
@@ -183,22 +196,10 @@ cIpmiSensor::~cIpmiSensor()
 bool
 cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
 {
-  m_source_mc = mc;
-
   m_use_count = 1;
   m_destroyed = false;
 
-  // cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, sdr->m_data[5] );
-
-  //m_mc = mc->Domain()->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
-  m_mc = mc; // mc->Domain()->FindMcByAddr( addr );
-
-  if ( !m_mc )
-     {
-       stdlog << "cannot create MC for sensor !\n";
-
-       return false;
-     }
+  m_mc = mc;
 
   m_source_mc = mc;
   m_owner                   = sdr->m_data[5];
@@ -207,6 +208,10 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_num                     = sdr->m_data[7];
   m_sensor_init_scanning    = (sdr->m_data[10] >> 6) & 1;
   m_sensor_init_events      = (sdr->m_data[10] >> 5) & 1;
+  if ( m_sensor_init_events )
+      m_events_enabled = SAHPI_TRUE;
+  else
+      m_events_enabled = SAHPI_FALSE;
   m_sensor_init_type        = (sdr->m_data[10] >> 2) & 1;
   m_sensor_init_pu_events   = (sdr->m_data[10] >> 1) & 1;
   m_sensor_init_pu_scanning = (sdr->m_data[10] >> 0) & 1;
@@ -214,11 +219,17 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_supports_auto_rearm     = (sdr->m_data[11] >> 6) & 1;
   m_event_support           = (tIpmiEventSupport)(sdr->m_data[11] & 3);
   m_sensor_type             = (tIpmiSensorType)sdr->m_data[12];
-  m_event_reading_type      = (tIpmiEventReadingType)sdr->m_data[13];
+  m_event_reading_type      = (tIpmiEventReadingType)(sdr->m_data[13] & 0x7f);
 
   m_oem                     = sdr->m_data[46];
 
   IdString().SetIpmi( sdr->m_data+47 );
+
+  if ( m_owner != mc->GetAddress() )
+      stdlog << "WARNING : SDR " << sdr->m_record_id << " sensor " << m_num << " slave address " << m_owner << " NOT equal to MC slave address " << (unsigned char)mc->GetAddress() << "\n";
+
+  if ( m_channel != mc->GetChannel() )
+      stdlog << "WARNING : SDR " << sdr->m_record_id << " sensor " << m_num << " channel " << m_channel << " NOT equal to MC channel " << (unsigned short)mc->GetChannel() << "\n";
 
   return true;
 }
@@ -278,14 +289,6 @@ cIpmiSensor::Cmp( const cIpmiSensor &s2 ) const
 }
 
 
-bool
-cIpmiSensor::Ignore()
-{
-  // not ipmlemented
-  return false;
-}
-
-
 void
 cIpmiSensor::Dump( cIpmiLog &dump ) const
 {
@@ -317,9 +320,10 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
           }
 
        memset( e, 0, sizeof( struct oh_event ) );
-       e->type              = oh_event::OH_ET_RESOURCE;
+       e->type              = OH_ET_RESOURCE;
        e->u.res_event.entry = resource;
 
+       stdlog << "cIpmiSensor::CreateRdr OH_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
        m_mc->Domain()->AddHpiEvent( e );
      }
 
@@ -339,18 +343,35 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   m_virtual_num = v;
 
   rec.Num       = v;
-  rec.Type      = (SaHpiSensorTypeT)SensorType();
-  rec.Category  = (SaHpiEventCategoryT)EventReadingType();
-  rec.EventCtrl = (SaHpiSensorEventCtrlT)EventSupport();
-  rec.Ignore    = SAHPI_FALSE; //(SaHpiBoolT)IgnoreIfNoEntity();
+  rec.Type      = HpiSensorType(SensorType());
+
+  rec.Category  = HpiEventCategory(EventReadingType());
   rec.Oem       = GetOem();
+
+  switch( EventSupport() )
+  {
+  case eIpmiEventSupportPerState:
+      m_event_control = SAHPI_SEC_PER_EVENT;
+      break;
+  case eIpmiEventSupportEntireSensor:
+  case eIpmiEventSupportGlobalEnable:
+      m_event_control  = SAHPI_SEC_READ_ONLY_MASKS;
+      break;
+  case eIpmiEventSupportNone:
+      m_event_control  = SAHPI_SEC_READ_ONLY;
+      break;
+  }
+
+  rec.Events     = m_reading_mask;
+  rec.EventCtrl  = m_event_control;
+  rec.EnableCtrl = SAHPI_TRUE;
 
   return true;
 }
 
 
 SaErrorT
-cIpmiSensor::GetSensorReading( cIpmiMsg &rsp )
+cIpmiSensor::GetSensorData( cIpmiMsg &rsp )
 {
   cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorReading );
   msg.m_data_len = 1;
@@ -369,7 +390,7 @@ cIpmiSensor::GetSensorReading( cIpmiMsg &rsp )
      {
        stdlog << "IPMI error getting reading: " << rsp.m_data[0] << " !\n";
 
-       return SA_ERR_HPI_INVALID_SENSOR_CMD;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( rsp.m_data_len < 4 )
@@ -377,19 +398,143 @@ cIpmiSensor::GetSensorReading( cIpmiMsg &rsp )
        stdlog << "IPMI error getting reading: data to small "
               << rsp.m_data_len << " !\n";
 
-       return SA_ERR_HPI_INVALID_DATA_FIELD;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   return SA_OK;
 }
 
+SaErrorT
+cIpmiSensor::GetEnable( SaHpiBoolT &enable )
+{
+    enable = m_enabled;
+
+    return SA_OK;
+}
 
 SaErrorT
-cIpmiSensor::GetEventEnables( SaHpiSensorEvtEnablesT &enables, cIpmiMsg &rsp )
+cIpmiSensor::SetEnable( const SaHpiBoolT &enable )
+{
+    if (m_enabled == enable)
+        return SA_OK;
+
+    m_enabled = enable;
+
+    CreateEnableChangeEvent();
+
+    return SA_OK;
+}
+
+SaErrorT
+cIpmiSensor::GetEventEnables( SaHpiBoolT &enables )
+{
+    SaErrorT rv = GetEventEnableHw( m_events_enabled );
+
+    enables = m_events_enabled;
+
+    return rv;
+}
+
+SaErrorT
+cIpmiSensor::SetEventEnables( const SaHpiBoolT &enables )
+{
+    if ( m_event_control == SAHPI_SEC_READ_ONLY )
+        return SA_ERR_HPI_READ_ONLY;
+
+    if ( m_events_enabled == enables )
+        return SA_OK;
+
+    m_events_enabled = enables;
+
+    SaErrorT rv = SetEventEnableHw( m_events_enabled );
+
+    if ( rv == SA_OK )
+        CreateEnableChangeEvent();
+
+    return rv;
+}
+
+SaErrorT
+cIpmiSensor::GetEventMasks( SaHpiEventStateT &AssertEventMask,
+                            SaHpiEventStateT &DeassertEventMask
+                          )
+{
+    SaErrorT rv = GetEventMasksHw( m_current_hpi_assert_mask,
+                                   m_current_hpi_deassert_mask
+                                 );
+
+    stdlog << "GetEventMasks sensor " << m_num << " assert " << m_current_hpi_assert_mask << " deassert " << m_current_hpi_deassert_mask << "\n";
+
+    AssertEventMask = m_current_hpi_assert_mask;
+    DeassertEventMask = m_current_hpi_deassert_mask;
+
+    return rv;
+}
+
+SaErrorT
+cIpmiSensor::SetEventMasks( const SaHpiSensorEventMaskActionT &act,
+                            SaHpiEventStateT            &AssertEventMask,
+                            SaHpiEventStateT            &DeassertEventMask
+                          )
+{
+    if ( m_event_control != SAHPI_SEC_PER_EVENT )
+        return SA_ERR_HPI_READ_ONLY;
+
+    if ( AssertEventMask == SAHPI_ALL_EVENT_STATES )
+        AssertEventMask = m_hpi_assert_mask;
+
+    if ( DeassertEventMask == SAHPI_ALL_EVENT_STATES )
+        DeassertEventMask = m_hpi_deassert_mask;
+
+    if ( act == SAHPI_SENS_ADD_EVENTS_TO_MASKS )
+    {
+        if ((( AssertEventMask & ~m_hpi_assert_mask ) != 0 )
+            || (( DeassertEventMask & ~m_hpi_deassert_mask ) != 0 ))
+            return SA_ERR_HPI_INVALID_DATA;
+    }
+
+    SaHpiEventStateT save_assert_mask = m_current_hpi_assert_mask;
+    SaHpiEventStateT save_deassert_mask = m_current_hpi_deassert_mask;
+
+    if ( act == SAHPI_SENS_ADD_EVENTS_TO_MASKS )
+        {
+            m_current_hpi_assert_mask   |= AssertEventMask;
+            m_current_hpi_deassert_mask |= DeassertEventMask;
+        }
+    else if ( act == SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS )
+        {
+            m_current_hpi_assert_mask   &= (AssertEventMask ^ SAHPI_ALL_EVENT_STATES);
+            m_current_hpi_deassert_mask &= (DeassertEventMask ^ SAHPI_ALL_EVENT_STATES);
+        }
+    else 
+        return SA_ERR_HPI_INVALID_PARAMS;
+    
+    stdlog << "SetEventMasks sensor " << m_num << " assert " << m_current_hpi_assert_mask << " deassert " << m_current_hpi_deassert_mask << "\n";
+
+    if (( save_assert_mask == m_current_hpi_assert_mask )
+        && ( save_deassert_mask == m_current_hpi_deassert_mask ))
+        return SA_OK;
+
+    SaErrorT rv = SetEventMasksHw( m_current_hpi_assert_mask,
+                                   m_current_hpi_deassert_mask
+                                 );
+
+    if ( rv == SA_OK )
+        CreateEnableChangeEvent();
+
+    return rv;
+}
+
+SaErrorT
+cIpmiSensor::GetEventEnableHw( SaHpiBoolT &enables )
 {
   cIpmiMsg  msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorEventEnable );
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
+
+  cIpmiMsg rsp;
+
+  stdlog << "get event enables command for sensor : " << m_num << " !\n";
 
   SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
@@ -406,23 +551,82 @@ cIpmiSensor::GetEventEnables( SaHpiSensorEvtEnablesT &enables, cIpmiMsg &rsp )
        return SA_ERR_HPI_INVALID_CMD;
     }
 
-  memset( &enables, 0, sizeof( SaHpiSensorEvtEnablesT ) );
+  enables = (rsp.m_data[1] & 0x80) ? SAHPI_TRUE : SAHPI_FALSE;
 
-  enables.SensorStatus = rsp.m_data[1];
+  return SA_OK;
+}
+
+SaErrorT
+cIpmiSensor::SetEventEnableHw( const SaHpiBoolT &enables )
+{
+  cIpmiMsg msg;
+  msg.m_netfn = eIpmiNetfnSensorEvent;
+  msg.m_cmd   = eIpmiCmdSetSensorEventEnable;
+
+  msg.m_data[0] = m_num;
+  msg.m_data[1] = ((m_events_enabled == SAHPI_TRUE) ? 0x80 : 0) | (1<<6);
+
+  msg.m_data_len = 2;
+
+  cIpmiMsg rsp;
+
+  stdlog << "set event enables command for sensor : " << m_num << " !\n";
+
+  SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
+
+  if ( rv != SA_OK )
+     {
+       stdlog << "Error sending set event enables command: " << rv << " !\n";
+       return rv;
+     }
+
+  if ( rsp.m_data[0] )
+     {
+       stdlog << "IPMI error setting sensor enables: " << rsp.m_data[0] << " !\n";
+       return SA_ERR_HPI_INVALID_CMD;
+     }
 
   return SA_OK;
 }
 
 
 SaErrorT
-cIpmiSensor::SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
-                              cIpmiMsg &msg )
+cIpmiSensor::GetEventMasksHw( cIpmiMsg &rsp )
+{
+  cIpmiMsg  msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorEventEnable );
+  msg.m_data_len = 1;
+  msg.m_data[0]  = m_num;
+
+  stdlog << "get event enables command for sensor : " << m_num << " !\n";
+
+  SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
+
+  if ( rv != SA_OK )
+     {
+       stdlog << "Error sending get event enables command: " << rv << " !\n";
+       return rv;
+     }
+
+  if ( rsp.m_data[0] )
+     {
+       stdlog << "IPMI error getting sensor enables: " << rsp.m_data[0] << " !\n";
+
+       return SA_ERR_HPI_INVALID_CMD;
+    }
+
+  return SA_OK;
+}
+
+
+SaErrorT
+cIpmiSensor::SetEventMasksHw( cIpmiMsg &msg,
+                              bool evt_enable)
 {
   msg.m_netfn = eIpmiNetfnSensorEvent;
   msg.m_cmd   = eIpmiCmdSetSensorEventEnable;
 
   msg.m_data[0] = m_num;
-  msg.m_data[1] = enables.SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED;
+  msg.m_data[1] = ((m_events_enabled == SAHPI_TRUE) ? 0x80 : 0) | (1<<6);
 
   if ( m_event_support == eIpmiEventSupportEntireSensor )
      {
@@ -432,27 +636,104 @@ cIpmiSensor::SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
      }
   else
      {
-       msg.m_data[1] |= (1<<4); // enable selected event messages
+       if ( evt_enable == true ) 
+            msg.m_data[1] |= (1<<4); // enable selected event messages
+       else
+            msg.m_data[1] |= (1<<5); // disable selected event messages
        msg.m_data_len = 6;
      }
 
   cIpmiMsg rsp;
 
+  stdlog << "set event enables command for sensor : " << m_num << " !\n";
+
   SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp, m_lun );
 
   if ( rv != SA_OK )
      {
-       stdlog << "Disable sensor events fail: " << rv << " !\n";
+       stdlog << "Error sending set event enables command: " << rv << " !\n";
        return rv;
      }
 
   if ( rsp.m_data[0] )
      {
-       stdlog << "IPMI Disable sensor events fail: " << rsp.m_data[0] << " !\n";
+       stdlog << "IPMI error setting sensor enables: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
      }
 
   return SA_OK;
+}
+
+SaHpiSensorTypeT
+cIpmiSensor::HpiSensorType(tIpmiSensorType sensor_type)
+{
+  if ( sensor_type >= eIpmiSensorTypeOemFirst)
+      return SAHPI_OEM_SENSOR;
+
+  return (SaHpiSensorTypeT)sensor_type;
+}
+
+SaHpiEventCategoryT
+cIpmiSensor::HpiEventCategory(tIpmiEventReadingType reading_type)
+{
+  if ( reading_type == eIpmiEventReadingTypeSensorSpecific )
+      return SAHPI_EC_SENSOR_SPECIFIC;
+  
+  if (( reading_type >= eIpmiEventReadingTypeOemFirst )
+      && ( reading_type <= eIpmiEventReadingTypeOemLast ))
+      return SAHPI_EC_GENERIC;
+
+  return (SaHpiEventCategoryT)reading_type;
+}
+
+void
+cIpmiSensor::CreateEnableChangeEvent()
+{
+  cIpmiResource *res = Resource();
+  assert( res );
+
+  oh_event *e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+  
+  e->type = OH_ET_HPI;
+
+  oh_hpi_event &ohpi_event = e->u.hpi_event;
+
+  SaHpiRptEntryT *rptentry = oh_get_resource_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id );
+  SaHpiRdrT *rdrentry = oh_get_rdr_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id, m_record_id );
+
+  ohpi_event.res = *rptentry;
+  ohpi_event.rdr = *rdrentry;
+
+  // hpi event
+  SaHpiEventT &hpie = ohpi_event.event;
+
+  hpie.Source    = res->m_resource_id;
+  hpie.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+  hpie.Severity  = SAHPI_INFORMATIONAL;
+  
+  oh_gettimeofday(&hpie.Timestamp);
+  
+  // sensor enable event
+  SaHpiSensorEnableChangeEventT &se = hpie.EventDataUnion.SensorEnableChangeEvent;
+  se.SensorNum     = m_num;
+  se.SensorType    = HpiSensorType(SensorType());
+  se.EventCategory = HpiEventCategory(EventReadingType());
+  se.SensorEnable  = m_enabled;
+  se.SensorEventEnable = m_events_enabled;
+  se.AssertEventMask   = m_current_hpi_assert_mask;
+  se.DeassertEventMask = m_current_hpi_deassert_mask;
+  
+  stdlog << "cIpmiSensor::CreateEnableChangeEvent OH_ET_HPI Event enable change resource " << res->m_resource_id << "\n";
+  m_mc->Domain()->AddHpiEvent( e );
+
+  return;
 }
 
 
@@ -476,9 +757,12 @@ cIpmiSensor::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   // sensor event
   SaHpiSensorEventT &s = h.EventDataUnion.SensorEvent;
   s.SensorNum     = m_num;
-  s.SensorType    = (SaHpiSensorTypeT)event->m_data[7];
-  s.EventCategory = (SaHpiEventCategoryT)event->m_data[9] & 0x7f;
+  s.SensorType    = HpiSensorType((tIpmiSensorType)event->m_data[7]);
 
+  tIpmiEventReadingType reading_type = (tIpmiEventReadingType)(event->m_data[9] & 0x7f);
+
+  s.EventCategory = HpiEventCategory(reading_type);
+  
   return SA_OK;
 }
 
@@ -488,6 +772,15 @@ cIpmiSensor::HandleEvent( cIpmiEvent *event )
 {
   cIpmiResource *res = Resource();
   assert( res );
+  SaHpiRptEntryT *rptentry;
+  SaHpiRdrT *rdrentry;
+
+  // Sensor disabled -> ignore event
+  if (m_enabled == SAHPI_FALSE)
+    {
+      stdlog << "reading event : Ignore (Sensor disabled).\n";
+      return;
+    }
 
   stdlog << "reading event.\n";
 
@@ -499,12 +792,15 @@ cIpmiSensor::HandleEvent( cIpmiEvent *event )
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->type = oh_event::OH_ET_HPI;
+  e->type = OH_ET_HPI;
 
   oh_hpi_event &hpi_event = e->u.hpi_event;
 
-  hpi_event.parent = res->m_resource_id;
-  hpi_event.id     = m_record_id;
+  rptentry = oh_get_resource_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id );
+  rdrentry = oh_get_rdr_by_id( res->Domain()->GetHandler()->rptcache, res->m_resource_id, m_record_id );
+
+  hpi_event.res = *rptentry;
+  hpi_event.rdr = *rdrentry;
 
   // hpi event
   SaHpiEventT &he = hpi_event.event;
@@ -514,5 +810,6 @@ cIpmiSensor::HandleEvent( cIpmiEvent *event )
   if ( rv != SA_OK )
        return;
 
+  stdlog << "cIpmiSensor::HandleEvent OH_ET_HPI Event resource " << res->m_resource_id << "\n";
   m_mc->Domain()->AddHpiEvent( e );
 }

@@ -2,6 +2,7 @@
  * ipmi_fru_info.cpp
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include "ipmi_fru_info.h"
@@ -22,10 +24,10 @@ MapAtcaSiteTypeToEntity( tIpmiAtcaSiteType type )
 {
   static SaHpiEntityTypeT et[] = 
   {
-    SAHPI_ENT_SYSTEM_BOARD,
-    SAHPI_ENT_POWER_UNIT,
+    SAHPI_ENT_PHYSICAL_SLOT,
+    SAHPI_ENT_POWER_SUPPLY,
     SAHPI_ENT_EXTERNAL_ENVIRONMENT,
-    (SaHpiEntityTypeT)0xf0, // ATCA ShMc
+    SAHPI_ENT_SHELF_MANAGER,
     SAHPI_ENT_COOLING_UNIT,
     SAHPI_ENT_CHASSIS_SPECIFIC,
     (SaHpiEntityTypeT)(SAHPI_ENT_CHASSIS_SPECIFIC+1),
@@ -51,7 +53,6 @@ cIpmiFruInfo::cIpmiFruInfo( unsigned int addr, unsigned int fru_id,
     m_slot( slot ), m_entity( entity ),
     m_site( site ), m_properties( properties )
 {
-  assert( fru_id == 0 );
 }
 
 
@@ -66,9 +67,8 @@ cIpmiFruInfo::CreateEntityPath( const cIpmiEntityPath &top,
 {
   cIpmiEntityPath middle;
 
-  middle.SetEntry( 0, SAHPI_ENT_GROUP, m_fru_id /*+ dEntityInstanceDummy */ );
-  middle.SetEntry( 1, m_entity, m_slot );
-  middle.AppendRoot( 2 );
+  middle.SetEntry( 0, m_entity, m_slot );
+  middle.AppendRoot( 1 );
 
   cIpmiEntityPath ep = bottom;
   ep += middle;
@@ -153,6 +153,8 @@ cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id,
 				   SaHpiEntityTypeT entity, unsigned int slot,
                                    tIpmiAtcaSiteType site, unsigned int properties )
 {
+  assert( fru_id == 0 );
+
   cIpmiFruInfo *fi = FindFruInfo( addr, fru_id );
 
   if ( fi )
@@ -171,11 +173,40 @@ cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id,
   return fi;
 }
 
+cIpmiFruInfo *
+cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id )
+{
+  assert( fru_id != 0 );
+
+  cIpmiFruInfo *fi = FindFruInfo( addr, fru_id );
+
+  if ( fi )
+       return fi;
+
+  cIpmiFruInfo *fi0 = FindFruInfo( addr, 0 );
+
+  assert ( fi0 != NULL );
+
+  fi = new cIpmiFruInfo( addr, fru_id, fi0->Entity(), fi0->Slot(), fi0->Site(), 0 );
+
+  if ( !AddFruInfo( fi ) )
+     {
+       assert( 0 );
+       delete fi;
+
+       return 0;
+     }
+
+  return fi;
+}
+
 
 unsigned int
 cIpmiFruInfoContainer::GetFreeSlotForOther( unsigned int addr )
 {
-  unsigned int slot = 0; //dEntityInstanceDummy;
+    return addr;
+#if 0
+  unsigned int slot = 0;
 
   for( GList *list = m_fru_info; list; list = g_list_next( list ) )
      {
@@ -189,4 +220,5 @@ cIpmiFruInfoContainer::GetFreeSlotForOther( unsigned int addr )
      }
 
   return slot + 1;
+#endif
 }

@@ -2,6 +2,7 @@
  * ipmi_control.cpp
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include "ipmi_control.h"
@@ -23,7 +25,7 @@ cIpmiControl::cIpmiControl( cIpmiMc *mc,
                             SaHpiCtrlOutputTypeT output_type,
                             SaHpiCtrlTypeT type )
   : cIpmiRdr( mc, SAHPI_CTRL_RDR ),
-    m_num( num ), m_ignore( false ),
+    m_num( num ),
     m_output_type( output_type ),
     m_type( type )
 {
@@ -33,18 +35,6 @@ cIpmiControl::cIpmiControl( cIpmiMc *mc,
 cIpmiControl::~cIpmiControl()
 {
 }
-
-/*
-void
-cIpmiControl::Log()
-{
-  stdlog << "control: mc " << (unsigned char)m_mc->GetAddress() << ", num "
-         << m_num << ", " << m_entity->EntityId() << "."
-         << m_entity->EntityInstance() << " ("
-         << m_entity->EntityIdString() << "), " << m_id << "\n";
-}
-*/
-
 
 bool
 cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
@@ -67,9 +57,10 @@ cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
           }
 
        memset( e, 0, sizeof( struct oh_event ) );
-       e->type              = oh_event::OH_ET_RESOURCE;
+       e->type              = OH_ET_RESOURCE;
        e->u.res_event.entry = resource;
 
+       stdlog << "cIpmiControl::CreateRdr OH_ET_RESOURCE Event resource " << resource.ResourceId << "\n";
        m_mc->Domain()->AddHpiEvent( e );       
      }
 
@@ -77,7 +68,6 @@ cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   SaHpiCtrlRecT &rec = rdr.RdrTypeUnion.CtrlRec;
 
   rec.Num        = (SaHpiCtrlNumT)m_num;
-  rec.Ignore     = m_ignore ? SAHPI_TRUE : SAHPI_FALSE;
   rec.OutputType = m_output_type;
   rec.Type       = m_type;
   rec.Oem        = m_oem;

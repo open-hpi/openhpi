@@ -2,6 +2,7 @@
  * ipmi_control_fan.cpp
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 
@@ -54,25 +56,54 @@ cIpmiControlFan::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   ana_rec.Max     = (SaHpiCtrlStateAnalogT)m_maximum_speed_level;
   ana_rec.Default = (SaHpiCtrlStateAnalogT)m_default_speed_level;
 
+  if ( m_local_control_mode == true )
+    {
+        rec.DefaultMode.Mode = SAHPI_CTRL_MODE_AUTO;
+        rec.DefaultMode.ReadOnly = SAHPI_FALSE;
+    }
+    else
+    {
+        rec.DefaultMode.Mode = SAHPI_CTRL_MODE_MANUAL;
+        rec.DefaultMode.ReadOnly = SAHPI_TRUE;
+    }
+
+  rec.WriteOnly = SAHPI_FALSE;
+
   return true;
 }
 
 
 SaErrorT
-cIpmiControlFan::SetState( const SaHpiCtrlStateT &state )
+cIpmiControlFan::SetState( const SaHpiCtrlModeT &mode, const SaHpiCtrlStateT &state )
 {
-  if ( state.Type != SAHPI_CTRL_TYPE_ANALOG )
-       return SA_ERR_HPI_INVALID_DATA;
-
-  if (    (unsigned int)state.StateUnion.Analog < m_minimum_speed_level
-       || (unsigned int)state.StateUnion.Analog > m_maximum_speed_level )
-       return SA_ERR_HPI_INVALID_DATA;
-
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFanLevel );
-  msg.m_data[0] = dIpmiPigMgId;
-  msg.m_data[1] = 0;
-  msg.m_data[2] = (unsigned char)state.StateUnion.Analog;
+  msg.m_data[0] = dIpmiPicMgId;
+  msg.m_data[1] = Resource()->FruId();
   msg.m_data_len = 3;
+
+  if ( mode == SAHPI_CTRL_MODE_AUTO )
+    {
+        if ( m_local_control_mode == false )
+            return SA_ERR_HPI_READ_ONLY;
+
+        msg.m_data[2] = dIpmiFanLocalControlMode;
+    }
+    else if ( mode == SAHPI_CTRL_MODE_MANUAL )
+    {
+        if ( &state == NULL)
+            return SA_ERR_HPI_INVALID_PARAMS;
+
+        if ( state.Type != SAHPI_CTRL_TYPE_ANALOG )
+            return SA_ERR_HPI_INVALID_DATA;
+
+        if ( (unsigned int)state.StateUnion.Analog < m_minimum_speed_level
+            || (unsigned int)state.StateUnion.Analog > m_maximum_speed_level )
+            return SA_ERR_HPI_INVALID_DATA;
+
+        msg.m_data[2] = (unsigned char)state.StateUnion.Analog;
+    }
+    else
+        return SA_ERR_HPI_INVALID_PARAMS;
 
   cIpmiMsg rsp;
 
@@ -81,7 +112,7 @@ cIpmiControlFan::SetState( const SaHpiCtrlStateT &state )
   if (    rv != SA_OK
        || rsp.m_data_len < 2
        || rsp.m_data[0] != eIpmiCcOk
-          || rsp.m_data[1] != dIpmiPigMgId )
+          || rsp.m_data[1] != dIpmiPicMgId )
      {
        stdlog << "cannot send set fan speed !\n";
        return (rv != SA_OK) ? rv : SA_ERR_HPI_INVALID_REQUEST;
@@ -92,11 +123,11 @@ cIpmiControlFan::SetState( const SaHpiCtrlStateT &state )
 
 
 SaErrorT
-cIpmiControlFan::GetState( SaHpiCtrlStateT &state )
+cIpmiControlFan::GetState( SaHpiCtrlModeT &mode, SaHpiCtrlStateT &state )
 {
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetFanLevel );
-  msg.m_data[0] = dIpmiPigMgId;
-  msg.m_data[1] = 0;
+  msg.m_data[0] = dIpmiPicMgId;
+  msg.m_data[1] = Resource()->FruId();
   msg.m_data_len = 2;
 
   cIpmiMsg rsp;
@@ -104,16 +135,47 @@ cIpmiControlFan::GetState( SaHpiCtrlStateT &state )
   SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp );
 
   if (    rv != SA_OK
-       || rsp.m_data_len < 3
+       || (( rsp.m_data_len != 3 ) && ( rsp.m_data_len != 4 ))
        || rsp.m_data[0] != eIpmiCcOk
-          || rsp.m_data[1] != dIpmiPigMgId )
+          || rsp.m_data[1] != dIpmiPicMgId )
      {
        stdlog << "cannot send get fan speed !\n";
        return (rv != SA_OK) ? rv : SA_ERR_HPI_INVALID_REQUEST;
      }
 
-  state.Type = SAHPI_CTRL_TYPE_ANALOG;
-  state.StateUnion.Analog = (SaHpiCtrlStateAnalogT)rsp.m_data[2];
+  if ( &mode != NULL )
+    {
+      if ( rsp.m_data[2] == dIpmiFanLocalControlMode )
+        {
+            mode = SAHPI_CTRL_MODE_AUTO;
+        }
+        else
+        {
+            mode = SAHPI_CTRL_MODE_MANUAL;
+        }
+    }
+
+  if ( &state != NULL)
+    {
+        state.Type = SAHPI_CTRL_TYPE_ANALOG;
+
+        if ( rsp.m_data[2] == dIpmiFanLocalControlMode )
+            {
+                state.StateUnion.Analog = (SaHpiCtrlStateAnalogT)rsp.m_data[3];
+            }
+            else
+            {
+                if ( rsp.m_data_len == 3 )
+                    state.StateUnion.Analog = (SaHpiCtrlStateAnalogT)rsp.m_data[2];
+                else
+                {
+                    if ( (SaHpiCtrlStateAnalogT)rsp.m_data[2] > (SaHpiCtrlStateAnalogT)rsp.m_data[3] )
+                        state.StateUnion.Analog = (SaHpiCtrlStateAnalogT)rsp.m_data[2];
+                    else
+                        state.StateUnion.Analog = (SaHpiCtrlStateAnalogT)rsp.m_data[3];
+                }
+            }
+    }
 
   return SA_OK;
 }
@@ -126,7 +188,6 @@ cIpmiControlFan::Dump( cIpmiLog &dump, const char *name ) const
 
   dump.Entry( "ControlNum" ) << m_num << ";\n";
   dump.Entry( "Oem" ) << m_oem << ";\n";
-  dump.Entry( "Ignore" ) << m_ignore << ";\n";
   dump.Entry( "MinimumSpeedLevel" ) << m_minimum_speed_level << ";\n";
   dump.Entry( "MaximumSpeedLevel" ) << m_maximum_speed_level << ";\n";
   dump.Entry( "DefaultSpeedLevel" ) << m_default_speed_level << ";\n";

@@ -2,6 +2,7 @@
  * ipmi_sdr.cpp
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <stdlib.h>
@@ -81,6 +83,8 @@ static cIpmiSdrTypeToName type_to_name[] =
 const char *
 IpmiSdrTypeToName( tIpmiSdrType type )
 {
+  if ( type == eSdrTypeUnknown )
+      return "Unknown";
   for( cIpmiSdrTypeToName *t = type_to_name; t->m_name; t++ )
        if ( t->m_type == type )
             return t->m_name;
@@ -377,6 +381,7 @@ cIpmiSdr::Dump( cIpmiLog &dump, const char *name ) const
   char str[80];
   sprintf( str, "%sRecord", IpmiSdrTypeToName( m_type ) );
   dump.Begin( str, name );
+  dump.Entry( "Type" ) << IpmiSdrTypeToName( m_type ) << "\n";
   dump.Entry( "RecordId" ) << m_record_id << ";\n";
   dump.Entry( "Version" ) << (int)m_major_version << ", "
 			  << (int)m_minor_version << ";\n";
@@ -393,8 +398,10 @@ cIpmiSdr::Dump( cIpmiLog &dump, const char *name ) const
 
        case eSdrTypeMcDeviceLocatorRecord:
             DumpMcDeviceLocator( dump );
+            break;
 
        default:
+            dump.Entry( "SDR Type " ) << m_type << ";\n";
             break;
      }
 
@@ -504,7 +511,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
           {
             // Data changed during fetch, retry.  Only do this so many
             // times before giving up.
-            stdlog << "SRD reservation lost.\n";
+            stdlog << "SDR reservation lost 1.\n";
 
             err = eReadReservationLost;
 
@@ -513,7 +520,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
 
        if ( rsp.m_data[0] == eIpmiCcInvalidReservation )
           {
-            stdlog << "SRD reservation lost.\n";
+            stdlog << "SDR reservation lost 2.\n";
 
             err = eReadReservationLost;
             return 0;
@@ -525,7 +532,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
           {
             // We got an error fetching the first SDR, so the repository is
             // probably empty.  Just go on.
-            stdlog << "SRD reservation lost.\n";
+            stdlog << "SDR reservation lost 3.\n";
 
             err = eReadEndOfSdr;
             return 0;
@@ -644,7 +651,7 @@ cIpmiSdrs::Reserve()
   if ( rsp.m_data_len < 3 )
      {
        stdlog << "SDR Reservation data not long enough: " << rsp.m_data_len << " bytes!\n";
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   m_reservation = IpmiGetUint16( rsp.m_data + 1 );
@@ -731,7 +738,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
             m_sdr_changed = true;
             IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
 
-	    return SA_ERR_HPI_DATA_LEN_INVALID;
+	    return SA_ERR_HPI_INVALID_DATA;
 	}
 
        working_num_sdrs = rsp.m_data[1];
@@ -755,7 +762,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
                  m_sdr_changed = 1;
                  IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
 
-                 return SA_ERR_HPI_DATA_LEN_INVALID;
+                 return SA_ERR_HPI_INVALID_DATA;
                }
 
 	    add_timestamp = IpmiGetUint32( rsp.m_data + 3 );
@@ -776,7 +783,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
             m_sdr_changed = true;
             IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
 
-	    return SA_ERR_HPI_DATA_LEN_INVALID;
+	    return SA_ERR_HPI_INVALID_DATA;
           }
 
        /* Pull pertinant info from the response. */
@@ -1136,6 +1143,65 @@ cIpmiSdrs::FindSdr( cIpmiMc *mc )
             && mc->GetChannel() == (unsigned int)(sdr->m_data[6] & 0x0f) )
             return sdr;
      }
+
+  return 0;
+}
+
+// here we try to find the FRU that is the "parent"
+// of the entity this SDR is attached to
+// TODO : Look at DEAR & EAR
+unsigned int
+cIpmiSdrs::FindParentFru( SaHpiEntityTypeT type,
+                          SaHpiEntityLocationT instance,
+                          SaHpiEntityTypeT & parent_type,
+                          SaHpiEntityLocationT & parent_instance
+                        )
+{
+  SaHpiEntityTypeT mc_type = SAHPI_ENT_UNSPECIFIED;
+  SaHpiEntityLocationT mc_instance = 0;
+
+  for( unsigned int i = 0; i < NumSdrs(); i++ )
+    {
+       cIpmiSdr *sdr = Sdr( i );
+
+       if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
+        {
+            mc_type = (SaHpiEntityTypeT)sdr->m_data[12];
+            mc_instance = (SaHpiEntityLocationT)sdr->m_data[13];
+
+            if ( ( type != (SaHpiEntityTypeT)sdr->m_data[12] )
+                || ( instance != (SaHpiEntityLocationT)sdr->m_data[13] ) )
+
+                continue;
+
+            parent_type = type;
+            parent_instance = instance;
+
+            return 0;
+        }
+       else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord )
+        {
+            if ( (( sdr->m_data[7] & 0x80) == 0 )
+                || ( type != (SaHpiEntityTypeT)sdr->m_data[12] )
+                || ( instance != (SaHpiEntityLocationT)sdr->m_data[13] ) )
+
+                continue;
+
+            parent_type = type;
+            parent_instance = instance;
+
+            return sdr->m_data[6];
+       }
+    }
+
+  stdlog << "WARNING : Entity ID " << type << ", Instance " << instance << " did not find parent FRU\n";
+  stdlog << "WARNING : Defaulting to FRU 0, Entity ID " << mc_type << ", Instance " << mc_instance << "\n";
+
+  // We didn't find an exact match
+  // Since a lot of ATCA boards have wrong SDRs
+  // we default the parent to the MC itself
+  parent_type = mc_type;
+  parent_instance = mc_instance;
 
   return 0;
 }

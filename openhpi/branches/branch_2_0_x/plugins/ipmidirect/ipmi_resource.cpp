@@ -2,6 +2,7 @@
  * ipmi_resource.cpp
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <string.h>
@@ -19,12 +21,12 @@
 #include <glib.h>
 #include <assert.h>
 
-//#include "ipmi_resource.h"
 #include "ipmi_domain.h"
 
 
 cIpmiResource::cIpmiResource( cIpmiMc *mc, unsigned int fru_id )
   : m_sel( false ), m_mc( mc ), m_fru_id( fru_id ),
+    m_is_fru( false ),
     m_hotswap_sensor( 0 ),
     m_fru_state( eIpmiFruStateNotInstalled ),
     m_oem( 0 ), m_current_control_id( 0 ),
@@ -99,7 +101,7 @@ cIpmiResource::CreateSensorNum( SaHpiSensorNumT num )
 
   if ( m_sensor_num[v] != -1 )
      {
-       for( int i = 0xf8; i >= 0; i-- )
+       for( int i = 0xff; i >= 0; i-- )
             if ( m_sensor_num[i] == -1 )
                {
                  v = i;
@@ -129,22 +131,38 @@ cIpmiResource::Create( SaHpiRptEntryT &entry )
   // resource info
   SaHpiResourceInfoT &info = entry.ResourceInfo;
 
-  info.ResourceRev      = 0;
-  info.SpecificVer      = 0;
-  info.DeviceSupport    = 0;
-  info.ManufacturerId   = (SaHpiManufacturerIdT)m_mc->ManufacturerId();
-  info.ProductId        = (SaHpiUint16T)m_mc->ProductId();
-  info.FirmwareMajorRev = (SaHpiUint8T)m_mc->MajorFwRevision();
-  info.FirmwareMinorRev = (SaHpiUint8T)m_mc->MinorFwRevision();
-  info.AuxFirmwareRev   = (SaHpiUint8T)m_mc->AuxFwRevision( 0 );
+  memset( &info, 0, sizeof( SaHpiResourceInfoT ) );
 
   entry.ResourceEntity = m_entity_path;
   entry.ResourceId     = oh_uid_from_entity_path( &entry.ResourceEntity );
 
-  // TODO: set SAHPI_CAPABILITY_FRU only if FRU
-  entry.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE|SAHPI_CAPABILITY_FRU;
+  entry.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
+  if ( m_is_fru == true )
+    {
+        entry.ResourceCapabilities |= SAHPI_CAPABILITY_FRU;
+
+        if ( m_fru_id == 0 )
+            {
+                info.ResourceRev      = (SaHpiUint8T)m_mc->DeviceRevision();
+                info.DeviceSupport    = (SaHpiUint8T)m_mc->DeviceSupport();
+                info.ManufacturerId   = (SaHpiManufacturerIdT)m_mc->ManufacturerId();
+                info.ProductId        = (SaHpiUint16T)m_mc->ProductId();
+                info.FirmwareMajorRev = (SaHpiUint8T)m_mc->MajorFwRevision();
+                info.FirmwareMinorRev = (SaHpiUint8T)m_mc->MinorFwRevision();
+                info.AuxFirmwareRev   = (SaHpiUint8T)m_mc->AuxFwRevision( 0 );
+            }
+
+        // Reset supported on ATCA FRUs - Don't allow it on the active ShMC
+        if ( Domain()->IsAtca()
+            && ( m_mc->GetAddress() != dIpmiBmcSlaveAddr) )
+            {
+                entry.ResourceCapabilities |= SAHPI_CAPABILITY_RESET;
+            }
+    }
+
+  entry.HotSwapCapabilities = 0;
   entry.ResourceSeverity = SAHPI_OK;
-  entry.DomainId = 0;
+  entry.ResourceFailed = SAHPI_FALSE;
   entry.ResourceTag = ResourceTag();
 
   return true;
@@ -154,6 +172,7 @@ cIpmiResource::Create( SaHpiRptEntryT &entry )
 bool
 cIpmiResource::Destroy()
 {
+  SaHpiRptEntryT *rptentry;
   stdlog << "removing resource: " << m_entity_path << ").\n";
 
   // remove sensors
@@ -174,8 +193,12 @@ cIpmiResource::Destroy()
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->type = oh_event::OH_ET_RESOURCE_DEL;
-  e->u.res_del_event.resource_id = m_resource_id;
+  e->type = OH_ET_RESOURCE_DEL;
+  rptentry = oh_get_resource_by_id( Domain()->GetHandler()->rptcache, m_resource_id );
+  if ( !rptentry )
+      assert( 0 );
+  e->u.res_event.entry = *rptentry;
+  stdlog << "cIpmiResource::Destroy OH_ET_RESOURCE_DEL Event resource " << m_resource_id << "\n";
   Domain()->AddHpiEvent( e );
 
   // remove resource from local cache
@@ -216,10 +239,10 @@ cIpmiResource::AddRdr( cIpmiRdr *rdr )
   stdlog << " " << rdr->Num();
   stdlog << " " << rdr->IdString() << "\n";
 
-  // set entity
+  // set resource
   rdr->Resource() = this;
 
-  // add rdr to entity
+  // add rdr to resource
   if ( Add( rdr ) == -1 )
      {
        assert( 0 );
@@ -230,57 +253,15 @@ cIpmiResource::AddRdr( cIpmiRdr *rdr )
   // rdrs cannot exits without an mc
   assert( rdr->Mc() );
 
-/*
-  // find resource
-  SaHpiRptEntryT *resource = Domain()->FindResource( m_resource_id );
-
-  if ( !resource )
-     {
-       assert( 0 );
-       return false;
-     }
-
-  // create event
-  struct oh_event *e;
-
-  e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
-
-  if ( !e )
-     {
-       stdlog << "out of space !\n";
-       return false;
-     }
-
-  memset( e, 0, sizeof( struct oh_event ) );
-
-  e->type = oh_event::OH_ET_RDR;
-
-  // create rdr
-  rdr->CreateRdr( *resource, e->u.rdr_event.rdr );
-
-  int rv = oh_add_rdr( Domain()->GetHandler()->rptcache,
-                       resource->ResourceId,
-                       &e->u.rdr_event.rdr, rdr, 1 );
-
-  assert( rv == 0 );
-
-  // assign the hpi record id to sensor, so we can find
-  // the rdr for a given sensor.
-  // the id comes from oh_add_rdr.
-  rdr->RecordId() = e->u.rdr_event.rdr.RecordId;
-
-  Domain()->AddHpiEvent( e );
-*/
-
   // check for hotswap sensor
   cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( rdr );
 
   if ( hs )
      {
        if ( m_hotswap_sensor )
-            stdlog << "ups: found a second hotswap sensor !\n";
-
-       m_hotswap_sensor = hs;
+           stdlog << "WARNING: found a second hotswap sensor, discard it !\n";
+       else
+           m_hotswap_sensor = hs;
      }
 
   return true;
@@ -324,14 +305,14 @@ cIpmiResource::PopulateSel()
        return true;
      }
 
-  if ( resource->ResourceCapabilities & SAHPI_CAPABILITY_SEL )
+  if ( resource->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG )
      {
        assert( 0 );
        return true;
      }
 
   // update resource
-  resource->ResourceCapabilities |= SAHPI_CAPABILITY_SEL;
+  resource->ResourceCapabilities |= SAHPI_CAPABILITY_EVENT_LOG;
 
   struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
@@ -342,9 +323,10 @@ cIpmiResource::PopulateSel()
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
-  e->type               = oh_event::OH_ET_RESOURCE;
+  e->type               = OH_ET_RESOURCE;
   e->u.res_event.entry = *resource;
 
+  stdlog << "cIpmiInventory::CreateRdr OH_ET_RESOURCE Event resource " << resource->ResourceId << "\n";
   Domain()->AddHpiEvent( e );
 
   return true;
@@ -368,7 +350,7 @@ cIpmiResource::Populate()
           }
 
        memset( e, 0, sizeof( struct oh_event ) );
-       e->type = oh_event::OH_ET_RESOURCE;
+       e->type = OH_ET_RESOURCE;
 
        if ( Create( e->u.res_event.entry ) == false )
           {
@@ -380,11 +362,12 @@ cIpmiResource::Populate()
        // the resource for a given entity
        m_resource_id = e->u.res_event.entry.ResourceId;
 
-       // add the entity to the resource cache
+       // add the resource to the resource cache
        int rv = oh_add_resource( Domain()->GetHandler()->rptcache,
                                  &(e->u.res_event.entry), this, 1 );
        assert( rv == 0 );
 
+       stdlog << "cIpmiResource::Populate OH_ET_RESOURCE Event resource " << m_resource_id << "\n";
        Domain()->AddHpiEvent( e );
   
        if ( m_sel )
