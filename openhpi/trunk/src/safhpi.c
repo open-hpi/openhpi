@@ -1800,7 +1800,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         }
 
         /* Access Inventory Info from plugin */
-        dbg("Access IdrInfo from plugin.");
+        trace("Access IdrInfo from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, IdrInfo);
 
         return rv;
@@ -1859,7 +1859,7 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
 
 
         /* Access Inventory Info from plugin */
-        dbg("Access IdrAreaHeader from plugin.");
+        trace("Access IdrAreaHeader from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, AreaType, AreaId, NextAreaId, Header);
 
         return rv;
@@ -1912,7 +1912,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         }
 
         /* Access Inventory Info from plugin */
-        dbg("Access IdrAreaAdd from plugin.");
+        trace("Access IdrAreaAdd from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, AreaType, AreaId);
 
         return rv;
@@ -1959,7 +1959,7 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
         }
 
         /* Access Inventory Info from plugin */
-        dbg("Access IdrAreaDelete from plugin.");
+        trace("Access IdrAreaDelete from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, AreaId);
 
         return rv;
@@ -2018,7 +2018,7 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
 
 
         /* Access Inventory Info from plugin */
-        dbg("Access saHpiIdrFieldGet from plugin.");
+        trace("Access saHpiIdrFieldGet from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, AreaId,
                       FieldType, FieldId, NextFieldId, Field);
 
@@ -2069,7 +2069,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         }
 
         /* Access Inventory Info from plugin */
-        dbg("Access saHpiIdrFieldAdd from plugin.");
+        trace("Access saHpiIdrFieldAdd from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, Field);
 
         return rv;
@@ -2119,7 +2119,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         }
 
         /* Access Inventory Info from plugin */
-        dbg("Access saHpiIdrFieldSet from plugin.");
+        trace("Access saHpiIdrFieldSet from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, Field);
 
         return rv;
@@ -2167,7 +2167,7 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         }
 
         /* Access Inventory Info from plugin */
-        dbg("Access saHpiIdrFieldDelete from plugin.");
+        trace("Access saHpiIdrFieldDelete from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, AreaId, FieldId);
 
         return rv;
