@@ -17,7 +17,8 @@ SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 EXTRA_DIST 		= \
 			  snmp_client.h \
 			  snmp_client_res.h \
-			  snmp_client_utils.h
+			  snmp_client_utils.h \
+			  sc_sensor_data.h
 
 INCLUDES		= -I$(top_srcdir)/include -I$(SNMPUTILSDIR)
 
