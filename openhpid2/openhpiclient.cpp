@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <errno.h>
+#include <config.h>
 extern "C"
 {
 #include <SaHpi.h>
@@ -92,266 +93,6 @@ CleanupClient(void);
 /* Utility routines                                                           */
 /*----------------------------------------------------------------------------*/
 
-static const char * oh_lookup_severity(SaHpiSeverityT value)
-{
-        switch (value) {
-        case SAHPI_CRITICAL:
-                return "CRITICAL";
-        case SAHPI_MAJOR:
-                return "MAJOR";
-        case SAHPI_MINOR:
-                return "MINOR";
-        case SAHPI_INFORMATIONAL:
-                return "INFORMATIONAL";
-        case SAHPI_OK:
-                return "OK";
-        case SAHPI_DEBUG:
-                return "DEBUG";
-        case SAHPI_ALL_SEVERITIES:
-                return "ALL_SEVERITIES";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_rdrtype(SaHpiRdrTypeT value)
-{
-        switch (value) {
-        case SAHPI_NO_RECORD:
-                return "NO_RECORD";
-        case SAHPI_CTRL_RDR:
-                return "CTRL_RDR";
-        case SAHPI_SENSOR_RDR:
-                return "SENSOR_RDR";
-        case SAHPI_INVENTORY_RDR:
-                return "INVENTORY_RDR";
-        case SAHPI_WATCHDOG_RDR:
-                return "WATCHDOG_RDR";
-        case SAHPI_ANNUNCIATOR_RDR:
-                return "ANNUNCIATOR_RDR";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_ctrlmode(SaHpiCtrlModeT value)
-{
-        switch (value) {
-        case SAHPI_CTRL_MODE_AUTO:
-                return "AUTO";
-        case SAHPI_CTRL_MODE_MANUAL:
-                return "MANUAL";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_ctrlstatedigital(SaHpiCtrlStateDigitalT value)
-{
-        switch (value) {
-        case SAHPI_CTRL_STATE_OFF:
-                return "OFF";
-        case SAHPI_CTRL_STATE_ON:
-                return "ON";
-        case SAHPI_CTRL_STATE_PULSE_OFF:
-                return "PULSE_OFF";
-        case SAHPI_CTRL_STATE_PULSE_ON:
-                return "PULSE_ON";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_watchdogaction(SaHpiWatchdogActionT value)
-{
-        switch (value) {
-        case SAHPI_WA_NO_ACTION:
-                return "NO_ACTION";
-        case SAHPI_WA_RESET:
-                return "RESET";
-        case SAHPI_WA_POWER_DOWN:
-                return "POWER_DOWN";
-        case SAHPI_WA_POWER_CYCLE:
-                return "POWER_CYCLE";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_watchdogpretimerinterrupt(SaHpiWatchdogPretimerInterruptT value)
-{
-        switch (value) {
-        case SAHPI_WPI_NONE:
-                return "NONE";
-        case SAHPI_WPI_SMI:
-                return "SMI";
-        case SAHPI_WPI_NMI:
-                return "NMI";
-        case SAHPI_WPI_MESSAGE_INTERRUPT:
-                return "MESSAGE_INTERRUPT";
-        case SAHPI_WPI_OEM:
-                return "OEM";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_watchdogtimeruse(SaHpiWatchdogTimerUseT value)
-{
-        switch (value) {
-        case SAHPI_WTU_NONE:
-                return "NONE";
-        case SAHPI_WTU_BIOS_FRB2:
-                return "BIOS_FRB2";
-        case SAHPI_WTU_BIOS_POST:
-                return "BIOS_POST";
-        case SAHPI_WTU_OS_LOAD:
-                return "OS_LOAD";
-        case SAHPI_WTU_SMS_OS:
-                return "SMS_OS";
-        case SAHPI_WTU_OEM:
-                return "OEM";
-        case SAHPI_WTU_UNSPECIFIED:
-                return "UNSPECIFIED";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_annunciatormode(SaHpiAnnunciatorModeT value)
-{
-        switch (value) {
-        case SAHPI_ANNUNCIATOR_MODE_AUTO:
-                return "AUTO";
-        case SAHPI_ANNUNCIATOR_MODE_USER:
-                return "USER";
-        case SAHPI_ANNUNCIATOR_MODE_SHARED:
-                return "SHARED";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_ctrltype(SaHpiCtrlTypeT value)
-{
-        switch (value) {
-        case SAHPI_CTRL_TYPE_DIGITAL:
-                return "DIGITAL";
-        case SAHPI_CTRL_TYPE_DISCRETE:
-                return "DISCRETE";
-        case SAHPI_CTRL_TYPE_ANALOG:
-                return "ANALOG";
-        case SAHPI_CTRL_TYPE_STREAM:
-                return "STREAM";
-        case SAHPI_CTRL_TYPE_TEXT:
-                return "TEXT";
-        case SAHPI_CTRL_TYPE_OEM:
-                return "OEM";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_hsaction(SaHpiHsActionT value)
-{
-        switch (value) {
-        case SAHPI_HS_ACTION_INSERTION:
-                return "INSERTION";
-        case SAHPI_HS_ACTION_EXTRACTION:
-                return "EXTRACTION";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_hsindicatorstate(SaHpiHsIndicatorStateT value)
-{
-        switch (value) {
-        case SAHPI_HS_INDICATOR_OFF:
-                return "OFF";
-        case SAHPI_HS_INDICATOR_ON:
-                return "ON";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_parmaction(SaHpiParmActionT value)
-{
-        switch (value) {
-        case SAHPI_DEFAULT_PARM:
-                return "DEFAULT_PARM";
-        case SAHPI_SAVE_PARM:
-                return "SAVE_PARM";
-        case SAHPI_RESTORE_PARM:
-                return "RESTORE_PARM";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_resetaction(SaHpiResetActionT value)
-{
-        switch (value) {
-        case SAHPI_COLD_RESET:
-                return "COLD_RESET";
-        case SAHPI_WARM_RESET:
-                return "WARM_RESET";
-        case SAHPI_RESET_ASSERT:
-                return "RESET_ASSERT";
-        case SAHPI_RESET_DEASSERT:
-                return "RESET_DEASSERT";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_powerstate(SaHpiPowerStateT value)
-{
-        switch (value) {
-        case SAHPI_POWER_OFF:
-                return "OFF";
-        case SAHPI_POWER_ON:
-                return "ON";
-        case SAHPI_POWER_CYCLE:
-                return "CYCLE";
-        default:
-                return NULL;
-        }
-}
-
-
-static const char * oh_lookup_texttype(SaHpiTextTypeT value)
-{
-        switch (value) {
-        case SAHPI_TL_TYPE_UNICODE:
-                return "UNICODE";
-        case SAHPI_TL_TYPE_BCDPLUS:
-                return "BCDPLUS";
-        case SAHPI_TL_TYPE_ASCII6:
-                return "ASCII6";
-        case SAHPI_TL_TYPE_TEXT:
-                return "TEXT";
-        case SAHPI_TL_TYPE_BINARY:
-                return "BINARY";
-        default:
-                return NULL;
-        }
-}
-
 static SaErrorT oHpiHandlerCreateInit(void);
 static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data);
 
@@ -405,6 +146,34 @@ CleanupClient(void)
 	pinst = NULL;
 }
 
+/*----------------------------------------------------------------------------*/
+/* oHpiVersionGet - get OpenHPI version                                       */
+/*----------------------------------------------------------------------------*/
+
+SaHpiUint64T oHpiVersionGet() 
+{
+        SaHpiUint64T v = 0;
+        char * version = NULL;
+        char * start = version;
+        char * end = version;
+        version = strdup(VERSION);
+        if(!version) {
+                /* even if we fail, we know we are the client lib */
+                return 1; 
+        }
+        start = version;
+        end = version;
+        v += (strtoull(start, &end, 10) << 48);
+        end++;
+        start = end;
+        v += (strtoull(start, &end, 10) << 32);
+        end++;
+        start = end;
+        v += (strtoull(start, &end, 10) << 16);
+        v += 1;
+        free(version);
+        return v;
+}
 
 /*----------------------------------------------------------------------------*/
 /* saHpiVersionGet                                                            */
@@ -4058,7 +3827,7 @@ SaErrorT oHpiPluginGetNext(char *name, char *next_name, int size)
         SaErrorT err;
 	char cmd[] = "oHpiPluginUnload";
 
-        if (strlen(name) + 1 > OH_GLOBAL_STR_MAX_LENGTH) {
+        if (strlen(name) + 1 > OH_MAX_TEXT_BUFFER_LENGTH) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
