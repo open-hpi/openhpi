@@ -24,4 +24,19 @@
     basic mechanisms used by OpenHPI.  It will come slower than the
     rest, but will be updated constantly.
   </para>
+  <sect1>
+    <title>Initializing OpenHPI</title>
+  <para>
+    As previously explained, OpenHPI breaks down into two basic
+    layers, the infrastructure (or core library), and plugins.  Most
+    of the real work 
+    </para>
+    <sect2>
+      <title>Plugins</title>
+      <para>
+        In or
+      </para>
+    </sect2>
+  </sect1>
+  
   </chapter>
