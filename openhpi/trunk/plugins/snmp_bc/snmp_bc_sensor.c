@@ -313,6 +313,7 @@ do { \
 		if (sinfo->mib.threshold_oids.thdname == NULL || \
 		    sinfo->mib.threshold_oids.thdname[0] == '\0') { \
 			dbg("No OID defined for readable threshold. Sensor=%s", rdr->IdString.Data); \
+			g_static_rec_mutex_unlock(&handle->handler_lock); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
 		SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, \
@@ -322,6 +323,7 @@ do { \
 		if (working.thdname.Type == SAHPI_SENSOR_READING_TYPE_BUFFER) { \
 			dbg("Sensor type SAHPI_SENSOR_READING_TYPE_BUFFER cannot have thresholds. Sensor=%s", \
 			    rdr->IdString.Data); \
+			g_static_rec_mutex_unlock(&handle->handler_lock); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
 		found_thresholds = found_thresholds | thdmask; \
@@ -357,7 +359,6 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 	SaHpiSensorThresholdsT working;
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-
 	if (!hnd || !thres) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -371,7 +372,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
-        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {	
 		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
@@ -385,15 +386,14 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 	
         sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
+		g_static_rec_mutex_unlock(&handle->handler_lock);		
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold == 0) {
-		
 		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_INVALID_CMD);
 	}
@@ -449,15 +449,15 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		SaHpiSensorReadingT reading;
 
 		if (found_thresholds & SAHPI_STM_LOW_HYSTERESIS) {
-			g_static_rec_mutex_unlock(&handle->handler_lock);
 			dbg("Cannot define both delta and total negative hysteresis. Sensor=%s",
 			    rdr->IdString.Data);
+			g_static_rec_mutex_unlock(&handle->handler_lock);			    
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 		if (lower_thresholds == 0) {
-			g_static_rec_mutex_unlock(&handle->handler_lock);
 			dbg("No lower thresholds are defined for total negative hysteresis. Sensor=%s",
 			    rdr->IdString.Data);
+			g_static_rec_mutex_unlock(&handle->handler_lock);			    
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
@@ -526,8 +526,8 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		case SAHPI_SENSOR_READING_TYPE_UINT64:
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
 		default:
-			g_static_rec_mutex_unlock(&handle->handler_lock);
 			dbg("Invalid reading type for threshold. Sensor=%s", rdr->IdString.Data);
+			g_static_rec_mutex_unlock(&handle->handler_lock);			
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
@@ -538,7 +538,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 
 		if (found_thresholds & SAHPI_STM_UP_HYSTERESIS) {
 			dbg("Cannot define both delta and total positive hysteresis. Sensor=%s",
-			    rdr->IdString.Data);
+			    rdr->IdString.Data);			    
 			g_static_rec_mutex_unlock(&handle->handler_lock);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
@@ -650,6 +650,7 @@ do { \
         	case SAHPI_SENSOR_READING_TYPE_BUFFER: \
         	default: \
         		dbg("Invalid threshold reading type."); \
+			g_static_rec_mutex_unlock(&handle->handler_lock); \
         		return(SA_ERR_HPI_INVALID_CMD); \
         	} \
         } \
@@ -661,12 +662,16 @@ do { \
 		if (sinfo->mib.threshold_write_oids.thdname == NULL || \
 		    sinfo->mib.threshold_oids.thdname[0] == '\0') { \
 			dbg("No writable threshold OID defined for thdname."); \
+			g_static_rec_mutex_unlock(&handle->handler_lock); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
 		err = snmp_bc_set_threshold_reading(hnd, rid, sid, \
 					            sinfo->mib.threshold_write_oids.thdname, \
 						    &(working.thdname)); \
-		if (err) return(err); \
+		if (err) { \
+			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			return(err); \
+		} \
 	} \
 } while(0)
 
