@@ -59,7 +59,7 @@ static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceId
  * Return values:
  * Number of event log entries - normal case.
  **/
-static int snmp_bc_get_sel_size_from_hardware(struct snmp_session *ss)
+static int snmp_bc_get_sel_size_from_hardware(struct snmp_bc_hnd *custom_handle)
 {
         struct snmp_value run_value;
         char oid[SNMP_BC_MAX_OID_LENGTH];
@@ -68,7 +68,7 @@ static int snmp_bc_get_sel_size_from_hardware(struct snmp_session *ss)
         do {
 		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID, i);
                 i++;
-        } while(snmp_get(ss, oid, &run_value) == 0);
+        } while(snmp_bc_snmp_get(custom_handle, oid, &run_value) == 0);
         
         /* Think about it, and it makes sense */
         i -= 2;
@@ -240,7 +240,7 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 	}
 	struct snmp_bc_hnd *custom_handle = handle->data;
 
-	current = snmp_bc_get_sel_size_from_hardware(custom_handle->ss);
+	current = snmp_bc_get_sel_size_from_hardware(custom_handle);
 	if (current) {
 		do {
 			err = snmp_bc_sel_read_add(handle, id, current);
@@ -328,7 +328,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		
 	current = 1;
 	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
-       	err = snmp_get(custom_handle->ss, oid, &get_value);
+       	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
        	if (err) {
 		dbg("SNMP log is empty.");
 		err = oh_el_clear(handle->elcache);
@@ -350,7 +350,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		while (1) {
 			current++;
 			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
-			err = snmp_get(custom_handle->ss,oid,&get_value);
+			err = snmp_bc_snmp_get(custom_handle,oid,&get_value);
 			if (err == 0) {
 				if (snmp_bc_parse_sel_entry(handle, get_value.string, &sel_entry) < 0) {
 					dbg("Cannot parse SEL entry.");
@@ -417,7 +417,7 @@ SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
         tt = time / 1000000000;
         localtime_r(&tt, &tv);
 	
-	err = snmp_bc_set_sp_time(custom_handle->ss, &tv);
+	err = snmp_bc_set_sp_time(custom_handle, &tv);
         if (err) {
 		dbg("Cannot set time. Error=%s.", oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -476,7 +476,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
         struct snmp_bc_hnd *custom_handle = handle->data;
 
 	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
-	err = snmp_get(custom_handle->ss, oid, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
 	if (err != SA_OK)
 		 return(err); 
 	else if ((err == SA_OK) && (get_value.type != ASN_OCTET_STR)) {

@@ -40,7 +40,7 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer,
 				    const char *str,
 				    SaHpiEntityLocationT location);
 
-SaHpiBoolT rdr_exists(struct snmp_session *ss,
+SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 		      const char *oid,
 		      unsigned int na,
 		      SaHpiBoolT write_only);
