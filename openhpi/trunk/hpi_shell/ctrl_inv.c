@@ -91,8 +91,8 @@ static int add_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 	};
 	field.AreaId = res;
 
-	i = get_string_param("Field type (chass,time,manuf,prodname,prodver,snum,pnum,file,tag,custom): ",
-		buf, 9);
+	i = get_string_param("Field type(chass,time,manuf,prodname,prodver,"
+		"snum,pnum,file,tag,custom): ", buf, 9);
 	if (i != 0) {
 		printf("Error!!! Invalid Field type: %s\n", buf);
 		return(-1);
@@ -152,19 +152,21 @@ static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 			SAHPI_IDR_FIELDTYPE_UNSPECIFIED, fentryid,
 			&nextfentryid, &res_field);
 		if (rv != SA_OK) {
-			printf("No Field for AreaId: %d  FieldId: %d\n", field.AreaId, field.FieldId);
+			printf("No Field for AreaId: %d  FieldId: %d\n",
+				field.AreaId, field.FieldId);
 			return(-1);
 		};
 		if (res_field.FieldId == field.FieldId) break;
 		fentryid = nextfentryid;
 	};
 	if (res_field.FieldId != field.FieldId) {
-		printf("No Field for AreaId: %d  FieldId: %d\n", field.AreaId, field.FieldId);
+		printf("No Field for AreaId: %d  FieldId: %d\n",
+			field.AreaId, field.FieldId);
 		return(-1);
 	};
 	field = res_field;
-	i = get_string_param("Field type (chass,time,manuf,prodname,prodver,snum,pnum,file,tag,custom): ",
-		buf, 9);
+	i = get_string_param("Field type(chass,time,manuf,prodname,prodver,"
+		"snum,pnum,file,tag,custom): ", buf, 9);
 	if (i == 0) {
 		for (i = 0; Field_types[i].name != (char *)NULL; i++)
 			if (strcmp(Field_types[i].name, buf) == 0) break;
@@ -284,7 +286,8 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 		areaId = SAHPI_FIRST_ENTRY; 
 		while (areaId != SAHPI_LAST_ENTRY) {
 			rva = saHpiIdrAreaHeaderGet(Domain->sessionId, resourceid,
-				idrInfo.IdrId, areaType, areaId, &nextareaId, &areaHeader);
+				idrInfo.IdrId, areaType, areaId, &nextareaId,
+				&areaHeader);
 			if (rva != SA_OK) {
 				printf("saHpiIdrAreaHeaderGet error %s\n",
 					oh_lookup_error(rva));
@@ -317,44 +320,21 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 ret_code_t inv_block(void)
 {
 	SaHpiRdrT		rdr_entry;
-	SaHpiResourceIdT	rptid = 0;
+	SaHpiResourceIdT	rptid;
 	SaHpiInstrumentIdT	rdrnum;
 	SaHpiRdrTypeT		type;
 	SaErrorT		rv;
-	int			res, i;
 	char			buf[256];
+	ret_code_t		ret;
 	term_def_t		*term;
 
-	term = get_next_term();
-	if (term == NULL) {
-		if (read_file) return(HPI_SHELL_CMD_ERROR);
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
-		if (i == 0) {
-			printf("NO rpt!\n");
-			return(SA_OK);
-		};
-		i = get_int_param("RPT ID ==> ", &res);
-		if (i != 1) return SA_OK;
-		rptid = (SaHpiResourceIdT)res;
-	} else {
-		rptid = (SaHpiResourceIdT)atoi(term->term);
-	};
+	ret = ask_rpt(&rptid);
+	if (ret != HPI_SHELL_OK) return(ret);
 	type = SAHPI_INVENTORY_RDR;
-	term = get_next_term();
-	if (term == NULL) {
-		if (read_file) return(HPI_SHELL_CMD_ERROR);
-		i = show_rdr_list(Domain, rptid, type, ui_print);
-		if (i == 0) {
-			printf("No rdr for rpt: %d\n", rptid);
-			return(SA_OK);
-		};
-		i = get_int_param("RDR NUM ==> ", &res);
-		if (i != 1) return SA_OK;
-		rdrnum = (SaHpiInstrumentIdT)res;
-	} else {
-		rdrnum = (SaHpiInstrumentIdT)atoi(term->term);
-	};
-	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
+	ret = ask_rdr(rptid, type, &rdrnum);
+	if (ret != HPI_SHELL_OK) return(ret);
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
+		&rdr_entry);
 	if (rv != SA_OK) {
 		printf("saHpiRdrGetByInstrumentId error %s\n", oh_lookup_error(rv));
 		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
@@ -364,8 +344,10 @@ ret_code_t inv_block(void)
 	show_inventory(Domain->sessionId, rptid, rdrnum, ui_print);
 	for (;;) {
 		block_type = INV_COM;
-		i = get_string_param("inventory block ==> ", buf, 9);
-		if (i != 0) continue;
+		get_new_command("inventory block ==> ");
+		term = get_next_term();
+		if (term == NULL) continue;
+		snprintf(buf, 256, "%s", term->term);
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
 		if (strcmp(buf, "show") == 0) {
 			show_inventory(Domain->sessionId, rptid, rdrnum, ui_print);
@@ -448,7 +430,8 @@ static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 	state.Type = type;
 	switch (type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
-			i = get_string_param("New state (on|off|pulseon|pulseoff): ", buf, 9);
+			i = get_string_param(
+				"New state(on|off|pulseon|pulseoff): ", buf, 9);
 			if (i != 0) return(HPI_SHELL_CMD_ERROR);
 			if (strcmp(buf, "on") == 0) state_val = SAHPI_CTRL_STATE_ON;
 			if (strcmp(buf, "off") == 0) state_val = SAHPI_CTRL_STATE_OFF;
@@ -516,7 +499,8 @@ static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 				return HPI_SHELL_CMD_ERROR;
 			};
 			state.StateUnion.Oem.MId = res;
-			i = get_string_param("Oem body: ", buf, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+			i = get_string_param("Oem body: ", buf,
+				SAHPI_MAX_TEXT_BUFFER_LENGTH);
 			str = buf;
 			while (*str == ' ') str++;
 			i = strlen(str);
@@ -526,8 +510,10 @@ static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 				printf("Invalid text: %s\n", buf);
 				return(HPI_SHELL_CMD_ERROR);
 			};
-			if (i > SAHPI_CTRL_MAX_OEM_BODY_LENGTH) i = SAHPI_CTRL_MAX_OEM_BODY_LENGTH;
-			memset(state.StateUnion.Oem.Body, 0, SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
+			if (i > SAHPI_CTRL_MAX_OEM_BODY_LENGTH)
+				i = SAHPI_CTRL_MAX_OEM_BODY_LENGTH;
+			memset(state.StateUnion.Oem.Body, 0,
+				SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
 			strncpy(state.StateUnion.Oem.Body, str, i);
 			state.StateUnion.Oem.BodyLength = i;
 			break;
@@ -548,44 +534,21 @@ static int set_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourc
 ret_code_t ctrl_block(void)
 {
 	SaHpiRdrT		rdr_entry;
-	SaHpiResourceIdT	rptid = 0;
+	SaHpiResourceIdT	rptid;
 	SaHpiInstrumentIdT	rdrnum;
 	SaHpiRdrTypeT		type;
 	SaErrorT		rv;
-	int			res, i;
 	char			buf[256];
+	ret_code_t		ret;
 	term_def_t		*term;
 
-	term = get_next_term();
-	if (term == NULL) {
-		if (read_file) return(HPI_SHELL_CMD_ERROR);
-		i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
-		if (i == 0) {
-			printf("NO rpt!\n");
-			return(SA_OK);
-		};
-		i = get_int_param("RPT ID ==> ", &res);
-		if (i != 1) return SA_OK;
-		rptid = (SaHpiResourceIdT)res;
-	} else {
-		rptid = (SaHpiResourceIdT)atoi(term->term);
-	};
+	ret = ask_rpt(&rptid);
+	if (ret != HPI_SHELL_OK) return(ret);
 	type = SAHPI_CTRL_RDR;
-	term = get_next_term();
-	if (term == NULL) {
-		if (read_file) return(HPI_SHELL_CMD_ERROR);
-		i = show_rdr_list(Domain, rptid, type, ui_print);
-		if (i == 0) {
-			printf("No rdr for rpt: %d\n", rptid);
-			return(SA_OK);
-		};
-		i = get_int_param("RDR NUM ==> ", &res);
-		if (i != 1) return SA_OK;
-		rdrnum = (SaHpiInstrumentIdT)res;
-	} else {
-		rdrnum = (SaHpiInstrumentIdT)atoi(term->term);
-	};
-	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum, &rdr_entry);
+	ret = ask_rdr(rptid, type, &rdrnum);
+	if (ret != HPI_SHELL_OK) return(ret);
+	rv = saHpiRdrGetByInstrumentId(Domain->sessionId, rptid, type, rdrnum,
+		&rdr_entry);
 	if (rv != SA_OK) {
 		printf("saHpiRdrGetByInstrumentId error %s\n", oh_lookup_error(rv));
 		printf("ERROR!!! Can not get rdr: ResourceId=%d RdrType=%d RdrNum=%d\n",
@@ -595,8 +558,10 @@ ret_code_t ctrl_block(void)
 	show_control(Domain->sessionId, rptid, rdrnum, ui_print);
 	for (;;) {
 		block_type = CTRL_COM;
-		i = get_string_param("control block ==> ", buf, 9);
-		if (i != 0) continue;
+		get_new_command("control block ==> ");
+		term = get_next_term();
+		if (term == NULL) continue;
+		snprintf(buf, 256, "%s", term->term);
 		if ((strcmp(buf, "q") == 0) || (strcmp(buf, "quit") == 0)) break;
 		if (strcmp(buf, "state") == 0) {
 			show_control_state(Domain->sessionId, rptid, rdrnum, ui_print);

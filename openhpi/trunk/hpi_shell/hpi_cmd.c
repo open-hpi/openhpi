@@ -28,25 +28,28 @@ int	debug_flag = 0;
 
 int main(int argc, char **argv)
 {
-	int	c, eflag = 0, fflag = 0;
-	char	file[1024];
+	int	c, eflag = 0;
 	char	*val;
 
-	while ( (c = getopt( argc, argv,"ef:x?")) != EOF )
+	while ( (c = getopt( argc, argv,"c:ef:x?")) != EOF )
 		switch(c)  {
+			case 'c':
+				setenv("OPENHPI_CONF", optarg, 1);
+				break;
 			case 'e':
 				eflag = 1;
 				break;
 			case 'f':
-				fflag = 1;
-				strcpy(file, optarg);
+				open_file(optarg);
 				break;
 			case 'x':
 				debug_flag = 1;
 				break;
 			default:
-				printf("Usage: %s [-e]\n", argv[0]);
+				printf("Usage: %s [-c <cfgfile>][-e][-f <file>]\n", argv[0]);
+				printf("   -c <cfgfile> - use passed file as configuration file\n");
 				printf("   -e - show short events, discover after subscribe\n");
+				printf("   -f <file> - execute command file\n");
 				return(1);
 		}
 
@@ -57,9 +60,70 @@ int main(int argc, char **argv)
 	domainlist = (GSList *)NULL;
 	if (open_session(eflag) == -1)
 		return(1);
-	if (fflag)
-		open_file(file);
 	cmd_shell();
 	close_session();
 	return 0;
+}
+
+ret_code_t ask_rpt(SaHpiResourceIdT *ret)
+{
+	term_def_t	*term;
+	int		i, res;
+
+	term = get_next_term();
+	if (term == NULL) {
+		if (read_file) return(HPI_SHELL_PARM_ERROR);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
+		if (i == 0) {
+			printf("NO rpts!\n");
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		i = get_int_param("RPT ID ==> ", &res);
+		if (i == 1) *ret = (SaHpiResourceIdT)res;
+		else return(HPI_SHELL_PARM_ERROR);
+	} else {
+		*ret = (SaHpiResourceIdT)atoi(term->term);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type, SaHpiInstrumentIdT *ret)
+{
+	term_def_t	*term;
+	int		i, res;
+
+	term = get_next_term();
+	if (term == NULL) {
+		if (read_file) return(HPI_SHELL_CMD_ERROR);
+		i = show_rdr_list(Domain, rptid, type, ui_print);
+		if (i == 0) {
+			printf("No rdrs for rpt: %d\n", rptid);
+			return(HPI_SHELL_CMD_ERROR);
+		};
+		i = get_int_param("RDR NUM ==> ", &res);
+		if (i != 1) return(HPI_SHELL_PARM_ERROR);
+		*ret = (SaHpiInstrumentIdT)res;
+	} else {
+		*ret = (SaHpiInstrumentIdT)atoi(term->term);
+	};
+	return(HPI_SHELL_OK);
+}
+
+ret_code_t open_file(char *path)
+{
+	int		i;
+
+	i = access(path, R_OK | F_OK);
+	if (i != 0) {
+		printf("Can not access file: %s\n", path);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	input_file = fopen(path, "r");
+	if (input_file == (FILE *)NULL) {
+		printf("Can not open file: %s\n", path);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	read_file = 1;
+	read_stdin = 0;
+	return(HPI_SHELL_OK);
 }

@@ -271,23 +271,23 @@ int run_command(void)
 	return(0);
 }
 
+int get_new_command(char *mes)
+{
+	cmd_parser(mes, 0);
+	return(run_command());
+}
+
 void cmd_shell(void)
 {
 	int	i;
 
 	help(0);
 	for (;;) {
-		if (current_term >= term_count)
-			cmd_parser((char *)NULL, 0);
 		shell_error = HPI_SHELL_OK;
-		i = run_command();
+		i = get_new_command((char *)NULL);
 		if ((shell_error != HPI_SHELL_OK) && read_file) {
 			go_to_dialog();
-			cmd_parser((char *)NULL, 0);
-			continue;
-		};
-		if (i == 3)
-			cmd_parser((char *)NULL, 0);
+		}
 	}
 }
 
@@ -312,6 +312,29 @@ int get_int_param(char *mes, int *val)
 		return(res);
 	};
 	return(0);
+}
+
+int get_hex_int_param(char *mes, int *val)
+{
+	char		*str, buf[32];
+	term_def_t	*term;
+
+	term = get_next_term();
+	if (term == NULL) {
+		cmd_parser(mes, 1);
+		term = get_next_term();
+	};
+	if (term == NULL) {
+		go_to_dialog();
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	str = term->term;
+	if (strncmp(str, "0x", 2) == 0)
+		snprintf(buf, 31, "%s", str);
+	else
+		snprintf(buf, 31, "0x%s", str);
+	*val = strtol(buf, (char **)NULL, 16);
+	return(1);
 }
 
 int get_string_param(char *mes, char *val, int len)
@@ -354,6 +377,7 @@ term_def_t *get_next_term(void)
 
 ret_code_t unget_term(void)
 {
+	if (debug_flag) printf("unget_term:\n");
 	if (current_term > 0)
 		current_term--;
 	return (current_term);
