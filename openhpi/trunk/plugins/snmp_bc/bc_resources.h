@@ -116,6 +116,7 @@ struct BC_ResourceMibInfo {
         const char *OidReset;
         const char *OidPowerState;
         const char *OidPowerOnOff;
+	const char *OidUuid;
 };
 
 #define MAX_EVENTS_PER_RESOURCE 10
@@ -193,7 +194,8 @@ struct sensor_event_map {
 struct BC_SensorInfo {
         struct BC_SensorMibInfo mib;
         SaHpiEventStateT cur_state;
-        SaHpiSensorEvtEnablesT sensor_evt_enablement;
+        SaHpiEventStateT assert_mask;
+	SaHpiEventStateT deassert_mask;
         struct sensor_event_map event_array[MAX_SENSOR_EVENT_ARRAY_SIZE];
 };
 
@@ -248,11 +250,11 @@ extern struct snmp_bc_control snmp_bc_switch_controls[];
  *                   Inventory Definitions
  *************************************************************************/
 struct SnmpInventoryOids {
+        const char *OidChassisType;
         const char *OidMfgDateTime;
         const char *OidManufacturer;
         const char *OidProductName;
         const char *OidProductVersion;
-        const char *OidModelNumber;
         const char *OidSerialNumber;
         const char *OidPartNumber;
         const char *OidFileId;
@@ -262,8 +264,7 @@ struct SnmpInventoryOids {
 struct BC_InventoryMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
-        SaHpiInventDataRecordTypeT  inventory_type;
-        SaHpiInventChassisTypeT chassis_type; /* Ignore if inventory_type not CHASSIS */
+        SaHpiIdrAreaTypeT  area_type;
         struct SnmpInventoryOids oid;
 };
 
