@@ -15,7 +15,6 @@
  *     W. David Ashley <dashley@us.ibm.com.com>
  */
 
-#include <stdio.h>
 #include "marshal_hpi.h"
 
 
@@ -793,7 +792,7 @@ static const cMarshalType *saHpiIdrFieldGetIn[] =
   &SaHpiIdrIdType,
   &SaHpiEntryIdType,
   &SaHpiIdrFieldTypeType,
-  &SaHpiIdrFieldType,
+  &SaHpiEntryIdType,
   0
 };
 
@@ -801,7 +800,7 @@ static const cMarshalType *saHpiIdrFieldGetOut[] =
 {
   &SaErrorType,            // result (SaErrorT)
   &SaHpiEntryIdType,
-  &SaHpiIdrFieldType,
+  &SaHpiIdrFieldTypeType,
   0
 };
 
@@ -817,7 +816,7 @@ static const cMarshalType *saHpiIdrFieldAddIn[] =
 static const cMarshalType *saHpiIdrFieldAddOut[] =
 {
   &SaErrorType,            // result (SaErrorT)
-  &SaHpiIdrFieldType,
+  &SaHpiIdrFieldTypeType,
   0
 };
 
@@ -827,7 +826,7 @@ static const cMarshalType *saHpiIdrFieldSetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiIdrIdType,
-  &SaHpiIdrFieldType,
+  &SaHpiIdrFieldTypeType,
   0
 };
 
@@ -1350,19 +1349,16 @@ HpiMarshalFind( int id )
      {
        int i;
 
-       printf("Initializing marshal array\n");
        for( i = 0; i < hpi_marshal_num; i++ )
 	  {
-            printf("Initializing marshal request entry %d\n", i);
 	    hpi_marshal[i].m_request_len = MarshalSizeArray( hpi_marshal[i].m_request );
-            printf("Initializing marshal reply entry %d\n", i);
+
 	    hpi_marshal[i].m_reply_len   = MarshalSizeArray( hpi_marshal[i].m_reply );
 	  }
 
        hpi_marshal_init = 1;
      }
 
-  printf("Initializing marshal array, id = %d\n", id);
   id--;
 
   if ( id < 0 || id >= hpi_marshal_num )

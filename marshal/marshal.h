@@ -211,17 +211,17 @@ struct sMarshalType
 
 
 // some simple types
-extern cMarshalType VoidType;
-extern cMarshalType Uint8Type;
-extern cMarshalType Uint16Type;
-extern cMarshalType Uint32Type;
-extern cMarshalType Uint64Type;
-extern cMarshalType Int8Type;
-extern cMarshalType Int16Type;
-extern cMarshalType Int32Type;
-extern cMarshalType Int64Type;
-extern cMarshalType Float32Type;
-extern cMarshalType Float64Type;
+extern cMarshalType Marshal_VoidType;
+extern cMarshalType Marshal_Uint8Type;
+extern cMarshalType Marshal_Uint16Type;
+extern cMarshalType Marshal_Uint32Type;
+extern cMarshalType Marshal_Uint64Type;
+extern cMarshalType Marshal_Int8Type;
+extern cMarshalType Marshal_Int16Type;
+extern cMarshalType Marshal_Int32Type;
+extern cMarshalType Marshal_Int64Type;
+extern cMarshalType Marshal_Float32Type;
+extern cMarshalType Marshal_Float64Type;
 
 
 // marshal order used

@@ -38,16 +38,16 @@ extern "C" {
 #endif
 
 
-#define SaHpiUint8Type   Uint8Type
-#define SaHpiUint16Type  Uint16Type
-#define SaHpiUint32Type  Uint32Type
-#define SaHpiInt8Type    Int8Type
-#define SaHpiInt16Type   Int16Type
-#define SaHpiInt32Type   Int32Type
-#define SaHpiInt64Type   Int64Type
-#define SaHpiUint64Type  Uint64Type
-#define SaHpiFloat32Type Float32Type
-#define SaHpiFloat64Type Float64Type
+#define SaHpiUint8Type   Marshal_Uint8Type
+#define SaHpiUint16Type  Marshal_Uint16Type
+#define SaHpiUint32Type  Marshal_Uint32Type
+#define SaHpiInt8Type    Marshal_Int8Type
+#define SaHpiInt16Type   Marshal_Int16Type
+#define SaHpiInt32Type   Marshal_Int32Type
+#define SaHpiInt64Type   Marshal_Int64Type
+#define SaHpiUint64Type  Marshal_Uint64Type
+#define SaHpiFloat32Type Marshal_Float32Type
+#define SaHpiFloat64Type Marshal_Float64Type
 
 #define SaHpiBoolType    SaHpiUint8Type
 #define SaHpiManufacturerIdType SaHpiUint32Type
@@ -66,7 +66,7 @@ extern "C" {
 #define SaHpiTextTypeType   SaHpiUint32Type
 #define SaHpiLanguageType   SaHpiUint32Type
 extern cMarshalType SaHpiTextBufferType;
-#define SaHpiInstrumentIdType   SaHpiUint32Type
+#define SaHpiInstrumentIdType SaHpiUint32Type
 
 // entity
 #define SaHpiEntityTypeType SaHpiUint32Type
@@ -83,7 +83,6 @@ extern cMarshalType SaHpiEntityPathType;
 #define SaHpiSensorTypeType SaHpiUint32Type
 
 // sensor reading type
-#define SaHpiSensorReadingFormatsType SaHpiUint8Type
 extern cMarshalType SaHpiSensorReadingType;
 
 // sensor thresholds
@@ -137,8 +136,7 @@ extern cMarshalType SaHpiCtrlRecType;
 // entity inventory data
 #define SaHpiIdrIdType SaHpiUint32Type
 #define SaHpiIdrAreaTypeType SaHpiUint8Type
-#define SaHpiIdrFieldTypeType SaHpiUint32Type
-extern cMarshalType SaHpiIdrFieldType;
+extern cMarshalType SaHpiIdrFieldTypeType;
 extern cMarshalType SaHpiIdrAreaHeaderType;
 extern cMarshalType SaHpiIdrInfoType;
 
