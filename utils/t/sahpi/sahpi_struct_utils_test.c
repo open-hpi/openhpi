@@ -413,6 +413,25 @@ int main(int argc, char **argv)
 			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
+		
+		/* oh_encode_sensorreading: Skip characters before '=' sign testcase */
+		str = "+5Volt Sense 333=4";
+		expected_int64 = 4;
+		oh_init_textbuffer(&buffer);
+		oh_append_textbuffer(&buffer, str);
+		err = oh_encode_sensorreading(&buffer, SAHPI_SENSOR_READING_TYPE_INT64, &reading);
+		if (err) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+			return -1;
+		}
+
+		if (reading.Value.SensorInt64 != expected_int64) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received value=%lld; Expected value=%lld\n", 
+			       reading.Value.SensorInt64, expected_int64);
+			return -1;
+		}
 
 		/* oh_encode_sensorreading: Extra spaces testcase */
 		str = " + 20  Volts";
