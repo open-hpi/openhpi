@@ -33,6 +33,8 @@
 
 #include <sc_sensor_data.h>
 
+#include <string.h>
+
 /**
  * snmp_client_open: open snmp blade center plugin
  * @handler_config: hash table passed by infrastructure
@@ -839,9 +841,8 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
 	/* STATUS */
 	memset(&set_value, 0, sizeof(set_value));
 	set_value.type = ASN_INTEGER;
-//	set_value.integer = enables->SensorStatus + 1;   
-	set_value.integer = 0x7e;   
-	set_value.str_len = sizeof(unsigned int);
+	set_value.integer = enables->SensorStatus + 1;   
+	set_value.str_len = sizeof(set_value.integer);
 
 	build_res_oid(anOID, 
 		      sa_hpi_sen_status, 
@@ -857,7 +858,8 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
 	/* ASSERTEVENTS */
 	if (status == SA_OK) {
 		memset(&set_value, 0, sizeof(set_value));
-		set_value.type = ASN_OCTET_STR;
+		set_value.type = ASN_OCTET_STR;			  
+		set_value.str_len = strlen(set_value.string);
 		build_state_string(rdr->RdrTypeUnion.SensorRec.Category,
 				    enables->AssertEvents,
 				    set_value.string, 
@@ -879,6 +881,7 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
 	if (status == SA_OK) {
 		memset(&set_value, 0, sizeof(set_value));
 		set_value.type = ASN_OCTET_STR;
+		set_value.str_len = strlen(set_value.string);
 		build_state_string(rdr->RdrTypeUnion.SensorRec.Category,
 				    enables->DeassertEvents,
 				    set_value.string, 
