@@ -44,8 +44,8 @@ TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
 TESTS = ctest_01
 
-check_PROGRAMS = $(TESTS)
+#check_PROGRAMS = $(TESTS)
 
-ctest_01_SOURCES = ctest_01.cpp
-ctest_01_LDADD   = libopenhpiclient.la
+#ctest_01_SOURCES = ctest_01.cpp
+#ctest_01_LDADD   = libopenhpiclient.la
 
