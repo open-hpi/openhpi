@@ -118,6 +118,8 @@ static void update_rptable(RPTable *table, guint modifier) {
         struct timeval tv;
         SaHpiTimeT time;
 
+        if (!table) {dbg("ERROR: Cannot work on a null table pointer."); return;}
+
         gettimeofday(&tv, NULL);
         time = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
 
@@ -243,20 +245,23 @@ void rpt_diff(RPTable *current, RPTable *new,
  * If an RPT entry with the same resource id exists int the RPT, it will be
  * overlayed with the new RPT entry. Also, this function will assign the
  * resource id as its entry id since it is expected to be unique for the table.
- * Note - If the RPT entry has a resource id of RPT_ENTRY_BEGIN(0xffffffff),
+ * Note - If the RPT entry has a resource id of RPT_ENTRY_BEGIN (0xffffffff),
  * the first RPT entry in the table will be overlayed.
  * @table: Pointer to the RPT to which the RPT entry will be added.
  * @entry: The RPT entry (resource) to be added to the RPT.
  * @data: Pointer to private data for storing along with the RPT entry.
- * @owndata: boolean flag. true to tell the interface to free the data when
- * the resource is removed. false if otherwise.
+ * @owndata: boolean flag. true (KEEP_RPT_DATA) to tell the interface *not*
+ * to free the data when the resource is removed. false (FREE_RPT_DATA) to tell
+ * the interface to free the data when the resource is removed.
  *
  * Return value:
  * 0 - successful addition to the RPT.
- * -1 - entry does not have an id assigned.
- * -2 - entry has an invalid/reserved id assinged.
- * -3 - entity path does not contain root element.
- * -4 - failure and not enough memory could be allocated. 
+ * -1 - table pointer is NULL.
+ * -2 - entry is NULL.
+ * -3 - entry does not have an id assigned.
+ * -4 - entry has an invalid/reserved id assinged.
+ * -5 - entity path does not contain root element.
+ * -6 - failure and not enough memory could be allocated. 
  * for a new position in the RPT.
  **/
 int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata)
@@ -264,15 +269,21 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
         RPTEntry *rptentry;
         guint update_flag = RPT_KEEP_COUNT;
 
-        if (entry->ResourceId == 0) {
+        if (!table) {
+                dbg("ERROR: Cannot work on a null table pointer.");
+                return -1;
+        } else if (!entry) {
+                dbg("Failed to add. RPT entry is NULL.");
+                return -2;
+        } else if (entry->ResourceId == 0) {
                 dbg("Failed to add. RPT entry needs a resource id before being added");
-                return -1;                
+                return -3;                
         } else if (entry->ResourceId == RPT_ENTRY_BEGIN) {
                 dbg("Failed to add. RPT entry has an invalid/reserved id assigned (RPT_ENTRY_BEGIN).");
-                return -2;
+                return -4;
         } else if (check_ep(entry->ResourceEntity)) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element.");
-                return -3;                
+                return -5;                
         }
 
         /* Check to see if the entry is in the RPTable already */
@@ -282,7 +293,7 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
                 rptentry = (RPTEntry *)g_malloc0(sizeof(RPTEntry));
                 if (!rptentry) {
                         dbg("Not enough memory to add RPT entry.");
-                        return -4;
+                        return -6;
                 }
                 /* Put new RPTEntry in RPTable */
                 table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);
@@ -302,17 +313,24 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int ownda
 /**
  * oh_remove_resource: Remove a resource from the RPT. If the rid is
  * RPT_ENTRY_BEGIN (0xffffffff), the first RPT entry in the table will be removed.
- * The void data will be freed if owndata was not set when adding the resource.
+ * The void data will be freed if owndata was false (FREE_RPT_DATA) when adding
+ * the resource, otherwise if owndata was true (KEEP_RPT_DATA) it will not be freed.
  * @table: Pointer to the RPT from which an RPT entry will be removed.
  * @rid: Resource id of the RPT entry to be removed.
  *
  * Return value:
  * 0 - Successful removal from the RPT.
+ * -1 - table pointer is NULL.
  * -2 - Failure. No resource found by that id.
  **/
 int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry;
+
+        if (!table) {
+                dbg("ERROR: Cannot work on a null table pointer.");
+                return -1;
+        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -343,12 +361,17 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
  *
  * Return value:
  * A void pointer to the private data for the RPT entry requested, or NULL
- * if the RPT entry was not found.
+ * if the RPT entry was not found or the table was a NULL pointer.
  **/
 void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
 {
         
         RPTEntry *rptentry;
+
+        if (!table) {
+                dbg("ERROR: Cannot work on a null table pointer.");
+                return NULL;
+        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -367,11 +390,16 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
  *
  * Return value:
  * Pointer to the RPT entry found or NULL if an RPT entry by that
- * id was not found.
+ * id was not found or the table was a NULL pointer.
  **/
 SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry;
+
+        if (!table) {
+                dbg("ERROR: Cannot work on a null table pointer.");
+                return NULL;
+        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -389,7 +417,7 @@ SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid)
  *
  * Return value:
  * Pointer to the RPT entry found or NULL if an RPT entry by that
- * entity path was not found.
+ * entity path was not found or the table was a NULL pointer.
  **/
 SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
 {
@@ -425,7 +453,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
  *
  * Return value:
  * Pointer to the RPT entry found or NULL if the previous RPT entry by that
- * id was not found.
+ * id was not found or the table was a NULL pointer.
  **/
 SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
 {
@@ -479,17 +507,20 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * @rid: Id of the RPT entry that will own the RDR to be added.
  * @rdr: RDR to be added to an RPT entry's RDR repository.
  * @data: Pointer to private data belonging to the RDR that is being added.
- * @owndata: boolean. If true, says that data should not be freed when rdr is removed.
- * If false, it tells the interface to free the data when the rdr is removed.
+ * @owndata: boolean flag. true (KEEP_RPT_DATA) to tell the interface *not*
+ * to free the data when the rdr is removed. false (FREE_RPT_DATA) to tell
+ * the interface to free the data when the rdr is removed.
  *
  * All rdr interface funtions, except oh_add_rdr will act in the context of
  * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
  * 0 - Successful addition of RDR.
- * -2 - Failure. RPT entry for that rid was not found.
- * -3 - Failure. RDR entity path is different from parent RPT entry.
- * -4 - Failure. Could not allocate enough memory to position the new RDR in the RDR
+ * -1 - table pointer is NULL.
+ * -2 - Failure. RDR is NULL.
+ * -3 - Failure. RPT entry for that rid was not found.
+ * -4 - Failure. RDR entity path is different from parent RPT entry.
+ * -5 - Failure. Could not allocate enough memory to position the new RDR in the RDR
  * repository.
  **/ 
 int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data, int owndata)
@@ -498,15 +529,23 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
         RDRecord *rdrecord;
         SaHpiUint8T type_num;
 
+        if (!table) {
+                dbg("Error: Cannot work on a null table pointer.");
+                return -1;
+        } else if (!rdr) {
+                dbg("Failed to add. RDR is NULL.");
+                return -2;
+        }        
+
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry){
                 dbg("Failed to add RDR. Parent RPT entry was not found in table.");
-                return -2;
+                return -3;
         }
 
         if (memcmp(&(rptentry->rpt_entry.ResourceEntity), &(rdr->Entity), sizeof(SaHpiEntityPathT))) {
                 dbg("Failed to add RDR. Entity path is different from parent RPT entry.");
-                return -3;
+                return -4;
         }
 
         type_num = get_rdr_type_num(rdr);
@@ -520,7 +559,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
                 rdrecord = (RDRecord *)g_malloc0(sizeof(RDRecord));
                 if (!rdrecord) {
                         dbg("Not enough memory to add RDR.");
-                        return -4;
+                        return -5;
                 }
                 /* Put new rdrecord in rdr repository */
                 rptentry->rdrtable = g_slist_append(rptentry->rdrtable, (gpointer)rdrecord);                        
@@ -538,7 +577,9 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
 /**
  * oh_remove_rdr: Remove an RDR from a RPT entry's RDR repository.
  * If rdrid is RDR_BEGIN (0xffffffff), the first RDR in the repository will be removed.
- * If owndata has been set on the rdr, the data will not be freed, otherwise, it will free it.
+ * If owndata was set to false (FREE_RPT_DATA) on the rdr when it was added,
+ * the data will be freed, otherwise if it was set to true (KEEP_RPT_DATA),
+ * it will not be freed.
  * @table: Pointer to RPT table containig the RPT entry from which the RDR will
  * be removed.
  * @rid: Id of the RPT entry from which the RDR will be removed.
@@ -549,6 +590,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
  *
  * Return value:
  * 0 - Successful removal of RDR.
+ * -1 - table pointer is NULL.
  * -2 - Failure. RPT entry for that rid was not found.
  * -3 - Failure. No RDR by that rdrid was found.
  **/
@@ -556,6 +598,11 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
+
+        if (!table) {
+                dbg("Error: Cannot work on a null table pointer.");
+                return -1;
+        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -590,12 +637,18 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
  * the first RPT entry in the table, if rid is RPT_ENTRY_BEGIN (0xffffffff).
  *
  * Return value:
- * A void pointer to the RDR data, or NULL if no data for that RDR was found.
+ * A void pointer to the RDR data, or NULL if no data for that RDR was found or
+ * the table pointer is NULL.
  **/
 void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
+
+        if (!table) {
+                dbg("Error: Cannot work on a null table pointer.");
+                return NULL;
+        }
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -630,6 +683,11 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
+
+        if (!table) {
+                dbg("Error: Cannot work on a null table pointer.");
+                return NULL;
+        }
         
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -666,6 +724,11 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
         RPTEntry *rptentry;
         RDRecord *rdrecord;
         SaHpiUint32T rdr_uid;
+
+        if (!table) {
+                dbg("Error: Cannot work on a null table pointer.");
+                return NULL;
+        }
                                                         
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
@@ -705,6 +768,11 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         RPTEntry *rptentry;
         RDRecord *rdrecord = NULL;
         GSList *node;
+
+        if (!table) {
+                dbg("Error: Cannot work on a null table pointer.");
+                return NULL;
+        }
                 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
