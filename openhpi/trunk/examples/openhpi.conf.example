@@ -19,12 +19,22 @@ handler	libdummy {
 	value =	"0"
 }
 
+#section for ipmi plugin using SMI -- local interface
+
 #handler libipmi	{
 #	name = "smi"
 #	addr = "0"
 #}
 
+#Section for ipmi plugin based on OpenIPMI
+
 #handler libipmi {
-#	name = "lan"
-#	addr = "ip.address port	auth_type auth_level username password"
+#	name = lan
+#	addr = "10.10.208.223"
+#	port = "999"
+#	auth_type = straight
+#	auth_level= user
+#	username = joe
+#	password = blow
 #}
+
