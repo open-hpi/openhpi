@@ -169,8 +169,7 @@ static void sysfs2hpi_close(void *hnd)
  *
  * Return value: 0 if times out, > 0 is event is returned.
  **/
-static int sysfs2hpi_get_event(void *hnd, struct oh_event *event, 
-			       struct timeval *timeout)
+static int sysfs2hpi_get_event(void *hnd, struct oh_event *event)
 {
 	struct oh_handler_state *inst = (struct oh_handler_state *)hnd;
 	GSList	*tmp;
@@ -231,48 +230,47 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 
 	switch(type) {
 		case SAHPI_TEMPERATURE:
-			sprintf(s->name,"%i:Temp Sensor",s->num);
+			snprintf(s->name, SYSFS_NAME_LEN, "%i:Temp Sensor",s->num);
 		
-			sprintf(strinput, "temp_input%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "temp_input%s", str);
 			s->value = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "temp_max%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "temp_max%s", str);
 			s->max = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "temp_min%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "temp_min%s", str);
 			s->min = sysfs_get_device_attr(d, strinput);
 			s->div = NULL;
 			break;
 		case SAHPI_VOLTAGE:
-			sprintf(s->name,"%i:Voltage Sensor",s->num);
+			snprintf(s->name, SYSFS_NAME_LEN, "%i:Voltage Sensor",s->num);
 		
-			sprintf(strinput, "in_input%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "in_input%s", str);
 			s->value = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "in_max%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "in_max%s", str);
 			s->max = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "in_min%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "in_min%s", str);
 			s->min = sysfs_get_device_attr(d, strinput);
 			s->div = NULL;
 			break;
 		case SAHPI_CURRENT:
-			sprintf(s->name,"%i:Current Sensor",s->num);
+			snprintf(s->name, SYSFS_NAME_LEN, "%i:Current Sensor",s->num);
 		
-			sprintf(strinput, "curr_input%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "curr_input%s", str);
 			s->value = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "curr_max%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "curr_max%s", str);
 			s->max = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "curr_min%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "curr_min%s", str);
 			s->min = sysfs_get_device_attr(d, strinput);
 			s->div = NULL;
 			break;
 		case SAHPI_FAN:
-			sprintf(s->name,"%i:Fan Sensor",s->num);
-		
-			sprintf(strinput, "fan_input%s", str);
+			snprintf(s->name, SYSFS_NAME_LEN, "%i:Fan Sensor",s->num);	
+			snprintf(strinput, SYSFS_NAME_LEN, "fan_input%s", str);
 			s->value = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "fan_max%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "fan_max%s", str);
 			s->max = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "fan_min%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "fan_min%s", str);
 			s->min = sysfs_get_device_attr(d, strinput);
-			sprintf(strinput, "fan_div%s", str);
+			snprintf(strinput, SYSFS_NAME_LEN, "fan_div%s", str);
 			s->div = sysfs_get_device_attr(d, strinput);
 			break;
 		default: /* should never be executed */
@@ -430,7 +428,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	i=0;
 	while(i != -1) {
 		i++;
-		sprintf(str, "%d", i);
+		snprintf(str, SYSFS_NAME_LEN, "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_CURRENT, str, 
 				++num_sensors, d, r, inst) != 0) {
 			i=-1; /* keep going until we get an error returned */
@@ -440,7 +438,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	
 	/* Set up fan RDR */
 	for (i=1;i<=fanmax;i++) {
-		sprintf(str, "%d", i);
+		snprintf(str, SYSFS_NAME_LEN, "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_FAN, str, 
 				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
@@ -449,7 +447,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	
 	/* Set up voltage RDR */
 	for (i=0;i<=voltagemax;i++) {
-		sprintf(str, "%d", i);
+		snprintf(str, SYSFS_NAME_LEN, "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_VOLTAGE, str, 
 				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
@@ -458,7 +456,7 @@ static int sysfs2hpi_assign_rdrs(struct sysfs_device* d,
 	
 	/* Set up temp RDR */
 	for (i=1;i<=tempmax;i++) {
-		sprintf(str, "%d", i);
+		snprintf(str, SYSFS_NAME_LEN, "%d", i);
 		if (sysfs2hpi_setup_rdr(SAHPI_TEMPERATURE, str, 
 				++num_sensors, d, r, inst) != 0) {
 			num_sensors--;
@@ -504,7 +502,7 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
 	r->path.Entry[0].EntityLocation = g_num_resources;
 	r->path.Entry[1].EntityType = SAHPI_ENT_OTHER_SYSTEM_BOARD;
 	r->path.Entry[1].EntityLocation = 0; /* 0 b/c only 1 board */
-	//sprintf(r->name, "%s_%s", d->name, d->bus_id);
+	//snprintf(r->name, "%s_%s", d->name, d->bus_id);
 	strncpy(r->name,d->name,SYSFS_NAME_LEN);	
 	sys = inst->data;
 	sys->resources = g_slist_append(sys->resources, r);
@@ -833,7 +831,7 @@ static int sysfs2hpi_set_sensor_reading(SaHpiRdrT *rdr,
         char tmp[SCRATCHSIZE];
 
         if (reading.Type == SAHPI_SENSOR_READING_TYPE_INT64) {
-		sprintf(tmp, "%lld", reading.Value.SensorInt64);
+		snprintf(tmp, SYSFS_NAME_LEN, "%lld", reading.Value.SensorInt64);
 		if (sysfs_write_attribute(attr,tmp,SCRATCHSIZE)) {
 			dbg("error attempting to write value");
 			return SA_ERR_HPI_INVALID_DATA;
