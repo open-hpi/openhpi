@@ -103,7 +103,7 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                                if( (rc != 0) |
                                          !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                        dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				       return rc;
+                                       return rc;
                                } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                        working->MfgDateTime =
                                                g_strtod((char *)get_value.string, NULL);
@@ -133,11 +133,13 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;
+                                return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->Manufacturer->DataLength = str_len;
-                                strcpy((char *)working->Manufacturer->Data, (char *)get_value.string);
+                                strncpy((char *)working->Manufacturer->Data,
+                                        (char *)get_value.string,
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for Manufacturer inventory data\n",oid);
                         }
@@ -163,11 +165,13 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;
+                                return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->ProductName->DataLength = str_len;
-                                strcpy((char *)working->ProductName->Data, (char *)get_value.string);
+                                strncpy((char *)working->ProductName->Data,
+                                        (char *)get_value.string,
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for ProductName inventory data\n",oid);
                         }
@@ -193,8 +197,8 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;                    
-			    } else if((rc == 0) && (get_value.type == ASN_INTEGER )) {
+                                return rc;
+                            } else if((rc == 0) && (get_value.type == ASN_INTEGER )) {
                                 int i = 0;
                                 do {
                                         conv_string[i++] = get_value.integer % 10 + '0';
@@ -202,7 +206,9 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                                 conv_string[i] = '\0';
                                 str_len = sizeof(conv_string);
                                 working->ProductVersion->DataLength = str_len;
-                                strcpy((char *)working->ProductVersion->Data, (char *)(conv_string));
+                                strncpy((char *)working->ProductVersion->Data,
+                                        (char *)(conv_string),
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for ProductVersion inventory data\n",oid);
                         }
@@ -228,11 +234,13 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;
+                                return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->ModelNumber->DataLength = str_len;
-                                strcpy((char *)working->ModelNumber->Data, (char *)get_value.string);
+                                strncpy((char *)working->ModelNumber->Data,
+                                        (char *)get_value.string,
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for ModelNumber inventory data\n",oid);
                         }
@@ -258,11 +266,13 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;				
+                                return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->SerialNumber->DataLength = str_len;
-                                strcpy((char *)working->SerialNumber->Data, (char *)get_value.string);
+                                strncpy((char *)working->SerialNumber->Data,
+                                        (char *)get_value.string,
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for SerialNumber inventory data\n",oid);
                         }
@@ -288,11 +298,13 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;				
+                                return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->PartNumber->DataLength = str_len;
-                                strcpy((char *)working->PartNumber->Data, (char *)get_value.string);
+                                strncpy((char *)working->PartNumber->Data,
+                                        (char *)get_value.string,
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for PartNumber inventory data\n",oid);
                         }
@@ -318,11 +330,13 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;				
+                                return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->FileId->DataLength = str_len;
-                                strcpy((char *)working->FileId->Data, (char *)get_value.string);
+                                strncpy((char *)working->FileId->Data,
+                                        (char *)get_value.string,
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for FileId inventory data\n",oid);
                         }
@@ -348,11 +362,13 @@ SaErrorT get_inventory_data(        void *hnd, SaHpiRdrT *rdr,
                         if( (rc != 0) |
                           !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) {
                                 dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-				return rc;				
+                                return rc;
                         } else if((rc == 0) && (get_value.type == ASN_OCTET_STR )) {
                                 str_len = strlen((char *) get_value.string);
                                 working->AssetTag->DataLength = str_len;
-                                strcpy((char *)working->AssetTag->Data, (char *)get_value.string);
+                                strncpy((char *)working->AssetTag->Data,
+                                        (char *)get_value.string,
+                                        sizeof(SaHpiUint8T)*SAHPI_MAX_TEXT_BUFFER_LENGTH);
                         } else {
                                 dbg("%s Invalid type for AssetTag inventory data\n",oid);
                         }
