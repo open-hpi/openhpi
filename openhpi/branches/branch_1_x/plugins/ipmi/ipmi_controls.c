@@ -111,7 +111,7 @@ static void _set_control_state(ipmi_control_t *control,
         }
                         
         ipmi_control_set_val(control, 
-                             (int *)&info->state->StateUnion.Oem.Body[0],
+                             (void *)&info->state->StateUnion.Oem.Body[0],
                              __set_control_state, info);
 }
 

@@ -326,7 +326,7 @@ FindUnionModifierType( const cMarshalType *type, cMarshalType *st_type, const vo
   cMarshalType *mod_struct_element = &type->m_u.m_struct.m_elements[st_type->m_u.m_union.m_offset];
   assert( mod_struct_element->m_type == eMtStructElement );
   cMarshalType *mod_type = mod_struct_element->m_u.m_struct_element.m_type;
-  const unsigned char *so = (const unsigned char *)d + mod_struct_element->m_u.m_struct_element.m_offset;
+  const void *so = (const unsigned char *)d + mod_struct_element->m_u.m_struct_element.m_offset;
 
   tUint32 m;
 
@@ -334,7 +334,7 @@ FindUnionModifierType( const cMarshalType *type, cMarshalType *st_type, const vo
      {
        case eMtUint8:
        case eMtInt8:
-	    m = (tUint32)*so;
+	    m = (tUint32)*(const tUint8 *)so;
 	    break;
 
        case eMtUint16:
@@ -370,7 +370,7 @@ FindArraySize( const cMarshalType *type, cMarshalType *st_type, const void *d )
   cMarshalType *size_struct_element = &type->m_u.m_struct.m_elements[st_type->m_u.m_var_array.m_size];
   assert( size_struct_element->m_type == eMtStructElement );
   cMarshalType *size_type = size_struct_element->m_u.m_struct_element.m_type;
-  const unsigned char *so = (const unsigned char *)d + size_struct_element->m_u.m_struct_element.m_offset;
+  const void *so = (const unsigned char *)d + size_struct_element->m_u.m_struct_element.m_offset;
 
   tUint32 size;
 
@@ -378,7 +378,7 @@ FindArraySize( const cMarshalType *type, cMarshalType *st_type, const void *d )
      {
        case eMtUint8:
        case eMtInt8:
-	    size = (tUint32)*so;
+	    size = (tUint32)*(const tUint8 *)so;
 	    break;
 
        case eMtUint16:

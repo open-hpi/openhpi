@@ -12,7 +12,7 @@ Packager: TariqX
 Source: @HPI_PKG@-@VERSION@.tar.gz
 Buildroot: /var/tmp/@HPI_PKG@-root
 BuildRequires: pkgconfig glib-devel
-BuildRequires: docbook-utils docbook-utils-pdf docbook-dtd41-sgml
+#BuildRequires: docbook-utils docbook-utils-pdf docbook-dtd41-sgml
 Summary: Library that provides SAForum's HPI
 Group: Utilities
 AutoReq: yes
@@ -69,8 +69,8 @@ for exchanging HPI data between applications.  This is an EXPERIMENTAL package
 ./configure @ac_configure_args@ --sysconfdir=/etc \
     --localstatedir=/var --prefix=%{prefix}
 make
-make -C docs/hld pdf-am
-make -C docs/hld openhpi-manual/book1.html
+#make -C docs/hld pdf-am
+#make -C docs/hld openhpi-manual/book1.html
 
 ###################################################
 %install
@@ -83,16 +83,16 @@ fi
 make DESTDIR=$RPM_BUILD_ROOT install
 mkdir -p $RPM_BUILD_ROOT/etc/@HPI_PKG@
 mkdir -p $RPM_BUILD_ROOT/var/lib/@HPI_PKG@
-install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
+install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
 %post
 
 ###################################################
 %files
 ###################################################
 %defattr(-,root,root)
-%doc README COPYING ChangeLog
-%doc docs/hld/*pdf
-%doc docs/hld/openhpi-manual
+#%doc README COPYING ChangeLog
+#%doc docs/hld/*pdf
+#%doc docs/hld/openhpi-manual
 %config /etc/@HPI_PKG@/*
 %dir /var/lib/@HPI_PKG@
 %{prefix}/lib/libopen*
