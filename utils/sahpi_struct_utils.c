@@ -2616,29 +2616,47 @@ SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate,
  **/
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
 {
-	if (!buffer) { return(SAHPI_FALSE); }
-	if (oh_lookup_texttype(buffer->DataType) == NULL) { return(SAHPI_FALSE); }
+	int i;
+        if (!buffer) return SAHPI_FALSE;
+	if (oh_lookup_texttype(buffer->DataType) == NULL) return SAHPI_FALSE;
 	/* Compiler checks DataLength <= SAHPI_MAX_TEXT_BUFFER_LENGTH */
 
-	switch(buffer->DataType){
-	case SAHPI_TL_TYPE_UNICODE:
-		if (oh_lookup_language(buffer->Language) == NULL) { return(SAHPI_FALSE); }
-		if (buffer->DataLength % 2 != 0) { return(SAHPI_FALSE); }
-		/* FIXME:: Verify unicode characters in Data? */
-		/* g_unichar_validate(gunichar ch); ???? */
+	switch (buffer->DataType) {
+	case SAHPI_TL_TYPE_UNICODE:                
+		if (oh_lookup_language(buffer->Language) == NULL) return SAHPI_FALSE;
+		if (buffer->DataLength % 2 != 0) return SAHPI_FALSE;
+                /* FIXME: Need to find a way to validate UTF-16 strings.
+                 * Using http://www.campusprogram.com/reference/en/wikipedia/u/ut/utf_16.html
+                 * as reference. -- RM 09/29/04
+                 */                
 		break;
-	case SAHPI_TL_TYPE_BCDPLUS:
-		/* FIXME:: Verify BCDPLUS characters in Data? */
-		/* 8-bit ASCII, '0'-'9', space, dash, period, colon, comma, or
+	case SAHPI_TL_TYPE_BCDPLUS:                
+                /* 8-bit ASCII, '0'-'9', space, dash, period, colon, comma, or
 		   underscore. Always encoded in HPI as 8-bit values */
+                for (i = 0;
+                     i < SAHPI_MAX_TEXT_BUFFER_LENGTH || buffer->Data[i] != '\0';
+                     i++)
+                {
+                        if ((buffer->Data[i] < 0x30 || buffer->Data[i] > 0x39) &&
+                             buffer->Data[i] != 0x20 && buffer->Data[i] != 0x2d &&
+                             buffer->Data[i] != 0x2e && buffer->Data[i] != 0x3a &&
+                             buffer->Data[i] != 0x2c && buffer->Data[i] != 0x5f)
+                                return SAHPI_FALSE;
+                }
 		break;
-	case SAHPI_TL_TYPE_ASCII6:
-		/* FIXME:: Verify reduced character set in Data? */
-		/* reduced set, 0x20-0x5f only. Always encoded in HPI as 8-bit values */
+	case SAHPI_TL_TYPE_ASCII6:		                
+                /* reduced set, 0x20-0x5f only. Always encoded in HPI as 8-bit values */
+                for (i = 0;
+                     i < SAHPI_MAX_TEXT_BUFFER_LENGTH || buffer->Data[i] != '\0';
+                     i++)
+                {
+                        if (buffer->Data[i] < 0x20 || buffer->Data[i] > 0x5f)
+                                return SAHPI_FALSE;
+                }
 		break;
 	case SAHPI_TL_TYPE_TEXT:
 		if (oh_lookup_language(buffer->Language) == NULL) { return(SAHPI_FALSE); }
-		/* FIXME:: Verify 8-bit ASCII + Latin in Data? */
+                /* all character values are good 0x00 - 0xff */		
 		break;
 	case SAHPI_TL_TYPE_BINARY: /* No check possible */
 		break;

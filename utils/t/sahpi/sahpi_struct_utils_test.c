@@ -984,6 +984,28 @@ int main(int argc, char **argv)
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			return -1;
 		}
+                
+                /* oh_valid_textbuffer: Bad Data text cases */
+                expected_result = SAHPI_FALSE;
+		oh_init_textbuffer(&buffer);
+		buffer.DataType = SAHPI_TL_TYPE_BCDPLUS;
+		strcpy(buffer.Data, "123");
+                buffer.Data[1] = ';';
+		buffer.DataLength = strlen("123");
+
+		result = oh_valid_textbuffer(&buffer);
+		if (result != expected_result) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
+		}
+                
+                buffer.DataType = SAHPI_TL_TYPE_ASCII6;
+                buffer.Data[1] = 0xff;
+                result = oh_valid_textbuffer(&buffer);
+		if (result != expected_result) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
+		}
 		
 		/* oh_valid_textbuffer: Good buffer testcase */
 		expected_result = SAHPI_TRUE;
