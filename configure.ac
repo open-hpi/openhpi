@@ -389,7 +389,9 @@ AC_ARG_ENABLE([debug],
 # Now we throw in a bunch of warnings.  C and C++ need
 # different sets here
 
-CC_WARNINGS="-Wall -Wmissing-prototypes \
+CC_WARNINGS="\
+        -Wall \
+        -Wmissing-prototypes \
 	-Wmissing-declarations \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
@@ -397,7 +399,9 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wcast-qual \
 	-Wcast-align"
 
-CXX_WARNINGS="-Wall -Wmissing-prototypes \
+CXX_WARNINGS="\
+        -Wall \
+        -Wmissing-prototypes \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
 	-Werror \
@@ -408,9 +412,8 @@ CXX_WARNINGS="-Wall -Wmissing-prototypes \
         -Wredundant-decls"
 
 # remerge the warnings into the FLAGS
-
-CFLAGS="$CFLAGS $CC_WARNINGS"
 CXXFLAGS="$CFLAGS $CXX_WARNINGS"
+CFLAGS="$CFLAGS $CC_WARNINGS"
 
 # lastly, we add things if we are thread safe
 # (this could probably happen earlier in this file)
