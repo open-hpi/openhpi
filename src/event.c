@@ -21,6 +21,10 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
+static void process_hotswap_policy(void)
+{
+}
+
 static void process_session_event(struct oh_event *e)
 {
 	struct oh_resource *res;
@@ -97,6 +101,8 @@ static int get_event(void)
 	int has_event;
 	struct oh_event	event;
 	GSList *i;
+
+	process_hotswap_policy();
 
 	has_event = 0;
 	g_slist_for_each(i, global_handler_list) {
