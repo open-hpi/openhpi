@@ -233,6 +233,7 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 	struct oh_event		*e;
         struct oh_handler_state *handler;
 	ipmi_entity_id_t	entity_id;
+        ipmi_sensor_id_t        sensor_id;
 	SaHpiSeverityT		severity;
         SaHpiRptEntryT          *rpt_entry;
         SaHpiRdrT               *rdr;
@@ -243,13 +244,14 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
       
         handler    = cb_data;
         entity_id  = ipmi_entity_convert_to_id(ipmi_sensor_get_entity(sensor));
+        sensor_id = ipmi_sensor_convert_to_id(sensor);
         rpt_entry  = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
 	
         
         rdr  = ohoi_get_rdr_by_data(handler->rptcache,
                                     rpt_entry->ResourceId,
                                     SAHPI_SENSOR_RDR,
-                                    sensor);
+                                    &sensor_id);
         if (!rdr) {
                 dbg("No rdr in resource:%d\n",  rpt_entry->ResourceId);
                 return;
