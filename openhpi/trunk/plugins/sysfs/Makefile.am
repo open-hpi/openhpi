@@ -32,7 +32,7 @@
 MAINTAINERCLEANFILES 	= Makefile.in
 
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils -I/usr/include/sysfs
+INCLUDES		= @OPENHPI_INCLUDES@  -I/usr/include/sysfs
 
 AM_CFLAGS		= -g @CFLAGS@
 

@@ -30,8 +30,8 @@ MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 
 SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
 
-INCLUDES                = -I$(top_srcdir)/include \
-			  -I$(top_srcdir)/utils \
+INCLUDES                = @OPENHPI_INCLUDES@ \
+			   \
 			  -I$(SNMPUTILSDIR) \
                           -I$(top_srcdir)/plugins/snmp_rsa
 

@@ -14,7 +14,7 @@ MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 	                  $(REMOTE_SOURCES) \
 			  uid_map
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
+INCLUDES		= @OPENHPI_INCLUDES@ 
 
 AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 

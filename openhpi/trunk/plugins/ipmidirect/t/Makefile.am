@@ -39,7 +39,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 
 CLEANFILES		= @CLEANFILES@ $(MOSTLYCLEANFILES)
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/plugins/ipmidirect
+INCLUDES		= @OPENHPI_INCLUDES@ -I$(top_srcdir)/plugins/ipmidirect
 AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 AM_CXXFLAGS 		= @NOCXXFLAGS@ -ftest-coverage -fprofile-arcs
 

@@ -14,7 +14,7 @@ MOSTLYCLEANFILES        = $(shell ls *data) $(REMOTE_SOURCES) @TEST_CLEAN@
 
 DISTCLEANFILES          = $(top_builddir)/src/t/el/elTest.data
 
-INCLUDES                = -I$(top_srcdir)/include -I$(top_srcdir)/utils
+INCLUDES                = @OPENHPI_INCLUDES@ 
 
 AM_CFLAGS               = @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 

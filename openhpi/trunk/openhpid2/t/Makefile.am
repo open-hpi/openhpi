@@ -20,7 +20,7 @@ REMOTE_LIB_SOURCES 	= client.cpp \
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(REMOTE_LIB_SOURCES)
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/openhpid2 -I$(top_srcdir)/utils -I$(top_srcdir)/marshal
+INCLUDES		= @OPENHPI_INCLUDES@ -I$(top_srcdir)/openhpid2  -I$(top_srcdir)/marshal
 
 AM_CFLAGS		= -g @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 

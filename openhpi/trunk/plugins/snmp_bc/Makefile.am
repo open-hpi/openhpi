@@ -28,7 +28,7 @@ SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 
 SUBDIRS		= t
 
-INCLUDES	= -I$(top_srcdir)/include -I$(top_srcdir)/snmp  -I$(top_srcdir)/utils -I$(SNMPUTILSDIR)
+INCLUDES	= @OPENHPI_INCLUDES@ -I$(top_srcdir)/snmp   -I$(SNMPUTILSDIR)
 
 AM_CFLAGS	= @CFLAGS@ @SNMPFLAGS@
 

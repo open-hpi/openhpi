@@ -16,12 +16,16 @@ REMOTE_SOURCES =  epath_utils.c \
 	          sahpi_time_utils.c 
 
 MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@
-INCLUDES	= -I$(top_srcdir)/include -I$(top_srcdir)/utils
+INCLUDES	= @OPENHPI_INCLUDES@ 
 AM_CFLAGS	= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		$(LN_S) $(top_srcdir)/utils/$@; \
+		if test -f ../../$@; then \
+			$(LN_S) ../../$@ $@; \
+		else \
+			$(LN_S) $(top_srcdir)/utils/$@ $@; \
+		fi; \
 	fi
 
 TESTS = sahpi_enum_utils_test \
