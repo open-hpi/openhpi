@@ -53,11 +53,11 @@ libopenhpiutils_la_SOURCES = \
 			el_utils.c \
 			epath_utils.c \
 			rpt_utils.c \
-			printevent_utils.c \
 			sahpi_event_utils.c \
 			sahpi_struct_utils.c \
 			sahpi_time_utils.c \
 			uid_utils.c
+# printevent_utils.c \
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 
