@@ -18,6 +18,7 @@
 
 #include <sim_resources.h>
 #include <sim_init.h>
+#include <sim_sensors.h>
 #include <math.h>
 
 //	/* Find resource's events, sensors, controls, etc. */
@@ -83,7 +84,7 @@ SaErrorT dummy_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaH
  *                        Resource Definitions
  **************************************************************************/
 
-struct dummy_rpt dummy_rpt_array [] = {
+struct dummy_rpt dummy_rpt_array[] = {
         /* Chassis */
 	{ 
                 .rpt = {
