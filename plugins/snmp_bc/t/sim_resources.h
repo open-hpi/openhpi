@@ -34,6 +34,7 @@ struct snmp_bc_data {
 extern GHashTable * sim_hash;
 extern struct snmp_bc_data sim_resource_array[];
 
+#define SNMP_FORCE_TIMEOUT -7777
 #define SNMP_FORCE_ERROR -9999
 
 #endif
