@@ -14,7 +14,7 @@
 
 SUBDIRS			= t
 DIST_SUBDIRS 		= t
-
+EXTRA_DIST              = connection.h
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 AM_CFLAGS		= @CFLAGS@

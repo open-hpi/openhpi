@@ -86,19 +86,23 @@ void process_hotswap_policy(struct oh_handler *handler)
 
                 if (e.event.EventDataUnion.HotSwapEvent.HotSwapState 
                                 == SAHPI_HS_STATE_INSERTION_PENDING) {
+			if (get_hotswap_auto_insert_timeout() != SAHPI_TIMEOUT_BLOCK) {
                         est = e.event.Timestamp + get_hotswap_auto_insert_timeout();
 						
                         if (cur>=est) {
 								handler->abi->set_hotswap_state( handler->hnd, e.parent,
 												SAHPI_HS_STATE_ACTIVE_HEALTHY);
                         }
+			}
                 } else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
                                 == SAHPI_HS_STATE_EXTRACTION_PENDING) {
+			if (rd->auto_extract_timeout != SAHPI_TIMEOUT_BLOCK) {
                         est = e.event.Timestamp + rd->auto_extract_timeout;
                         if (cur>=est) {
                                handler->abi->set_hotswap_state(handler->hnd, e.parent,
 											   SAHPI_HS_STATE_INACTIVE);
 						}
+			}
                 } else {
                         dbg();
                 }

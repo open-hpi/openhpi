@@ -275,6 +275,14 @@ dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
 OH_CHECK_OPENIPMI(1,3,9)
 
+if pkg-config --atleast-version 1.3.8 OpenIPMI; then
+    have_openipmi=yes
+    OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
+    AC_SUBST(OPENIPMI_CFLAGS)
+    OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
+    AC_SUBST(OPENIPMI_LIBS)
+fi
+
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
     [if test "x$enableval" = "xyes"; then
