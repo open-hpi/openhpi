@@ -1196,6 +1196,7 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
         struct oh_event working;
         struct oh_event *e = NULL;
 	SaHpiRptEntryT *thisRpt;
+	SaHpiRdrT      *thisRdr;
 	
         memset(&working, 0, sizeof(struct oh_event));
 
@@ -1220,13 +1221,22 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 		break;			           
 	case SAHPI_ET_SENSOR:
 		rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
-				    thisEvent->EventDataUnion.SensorEvent.SensorNum); 
-		working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
+				    thisEvent->EventDataUnion.SensorEvent.SensorNum);
+		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
+		if (thisRdr) 
+			working.u.hpi_event.rdr = *thisRdr;
+		else 
+			dbg("Rdr not found for rid %d, rdrid %d\n",thisEvent->Source, rdrid);
 		break;
 	case SAHPI_ET_WATCHDOG:
 		rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
 				    thisEvent->EventDataUnion.WatchdogEvent.WatchdogNum);
-		working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
+		thisRdr =  oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid);
+		if (thisRdr) 
+			working.u.hpi_event.rdr = *thisRdr;
+		else 
+			dbg("Rdr not found for rid %d, rdrid %d\n",thisEvent->Source, rdrid);
+
 		break;
 	case SAHPI_ET_RESOURCE:
 	case SAHPI_ET_DOMAIN:
