@@ -32,5 +32,5 @@ TESTS = ohpi_version_client
 check_PROGRAMS = $(TESTS)
 
 ohpi_version_client_SOURCES = ohpi_version_client.c
-ohpi_version_client_LDADD   = $(TDEPLIB)
+ohpi_version_client_LDADD   = $(CDEPLIB)
 
