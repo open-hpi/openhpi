@@ -76,15 +76,15 @@ cIpmiControlFan::SetState( const SaHpiCtrlStateT &state )
 
   cIpmiMsg rsp;
 
-  int rv = m_mc->SendCommand( msg, rsp );
+  SaErrorT rv = m_mc->SendCommand( msg, rsp );
 
-  if (    rv
+  if (    rv != SA_OK
        || rsp.m_data_len < 2
        || rsp.m_data[0] != eIpmiCcOk
           || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "cannot send set fan speed !\n";
-       return SA_ERR_HPI_INVALID_REQUEST;
+       return (rv != SA_OK) ? rv : SA_ERR_HPI_INVALID_REQUEST;
      }
 
   return SA_OK;
@@ -101,15 +101,15 @@ cIpmiControlFan::GetState( SaHpiCtrlStateT &state )
 
   cIpmiMsg rsp;
 
-  int rv = m_mc->SendCommand( msg, rsp );
+  SaErrorT rv = m_mc->SendCommand( msg, rsp );
 
-  if (    rv
+  if (    rv != SA_OK
        || rsp.m_data_len < 3
        || rsp.m_data[0] != eIpmiCcOk
           || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "cannot send get fan speed !\n";
-       return SA_ERR_HPI_INVALID_REQUEST;
+       return (rv != SA_OK) ? rv : SA_ERR_HPI_INVALID_REQUEST;
      }
 
   state.Type = SAHPI_CTRL_TYPE_ANALOG;

@@ -22,9 +22,9 @@
 #include "ipmi_entity.h"
 #include "ipmi_log.h"
 
-__BEGIN_DECLS
+extern "C" {
 #include "epath_utils.h"
-__END_DECLS
+}
 
 
 static const char *entity_id_types[] =

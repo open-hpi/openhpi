@@ -47,10 +47,7 @@ cIpmiCon::~cIpmiCon()
   while( m_queue )
      {
        cIpmiRequest *r = (cIpmiRequest *)m_queue->data;
-
-       // there is no way to call others
-       // than cIpmiCon::IfDestroyRequest !!!
-       IfDestroyRequest( r );
+       delete r;
 
        m_queue = g_list_remove( m_queue, r );
      }
@@ -121,7 +118,7 @@ cIpmiCon::RemOutstanding( int seq )
 
 
 void
-cIpmiCon::HandleMsgError( cIpmiRequest *r, int err )
+cIpmiCon::HandleMsgError( cIpmiRequest *r, SaErrorT err )
 {
   // try again
   if ( r->m_retries_left > 0 )
@@ -156,7 +153,7 @@ cIpmiCon::HandleMsgError( cIpmiRequest *r, int err )
   // error while sending command
   m_log_lock.Lock();
 
-  if ( err == ETIMEDOUT )
+  if ( err == SA_ERR_HPI_TIMEOUT )
        stdlog << ">tim " << (unsigned char)r->m_seq << "\n";
   else
        stdlog << ">err " << (unsigned char)r->m_seq << " " << err << "\n";
@@ -170,7 +167,7 @@ cIpmiCon::HandleMsgError( cIpmiRequest *r, int err )
 }
 
 
-int
+SaErrorT
 cIpmiCon::SendCmd( cIpmiRequest *request )
 {
   assert( m_num_outstanding < m_max_outstanding );
@@ -198,15 +195,15 @@ cIpmiCon::SendCmd( cIpmiRequest *request )
   IfAddrToSendAddr( request->m_addr, request->m_send_addr );
 
   // send message
-  int rv = IfSendCmd( request );
+  SaErrorT rv = IfSendCmd( request );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        RemOutstanding( seq );
        return rv;
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -218,9 +215,9 @@ cIpmiCon::SendCmds()
        cIpmiRequest *r = (cIpmiRequest *)m_queue->data;
        m_queue = g_list_remove( m_queue, r );
 
-       int rv = SendCmd( r );
+       SaErrorT rv = SendCmd( r );
 
-       if ( rv )
+       if ( rv != SA_OK )
             HandleMsgError( r, rv );
      }
 }
@@ -305,7 +302,7 @@ cIpmiCon::Run()
             // timeout expired
             RemOutstanding( r->m_seq );
 
-            HandleMsgError( r, ETIMEDOUT );
+            HandleMsgError( r, SA_ERR_HPI_TIMEOUT );
           }
 
        // send new comands
@@ -325,7 +322,7 @@ cIpmiCon::IfClose()
 {
 }
 
-
+/*
 cIpmiRequest *
 cIpmiCon::IfAllocRequest( const cIpmiAddr &addr, const cIpmiMsg &msg )
 {
@@ -338,6 +335,7 @@ cIpmiCon::IfDestroyRequest( cIpmiRequest *r )
 {
   delete r;
 }
+*/
 
 
 void
@@ -436,13 +434,13 @@ cIpmiCon::Close()
 
 
 // send an ipmi command and wait for response.
-int
+SaErrorT
 cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
                cIpmiAddr &rsp_addr, cIpmiMsg &rsp, int retries )
 {
   assert( retries > 0 );
 
-  int rv;
+  SaErrorT rv;
 
   assert( msg.m_data_len <= dIpmiMaxMsgLength );
   assert( IsRunning() );
@@ -456,11 +454,11 @@ cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
   cThreadCond cond;
 
   // create request
-  cIpmiRequest *r = IfAllocRequest( addr, msg );
+  cIpmiRequest *r = new cIpmiRequest( addr, msg );
   r->m_rsp_addr     = &rsp_addr;
   r->m_rsp          = &rsp;
   r->m_signal       = &cond;
-  r->m_error        = EINVAL;
+  r->m_error        = SA_ERR_HPI_INVALID_CMD;
   r->m_retries_left = retries;
 
   // lock queue
@@ -472,10 +470,10 @@ cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
        // send the command within this thread context.
        rv = SendCmd( r );
 
-       if ( rv )
+       if ( rv != SA_OK )
 	  {
 	    // error
-	    IfDestroyRequest( r );
+	    delete r;
 
 	    m_queue_lock.Unlock();
 	    cond.Unlock();
@@ -496,9 +494,9 @@ cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
 
   rv = r->m_error;
 
-  IfDestroyRequest( r );
+  delete r;
 
-  if ( !rv )
+  if ( rv == SA_OK )
      {
        assert( (tIpmiNetfn)(msg.m_netfn | 1) == rsp.m_netfn );
        assert( msg.m_cmd == rsp.m_cmd );  
@@ -508,7 +506,7 @@ cIpmiCon::Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
 }
 
 
-int
+SaErrorT
 cIpmiCon::ExecuteCmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
                       cIpmiMsg &rsp_msg, int retries )
 {
@@ -561,7 +559,7 @@ cIpmiCon::HandleResponse( int seq, const cIpmiAddr &addr, const cIpmiMsg &msg )
   if ( r->m_rsp_addr->m_type == eIpmiAddrTypeIpmbBroadcast )
        r->m_rsp_addr->m_type = eIpmiAddrTypeIpmb;
 
-  r->m_error     = 0;
+  r->m_error     = SA_OK;
   *r->m_rsp      = msg;
 
   r->m_signal->Lock();

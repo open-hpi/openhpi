@@ -118,7 +118,7 @@ protected:
 
   unsigned char  m_aux_fw_revision[4];
 
-  int SendSetEventRcvr( unsigned int addr );
+  SaErrorT SendSetEventRcvr( unsigned int addr );
 
   GList *m_resources;
 
@@ -177,11 +177,11 @@ public:
 
   bool Cleanup(); // true => it is safe to destroy mc
 
-  int      HandleNew();
+  SaErrorT HandleNew();
   bool     DeviceDataCompares( const cIpmiMsg &msg ) const;
   int      GetDeviceIdDataFromRsp( const cIpmiMsg &msg );
   void     CheckEventRcvr();
-  int      SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
+  SaErrorT SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
                         unsigned int lun = 0, int retries = dIpmiDefaultRetries );
 
   unsigned int GetChannel() const;
@@ -189,7 +189,7 @@ public:
   void         SetActive();
   cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_id );
 
-  int AtcaPowerFru( int fru_id );
+  SaErrorT AtcaPowerFru( int fru_id );
 
   void SetVendor( cIpmiMcVendor *mv )
   {

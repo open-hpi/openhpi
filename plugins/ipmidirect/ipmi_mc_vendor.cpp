@@ -357,7 +357,7 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
 // TODO:
 //    Handling of entity association records.
 //    This is the reason for the parameter sdrs.
-cIpmiEntityPath 
+cIpmiEntityPath
 cIpmiMcVendor::CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr, unsigned int fru_id, 
                                  SaHpiEntityTypeT type,
                                  SaHpiEntityInstanceT instance, cIpmiSdrs * /*sdrs*/ )
@@ -375,6 +375,8 @@ cIpmiMcVendor::CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr, unsi
      }
   else if ( instance <= 0x7f )
        instance -= 0x60;
+
+  instance += dEntityInstanceDummy;
 
   bottom.SetEntry( 0, type, instance );
 
@@ -815,9 +817,9 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res,
 
   cIpmiMsg rsp;
 
-  int rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommand( msg, rsp );
 
-  if (    rv
+  if (    rv != SA_OK
        || rsp.m_data_len < 6
        || rsp.m_data[0] != eIpmiCcOk
        || rsp.m_data[1] != dIpmiPigMgId )
@@ -834,6 +836,7 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res,
   cIpmiControlFan *f = new cIpmiControlFan( res->Mc(), res->GetControlNum(),
                                             min, max, def,
                                             auto_adj );
+  f->EntityPath() = res->EntityPath();
 
   f->IdString().SetAscii( "ATCA-Fan", SAHPI_TL_TYPE_LANGUAGE, SAHPI_LANG_ENGLISH );
 
@@ -895,7 +898,7 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
        lun    = (sdr->m_data[7] >> 3) & 3;
      }
 
-  // create mc/ domain if nessesary
+  // create mc if nessesary
   cIpmiMc *m = FindMcBySdr( domain, sdr );
   assert( m );
 
@@ -916,15 +919,21 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
        need_add = true;
      }
 
-  int rv = fru->Fetch();
+  SaErrorT rv = fru->Fetch();
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        if ( need_add )
             delete fru;
 
        return false;
      }
+
+  SaHpiEntityTypeT     type     = (SaHpiEntityTypeT)sdr->m_data[12];
+  SaHpiEntityInstanceT instance = (SaHpiEntityInstanceT)sdr->m_data[13];
+
+  fru->EntityPath() = CreateEntityPath( domain, m->GetAddress(), 0,
+					type, instance, sdrs );
 
   fru->CalcSize();
 

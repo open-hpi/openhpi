@@ -71,7 +71,7 @@ cIpmiSel::ClearSel()
 {
   cThreadLockAuto al( m_sel_lock );
 
-  int rv;
+  SaErrorT rv;
 
   // do a reservation only when needed
   if (    m_supports_reserve_sel 
@@ -79,8 +79,8 @@ cIpmiSel::ClearSel()
      {
        rv = Reserve();
 
-       if ( rv )
-            return SA_ERR_HPI_INVALID_CMD;
+       if ( rv != SA_OK )
+            return rv;
      }
 
   stdlog << "clear SEL.\n";
@@ -97,8 +97,8 @@ cIpmiSel::ClearSel()
 
   rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( rv )
-       return SA_ERR_HPI_INVALID_CMD;
+  if ( rv != SA_OK )
+       return rv;
 
   if ( rsp.m_data[0] == 0 )
      {
@@ -110,19 +110,19 @@ cIpmiSel::ClearSel()
 }
 
 
-int
+SaErrorT
 cIpmiSel::GetInfo()
 {
-  cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdGetSelInfo );
-  cIpmiMsg rsp;
-  int rv;
+  cIpmiMsg     msg( eIpmiNetfnStorage, eIpmiCmdGetSelInfo );
+  cIpmiMsg     rsp;
+  SaErrorT     rv;
   unsigned int add_timestamp;
   unsigned int erase_timestamp;
 
   // Fetch the repository info.
   rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "could not send get sel info: " << rv << " !\n";
        return rv;
@@ -133,13 +133,13 @@ cIpmiSel::GetInfo()
        stdlog << "IpmiSelGetInfo: IPMI error from SEL info fetch: "
               << rsp.m_data[0] << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   if ( rsp.m_data_len < 15 )
      {
        stdlog << "handle_sel_info: SEL info too short !\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   unsigned int num = m_entries;
@@ -173,21 +173,21 @@ cIpmiSel::GetInfo()
   m_sels_changed = true;
   m_fetched      = true;
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiSel::Reserve()
 {
   cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdReserveSel );
   cIpmiMsg rsp;
-  int rv;
+  SaErrorT rv;
 
   // Get a reservation.
   rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot send reserve sel: " << rv << " !\n";
        return rv;
@@ -196,18 +196,18 @@ cIpmiSel::Reserve()
   if ( rsp.m_data[0] != 0 )
      {
        stdlog << "sel_handle_reservation: Failed getting reservation !\n";
-       return ENOSYS;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   if ( rsp.m_data_len < 3 )
      {
        stdlog << "sel_handle_reservation: got invalid reservation length !\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   m_reservation = IpmiGetUint16( rsp.m_data + 1 );
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -238,9 +238,9 @@ cIpmiSel::ReadSelRecord( cIpmiEvent &event, unsigned int &next_rec_id )
   msg.m_data[5] = 0xff;
   msg.m_data_len = 6;
 
-  int rv = m_mc->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "Could not send SEL fetch command: " << rv << " !\n";
        return -1;
@@ -276,7 +276,7 @@ cIpmiSel::ReadSelRecord( cIpmiEvent &event, unsigned int &next_rec_id )
 GList *
 cIpmiSel::ReadSel( unsigned int &num, bool &uptodate )
 {
-  int rv = 0;
+  SaErrorT rv = SA_OK;
   GList *new_events = 0;
   num = 0;
   int fetch_retry_count = 0;
@@ -304,7 +304,7 @@ cIpmiSel::ReadSel( unsigned int &num, bool &uptodate )
             return 0;
           }
 
-       if ( rv || m_entries == 0 )
+       if ( rv != SA_OK || m_entries == 0 )
             return 0;
 
        if ( m_supports_reserve_sel )
@@ -436,7 +436,7 @@ cIpmiSel::GetEvents()
 }
 
 
-int
+SaErrorT
 cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev, 
                        unsigned short &next, cIpmiEvent &event )
 {
@@ -448,7 +448,7 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
        prev = 0;
        next = 0xffff;
 
-       return -1;
+       return SA_ERR_HPI_NOT_PRESENT;
      }
 
   cIpmiEvent *e = 0;
@@ -475,7 +475,7 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
        else
             next = 0xffff;
 
-       return 0;
+       return SA_OK;
      }
 
   if ( rid == 0xffff )
@@ -500,7 +500,7 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
 
        next = 0xffff;
 
-       return 0;       
+       return SA_OK;  
      }
 
   item = 0;
@@ -518,13 +518,13 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
      }
 
   if ( item == 0 )
-       return -1;
+       return SA_ERR_HPI_NOT_PRESENT;
   
   // event found
   e = (cIpmiEvent *)item->data;
-  
+
   event = *e;
-  
+
   // prev
   i = g_list_previous( item );
 
@@ -535,7 +535,7 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
      }
   else
        prev = 0;
-  
+
   // next
   i = g_list_next( item );
 
@@ -547,7 +547,7 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
   else
        next = 0xffff;
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -567,10 +567,10 @@ cIpmiSel::DeleteSelEntry( SaHpiSelEntryIdT sid )
 
   for( int i = 0; i < dMaxSelFetchRetries; i++ )
      {
-       int rv = Reserve();
+       SaErrorT rv = Reserve();
 
-       if ( rv )
-            return SA_ERR_HPI_INVALID_CMD;
+       if ( rv != SA_OK )
+            return rv;
 
        cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdDeleteSelEntry );
        cIpmiMsg rsp;
@@ -581,10 +581,10 @@ cIpmiSel::DeleteSelEntry( SaHpiSelEntryIdT sid )
 
        rv = m_mc->SendCommand( msg, rsp );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "Could not send delete SEL entry: " << rv << " !\n";
-            return SA_ERR_HPI_INVALID_CMD;
+            return rv;
           }
 
        if ( rsp.m_data[0] != eIpmiCcOk )
@@ -604,7 +604,7 @@ cIpmiSel::DeleteSelEntry( SaHpiSelEntryIdT sid )
             stdlog << "IPMI error from delete SEL entry: message to short "
                    << rsp.m_data_len << " !\n";
 
-            return SA_ERR_HPI_INVALID_CMD;
+            return SA_ERR_HPI_DATA_LEN_INVALID;
           }
 
        // deleted record id
@@ -648,12 +648,12 @@ cIpmiSel::GetSelTime( SaHpiTimeT &ht )
   cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdGetSelTime );
   cIpmiMsg rsp;
 
-  int rv = m_mc->SendCommand( msg, rsp );
+  SaErrorT rv = m_mc->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "Could not send get SEL time: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
@@ -669,7 +669,7 @@ cIpmiSel::GetSelTime( SaHpiTimeT &ht )
        stdlog << "IPMI error from get SEL time: message to short "
               << rsp.m_data_len << " !\n";
 
-       return SA_ERR_HPI_INVALID_CMD;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   ht = IpmiGetUint32( rsp.m_data + 1 );
@@ -718,12 +718,12 @@ cIpmiSel::SetSelTime( SaHpiTimeT ht )
   IpmiSetUint32( msg.m_data, t );
   msg.m_data_len = 4;
 
-  int rv = m_mc->SendCommand( msg, rsp );
+  SaErrorT rv = m_mc->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "Could not send set SEL time: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
@@ -837,10 +837,10 @@ cIpmiSel::GetSelInfo( SaHpiSelInfoT &info )
   cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdGetSelTime );
   cIpmiMsg rsp;
 
-  int rv = mc->SendCommand( msg, rsp, lun );
+  SaErrorT rv = mc->SendCommand( msg, rsp, lun );
 
-  if ( rv || rsp.m_data[0] != eIpmiCcOk )
-       return SA_ERR_HPI_INVALID_DATA;
+  if ( rv != SA_OK || rsp.m_data[0] != eIpmiCcOk )
+       return (rv != SA_OK) ? rv : SA_ERR_HPI_INVALID_DATA;
 
   Lock();
 
@@ -890,14 +890,10 @@ cIpmiSel::GetSelEntry( SaHpiSelEntryIdT current,
 
   cIpmiEvent e;
 
-  int rv = GetSelEntry( rid, p, n, e );
+  SaErrorT rv = GetSelEntry( rid, p, n, e );
 
-  if ( rv == -1 )
-       // sel empty
-       return SA_ERR_HPI_NOT_PRESENT;
-
-  if ( rv )
-       return SA_ERR_HPI_ERROR;
+  if ( rv != SA_OK )
+       return rv;
 
   cIpmiMc     *mc = 0;
   cIpmiSensor *sensor = 0;

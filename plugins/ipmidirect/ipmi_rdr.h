@@ -25,9 +25,9 @@
 #include <assert.h>
 #include <glib.h>
 
-__BEGIN_DECLS
+extern "C" {
 #include "SaHpi.h"
-__END_DECLS
+}
 
 
 class cIpmiMc;
@@ -74,8 +74,8 @@ public:
   virtual unsigned int Lun() const { return m_lun; }
 
   //virtual void Dump( cIpmiLog &dump ) = 0;
-  int SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
-		   unsigned int lun = 0, int retries = 3 );
+  SaErrorT SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
+                        unsigned int lun = 0, int retries = 3 );
 };
 
 

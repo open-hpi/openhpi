@@ -36,12 +36,12 @@
 cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   : m_addr( addr ), m_active( true ),
     m_fru_state( eIpmiFruStateNotInstalled ),
-    m_domain( domain ), m_sdrs( 0 ),
+    m_domain( domain ),
     m_sensors_in_my_sdr( 0 ),
     m_sel( 0 ),
     m_device_id( 0 ), m_device_revision( 0 ), 
     m_provides_device_sdrs( false ), m_device_available( false ),
-    m_chassis_support( false ), m_bridge_support( false ), 
+    m_chassis_support( false ), m_bridge_support( false ),
     m_ipmb_event_generator_support( false ), m_ipmb_event_receiver_support( false ),
     m_fru_inventory_support( false ), m_sel_device_support( false ),
     m_sdr_repository_support( false ), m_sensor_device_support( false ),
@@ -61,7 +61,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
   m_aux_fw_revision[2] = 0;
   m_aux_fw_revision[3] = 0;
 
-  m_sdrs = new cIpmiSdrs( this, 0, true );
+  m_sdrs = new cIpmiSdrs( this, true );
   assert( m_sdrs );
 
   m_sel = new cIpmiSel( this, 0 );
@@ -193,12 +193,12 @@ cIpmiMc::Cleanup()
 }
 
 
-int
+SaErrorT
 cIpmiMc::SendSetEventRcvr( unsigned int addr )
 {
   cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdSetEventReceiver );
   cIpmiMsg rsp;
-  int rv;
+  SaErrorT rv;
 
   stdlog << "Send set event receiver: " << addr << ".\n";
 
@@ -211,7 +211,7 @@ cIpmiMc::SendSetEventRcvr( unsigned int addr )
 
   rv = SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
        return rv;
 
   if ( rsp.m_data[0] != 0 )
@@ -219,30 +219,29 @@ cIpmiMc::SendSetEventRcvr( unsigned int addr )
        // Error setting the event receiver, report it.
        stdlog << "Could not set event receiver for MC at " << m_addr.m_slave_addr << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiMc::HandleNew()
 {
-  int rv;
+  SaErrorT rv;
 
   m_active = true;
 
   if ( m_provides_device_sdrs )
      {
-       // read sdr
        rv = m_sdrs->Fetch();
 
        if ( rv )
-            return EINVAL;
+            return rv;
 
        if ( m_vendor->CreateRdrs( Domain(), this, m_sdrs ) == false )
-            return EINVAL;
+            return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   // read the sel first
@@ -252,14 +251,14 @@ cIpmiMc::HandleNew()
        // clear sel
        rv = m_sel->GetInfo();
 
-       if ( rv )
+       if ( rv != SA_OK )
             return rv;
 
        m_sel->m_fetched = false;
 
        rv = m_sel->ClearSel();
 
-       if ( rv )
+       if ( rv != SA_OK )
             return rv;
 
        // read old events
@@ -427,7 +426,7 @@ cIpmiMc::GetDeviceIdDataFromRsp( const cIpmiMsg &rsp )
 void
 cIpmiMc::CheckEventRcvr()
 {
-  int rv;
+  SaErrorT rv;
 
   if ( m_ipmb_event_generator_support )
        return;
@@ -450,7 +449,7 @@ cIpmiMc::CheckEventRcvr()
 
   rv = SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
        // No care about return values, if this fails it will be done
        //   again later.
        return;
@@ -486,19 +485,14 @@ cIpmiMc::CheckEventRcvr()
 }
 
 
-int
+SaErrorT
 cIpmiMc::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
                       unsigned int lun, int retries )
 {
   cIpmiAddr addr = m_addr;
-  int rv;
 
   assert( m_domain );
-
-  rv = addr.m_lun = lun;
-
-  if ( rv )
-       return rv;
+  addr.m_lun = lun;
 
   return m_domain->SendCommand( addr, msg, rsp_msg, retries );
 }
@@ -551,7 +545,7 @@ cIpmiMc::FindHotswapSensor()
 }
 
 
-int
+SaErrorT
 cIpmiMc::AtcaPowerFru( int fru_id )
 {
   // get power level
@@ -563,12 +557,12 @@ cIpmiMc::AtcaPowerFru( int fru_id )
   msg.m_data[2] = 0x01; // desired steady power
   msg.m_data_len = 3;
 
-  int rv = SendCommand( msg, rsp );
+  SaErrorT rv = SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot send get power level: " << rv << " !\n";
-       return EINVAL;
+       return rv;
      }
 
   if (    rsp.m_data_len < 3
@@ -576,7 +570,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
        || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   unsigned char power_level = rsp.m_data[2] & 0x1f;
@@ -592,10 +586,10 @@ cIpmiMc::AtcaPowerFru( int fru_id )
 
   rv = SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot send set power level: " << rv << " !\n";
-       return EINVAL;
+       return rv;
      }
 
   if (    rsp.m_data_len != 2
@@ -603,7 +597,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
        || rsp.m_data[1] != dIpmiPigMgId )
        stdlog << "cannot set power level: " << rsp.m_data[0] << " !\n";
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -732,9 +726,6 @@ cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
 void
 cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
 {
-  char sdr_name[80];
-  sprintf( sdr_name, "Sdr%02x", GetAddress() );
-
   char sel_name[80];
   sprintf( sel_name, "Sel%02x", GetAddress() );
 
@@ -746,9 +737,12 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
   sprintf( control_name, "Control%02x", GetAddress() );
   bool control = false;
 
+  char sdr_name[80];
+  sprintf( sdr_name, "Sdr%02x", GetAddress() );
+
   if ( dump.IsRecursive() )
      {
-       if ( m_sdrs && m_provides_device_sdrs )
+       if ( m_provides_device_sdrs && m_sdrs )
 	    m_sdrs->Dump( dump, sdr_name );
 
        if ( m_sel && m_sel_device_support )
@@ -762,8 +756,8 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
 
   if ( dump.IsRecursive() )
      {
-       if ( m_sdrs && m_provides_device_sdrs )
-	    dump.Entry( "Sdr" ) << sdr_name << ";\n";
+       if ( m_provides_device_sdrs && m_sdrs )
+		      dump.Entry( "Sdr" ) << sdr_name << ";\n";
 
        if ( m_sel && m_sel_device_support )
 	    dump.Entry( "Sel" ) << sel_name << ";\n";

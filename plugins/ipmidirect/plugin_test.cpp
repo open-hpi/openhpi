@@ -221,9 +221,9 @@ TestInterface( struct oh_abi_v2 *abi, void *hdl )
 }
 
 
-__BEGIN_DECLS
+extern "C" {
 int ipmidirect_get_interface(void **pp, const uuid_t uuid);
-__END_DECLS
+}
 
 
 static int
@@ -245,7 +245,7 @@ main( int argc, char *argv[] )
   if ( argc > 2 )
        return usage( argv[0] );
 
-  const char *config_name = "lan_local";
+  const char *config_name = "lan_remote";
 
   if ( argc == 2 )
        config_name = argv[1];
