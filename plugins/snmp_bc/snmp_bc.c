@@ -16,7 +16,7 @@
 
 #include <snmp_bc_plugin.h>
 
-static int snmp_bc_get_event(void *hnd, struct oh_event *event, struct timeval *timeout);
+static int snmp_bc_get_event(void *hnd, struct oh_event *event);
 static int snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
 static int snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
 static int snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
@@ -87,7 +87,7 @@ int get_interface(void **pp, const uuid_t uuid)
  * Return value: 
  **/
 
-static int snmp_bc_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
+static int snmp_bc_get_event(void *hnd, struct oh_event *event)
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
