@@ -685,7 +685,8 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 			return SA_OK;
 	}
 
-	rsel_clr(ResourceId);
+	if (rsel_clr(ResourceId)<0)
+		return SA_ERR_HPI_UNKNOWN;
 	return SA_OK;
 }
 
