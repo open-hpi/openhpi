@@ -293,6 +293,7 @@ AC_SUBST(STATIC_PLUGIN_EXTRA_LIBS)
 dnl setup SNMPFLAGS
 AC_SUBST(SNMPFLAGS)
 AC_SUBST(SNMPLIBS)
+AC_SUBST(SNMPDIR)
 
 dnl defines OH_DEFAULT_UID_MAP and VARPATH
 dnl set VARPATH only if unset or null.
@@ -379,6 +380,7 @@ AC_CONFIG_FILES([openhpi.spec
         rt-env.sh
         Makefile
         src/Makefile
+        src/snmp/Makefile
         src/t/Makefile
         src/plugin_static.c
         src/plugins/Makefile
