@@ -32,7 +32,7 @@ int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info)
 		return -1;
 	}
 	
-	info->Entries			= g_slist_length(d->sel);
+	info->Entries			= g_slist_length(d->sel_list);
 	info->Size			= 0xFFFFFFFF;
 	info->UpdateTimestamp		= 0;
 	gettimeofday1(&info->CurrentTime);
@@ -103,7 +103,7 @@ void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
 
 	memcpy(&sel->entry, entry, sizeof(*entry));
 	sel->entry.EntryId = d->sel_counter++;
-	d->sel = g_slist_append(d->sel, sel);
+	d->sel_list = g_slist_append(d->sel_list, sel);
 }
 
 void dsel_add2(struct oh_domain *d, struct oh_event *e)
@@ -124,7 +124,7 @@ void dsel_add2(struct oh_domain *d, struct oh_event *e)
 	
 	memcpy(&sel->entry.Event, &e->u.hpi_event.event, sizeof(sel->entry.Event));
 	
-	d->sel = g_slist_append(d->sel, sel);
+	d->sel_list = g_slist_append(d->sel_list, sel);
 }
 
 void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
@@ -137,11 +137,11 @@ void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
 		return;
 	}
 
-	g_slist_for_each(i, d->sel) {
+	g_slist_for_each(i, d->sel_list) {
 		struct oh_sel *sel;
 		sel = i->data;
 		if (sel->entry.EntryId == id) {
-			d->sel = g_slist_remove_link(d->sel, i);
+			d->sel_list = g_slist_remove_link(d->sel_list, i);
 			free(sel);
 			break;
 		}
@@ -159,10 +159,10 @@ void dsel_clr(SaHpiDomainIdT domain_id)
 		return;
 	}
 
-	g_slist_for_each_safe(i, i2, d->sel) {
+	g_slist_for_each_safe(i, i2, d->sel_list) {
 		struct oh_sel *sel;
 		sel = i->data;
-		d->sel = g_slist_remove_link(d->sel, i);
+		d->sel_list = g_slist_remove_link(d->sel_list, i);
 		free(sel);			
 	}
 }

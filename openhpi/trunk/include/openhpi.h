@@ -123,7 +123,7 @@ struct oh_domain {
 	/* System Event Log */
 	enum oh_sel_state sel_state;
 	int sel_counter;
-	GSList *sel;
+	GSList *sel_list;
 };
 
 /*
