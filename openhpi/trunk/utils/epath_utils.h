@@ -18,6 +18,10 @@
 #ifndef EPATH_UTILS_H
 #define EPATH_UTILS_H
 
+#ifndef OH_UTILS_H
+#warning *** Include oh_utils.h instead of individual utility header files ***
+#endif
+
 #include <glib.h>
 #include <SaHpi.h>
 

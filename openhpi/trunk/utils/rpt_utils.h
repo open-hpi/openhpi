@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,11 +11,15 @@
  *
  * Authors:
  *      Renier Morales <renierm@users.sf.net>
- *
  */
 
 #ifndef RPT_UTILS_H
 #define RPT_UTILS_H
+
+#ifndef OH_UTILS_H
+#warning *** Include oh_utils.h instead of individual utility header files ***
+#endif
+
 #include <SaHpi.h>
 #include <glib.h>
 

@@ -24,9 +24,7 @@
 
 #include <SaHpi.h>
 #include <config.h>
-#include <oh_error.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
+#include <oh_utils.h>
 
 static GHashTable *ep_hash_table;
 static GHashTable *resource_id_hash_table;
@@ -465,4 +463,3 @@ static gint build_uid_map_data(int file)
         }
         return 0;
 }
-

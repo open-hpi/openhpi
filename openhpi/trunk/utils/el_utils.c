@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -24,9 +24,7 @@
 #include <time.h>
 
 #include <SaHpi.h>
-#include <oh_error.h>
-#include <el_utils.h>
-
+#include <oh_utils.h>
 
 /* allocate and initialize an EL */
 oh_el *oh_el_create(SaHpiUint32T size)
@@ -395,4 +393,3 @@ SaErrorT oh_el_setgentimestampflag(oh_el *el, SaHpiBoolT flag)
         el->gentimestamp = flag;
         return SA_OK;
 }
-
