@@ -33,6 +33,7 @@ typedef enum {
 	UNDEF_COM,
 	MAIN_COM,
 	SEN_COM,
+	ANN_COM,
 	CTRL_COM,
 	INV_COM
 } com_enum_t;
@@ -71,6 +72,7 @@ extern int		debug_flag;
 
 extern int		add_domain(Domain_t *domain);
 extern int		add_input_file(char *name);
+extern ret_code_t	ann_block(void);
 extern ret_code_t	ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type,
 				SaHpiInstrumentIdT *ret);
 extern ret_code_t	ask_rpt(SaHpiResourceIdT *ret);

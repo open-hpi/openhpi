@@ -34,6 +34,17 @@ Options:
 
 Commands:
 
+	ann <rptId> <annNum>
+		Annunciator block commands. This block contains show and set commands for
+		annunciator resource <rptId>/<annNum>.
+	    show - show annunciator.
+	    show <EntryId> - show announcement by EntryId.
+	    list - show announcement list.
+	    modeget - show annunciator mode.
+	    modeset <mode> - set annunciator mode.
+	    add <values> - add new announcement.
+	    delete <entryId> - delete announcement by EntryId.
+
 	clearevtlog [<rptId>]
 		Erase the contents of the Event Log for the resource <rptId>. If <rptId> 
 		is omitted, a current domain Event Log is erased.
