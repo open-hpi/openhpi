@@ -197,15 +197,19 @@ struct oh_resource {
         SaHpiRptEntryT		entry;
      
 	/*
-	 * The two fields are valid when resource is CAPABILITY_HOTSWAP
+	 * The two fields are valid when resource is 
+	 * CAPABILITY_HOTSWAP
 	 */
 	int controlled;
 	SaHpiTimeoutT auto_extract_timeout;
 	
 	/*
-	 * the sel state when resource is CAPABILITY_SYSTEM_EVENT_LOG
+	 * The two fields are valid when resource is 
+	 * CAPABILITY_SYSTEM_EVENT_LOG
 	 */
 	enum oh_sel_state sel_state;
+	int sel_counter;
+	GSList *sel_list;
 
 	/*
 	   The handler of the resource
@@ -351,6 +355,10 @@ void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry);
 void dsel_add2(struct oh_domain *d, struct oh_event *e);
 void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
 void dsel_clr(SaHpiDomainIdT domain_id);
+void rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry);
+void rsel_add2(struct oh_resource *d, struct oh_event *e);
+void rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id);
+void rsel_clr(SaHpiResourceIdT res_id); 
 
 
 /* event handler */

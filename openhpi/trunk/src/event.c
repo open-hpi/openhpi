@@ -36,6 +36,10 @@ static void process_session_event(struct oh_event *e)
 		hotswap_push_event(e);
 	}
 
+	/* if the event is come from resource with SEL cap.*/
+	if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
+		rsel_add2(res, e);
+	
 	g_slist_for_each(i, res->domain_list) {
 		SaHpiDomainIdT domain_id;
 		struct oh_domain *d;
