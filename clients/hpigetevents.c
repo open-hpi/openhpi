@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         {       
                 printf("**********************************************\n");
 
-                rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
+                rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
 
                 if (fdebug) 
                         printf("saHpiRptEntryGet %s\n", oh_lookup_error(rv));
@@ -145,9 +145,13 @@ int main(int argc, char **argv)
         }
         
         printf( "Go and get the event\n");
-	int count = 0;
-        while (count < 10) {
-            rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
+	//int count = 0;
+        //while (count < 10) {
+	while (1) {
+
+		rdr.RdrType = SAHPI_NO_RECORD;
+
+		rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
                 if (rv != SA_OK) { 
                         if (rv != SA_ERR_HPI_TIMEOUT) {
                                 printf( "Error during EventGet - Test FAILED\n");
@@ -157,49 +161,36 @@ int main(int argc, char **argv)
                                 break;
                         }
                 } else {
-                        printf("Received Event of Type: %s\n", 
+                        printf("\nReceived Event of Type: %s\n", 
                                oh_lookup_eventtype(event.EventType));
+
+			switch (rdr.RdrType) {
+			case SAHPI_NO_RECORD:
+				break;
+			case SAHPI_CTRL_RDR:
+				printf("\tRDR TYPE: SAHPI_CTRL_RDR\n");
+				break;
+			case SAHPI_SENSOR_RDR:
+				printf("\tRDR TYPE: SAHPI_SENSOR_RDR\n");
+				break;
+			case SAHPI_INVENTORY_RDR:
+				printf("\tRDR TYPE: SAHPI_INVENTORY_RDR\n");
+				break;
+			case SAHPI_WATCHDOG_RDR:
+				printf("\tRDR TYPE: SAHPI_WATCHDOG_RDR\n");
+				break;
+			case SAHPI_ANNUNCIATOR_RDR:
+				printf("\tRDR TYPE: SAHPI_ANNUNCIATOR_RDR\n");
+				break;
+			default:
+				break;
+			}
 		       
 			switch (event.EventType) {
-		
 			case SAHPI_ET_RESOURCE:
 				printf("\tEvent Subtype:[%s]\n",
 				       oh_lookup_resourceeventtype(event.EventDataUnion.ResourceEvent.ResourceEventType));
 				printf("\tReouceId: [%d]\n", event.Source);
-#if 0
-				/* get any rdrs that may be present */
-				SaErrorT             	err;
-				SaHpiEntryIdT        	current_rdr;
-				SaHpiEntryIdT        	next_rdr;
-				SaHpiRdrT            	rdr;
-
-				printf("\tRDR Info:\n");
-				next_rdr = SAHPI_FIRST_ENTRY;
-				do {
-					char tmp_epath[128];
-					current_rdr = next_rdr;
-					err = saHpiRdrGet(session_id, resource_id, current_rdr, 
-							  &next_rdr, &rdr);
-					if (SA_OK != err) {
-						if (current_rdr == SAHPI_FIRST_ENTRY)
-							printf("Empty RDR table\n");
-						else
-							error("saHpiRdrGet", err);
-						return;                        
-					}
-
-					printf("\tRecordId: %x\n", rdr.RecordId);
-					printf("\tRdrType: %s\n", rdrtype2str(rdr.RdrType));
-
-					printf("\tEntity: \n");
-					//entitypath2string(&rdr.Entity, tmp_epath, sizeof(tmp_epath));
-					printf("\t\t%s\n", tmp_epath);
-					printf("\tIdString: ");
-					//display_textbuffer(rdr.IdString);
-					printf("\n"); /* Produce blank line between rdrs. */
-
-				}while(next_rdr != SAHPI_LAST_ENTRY);
-#endif
 				break;
 
 			case SAHPI_ET_DOMAIN:
@@ -209,7 +200,6 @@ int main(int argc, char **argv)
 				break;
 
 			case SAHPI_ET_SENSOR:
-				//event.EventDataUnion.SensorEnableChangeEvent.SensorType);
 				break;
 
 			case SAHPI_ET_SENSOR_ENABLE_CHANGE:
@@ -236,8 +226,6 @@ int main(int argc, char **argv)
 			default:
 				printf(" NOT FOUND, ERROR\n");
 				break;
-
-
 			}
 /*
                         if(event.EventType == SAHPI_ET_RESOURCE) {
@@ -247,7 +235,7 @@ int main(int argc, char **argv)
                         }
 */			
                 }
-		count++;
+		//count++;
         }
 
         /* Unsubscribe to future events */
