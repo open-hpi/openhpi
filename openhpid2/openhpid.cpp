@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <glib.h>
+#include <errno.h>
 
 #include "strmsock.h"
 //#include "openhpi.h"
@@ -55,7 +56,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *buf);
 }
 
 static bool stop_server = FALSE;
-
+#define CLIENT_TIMEOUT 1800  // 30 minutes
 
 
 /*--------------------------------------------------------------------*/
@@ -200,9 +201,17 @@ static void service_thread(gpointer data, gpointer user_data)
         tResult result;
 
 	printf("Servicing connection.\n");
+
+        /* set the read timeout for the socket */
+        thrdinst->SetReadTimeout(CLIENT_TIMEOUT);
+
 	while (stop == false) {
                 if (thrdinst->ReadMsg(buf)) {
-                        printf("Error reading socket.\n");
+                        if (thrdinst->GetErrcode() == EWOULDBLOCK) {
+                                printf("Timeout reading socket.\n");
+                        } else {
+                                printf("Error reading socket.\n");
+                        }
                         goto thrd_cleanup;
                 }
                 else {

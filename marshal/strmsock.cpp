@@ -85,12 +85,25 @@ void strmsock::SetType(
 	return;
 }
 
+
+void strmsock::SetReadTimeout(
+        int seconds)                    // the timeout
+{
+        struct timeval tv;
+
+	tv.tv_sec = seconds;
+	tv.tv_usec = 0;
+        setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+	return;
+}
+
 bool strmsock::WriteMsg(const void *request)
 {
 	unsigned char data[dMaxMessageLength];
 	unsigned int l = sizeof(cMessageHeader) + header.m_len;
 
 //      printf("Message body length = %d.\n", header.m_len);
+        errcode = 0;
 	if (!fOpen) {
                 printf("Socket not open.\n");
 		return true;
@@ -130,6 +143,7 @@ bool strmsock::WriteMsg(const void *request)
 
 bool strmsock::ReadMsg(char *data)
 {
+        errcode = 0;
 	if (!fOpen) {
 		return true;
 	}
@@ -137,6 +151,7 @@ bool strmsock::ReadMsg(char *data)
 	int len = read( s, data, dMaxMessageLength);
 
 	if (len < 0) {
+                errcode = errno;
 		return true;
 	} else if (len == 0) {	//connection has been aborted by the peer
 		Close();
