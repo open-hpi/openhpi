@@ -117,7 +117,11 @@ TESTS = tevent \
 	tsensorset001 \
 	tsensorset002 \
 	tsensorset003 \
-	tsensorset004
+	tsensorset004 \
+	tsensorset005 \
+	tsensorset006 \
+	tsensorset007 \
+	tsensorset008
 #	thotswap_state_err \
 #	thotswap_reset \
 #	thotswap_reset_err \
@@ -318,6 +322,30 @@ tsensorset003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 # 
 tsensorset004_SOURCES = tsensorset004.c
 tsensorset004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset005_SOURCES = tsensorset005.c
+tsensorset005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset006_SOURCES = tsensorset006.c
+tsensorset006_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset007_SOURCES = tsensorset007.c
+tsensorset007_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# 
+tsensorset008_SOURCES = tsensorset008.c
+tsensorset008_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
