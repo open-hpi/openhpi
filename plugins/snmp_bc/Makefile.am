@@ -42,6 +42,8 @@ EXTRA_DIST		=	snmp_bc.h \
 				snmp_bc_time.h \
 				snmp_bc_watchdog.h \
 				snmp_bc_xml2event.h \
+				event.xml \
+				event_rsa.xml \
 				sim_init.h
 
 # Generated files must be listed first
