@@ -80,4 +80,4 @@ tags:
 TAGS:
 	$(all-sources) | xargs etags
 cscope:
-	$(all-sources) | cscope -b -i -
+	$(all-sources) > cscope.files && cscope -b
