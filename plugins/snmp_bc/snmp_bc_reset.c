@@ -22,7 +22,7 @@
  * @act: Location to store resource's reset action state.
  *
  * Retrieves a resource's reset action state.
- * Always return  SAHPI_RESET_DEASSERT.
+ * Always return SAHPI_RESET_DEASSERT.
  *
  * Return values:
  * SA_OK - Normal case.
@@ -68,9 +68,9 @@ SaErrorT snmp_bc_get_reset_state(void *hnd,
  * Return values:
  * SA_OK - Normal case.
  * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_RESET.
- * SA_ERR_HPI_INVALID_REQUEST - @act invalid or SAHPI_RESET_ASSERT.
+ * SA_ERR_HPI_INVALID_CMD - Resource doesn't support SAHPI_RESET_ASSERT.
  * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
- * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL; @act invalid.
  **/
 SaErrorT snmp_bc_set_reset_state(void *hnd,
 				 SaHpiResourceIdT rid,
@@ -81,15 +81,11 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 	struct ResourceInfo *resinfo;
         struct snmp_value set_value;
 
-	if (!hnd){
+	if (!hnd || NULL == oh_lookup_resetaction(act)){
 		dbg("Invalid parameter.");
-		return SA_ERR_HPI_INVALID_PARAMS;
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-	if (NULL == oh_lookup_resetaction(act) || act == SAHPI_RESET_ASSERT) {
-		dbg("Invalid reset action.");
-		return SA_ERR_HPI_INVALID_REQUEST;
-	}
+	if (act == SAHPI_RESET_ASSERT || act == SAHPI_RESET_DEASSERT) return(SA_ERR_HPI_INVALID_CMD);
 	
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
@@ -116,9 +112,6 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 	}
 
 	switch (act) {
-	case SAHPI_RESET_ASSERT: /* RESET_ASSERT = RESET_DEASSERT Action */
-	case SAHPI_RESET_DEASSERT:
-		return(SA_ERR_HPI_INVALID_REQUEST);
 	case SAHPI_COLD_RESET: /* COLD = WARM Reset Action */
 	case SAHPI_WARM_RESET:
 		oid = oh_derive_string(&(rpt->ResourceEntity), resinfo->mib.OidReset);
@@ -133,15 +126,18 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 		
 		err = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (err) {
-			dbg("SNMP could not set %s; Type=%d.", oid, set_value.type);
+			dbg("SNMP could not set OID=%s; Type=%d.", oid, set_value.type);
 			g_free(oid);
 			if (err == SA_ERR_HPI_BUSY) return(err);
 			else return(SA_ERR_HPI_NO_RESPONSE);
 		}
 		g_free(oid);
 		break;
+	case SAHPI_RESET_ASSERT: /* RESET_ASSERT = RESET_DEASSERT Action */
+	case SAHPI_RESET_DEASSERT:
+		return(SA_ERR_HPI_INVALID_CMD);
 	default:
-		dbg("Invalid Reset Action Type - %d", act);
+		dbg("Invalid Reset Action Type=%d.", act);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
