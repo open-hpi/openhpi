@@ -40,7 +40,33 @@ static GHashTable *handler_table = NULL;
  */
 static GSList *handler_ids = NULL;
 
+/**
+ * close_handler_atexit
+ *
+ * When a client calls exit() this function
+ * gets called to clean up the handlers
+ * and any handler connections to the hardware.
+ * Until clients use dynamic oHPI interface
+ **/
+static void close_handlers_atexit(void)
+{
+      	struct oh_handler *handler = NULL;
+	GSList *node = NULL;
+	unsigned int *id;
 
+	if (handler_ids == NULL) {
+	      	return;
+	}
+
+	for (node = handler_ids; node; node=node->next) {
+	      	id = node->data;
+		handler = g_hash_table_lookup(handler_table, id);
+		if(handler->abi && handler->abi->close) {
+		      	handler->abi->close(handler->hnd);
+		}
+	}
+}
+	      
 extern GCond *oh_thread_wait;
 
 void oh_cond_signal(void)
@@ -467,7 +493,8 @@ err:
  **/
 unsigned int oh_load_handler (GHashTable *handler_config)
 {
-        struct oh_handler *handler;
+      	struct oh_handler *handler;
+	static int first_handler = 1;
 
         if (!handler_config) {
                 dbg("ERROR loading handler. Invalid handler configuration passed.");
@@ -492,6 +519,15 @@ unsigned int oh_load_handler (GHashTable *handler_config)
                             &(handler->id),
                             handler);
         handler_ids = g_slist_append(handler_ids, &(handler->id));
+
+	/* register atexit callback to close handlers
+	 * and handler connections to avoid zombies
+	 */
+	if (first_handler) {
+	      	(void) atexit(close_handlers_atexit);
+		first_handler = 0;
+	}
+	
 
         data_access_unlock();
 
