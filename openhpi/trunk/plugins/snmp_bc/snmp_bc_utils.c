@@ -16,15 +16,17 @@
 #include <glib.h>
 #include <stdlib.h>
 #include <string.h>
-#include <SaHpi.h>
 #include <limits.h>
 #include <errno.h>
+
+#include <SaHpi.h>
 #include <openhpi.h>
 #include <bc_resources.h>
 #include <snmp_bc_utils.h>
 
 /**********************************************************************
- * snmp_derive_objid : starting from end of objid string,
+ * snmp_derive_objid : 
+ * starting from end of objid string,
  * replacing letter x, with last instance number of entity
  * path, repeat process until all x are replaced by an instance number.
  * @entity_path: Contains the instance numbers to complete the oid.
@@ -74,7 +76,8 @@ gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid)
                      (work_instance_num = work_instance_num/10) > 0; num_digits++);
                 oid_nodes[i] = g_malloc0((num_digits+1)*sizeof(gchar));
                 if (!oid_nodes[i]) {dbg("Out of memory"); goto CLEANUP;}
-                sprintf(oid_nodes[i], "%d", ep.Entry[num_blanks-1-i].EntityLocation);\
+                snprintf(oid_nodes[i], (num_digits+1)*sizeof(gchar), "%d", 
+			 ep.Entry[num_blanks-1-i].EntityLocation);
                 /*dbg("Instance number: %s", oid_nodes[i]);*/
                 total_num_digits = total_num_digits + num_digits;
         }
@@ -116,27 +119,27 @@ CLEANUP:
  *               -1 failure
  **/
 int get_interpreted_value(gchar *string,
-			  SaHpiSensorInterpretedTypeT type,
-			  SaHpiSensorInterpretedUnionT *value)
+			  SaHpiSensorReadingTypeT type,
+			  SaHpiSensorReadingUnionT *value)
 {
         gchar *tail;
         gchar *str = g_strdup((const gchar*)string);
         guint len = 0;
         gboolean percent = FALSE;
-        float   result_f = 0.0;
-        long    result_l = 0;
-        ulong   result_ul = 0;
+        SaHpiFloat64T result_f = 0.0;
+        SaHpiInt64T   result_l = 0;
+        SaHpiUint64T  result_ul = 0;
 
-        memset(value, 0, sizeof(SaHpiSensorInterpretedUnionT));
+        memset(value, 0, sizeof(SaHpiSensorReadingUnionT));
 
         /*dbg("%s to be converted to type %d value\n", string, type);*/
         if(str == NULL) {
                 dbg("Error: can\'t convert a null string\n");
                 return -1;
         }
-        if((type == SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER) ||
+        if((type == SAHPI_SENSOR_READING_TYPE_BUFFER) ||
            (type == -1)) {                
-                if((strlen(str)+1) > sizeof(SaHpiSensorInterpretedUnionT)) {
+                if((strlen(str)+1) > sizeof(SaHpiSensorReadingUnionT)) {
                         dbg("Error: string too long\n");
                         g_free(str);
                         return -1;
@@ -165,70 +168,31 @@ int get_interpreted_value(gchar *string,
                 else str[j] = '\0';
         } else str = strtok(str," ");
         len = strlen(str);
-        /*dbg("Hello: (%s)", str);*/
 
         // number can end with a character of % or v such as 50% or 3.3v
         if (str[len - 1] == '%' || str[len - 1] == 'v') {
                 if (str[len - 1] == '%') percent = TRUE;
                 str[len - 1] = '\0';  // delete % or v
-                if (type != SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32) {
+                if (type != SAHPI_SENSOR_READING_TYPE_FLOAT64) {
                         dbg("Error: can\'t convert fraction to an integer\n");
                         g_free(str);
                         return -1;
                 }
         }
+
         switch (type) {
-        case SAHPI_SENSOR_INTERPRETED_TYPE_UINT8:
-        case SAHPI_SENSOR_INTERPRETED_TYPE_UINT16:
-        case SAHPI_SENSOR_INTERPRETED_TYPE_UINT32:
+        case SAHPI_SENSOR_READING_TYPE_INT64:
                 errno = 0;
-                result_ul = strtoul(str, &tail, 10);
+                result_l = strtoll(str, &tail, 10);
                 if (errno) {
-                        dbg("Error: strtol failed, errno = %d\n", errno);
+                        dbg("Error: strtoll failed, errno = %d\n", errno);
                         return -1;
                 }
                 if (*tail != '\0') {
-                        dbg("Error: strtoul failed\n");
+                        dbg("Error: strtoll failed: %s\n", str);
                         if (tail == str) {
                                 dbg("Info: no numeric value found in string, default to zero\n");
-                                value->SensorUint32 = 0;
-                                g_free(str);
-                                return 0;
-                        }
-                        g_free(str);
-                        return -1;
-                }
-
-                dbg("converted unsigned value = %u\n", (uint)result_ul);
-                value->SensorUint32 = result_ul;
-                if ((type == SAHPI_SENSOR_INTERPRETED_TYPE_UINT8) &&
-                    (result_ul > UCHAR_MAX)) {
-                        dbg("Error: unsign8 overflow\n");
-                        g_free(str);
-                        return -1;
-                }
-                if ((type == SAHPI_SENSOR_INTERPRETED_TYPE_UINT16) &&
-                    (result_ul > USHRT_MAX)) {
-                        dbg("Error: unsign16 overflow\n");
-                        g_free(str);
-                        return -1;
-                }
-                break;
-
-        case SAHPI_SENSOR_INTERPRETED_TYPE_INT8:
-        case SAHPI_SENSOR_INTERPRETED_TYPE_INT16:
-        case SAHPI_SENSOR_INTERPRETED_TYPE_INT32:
-                errno = 0;
-                result_l = strtol(str, &tail, 10);
-                if (errno) {
-                        dbg("Error: strtol failed, errno = %d\n", errno);
-                        return -1;
-                }
-                if (*tail != '\0') {
-                        dbg("Error: strtol failed: %s\n", str);
-                        if (tail == str) {
-                                dbg("Info: no numeric value found in string, default to zero\n");
-                                value->SensorInt32 = 0;
+                                value->SensorInt64 = 0;
                                 g_free(str);
                                 return 0;
                         }
@@ -237,28 +201,39 @@ int get_interpreted_value(gchar *string,
                 }
 
                 dbg("converted signed value = %d\n", (int)result_l);
-                value->SensorInt32 = result_l;
-                if ((type == SAHPI_SENSOR_INTERPRETED_TYPE_INT8) &&
-                    ((result_l > SCHAR_MAX) || (result_l < SCHAR_MIN))) {
-                        dbg("Error: sign8 overflow\n");
-                        g_free(str);
-                        return -1;
-                }
-                if ((type == SAHPI_SENSOR_INTERPRETED_TYPE_INT16) &&
-                    ((result_l > SHRT_MAX) || (result_l < SHRT_MIN))) {
-                        dbg("Error: sign16 overflow\n");
-                        g_free(str);
-                        return -1;
-                }
+                value->SensorInt64 = result_l;
                 break;
 
-        case SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32:
-                result_f = strtof(str, &tail);
+        case SAHPI_SENSOR_READING_TYPE_UINT64:
+                errno = 0;
+                result_ul = strtoull(str, &tail, 10);
+                if (errno) {
+                        dbg("Error: strtoull failed, errno = %d\n", errno);
+                        return -1;
+                }
                 if (*tail != '\0') {
-                        dbg("Error: strtof failed\n");
+                        dbg("Error: strtoull failed\n");
                         if (tail == str) {
                                 dbg("Info: no numeric value found in string, default to zero\n");
-                                value->SensorFloat32 = 0.0;
+                                value->SensorUint64 = 0;
+                                g_free(str);
+                                return 0;
+                        }
+                        g_free(str);
+                        return -1;
+                }
+
+                dbg("converted unsigned value = %u\n", (uint)result_ul);
+                value->SensorUint64 = result_ul;
+                break;
+
+        case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+                result_f = strtold(str, &tail);
+                if (*tail != '\0') {
+                        dbg("Error: strtold failed\n");
+                        if (tail == str) {
+                                dbg("Info: no numeric value found in string, default to zero\n");
+                                value->SensorFloat64 = 0.0;
                                 g_free(str);
                                 return 0;
                         }
@@ -268,10 +243,10 @@ int get_interpreted_value(gchar *string,
 
                 /*dbg("converted floating point value = %f\n", (double)result_f);*/
                 if (percent) {
-                        value->SensorFloat32 = result_f/100.0;
+                        value->SensorFloat64 = result_f/100.0;
                 }
                 else {
-                        value->SensorFloat32 = result_f;
+                        value->SensorFloat64 = result_f;
                 }
                 break;
 
