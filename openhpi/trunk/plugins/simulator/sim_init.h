@@ -35,5 +35,7 @@ int sim_get_event(void *hnd, struct oh_event *event);
 void sim_close(void *hnd);
 int build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep);
 struct oh_event *eventdup(const struct oh_event *event);
+SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiSensorNumT IndexInSensorArray);
+int sim_get_next_sensor_num(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiRdrTypeT type);
 
 #endif
