@@ -70,27 +70,22 @@ int domain_del(struct oh_domain *domain)
 
 int domain_process_event(struct oh_domain *d, struct oh_event *e)
 {
-	switch (e->oid.type) {
-	case OH_ID_ENTITY:
-		if (e->u.entity.category!=SAHPI_EC_PRESENCE) {
-			dbg("Unexcepted event category");
-			return -1;
-		}
-		
-		if (e->u.entity.state == SAHPI_ES_ABSENT) {
-			absent_entity(d, &e->oid);
-		} else if (e->u.entity.state == SAHPI_ES_PRESENT) {
-			present_entity(d, &e->oid);
-		} else {
-			dbg("Unexcepted event state");
-			return -1;
-		}
+	struct oh_resource *r;
+	switch (e->type) {
+	case OH_ET_RESOURCE:
+		r = insert_resource(d, &e->oid);
+		e->u.res_event.entry.ResourceId = r->entry.ResourceId;
+		memcpy(&r->entry, &e->u.res_event.entry, sizeof(r->entry));
 		break;
 
+	case OH_ET_RDR:		
 	/* FIXME: there are controls/sensors/event logs etc 
 	 * need to be processed
 	 */
+		dbg("FIXME: there are controls/sensors/event logs etc");
+		break;
 	default:
+		dbg("Error! Should not touch here!");
 		break;
 	}
 

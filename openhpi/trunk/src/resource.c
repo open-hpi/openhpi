@@ -10,39 +10,12 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static int init_res(struct oh_resource *res, enum oh_id_type type)
+static int init_res(struct oh_resource *res)
 {
+	memset(res, 0, sizeof(res));
 	list_init(&res->node);
-	res->oid.type = type;	
-	
-	switch (type) {
-		case OH_ID_DOMAIN:
-			res->u.domain = NULL;
-			break;
-		case OH_ID_SEL:
-			res->u.sel = NULL;
-			break;
-		case OH_ID_ENTITY:
-			list_init(&res->u.rdr_list);
-			break;
-		default:
-			dbg("Error resource type");
-			return -1;
-	}
-
+	list_init(&res->rdr_list);
 	return 0;
-}
-
-struct oh_resource *get_res(struct oh_domain *domain, SaHpiResourceIdT rid)
-{
-	struct list_head *i;
-	list_for_each(i, &domain->res_list) {
-		struct oh_resource *res;
-		res = list_container(i, struct oh_resource, node);
-		if (res->rid == rid) return res;
-	}
-
-	return NULL;
 }
 
 static int add_res(struct oh_domain *d, struct oh_resource **res, struct oh_id *oid)
@@ -55,9 +28,9 @@ static int add_res(struct oh_domain *d, struct oh_resource **res, struct oh_id *
 		return -1;
 	}
 	memset(r, 0, sizeof(*r));
-	init_res(r, oid->type);
+	init_res(r);
 	
-	r->rid = d->res_counter++;
+	r->entry.ResourceId = d->res_counter++;
 	memcpy(&r->oid, oid, sizeof(*oid));
 
 	d->update_counter++;
@@ -90,7 +63,20 @@ static struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_id *oid
 	return NULL;
 }
 
-static struct oh_resource *get_res_by_oid2(struct oh_domain *d, struct oh_id *oid)
+struct oh_resource *get_resource(struct oh_domain *domain, SaHpiResourceIdT rid)
+{
+	struct list_head *i;
+	list_for_each(i, &domain->res_list) {
+		struct oh_resource *res;
+		res = list_container(i, struct oh_resource, node);
+		if (res->entry.ResourceId == rid) return res;
+	}
+
+	return NULL;
+}
+
+
+struct oh_resource *insert_resource(struct oh_domain *d, struct oh_id *oid)
 {
 	struct oh_resource *r;
 
@@ -100,39 +86,15 @@ static struct oh_resource *get_res_by_oid2(struct oh_domain *d, struct oh_id *oi
 		dbg("New entity, add it");
 		rv = add_res(d, &r, oid);
 		if (rv<0) {
-			return NULL;
+			r = NULL;
 		}
+	}
+	if (!r) {
+		dbg("Cannot add new entity");
 	}
 	return r;
 }
 
-int absent_entity(struct oh_domain *d, struct oh_id *oid)
-{
-	struct oh_resource *res;
-	
-	res = get_res_by_oid2(d, oid);
-	if (!res) {
-		dbg("Cannot add new entity");
-		return -1;
-	}
-	
-	res->present = 0;
-	return 0;
-}
-
-int present_entity(struct oh_domain *d, struct oh_id *oid) 
-{
-	struct oh_resource *res;
-	
-	res = get_res_by_oid2(d, oid);
-	if (!res) {
-		dbg("Cannot add new entity");
-		return -1;
-	}
-	
-	res->present = 1;
-	return 0;
-}
 
 #if 0
 static int init_rdr(struct oh_rdr *rdr, enum oh_item type)

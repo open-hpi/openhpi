@@ -121,18 +121,12 @@ int session_get_events(struct oh_session *s)
 		rv = abi->get_event(hnd, &event, &to);
 		if (rv<=0) break;
 		
-		domain_process_event(d, &event);
 		
-		switch (event.oid.type) {
-		case OH_ID_ENTITY:
-		case OH_ID_EVENT_LOG:
-			/* Two types of events will not put upper layer */
-			break;
-		/* FIXME: much more... sensors/controls*/
-		default:
+		if (event.type == OH_ET_HPI) {
 			/* add the event to session event list */
 			session_push_event(s, &event);
-			break;
+		} else {
+			domain_process_event(d, &event);
 		}
 	} while (1);
 

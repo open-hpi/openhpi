@@ -201,7 +201,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		return SA_ERR_HPI_INVALID;
 	}
 	
-	(d->abi->get_res_info)(d->hnd, &r->oid, RptEntry);
+	memcpy(RptEntry, &r->entry, sizeof(*RptEntry));
 
 	if (r->node.next == &d->res_list) { //last entry
 		*NextEntryId = SAHPI_LAST_ENTRY;
@@ -233,8 +233,8 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 	list_for_each(tmp, &d->res_list) {
 		struct oh_resource *r;
 		r = list_container(tmp, struct oh_resource, node);
-		if (r->rid == ResourceId) {
-			(d->abi->get_res_info)(d->hnd, &r->oid, RptEntry);
+		if (r->entry.ResourceId == ResourceId) {
+			memcpy(RptEntry, &r->entry, sizeof(*RptEntry));
 			return SA_OK;
 		}
 	}

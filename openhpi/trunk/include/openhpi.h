@@ -51,17 +51,14 @@ struct oh_domain {
 
 struct oh_resource {
 	struct list_head node;
-	SaHpiResourceIdT rid;
 	struct oh_id	 oid;
-	union {
-		/* valid when OH_DOMAIN */
-		struct oh_domain *domain;
-		/* valid when OH_SEL */
-		struct oh_sel *sel;
-		/* valid when OH_ENTITY */
-		struct list_head rdr_list;
-	} u;
-	int present:1;
+	SaHpiRptEntryT	 entry;
+	/* valid when entry.ResourceCapabilities | SAHPI_CAPABILITY_DOMAIN */
+	struct oh_domain *domain;
+	/* valid when entry.ResourceCapabilities | SAHPI_CAPABILITY_SEL */
+	struct oh_sel *sel;
+	/* valid when entry.ResourceCapabilities | SAHPI_CAPABILITY_RDR */
+	struct list_head rdr_list;
 };
 
 struct oh_rdr {
@@ -103,9 +100,8 @@ int domain_del(struct oh_domain *d);
 int domain_process_event(struct oh_domain *d, struct oh_event *e);
 
 
-struct oh_resource *get_res(struct oh_domain *d, SaHpiResourceIdT rid);
-int absent_entity(struct oh_domain *d, struct oh_id *oid);
-int present_entity(struct oh_domain *d, struct oh_id *oid);
+struct oh_resource *get_resource(struct oh_domain *d, SaHpiResourceIdT rid);
+struct oh_resource *insert_resource(struct oh_domain *d, struct oh_id *oid);
 
 
 int init_plugin(void);
