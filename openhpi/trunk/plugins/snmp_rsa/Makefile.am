@@ -22,10 +22,12 @@ AM_CFLAGS		= @CFLAGS@ @SNMPFLAGS@ -DDEBUG
 pkglib_LTLIBRARIES	= libsnmp_rsa.la
 
 EXTRA_DIST		=	rsa_resources.h \
+	     			snmp_rsa.h \
 	     			snmp_rsa_discover.h \
 	     			snmp_rsa_session.h
 
 libsnmp_rsa_la_SOURCES	=	rsa_resources.c \
+	     			snmp_rsa.c \
 	     			snmp_rsa_discover.c \
 	     			snmp_rsa_session.c
 
