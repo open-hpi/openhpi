@@ -2,7 +2,7 @@
 #
 ./nukem.sh
 ./bootstrap
-./configure	--sysconfdir=/etc
+./configure	--sysconfdir=/etc $@
 
 #Quick hack to speed up build on SMP machines
 uname -anr | grep SMP > /dev/null
