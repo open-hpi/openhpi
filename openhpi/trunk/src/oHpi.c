@@ -71,7 +71,9 @@ SaErrorT oHpiPluginUnload(char *name)
  * @name: IN. String. name of plugin to query (e.g. "libdummy")
  * @info: IN/OUT. Reference to information structure on the plugin.
  *
- * Unload plugin from library, destroying the plugin object.
+ * Fetches the information associated with the plugin and puts it
+ * in @info. As of yet, @info only contains the refcount for the
+ * plugin.
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
