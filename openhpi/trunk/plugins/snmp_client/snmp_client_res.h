@@ -42,7 +42,8 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
 #define SA_HPI_ENTRY_OID_LEN                                    HPI_MIB_OID_LEN + 3
 
 #define SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH                  HPI_MIB_OID_LEN + 4
-#define SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH             SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH + NUM_RES_INDICES
+#define SA_HPI_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH \
+            SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH + NUM_RES_INDICES
                                                         
 #ifdef _SNMP_CLIENT_C_
 oid sa_hpi_entry_count[] =                              { HPI_MIB, 1, 1, 0 };
@@ -190,8 +191,9 @@ extern oid sa_hpi_ctrl_RDR[];
 #define NUM_SEN_INDICES 3
 
 #define SA_HPI_SEN_COUNT_OID_LEN                        HPI_MIB_OID_LEN + 3 
-#define SA_HPI_SEN_ENTRY_OID_LEN                        HPI_MIB_OID_LEN + 3
 
+/* saHpiSensorEntryTable */
+#define SA_HPI_SEN_ENTRY_OID_LEN                        HPI_MIB_OID_LEN + 3
 #define SA_HPI_SEN_ENTRY_TABLE_VARIABLE_OID_LENGTH      HPI_MIB_OID_LEN + 4
 
 #define SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH \
@@ -353,6 +355,7 @@ oid sa_hpi_sensor_thd_neg_hysteresis_raw[] =		{ HPI_MIB, 3, 7, 14, 1, 5 };
 oid sa_hpi_sensor_thd_neg_hysteresis_interpreted[] =	{ HPI_MIB, 3, 7, 14, 1, 6 };
 
 #else
+/* saHpiSensorEntryTable */
 extern oid sa_hpi_sen_count[];
 extern oid sa_hpi_sen_entry[];
 extern oid sa_hpi_sen_index[];
