@@ -1880,7 +1880,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
 	if (ActualSize == NULL) {
                 dbg("NULL pointer for ActualSize storage\n");
                 data_access_unlock();
-                return SA_ERR_HPI_INVALID_REQUEST;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
         rv = get_size(h->hnd, ResourceId, EirId, ActualSize);
@@ -1897,7 +1897,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
 	if (InventData == NULL) {
                 dbg("Call does not have buffer to store inventory data\n");
                 data_access_unlock();
-                return SA_ERR_HPI_INVALID_REQUEST;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	}
         rv = get_func(h->hnd, ResourceId, EirId, InventData);
         data_access_unlock();
