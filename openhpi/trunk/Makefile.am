@@ -79,3 +79,5 @@ tags:
 	$(all-sources) | xargs ctags		
 TAGS:
 	$(all-sources) | xargs etags
+cscope:
+	$(all-sources) | cscope -b -i -
