@@ -109,6 +109,8 @@ int session_pop_event(struct oh_session *s, struct oh_event *e)
         s->eventq = g_slist_remove_link(s->eventq, head);
         
 	memcpy(e, head->data, sizeof(*e));
+	
+	free(head->data);
 	g_slist_free_1(head);
 	
 	return 1;
