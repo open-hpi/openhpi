@@ -43,7 +43,8 @@ enum tResult
 {
    eResultOk,
    eResultError,
-   eResultReply
+   eResultReply,
+   eResultClose
 };
 
 static bool morph2daemon(bool runasdaemon);
@@ -51,7 +52,7 @@ static void service_thread(gpointer data, gpointer user_data);
 static void HandleOpen(psstrmsock thrdinst);
 static void HandlePing(psstrmsock thrdinst);
 static void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et);
-static tResult HandleMsg(psstrmsock thrdinst);
+static tResult HandleMsg(psstrmsock thrdinst, const void *buf);
 
 }
 
@@ -67,16 +68,16 @@ int main (int argc, char *argv[])
 {
 	GThreadPool *thrdpool;
 
-// become a daemon
+        // become a daemon
 	if (!morph2daemon(FALSE)) {	// this is an error condition
 		exit(8);
 	}
 
-// create the thread pool
+        // create the thread pool
 	g_thread_init(NULL);
 	thrdpool = g_thread_pool_new(service_thread, NULL, -1, FALSE, NULL);
 
-// create the server socket
+        // create the server socket
 	psstrmsock servinst = new sstrmsock;
 	if (servinst->Create(55566)) {
 		printf("Error creating server socket.\n");
@@ -85,7 +86,7 @@ int main (int argc, char *argv[])
 		return 8;
 	}
 
-// wait for a connection and then service the connection
+        // wait for a connection and then service the connection
 	while (TRUE) {
 		if (stop_server) {
 			break;
@@ -103,7 +104,7 @@ int main (int argc, char *argv[])
 	servinst->CloseSrv();
 	printf("Server socket closed.\n");
 
-// ensure all threads are complete
+        // ensure all threads are complete
 	g_thread_pool_free(thrdpool, FALSE, TRUE);
 
 	delete servinst;
@@ -126,19 +127,19 @@ static bool morph2daemon(bool runasdaemon)
 		if (pid < 0) {
 			return false;
 		}
-// parent process
+                // parent process
 		if (pid != 0) {
 			exit( 0 );
 		}
 
-// become the session leader
+                // become the session leader
 		setsid();
-// second fork to become a real daemon
+                // second fork to become a real daemon
 		pid = fork();
 		if (pid < 0) {
 			return false;
 		}
-// parent process
+                // parent process
 		if (pid != 0) {
 			exit(0);
 		}
@@ -148,7 +149,6 @@ static bool morph2daemon(bool runasdaemon)
 		for(int i = 0; i < 1024; i++) {
 			close(i);
 		}
-// m_interactive = false;
 	}
 
 	return true;
@@ -164,8 +164,7 @@ static void service_thread(gpointer data, gpointer user_data)
 	psstrmsock thrdinst = (psstrmsock) data;
         bool stop = false;
 	const void *buf;
-//        void *rd = NULL;
-//        int rv = 0;
+        tResult result;
 
 	printf("Servicing connection.\n");
 	while (stop == false) {
@@ -181,31 +180,25 @@ static void service_thread(gpointer data, gpointer user_data)
                         HandlePing(thrdinst);
                         break;
                 case eMhMsg:
-                        HandleMsg(thrdinst);
+                        result = HandleMsg(thrdinst, buf);
                         // marshal error ?
-//                        if ( rh.m_len < 0 )
-//                             rv = 1;
-//                        if ( r == eResultReply )
-//                           {
-//                             assert( rh.m_len >= 0 && rh.m_len <= dMaxMessageLength );
-//                             rv = c->WriteMsg( rh, rd );
-//                           }
-//                        else if ( r == eResultError )
-//                             rv = 1;
-//
-//                        if ( rd )
-//                             free( rd );
-//
-//                        return !rv;
+                        if (result == eResultError) {
+                                HandleInvalidRequest(thrdinst, eMhMsg);
+                        }
+                        // done ?
+                        if (result == eResultClose) {
+                                stop = true;
+                        }
                         break;
                 default:
-                        HandleInvalidRequest(thrdinst, thrdinst->header.m_type);
+                        HandleInvalidRequest(thrdinst, eMhMsg);
                         break;
                 }
 	}
 
         delete thrdinst; // cleanup thread instance data
 
+	printf("Connection ended.\n");
 	return; // do NOT use g_thread_exit here!
 }
 
@@ -256,11 +249,12 @@ void HandleInvalidRequest(psstrmsock thrdinst, unsigned char et) {
 /* Function: HandleMsg                                                */
 /*--------------------------------------------------------------------*/
 
-static tResult HandleMsg(psstrmsock thrdinst)
+static tResult HandleMsg(psstrmsock thrdinst, const void *data)
 {
-  cHpiMarshal *hm = HpiMarshalFind( thrdinst->header.m_id );
+  cHpiMarshal *hm = HpiMarshalFind(thrdinst->header.m_id);
   void *rd;
   SaErrorT ret;
+  tResult result = eResultReply;
 
   // check for function and data length
   if ( !hm || hm->m_request_len < thrdinst->header.m_len )
@@ -285,16 +279,13 @@ static tResult HandleMsg(psstrmsock thrdinst)
 	      SaHpiDomainIdT domain_id;
 	      SaHpiSessionIdT session_id = 0;
 
-	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, thrdinst->pBuf, (void *)&domain_id ) < 0 )
+	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, (void *)&domain_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiSessionOpen( domain_id, &session_id, 0 );
 
 //	      DbgFunc( "saHpiSessionOpen( %x, %x ) = %d\n",
 //                       domain_id, session_id, ret );
-
-//     if ( ret == SA_OK )
-//   c->AddSession( session_id );
 
 	      thrdinst->header.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
  
@@ -304,17 +295,15 @@ static tResult HandleMsg(psstrmsock thrdinst)
        case eFsaHpiSessionClose: {
 	      SaHpiSessionIdT session_id;
 
-	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, thrdinst->pBuf, &session_id ) < 0 )
+	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiSessionClose( session_id );
 
 //	      DbgFunc( "saHpiSessionClose( %x ) = %d\n", session_id, ret );
 
-//     if ( ret == SA_OK )
-//   c->RemSession( session_id );
-
 	      thrdinst->header.m_len = HpiMarshalReply0( hm, rd, &ret );
+              result = eResultClose;
 
        }
        break;
@@ -322,12 +311,10 @@ static tResult HandleMsg(psstrmsock thrdinst)
        case eFsaHpiDiscover: {
 	      SaHpiSessionIdT session_id;
 
-	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, thrdinst->pBuf, &session_id ) < 0 )
+	      if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiDiscover( session_id );
-
-//	      DbgFunc( "saHpiResourcesDiscover( %x ) = %d\n", session_id, ret );
 
 	      thrdinst->header.m_len = HpiMarshalReply0( hm, rd, &ret );
 
@@ -335,15 +322,12 @@ static tResult HandleMsg(psstrmsock thrdinst)
        break;
 
        default:
-//            assert( 0 );
             break;
        }
 
-//assert( rh.m_len <= hm->m_reply_len );
-
-return eResultReply;
+       if (rd != NULL) {
+               free(rd);
+       }
+       return result;
 }
-
-
-
 
