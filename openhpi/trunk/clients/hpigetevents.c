@@ -31,9 +31,9 @@ int main(int argc, char **argv)
 {
 	int c, wait = 0;
 	SaErrorT rv;
-	SaHpiVersionT hpiVer;
+	/*SaHpiVersionT hpiVer;*/
 	SaHpiSessionIdT sessionid;
-//	SaHpiRptInfoT rptinfo;
+	/*SaHpiRptInfoT rptinfo;*/
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;

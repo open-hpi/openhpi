@@ -12,6 +12,7 @@
  *
  * Authors:
  *     Andy Cress <arcress@users.sourceforge.net>
+ *     Renier Morales <renierm@users.sf.net>
  */
 
 #include <stdio.h>
@@ -20,6 +21,7 @@
 #include <string.h>
 #include <SaHpi.h>
 #include <oh_utils.h>
+#include <print_structs.h>
 
 char progver[] = "1.0";
 int fdebug = 0;
