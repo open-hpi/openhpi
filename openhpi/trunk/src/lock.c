@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2005
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
