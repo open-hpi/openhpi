@@ -7,7 +7,8 @@ COMMONLIBS		= $(top_builddir)/src/libopenhpi.la @STATIC_PLUGIN_LIBS@ @STATIC_PLU
 
 AM_CFLAGS 		= @CFLAGS@
 
-bin_PROGRAMS    = hpisensor
+bin_PROGRAMS    = hpisensor \
+	hpigetevents
 
 #bin_PROGRAMS		= hpialarmpanel \
 #                          hpithres \
@@ -86,7 +87,7 @@ hpipower2_LDFLAGS      =
 hpievent_SOURCES      = hpievent.c
 hpievent_LDADD        = $(COMMONLIBS)
 hpievent_LDFLAGS      =
-	
+
 clean:
 	rm -f *~ *.o
 
