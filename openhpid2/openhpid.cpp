@@ -53,7 +53,7 @@ enum tResult
    eResultClose
 };
 
-static bool morph2daemon(bool runasdaemon);
+static bool morph2daemon(void);
 static void service_thread(gpointer data, gpointer user_data);
 static void HandleInvalidRequest(psstrmsock thrdinst);
 static tResult HandleMsg(psstrmsock thrdinst, char *buf, GHashTable **ht);
@@ -65,6 +65,7 @@ static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 #define PID_FILE "/var/run/openhpid.pid"
 
 static bool stop_server = FALSE;
+static bool runasdaemon = TRUE;
 static int sock_timeout = CLIENT_TIMEOUT;
 static int max_threads = -1;  // unlimited
 
@@ -72,11 +73,12 @@ static int max_threads = -1;  // unlimited
 static char *pid_file = NULL;
 static int verbose_flag = 0;
 static struct option long_options[] = {
-        {"verbose", no_argument,       NULL, 'v'},
-        {"config",  required_argument, NULL, 'c'},
-        {"port",    required_argument, NULL, 'p'},
-        {"pidfile", required_argument, NULL, 'f'},
-        {"timeout", required_argument, NULL, 's'},
+        {"verbose",   no_argument,       NULL, 'v'},
+        {"nondaemon", no_argument,       NULL, 'n'},
+        {"config",    required_argument, NULL, 'c'},
+        {"port",      required_argument, NULL, 'p'},
+        {"pidfile",   required_argument, NULL, 'f'},
+        {"timeout",   required_argument, NULL, 's'},
         {0, 0, 0, 0}
 };
 
@@ -95,7 +97,7 @@ void display_help(void)
         printf("   openhpid -c conf_file [-v] [-p port] [-f pidfile]\n\n");
         printf("   -c conf_file  conf_file is the path/name of the configuration file.\n");
         printf("                 This option is required.\n");
-        printf("   -v            This option causes the daemon to display verbose\n");
+        printf("   -verbose      This option causes the daemon to display verbose\n");
         printf("                 messages. This option is optional.\n");
         printf("   -p port       This overrides the default listening port (4743) of\n");
         printf("                 the daemon. This option is optional.\n");
@@ -105,6 +107,9 @@ void display_help(void)
         printf("                 minutes. This option is optional.\n\n");
         printf("   -t threads    This sets the maximum number of connection threads.\n");
         printf("                 The default is umlimited. This option is optional.\n\n");
+        printf("   -nondaemon    This forces the code to run as a foreground process\n");
+        printf("                 and NOT as a daemon. The default is to run as\n\n");
+        printf("                 a daemon. This option is optional.\n\n");
         printf("A typical invocation might be\n\n");
         printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
 }
@@ -159,6 +164,9 @@ int main (int argc, char *argv[])
                         if (max_threads < -1 || max_threads == 0) {
                                 max_threads = -1;
                         }
+                        break;
+                case 'n':
+                        runasdaemon = FALSE;
                         break;
                 case '?':
                         display_help();
@@ -248,8 +256,7 @@ int main (int argc, char *argv[])
         }
 
         // become a daemon
-//	if (!morph2daemon(FALSE)) {	// this is an error condition
-        if (!morph2daemon(TRUE)) {	// this is an error condition
+        if (!morph2daemon()) {
 		exit(8);
 	}
 
@@ -303,7 +310,7 @@ int main (int argc, char *argv[])
 /* Function: morph2daemon                                             */
 /*--------------------------------------------------------------------*/
 
-static bool morph2daemon(bool runasdaemon)
+static bool morph2daemon(void)
 {
         char pid_buf[256];
         int pfile;
