@@ -577,13 +577,16 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
                 g_hash_table_insert(rptentry->rdrtable,
                                     &(rdrecord->rdr.RecordId),
                                     rdrecord);
+        	
+		update_rptable(table);
+        
         }
         /* Else, modify existing rdrecord */
         rdrecord->owndata = owndata;
         rdrecord->rdr = *rdr;
         rdrecord->data = data;
-
-        return 0;
+	
+	return 0;
 }
 
 /**
