@@ -100,7 +100,7 @@ int open_msg(char * readbuffer, int sockfd)
 int discover_resources_msg(char * readbuffer, int sockfd) 
 {
 	GSList *event_list_ptr = NULL;
-	GSList *event_list_member_ptr = NULL;
+	GSList *p = NULL;
 	guint len;
 
 	int i;
@@ -122,14 +122,14 @@ int discover_resources_msg(char * readbuffer, int sockfd)
 			return(-1);
 		}
 
-/* we need to do much more than this here,  it needs to realloc enough memroy for the entire messsage,
-build the message from the event slist,  free the slist memory, send message and free the message memory 
-*/
 		len = g_slist_length(event_list_ptr);
+		i = sizeof(DISCOVER_RESOURCES_MSG_STR) + ( (len - 1) * sizeof(struct oh_event)); /* the -1 is because there is already room alocated the msg str for 1 oh_event */
+
 dbg("discover_resources_msg: event list current length %d", len);
-		i = sizeof(DISCOVER_RESOURCES_MSG_STR) + (len * sizeof(struct oh_event));
 dbg("discover_resources_msg: message current length %d", i);
+		
 		discover_resources_msg_ptr = (DISCOVER_RESOURCES_MSG_STR *)malloc(i);
+		memset(discover_resources_msg_ptr, 0, i);
 
 		if (!discover_resources_msg_ptr) {
 			dbg("couldn't malloc mem for response message");
@@ -142,17 +142,34 @@ dbg("discover_resources_msg: message current length %d", i);
 
 		oh_event_ptr = &discover_resources_msg_ptr->event;
 
-		event_list_member_ptr = g_slist_next(event_list_ptr);
+		/* build the net msg */
+		p = event_list_ptr;
 
-		while(event_list_member_ptr != NULL) {
-			memcpy(oh_event_ptr, event_list_member_ptr->data, sizeof(struct oh_event));
-			event_list_member_ptr = g_slist_next(event_list_member_ptr);
+		while(p != NULL) {
+			memcpy(oh_event_ptr, p->data, sizeof(struct oh_event));
+			p = g_slist_next(p);
 			oh_event_ptr++;
 		}
+
 		discover_resources_msg_ptr->error = SA_OK;
         }
 
         send_msg((char *)discover_resources_msg_ptr, discover_resources_msg_ptr->header.msg_length, sockfd);
+
+	/* free memory from event list*/
+	p = event_list_ptr;
+	p = g_slist_next(p);
+	while(p != NULL) {
+		free((void *)p->data);
+		p = g_slist_next(p);
+	}
+	/* free list memory */
+	g_slist_free(event_list_ptr);
+	/* free net msg memory */
+	free((void *)discover_resources_msg_ptr);
+
+
+
 
         return(SA_OK);
 }
