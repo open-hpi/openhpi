@@ -16,7 +16,8 @@
 #include "ipmi.h"
 #include <oh_utils.h>
 #include <string.h>
-
+#if 0
+/* need to update some information here */
 static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 {
 	SaHpiRdrT  *rdr;
@@ -24,19 +25,11 @@ static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
 	while (rdr) {
 		if(rdr->RdrType == SAHPI_SENSOR_RDR) {
-#if 0
-			if (present) {
-				dbg("present");
-				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_FALSE;
-			}else {
-				dbg("not present");
-				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_TRUE;
-			}
-#endif
 		}
 		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
 	}
 }
+#endif
 
 static void entity_presence(ipmi_entity_t	*entity,
 			    int			present,
@@ -58,51 +51,9 @@ static void entity_presence(ipmi_entity_t	*entity,
 	}
 	rid = rpt->ResourceId;
 	dbg("%s %s",ipmi_entity_get_entity_id_string(entity), present?"present":"not present");
-	entity_update_rpt(handler->rptcache, rid, present);
 #if 0
-/*
-	The following code is masked by Racing. The reasons are listed as:
-
-	1. The hotswap event is not populated to HPI
-	2. The param 3 is changed to handler
-           in ipmi_entity_set_presence_handler(entity, entity_presence, handler);
-	3. The orignal param (&entry.ResourceID) is a bug. Because entity_presence 
-	is callback function and entry.ResourceID is local variable, it may cause
-	segment fault
-*/
-	struct oh_event	*e;
-	SaHpiResourceIdT *rid = cb_data;
-
-	e = malloc(sizeof(*e));
-	if (!e) {
-		dbg("Out of space");
-		return;
-	}
-
-	memset(e, 0, sizeof(*e));
-	e->type = OH_ET_HPI;
-	e->u.hpi_event.parent = *rid;
-	e->u.hpi_event.id = 0;
-
-	e->u.hpi_event.event.Source = 0;
-	/* Do not find EventType in IPMI */
-	e->u.hpi_event.event.EventType = SAHPI_ET_HOTSWAP;
-
-	/* FIXIT! */
-	if (event)
-		e->u.hpi_event.event.Timestamp 
-                        = ipmi_get_uint32(ipmi_event_get_data_ptr(event));
-
-	/* Do not find the severity of hotswap event */
-	e->u.hpi_event.event.Severity = SAHPI_MAJOR;
-
-	if (present)
-		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
-			= SAHPI_HS_STATE_ACTIVE_HEALTHY;
-	else
-		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
-			= SAHPI_HS_STATE_NOT_PRESENT;
-#endif	
+	entity_update_rpt(handler->rptcache, rid, present);
+#endif
 }
 
 static void get_entity_event(ipmi_entity_t	*entity,
@@ -149,9 +100,6 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	}
 				
 	entry->ResourceSeverity = SAHPI_OK;
-#if 0
-	entry->DomainId = 0;
-#endif
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
