@@ -41,7 +41,7 @@ openhpi_docs_DATA	= openhpi-manual/book1.html
 
 SGML_FILES              = $(shell ls *.dtd) $(shell ls *.sgml) function_docs.sgml
 
-EXTRA_DIST		= $(DIAGRAMS) OpenHPI_HLD.sgml
+EXTRA_DIST		= $(DIAGRAMS) $(SGML_FILES)
 
 all:
 
