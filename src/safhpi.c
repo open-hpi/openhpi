@@ -219,27 +219,37 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
                 SAHPI_OUT SaHpiEntryIdT *NextEntryId,
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-        struct oh_session *s;
-
+        SaHpiDomainIdT did;
+        struct oh_domain *d;
         /* determine the right pointer later when we do multi domains */
         RPTable *rpt;
         SaHpiRptEntryT *req_entry;
         SaHpiRptEntryT *next_entry;
 
-        OH_STATE_READY_CHECK;
-
+        if(oh_initialized() != SA_OK) {
+                dbg("Session %d not initalized", SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
+        
+        if(!(did = oh_get_session_domain(SessionId))) {
+                dbg("No domain for session id %d",SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
+        
         /* Test pointer parameters for invalid pointers */
         if ((NextEntryId == NULL) || (RptEntry == NULL))
         {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        data_access_lock();
+        /* note, after this we have the domain lock */
+        if(!(d = oh_get_domain(did))) {
+                dbg("Domain %d doesn't exist", did);
+                return SA_ERR_HPI_INVALID_DOMAIN;
+        }
 
-        OH_SESSION_SETUP(SessionId, s);
-
-        OH_RPT_GET(SessionId, rpt);
-
+        rpt = &(d->rpt);
+        
         if (EntryId == SAHPI_FIRST_ENTRY) {
                 req_entry = oh_get_resource_next(rpt, SAHPI_FIRST_ENTRY);
         } else {
@@ -249,22 +259,21 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         /* if the entry was NULL, clearly have an issue */
         if(req_entry == NULL) {
                 dbg("Invalid EntryId");
-                data_access_unlock();
+                oh_release_domain(d);
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         memcpy(RptEntry, req_entry, sizeof(*RptEntry));
-
+        
         next_entry = oh_get_resource_next(rpt, req_entry->EntryId);
-
+        
         if(next_entry != NULL) {
                 *NextEntryId = next_entry->EntryId;
         } else {
                 *NextEntryId = SAHPI_LAST_ENTRY;
         }
 
-        data_access_unlock();
-
+        oh_release_domain(d);
         return SA_OK;
 }
 
@@ -273,25 +282,34 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-
+        SaHpiDomainIdT did;
+        struct oh_domain *d;
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *req_entry;
 
+        if(oh_initialized() != SA_OK) {
+                dbg("Session %d not initalized", SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
+        
+        if(!(did = oh_get_session_domain(SessionId))) {
+                dbg("No domain for session id %d",SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
         /* Test pointer parameters for invalid pointers */
         if (RptEntry == NULL)
         {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        data_access_lock();
-
-        OH_STATE_READY_CHECK;
-
-        OH_SESSION_SETUP(SessionId, s);
-
-        OH_RPT_GET(SessionId, rpt);
-
+        if(!(d = oh_get_domain(did))) {
+                dbg("Domain %d doesn't exist", did);
+                return SA_ERR_HPI_INVALID_DOMAIN;
+        }
+        
+        rpt = &(d->rpt);
+        
         req_entry = oh_get_resource_by_id(rpt, ResourceId);
 
         /*
@@ -301,13 +319,13 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
 
         if(req_entry == NULL) {
                 dbg("No such resource id");
-                data_access_unlock();
+                oh_release_domain(d);
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         memcpy(RptEntry, req_entry, sizeof(*RptEntry));
 
-        data_access_unlock();
+        oh_release_domain(d);
         return SA_OK;
 }
 
@@ -937,8 +955,8 @@ SaErrorT SAHPI_API saHpiEventGet (
         RPTable *rpt;
 
         SaHpiTimeT now, end;
-
-               data_access_lock();
+        
+        data_access_lock();
         OH_STATE_READY_CHECK;
 
         if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event) {
@@ -1067,11 +1085,22 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 SAHPI_OUT SaHpiEntryIdT *NextEntryId,
                 SAHPI_OUT SaHpiRdrT *Rdr)
 {
-        struct oh_session *s;
+        struct oh_domain *d;
+        SaHpiDomainIdT did;
         RPTable *rpt = NULL;
         SaHpiRptEntryT *res = NULL;
         SaHpiRdrT *rdr_cur;
         SaHpiRdrT *rdr_next;
+
+        if(oh_initialized() != SA_OK) {
+                dbg("Session %d not initalized", SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
+        
+        if(!(did = oh_get_session_domain(SessionId))) {
+                dbg("No domain for session id %d",SessionId);
+                return SA_ERR_HPI_INVALID_SESSION;
+        }
 
         /* Test pointer parameters for invalid pointers */
         if ((Rdr == NULL)||(NextEntryId == NULL))
@@ -1079,17 +1108,18 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        data_access_lock();
-
-        OH_STATE_READY_CHECK;
-        OH_SESSION_SETUP(SessionId, s);
-        OH_RPT_GET(SessionId, rpt);
-
+        /* note, after this we have the domain lock */
+        if(!(d = oh_get_domain(did))) {
+                dbg("Domain %d doesn't exist", did);
+                return SA_ERR_HPI_INVALID_DOMAIN;
+        }
+        rpt = &(d->rpt);
+        
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_RDR)) {
                 dbg("No RDRs for Resource %d",ResourceId);
-                data_access_unlock();
+                oh_release_domain(d);
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -1102,7 +1132,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
         if (rdr_cur == NULL) {
                 dbg("Requested RDR, Resource[%d]->RDR[%d], is not present",
                     ResourceId, EntryId);
-                data_access_unlock();
+                oh_release_domain(d);
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 
@@ -1115,7 +1145,7 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 *NextEntryId = rdr_next->RecordId;
         }
 
-        data_access_unlock();
+        oh_release_domain(d);
 
         return SA_OK;
 }

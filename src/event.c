@@ -150,8 +150,6 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
         return 0;
 }
 
-
-
 static int process_resource_event(RPTable *rpt, struct oh_event *e)
 {
         int rv;
