@@ -129,6 +129,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                 dbg("Couldn't allocate RPT for Default Domain");
                 return SA_ERR_HPI_ERROR;
         }
+        default_rpt->rpt_info.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
 
 	/* initialize uid_utils, and load uid map file if present */
 	rval = oh_uid_initialize();
