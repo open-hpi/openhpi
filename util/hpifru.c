@@ -214,7 +214,7 @@ main(int argc, char **argv)
 {
   int prodrecindx=0;
   int asset_len=0;
-  char c;
+  int c;
   SaErrorT rv;
   SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;

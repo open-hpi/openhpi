@@ -288,7 +288,7 @@ printf( "Unsubscribe\n");
 int
 main(int argc, char **argv)
 {
-  char c;
+  int c;
   SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
   SaHpiRptInfoT rptinfo;
