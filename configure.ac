@@ -192,6 +192,13 @@ AC_ARG_ENABLE([examples],
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS examples"])
 
+AC_ARG_ENABLE([hpi_shell],
+    [  --enable-hpi_shell        build HPI shell programs [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+	ENABLED_DIRS="$ENABLED_DIRS hpi_shell"
+    fi],
+    [ENABLED_DIRS="$ENABLED_DIRS hpi_shell"])
+
 AC_ARG_ENABLE([clients],
     [  --enable-clients        build HPI client programs [default=yes]],
     [if test "x$enableval" = "xyes"; then
@@ -600,7 +607,8 @@ AC_CONFIG_FILES([openhpi.spec
 	openhpid/t/Makefile
         openhpid/openhpiclient.pc
         examples/Makefile
-	clients/Makefile])
+	clients/Makefile
+	hpi_shell/Makefile])
 
 AC_OUTPUT
 
