@@ -16,25 +16,24 @@
 #include <snmp_bc_plugin.h>
 
 SaErrorT snmp_bc_get_sensor_reading(void *hnd,
-				 SaHpiResourceIdT id,
-				 SaHpiSensorNumT num,
-				 SaHpiSensorReadingT *data,
-				 SaHpiEventStateT    *state)
+				    SaHpiResourceIdT rid,
+				    SaHpiSensorNumT sensor_num,
+				    SaHpiSensorReadingT *data,
+				    SaHpiEventStateT *state)
 {
 	SaErrorT err = SA_OK;
-        gchar *oid=NULL;
+        gchar *oid = NULL;
 	SaHpiSensorReadingT working;
         struct snmp_value get_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if(rdr == NULL) 
-		return SA_ERR_HPI_NOT_PRESENT;
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sensor_num);
+	if (rdr == NULL) return SA_ERR_HPI_NOT_PRESENT;
 
 	struct BC_SensorInfo *s =
-                (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
- 	if(s == NULL) {
+                (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
+ 	if (s == NULL) {
 		dbg("Can not retrieve BC_Sensor Info from rptcache.\n");
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}       
@@ -44,17 +43,17 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	
 	/* Extract index from rdr id and get the snmp of the sensor */
 	if ((s->mib.oid != NULL) && 
-			(rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_TRUE))
+	    (rdr->RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_TRUE))
 	{
 		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
-		if(oid == NULL) {
+		if (oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
 			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 
 		/* Read the sensor value */
-		if(snmp_get(custom_handle->ss, oid, &get_value) != 0){
-			dbg("SNMP could not read sensor %s. Type = %d",oid,get_value.type);
+		if (snmp_get(custom_handle->ss, oid, &get_value) != 0){
+			dbg("SNMP could not read sensor %s. Type = %d", oid, get_value.type);
 			g_free(oid);
 			return SA_ERR_HPI_NO_RESPONSE;
 		}
@@ -66,7 +65,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		if (get_value.type == ASN_INTEGER) {
 			working.Value.SensorUint64 = (SaHpiUint64T) get_value.integer;
 		} else {
-			if(s->mib.convert_snmpstr >= 0) {
+			if (s->mib.convert_snmpstr >= 0) {
 				SaHpiTextBufferT buffer;
 				SaHpiSensorReadingT tmpvalue;
 						
@@ -74,7 +73,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				oh_append_textbuffer(&buffer, get_value.string);
 						
 				if (oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &tmpvalue)) {
-					dbg("Error: oh_encode_sensorreading for %s, (%s)\n",s->mib.oid, buffer.Data);
+					dbg("Error: oh_encode_sensorreading for %s, (%s)\n", s->mib.oid, buffer.Data);
 					return SA_ERR_HPI_INTERNAL_ERROR;
 				}
 				working = tmpvalue;		
@@ -82,22 +81,21 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				trace("Sensor %s SNMP string value needs to be converted\n", s->mib.oid);
 				working.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 				strncpy(working.Value.SensorBuffer,
-						get_value.string,
-                                                SAHPI_SENSOR_BUFFER_LENGTH);
+					get_value.string,
+					SAHPI_SENSOR_BUFFER_LENGTH);
 			}
 
 		}  		
 			
 	}
-
 	
 	/* NULL is a valid value for data, need to check before use */
-	if(data)
-		memcpy(data,&working,sizeof(SaHpiSensorReadingT));
+	if (data)
+		memcpy(data, &working, sizeof(SaHpiSensorReadingT));
 		
 	/* NUL is a valid value for state, need to check before use */
-	if(state)
-		err = snmp_bc_determine_sensor_eventstates(hnd, id, num, &working, state); 
+	if (state)
+		err = snmp_bc_determine_sensor_eventstates(hnd, rid, sensor_num, &working, state); 
         
         return SA_OK;
 }
@@ -106,12 +104,11 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
  *
  */
 SaErrorT snmp_bc_determine_sensor_eventstates(void *hnd,
-				 SaHpiResourceIdT id,
-				 SaHpiSensorNumT num,
-				 SaHpiSensorReadingT *reading,
-				 SaHpiEventStateT    *state)		
+					      SaHpiResourceIdT id,
+					      SaHpiSensorNumT num,
+					      SaHpiSensorReadingT *reading,
+					      SaHpiEventStateT *state)	
 {
-
 	SaErrorT err = SA_OK;
 	SaHpiEventStateT thisEventStates = 0;
 	SaHpiSensorThresholdsT thres;
@@ -168,8 +165,6 @@ SaErrorT snmp_bc_determine_sensor_eventstates(void *hnd,
 	
 	*state = thisEventStates;
 	return(err);
-		
-   
 }   
 
 #define get_interpreted_thresholds(thdmask, thdoid, thdname) \
@@ -254,12 +249,12 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if(rdr == NULL) {
+	if (rdr == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
         struct BC_SensorInfo *s =
                 (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
- 	if(s == NULL) {
+ 	if (s == NULL) {
 		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
@@ -329,7 +324,6 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			working.NegThdHysteresis.IsSupported = SAHPI_FALSE;
 		}    
 			    
-
 		if (found_interpreted) {
 			memcpy(thres, &working, sizeof(SaHpiSensorThresholdsT));
 			return SA_OK;
@@ -354,12 +348,12 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 }
 
 
-#if 0
-SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
-					  SaHpiResourceIdT id,
-					  SaHpiSensorNumT num,
-					  SaHpiBoolT *enables)
+SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
+					 SaHpiResourceIdT id,
+					 SaHpiSensorNumT num,
+					 SaHpiBoolT *enables)
 {
+#if 0
 	SaHpiSensorEvtEnablesT working;
 
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(((struct oh_handler_state *)hnd)->rptcache, 
@@ -385,15 +379,16 @@ SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 	working = ((struct BC_SensorInfo *)bc_data)->sensor_evt_enablement;
 
 	memcpy(enables, &working, sizeof(SaHpiSensorEvtEnablesT));
-
+#endif
         return SA_OK;
 }
 
-SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
-					  SaHpiResourceIdT id,
-					  SaHpiSensorNumT num,
-					  const SaHpiBoolT *enables)
+SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
+					 SaHpiResourceIdT id,
+					 SaHpiSensorNumT num,
+					 const SaHpiBoolT enables)
 {
+#if 0
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(((struct oh_handler_state *)hnd)->rptcache, 
 					    id, SAHPI_SENSOR_RDR, num);
 	if (rdr == NULL) {
@@ -425,8 +420,40 @@ SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
          */
 
 	((struct BC_SensorInfo *)bc_data)->sensor_evt_enablement = *enables;
-
+#endif
         return SA_OK;
 }
 
-#endif
+SaErrorT snmp_bc_set_sensor_enable(void *hnd,
+				   SaHpiResourceIdT rid,
+				   SaHpiSensorNumT sensor_num,
+				   const SaHpiBoolT enable)
+{
+	return(SA_ERR_HPI_READ_ONLY);
+}
+
+SaErrorT snmp_bc_get_sensor_enable(void *hnd,
+				   SaHpiResourceIdT rid,
+				   SaHpiSensorNumT sensor_num,
+				   SaHpiBoolT *enable)
+{
+	return(SA_ERR_HPI_READ_ONLY);
+}
+
+SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
+					SaHpiResourceIdT rid,
+					SaHpiSensorNumT sensor_num,
+					SaHpiEventStateT *AssertEventMask,
+					SaHpiEventStateT *DeassertEventMask)
+{
+	return(SA_ERR_HPI_READ_ONLY);
+}
+
+SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
+					SaHpiResourceIdT rid,
+					SaHpiSensorNumT sensor_num,
+					const SaHpiEventStateT AssertEventMask,
+					const SaHpiEventStateT DeassertEventMask)
+{
+	return(SA_ERR_HPI_READ_ONLY);
+}

@@ -17,9 +17,9 @@
 #include <snmp_bc_plugin.h>
 
 static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event);
-static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag);
-static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
-static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
+static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag);
+static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev);
+static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act);
 
 struct oh_abi_v2 oh_snmp_bc_plugin = {
         .open				= snmp_bc_open,
@@ -36,8 +36,12 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .get_sensor_reading		= snmp_bc_get_sensor_reading,
         .get_sensor_thresholds		= snmp_bc_get_sensor_thresholds,
         .set_sensor_thresholds		= snmp_bc_set_sensor_thresholds,
-        .get_sensor_event_enables	= snmp_bc_get_sensor_event_enables,
-	.set_sensor_event_enables	= snmp_bc_set_sensor_event_enables,
+	.get_sensor_enable              = snmp_bc_get_sensor_enable,
+	.set_sensor_enable              = snmp_bc_set_sensor_enable,
+        .get_sensor_event_enables	= snmp_bc_get_sensor_event_enable,
+	.set_sensor_event_enables	= snmp_bc_set_sensor_event_enable,
+	.get_sensor_event_masks         = snmp_bc_get_sensor_event_masks,
+	.set_sensor_event_masks         = snmp_bc_set_sensor_event_masks,
         .get_control_state		= snmp_bc_get_control_state,
         .set_control_state		= snmp_bc_set_control_state,
 	.get_idr_info			= snmp_bc_get_idr_info,
@@ -63,6 +67,18 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .set_reset_state		= snmp_bc_set_reset_state
 };
 
+/**
+ * get_interface:
+ * @pp: Location of a pointer to the plugin interface structure.
+ * @uuid: Intra-structure's ABI version.
+ *
+ * Checks that the ABI version supported by the plugin is compatible with that
+ * supported by the core infra-structure code.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INTERNAL_ERROR - infra-structure and plugin ABI versions are incompatible.
+ **/
 SaErrorT get_interface(void **pp, const uuid_t uuid)
 {
         if (uuid_compare(uuid, UUID_OH_ABI_V2) == 0) {
@@ -71,151 +87,262 @@ SaErrorT get_interface(void **pp, const uuid_t uuid)
         }
 
         *pp = NULL;
+	dbg("Incompatable plugin ABI version");
         return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
 /**
  * snmp_bc_get_event:
- * @hnd: 
- * @event: 
- * @timeout: 
+ * @hnd: Handler data pointer.
+ * @event: Infra-structure event pointer. 
+ *
+ * Passes plugin events up to the infra-structure for processing.
  *
  * Return values:
+ * 1 - events to be processed.
+ * SA_OK - no events to be processed.
+ * SA_ERR_HPI_INVALID_PARAMS - @event is NULL.
  **/
-
 static SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 {
+	SaErrorT err;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
-	snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
+	if (!event) {
+		dbg("Invalid parameters");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
+	if (err) {
+		dbg("Event Log cache build/sync failed. Error=%s", oh_lookup_error(err));
+		return(err);
+	}
 
         if (g_slist_length(handle->eventq) > 0) {
                 memcpy(event, handle->eventq->data, sizeof(*event));
                 free(handle->eventq->data);
                 handle->eventq = g_slist_remove_link(handle->eventq, handle->eventq);
-                return 1; /* FIXME:: dbg message; what should error return be?? */
-        } else {
-                return(SA_OK);
+                return(1);
+        } 
+
+	/* No events for infra-structure to process */
+	return(SA_OK);
+}
+
+/**
+ * snmp_bc_set_resource_tag:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @tag: Pointer to SaHpiTextBufferT.
+ *
+ * Sets resource's tag.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @tag is NULL or invalid.
+ * SA_ERR_HPI_OUT_OF_SPACE - no memory to allocate event.
+ **/
+static SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBufferT *tag)
+{
+	SaErrorT err;
+        SaHpiRptEntryT *rpt;
+        struct oh_event *e;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+
+	if (!oh_valid_textbuffer(tag)) {
+		dbg("Invalid parameters");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-}
 
-static int snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
-{
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        SaHpiRptEntryT *resource = oh_get_resource_by_id(handle->rptcache, id);
-        struct oh_event *e = NULL;
-        guint datalength = tag->DataLength;
-
-        if (!resource) {
-                dbg("Error. Cannot set resource tag in plugin. No resource found by that id.");
-                return SA_ERR_HPI_NOT_PRESENT;
-        }
-
-        if (datalength > SAHPI_MAX_TEXT_BUFFER_LENGTH) datalength = SAHPI_MAX_TEXT_BUFFER_LENGTH;
-
-        strncpy(resource->ResourceTag.Data, tag->Data, datalength);
-        resource->ResourceTag.DataLength = tag->DataLength;
-        resource->ResourceTag.DataType = tag->DataType;
-        resource->ResourceTag.Language = tag->Language;
-
-        /** Can we persist this to hardware or disk? */
-
-        /* Add changed resource to event queue */
-        e = g_malloc0(sizeof(struct oh_event));
-        e->type = OH_ET_RESOURCE;
-        e->u.res_event.entry = *resource;
-
-        handle->eventq = g_slist_append(handle->eventq, e);
-        
-        return(SA_OK);
-}
-
-static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev)
-{
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        SaHpiRptEntryT *resource = oh_get_resource_by_id(handle->rptcache, id);
-        struct oh_event *e = NULL;
-
-        if (!resource) {
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) {
                 dbg("No RID.");
                 return(SA_ERR_HPI_NOT_PRESENT);
         }
 
-        resource->ResourceSeverity = sev;
-
-        /** Can we persist this to disk? */
+	err = oh_copy_textbuffer(&(rpt->ResourceTag), tag);
+	if (err) {
+		dbg("Cannot copy textbuffer");
+		return(err);
+	}
 
         /* Add changed resource to event queue */
         e = g_malloc0(sizeof(struct oh_event));
+	if (e == NULL) {
+		dbg("No memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+
         e->type = OH_ET_RESOURCE;
-        e->u.res_event.entry = *resource;
+        e->u.res_event.entry = *rpt;
+        handle->eventq = g_slist_append(handle->eventq, e);
         
+        return(SA_OK);
+}
+
+/**
+ * snmp_bc_set_resource_severity:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @tag: Resource's severity.
+ *
+ * Sets severity of events when resource unexpectedly becomes unavailable.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @sev is invalid.
+ * SA_ERR_HPI_OUT_OF_SPACE - no memory to allocate event.
+ **/
+static SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSeverityT sev)
+{
+        SaHpiRptEntryT *rpt;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct oh_event *e;
+
+	if (oh_lookup_severity(sev) == NULL) {
+		dbg("Invalid parameters");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) {
+                dbg("No RID.");
+                return(SA_ERR_HPI_NOT_PRESENT);
+        }
+
+        rpt->ResourceSeverity = sev;
+
+        /* Add changed resource to event queue */
+        e = g_malloc0(sizeof(struct oh_event));
+	if (e == NULL) {
+		dbg("No memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+	
+        e->type = OH_ET_RESOURCE;
+        e->u.res_event.entry = *rpt;
         handle->eventq = g_slist_append(handle->eventq, e);
 
         return(SA_OK);
 }
 
-static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act)
+/**
+ * snmp_bc_control_parm:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @act: Configuration action.
+ *
+ * Save and restore saved configuration parameters.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @act is invalid.
+ **/
+static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act)
 {
+
+	SaHpiRptEntryT *rpt;
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-	SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
-	
-	if (res->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
+
+	if (oh_lookup_parmaction(act) == NULL) {
+		dbg("Invalid parameters");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	rpt = oh_get_resource_by_id(handle->rptcache, rid);
+	if (!rpt) {
+                dbg("No RID.");
+                return(SA_ERR_HPI_NOT_PRESENT);
+	}
+
+	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
 		dbg("Resource configuration saving not supported.");
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	else {
-		return(SA_ERR_HPI_INVALID_CMD);
+		return(SA_ERR_HPI_CAPABILITY);
 	}
 }
 
+/**
+ * snmp_bc_snmp_get:
+ * @custom_handle:  Plugin's data pointer.
+ * @objid: SNMP OID.
+ * @value: Location to store returned SNMP value.
+ *
+ * Plugin wrapper for SNMP get call. If SNMP command times out,
+ * this function returns an SA_ERR_HPI_BUSY until a max number
+ * of retries occurs - then it returns SA_ERR_HPI_NO_RESPONSE.
+ * BladeCenter hardware often takes several SNMP attempts before
+ * it responses. User applications should continue to retry on
+ * BUSY and only fail on NO_RESPONSE.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ **/
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           const char *objid,
-                          struct snmp_value *value)
+			  struct snmp_value *value)
 {
-        SaErrorT status;
+        SaErrorT err;
         struct snmp_session *ss = custom_handle->ss;
 	
-        status = snmp_get(ss, objid, value);
-        if (status == SA_ERR_SNMP_TIMEOUT) {
-
-                if (custom_handle->handler_retries == MAX_RETRY_ATTEMPTED) {
+        err = snmp_get(ss, objid, value);
+        if (err == SA_ERR_SNMP_TIMEOUT) {
+                if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
                         custom_handle->handler_retries = 0;
-                        status = SA_ERR_HPI_NO_RESPONSE;
-                } else {
+                        err = SA_ERR_HPI_NO_RESPONSE;
+                } 
+		else {
                         custom_handle->handler_retries++;
-                        status = SA_ERR_HPI_BUSY;
+                        err = SA_ERR_HPI_BUSY;
                 }
-
-        } else {
+        } 
+	else {
                 custom_handle->handler_retries = 0;
         }
 
-        return status;
-
+        return(err);
 }
 
+/**
+ * snmp_bc_snmp_set:
+ * @custom_handle:  Plugin's data pointer.
+ * @objid: SNMP OID.
+ * @value: SNMP value to set.
+ *
+ * Plugin wrapper for SNMP set call. If SNMP command times out,
+ * this function returns an SA_ERR_HPI_BUSY until a max number
+ * of retries occurs - then it returns SA_ERR_HPI_NO_RESPONSE.
+ * BladeCenter hardware often takes several SNMP attempts before
+ * it responses. User applications should continue to retry on
+ * BUSY and only fail on NO_RESPONSE.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ **/
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
                           char *objid,
-                          struct snmp_value value)
+			  struct snmp_value value)
 {
-        SaErrorT status;
+        SaErrorT err;
 	struct snmp_session *ss = custom_handle->ss;
 
-        status = snmp_set(ss, objid, value);
-        if (status == SA_ERR_SNMP_TIMEOUT) {
-
-                if (custom_handle->handler_retries == MAX_RETRY_ATTEMPTED) {
+        err = snmp_set(ss, objid, value);
+        if (err == SA_ERR_SNMP_TIMEOUT) {
+                if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
                         custom_handle->handler_retries = 0;
-                        status = SA_ERR_HPI_NO_RESPONSE;
-                } else {
+                        err = SA_ERR_HPI_NO_RESPONSE;
+                } 
+		else {
                         custom_handle->handler_retries++;
-                        status = SA_ERR_HPI_BUSY;
+                        err = SA_ERR_HPI_BUSY;
                 }
-
-        } else {
+        } 
+	else {
                 custom_handle->handler_retries = 0;
         }
 
-        return status;
+        return(err);
 }

@@ -14,22 +14,20 @@ GENERATED_CODE = event_array.c event_array_rsa.c
 
 REMOTE_SIM_SOURCES   = \
 			snmp_bc.c \
+			snmp_bc_control.c \
 	     		snmp_bc_discover.c \
 			snmp_bc_discover_bc.c \
 			snmp_bc_discover_rsa.c \
 			snmp_bc_event.c \
 			snmp_bc_inventory.c \
+			snmp_bc_hotswap.c \
 			snmp_bc_resources.c \
 			snmp_bc_sel.c \
+			snmp_bc_sensor.c \
 			snmp_bc_session.c \
 	 		snmp_bc_time.c \
-			snmp_bc_sensor.c \
-			snmp_bc_control.c \
-			snmp_bc_xml2event.c \
 			snmp_bc_watchdog.c \
-			snmp_bc_hotswap.c \
-			stubs.c
-
+			snmp_bc_xml2event.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(GENERATED_CODE) \
