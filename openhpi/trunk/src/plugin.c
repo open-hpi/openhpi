@@ -13,6 +13,8 @@
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
+ * Contributors:
+ *     David Judkovics <djudkovi@us.ibm.com> 
  */
 
 #include <stdio.h>
@@ -23,6 +25,10 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 #include <oh_config.h>
+
+/* multi-threading support, use Posix mutex for data access */
+/* initialize mutex used for data locking */
+extern pthread_mutex_t data_access_mutex; 
 
 /*******************************************************************************
  * init_plugin - does all the initialization needed for the ltdl process to
@@ -90,23 +96,26 @@ int load_plugin(struct oh_plugin_config *config)
 
 int uninit_plugin(void)
 {
-	int rv;
+        int rv;
 
-	rv = lt_dlexit();
-	if (rv < 0) {
-		dbg("Can not exit ltdl right");
-		return -1;
-	}
-	return 0;
+        rv = lt_dlexit();
+        if (rv < 0) {
+                dbg("Can not exit ltdl right");
+                return -1;
+        }
+        return 0;
 }
 
 int load_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
 
+        pthread_mutex_lock(&data_access_mutex);
+
         handler = new_handler(handler_config);
 
         if(handler == NULL) {
+                pthread_mutex_unlock(&data_access_mutex);
                 return -1;
         }
         
@@ -114,6 +123,8 @@ int load_handler (GHashTable *handler_config)
                 global_handler_list,
                 (gpointer) handler
                 );
+        
+        pthread_mutex_unlock(&data_access_mutex);
         
         return 0;
 }
@@ -166,7 +177,7 @@ struct oh_handler *new_handler(GHashTable *handler_config)
         
         return handler;
 err:
- 	free(handler);
+        free(handler);
         return NULL;
 }
 

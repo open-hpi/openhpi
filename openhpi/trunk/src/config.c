@@ -13,6 +13,7 @@
  * Authors:
  *     Sean Dague <http://dague.net/sean>
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     David Judkovics <djudkovi@us.ibm.com>
  * Contributors:
  *     Thomas Kangieser <Thomas.Kanngieser@fci.com>
  *     Renier Morales <renierm@users.sf.net>
@@ -26,6 +27,10 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+/* multi-threading support, use Posix mutex for data access */
+/* initialize mutex used for data locking */
+extern pthread_mutex_t data_access_mutex; 
 
 /*******************************************************************************
  *  global_plugin_list - list of all the plugins that should be loaded
@@ -79,39 +84,39 @@ static GScannerConfig oh_scanner_config =
         {
                 (
                         " \t\n"
-                        )			/* cset_skip_characters */,
+                        )                       /* cset_skip_characters */,
                 (
                         G_CSET_a_2_z
                         "_/."
                         G_CSET_A_2_Z
-                        )			/* cset_identifier_first */,
+                        )                       /* cset_identifier_first */,
                 (
                         G_CSET_a_2_z
                         "_-0123456789/."
                         G_CSET_A_2_Z
-                        )			/* cset_identifier_nth */,
-                ( "#\n" )		/* cpair_comment_single */,
-                FALSE			/* case_sensitive */,
-                TRUE			/* skip_comment_multi */,
-                TRUE			/* skip_comment_single */,
-                TRUE			/* scan_comment_multi */,
-                TRUE			/* scan_identifier */,
-                TRUE			/* scan_identifier_1char */,
-                TRUE			/* scan_identifier_NULL */,
-                TRUE			/* scan_symbols */,
-                TRUE			/* scan_binary */,
-                TRUE			/* scan_octal */,
-                TRUE			/* scan_float */,
-                TRUE			/* scan_hex */,
-                TRUE			/* scan_hex_dollar */,
-                TRUE			/* scan_string_sq */,
-                TRUE			/* scan_string_dq */,
-                TRUE			/* numbers_2_int */,
-                FALSE			/* int_2_float */,
-                TRUE			/* identifier_2_string */,
-                TRUE			/* char_2_token */,
-                TRUE			/* symbol_2_token */,
-                FALSE			/* scope_0_fallback */,
+                        )                       /* cset_identifier_nth */,
+                ( "#\n" )               /* cpair_comment_single */,
+                FALSE                   /* case_sensitive */,
+                TRUE                    /* skip_comment_multi */,
+                TRUE                    /* skip_comment_single */,
+                TRUE                    /* scan_comment_multi */,
+                TRUE                    /* scan_identifier */,
+                TRUE                    /* scan_identifier_1char */,
+                TRUE                    /* scan_identifier_NULL */,
+                TRUE                    /* scan_symbols */,
+                TRUE                    /* scan_binary */,
+                TRUE                    /* scan_octal */,
+                TRUE                    /* scan_float */,
+                TRUE                    /* scan_hex */,
+                TRUE                    /* scan_hex_dollar */,
+                TRUE                    /* scan_string_sq */,
+                TRUE                    /* scan_string_dq */,
+                TRUE                    /* numbers_2_int */,
+                FALSE                   /* int_2_float */,
+                TRUE                    /* identifier_2_string */,
+                TRUE                    /* char_2_token */,
+                TRUE                    /* symbol_2_token */,
+                FALSE                   /* scope_0_fallback */,
         };
 
 /*******************************************************************************
@@ -166,15 +171,19 @@ int process_plugin_token (GScanner *oh_scanner)
 {
         guint my_token;
         int refcount;
+        
+        pthread_mutex_lock(&data_access_mutex);
 
         my_token = g_scanner_get_next_token(oh_scanner); 
         if (my_token != HPI_CONF_TOKEN_PLUGIN) {
                 dbg("Token is not what I was promissed");
+                pthread_mutex_unlock(&data_access_mutex);
                 return -1;
         }
         my_token = g_scanner_get_next_token(oh_scanner);
         if(my_token != G_TOKEN_STRING) {
                 dbg("Where the heck is my string!");
+                pthread_mutex_unlock(&data_access_mutex);
                 return -1;
         }
         
@@ -186,8 +195,12 @@ int process_plugin_token (GScanner *oh_scanner)
                         );
         } else {
                 dbg("WARNING: Attempt to load a plugin more than once");
+                pthread_mutex_unlock(&data_access_mutex);
                 return -1;
         }
+        
+        pthread_mutex_unlock(&data_access_mutex);
+
         return 0;
 }
 
@@ -217,6 +230,8 @@ struct oh_plugin_config * plugin_config (char *name)
         GSList *node;
         struct oh_plugin_config *return_config = NULL;
 
+        pthread_mutex_lock(&data_access_mutex);
+
         g_slist_for_each(node, global_plugin_list) {
                 struct oh_plugin_config *pconf = node->data;
                 if(strcmp(pconf->name, name) == 0) {
@@ -224,6 +239,8 @@ struct oh_plugin_config * plugin_config (char *name)
                         break;
                 }
         }
+        
+        pthread_mutex_unlock(&data_access_mutex);
         
         return return_config;
 }
@@ -242,15 +259,19 @@ int process_handler_token (GScanner* oh_scanner)
         char *tablekey, *tablevalue;
         int found_right_curly = 0;
 
+        pthread_mutex_lock(&data_access_mutex);
+
         
         if (g_scanner_get_next_token(oh_scanner) != HPI_CONF_TOKEN_HANDLER) {
                 dbg("Processing handler: Expected handler token.");
+                pthread_mutex_unlock(&data_access_mutex);
                 return -1;
         }
 
         /* Get the plugin type and store in Hash Table */
         if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
                 dbg("Processing handler: Expected string token.");
+                pthread_mutex_unlock(&data_access_mutex);
                 return -1;
         } else {
                 handler_stanza = g_hash_table_new(g_str_hash, g_str_equal);
@@ -346,6 +367,8 @@ int process_handler_token (GScanner* oh_scanner)
                         (gpointer) handler_stanza);
         }        
         
+        pthread_mutex_unlock(&data_access_mutex);
+
         return 0;
 
 free_table_and_key:
@@ -357,7 +380,10 @@ free_table:
         freeing each key and value set. Then destroy the table.
         */
         g_hash_table_foreach(handler_stanza, free_hash_table, NULL);
-        g_hash_table_destroy(handler_stanza);        
+        g_hash_table_destroy(handler_stanza);
+
+        pthread_mutex_unlock(&data_access_mutex);
+
         return -1;
 }
 
@@ -388,15 +414,13 @@ void free_hash_table (gpointer key, gpointer value, gpointer user_data)
  *
  * Return value: None (void).
  **/
-static void scanner_msg_handler (GScanner		*scanner,
-                                 gchar		*message,
-                                 gboolean		is_error)
+static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_error)
 {
   g_return_if_fail (scanner != NULL);
 
   dbg("%s:%d: %s%s\n",
-	      scanner->input_name ? scanner->input_name : "<memory>",
-	      scanner->line, is_error ? "error: " : "", message );
+              scanner->input_name ? scanner->input_name : "<memory>",
+              scanner->line, is_error ? "error: " : "", message );
 }
 
 /**
@@ -415,7 +439,7 @@ int oh_load_config (char *filename)
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
         init_plugin();
-        add_domain(SAHPI_DEFAULT_DOMAIN_ID);	
+        add_domain(SAHPI_DEFAULT_DOMAIN_ID);    
         
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if(!oh_scanner) {
