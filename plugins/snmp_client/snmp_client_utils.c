@@ -124,6 +124,8 @@ static sensor_range_flags range_flags[] = {
 #define FLAGSTRING_VALUE_DELIMITER_LENGTH 2
 #define RANGE_FLAGS_LEN 5
 
+#if 0
+
 /**
  * snmp_get2: Gets a single value indicated by the objectid
  * using snmp.
@@ -354,6 +356,8 @@ int snmp_getn_bulk( struct snmp_session *ss,
 
 }
 
+#endif
+
 
 void build_res_oid(oid *d, oid *s, int s_len, oid *indices, int num_indices) 
 { 
@@ -496,6 +500,7 @@ int build_flag_value (char *str,
   return rc;
 }
 
+#if 0
 void sc_free_pdu(struct snmp_pdu **p) 
 {
 	if (*p) {
@@ -503,4 +508,5 @@ void sc_free_pdu(struct snmp_pdu **p)
 		*p = NULL;
 	}
 }
+#endif
 
