@@ -30,7 +30,7 @@ AC_DEFUN(OH_SET_SIZES,
     
     gcc -o $OH_SSFILE $OH_SSSOURCE
 
-    OH_TYPE_SIZES=`$OH_SSFILE`
+    OH_TYPE_SIZES=`./$OH_SSFILE`
     # feel free to define more logic here if we need it
     OH_SIZEOF_INT=`echo $OH_TYPE_SIZES | grep "^int" | awk '{print $[2]}'`
     rm -f $OH_SSFILE $OH_SSSOURCE
