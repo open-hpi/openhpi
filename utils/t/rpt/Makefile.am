@@ -91,6 +91,8 @@ TESTS = rpt_utils_000 \
         rpt_utils_065 \
         rpt_utils_066 \
         rpt_utils_067 \
+        rpt_utils_068 \
+        rpt_utils_069 \
         rpt_utils_1000
 
 check_PROGRAMS = $(TESTS)
@@ -163,4 +165,6 @@ rpt_utils_064_SOURCES = rpt_utils_064.c $(REMOTE_SOURCES)
 rpt_utils_065_SOURCES = rpt_utils_065.c $(REMOTE_SOURCES)
 rpt_utils_066_SOURCES = rpt_utils_066.c $(REMOTE_SOURCES)
 rpt_utils_067_SOURCES = rpt_utils_067.c $(REMOTE_SOURCES)
+rpt_utils_068_SOURCES = rpt_utils_068.c $(REMOTE_SOURCES)
+rpt_utils_069_SOURCES = rpt_utils_069.c $(REMOTE_SOURCES)
 rpt_utils_1000_SOURCES = rpt_utils_1000.c $(REMOTE_SOURCES)

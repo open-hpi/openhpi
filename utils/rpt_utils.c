@@ -328,6 +328,7 @@ SaErrorT oh_get_rpt_info(RPTable *table,
 SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata)
 {
         RPTEntry *rptentry;
+        int update_info = 0;
 
         if (!table) {
                 dbg("ERROR: Cannot work on a null table pointer.");
@@ -356,6 +357,7 @@ SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int 
                         dbg("Not enough memory to add RPT entry.");
                         return SA_ERR_HPI_OUT_OF_MEMORY;
                 }
+                update_info = 1; /* Have a new changed entry */
                 /* Put new RPTEntry in RPTable */
                 table->rptlist = g_slist_append(table->rptlist, (gpointer)rptentry);
 
@@ -372,10 +374,14 @@ SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int 
         if (rptentry->data && rptentry->data != data && !rptentry->owndata)
                 g_free(rptentry->data);
         rptentry->data = data;
-        rptentry->owndata = owndata;        
-        rptentry->rpt_entry = *entry;
-
-        update_rptable(table);
+        rptentry->owndata = owndata;
+        /* Check if we really have a new/changed entry */
+        if (update_info || memcmp(entry, &(rptentry->rpt_entry), sizeof(SaHpiRptEntryT))) {
+                update_info = 1;
+                rptentry->rpt_entry = *entry;
+        }
+        
+        if (update_info) update_rptable(table);
 
         return SA_OK;
 }
