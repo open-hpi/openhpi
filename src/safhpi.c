@@ -24,7 +24,6 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 #include <sahpimacros.h>
-#include <oh_utils.h>
 
 /*********************************************************************
  *

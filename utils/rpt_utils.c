@@ -81,6 +81,9 @@ static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
                 case SAHPI_WATCHDOG_RDR:
                         num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;
                         break;
+                case SAHPI_ANNUNCIATOR_RDR:
+                        num = rdr->RdrTypeUnion.AnnunciatorRec.AnnunciatorNum;
+                        break;
                 default:
                         num = 0;
         }
