@@ -67,6 +67,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                 g_free(domain->del);
                 g_array_free(domain->sessions, TRUE);
                 g_static_rec_mutex_free(&(domain->lock));
+                g_static_rec_mutex_free(&(domain->refcount_lock));
                 g_free(domain);
                 return 0;
         }
