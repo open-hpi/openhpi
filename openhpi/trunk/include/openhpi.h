@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <glib.h>
 
+#include <pthread.h>
+
 #include <oh_plugin.h>
 #include <oh_config.h>
 
@@ -108,30 +110,29 @@
  *
  */
 
-
 enum oh_sel_state {
-	OH_SEL_ENABLED=0,
-	OH_SEL_DISABLED,
+        OH_SEL_ENABLED=0,
+        OH_SEL_DISABLED,
 };
 
 /*
  * Representation of an domain
  */
 struct oh_domain {
-	/* This id is used to app layer
-	 * to identy domain
-	 */
-	SaHpiDomainIdT domain_id;
-	
-	/* This id is used to plug-in
-	 * to identy domain
-	 */
-	struct oh_domain_id domain_oid;
-	
-	/* System Event Log */
-	enum oh_sel_state sel_state;
-	int sel_counter;
-	GSList *sel_list;
+        /* This id is used to app layer
+         * to identy domain
+         */
+        SaHpiDomainIdT domain_id;
+        
+        /* This id is used to plug-in
+         * to identy domain
+         */
+        struct oh_domain_id domain_oid;
+        
+        /* System Event Log */
+        enum oh_sel_state sel_state;
+        int sel_counter;
+        GSList *sel_list;
 };
 
 /*
@@ -141,17 +142,17 @@ struct oh_session {
         /*
           Session ID as returned by saHpiSessionOpen()
         */
-        SaHpiSessionIdT	session_id;
+        SaHpiSessionIdT session_id;
         
         /*
-	  A session is always associated with exactly one domain
-	*/
+          A session is always associated with exactly one domain
+        */
         SaHpiDomainIdT domain_id;
-       	 
-	enum {
-		OH_EVENT_UNSUBSCRIBE=0,
-		OH_EVENT_SUBSCRIBE,
-	} event_state;
+         
+        enum {
+                OH_EVENT_UNSUBSCRIBE=0,
+                OH_EVENT_SUBSCRIBE,
+        } event_state;
 
         /*
           Even if multiple sessions are opened for the same domain,
@@ -179,11 +180,11 @@ struct oh_handler {
         */
         void *hnd;
 
-	/*
-	  This is the list of resources which the handler reports
-	 */
-	GSList *resource_list;
-	
+        /*
+          This is the list of resources which the handler reports
+         */
+        GSList *resource_list;
+        
 };
 
 /*
@@ -197,37 +198,37 @@ struct oh_resource {
           in order for the plugin implementation to know what resource
           the abi call is referring to.
         */
-        struct oh_resource_id	oid;
+        struct oh_resource_id   oid;
         
         /*
           RPT entry visible by the HPI caller
         */
-        SaHpiRptEntryT		entry;
+        SaHpiRptEntryT          entry;
      
-	/*
-	 * The two fields are valid when resource is 
-	 * CAPABILITY_HOTSWAP
-	 */
-	int controlled;
-	SaHpiTimeoutT auto_extract_timeout;
-	
-	/*
-	 * The two fields are valid when resource is 
-	 * CAPABILITY_SYSTEM_EVENT_LOG
-	 */
-	enum oh_sel_state sel_state;
-	int sel_counter;
-	GSList *sel_list;
+        /*
+         * The two fields are valid when resource is 
+         * CAPABILITY_HOTSWAP
+         */
+        int controlled;
+        SaHpiTimeoutT auto_extract_timeout;
+        
+        /*
+         * The two fields are valid when resource is 
+         * CAPABILITY_SYSTEM_EVENT_LOG
+         */
+        enum oh_sel_state sel_state;
+        int sel_counter;
+        GSList *sel_list;
 
-	/*
-	   The handler of the resource
-	*/
-	struct oh_handler *handler;
-	
-	/*
-	  This is the list of domain ids which contain the handler
-	 */
-	GSList *domain_list;
+        /*
+           The handler of the resource
+        */
+        struct oh_handler *handler;
+        
+        /*
+          This is the list of domain ids which contain the handler
+         */
+        GSList *domain_list;
 
         /*
           When the SAHPI_CAPABILITY_RDR flag is set in the
@@ -236,20 +237,20 @@ struct oh_resource {
         */
         GSList *rdr_list;
 
-	/*
-	  When the SAHPI_CAPABILITY_DOMAIN flag is set in the
-	  ResourceCapabilities member of the RPT entry, this
-	  is domain id which is conatined by this
-	 */
-	SaHpiDomainIdT domain_id;
-	
-	/*
-	  this is counter for rdr
-	 */
-	SaHpiSensorNumT		sensor_counter;
-	SaHpiCtrlNumT		ctrl_counter;
-	SaHpiWatchdogNumT	watchdog_counter;
-	SaHpiEirIdT		inventory_counter;
+        /*
+          When the SAHPI_CAPABILITY_DOMAIN flag is set in the
+          ResourceCapabilities member of the RPT entry, this
+          is domain id which is conatined by this
+         */
+        SaHpiDomainIdT domain_id;
+        
+        /*
+          this is counter for rdr
+         */
+        SaHpiSensorNumT         sensor_counter;
+        SaHpiCtrlNumT           ctrl_counter;
+        SaHpiWatchdogNumT       watchdog_counter;
+        SaHpiEirIdT             inventory_counter;
 
 };
 
@@ -260,19 +261,19 @@ struct oh_rdr {
           RPT table, the handler only needs a pointer to the oh_rdr_id
           in order for the plugin implementation to know what device
           the abi call is referring to.
-        */	
+        */      
         struct oh_rdr_id oid;
         
         /*
           RDR entry visible by the HPI caller
         */
-        SaHpiRdrT	 rdr;
+        SaHpiRdrT        rdr;
 };
 
 struct oh_dsel {
-	struct oh_rdr_id rdr_id;
-	struct oh_resource_id res_id;
-	SaHpiSelEntryT entry;
+        struct oh_rdr_id rdr_id;
+        struct oh_resource_id res_id;
+        SaHpiSelEntryT entry;
 };
 
 /*
@@ -312,7 +313,7 @@ extern GSList *global_session_list;
  */
 extern GSList *global_rpt;
 extern unsigned int global_rpt_counter; /*FIXME: I use the couter for two purposes. 
-				   1) RptInfo counter 2) ResourceId allocation */
+                                   1) RptInfo counter 2) ResourceId allocation */
 extern struct timeval global_rpt_timestamp;
 
 
@@ -385,20 +386,20 @@ void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
 
 static inline void gettimeofday1(SaHpiTimeT *t)
 {
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	*t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;	
+        struct timeval now;
+        gettimeofday(&now, NULL);
+        *t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;   
 }
 
 #define dbg(format, ...)                                      \
-        do {							                      \
-		fprintf(stderr, "%s:%d: ", __FILE__, __LINE__);   \
+        do {                                                                          \
+                fprintf(stderr, "%s:%d: ", __FILE__, __LINE__);   \
                 fprintf(stderr, format "\n", ## __VA_ARGS__); \
         } while(0)
 
 #define g_slist_for_each(pos, head) \
-	for (pos = head; pos != NULL; pos = g_slist_next(pos))
+        for (pos = head; pos != NULL; pos = g_slist_next(pos))
 
 #define g_slist_for_each_safe(pos, pos1, head) \
-	for (pos = head, pos1 = g_slist_next(pos); pos; pos = pos1, pos1 = g_slist_next(pos1))
+        for (pos = head, pos1 = g_slist_next(pos); pos; pos = pos1, pos1 = g_slist_next(pos1))
 #endif/*__OPENHPI_H*/
