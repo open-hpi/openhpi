@@ -75,7 +75,8 @@ protected:
   // system.
   bool           m_active;
 
-  // current fru state
+  // state only to create state change Mx -> M0
+  // where Mx is m_fru_state
   tIpmiFruState  m_fru_state;
 
   cIpmiDomain   *m_domain;
@@ -89,9 +90,6 @@ protected:
   cIpmiSel      *m_sel;
 
   // The rest is the actual data from the get device id and SDRs.
-  // There's the real version and the normal version, the real
-  // version is the one from the get device id response, the normal
-  // version may have been adjusted by the OEM code. */
   unsigned char  m_device_id;
 
   unsigned char  m_device_revision;
@@ -118,33 +116,6 @@ protected:
   unsigned short m_product_id;
 
   unsigned char  m_aux_fw_revision[4];
-
-  unsigned char  m_real_device_id;
-
-  unsigned char  m_real_device_revision;
-
-  bool           m_real_provides_device_sdrs;
-  bool           m_real_device_available;
-
-  bool           m_real_chassis_support;
-  bool           m_real_bridge_support;
-  bool           m_real_ipmb_event_generator_support;
-  bool           m_real_ipmb_event_receiver_support;
-  bool           m_real_fru_inventory_support;
-  bool           m_real_sel_device_support;
-  bool           m_real_sdr_repository_support;
-  bool           m_real_sensor_device_support;
-
-  unsigned char  m_real_major_fw_revision;
-  unsigned char  m_real_minor_fw_revision;
-
-  unsigned char  m_real_major_version;
-  unsigned char  m_real_minor_version;
-
-  unsigned int   m_real_manufacturer_id;
-  unsigned short m_real_product_id;
-
-  unsigned char  m_real_aux_fw_revision[4];
 
   int SendSetEventRcvr( unsigned int addr );
 

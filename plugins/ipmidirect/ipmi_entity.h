@@ -110,6 +110,25 @@ enum tIpmiEntityId
 const char *IpmiEntityIdToString( tIpmiEntityId id );
 
 
+// wrapper class for entity path
+class cIpmiEntityPath
+{
+public:
+  SaHpiEntityPathT m_entity_path;
+  
+  cIpmiEntityPath();
+  cIpmiEntityPath( const SaHpiEntityPathT &entity_path );
+
+  operator SaHpiEntityPathT()
+  {
+    return m_entity_path;
+  }
+};
+
+
+cIpmiLog &operator<<( cIpmiLog &log, const cIpmiEntityPath &epath );
+
+
 class cIpmiDomain;
 
 
@@ -242,7 +261,7 @@ public:
   // HPI resource id
   SaHpiResourceIdT m_resource_id;
 
-  virtual bool cIpmiEntity::CreateResource( SaHpiRptEntryT &entry );
+  virtual bool CreateResource( SaHpiRptEntryT &entry );
 };
 
 
