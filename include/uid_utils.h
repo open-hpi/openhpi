@@ -20,7 +20,7 @@
 #define OH_DEFAULT_UID_MAP "/var/lib/openhpi/uid_map"
 
 /* hpi internal apis */
-guint oh_uid_initialize(void); 
+SaErrorT oh_uid_initialize(void); 
 guint oh_uid_from_entity_path(SaHpiEntityPathT *ep); 
 guint oh_uid_remove(guint uid);
 guint oh_uid_lookup(SaHpiEntityPathT *ep);
