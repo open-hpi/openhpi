@@ -24,12 +24,12 @@ do{                                                                  \
 	SaHpiRptEntryT           *rpt_entry;                         \
 	rpt_entry = oh_get_resource_by_id(handler->rptcache, rid);   \
 	if (!rpt_entry) {                                            \
-		dbg("No rptentry");                                  \
+		dbg("Resource %d No rptentry", rid);                 \
 		return SA_ERR_HPI_INVALID_PARAMS;                    \
 	}                                                            \
 	if (rpt_entry->ResourceCapabilities &                        \
 	    SAHPI_CAPABILITY_INVENTORY_DATA) {                       \
-		dbg("no inventory capability");                      \
+		dbg("Resource %d no inventory capability", rid);     \
 		return SA_ERR_HPI_INVALID_PARAMS;                    \
 	}                                                            \
 	if (idrid != OHOI_IDR_DEFAULT_ID) {                          \
@@ -37,7 +37,11 @@ do{                                                                  \
 		return SA_ERR_HPI_INVALID_PARAMS;                    \
 	}                                                            \
 }while(0)
-
+#undef OHOI_CHECK_RPT_CAP_IDR
+#define OHOI_CHECK_RPT_CAP_IDR() \
+do { SaHpiRptEntryT           *rpt_entry;                \
+	rpt_entry = oh_get_resource_by_id(handler->rptcache, rid); \
+}while(0)
 struct ohoi_field_data {
 	SaHpiIdrFieldTypeT fieldtype;
 	int (*get_len)(ipmi_entity_t *, unsigned int*);
@@ -205,30 +209,32 @@ SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid,
 {
 	struct oh_handler_state  *handler = hnd;
 	struct ohoi_area_data *area;
+
+	
 	OHOI_CHECK_RPT_CAP_IDR();
 
 	if (areaid > OHOI_AREA_LAST_ID)
 		return SA_ERR_HPI_NOT_PRESENT;
 
-	if ((areatype == SAHPI_ENTRY_UNSPECIFIED) &&
+	if ((areatype == SAHPI_IDR_AREATYPE_UNSPECIFIED) &&
 	    (areaid == SAHPI_FIRST_ENTRY)) {
 
 		areaid = OHOI_AREA_FIRST_ID;
 
-	}else if ((areatype != SAHPI_ENTRY_UNSPECIFIED) &&
+	}else if ((areatype != SAHPI_IDR_AREATYPE_UNSPECIFIED) &&
 	    (areaid == SAHPI_FIRST_ENTRY)) {
 
 		areaid = get_first_area(areatype);
 		if (areaid == OHOI_AREA_EMPTY_ID)
 			return SA_ERR_HPI_NOT_PRESENT;
 
-	}else if ((areatype == SAHPI_ENTRY_UNSPECIFIED) &&
+	}else if ((areatype == SAHPI_IDR_AREATYPE_UNSPECIFIED) &&
 	    (areaid != SAHPI_FIRST_ENTRY)) {
 
 		if (areaid > OHOI_AREA_LAST_ID)
 			return SA_ERR_HPI_NOT_PRESENT;
 
-	}else if ((areatype != SAHPI_ENTRY_UNSPECIFIED) && 
+	}else if ((areatype != SAHPI_IDR_AREATYPE_UNSPECIFIED) && 
 	    (areaid != SAHPI_FIRST_ENTRY)) {
 
 		if (areaid > OHOI_AREA_LAST_ID)
@@ -271,12 +277,20 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                             SaHpiIdrFieldT *field)
 {
 	struct oh_handler_state  *handler = hnd;
+	struct ohoi_resource_info   *ohoi_res_info;
 	ipmi_entity_id_t         ent_id;
 	struct ohoi_field_data   *field_data;
 	struct ohoi_area_data  *area_data;
 
 	OHOI_CHECK_RPT_CAP_IDR();
 
+	ohoi_res_info = oh_get_resource_data(handler->rptcache, rid);
+	if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
+		dbg("Bug: try to get fru in unsupported resource");
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+	ent_id = ohoi_res_info->u.entity_id;
+	
 	if (areaid == SAHPI_FIRST_ENTRY)
 		areaid = OHOI_AREA_FIRST_ID;
 
@@ -285,49 +299,49 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
 
 
 	area_data = &areas[areaid - 1];
-	field_data = area_data->fields;
 
 	if (fieldid > OHOI_FIELD_LAST_ID(area_data))
 		return SA_ERR_HPI_NOT_PRESENT;
 
-	if ((fieldtype == SAHPI_ENTRY_UNSPECIFIED) &&
+	if ((fieldtype == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) &&
 	    (fieldid == SAHPI_FIRST_ENTRY)) {
 
 		fieldid = OHOI_FIELD_FIRST_ID;
-
-	}else if ((fieldtype != SAHPI_ENTRY_UNSPECIFIED) &&
+		
+	}else if ((fieldtype != SAHPI_IDR_FIELDTYPE_UNSPECIFIED) &&
 	    (fieldid == SAHPI_FIRST_ENTRY)) {
 
 		fieldid = get_first_field(area_data, fieldtype);
 		if (fieldid == OHOI_FIELD_EMPTY_ID)
 			return SA_ERR_HPI_NOT_PRESENT;
 
-	}else if ((fieldtype == SAHPI_ENTRY_UNSPECIFIED) &&
+	}else if ((fieldtype == SAHPI_IDR_FIELDTYPE_UNSPECIFIED) &&
 	    (fieldid != SAHPI_FIRST_ENTRY)) {
 
 		if (fieldid > OHOI_FIELD_LAST_ID(area_data))
 			return SA_ERR_HPI_NOT_PRESENT;
 
-	}else if ((fieldtype != SAHPI_ENTRY_UNSPECIFIED) && 
+	}else if ((fieldtype != SAHPI_IDR_FIELDTYPE_UNSPECIFIED) && 
 	    (fieldid != SAHPI_FIRST_ENTRY)) {
 
 		if (fieldid > OHOI_FIELD_LAST_ID(area_data))
 			return SA_ERR_HPI_NOT_PRESENT;
-		if (field_data[fieldid - 1].fieldtype != fieldtype)
+		if (area_data->fields[fieldid - 1].fieldtype != fieldtype)
 			return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
 	field_data = &area_data->fields[fieldid - 1];
 
-	if (fieldid < OHOI_AREA_LAST_ID) {
+	if (fieldid < OHOI_FIELD_LAST_ID(area_data)) {
 		*nextfieldid = fieldid + 1;
-	}else if (fieldid == OHOI_AREA_LAST_ID) {
+	}else if (fieldid == OHOI_FIELD_LAST_ID(area_data)) {
 		*nextfieldid = SAHPI_LAST_ENTRY;
 	}
 
 	field->FieldId = fieldid;
 	field->Type = field_data->fieldtype;
 
+	field_data->field = field;
 	return ipmi_entity_pointer_cb(ent_id, get_field, field_data);
 }
 
