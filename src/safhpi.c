@@ -526,6 +526,11 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         RPTable *rpt;
         struct oh_handler *h;
 
+        if (Severity < 0 || (Severity > 4 && Severity != 0xF0)) {
+                dbg("Invalid severity %d passed.", Severity);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         data_access_lock();
 
         OH_STATE_READY_CHECK;
