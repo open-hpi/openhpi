@@ -235,6 +235,7 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 	ipmi_entity_id_t	entity_id;
 	SaHpiSeverityT		severity;
         SaHpiRptEntryT          *rpt_entry;
+        SaHpiRdrT               *rdr;
         unsigned char           *data;
  
         data = ipmi_event_get_data_ptr(event);
@@ -244,6 +245,16 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
         entity_id  = ipmi_entity_convert_to_id(ipmi_sensor_get_entity(sensor));
         rpt_entry  = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
 	
+        
+        rdr  = ohoi_get_rdr_by_data(handler->rptcache,
+                                    rpt_entry->ResourceId,
+                                    SAHPI_SENSOR_RDR,
+                                    sensor);
+        if (!rdr) {
+                dbg("No rdr in resource:%d\n",  rpt_entry->ResourceId);
+                return;
+        }
+
 	e = malloc(sizeof(*e));
 	if (!e) {
 		dbg("Out of space");
@@ -260,7 +271,9 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 	e->u.hpi_event.event.Timestamp 
                 = (SaHpiTimeT)ipmi_get_uint32(data) * 1000000000;
 
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum = 0;
+        e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum
+                = rdr->RdrTypeUnion.SensorRec.Num;
+
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType 
                 = data[7];
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory 
@@ -488,8 +501,6 @@ static SaHpiEventCategoryT ohoi_sensor_get_event_reading_type(ipmi_sensor_t   *s
 static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 					SaHpiSensorRecT	*rec)
 {
-        static int sensor_num = 0;
-	rec->Num = ++sensor_num;
 	rec->Type = (SaHpiSensorTypeT)ipmi_sensor_get_sensor_type(sensor);
 	rec->Category = (SaHpiEventCategoryT)
 		ohoi_sensor_get_event_reading_type(sensor);
@@ -547,6 +558,7 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 {
         ipmi_sensor_id_t        *sensor_id; 
 	struct oh_event         *e;
+        struct ohoi_resource_info *info;
 
         sensor_id = malloc(sizeof(*sensor_id));
         if (!sensor_id) {
@@ -565,6 +577,15 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 
 	e->type = OH_ET_RDR;
 	add_sensor_event_rdr(sensor, &e->u.rdr_event.rdr, parent_ep, rid);	
+
+        info = oh_get_resource_data(handler->rptcache, rid);
+        if (!info) {
+                free(e);
+                dbg("No info in resource(%d)\n", rid);
+                return;
+        }
+        e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = info->sensor_count;
+        info->sensor_count++;
 
 	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 
