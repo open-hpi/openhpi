@@ -12,9 +12,145 @@
  * Authors:
  * 	pdphan	03/22/04	Initial code 
  *				Based on hpiEvent() by Andy Cress of Intel
+ *	pdphan	04/06/04	Move Showset() util here
  */
 
 #include <printevent_utils.h>
+
+/**
+ *
+ *
+ **/
+#define NEVTYPES  5
+char *evtypes[NEVTYPES] = {"sensor","hotswap","watchdog","oem   ","user  "};
+
+/**
+ *
+ *
+ **/
+#define NUM_EC  14
+struct { int val; char *str;
+} eventcats[NUM_EC] = {
+{ /*0x00*/ SAHPI_EC_UNSPECIFIED,  "unspecified"},
+{ /*0x01*/ SAHPI_EC_THRESHOLD,    "Threshold"},
+{ /*0x02*/ SAHPI_EC_USAGE,        "Usage    "},
+{ /*0x03*/ SAHPI_EC_STATE,        "State    "},
+{ /*0x04*/ SAHPI_EC_PRED_FAIL,    "Predictive"},
+{ /*0x05*/ SAHPI_EC_LIMIT,        "Limit    "},
+{ /*0x06*/ SAHPI_EC_PERFORMANCE,  "Performnc"},
+{ /*0x07*/ SAHPI_EC_SEVERITY,     "Severity "},
+{ /*0x08*/ SAHPI_EC_PRESENCE,     "DevPresen"},
+{ /*0x09*/ SAHPI_EC_ENABLE,       "DevEnable"},
+{ /*0x0a*/ SAHPI_EC_AVAILABILITY, "Availabil"},
+{ /*0x0b*/ SAHPI_EC_REDUNDANCY,   "Redundanc"},
+{ /*0x7e*/ SAHPI_EC_USER,         "UserDefin"},
+{ /*0x7f*/ SAHPI_EC_GENERIC,      "OemDefin " }};
+
+/**
+ *
+ *
+ **/
+#define NUM_ES  6
+struct { int val; char *str;
+} eventstates[NUM_ES] = {
+{ SAHPI_ES_LOWER_MINOR , "lo-min" },
+{ SAHPI_ES_LOWER_MAJOR , "lo-maj" },
+{ SAHPI_ES_LOWER_CRIT  , "lo-crt" },
+{ SAHPI_ES_UPPER_MINOR , "hi-min" },
+{ SAHPI_ES_UPPER_MAJOR , "hi-maj" },
+{ SAHPI_ES_UPPER_CRIT  , "hi-crt" } };
+
+/**
+ *
+ *
+ **/
+#define NGDESC   4
+struct {
+ unsigned char val;
+ const char str[5];
+} gen_desc[NGDESC] = {
+ {0x00, "IPMB"},
+ {0x03, "BIOS"},
+ {0x20, "BMC "},
+ {0x21, "SMI "} };
+
+/**
+ *
+ *
+ **/
+#define NSDESC   13
+struct {
+ unsigned char s_typ;
+ unsigned char s_num;
+ unsigned char data1;
+ unsigned char data2;
+ unsigned char data3;
+ char *desc;
+} sens_desc[NSDESC] = {
+{0x01, 0xff, 0x07, 0xff, 0xff, "Temperature Upper Non-critical" },
+{0x01, 0xff, 0x09, 0xff, 0xff, "Temperature Upper Critical"},
+{0x07, 0xff, 0x01, 0xff, 0xff, "Processor Thermal trip"},
+{0x09, 0x01, 0xff, 0xff, 0xff, "Power Off/Down"},
+{0x0f, 0x06, 0xff, 0xff, 0xff, "POST Code"},
+{0x10, 0x09, 0x02, 0xff, 0xff, "EventLog Cleared"},
+{0x12, 0x83, 0xff, 0xff, 0xff, "System Boot Event"},
+{0x14, 0xff, 0x02, 0xff, 0xff, "Reset Button pressed"},
+{0x14, 0xff, 0x00, 0xff, 0xff, "Power Button pressed"},
+{0x23, 0x03, 0x01, 0xff, 0xff, "Watchdog2 Hard Reset action"},
+{0x23, 0x03, 0x02, 0xff, 0xff, "Watchdog2 Power down action"},
+{0xf3, 0x85, 0x01, 0xff, 0xff, "State is now OK"},
+{0x20, 0x00, 0xff, 0xff, 0xff, "OS Kernel Panic"} };
+
+
+/**
+ *
+ *
+ **/
+#define NUMST   0x2A
+const char *sensor_types[NUMST] = {
+/* 00h */ "reserved",
+/* 01h */ "Temperature",
+/* 02h */ "Voltage",
+/* 03h */ "Current",
+/* 04h */ "Fan",
+/* 05h */ "Platform Chassis Intrusion",
+/* 06h */ "Platform Security Violation",
+/* 07h */ "Processor",
+/* 08h */ "Power Supply",
+/* 09h */ "Power Unit",
+/* 0Ah */ "Cooling Device",
+/* 0Bh */ "FRU Sensor",
+/* 0Ch */ "Memory",
+/* 0Dh */ "Drive Slot",
+/* 0Eh */ "POST Memory Resize",
+/* 0Fh */ "System Firmware",
+/* 10h */ "EventLog Cleared",
+/* 11h */ "Watchdog 1",
+/* 12h */ "System Event",          /* offset 0,1,2 */
+/* 13h */ "Critical Interrupt",    /* offset 0,1,2 */
+/* 14h */ "Button",                /* offset 0,1,2 */
+/* 15h */ "Board",
+/* 16h */ "Microcontroller",
+/* 17h */ "Add-in Card",
+/* 18h */ "Chassis",
+/* 19h */ "Chip Set",
+/* 1Ah */ "Other FRU",
+/* 1Bh */ "Cable / Interconnect",
+/* 1Ch */ "Terminator",
+/* 1Dh */ "System Boot Initiated",
+/* 1Eh */ "Boot Error",
+/* 1Fh */ "OS Boot",
+/* 20h */ "OS Critical Stop",
+/* 21h */ "Slot / Connector",
+/* 22h */ "ACPI Power State",
+/* 23h */ "Watchdog 2",
+/* 24h */ "Platform Alert",
+/* 25h */ "Entity Presence",
+/* 26h */ "Monitor ASIC",
+/* 27h */ "LAN",
+/* 28h */ "Management Subsystem Health",
+/* 29h */ "Battery",
+};
 
 /**
  *
@@ -71,7 +207,6 @@ struct code2string watchdogevent[NUM_WD_ACTION] = {
 	{ SAHPI_WAE_POWER_CYCLE, "Power Cycle"},
 	{ SAHPI_WAE_TIMER_INT, "Timer Interrupt"}
 }; 
-
 
 /**
  *
@@ -418,5 +553,174 @@ void saftime2str(SaHpiTimeT time, char * str, size_t size)
 	strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
 }
 
+void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
+                     SaHpiRptEntryT *rptentry )
+{
+        unsigned char evtype;
+        char timestr[40];
+        time_t tt1;
+        int ec, eci;
+        int es, esi;
+        char *srctag;
+        char *rdrtag;
+        const char *pstr;
+        char estag[8];
+        unsigned char *pd;
+        int ix, i, styp;
+        int outlen;
+        char outbuf[132];
+        char mystr[26];
+        unsigned char data1, data2, data3;
+
+        /*format & print the EventLog entry*/
+
+        if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
+                tt1 = sel->Event.Timestamp / 1000000000;
+                strftime(timestr,sizeof(timestr),"%F %T", localtime(&tt1));
+        } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
+                strcpy(timestr,"invalid time     ");
+        } else {   /*relative time*/
+                tt1 = sel->Event.Timestamp / 1000000000;
+                sprintf(timestr,"rel(%lx)", (unsigned long)tt1);
+        }
+        if (rptentry->ResourceId == sel->Event.Source)
+                srctag = rptentry->ResourceTag.Data;
+        else
+                srctag = "unspec ";  /* SAHPI_UNSPECIFIED_RESOURCE_ID */
+
+        evtype = sel->Event.EventType;
+        if (evtype > NEVTYPES)
+                evtype = NEVTYPES - 1;
+
+        if (rdr->RdrType == SAHPI_NO_RECORD) {
+                rdrtag = "rdr-unkn";
+        } else {
+                rdr->IdString.Data[rdr->IdString.DataLength] = 0;
+                rdrtag = &rdr->IdString.Data[0];
+        }
+        sprintf(outbuf,"%04x %s %s ", sel->EntryId,
+                timestr, evtypes[evtype] );
+        outlen = strlen(outbuf);
+        pstr = "";
+
+        /*
+          sld: there is a lot of stuff specific to IPMI and other HPI implementations
+          here.  Scrubing for HPI 1.0 only data would be a good thing soon
+        */
+
+        switch(evtype)
+        {
+        case SAHPI_ET_SENSOR:   /*Sensor*/
+                /* decode event category */
+                ec = sel->Event.EventDataUnion.SensorEvent.EventCategory;
+                for (eci = 0; eci < NUM_EC; eci++)
+                        if (eventcats[eci].val == ec) break;
+                if (eci >= NUM_EC) eci = 0;
+                /* decode event state */
+                es = sel->Event.EventDataUnion.SensorEvent.EventState;
+                if (eci == 1) { /*SAHPI_EC_THRESHOLD*/
+                        for (esi = 0; esi < NUM_ES; esi++)
+                                if (eventstates[esi].val == es) break;
+                        if (esi >= NUM_ES) esi = 0;
+                        strcpy(estag,eventstates[esi].str);
+                } else sprintf(estag,"%02x",es);
+
+                /* decode sensor type */
+                styp = sel->Event.EventDataUnion.SensorEvent.SensorType;
+                /* data3 is not specifically defined in HPI 1.0, implementation hack */
+                pd = (unsigned char *)&sel->Event.EventDataUnion.SensorEvent.SensorSpecific;
+                data1 = pd[0];
+                data2 = pd[1];
+                data3 = pd[2];
+                if (styp >= NUMST) { styp = 0; }
+
+                if (styp == 0x20) { /*OS Critical Stop*/
+                        /* Show first 3 chars of panic string */
+                        mystr[0] = '(';
+                        mystr[1] = sel->Event.EventDataUnion.SensorEvent.SensorNum & 0x7f;
+                        mystr[2] = data2 & 0x007f;
+                        mystr[3] = data3 & 0x7f;
+                        mystr[4] = ')';
+                        mystr[5] = 0;
+                        if (sel->Event.EventDataUnion.SensorEvent.SensorNum & 0x80)
+                                strcat(mystr,"Oops!");
+                        if (data2 & 0x80) strcat(mystr,"Int!");
+                        if (data3 & 0x80) strcat(mystr,"NullPtr!");
+                        pstr = mystr;
+                }
+                sprintf(&outbuf[outlen], "%s, %s %s %x [%02x %02x %02x] %s",
+                        sensor_types[styp], eventcats[eci].str, estag,
+                        sel->Event.EventDataUnion.SensorEvent.SensorNum,
+                        data1, data2, data3, pstr);
+                break;
+        case SAHPI_ET_USER:   /*User, usu 16-byte IPMI SEL record */
+                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
+                /* get gen_desc from offset 7 */
+                for (ix = 0; ix < NGDESC; ix++)
+                        if (gen_desc[ix].val == pd[7]) break;
+                if (ix >= NGDESC) ix = 0;
+                /* get sensor type description for misc cases */
+                styp = pd[10];   /*sensor type*/
+                data3 = pd[15];
+                /* = *sel->Event.EventDataUnion.SensorEvent.SensorSpecific+1; */
+                for (i = 0; i < NSDESC; i++) {
+                        if (sens_desc[i].s_typ == styp) {
+                                if (sens_desc[i].s_num != 0xff &&
+                                    sens_desc[i].s_num != pd[11])
+                                        continue;
+                                if (sens_desc[i].data1 != 0xff &&
+                                    (sens_desc[i].data1 & 0x07) != pd[13])
+                                        continue;
+                                if (sens_desc[i].data2 != 0xff &&
+                                    sens_desc[i].data2 != pd[14])
+                                        continue;
+                                if (sens_desc[i].data3 != 0xff &&
+                                    sens_desc[i].data3 != data3)
+                                        continue;
+                                /* have a match, use description */
+                                pstr = (char *)sens_desc[i].desc;
+                                break;
+                        }
+                } /*end for*/
+                if (i >= NSDESC) {
+                        if (styp >= NUMST) styp = 0;
+                        pstr = sensor_types[styp];
+                }
+                sprintf(&outbuf[outlen], "%s, %s %02x %02x %02x [%02x %02x %02x]",
+                        pstr, gen_desc[ix].str,
+                        pd[10],pd[11],pd[12],pd[13],pd[14],data3);
+                break;
+        case SAHPI_ET_OEM:
+                /* only go into this if it is IBM hardware, as others might use
+                   the Oem field differently */
+                if(sel->Event.EventDataUnion.OemEvent.MId == 2) {
+                        /* sld: I'm going to printf directly, as the output buffer isn't
+                           big enough for what I want to do */
+                        printf("Oem Event:\n");
+                        saftime2str(sel->Timestamp, timestr, 40);
+                        printf("\tTimestamp: %s\n", timestr);
+                        printf("\tSeverity: %d\n", sel->Event.Severity);
+                        printf("\tMId:%d, Data: %s\n",
+                               sel->Event.EventDataUnion.OemEvent.MId,
+                               sel->Event.EventDataUnion.OemEvent.OemEventData);
+                }
+                break;
+        default:
+                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
+                styp = pd[10];
+                data3 = pd[15];
+                /* *sel->Event.EventDataUnion.SensorEvent.SensorSpecific+1 */
+                if (styp >= NUMST) {
+                        printf("sensor type %d >= max %d\n",styp,NUMST);
+                        styp = 0;
+                }
+                pstr = sensor_types[styp];
+                sprintf(&outbuf[outlen], "%s, %x %x, %02x %02x %02x [%02x %02x %02x/%02x]",
+                        pstr, pd[0], pd[7], pd[10], pd[11], pd[12],
+                        pd[13], pd[14], pd[15], data3);
+                break;
+        }
+        printf("%s\n",outbuf);
+}
 
 /* end of file         */
