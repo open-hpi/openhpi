@@ -256,7 +256,7 @@ AC_ARG_ENABLE([watchdog],
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
-OH_CHECK_OPENIPMI(1,3,1)
+OH_CHECK_OPENIPMI(1,3,5)
 
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
