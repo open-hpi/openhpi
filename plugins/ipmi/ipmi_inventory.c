@@ -328,7 +328,7 @@ static int get_first_typed_field(struct ohoi_area_data *area,
 	return OHOI_FIELD_EMPTY_ID;
 }
 
-static SaHpiTextTypeT convert_to_hpi_data_type(enum ipmi_str_type_e type)
+SaHpiTextTypeT convert_to_hpi_data_type(enum ipmi_str_type_e type)
 {
 	switch (type) {
 	case IPMI_ASCII_STR:
@@ -1147,7 +1147,7 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 	}
 	area_data = &areas[areaid - 1];
 	a_type = area_data->areatype;
-	if (fieldid >= OHOI_FIELD_LAST_ID(area_data)) {
+	if (fieldid > OHOI_FIELD_LAST_ID(area_data)) {
 		dbg("fieldid(%d) >= OHOI_FIELD_LAST_ID(area_data)(%d)",
 			fieldid, OHOI_FIELD_LAST_ID(area_data));
 		return SA_ERR_HPI_NOT_PRESENT;
@@ -1290,15 +1290,14 @@ static SaErrorT modify_inventory(SaHpiIdrFieldT *field,
 		if (rv) {
 			dbg("Could not set FRU field %d of area %d. rv = %d\n",
 				fieldid, areaid, rv);
+			if (rv == ENOSPC) {
+				ret = SA_ERR_HPI_OUT_OF_SPACE;
+			} else {
+				dbg("set_func for %x/%d returned error = %d",
+					a_type, f_type, rv);
+				ret = SA_ERR_HPI_INVALID_DATA;
+			}
 		} 
-		if (rv == ENOSPC) {
-			ret = SA_ERR_HPI_OUT_OF_SPACE;
-		} else {
-			dbg("set_func for %x/%d returned error = %d",
-				a_type, f_type, rv);
-			ret = SA_ERR_HPI_INVALID_DATA;
-		}
-			
 	}
 out:
 	return ret;
