@@ -540,17 +540,15 @@ int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
         }
 
         for ( i = 0; i < SAHPI_MAX_ENTITY_PATH; i++ ) {
-                if (ep1->Entry[i].EntityInstance == 0) {
-                        if (ep1->Entry[i].EntityType == SAHPI_ENT_ROOT)
-                                i++;
+                if (ep1->Entry[i].EntityType == SAHPI_ENT_ROOT) {
+                        i++;
                         break;                                
                 }
         }
 
         for ( j = 0; j < SAHPI_MAX_ENTITY_PATH; j++ ) {
-                if (ep2->Entry[j].EntityInstance == 0) {
-                        if (ep2->Entry[j].EntityType == SAHPI_ENT_ROOT)
-                                j++;
+                if (ep2->Entry[j].EntityType == SAHPI_ENT_ROOT) {
+                        j++;
                         break;
                 }
         }
