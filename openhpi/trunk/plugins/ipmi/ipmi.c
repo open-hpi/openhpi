@@ -693,6 +693,12 @@ static int ipmi_get_sensor_reading(void   *hnd,
 	if (rv!=SA_OK)
 		return rv;
 
+	if (!sensor_info)
+		return SA_ERR_HPI_NOT_PRESENT;	
+
+	if (sensor_info->enable == SAHPI_FALSE)
+		return SA_ERR_HPI_INVALID_REQUEST;
+	
 	if (!reading && !ev_state)
 		return SA_OK;
 	
@@ -738,7 +744,16 @@ static int ipmi_get_sensor_thresholds(void			*hnd,
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
 	if (rv!=SA_OK)
 		return rv;
+	if (!sensor_info)
+		return SA_ERR_HPI_NOT_PRESENT;	
+
+	if (sensor_info->enable == SAHPI_FALSE)
+		return SA_ERR_HPI_INVALID_REQUEST
+			;
+	if (!thres)
+		return SA_ERR_HPI_INVALID_PARAMS;
 	memset(thres, 0, sizeof(*thres));
+	
 		
 	return ohoi_get_sensor_thresholds(sensor_info->sensor_id, thres, ipmi_handler);
 }
@@ -772,6 +787,14 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 		
 	if (rv!=SA_OK)
 		return rv;
+	if (!sensor_info)
+		return SA_ERR_HPI_NOT_PRESENT;
+	if (sensor_info->enable == SAHPI_FALSE)
+		return SA_ERR_HPI_INVALID_REQUEST;
+
+	if (!thres)
+		return SA_ERR_HPI_INVALID_PARAMS;
+	
 	return ohoi_set_sensor_thresholds(sensor_info->sensor_id, thres, ipmi_handler);	
 }
 
@@ -780,7 +803,6 @@ static int ipmi_get_sensor_enable(void *hnd, SaHpiResourceIdT id,
 				  SaHpiBoolT *enable)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
 	SaErrorT	 rv;
 	struct ohoi_sensor_info *sensor_info;
@@ -796,7 +818,11 @@ static int ipmi_get_sensor_enable(void *hnd, SaHpiResourceIdT id,
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
 	if (rv!=SA_OK)
 		return rv;
-	return ohoi_get_sensor_enable(sensor_info->sensor_id, enable, ipmi_handler);
+	if (enable && sensor_info) {
+		*enable = sensor_info->enable;
+		return SA_OK;
+	}
+	return SA_ERR_HPI_NOT_PRESENT;
 }
 
 
@@ -818,9 +844,11 @@ static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
 
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);	
 	if (rv!=SA_OK)
 		return rv;
+	
+	sensor_info->enable = enable;
         return ohoi_set_sensor_enable(sensor_info->sensor_id, enable, ipmi_handler);
 }
 

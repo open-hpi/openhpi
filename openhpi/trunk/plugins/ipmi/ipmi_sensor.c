@@ -577,7 +577,7 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
         return ohoi_loop_until(is_get_sensor_thresholds_done, 
                                &thres_data, 5, ipmi_handler);
 }
-
+#if 0
 static void get_sensor_enable(ipmi_sensor_t *sensor,
 			      void          *cb_data)
 {
@@ -600,6 +600,7 @@ int ohoi_get_sensor_enable(ipmi_sensor_id_t sensor_id,
         }
 	return SA_OK;
 }
+#endif
 
 static void set_sensor_enable(ipmi_sensor_t *sensor,
 			      void          *cb_data)
