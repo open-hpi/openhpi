@@ -333,8 +333,8 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			oh_lookup_error(rv));
 		if (proc(errbuf) != 0) return(rv);
 	} else {
-		if (val) strcat(buf, "Enable ");
-		else strcat(buf, "Disable ");
+		if (val) proc("Enable ");
+		else proc("Disable ");
 	};
 	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
@@ -362,8 +362,13 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	};
 	rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
-        if (rv != SA_OK) return rv;
-
+	if (rv != SA_OK) {
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"\nERROR: saHpiSensorReadingGet: error: %s\n",
+			oh_lookup_error(rv));
+		proc(errbuf);
+		return(rv);
+	};
         if (reading.IsSupported) {
 		snprintf(buf, SHOW_BUF_SZ, "     Event states = %x", status);
 		proc(buf);
