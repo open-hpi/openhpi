@@ -669,38 +669,22 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         return SA_OK;
 }
 
-#if 0
 SaErrorT SAHPI_API saHpiEventLogStateGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiBoolT *Enable)
 {
-        struct oh_session *s;
-        struct oh_resource *res;
-        SaHpiSelInfoT info;
+        SaHpiSelInfoT info;        
+        SaErrorT rv;
+        
+        rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
 
-        OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                *Enable = dsel_get_state(s->domain_id);
-                return SA_OK;
+        if(rv < 0) {
+                return rv;
         }
 
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
-        
-        if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, &info)<0)
-                return SA_ERR_HPI_UNKNOWN;
         *Enable = info.Enabled;
+        
         return SA_OK;
 }
 
@@ -709,36 +693,10 @@ SaErrorT SAHPI_API saHpiEventLogStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiBoolT Enable)
 {
-        struct oh_session *s;
-        struct oh_resource *res;
-        
-        OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }       
-        
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if (dsel_set_state(s->domain_id, Enable)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                else
-                        return SA_OK;
-        }
-
-        res = get_resource(ResourceId);
-        if (!res) {
-                dbg("Invalid resource");
-                return SA_ERR_HPI_INVALID_RESOURCE;
-        }                                               
-        
-        if (res->handler->abi->set_sel_state(res->handler->hnd, res->oid, Enable)<0)
-                return SA_ERR_HPI_UNKNOWN;
-        return SA_OK;
+        /* this request is not valid on an RSEL */
+        return SA_ERR_HPI_INVALID_REQUEST;
 }
 
-#endif
 SaErrorT SAHPI_API saHpiSubscribe (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiBoolT ProvideActiveAlarms)
