@@ -27,9 +27,13 @@
 #include <unistd.h>
 #include <getopt.h>
 #include "SaHpi.h"
+#include <pthread.h>
+
+void *sahpi_event_thread(void *sessionid);
 
 #define NCT 25
 
+int thread = 1;
 char progver[] = "0.a";
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
@@ -399,18 +403,62 @@ restart:
 	   we need to monitor RptInfo here 
 	 */
 						/* Try again */
+	char input[255], *p;
+	pthread_t event_thread;
+	void *thread_done;
 	if (!inv_discovered) {
 			rv = saHpiResourcesDiscover(sessionid);
 			if (fxdebug) {
 					printf("saHpiResourcesDiscover rv = %d\n",rv);
 			}
 			goto restart;
-	} 
+	} else {
+			int valid = 0;
+			printf("Initial discovery done, to re-discover:\n");
+			printf("\tType rediscover\n");
+			printf("Command> ");
+
+			rv = pthread_create(&event_thread, NULL, sahpi_event_thread, (void *)sessionid);
+			if(rv)
+					printf("Error creating event thread\n");
+
+			while (!valid) {
+					fflush(stdout);
+					p = fgets(input, 255, stdin);
+					if ( (p = strchr(input, '\n')) != NULL)
+							*p = '\0';
+					if (!strcmp(input, "rediscover")) {
+							goto restart;
+					}
+					if (!strcmp(input, "quit")) {
+							valid = 1;
+							thread = 0;
+							rv = pthread_join(event_thread, &thread_done);
+							printf("Discovery %s\n", (char *) thread_done);
+							break;
+					} else {
+							printf("Invalid command, retry or type \"quit\" to exit\n");
+							printf("Command> ");
+					}
+			}
+	}
 
 	rv = saHpiSessionClose(sessionid);
 	rv = saHpiFinalize();	
 	
 	exit(0);
+}
+
+void *sahpi_event_thread(void *sessionid)
+{
+		int rv;
+		while (thread == 1) {
+			rv = saHpiResourcesDiscover((SaHpiSessionIdT)sessionid);
+			if (rv != SA_OK)
+					printf("discovery failed\n");
+		}
+
+		pthread_exit("Thread exit\n");
 }
 
  /* end hpi_invent.c */
