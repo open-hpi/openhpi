@@ -144,7 +144,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 		/* Check for special case */
 		if (!( (reading.Type == SAHPI_SENSOR_READING_TYPE_BUFFER) && 
 		    ((strncmp(reading.Value.SensorBuffer,"(No temperature)", sizeof("(No temperature)")) == 0) ||
-		    			(strncmp(buffer->Data,"Not Readable!", sizeof("Not Readable!")) == 0)) ))
+		    		(strncmp(reading.Value.SensorBuffer,"Not Readable!", sizeof("Not Readable!")) == 0)) ))
                 	return(SA_ERR_HPI_INVALID_DATA);
         }
 	
