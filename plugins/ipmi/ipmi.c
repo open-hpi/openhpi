@@ -786,6 +786,10 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
         /* reset support */
 		.get_reset_state                = NULL,
 		.set_reset_state                = ohoi_set_reset_state,
+
+        /* control support */
+       .set_control_state = ohoi_set_control_state,
+       .get_control_state = ohoi_get_control_state,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);

@@ -44,6 +44,20 @@ int ohoi_get_control_state(ipmi_control_id_t	control_id,
 }
 #endif
 
+SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlStateT *state)
+{
+        return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
+SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlStateT *state)
+{
+        return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
 static void set_reset_state(ipmi_control_t *control,
                             void           *cb_data)
 {

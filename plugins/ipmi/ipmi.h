@@ -66,6 +66,7 @@ struct ohoi_handler {
 struct ohoi_resource_info {
 
         SaHpiUint8T  sensor_count; 
+        SaHpiUint8T  ctrl_count; 
 
         enum {
                 OHOI_RESOURCE_ENTITY = 0,
@@ -211,6 +212,13 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 	
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act);
+
+SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlStateT *state);
+SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlStateT *state);
 
 /* misc macros for debug */
 #define dump_entity_id(s, x) \

@@ -26,38 +26,39 @@
 
 //}
 
+static SaHpiCtrlOutputTypeT _control_type_from_ipmi_to_hpi(int ipmi_type)
+{
+        switch (ipmi_type) {
+		case IPMI_CONTROL_ALARM:
+                        return SAHPI_CTRL_FRONT_PANEL_LOCKOUT;
+                        
+		case IPMI_CONTROL_DISPLAY:
+                        return SAHPI_CTRL_LCD_DISPLAY;
+
+                case IPMI_CONTROL_LIGHT:
+                        return SAHPI_CTRL_LED;
+                        
+		case IPMI_CONTROL_FAN_SPEED:
+                        return SAHPI_CTRL_FAN_SPEED;
+
+                case IPMI_CONTROL_IDENTIFIER:
+		case IPMI_CONTROL_RELAY:
+                default:
+                        return SAHPI_CTRL_OEM;                       
+        } 
+}
 
 static void add_control_event_control_rec(ipmi_control_t	*control,
 					SaHpiCtrlRecT	*rec)
 {
         static int control_num = 0;
 	int	control_type;
-	rec->Num = ++control_num;
-	control_type = ipmi_control_get_type(control);
-	switch(control_type) {
-
-		/* This is a special case we're handle later */
-		//case IPMI_CONTROL_RESET:
-		//case IPMI_CONTROL_POWER:
-		//case IPMI_CONTROL_ONE_SHOT_RESET:
-			//break;
-			
-		/* **FIXME: need to verify this mapping */
-		/* assuming binary control */
-		case IPMI_CONTROL_ALARM:
-		case IPMI_CONTROL_DISPLAY:
-		case IPMI_CONTROL_LIGHT:
-		case IPMI_CONTROL_RELAY:
-		case IPMI_CONTROL_FAN_SPEED:
-		case IPMI_CONTROL_IDENTIFIER:
-			rec->Type = SAHPI_CTRL_TYPE_DIGITAL;
-			break;
-		default:
-			rec->Type = SAHPI_CTRL_TYPE_OEM;
-	}
+	rec->Num        = ++control_num;
+	control_type    = ipmi_control_get_type(control);
+        rec->OutputType = _control_type_from_ipmi_to_hpi(control_type);
+        rec->Type       = SAHPI_CTRL_TYPE_OEM; 
 		
-	
-	rec->Ignore = (SaHpiBoolT)ipmi_control_get_ignore_if_no_entity(control);
+	rec->Ignore     = (SaHpiBoolT)ipmi_control_get_ignore_if_no_entity(control);
 
 	//add_control_event_data_format(control, rec);
 
@@ -103,8 +104,9 @@ static void add_control_event(ipmi_entity_t	*ent,
 			     SaHpiEntityPathT	parent_ep,
 			     SaHpiResourceIdT	rid)
 {
-        ipmi_control_id_t        *control_id; 
-	struct oh_event         *e;
+        ipmi_control_id_t         *control_id; 
+	struct oh_event           *e;
+        struct ohoi_resource_info *info;
 
         control_id = malloc(sizeof(*control_id));
         if (!control_id) {
@@ -122,12 +124,20 @@ static void add_control_event(ipmi_entity_t	*ent,
 	memset(e, 0, sizeof(*e));
 
 	e->type = OH_ET_RDR;
-
 	add_control_event_rdr(control, &e->u.rdr_event.rdr, parent_ep, rid);	
 
-	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
+	info = oh_get_resource_data(handler->rptcache, rid);
+        if (!info) {
+                free(e);
+                dbg("No info in resource(%d)\n", rid);
+                return;
+        }
+        e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = info->ctrl_count;
+        info->ctrl_count++;
 
-	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, control_id, 0);
+        rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
+        
+	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, control_id, 1);
 }
 
 void ohoi_control_event(enum ipmi_update_e op,
