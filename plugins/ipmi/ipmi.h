@@ -244,6 +244,9 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
                               SaHpiPowerStateT state);
+
+SaErrorT ohoi_get_power_state(void *hnd, SaHpiResourceIdT id,
+			      SaHpiPowerStateT *state);
 	
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act);
@@ -252,6 +255,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT *mode,
                                 SaHpiCtrlStateT *state);
+
 SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlModeT mode,
