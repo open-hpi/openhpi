@@ -128,9 +128,9 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		e->did = oh_get_default_domain_id();
 		e->u.res_event.entry = snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_CPU].rpt;
 		
-		ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
-		set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
-				SAHPI_ENT_PROCESSOR, i + SNMP_BC_HPI_LOCATION_BASE);
+		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+				   SAHPI_ENT_PROCESSOR, i + SNMP_BC_HPI_LOCATION_BASE);
 		e->u.res_event.entry.ResourceId = 
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
@@ -202,9 +202,9 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		e->did = oh_get_default_domain_id();
 		e->u.res_event.entry = snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_DASD].rpt;
 		
-		ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
-		set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
-				SAHPI_ENT_DISK_BAY, i + SNMP_BC_HPI_LOCATION_BASE);
+		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+				   SAHPI_ENT_DISK_BAY, i + SNMP_BC_HPI_LOCATION_BASE);
 		e->u.res_event.entry.ResourceId = 
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
@@ -276,9 +276,9 @@ SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
 		e->did = oh_get_default_domain_id();
 		e->u.res_event.entry = snmp_bc_rpt_array_rsa[RSA_RPT_ENTRY_FAN].rpt;
 		
-		ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
-		set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
-				SAHPI_ENT_FAN, i + SNMP_BC_HPI_LOCATION_BASE);
+		oh_concat_ep(&(e->u.res_event.entry.ResourceEntity), ep_root);
+		oh_set_ep_location(&(e->u.res_event.entry.ResourceEntity),
+				   SAHPI_ENT_FAN, i + SNMP_BC_HPI_LOCATION_BASE);
 		e->u.res_event.entry.ResourceId = 
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),

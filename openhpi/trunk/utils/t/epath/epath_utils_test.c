@@ -21,295 +21,238 @@
 #include <oh_utils.h>
 
 int main (int argc, char **argv) {
-	SaHpiEntityPathT  ep;
 	gchar *test_string, *expected_string;
-	const int MAX_STRING_SIZE = 512;
-	gchar returned_string[MAX_STRING_SIZE];
-	int   err;
-	
-	/*********************************** 
-         * string2entitypath - Null TestCase
-         ***********************************/
-	test_string = NULL;
+	oh_big_textbuffer bigbuf;
+	SaErrorT   err, expected_err;
+	SaHpiEntityPathT  ep;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - Null TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	/************************************************ 
+         * oh_encode_entitypath - Null parameter testcase
+         ************************************************/
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+	err = oh_encode_entitypath(0, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	/***************************************** 
-         * string2entitypath - All blanks TestCase
-         *****************************************/
+	/******************************************** 
+         * oh_encode_entitypath - All blanks testcase
+         ********************************************/
 	test_string = "       ";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - All blanks TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	/***************************************** 
-         * string2entitypath - Begin junk TestCase
-         *****************************************/
+	/******************************************** 
+         * oh_encode_entitypath - Begin junk testcase
+         ********************************************/
 	test_string = "junk{SYSTEM_CHASSIS,11}{SUBBOARD_CARRIER_BLADE,9}";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - Begin junk TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
+
+	/********************************************* 
+         * oh_encode_entitypath - Middle junk testcase
+         *********************************************/
+	test_string = "{SYSTEM_CHASSIS,11}junk{SUBBOARD_CARRIER_BLADE,9}";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
+
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
 	/****************************************** 
-         * string2entitypath - Middle junk TestCase
+         * oh_encode_entitypath - End junk testcase
          ******************************************/
-	test_string = "{SYSTEM_CHASSIS,11}junk{SUBBOARD_CARRIER_BLADE,9}";
-
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - Middle junk TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
-		return -1;
-	}
-
-	/*************************************** 
-         * string2entitypath - End junk TestCase
-         ***************************************/
 	test_string = "{SYSTEM_CHASSIS,11}{SUBBOARD_CARRIER_BLADE,9}junk";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - End junk TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	/*************************************** 
-         * string2entitypath - No comma TestCase
-         ***************************************/
+	/****************************************** 
+         * oh_encode_entitypath - No comma testcase
+         ******************************************/
 	test_string = "{SYSTEM_CHASSIS.11}{SUBBOARD_CARRIER_BLADE,9}";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - No comma TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	/******************************************* 
-         * string2entitypath - Bad HPI type TestCase
-         *******************************************/
+	/********************************************** 
+         * oh_encode_entitypath - Bad HPI type testcase
+         **********************************************/
 	test_string = "{SYSTEM_CHASSIS,11}{WRONG_HPI_TYPE,9}";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - Bad HPI type TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	/*********************************************** 
-         * string2entitypath - Bad HPI instance TestCase
-         ***********************************************/
+	/************************************************** 
+         * oh_encode_entitypath - Bad HPI instance testcase
+         **************************************************/
 	test_string = "{SYSTEM_CHASSIS,1abc1}{SYSTEM_SUB_CHASSIS,9}";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - Bad HPI instance TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	/*********************************************** 
-         * string2entitypath - Extra parameters TestCase
-         ***********************************************/
+	/************************************************** 
+         * oh_encode_entitypath - Extra parameters testcase
+         **************************************************/
 	test_string = "{SYSTEM_CHASSIS,2}{SYSTEM_SUB_CHASSIS,9,2}";
+	expected_err = SA_ERR_HPI_INVALID_DATA;
 
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - Extra parameters TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	/*************************************** 
-         * string2entitypath - Too long TestCase
-         ***************************************/
-	test_string = "{SYSTEM_CHASSIS,11}{CHASSIS_BACK_PANEL_BOARD,32}{OTHER_CHASSIS_BOARD,15}{SBC_BLADE,2}{COMPACTPCI_CHASSIS,15}{ADVANCEDTCA_CHASSIS, 30}{PHYSICAL_SLOT, 14}{IO_BLADE,3}{DISK_BLADE, 0}{DISK_DRIVE, 22}{FAN,44}{POWER_DISTRIBUTION_UNIT,45}{SPEC_PROC_BLADE,1}{IO_SUBBOARD,13}{SBC_SUBBOARD, 10}{ALARM_MANAGER, 3}{ALARM_MANAGER, 15}";
-
-	err = string2entitypath(test_string, &ep);
-	if (err == 0) {
-		printf("Error! string2entitypath - Too long TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
-		return -1;
-	}
-
-	/************************************** 
-         * string2entitypath - Nominal TestCase
-         **************************************/
+	/***************************************** 
+         * oh_encode_entitypath - Nominal testcase
+         *****************************************/
 	test_string = "{SYSTEM_CHASSIS,1}{SUB_CHASSIS,2}";
 
-	err = string2entitypath(test_string, &ep);
+	err = oh_encode_entitypath(test_string, &ep);
 	if (err) {
-		printf("Error! string2entitypath - Nominal TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	err = entitypath2string(&ep, returned_string, MAX_STRING_SIZE);
-	if (err < 0) {
-		printf("Error! entitypath2string - Nominal TestCase\n");
-		printf("Error! entitypath2string returned err=%d\n", err);
-		return -1;
-	}
-
-	if (strcmp(returned_string, test_string)) {
-		printf("Error! Nominal TestCase\n");
-		printf("Error! Unexpected value=%s\n", returned_string);
-		return -1;
-	}
-
-	/*************************************** 
-         * string2entitypath - Max size TestCase
-         ***************************************/
-	test_string = "{SYSTEM_CHASSIS,11}{CHASSIS_BACK_PANEL_BOARD,32}{OTHER_CHASSIS_BOARD,15}{SBC_BLADE,2}{COMPACTPCI_CHASSIS,15}{ADVANCEDTCA_CHASSIS,30}{PHYSICAL_SLOT,14}{IO_BLADE,3}{DISK_BLADE,0}{DISK_DRIVE,22}{FAN,44}{POWER_DISTRIBUTION_UNIT,45}{SPEC_PROC_BLADE,1}{IO_SUBBOARD,13}{SBC_SUBBOARD,10}{ALARM_MANAGER,3}";
-
-	err = string2entitypath(test_string, &ep);
+	oh_init_bigtext(&bigbuf);
+	err = oh_decode_entitypath(&ep, &bigbuf);
 	if (err) {
-		printf("Error! string2entitypath - Max size TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	err = entitypath2string(&ep, returned_string, MAX_STRING_SIZE);
-	if (err < 0) {
-		printf("Error! entitypath2string - Max size TestCase\n");
-		printf("Error! entitypath2string returned err=%d\n", err);
+	if (strcmp(bigbuf.Data, test_string)) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Entity Path=%s.\n", bigbuf.Data);
 		return -1;
 	}
 
-	if (strcmp(returned_string, test_string)) {
-		printf("Error! Max size TestCase\n");
-		printf("Error! Unexpected value=%s\n", returned_string);
-		return -1;
-	}
-
-	/************************************* 
-         * string2entitypath - Blanks TestCase
-         *************************************/
+	/**************************************** 
+         * oh_encode_entitypath - Blanks testcase
+         ****************************************/
 	test_string = "  {SYSTEM_CHASSIS,  1111}  { CHASSIS_BACK_PANEL_BOARD  ,32 }  ";
 	expected_string = "{SYSTEM_CHASSIS,1111}{CHASSIS_BACK_PANEL_BOARD,32}";
 
-	err = string2entitypath(test_string, &ep);
+	err = oh_encode_entitypath(test_string, &ep);
 	if (err) {
-		printf("Error! string2entitypath - Blanks TestCase\n");
-		printf("Error! string2entitypath returned err=%d\n", err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	err = entitypath2string(&ep, returned_string, MAX_STRING_SIZE);
-	if (err < 0) {
-		printf("Error! entitypath2string - Blanks TestCase\n");
-		printf("Error! entitypath2string returned err=%d\n", err);
+	oh_init_bigtext(&bigbuf);
+	err = oh_decode_entitypath(&ep, &bigbuf);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
 	}
 
-	if (strcmp(returned_string, expected_string)) {
-		printf("Error! Blanks TestCase\n");
-		printf("Error! Unexpected value=%s\n", returned_string);
+	if (strcmp(bigbuf.Data, expected_string)) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Entity Path=%s.\n", bigbuf.Data);
 		return -1;
 	}
 
-	/*****************************
-         * entitypath2string TestCases
-         *****************************/
+	/********************************
+         * oh_decode_entitypath testcases
+         ********************************/
 	{
-
                 SaHpiEntityPathT  test_ep;
-                gchar *returned_string;
 
-                ep_init(&test_ep);
+                oh_init_ep(&test_ep);
                 test_ep.Entry[0].EntityType = SAHPI_ENT_SUB_CHASSIS;
                 test_ep.Entry[0].EntityLocation = 109;
                 test_ep.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
                 test_ep.Entry[1].EntityLocation = 112;
 
-		if (NULL == (returned_string = (g_malloc0(MAX_STRING_SIZE)))) { 
-			printf("ERROR! Test Case program cannot allocate memory\n");
-			return -1;
-		}
+		/*************************************** 
+		 * oh_decode_entitypath  - Null testcase
+		 ***************************************/
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		/************************************ 
-		 * entitypath2string  - Null TestCase
-		 ************************************/
-		err = entitypath2string(&test_ep, NULL, MAX_STRING_SIZE);
-		if (err >= 0) {
-			printf("Error! entitypath2string - Null TestCase\n");
-			printf("Error! entitypath2string returned err=%d\n", err);
+		err = oh_decode_entitypath(&test_ep, 0);
+		if (err != expected_err) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 
 		/*********************************************** 
-		 * entitypath2string  - Bad string size TestCase
+		 * oh_decode_entitypath  - Bad instance testcase
 		 ***********************************************/
-		err = entitypath2string(&test_ep, returned_string, 10);
-		if (err >= 0) {
-			printf("Error! entitypath2string - Bad string size TestCase\n");
-			printf("Error! entitypath2string returned err=%d\n", err);
-			return -1;
-		}
-
-		/******************************************** 
-		 * entitypath2string  - Bad instance TestCase
-		 ********************************************/
 		test_ep.Entry[0].EntityLocation = 1234567;
 		
-		err = entitypath2string(&test_ep, returned_string, MAX_STRING_SIZE);
-		if (err >= 0) {
-			printf("Error! entitypath2string - Bad instance TestCase\n");
-			printf("Error! entitypath2string returned err=%d\n", err);
+		expected_err = SA_ERR_HPI_INVALID_DATA;
+
+		err = oh_decode_entitypath(&test_ep, &bigbuf);
+		if (err != expected_err) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 		
 		test_ep.Entry[0].EntityLocation = 109;
 		
-		/*************************************** 
-		 * entitypath2string  - NULL EP TestCase
-		 ***************************************/
-		expected_string = "";
-		strcpy(returned_string, "123");
-		
-		err = entitypath2string(NULL, returned_string, MAX_STRING_SIZE);
-		if (err != 0) {
-			printf("Error! entitypath2string - NULL EP TestCase\n");
-			printf("Error! entitypath2string returned err=%d\n", err);
-			return -1;
-		}
-		
-		if (strcmp(returned_string, expected_string)) {
-			printf("Error! NULL EP TestCase\n");
-			printf("Error! Unexpected value=%s\n", returned_string);
-			return -1;
-		}
-
-		/*************************************** 
-		 * entitypath2string  - Nominal TestCase
-		 ***************************************/
+		/****************************************** 
+		 * oh_decode_entitypath  - Nominal testcase
+		 ******************************************/
 		expected_string = "{SYSTEM_CHASSIS,112}{SUB_CHASSIS,109}";
-		
-		err = entitypath2string(&test_ep, returned_string, MAX_STRING_SIZE);
-		if (err < 0) {
-			printf("Error! entitypath2string - Nominal TestCase\n");
-			printf("Error! entitypath2string returned err=%d\n", err);
+	
+		oh_init_bigtext(&bigbuf);
+		oh_append_bigtext(&bigbuf, test_string);
+	
+		err = oh_decode_entitypath(&test_ep, &bigbuf);
+		if (err) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 		
-		if (strcmp(returned_string, expected_string)) {
-			printf("Error! Nominal TestCase\n");
-			printf("Error! Unexpected value=%s\n", returned_string);
+		if (strcmp(bigbuf.Data, expected_string)) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received Entity Path=%s.\n", bigbuf.Data);
 			return -1;
 		}
 	}

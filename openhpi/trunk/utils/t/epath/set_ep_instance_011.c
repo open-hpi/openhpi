@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,50 +20,44 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * set_ep_instance test11.
- *   call set_ep_instance with full entity path, victim element at end
- *   expected result: only end element's instance number changed
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_set_ep_location: Full entity path, victim element at end.
+ * Only end element's instance number changed */
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep;
-        SaHpiEntityTypeT     w = SAHPI_ENT_POWER_DISTRIBUTION_UNIT;
-        SaHpiEntityLocationT x = 87654;
         unsigned int    y = 77;
         unsigned int    z = 29;
         unsigned int    i = 0;
-        int mydebug = 0;
+	SaErrorT err;
+        SaHpiEntityPathT ep;
+        SaHpiEntityTypeT     w = SAHPI_ENT_POWER_DISTRIBUTION_UNIT;
+        SaHpiEntityLocationT x = 87654;
          
-        if (mydebug) printf(" test11\n");
-        for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 ep.Entry[i].EntityType = w;
                 ep.Entry[i].EntityLocation = y;
         }
         ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType = SAHPI_ENT_REMOTE;
         ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityLocation = z;
-
-        if(set_ep_instance(&ep, SAHPI_ENT_REMOTE, x)) {
-                if (mydebug) printf("set_ep_inst test11 checkpoint 1 failed\n");
-                return 1;
+	
+	err = oh_set_ep_location(&ep, SAHPI_ENT_REMOTE, x);
+        if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
         }
-        if ( ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityLocation != x ) {
-                if (mydebug) printf("set_ep_inst test11 failed, entInst %d != %d\n",
-                                   ep.Entry[0].EntityLocation, x);
-                return 1;
+        if (ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityLocation != x) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
         if (ep.Entry[SAHPI_MAX_ENTITY_PATH-1].EntityType != SAHPI_ENT_REMOTE) {
-                if (mydebug) printf("set_ep_inst test11 failed, entType %d != SAHPI_ENT_REMOTE\n",
-                                   ep.Entry[0].EntityType);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
-        for ( i=0; i<SAHPI_MAX_ENTITY_PATH-1; i++ ) {
-                if((ep.Entry[i].EntityType != w) ||
-                   (ep.Entry[i].EntityLocation != y)) {
-                        if (mydebug) printf("set_ep_inst test11 failed at element %d\n", i);
-                        return 1;
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH-1; i++) {
+                if ((ep.Entry[i].EntityType != w) ||
+		    (ep.Entry[i].EntityLocation != y)) {
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			return -1;
                 }
         }
 

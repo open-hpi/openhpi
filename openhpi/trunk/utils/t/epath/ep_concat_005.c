@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,14 +20,10 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * ep_concat test5.
- *   concatenate two 3 element entity path and verify result
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_concat_ep: concatenate two 3 element entity path */
 int main(int argc, char **argv)
 {
+	SaErrorT err;
         SaHpiEntityPathT ep1 = {{{SAHPI_ENT_PERIPHERAL_BAY,55},
                                  {SAHPI_ENT_SYS_MGMNT_MODULE,66},
                                  {SAHPI_ENT_SYSTEM_BOARD,77},
@@ -42,16 +39,17 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_PROCESSOR_MODULE,99},
                                  {SAHPI_ENT_POWER_SUPPLY,101},
                                  {SAHPI_ENT_ROOT,0}}};
-        int mydebug = 0;
 
-        if (ep_concat(&ep1, &ep2)) {
-                if (mydebug) printf("ep_concat test5 checkpoint 1 failed\n");
-                return 1;
+	err = oh_concat_ep(&ep1, &ep2);
+        if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
         }
-        if (ep_cmp(&ep1, &ep3)) {
-                if (mydebug) printf("ep_concat test5 checkpoint 2 failed\n");
-                return 1;
+        if (!oh_cmp_ep(&ep1, &ep3)) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
-        if (mydebug) printf("ep_concat test5 OK\n");
+
         return 0;
 }

@@ -1072,10 +1072,10 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	}
 
 	/* Find top-level chassis entity path */
-        ep_init(&ep);
-	ep_init(&ep_root);
+        oh_init_ep(&ep);
+	oh_init_ep(&ep_root);
 	root_tuple = (gchar *)g_hash_table_lookup(handle->config, "entity_root");
-        string2entitypath(root_tuple, &ep_root);
+        oh_encode_entitypath(root_tuple, &ep_root);
         
         /* Assume chassis location/type unless another resource type is discovered */
 	loc = ep_root.Entry[0].EntityLocation;
@@ -1127,17 +1127,17 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	g_strfreev(src_parts);
 
 	/* Find rest of Entity Path and calculate the RID */
-	err = ep_concat(&ep, &snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity);
+	err = oh_concat_ep(&ep, &snmp_bc_rpt_array[rpt_index].rpt.ResourceEntity);
 	if (err) {
 		dbg("Cannot concat Entity Path. Error=%s.", oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
-	err = ep_concat(&ep, &ep_root);
+	err = oh_concat_ep(&ep, &ep_root);
 	if (err) {
 		dbg("Cannot concat Entity Path. Error=%s.", oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
-	err = set_ep_instance(&ep, entity_type, loc);
+	err = oh_set_ep_location(&ep, entity_type, loc);
 	if (err) {
 		dbg("Cannot set location. Type=%s; Location=%d; Error=%s.",
 		    oh_lookup_entitytype(entity_type), loc, oh_lookup_error(err));
@@ -1146,7 +1146,7 @@ static SaErrorT snmp_bc_logsrc2rid(struct oh_handler_state *handle,
 	
 	/* Special case - if Expansion Card set location of parent blade as well */
 	if (isexpansioncard == SAHPI_TRUE) {
-		err = set_ep_instance(&ep, SAHPI_ENT_SBC_BLADE, loc);
+		err = oh_set_ep_location(&ep, SAHPI_ENT_SBC_BLADE, loc);
 		if (err) {
 			dbg("Cannot set location. Type=%s; Location=%d; Error=%s.",
 			    oh_lookup_entitytype(SAHPI_ENT_SBC_BLADE), loc, oh_lookup_error(err));  

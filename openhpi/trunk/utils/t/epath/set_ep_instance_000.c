@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Renier Morales <renierm@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -18,18 +19,19 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * main: set_ep_instance test.
- *
- * Make the call with NULL as the first parameter.
- * Should get a return of -1 from the call exiting gracefully.
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_set_ep_location test: NULL first parameter testcase. */
 int main(int argc, char **argv)
 {
-        if(!set_ep_instance(NULL, SAHPI_ENT_ROOT, 5))
-                return 1;
+	SaErrorT err, expected_err;
+
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	err = oh_set_ep_location(NULL, SAHPI_ENT_ROOT, 5);
+
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
 
         return 0;
 }

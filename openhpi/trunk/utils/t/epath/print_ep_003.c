@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,27 +20,24 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * print_ep test3
- *          call print_ep with multi-element entity path and expect inspect result
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_print_ep: Multi-element entity path testcase. */
 int main(int argc, char **argv)
 {
+	int offsets = 0;
+	SaErrorT err;
         SaHpiEntityPathT ep = {{{SAHPI_ENT_FAN,4},
                                 {SAHPI_ENT_SBC_BLADE,3},
                                 {SAHPI_ENT_RACK,2},
                                 {SAHPI_ENT_ROOT,1},
                                 {0}}};
-        int mydebug = 0;
 
-        if (print_ep(&ep) == 0) {
-                if (mydebug) printf ("print_ep test3 printed\n"); 
-                return 0;
-        }    
-        else {
-                if (mydebug) printf ("print_ep test3 failed\n");
-                return 1;
-        }    
+	printf("Good multi-element testcase\n");
+	err = oh_print_ep(&ep, offsets);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
 
+	return 0;
 }

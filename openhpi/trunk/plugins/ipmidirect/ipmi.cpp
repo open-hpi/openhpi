@@ -1212,10 +1212,7 @@ cIpmi::AddHpiEvent( oh_event *event )
 	    {
 	      SaHpiRptEntryT *entry = &event->u.res_event.entry;
 	      stdlog << "resource: " << entry->ResourceId << " ";
-
-	      char tmp_epath[128];
-	      entitypath2string( &entry->ResourceEntity, tmp_epath, sizeof( tmp_epath ) );
-	      printf( "\t%s\n", tmp_epath );
+	      oh_print_ep( &entry->ResourceEntity, 4 );
 	    }
 
 	    break;
@@ -1226,10 +1223,8 @@ cIpmi::AddHpiEvent( oh_event *event )
 	      SaHpiRptEntryT *entry = oh_get_resource_by_id( GetHandler()->rptcache,
 							     event->u.res_del_event.resource_id );
 	      assert( entry );
-
-	      char tmp_epath[128];
-	      entitypath2string( &entry->ResourceEntity, tmp_epath, sizeof( tmp_epath ) );
-	      printf("\t%s\n", tmp_epath);
+	      
+	      oh_print_ep( &entry->ResourceEntity, 4);
 	    }
 
 	    break;

@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,33 +20,27 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * set_ep_instance test2.
- *   call set_ep_instance with entity path that has 1 element
- *   expected result: instance number changed
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_set_ep_location: Entity path that has 1 element testcase. */
 int main(int argc, char **argv)
 {
+	SaErrorT err;
         SaHpiEntityPathT ep = {{{SAHPI_ENT_OTHER, 1},{0}}};
         SaHpiEntityLocationT x = 5;
-        int mydebug = 0;
          
-        if (mydebug) printf(" test2\n");
-        if(set_ep_instance(&ep, SAHPI_ENT_OTHER, x)) {
-                if (mydebug) printf("set_ep_inst test2 checkpoint 1 failed\n");
-                return 1;
-        }
+        err = oh_set_ep_location(&ep, SAHPI_ENT_OTHER, x);
+        if (err) {
+ 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
         if (ep.Entry[0].EntityLocation != x) {
-                if (mydebug) printf("set_ep_inst test2 failed, entInst %d != %d\n",
-                                   ep.Entry[0].EntityLocation, x);
-                return 1;
-        }
+ 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
+	}
         if (ep.Entry[0].EntityType != SAHPI_ENT_OTHER) {
-                if (mydebug) printf("set_ep_inst test2 failed, entType %d != SAHPI_ENT_OTHER\n",
-                                   ep.Entry[0].EntityType);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
+
         return 0;
 }

@@ -150,7 +150,7 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 	}
 	
 	/* Split out event definitions */
-	gstr = g_strstrip(g_strdup(buffer->Data));
+	gstr = g_strstrip(g_strdup((gchar *)buffer->Data));
 	if (gstr == NULL || gstr[0] == '\0') {
 		dbg("g_strstrip failed");
 		rtncode = SA_ERR_HPI_INTERNAL_ERROR;

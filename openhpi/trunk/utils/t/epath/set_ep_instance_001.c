@@ -9,8 +9,8 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
- *     Chris Chia <cchia@users.sf.net>
+ * Author(s):
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,33 +19,28 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * set_ep_instance test1
- *   call set_ep_instance with zero entry entity path
- *   expected result: set_ep_instance call should fail
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_set_ep_location: Zero entry entity path testcase.
+ * Call should be ok but not change anything. */
 int main(int argc, char **argv)
-{
+{	
+	SaErrorT err;
         SaHpiEntityPathT ep = {{{0,0}}};
         SaHpiEntityLocationT x = 3;
-        int mydebug = 0;
-         
-        if (mydebug) printf(" test1\n");
-        if(set_ep_instance(&ep, SAHPI_ENT_BACK_PANEL_BOARD, x) == 0) {
-                if (mydebug) printf("set_ep_inst test1 checkpoint 1 failed\n");
-                return 1;
+
+	err = oh_set_ep_location(&ep, SAHPI_ENT_BACK_PANEL_BOARD, x);
+        if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
         }
         if (ep.Entry[0].EntityLocation != 0) {
-                if (mydebug) printf("set_ep_inst test1 failed, entInst %d != 0\n",
-                                   ep.Entry[0].EntityLocation);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
         if (ep.Entry[0].EntityType != 0) {
-                if (mydebug) printf("set_ep_inst test1 failed, entType %d != 0\n",
-                                   ep.Entry[0].EntityType);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
+
         return 0;
 }

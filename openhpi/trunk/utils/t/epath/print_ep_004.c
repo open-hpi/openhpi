@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,31 +20,29 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * print_ep test4
- *          call print_ep with multi-element entity path and expect inspect result
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_print_ep: Multi-element numeric entity path testcase. */
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep = {{{SAHPI_ENT_FAN,8},
-                                {SAHPI_ENT_DEVICE_BAY,7},
-                                {SAHPI_ENT_SYSTEM_BUS,6},
-                                {SAHPI_ENT_SBC_BLADE,5},
-                                {SAHPI_ENT_PHYSICAL_SLOT,4},
-                                {SAHPI_ENT_COMPACTPCI_CHASSIS,3},
-                                {SAHPI_ENT_SUBRACK,2},
-                                {SAHPI_ENT_RACK,1},
+	int offsets = 1;
+	SaErrorT err;
+        SaHpiEntityPathT ep = {{{210,8},
+                                {211,7},
+                                {212,6},
+                                {213,5},
+                                {214,4},
+                                {215,3},
+                                {216,2},
+                                {255,1},
+				{SAHPI_ENT_ROOT,1},
                                 {0}}};
-        int mydebug = 0;
 
-        if (print_ep(&ep) == 0) {
-                if (mydebug) printf ("print_ep test4 printed\n"); 
-                return 0;
-        }    
-        else {
-                if (mydebug) printf ("print_ep test4 failed\n");
-                return 1;
-        }    
+	printf("Good multi-element numeric testcase. Offset\n");
+	err = oh_print_ep(&ep, offsets);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
 
+	return 0;
 }

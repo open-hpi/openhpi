@@ -220,7 +220,7 @@ static void process_global_param(const char *name, char *value)
 {
         if (!strcmp("OPENHPI_ON_EP", name)) {
                 g_static_rec_mutex_lock(&global_params.lock);
-                string2entitypath(value, &global_params.on_ep);
+                oh_encode_entitypath(value, &global_params.on_ep);
                 g_static_rec_mutex_unlock(&global_params.lock);
         } else if (!strcmp("OPENHPI_LOG_ON_SEV", name)) {
                 SaHpiTextBufferT buffer;

@@ -26,11 +26,6 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-static inline SaErrorT oh_init_bigtext(oh_big_textbuffer *big_buffer);
-static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from);
-static inline SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from);
-
-static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets);
 static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorRecT *sensor, int offsets);
 static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer, const SaHpiSensorDataFormatT *format, int offsets);
 static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer, const SaHpiSensorThdDefnT *tdef, int offsets);
@@ -130,10 +125,10 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 				 SaHpiSensorDataFormatT format,
 				 SaHpiTextBufferT *buffer)
 {
+        char text[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	SaErrorT err;
 	SaHpiTextBufferT working;
-        char text[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-	char str[SAHPI_SENSOR_BUFFER_LENGTH + 1];
+	SaHpiUint8T str[SAHPI_SENSOR_BUFFER_LENGTH + 1];
 
 	if (!buffer) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -185,7 +180,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 	else {
 		/* Add units */
 		if (format.BaseUnits != SAHPI_SU_UNSPECIFIED) {
-			const char *str;
+			SaHpiUint8T *str;
 
 			err = oh_append_textbuffer(&working, " ");
 			if (err) { return(err); }
@@ -198,7 +193,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 		/* Add modifier units, if appropriate */
 		if (format.BaseUnits != SAHPI_SU_UNSPECIFIED && 
 		    format.ModifierUse != SAHPI_SMUU_NONE) {
-			const char *str;
+			SaHpiUint8T *str;
 
 			switch(format.ModifierUse) {
 			case SAHPI_SMUU_BASIC_OVER_MODIFIER:
@@ -261,13 +256,13 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				 SaHpiSensorReadingTypeT type,
 				 SaHpiSensorReadingT *reading)
 {
-        char  numstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	char *endptr;
         int   i, j, skip;
 	int   found_sign, found_number, found_float, in_number;
 	int   is_percent = 0;
         SaHpiFloat64T num_float64 = 0.0;
         SaHpiInt64T   num_int64 = 0;
+        SaHpiUint8T   numstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         SaHpiUint64T  num_uint64 = 0;
 	SaHpiSensorReadingT working;
 
@@ -296,7 +291,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 	 */
 	
 	/* Skip any characters before an '=' sign */
-	char *skipstr = strchr(buffer->Data, '=');
+	SaHpiUint8T *skipstr = strchr(buffer->Data, '=');
 	if (skipstr) skip = (long int)skipstr - (long int)(buffer->Data) + 1;
 	else skip = 0;
 
@@ -514,7 +509,7 @@ SaErrorT oh_init_textbuffer(SaHpiTextBufferT *buffer)
         return(SA_OK);
 }
 
-static inline SaErrorT oh_init_bigtext(oh_big_textbuffer *big_buffer)
+SaErrorT oh_init_bigtext(oh_big_textbuffer *big_buffer)
 {
 	if (!big_buffer) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -551,7 +546,7 @@ SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from
         return(SA_OK);
 }
 
-static inline SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from)
+SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from)
 {
 	if (!dest || !from) {
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -600,7 +595,7 @@ SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from)
         return(SA_OK);
 }
 
-static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
+SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from)
 {
         SaHpiUint8T *p;
 	uint size;
@@ -661,7 +656,7 @@ static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpi
 }
 
 /* Append an arbitrary number of fixed offset strings to a big text buffer */
-static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
+SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
 {
 	int i;
 	
@@ -1470,8 +1465,13 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int of
 	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path: ");
 	oh_append_bigtext(&mybuf, str);
-        entitypath2string(&rptentry->ResourceEntity, str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-	oh_append_bigtext(&mybuf, str);
+	{
+		oh_big_textbuffer tmpbuf;
+		
+		oh_init_bigtext(&tmpbuf);
+		oh_decode_entitypath(&rptentry->ResourceEntity, &tmpbuf);
+		oh_append_bigtext(&mybuf, tmpbuf.Data);
+	}
 	oh_append_bigtext(&mybuf, "\n");
 
 	oh_append_offset(&mybuf, offsets);
@@ -1537,8 +1537,13 @@ SaErrorT oh_fprint_rdr(FILE *stream, const SaHpiRdrT *thisrdr, int offsets)
 	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path: ");
 	oh_append_bigtext(&mybuf, str);
-        entitypath2string(&thisrdr->Entity, str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-	oh_append_bigtext(&mybuf, str);
+	{
+		oh_big_textbuffer tmpbuf;
+		
+		oh_init_bigtext(&tmpbuf);
+		oh_decode_entitypath(&thisrdr->Entity, &tmpbuf);
+		oh_append_bigtext(&mybuf, tmpbuf.Data);
+	}
 	oh_append_bigtext(&mybuf, "\n");
 	
 	oh_append_offset(&mybuf, offsets);

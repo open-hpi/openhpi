@@ -29,7 +29,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	struct ohoi_handler *ipmi_handler = cb_data;
 
 	dbg("entity_root: %s", ipmi_handler->entity_root);
-	string2entitypath(ipmi_handler->entity_root, &mc_ep);
+	oh_encode_entitypath(ipmi_handler->entity_root, &mc_ep);
 
         snprintf(mc_name, sizeof(mc_name),
                  "Management Controller(%x, %x)",
@@ -75,7 +75,7 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	entry->ResourceTag.DataLength = strlen(mc_name); 
 	memcpy(entry->ResourceTag.Data, mc_name, strlen(mc_name)+1);
 
-	ep_concat(&entry->ResourceEntity, &mc_ep);
+	oh_concat_ep(&entry->ResourceEntity, &mc_ep);
         
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);
 	dbg("MC ResourceId: %d", (int)entry->ResourceId);

@@ -303,7 +303,7 @@ foreach my $gc (keys %global_category) {
 			     $global_category{$gc}->{$b}->{value}} keys %{$global_category{$gc}}) {
 	$max_global_events++;
 	if ($debug) { print("CAT=$gc; EVENT=$gevt; STR=$global_category{$gc}->{$gevt}->{string}\n"); }
-	print FILE_X "{SAHPI_EC_UNSPECIFIED, $gevt, \"$global_category{$gc}->{$gevt}->{string}\"},\n";
+	print FILE_X "{SAHPI_EC_UNSPECIFIED, $gevt, (SaHpiUint8T *)\"$global_category{$gc}->{$gevt}->{string}\"},\n";
 	if ($tdir) { 
 	    print_xtestfile_case($gevt, "SAHPI_EC_UNSPECIFIED", $global_category{$gc}->{$gevt}->{string});
 	}
@@ -321,7 +321,7 @@ foreach my $c (keys %category) {
 			    $category{$c}->{$b}->{value}} keys %{$category{$c}}) {
         $max_events++;
 	if ($debug) { print("CAT=$c; EVENT=$evt; STR=$category{$c}->{$evt}->{string}\n"); }
-	print FILE_X "{$c, $evt, \"$category{$c}->{$evt}->{string}\"},\n";
+	print FILE_X "{$c, $evt, (SaHpiUint8T *)\"$category{$c}->{$evt}->{string}\"},\n";
 	if ($tdir) { 
 	    print_xtestfile_case($evt, $c, $category{$c}->{$evt}->{string});
 	}
@@ -608,7 +608,7 @@ sub print_xhfile_header {
 typedef struct {
     SaHpiEventCategoryT category;
     SaHpiEventStateT state;
-    unsigned char *str;
+    SaHpiUint8T *str;
 } oh_categorystate_map;
 
 EOF
@@ -631,8 +631,8 @@ sub print_testfile_header {
 
 int main(int argc, char **argv) 
 {
-        const char *expected_str;
-        const char *str;
+        SaHpiUint8T *expected_str;
+        SaHpiUint8T *str;
 
 EOF
     return 0;
@@ -652,7 +652,7 @@ sub print_xtestfile_header {
 
 int main(int argc, char **argv) 
 {
-        const char *expected_str;
+        SaHpiUint8T *expected_str;
         SaErrorT err;
         SaHpiEventStateT event_state, expected_state;
         SaHpiEventCategoryT event_cat, expected_cat;
@@ -694,10 +694,10 @@ sub print_hfile_func($$) {
 #define $max_name $max 
 struct $map_name {
   $type  entity_type;
-  unsigned char *str;
+  SaHpiUint8T *str;
 } $array_name;
 
-const char * $lookup_name($type value);
+SaHpiUint8T * $lookup_name($type value);
 SaErrorT $encode_name(SaHpiTextBufferT *buffer, $type *type);
 
 EOF
@@ -725,7 +725,8 @@ sub print_cfile_func($) {
  * string - normal operation.
  * NULL - if \@value not a valid $type.
  **/
-const char * $lookup_name($type value)
+
+SaHpiUint8T * $lookup_name($type value)
 {
         switch (value) {
 EOF
@@ -800,7 +801,7 @@ sub print_cfile_case($$) {
 
     print FILE_C <<EOF;
         case $case:
-                return \"$casestr\";
+                return (SaHpiUint8T *)\"$casestr\";
 EOF
 
     return 0;
@@ -831,7 +832,7 @@ sub print_cfile_encode_array($$) {
     my $casestr = beautify_enum_name($type, $case);
 
     print FILE_C <<EOF;
-       {$case, \"$casestr\"},
+       {$case, (SaHpiUint8T *)\"$casestr\"},
 EOF
 
     return 0;

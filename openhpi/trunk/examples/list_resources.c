@@ -91,7 +91,6 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
         warn("Scanning RPT...");
         next = SAHPI_FIRST_ENTRY;
         do {
-                char tmp_epath[128];
                 current = next;
                 err = saHpiRptEntryGet(session_id, current, &next, &entry);
                 if (SA_OK != err) {
@@ -120,10 +119,8 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                 printf("Severity: %s\n",severity2str(entry.ResourceSeverity));
                 
                 rpt_cap2str(entry.ResourceCapabilities);
-                                
-                printf("Entity Path:\n");
-                entitypath2string(&entry.ResourceEntity, tmp_epath, sizeof(tmp_epath));
-                printf("\t%s\n", tmp_epath);
+
+		oh_print_ep(&entry.ResourceEntity, 0);
                 printf("\tResourceTag: ");
                        display_textbuffer(entry.ResourceTag);
 
@@ -161,7 +158,6 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
         printf("RDR Info:\n");
         next_rdr = SAHPI_FIRST_ENTRY;
         do {
-                char tmp_epath[128];
                 current_rdr = next_rdr;
                 err = saHpiRdrGet(session_id, resource_id, current_rdr, 
                                   &next_rdr, &rdr);
@@ -354,9 +350,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 #endif
                 }
 
-                printf("\tEntity: \n");
-                entitypath2string(&rdr.Entity, tmp_epath, sizeof(tmp_epath));
-                printf("\t\t%s\n", tmp_epath);
+                oh_print_ep(&rdr.Entity, 4);
                 printf("\tIdString: ");
                 display_textbuffer(rdr.IdString);
                 printf("\n"); /* Produce blank line between rdrs. */
@@ -478,8 +472,8 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 if ( rv != SA_OK )
                 printf("\t\t\tSource:               unknown\n" );
                 else {
-                        entitypath2string( &rres.ResourceEntity, str, sizeof(str));
-                printf("\t\t\tSource:               %s\n", str );
+			printf("\t\t\t");
+			oh_print_ep(&rres.ResourceEntity, 0);
                 }
 
                 printf("\t\t\tEventType:            %s\n", eventtype2str(entry.Event.EventType));

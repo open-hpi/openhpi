@@ -33,14 +33,14 @@ int main(int argc, char **argv)
 	if (oh_uid_initialize())
 		return 1;
 	
-	ep_init(&ep);
+	oh_init_ep(&ep);
 
 	id = oh_uid_from_entity_path(&ep);
 
 	if (oh_entity_path_lookup(&id, &rep))
 		return 1;
 	
-	if (ep_cmp(&ep, &rep))
+	if (!oh_cmp_ep(&ep, &rep))
 		return 1;
 
 	return 0;

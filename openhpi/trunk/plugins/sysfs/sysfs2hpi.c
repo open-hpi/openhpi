@@ -89,7 +89,7 @@ static void *sysfs2hpi_open(GHashTable *handler_config)
                 dbg("no entity root present");
 		return NULL;
         }
-        string2entitypath(er, &g_epbase);
+        oh_encode_entitypath(er, &g_epbase);
 
         hnd = malloc(sizeof(*hnd));
         if (!hnd) {
@@ -301,7 +301,7 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 	e->u.rdr_event.rdr.Entity.Entry[0].EntityLocation = g_num_resources;
 	e->u.rdr_event.rdr.Entity.Entry[1].EntityType = SAHPI_ENT_OTHER_SYSTEM_BOARD;
 	e->u.rdr_event.rdr.Entity.Entry[1].EntityLocation = 0; /* 0 b/c only 1 board */
-        ep_concat( &e->u.rdr_event.rdr.Entity, &g_epbase);
+        oh_concat_ep( &e->u.rdr_event.rdr.Entity, &g_epbase);
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num_sensors;
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Type = type;
 
@@ -516,7 +516,7 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
 	}
 	memset(e, '\0', sizeof(struct oh_event));
 	e->type = OH_ET_RESOURCE;
-        ep_concat( &(r->path), &g_epbase);
+        oh_concat_ep( &(r->path), &g_epbase);
 	e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&(r->path));
 	e->u.res_event.entry.EntryId = e->u.res_event.entry.ResourceId; /* EntryId = ResourceId */
 	/* Note:  .res_event.entry.ResourceInfo currently unassigned */

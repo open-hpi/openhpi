@@ -268,18 +268,16 @@ static
 SaErrorT list_rpt(SaHpiRptEntryT *rptptr,SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv = SA_OK;
-	SaHpiTextBufferT working;		
-	oh_init_textbuffer(&working);																		
 
 	if ((resourceid == all_resources) ||
 		(resourceid == rptptr->ResourceId)) {
 
 		/* Always print resource header */
-		entitypath2string(&rptptr->ResourceEntity, working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-		printf("\n+%s\n",working.Data);
+		printf("\n");
+		oh_print_ep(&rptptr->ResourceEntity, 1);
 		
 		if (!f_listall && !f_rpt) 
-		printf(" Tag: %s, ResourceId %d\n\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
+		printf("  Tag: %s, ResourceId %d\n\n",rptptr->ResourceTag.Data, rptptr->ResourceId);
 
 
 		/* Print details when asked */

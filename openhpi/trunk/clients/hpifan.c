@@ -228,11 +228,7 @@ discover_domain( SaHpiSessionIdT session_id )
                                 continue;
 
                         if ( epath_out ) {
-                                char tmp_epath[128];
-                                entitypath2string( &entry.ResourceEntity, tmp_epath,
-                                                   sizeof( tmp_epath ) );
-
-                                printf("resource: %s\n", tmp_epath );
+				oh_print_ep(&entry.ResourceEntity, 0);
                                 epath_out = 0;
                         }
 

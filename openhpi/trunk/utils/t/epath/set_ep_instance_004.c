@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,56 +20,45 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * set_ep_instance test4.
- *   call set_ep_instance with entity path that has 3 elements
- *   expected result: only one element's instance number changed
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_set_ep_location: Entity path that has 3 elements testcase */
 int main(int argc, char **argv)
 {
+	SaErrorT err;
         SaHpiEntityPathT ep = {{{SAHPI_ENT_GROUP, 11},
                                 {SAHPI_ENT_REMOTE, 12},
                                 {SAHPI_ENT_FAN, 13},
                                 {0}}};
         SaHpiEntityLocationT x = 99999;
-        int mydebug = 0;
-         
-        if (mydebug) printf(" test4\n");
-        if(set_ep_instance(&ep, SAHPI_ENT_FAN, x)) {
-                if (mydebug) printf("set_ep_inst test4 checkpoint 1 failed\n");
-                return 1;
+
+	err = oh_set_ep_location(&ep, SAHPI_ENT_FAN, x);
+        if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
         }
         if (ep.Entry[2].EntityLocation != x) {
-                if (mydebug) printf("set_ep_inst test failed, entInst %d != %d\n",
-                                   ep.Entry[2].EntityLocation, x);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
         if (ep.Entry[2].EntityType != SAHPI_ENT_FAN) {
-                if (mydebug) printf("set_ep_inst test4 failed, entType %d != SAHPI_ENT_FAN\n",
-                                   ep.Entry[2].EntityType);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
         if (ep.Entry[0].EntityLocation != 11) {
-                if (mydebug) printf("set_ep_inst test4 failed, entInst %d != 11\n",
-                                   ep.Entry[0].EntityLocation);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
         if (ep.Entry[0].EntityType != SAHPI_ENT_GROUP) {
-                if (mydebug) printf("set_ep_inst test4 failed, entType %d != SAHPI_ENT_GROUP\n",
-                                   ep.Entry[0].EntityType);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
         if (ep.Entry[1].EntityLocation != 12) {
-                if (mydebug) printf("set_ep_inst test4 failed, entInst %d != 12\n",
-                                   ep.Entry[1].EntityLocation);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
         if (ep.Entry[1].EntityType != SAHPI_ENT_REMOTE) {
-                if (mydebug) printf("set_ep_inst test4 failed, entType %d! = SAHPI_ENT_REMOTE\n",
-                                   ep.Entry[1].EntityType);
-                return 1;
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
 
         return 0;

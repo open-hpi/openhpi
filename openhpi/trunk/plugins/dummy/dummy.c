@@ -826,14 +826,12 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
         char *entity_root;
 
         entity_root = (char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
-
-        string2entitypath(entity_root, &root_ep);
-
+	oh_encode_entitypath(entity_root, &root_ep);
         /* append entity root to resource entity paths */
         for (i=0; i < NUM_RESOURCES; i++) {
                 memcpy(&res, &dummy_resources[i], sizeof(SaHpiRptEntryT));
 
-                ep_concat( &res.ResourceEntity, &root_ep);
+                oh_concat_ep( &res.ResourceEntity, &root_ep);
 
                 res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 
@@ -853,7 +851,7 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
         for (i=0; i < NUM_RDRS; i++) {
                 memcpy(&res_rdr, &dummy_rdrs[i], sizeof(SaHpiRdrT));
 
-                ep_concat( &res_rdr.Entity, &root_ep);
+                oh_concat_ep( &res_rdr.Entity, &root_ep);
 
                 id = oh_uid_lookup(&res_rdr.Entity);
 
