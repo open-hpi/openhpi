@@ -99,7 +99,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
         warn("Scanning RPT...");
         next = SAHPI_FIRST_ENTRY;
         do {
-                char tmp_epath[80];
+                char tmp_epath[128];
                 current = next;
                 err = saHpiRptEntryGet(session_id, current, &next, &entry);
                 if (SA_OK != err) {
@@ -310,7 +310,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
         printf("RDR Info:\n");
         next_rdr = SAHPI_FIRST_ENTRY;
         do {
-                char tmp_epath[80];
+                char tmp_epath[128];
                 current_rdr = next_rdr;
                 err = saHpiRdrGet(session_id, resource_id, current_rdr, 
                                 &next_rdr, &rdr);
