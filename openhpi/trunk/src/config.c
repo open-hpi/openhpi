@@ -290,7 +290,7 @@ int process_handler_token (GScanner* oh_scanner)
 {
         GHashTable *handler_stanza = NULL;
         char *tablekey;
-        int foundRightCurly = 0;
+        int found_right_curly = 0;
 
         
         if (g_scanner_get_next_token(oh_scanner) != HPI_CONF_TOKEN_HANDLER) {
@@ -316,7 +316,7 @@ int process_handler_token (GScanner* oh_scanner)
                 goto free_table;
         }
 
-        while(!foundRightCurly) {
+        while(!found_right_curly) {
                 /* get key token in key\value pair set (e.g. key = value) */
                 if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
                         dbg("Processing handler: Expected string token.");
@@ -328,27 +328,51 @@ int process_handler_token (GScanner* oh_scanner)
                 /* Check for the equal sign next. If we have it, continue parsing */
                 if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_EQUAL_SIGN) {
                         dbg("Processing handler: Expected equal sign token.");
-                        free(tablekey);
-                        goto free_table;
+                        goto free_table_and_key;
                 }
 
                 /**
                 Now check for the value token in the key\value set. Store the key\value value pair
                 in the hash table and continue on.
                 */
-                if (g_scanner_get_next_token(oh_scanner) != G_TOKEN_STRING) {
-                        dbg("Processing handler: Expected string token.");
-                        free(tablekey);
-                        goto free_table;
-                } else {
+                if (g_scanner_peek_next_token(oh_scanner) != G_TOKEN_INT &&
+                    g_scanner_peek_next_token(oh_scanner) != G_TOKEN_FLOAT &&
+                    g_scanner_peek_next_token(oh_scanner) != G_TOKEN_STRING) {
+                        dbg("Processing handler: Expected string, integer, or float token.");
+                        goto free_table_and_key;
+                } else { /* The type of token tells us how to fetch the value from oh_scanner */
+                        gulong *value_int;
+                        gdouble *value_float;
+                        gchar *value_string;
+                        gpointer value;
+                        int current_token = g_scanner_get_next_token(oh_scanner);
+
+                        if (current_token == G_TOKEN_INT) { /* For int andfloat */
+                                value_int = (gulong *)g_malloc(sizeof(gulong));
+                                if (value_int != NULL) *value_int = oh_scanner->value.v_int;
+                                value = (gpointer)value_int;                                
+                        } else if (current_token == G_TOKEN_FLOAT) {
+                                value_float = (gdouble *)g_malloc(sizeof(gdouble));
+                                if (value_float != NULL) *value_float = oh_scanner->value.v_float;
+                                value = (gpointer)value_float;
+                        } else {
+                                value_string = g_strdup(oh_scanner->value.v_string);
+                                value = (gpointer)value_string;
+                        }                        
+                        
+                        if (value == NULL) {
+                                dbg("Processing handler: Unable to allocate memory for value. Token Type: %d",
+                                        current_token);
+                                goto free_table_and_key;
+                        }
                         g_hash_table_insert(handler_stanza,
                                     (gpointer) g_strdup(tablekey),
-                                    (gpointer) g_strdup(oh_scanner->value.v_string));
-                                    free(tablekey);
+                                    value);
+                        free(tablekey);
                 }
 
                 if (g_scanner_peek_next_token(oh_scanner) == G_TOKEN_RIGHT_CURLY) {
-                        foundRightCurly = 1;
+                        found_right_curly = 1;
                 }
         }
 
@@ -361,6 +385,8 @@ int process_handler_token (GScanner* oh_scanner)
         
         return 0;
 
+free_table_and_key:
+        free(tablekey);
 free_table:
         /**
         There was an error reading a token so we need to error out,
@@ -379,8 +405,8 @@ for the key and value arguments it receives.
 */
 void free_hash_table (gpointer key, gpointer value, gpointer user_data)
 {
-        free(key);
-        free(value);
+        g_free(key);
+        g_free(value);
 }
 
 static void scanner_msg_handler (GScanner		*scanner,
