@@ -271,7 +271,7 @@ SaHpiVersionT SAHPI_API dOpenHpiClientFunction(VersionGet)
 
         DeleteConnx(pinst);
 	if (mr < 0)
-		return SA_ERR_HPI_INVALID_PARAMS;
+		err = 0;
 
 	return err;
 }
@@ -318,9 +318,12 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 		free(request);
 	if (err != SA_OK) {
 		DeleteConnx(pinst);
+                return err;
         }
-	if (mr < 0)
+	if (mr < 0) {
+                DeleteConnx(pinst);
 		return SA_ERR_HPI_INVALID_PARAMS;
+        }
         InsertConnx(*SessionId, pinst);
 
 	return err;
