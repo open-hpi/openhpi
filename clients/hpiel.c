@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 
 #include <SaHpi.h>
+#include <oh_utils.h>
 
 static void ShowSel(SaHpiEventLogEntryT *sel, SaHpiRdrT *rdr, SaHpiRptEntryT *rptentry);
 
@@ -343,7 +344,7 @@ static void ShowSel( SaHpiEventLogEntryT  *sel, SaHpiRdrT *rdr,
 			
 			oh_decode_time(sel->Timestamp, &text);
                         printf("\tTimestamp: ");
-			oh_print_textbuffer(&text);
+			oh_print_text(&text);
 			printf("\n");
 			
                         printf("\tSeverity: %d\n", sel->Event.Severity);
