@@ -537,9 +537,9 @@ static const cMarshalType *saHpiEntityInventoryDataReadIn[] =
 
 static const cMarshalType *saHpiEntityInventoryDataReadOut[] =
 {
-  &SaErrorType, // result (SaErrorT)
-  &SaHpiInventoryDataType,
-  &SaHpiUint32Type,
+  &SaErrorType,            // result (SaErrorT)
+  &SaHpiUint32Type,        // actual size
+  &SaHpiInventoryDataType, // inventory data
   0
 };
 
