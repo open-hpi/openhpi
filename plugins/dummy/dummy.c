@@ -1505,7 +1505,7 @@ static int dummy_get_control_state(void *hnd, SaHpiResourceIdT id,
 
 static int dummy_set_control_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
-                                   SaHpiCtrlModeT *mode,
+                                   SaHpiCtrlModeT mode,
 				   SaHpiCtrlStateT *state)
 {
         dbg("TODO: dummy_set_control_state(), need to set control based on id");
