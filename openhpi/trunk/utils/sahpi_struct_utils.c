@@ -140,7 +140,12 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
                 return(SA_ERR_HPI_INVALID_CMD);
         }
         if (reading.Type != format.ReadingType) {
-                return(SA_ERR_HPI_INVALID_DATA);
+		
+		/* Check for special case */
+		if (!( (reading.Type == SAHPI_SENSOR_READING_TYPE_BUFFER) && 
+		    ((strncmp(reading.Value.SensorBuffer,"(No temperature)", sizeof("(No temperature)")) == 0) ||
+		    			(strncmp(buffer->Data,"Not Readable!", sizeof("Not Readable!")) == 0)) ))
+                	return(SA_ERR_HPI_INVALID_DATA);
         }
 	
 	oh_init_textbuffer(&working);
@@ -274,10 +279,21 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 	}
 
         if (type == SAHPI_SENSOR_READING_TYPE_BUFFER) {
+		reading->IsSupported = SAHPI_TRUE;
+		reading->Type = type;
 		strncpy(reading->Value.SensorBuffer, buffer->Data, SAHPI_SENSOR_BUFFER_LENGTH);
 		return(SA_OK);
         }
 
+	if ((strncmp(buffer->Data,"(No temperature)", sizeof("(No temperature)")) == 0) ||
+		(strncmp(buffer->Data,"Not Readable!", sizeof("Not Readable!")) == 0))					 
+	{
+		reading->IsSupported = SAHPI_TRUE;
+		reading->Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
+		strncpy(reading->Value.SensorBuffer, buffer->Data, SAHPI_SENSOR_BUFFER_LENGTH);
+		return(SA_OK);	
+	}
+	
 	memset(numstr, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         memset(&working, 0, sizeof(SaHpiSensorReadingT));
 	working.IsSupported = SAHPI_TRUE;
