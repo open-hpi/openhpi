@@ -848,7 +848,7 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
                 /* save the resource id for tracking resource status */
                 dummy_resource_status[i].ResourceId = res.ResourceId;
 
-		printf("oh_add_resource succeeded for RESOURCE %d\n", i);
+		trace("oh_add_resource succeeded for RESOURCE %d\n", i);
 
         }
         /* append entity root to rdrs entity paths */
@@ -870,7 +870,7 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 			return -1;
                 }
 
-		printf("oh_add_resource succeeded for RDR %d\n", i);
+		trace("oh_add_resource succeeded for RDR %d\n", i);
         }
 
         return(0);
@@ -909,7 +909,7 @@ static void *dummy_open(GHashTable *handler_config)
 
         /* initialize hashtable pointer */
         i->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(i->rptcache, NULL);
+        oh_init_rpt(i->rptcache);
 
         /* fill in the local rpt cache */
         __build_the_rpt_cache(i);
@@ -1012,7 +1012,7 @@ static struct oh_event *remove_resource(struct oh_handler_state *inst)
                 /*memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));*/
         }
 
-        dbg("**** ResourceId %d ******", e.u.res_event.entry.ResourceId);
+        trace("**** ResourceId %d ******", e.u.res_event.entry.ResourceId);
 
         return(&e);
 
@@ -1077,7 +1077,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 
                 inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
 
-		printf("*************** dummy_get_event, g_slist_length\n");
+		trace("*************** dummy_get_event, g_slist_length\n");
 
                 return(1);
 
@@ -1092,7 +1092,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 
                 g_free(qse);
 
-		printf("*************** dummy_get_event, g_async_queue_try_pop\n");
+		trace("*************** dummy_get_event, g_async_queue_try_pop\n");
 
                 return(1);
 #endif
@@ -1133,7 +1133,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                 /* since it has no rdr's to add back later              */
                 if ( (count%2) == 0 ) {
                         count++;
-                        dbg("\n**** EVEN ****, remove the resource\n");
+                        trace("\n**** EVEN ****, remove the resource\n");
                         if ( (e = remove_resource(inst)) ) {
                                 *event = *e;
                                 g_static_rec_mutex_unlock (inst->handler_lock);
@@ -1141,7 +1141,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         }
                 } else {
                         count++;
-                        dbg("\n**** ODD ****, add the resource\n");
+                        trace("\n**** ODD ****, add the resource\n");
                         if ( (e = add_resource(inst)) ) {
                                 *event = *e;
                                 g_static_rec_mutex_unlock (inst->handler_lock);
@@ -1377,7 +1377,7 @@ static int dummy_get_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
                                           SaHpiBoolT *enabled)
 {
 
-        dbg(" ********* dummy_get_sensor_event_enables *******");
+        trace(" ********* dummy_get_sensor_event_enables *******");
         memcpy(enabled, &dummy_sensors[num - 1].enabled, sizeof(*enabled));
 
         return 0;
@@ -1388,7 +1388,7 @@ static int dummy_set_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
                                           const SaHpiBoolT enabled)
 {
 
-        dbg(" ********* dummy_set_sensor_event_enables *******");
+        trace(" ********* dummy_set_sensor_event_enables *******");
 
         memcpy(&dummy_sensors[num - 1].enabled, &enabled, sizeof(enabled));
 
@@ -2081,11 +2081,11 @@ gpointer event_thread(gpointer data)
         int c=0;
         for (;;) {
                 c++;
-printf("address of data [%u]\n", (int)data);
-printf("address of inst [%u]\n", (int)inst);
-printf("address of mutex [%u]\n", (int)inst->handler_lock);
-printf("loop count [%d]\n", c);
-printf("event burp!\n");
+trace("address of data [%u]\n", (int)data);
+trace("address of inst [%u]\n", (int)inst);
+trace("address of mutex [%u]\n", (int)inst->handler_lock);
+trace("loop count [%d]\n", c);
+trace("event burp!\n");
 
                 /* allocate memory for event */
                 e = g_malloc0(sizeof(*e));
@@ -2108,20 +2108,20 @@ printf("event burp!\n");
 
 
                 while (!g_static_rec_mutex_trylock (inst->handler_lock))
-                        printf("mutex is going to block [%d]\n", (int)inst->handler_lock);
+                        trace("mutex is going to block [%d]\n", (int)inst->handler_lock);
 
                 //g_static_rec_mutex_lock (inst->handler_lock);
                 
                 if ( (toggle%2) == 0 ) {
                         toggle++;
-                        printf("\n**** EVEN ****, remove the resource\n");
+                        trace("\n**** EVEN ****, remove the resource\n");
                         if ( (e = remove_resource(inst)) ) {
                                 memcpy(event, e, sizeof(*event));
                                 g_async_queue_push(inst->eventq_async, event);
                         }
                 } else {
                         toggle++;
-                        printf("\n**** ODD ****, add the resource\n");
+                        trace("\n**** ODD ****, add the resource\n");
                         if ( (e = add_resource(inst)) ) {
                                 memcpy(event, e, sizeof(*event));
                                 g_async_queue_push(inst->eventq_async, event);
@@ -2131,7 +2131,7 @@ printf("event burp!\n");
                 g_static_rec_mutex_unlock (inst->handler_lock);
 
 		oh_cond_signal();
-		dbg("dummy thread, signaled");
+		trace("dummy thread, signaled");
 
                 nanosleep(&req, &rem);
 
@@ -2139,7 +2139,7 @@ printf("event burp!\n");
         
         g_thread_exit(0);
 
-        printf("THREAD END\n"); 
+        trace("THREAD END\n"); 
         return 0 ;
 }
 #endif
