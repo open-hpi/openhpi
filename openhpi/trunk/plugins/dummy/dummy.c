@@ -1380,7 +1380,7 @@ static int dummy_get_sel_entry(void *hnd,
 }
 
 /************************************************************************/
-/* Begin: Sensor functions 						*/
+/* Sensor functions 						*/
 /************************************************************************/
 static int dummy_get_sensor_data(void *hnd, SaHpiResourceIdT id, 
                            SaHpiSensorNumT num,
@@ -1486,11 +1486,12 @@ static int dummy_set_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
 	return 0;
 }
 /************************************************************************/
-/* End: Sensor functions 						*/
+/* Control functions 						        */
 /************************************************************************/
 
 static int dummy_get_control_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
+                                   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state)
 {
 	struct oh_handler_state *inst = hnd;
@@ -1501,14 +1502,15 @@ static int dummy_get_control_state(void *hnd, SaHpiResourceIdT id,
 	/* this rdr with the appropriate data			*/
 	rdr = oh_get_rdr_by_type(inst->rptcache, id, SAHPI_CTRL_RDR, num);
 
-	state->StateUnion = dummy_controls.StateUnion;
-	state->Type = dummy_controls.Type;
+        state->StateUnion = dummy_controls.StateUnion;
+	state->Type = dummy_controls.Type;        
 
 	return 0;
 }
 
 static int dummy_set_control_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
+                                   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state)
 {
         dbg("TODO: dummy_set_control_state(), need to set control based on id");
@@ -1520,7 +1522,7 @@ static int dummy_set_control_state(void *hnd, SaHpiResourceIdT id,
 
 #if 0
 /************************************************************************/
-/* Begin: Inventory functions 						*/
+/* Inventory functions 						*/
 /************************************************************************/
 static int dummy_get_inventory_size(void *hnd, SaHpiResourceIdT id,
 				    SaHpiEirIdT num,
@@ -1637,7 +1639,7 @@ static int dummy_set_inventory_info(void *hnd, SaHpiResourceIdT id,
 #endif
 
 /************************************************************************/
-/* End: Inventory functions 						*/
+/* Watchdog functions 						        */
 /************************************************************************/
 
 
@@ -1662,7 +1664,7 @@ static int dummy_reset_watchdog(void *hnd, SaHpiResourceIdT id,
 }
 
 /************************************************************************/
-/* Begin: Hotswap functions 						*/
+/* Hotswap functions 						        */
 /************************************************************************/
 static int dummy_get_hotswap_state(void *hnd, SaHpiResourceIdT id, 
 				   SaHpiHsStateT *state)
@@ -1888,10 +1890,6 @@ static int dummy_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 
 	return(rval);
 }
-/************************************************************************/
-/* End: Hotswap functions 						*/
-/************************************************************************/
-
 
 static int dummy_control_parm(void *hnd, SaHpiResourceIdT id, 
 			      SaHpiParmActionT act)
