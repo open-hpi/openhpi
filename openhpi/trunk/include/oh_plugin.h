@@ -155,6 +155,16 @@ struct oh_abi_v1 {
 	 * set state to system event log
 	 */
 	int (*set_sel_state)(void *hnd, struct oh_resource_id id, int enabled);
+
+	/**
+	 * add entry to system event log
+	 */
+	int (*add_sel_entry)(void *hnd, struct oh_resource_id id, SaHpiEventT *Event);
+
+	/**
+	 * del entry in system event log
+	 */
+	int (*del_sel_entry)(void *hnd, struct oh_rdr_id id);
 	
 	/**
 	 * get sensor data
