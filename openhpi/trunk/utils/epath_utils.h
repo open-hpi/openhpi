@@ -56,6 +56,9 @@ int append_root(SaHpiEntityPathT *ep);
 int prt_ep(const SaHpiEntityPathT *ep);
 
 int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2);
+
+int validate_ep(const SaHpiEntityPathT *ep);
+
 #ifdef __cplusplus
 }
 #endif
