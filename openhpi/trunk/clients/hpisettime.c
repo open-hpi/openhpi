@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 	{
                 rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
                 if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
-                if (rv == SA_OK && rptentry.ResourceCapabilities == SAHPI_CAPABILITY_SEL) {
+                if ((rv == SA_OK) && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                         resourceid = rptentry.ResourceId;
                         if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
                                            rptentry.ResourceCapabilities);
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
 			saftime2str(oldtime, timestr, sizeof(timestr));
 			printf ("\nCurrent event log time on HPI target: %s\n", timestr);
 			printf ("Setting new event log time on HPI target ...\n");
-			rv = saHpiEventLogTimeSet(sessionid, resourceid, newtime);
+		 	rv = saHpiEventLogTimeSet(sessionid, resourceid, newtime);
 			if (rv != SA_OK) 
 			{
                 		printf("saHpiEventLogTimeSet %s\n",decode_error(rv));
@@ -233,8 +233,6 @@ int main(int argc, char **argv)
 			saftime2str(readbacktime, timestr, sizeof(timestr));
 			printf ("Read-Back-Check event log time: %s\n", timestr);
 
-			/* Restrict the test to ony one clock, for now */
-                       //break; 
                 }
                 entryid = SAHPI_OLDEST_ENTRY;
                 rptentryid = nextrptentryid;
