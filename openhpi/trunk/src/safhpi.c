@@ -410,6 +410,9 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         SaHpiRptEntryT *rptentry;
         struct oh_global_param ep_param = { .type = OPENHPI_ON_EP };
 
+        if (ResourceId == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
