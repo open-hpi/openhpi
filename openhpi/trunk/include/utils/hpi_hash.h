@@ -13,6 +13,9 @@
 #define HASH_TABLE_MIN_SIZE 11
 #define HASH_TABLE_MAX_SIZE 13845163
 
+#define TRUE 1
+#define FALSE 0
+
 typedef int (*EqualFunc) (const void *a, const void *b);
 typedef void (*DestroyNotify) (void *data);
 typedef unsigned int (*HashFunc) (const void *key);
@@ -41,7 +44,8 @@ unsigned int            direct_hash(const void *v);
 void 			hash_table_destroy(HashTable *hash_table);
 void 			hash_table_insert(HashTable *hash_table,
 		                          void *key, void *value);
-
+int			hash_table_steal(HashTable *hash_table,
+					 const void *key);
 
 #undef  CLAMP
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
