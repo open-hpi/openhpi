@@ -147,7 +147,7 @@ openhpid_static="no"
 openhpid_dinamic="no"
 
 AC_ARG_ENABLE([daemon],
-    [  --enable-daemon         build HPI daemon and client library [default=no]],
+    [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
@@ -156,7 +156,11 @@ AC_ARG_ENABLE([daemon],
         ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 	NEED_MARSHAL="yes"
         openhpid_static="yes"
-    fi])
+    fi],
+    [   
+    ENABLED_DIRS="$ENABLED_DIRS openhpid2"
+    NEED_MARSHAL="yes"
+    openhpid_dinamic="yes"])
 
 dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 dnl     NEED_MARSHAL="yes"])
@@ -312,14 +316,15 @@ AC_ARG_ENABLE([snmp_bc],
     )
 
 AC_ARG_ENABLE([ipmidirect],
-    [  --enable-ipmidirect     build direct ipmi plugin [default=no]],
+    [  --enable-ipmidirect     build direct ipmi plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
      elif test "x$enableval" = "xstatic"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmidirect"
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
-     fi])
+     fi],
+    [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
 dnl    [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
