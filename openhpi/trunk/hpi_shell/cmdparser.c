@@ -148,6 +148,7 @@ static char *parse_string(void)
 	register char *sb = strbase;
 	register char *ap = argbase;
 	char *tmp = argbase;        /* will return this if token found */
+	int quota = 0;
 
 S0:
 	switch (*sb) {
@@ -158,6 +159,10 @@ S0:
 	case '\t':
 		sb++; goto S0;
 	default:
+		if (*sb == '"') {
+			quota = 1;
+			sb++;
+		}	
 		switch (parseflag) {
 		case 0:
 			parseflag++;
@@ -174,10 +179,26 @@ S0:
 
 S1:
 	switch (*sb) {
+	case '\0':
+		goto OUT;
 	case ' ':
 	case '\t':
-	case '\0':
-		goto OUT;   /* end of token */
+		if (quota) {
+			if (gotted) {
+				*ap++ = *sb++;
+			} else {
+				sb++;
+			}
+			goto S1;   /* end of token */
+		} else {
+			goto OUT;
+		}
+	case '"':
+		if (quota) {
+			quota = 0;
+			sb++;
+			goto OUT;
+		}
 	default:
 		*ap++ = *sb++;  /* add character to token */
 		gotted = 1;
@@ -185,11 +206,12 @@ S1:
 	}
 
 OUT:
-	if (gotted)
+	if (gotted) { 
 		*ap++ = '\0';
+	}
 	argbase = ap;           /* update storage pointer */
 	strbase = sb;        /* update scan pointer */
-	if (gotted) {
+	if (gotted && !quota) {
 		return(tmp);
 	}
 	switch (parseflag) {

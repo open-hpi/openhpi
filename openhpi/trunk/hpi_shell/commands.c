@@ -1077,7 +1077,7 @@ const char setthreshelp[] = "setthreshold: set sensor threshold values\n"  \
 			"                    [uc val] [ua val] [ui val]\n" \
 			"                    [ph val] [nh val]";
 const char settaghelp[] = "settag: set tag for a particular resource \n"   \
-			"Usage: settag <resource id> <tag string>";
+			"Usage: settag <resource id> <tag string(quoted if multi word)> ";
 const char showrdrhelp[] = "showrdr: show resource data record\n"
 			"Usage: showrdr [<resource id> [type [<rdr num>]]]\n"
 			"   or  rdr [<resource id> [type [<rdr num>]]]\n"
