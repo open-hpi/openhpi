@@ -39,7 +39,8 @@
 
 #include <SaHpi.h>
 #include <oh_utils.h>
-#include <openhpi.h>
+#include <oh_error.h>
+#include <oh_handler.h>
 
 
 

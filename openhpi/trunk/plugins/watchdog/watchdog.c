@@ -48,8 +48,9 @@
 #include <glib.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
+#include <oh_handler.h>
 #include <oh_utils.h>
+#include <oh_error.h>
 
 /* These two IOCTL's were not added to watchdog.h in older kernels */
 #define WDIOC_SETTIMEOUT        _IOWR(WATCHDOG_IOCTL_BASE, 6, int)
