@@ -449,7 +449,7 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 {
         struct ohoi_resource_id *ohoi_res_id;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        ipmi_event_t event;
+        ipmi_event_t *event;
 
         ohoi_res_id = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_id->type != OHOI_RESOURCE_MC) {
@@ -462,7 +462,7 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
         case SAHPI_OLDEST_ENTRY:
 		ohoi_get_sel_first_entry(ohoi_res_id->u.mc_id, &event);
                 
-		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, &event, next);
+		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, event, next);
 		
                 *prev = SAHPI_NO_MORE_ENTRIES;
                 break;
@@ -472,22 +472,22 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 
                 *next = SAHPI_NO_MORE_ENTRIES;
 
-                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, &event, prev);
+                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, event, prev);
                 break;
                 
         default:                		
 		/* get the entry requested by id */
 		ohoi_get_sel_by_recid(ohoi_res_id->u.mc_id, *next, &event);
 
-		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, &event, next);
+		ohoi_get_sel_next_recid(ohoi_res_id->u.mc_id, event, next);
 
-                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, &event, prev);
+                ohoi_get_sel_prev_recid(ohoi_res_id->u.mc_id, event, prev);
                 break; 
 	}
         entry->Event.EventType = SAHPI_ET_USER;
         memcpy(&entry->Event.EventDataUnion.UserEvent.UserEventData[3],
-               event.data, 
-               sizeof(event.data));	
+               ipmi_event_get_data_ptr(event), 
+               ipmi_event_get_data_len(event));	
 
 	return 0;		
 }

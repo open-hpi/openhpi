@@ -196,13 +196,12 @@ void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time)
 
 static void clear_sel(ipmi_mc_t *mc, void *cb_data)
 {
-        int rv;
-        ipmi_event_t event[1];
+        ipmi_event_t *event;
       
-        rv = ipmi_mc_first_event(mc, event);
-        while (!rv) {
+        event = ipmi_mc_first_event(mc);
+        while (event) {
                 ipmi_mc_del_event(mc, event, NULL, NULL);
-                rv = ipmi_mc_next_event(mc, event);
+                event = ipmi_mc_next_event(mc, event);
         }
 }
 
@@ -229,12 +228,12 @@ SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id)
 
 static void get_sel_first_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	ipmi_event_t *event = cb_data;
+	ipmi_event_t **event = cb_data;
 	
-	ipmi_mc_first_event(mc, event);
+	*event = ipmi_mc_first_event(mc);
 }
 
-void ohoi_get_sel_first_entry(ipmi_mcid_t mc_id, ipmi_event_t *event)
+void ohoi_get_sel_first_entry(ipmi_mcid_t mc_id, ipmi_event_t **event)
 {
 	int rv;
 	
@@ -246,12 +245,12 @@ void ohoi_get_sel_first_entry(ipmi_mcid_t mc_id, ipmi_event_t *event)
 
 static void get_sel_last_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	ipmi_event_t *event = cb_data;
+	ipmi_event_t **event = cb_data;
 	
-	ipmi_mc_last_event(mc, event);
+	*event = ipmi_mc_last_event(mc);
 }
 
-void ohoi_get_sel_last_entry(ipmi_mcid_t mc_id, ipmi_event_t *event)
+void ohoi_get_sel_last_entry(ipmi_mcid_t mc_id, ipmi_event_t **event)
 {
 	int rv;
 	
@@ -263,67 +262,88 @@ void ohoi_get_sel_last_entry(ipmi_mcid_t mc_id, ipmi_event_t *event)
 
 static void get_sel_next_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	int rv;
-	ipmi_event_t *event = cb_data;
+	ipmi_event_t **event = cb_data;
 
-	rv = ipmi_mc_next_event(mc, event);
-	if (rv)
-		event->record_id = SAHPI_NO_MORE_ENTRIES;
+	*event = ipmi_mc_next_event(mc, *event);
 }
 
 void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id, 
-                             const ipmi_event_t *event,
+                             ipmi_event_t *event,
                              unsigned int *record_id)
 {
-        ipmi_event_t te;
-	int rv;
+        int rv;
+        ipmi_event_t *te;
 
-        te = *event;
-	rv = ipmi_mc_pointer_cb(mc_id, get_sel_next_entry, &te);
-	if (rv)
+        te = event;
+
+        rv = ipmi_mc_pointer_cb(mc_id, get_sel_next_entry, &te);
+        if (rv) {
 		dbg("unable to convert mcid to pointer");
-        *record_id  = te.record_id;
+                *record_id = SAHPI_NO_MORE_ENTRIES;
+                return;
+        }
+
+        if (te)
+                *record_id = ipmi_event_get_record_id(te);
+        else
+                *record_id = SAHPI_NO_MORE_ENTRIES;
 }
 
 static void get_sel_prev_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	int rv;
-	ipmi_event_t *event = cb_data;
+	ipmi_event_t **event = cb_data;
 
-	rv = ipmi_mc_prev_event(mc, event);
-	if (rv)
-		event->record_id = SAHPI_NO_MORE_ENTRIES;
+	*event = ipmi_mc_prev_event(mc, *event);
 }
 
 void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id, 
-                             const ipmi_event_t *event, 
+                             ipmi_event_t *event, 
                              unsigned int *record_id)
 {
-        ipmi_event_t te;
-	int rv;
+        int rv;
+        ipmi_event_t *te;
 
-        te = *event;
+        te = event;
 	rv = ipmi_mc_pointer_cb(mc_id, get_sel_prev_entry, &te);
-	if (rv)
+	if (rv) {
 		dbg("unable to convert mcid to pointer");
-        *record_id  = te.record_id;
+                *record_id = SAHPI_NO_MORE_ENTRIES;
+                return;
+        }
+        
+        if (te)
+                *record_id = ipmi_event_get_record_id(te);
+        else 
+                *record_id = SAHPI_NO_MORE_ENTRIES;                
 }
+
+struct ohoi_get_event_by_recid_cb_data {
+        unsigned int record_id;
+        ipmi_event_t *event;
+};
 
 static void get_sel_by_recid(ipmi_mc_t *mc, void *cb_data)
 {
-	ipmi_event_t *event = cb_data;
-	
-	ipmi_mc_event_by_recid(mc, event->record_id, event);
+        struct ohoi_get_event_by_recid_cb_data *data = cb_data; 
+        
+	data->event = ipmi_mc_event_by_recid(mc, data->record_id);
 }
 
-void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_event_t *event)
+void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_event_t **event)
 {
 	int rv;
-	event->record_id = entry_id;
+        struct ohoi_get_event_by_recid_cb_data data;
+        
+	data.record_id  = entry_id;
+        data.event      = NULL;
 
-	rv = ipmi_mc_pointer_cb(mc_id, get_sel_by_recid, event);
-
-	if(rv)
+	rv = ipmi_mc_pointer_cb(mc_id, get_sel_by_recid, &data);
+	if(rv) {
 		dbg("failed to convert mc_id to pointer");
+                *event = NULL;
+                return;
+        }
+
+        *event = data.event;
 }
 	
