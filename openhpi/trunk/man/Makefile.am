@@ -31,7 +31,15 @@ EXTRA_DIST		= openhpi-switcher.pod.1
 
 %.1: %.pod.1
 	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.1//'` \
-       		-s 1 -c "OpenHPI" $< $@
+		-s 1 -c "OpenHPI" $< $@
+
+%.3: %.pod.3
+	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.3//'` \
+		-s 3 -c "OpenHPI" $< $@
+
+%.5: %.pod.5
+	pod2man --release=$(VERSION) --name=`echo $@ | sed 's/.5//'` \
+		-s 5 -c "OpenHPI" $< $@
 
 man_MANS = openhpi-switcher.1
 
@@ -39,7 +47,7 @@ clean-local: am_config_clean-local
 
 am_config_clean-local:
 	rm -f *~
-	find . -name \*\.1 | grep -v pod | xargs rm -f
+	find . -name \*\.[135] | grep -v pod | xargs rm -f
 
 
 .PHONY: FORCE
