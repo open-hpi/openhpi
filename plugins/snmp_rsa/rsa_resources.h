@@ -45,6 +45,9 @@
 /* HPI Spec dependencies */
 #define ELEMENTS_IN_SaHpiStateDigitalT 5
 
+/* IBM Manufacturing Number */
+#define IBM_MANUFACTURING_ID 2
+
 /* Resource indexes to snmp_rpt array below */
 typedef enum {
 	RSA_RPT_ENTRY_CHASSIS = 0,
