@@ -511,13 +511,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
-        SaHpiSelInfoT info;
-        SaErrorT rv;
 
-        rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
-        if(rv < 0) 
-                return rv;
-        
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId,s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
@@ -531,7 +525,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         
         get_sel_entry = h->abi->get_sel_entry;
         
-        if (!get_sel_entry)
+        if (!get_sel_entry) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
         if (get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
