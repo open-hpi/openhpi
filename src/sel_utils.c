@@ -160,7 +160,7 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
         sellist = g_list_first(sel->selentries);
         while (sellist != NULL) {
                 myentry = (SaHpiSelEntryT *) sellist->data;
-                if (entryid == myentry->EntryId) {
+                if (srchentryid == myentry->EntryId) {
                         *entry = myentry;
                         /* is this the first entry? */
                         if (myentry->EntryId == firstid) {
