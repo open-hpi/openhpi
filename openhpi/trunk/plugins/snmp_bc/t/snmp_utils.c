@@ -29,8 +29,8 @@ int snmp_get(struct snmp_session *ss, const char *objid, struct snmp_value *valu
 		case ASN_INTEGER:
 			value->integer = hash_data->value.integer;
 			if (value->integer == SNMP_FORCE_ERROR) { return -1; }
-			if (value->integer == SNMP_FORCE_TIMEOUT) {return SA_ERR_SNMP_TIMEOUT;}
-			if (value->integer == SA_ERR_SNMP_NOSUCHOBJECT) { return SA_ERR_SNMP_NOSUCHOBJECT; }
+			if (value->integer == SNMP_FORCE_TIMEOUT) {return SA_ERR_HPI_TIMEOUT;}
+			if (value->integer == SA_ERR_SNMP_NOSUCHOBJECT) { return SA_ERR_HPI_NOT_PRESENT; }
 			break;
 		case ASN_OCTET_STR:
 			strcpy(value->string, hash_data->value.string);
@@ -58,7 +58,7 @@ int snmp_set(struct snmp_session *ss, char *objid, struct snmp_value value)
 		switch (hash_data->type) {
 		case ASN_INTEGER:
 		        dbg("Setting oid=%s with value=%d\n", objid, (int)hash_data->value.integer);
-			if (hash_data->value.integer == SNMP_FORCE_TIMEOUT) {return SA_ERR_SNMP_TIMEOUT;}
+			if (hash_data->value.integer == SNMP_FORCE_TIMEOUT) {return SA_ERR_HPI_TIMEOUT;}
 			break;
 			
 		case ASN_OCTET_STR:
