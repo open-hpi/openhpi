@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <glib.h>
 #include <math.h>
-
+#include <oh_utils.h>
 
 cIpmiSensorHotswap::cIpmiSensorHotswap( cIpmiMc *mc )
   : cIpmiSensorDiscrete( mc )
@@ -140,7 +140,7 @@ cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 */
   // hotswap event needs exact time, because
   // of auto extraction/insertion
-  gettimeofday1( &h.Timestamp );
+  oh_gettimeofday( &h.Timestamp );
 
   // Do not find the severity of hotswap event
   h.Severity = SAHPI_MAJOR;

@@ -33,7 +33,7 @@
 cConnection::cConnection( cServerConnection *con )
   : m_con( con ), m_sessions( 0 ), m_outstanding_pings( 0 )
 {
-  gettimeofday1( &m_ping_timer );
+  oh_gettimeofday( &m_ping_timer );
   m_ping_timer += dPingTimeout;
 }
 
@@ -581,7 +581,7 @@ cOpenHpiDaemon::Idle()
        DbgEvent( "idle: saHpiEventGet %s.\n", oh_lookup_error( ret ) );
 
   SaHpiTimeT now;
-  gettimeofday1( &now );
+  oh_gettimeofday( &now );
 
   // check for pending event get
   for( int i = m_num_connections - 1; i >= 0; i-- )
@@ -620,7 +620,7 @@ cOpenHpiDaemon::Idle()
 		 // set ping timer
 		 SaHpiTimeT ti;
 
-		 gettimeofday1( &ti );
+		 oh_gettimeofday( &ti );
 		 ti += dPingTimeout;
 
 		 c->PingTimer() = ti;
@@ -738,7 +738,7 @@ cOpenHpiDaemon::HandlePong( cConnection *c, const cMessageHeader &header )
        c->OutstandingPings() = 0;
 
        SaHpiTimeT now;
-       gettimeofday1( &now );
+       oh_gettimeofday( &now );
 
        now += dPingTimeout;
        c->PingTimer() = now;
@@ -1236,7 +1236,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 			s->EventGet( true );
 
 			SaHpiTimeT end;
-			gettimeofday1( &end );
+			oh_gettimeofday( &end );
 
 			if ( timeout == SAHPI_TIMEOUT_BLOCK )
 			     end += (SaHpiTimeT)10000*1000000000; //set a long time

@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -63,3 +64,34 @@ SaErrorT oh_decode_time(SaHpiTimeT time, SaHpiTextBufferT *buffer)
 
 	return(SA_OK);
 }
+
+/**
+ * oh_gettimeofday:
+ * @time: Location to store Time of Day value
+ *
+ * Find the time of day and converts it into an HPI time.
+ * 
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @time is NULL.
+ **/
+SaErrorT oh_gettimeofday(SaHpiTimeT *time)
+{
+	int err;
+        struct timeval now;
+
+	if (!time) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        err = gettimeofday(&now, NULL);
+	if (err) {
+		dbg("gettimeofday failed");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+        *time = (SaHpiTimeT)now.tv_sec * 1000000000 + now.tv_usec * 1000;
+
+	return(SA_OK);
+}
+

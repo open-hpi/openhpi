@@ -1,7 +1,7 @@
 /*      -*- linux-c -*-
  *
  * Copyright (c) 2003 by Intel Corp.
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  * Copyright (c) 2004 by FORCE Computers.
  *
  * This program is distributed in the hope that it will be useful,
@@ -65,7 +65,7 @@ void process_hotswap_policy(struct oh_handler *handler)
                         continue;
                 }
 
-                gettimeofday1(&cur);
+                oh_gettimeofday(&cur);
 
                 if (e.event.EventDataUnion.HotSwapEvent.HotSwapState 
                     == SAHPI_HS_STATE_INSERTION_PENDING) {
