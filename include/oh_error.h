@@ -11,6 +11,7 @@
  *
  * Author(s):
  *      Renier Morales <renierm@users.sf.net>
+ *
  */
 
 #ifndef OH_ERROR_H
