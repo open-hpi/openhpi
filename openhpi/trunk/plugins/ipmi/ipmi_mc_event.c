@@ -94,6 +94,7 @@ static void mc_add(ipmi_mc_t                    *mc,
                 dbg("Out of space");
                 return;
         }
+	ohoi_res_info->presence	  = 1;
         ohoi_res_info->type       = OHOI_RESOURCE_MC;
         ohoi_res_info->u.mc_id    = ipmi_mc_convert_to_id(mc);
                 
@@ -176,6 +177,9 @@ ohoi_mc_event(enum ipmi_update_e op,
 						} else {
 
 								/* MC is active */
+								dbg("MC Added(%d %x)\n",
+												ipmi_mc_get_address(mc),
+												ipmi_mc_get_channel(mc));
 								mc_add(mc, handler);
 						
 								ipmi_handler->mc_count++;

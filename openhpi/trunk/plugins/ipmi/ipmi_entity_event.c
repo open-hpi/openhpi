@@ -17,7 +17,7 @@
 #include <oh_utils.h>
 #include <string.h>
 /* need to update some information here */
-static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
+void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 {
   	struct ohoi_resource_info	*res_info;
        
@@ -27,15 +27,6 @@ static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 		res_info->presence = 1;
 	else
 		res_info->presence = 0;
-
-	//SaHpiRdrT  *rdr;
-
-	//rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
-	//while (rdr) {
-		//if(rdr->RdrType == SAHPI_SENSOR_RDR) {
-		//}
-		//rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
-	//}
 }
 
 static void entity_presence(ipmi_entity_t	*entity,
@@ -204,9 +195,6 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 
 		get_entity_event(entity, &entry, ipmi_handler);	
 
-		/* bug #957513 keeping for histirical reasons until it's verified */
-		//handler->eventq = g_slist_append(handler->eventq, e);
-
 		oh_add_resource(handler->rptcache, &entry, ohoi_res_info, 1);
 
 		/* sensors */
@@ -248,40 +236,54 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 
 }
 
+void ohoi_remove_entity(struct oh_handler_state *handler,
+			SaHpiResourceIdT res_id)
+{
+  	struct oh_event *e;
+
+  	dbg("Entity (%d) removed", res_id);
+
+	/* Now put an event for the resource to DEL */
+	e = g_malloc0(sizeof(*e));
+	memset(e, 0, sizeof(*e));
+
+	e->type = OH_ET_RESOURCE_DEL;
+	e->u.res_event.entry.ResourceId = res_id;
+
+	handler->eventq = g_slist_append(handler->eventq, e);
+}
+
 void ohoi_entity_event(enum ipmi_update_e       op,
                        ipmi_domain_t            *domain,
                        ipmi_entity_t            *entity,
                        void                     *cb_data)
 {
 		struct oh_handler_state *handler = cb_data;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-		
-		ipmi_handler->connected = 1;
 		
 		if (op == IPMI_ADDED) {
-				add_entity_event(entity, handler);
+		  	add_entity_event(entity, handler);
 
-				dbg("Entity added: %d.%d", 
-								ipmi_entity_get_entity_id(entity), 
-								ipmi_entity_get_entity_instance(entity));
+			dbg("Entity added: %d.%d", 
+						ipmi_entity_get_entity_id(entity), 
+						ipmi_entity_get_entity_instance(entity));
 
-				ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
+			ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
 		
 		} else if (op == IPMI_DELETED) {
-				/* we need to remove_entity */
+		  	/* we need to remove_entity */
 
-				dbg("Entity deleted: %d.%d", 
-								ipmi_entity_get_entity_id(entity), 
-								ipmi_entity_get_entity_instance(entity));
+			dbg("Entity deleted: %d.%d", 
+						ipmi_entity_get_entity_id(entity), 
+						ipmi_entity_get_entity_instance(entity));
 		
 		} else if (op == IPMI_CHANGED) {
-				add_entity_event(entity, handler);
+			add_entity_event(entity, handler);
 
-				dbg("Entity changed: %d.%d",
-								ipmi_entity_get_entity_id(entity), 
-								ipmi_entity_get_entity_instance(entity));
+			dbg("Entity changed: %d.%d",
+						ipmi_entity_get_entity_id(entity), 
+						ipmi_entity_get_entity_instance(entity));
 		} else {
-				dbg("Entity: Unknow change?!");
+			dbg("Entity: Unknow change?!");
 		}
 
 }

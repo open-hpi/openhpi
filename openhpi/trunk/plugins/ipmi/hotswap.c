@@ -89,6 +89,8 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	SaHpiRptEntryT  *rpt_entry;
 	struct oh_event  *e;
 	
+	dbg("HotSwap Handler called");
+
 	entity_id = ipmi_entity_convert_to_id(ent);
 	
 	rpt_entry = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
@@ -116,8 +118,25 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 			= _ipmi_to_hpi_state_conv(curr_state);
 	e->u.hpi_event.event.EventDataUnion.HotSwapEvent.PreviousHotSwapState 
 			= _ipmi_to_hpi_state_conv(last_state);
-	
-	handler->eventq = g_slist_append(handler->eventq, e);
+
+	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
+	    					SAHPI_HS_STATE_NOT_PRESENT) {
+		dbg("HS_STATE NOT PRESENT");
+	  	handler->eventq = g_slist_append(handler->eventq,e);
+		entity_update_rpt(handler->rptcache, rpt_entry->ResourceId,0);
+		ohoi_remove_entity(handler, rpt_entry->ResourceId);
+		ipmi_discover_resources(handler);
+	}else if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent
+		  		.HotSwapState ==
+					SAHPI_HS_STATE_ACTIVE) {
+		dbg("HS_STATE ACTIVE");
+	  	entity_update_rpt(handler->rptcache, rpt_entry->ResourceId, 1);
+		handler->eventq = g_slist_append(handler->eventq, e);
+		//ipmi_discover_resources(handler);
+	}else {
+	  	handler->eventq = g_slist_append(handler->eventq, e);
+	}
+
 	return IPMI_EVENT_HANDLED;
 }
 
