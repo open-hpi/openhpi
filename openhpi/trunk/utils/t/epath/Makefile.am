@@ -33,7 +33,7 @@ REMOTE_SOURCES		= epath_utils.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@ 
 
-INCLUDES		= -I$(top_srcdir)/include
+INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
 AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
