@@ -1487,6 +1487,47 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
         SAHPI_INOUT SaHpiEventStateT      *AssertEventMask,
         SAHPI_INOUT SaHpiEventStateT      *DeassertEventMask)
 {
+        SaErrorT rv;
+        SaErrorT (*get_sensor_event_masks)(void *hnd, SaHpiResourceIdT,
+                                           SaHpiSensorNumT,
+                                           SaHpiEventStateT   *AssertEventMask,
+                                           SaHpiEventStateT   *DeassertEventMask);
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+
+        if (!AssertEventMask) return SA_ERR_HPI_INVALID_PARAMS;
+        if (!DeassertEventMask) return SA_ERR_HPI_INVALID_PARAMS;
+
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors in Domain %d",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        get_sensor_event_masks = h->abi->get_sensor_event_masks;
+        if (!get_sensor_event_masks) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = get_sensor_event_masks(h->hnd, ResourceId, SensorNum,
+                                    AssertEventMask, DeassertEventMask);
+
+        return rv;
+
+
+
         return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
@@ -1498,7 +1539,40 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         SAHPI_IN  SaHpiEventStateT                AssertEventMask,
         SAHPI_IN  SaHpiEventStateT                DeassertEventMask)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaErrorT rv;
+        SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT,
+                                           SaHpiSensorNumT,
+                                           SaHpiEventStateT   AssertEventMask,
+                                           SaHpiEventStateT   DeassertEventMask);
+        SaHpiRptEntryT *res;
+        struct oh_handler *h;
+        SaHpiDomainIdT did;
+        struct oh_domain *d = NULL;
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        OH_RESOURCE_GET(d, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors in Domain %d",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_CAPABILITY;
+        }
+
+        OH_HANDLER_GET(d, ResourceId, h);
+        oh_release_domain(d); /* Unlock domain */
+
+        set_sensor_event_masks = h->abi->set_sensor_event_masks;
+        if (!set_sensor_event_masks) {
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+
+        rv = set_sensor_event_masks(h->hnd, ResourceId, SensorNum,
+                                    AssertEventMask,
+                                    DeassertEventMask);
+        return rv;
 }
 
 /* End Sensor functions */

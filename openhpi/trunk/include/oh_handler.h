@@ -289,8 +289,8 @@ struct oh_abi_v2 {
       	 */
       	SaErrorT (*set_sensor_event_masks)(void *hnd, SaHpiResourceIdT id,
                                            SaHpiSensorNumT num,
-      	 		 		   SaHpiEventStateT *AssertEventMask,
-                                           SaHpiEventStateT *DeassertEventMask);
+      	 		 		   SaHpiEventStateT  AssertEventMask,
+                                           SaHpiEventStateT  DeassertEventMask);
 
 
         /* SLD - 6/8/2004 we might want to change the names of these calls
