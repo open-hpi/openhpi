@@ -222,7 +222,6 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 	SaHpiBoolT valid_sensor;
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-	struct snmp_session *ss = custom_handle->ss;
 	struct SensorInfo *sensor_info_ptr;
 	
 	for (i=0; sensor_array[i].index != 0; i++) {
@@ -248,7 +247,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 					g_free(e);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
-				valid_sensor = rdr_exists(ss, oid, 
+				valid_sensor = rdr_exists(custom_handle, oid, 
 							  sensor_array[i].sensor_info.mib.not_avail_indicator_num,
 							  sensor_array[i].sensor_info.mib.write_only);
 				g_free(oid);
@@ -321,7 +320,6 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 	SaHpiBoolT valid_control;
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-	struct snmp_session *ss = custom_handle->ss;
 	struct ControlInfo *control_info_ptr;
 	
 	for (i=0; control_array[i].control.Num != 0; i++) {
@@ -339,7 +337,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
-		valid_control = rdr_exists(ss, oid, 
+		valid_control = rdr_exists(custom_handle, oid, 
 					   control_array[i].control_info.mib.not_avail_indicator_num,
 					   control_array[i].control_info.mib.write_only);
 		g_free(oid);
@@ -400,7 +398,6 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 	SaErrorT err;
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-	struct snmp_session *ss = custom_handle->ss;
 	struct InventoryInfo *inventory_info_ptr;
 
 	/* Assumming OidManufacturer is defined and determines readable of other VPD */
@@ -420,7 +417,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 		
-		valid_idr = rdr_exists(ss, oid, 0, 0);
+		valid_idr = rdr_exists(custom_handle, oid, 0, 0);
 		g_free(oid);
 
 		/* Add inventory RDR, if inventory can be read */
@@ -517,7 +514,7 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
  * SAHPI_TRUE - if OID is valid and readable.
  * SAHPI_FALSE - if OID's value cannot be read.
  **/
-SaHpiBoolT rdr_exists(struct snmp_session *ss,
+SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
 		      const char *oid,
 		      unsigned int na,
 		      SaHpiBoolT write_only)
@@ -527,7 +524,7 @@ SaHpiBoolT rdr_exists(struct snmp_session *ss,
 
 	if (write_only == SAHPI_TRUE) { return(SAHPI_FALSE); }; /* Can't check it if its non-readable */
 
-        err = snmp_get(ss, oid, &get_value);
+        err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
         if (err || (get_value.type == ASN_INTEGER && na && na == get_value.integer) ||
                 (get_value.type == ASN_OCTET_STR &&
                         (!strcmp(get_value.string,"Not available") ||

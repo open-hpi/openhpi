@@ -31,7 +31,7 @@ int main(int argc, char **argv)
         SaHpiSessionIdT sessionid;
 	struct tm time;
 	memset(&time, 0, sizeof(struct tm));
-	struct snmp_session ss;
+	struct snmp_bc_hnd custom_handle;
 	/************************** 
 	 * Test : Invalid handle
 	 **************************/
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	 * Test : Invalid pointer to struct
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
-	err = snmp_bc_set_sp_time(&ss, NULL);
+	err = snmp_bc_set_sp_time(&custom_handle, NULL);
 	checkstatus(err, expected_err, testfail);
 
 	/**************************

@@ -305,9 +305,8 @@ SaErrorT snmp_bc_get_sp_time(struct oh_handler_state *handle, struct tm *time)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 		
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-	struct snmp_session *ss = custom_handle->ss;
         
-	rv = snmp_get(ss, SNMP_BC_DATETIME_OID, &get_value);
+	rv = snmp_bc_snmp_get(custom_handle, SNMP_BC_DATETIME_OID, &get_value);
         if ( (rv == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {
                 if(sscanf(get_value.string,"%2d/%2d/%4d,%2d:%2d:%2d",
                           &tmptime.tm_mon, &tmptime.tm_mday, &tmptime.tm_year, 
@@ -341,12 +340,12 @@ SaErrorT snmp_bc_get_sp_time(struct oh_handler_state *handle, struct tm *time)
  * SA_ERR_HPI_INTERNAL_ERROR - If cannot parse date and time returned from bc
  * Returncode from snmp_set()
  **/
-SaErrorT snmp_bc_set_sp_time(struct snmp_session *ss, struct tm *time) {
+SaErrorT snmp_bc_set_sp_time(struct snmp_bc_hnd *custom_handle, struct tm *time) {
 
         struct snmp_value set_value;
         SaErrorT returncode = SA_OK;
 
-	if (!ss || !time)
+	if (!custom_handle || !time)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 
         set_value.type = ASN_OCTET_STR;
@@ -354,7 +353,7 @@ SaErrorT snmp_bc_set_sp_time(struct snmp_session *ss, struct tm *time) {
         strftime(set_value.string, sizeof(set_value.string), "%m/%d/%Y,%H:%M:%S", time);
 	set_value.str_len = 19;
 	
-	returncode = snmp_set(ss, SNMP_BC_DATETIME_OID,set_value);
+	returncode = snmp_bc_snmp_set(custom_handle, SNMP_BC_DATETIME_OID,set_value);
         if (returncode != SA_OK)
                 dbg("snmp_set is NOT successful\n");
 

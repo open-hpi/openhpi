@@ -738,7 +738,7 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 		dbg("NULL SNMP OID returned for %s", raw_oid);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
-	if (snmp_get(custom_handle->ss, oid, &get_value) != 0) {
+	if (snmp_bc_snmp_get(custom_handle, oid, &get_value) != 0) {
 		dbg("SNMP cannot read sensor OID=%s. Type=%d", oid, get_value.type);
 		g_free(oid);
 		return(SA_ERR_HPI_NO_RESPONSE);
