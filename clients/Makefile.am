@@ -13,21 +13,18 @@ bin_PROGRAMS = \
 	hpiel \
 	hpisensor \
         hpipower \
-        hpipower2 \
 	hpitree \
-	hpisettime \
 	hpialarmpanel \
-        hpireset2
+	hpifan \
+	hpireset \
+	hpireset2 \
+	hpiwdt \
+	hpipower2 \
+	hpisettime
+	
 
-#bin_PROGRAMS           = hpialarmpanel \
-#                          hpithres \
-#                          hpifan \
+#bin_PROGRAMS           = hpithres \
 #                         hpifru \
-#		        hpireset \
-#                         hpireset2 \
-#                          hpisettime \
-#                          hpiwdt \
-#                         hpipower2 \
 #                         hpievent
 
 include_HEADERS         =
@@ -40,17 +37,17 @@ hpialarmpanel_LDFLAGS   =
 #hpithres_LDADD          = $(COMMONLIBS)
 #hpithres_LDFLAGS        =
 
-#hpifan_SOURCES          = hpifan.c
-#hpifan_LDADD            = $(COMMONLIBS)
-#hpifan_LDFLAGS          =
+hpifan_SOURCES          = hpifan.c
+hpifan_LDADD            = $(COMMONLIBS)
+hpifan_LDFLAGS          =
 
 #hpifru_SOURCES          = hpifru.c
 #hpifru_LDADD            = $(COMMONLIBS)
 #hpifru_LDFLAGS          =
 
-#hpireset_SOURCES        = hpireset.c
-#hpireset_LDADD          = $(COMMONLIBS)
-#hpireset_LDFLAGS        =
+hpireset_SOURCES        = hpireset.c
+hpireset_LDADD          = $(COMMONLIBS)
+hpireset_LDFLAGS        =
 
 hpireset2_SOURCES       = hpireset2.c
 hpireset2_LDADD         = $(COMMONLIBS)
@@ -64,9 +61,9 @@ hpisensor_SOURCES       = hpisensor.c
 hpisensor_LDADD         = $(COMMONLIBS)
 hpisensor_LDFLAGS       =
 
-#hpiwdt_SOURCES          = hpiwdt.c
-#hpiwdt_LDADD            = $(COMMONLIBS)
-#hpiwdt_LDFLAGS          =
+hpiwdt_SOURCES          = hpiwdt.c
+hpiwdt_LDADD            = $(COMMONLIBS)
+hpiwdt_LDFLAGS          =
 
 hpiinv_SOURCES          = hpiinv.c
 hpiinv_LDADD            = $(COMMONLIBS)
@@ -87,10 +84,6 @@ hpipower_LDFLAGS      =
 hpipower2_SOURCES      = hpipower2.c
 hpipower2_LDADD        = $(COMMONLIBS)
 hpipower2_LDFLAGS      =
-
-#hpipower2_SOURCES      = hpipower2.c
-#hpipower2_LDADD        = $(COMMONLIBS)
-#hpipower2_LDFLAGS      =
 
 #hpievent_SOURCES      = hpievent.c
 #hpievent_LDADD        = $(COMMONLIBS)
