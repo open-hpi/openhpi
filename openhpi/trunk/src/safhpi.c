@@ -998,7 +998,8 @@ SaErrorT SAHPI_API saHpiSubscribe (
                      eventq = eventq->next) {
                          g_free(eventq->data);
                 }
-                g_slist_free(eventq);
+                g_slist_free(s->eventq);
+                s->eventq = NULL;
         }
 
         s->event_state = OH_EVENT_SUBSCRIBE;
@@ -1025,7 +1026,8 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
              eventq = eventq->next) {
                  g_free(eventq->data);
         }
-        g_slist_free(eventq);
+        g_slist_free(s->eventq);
+        s->eventq = NULL;
         
         s->event_state = OH_EVENT_UNSUBSCRIBE;
         return SA_OK;
