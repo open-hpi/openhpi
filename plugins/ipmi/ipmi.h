@@ -273,6 +273,12 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state);
 
+void ipmi_connection_handler(ipmi_domain_t	*domain,
+			      int		err,
+			      unsigned int	conn_num,
+			      unsigned int	port_num,
+			      int		still_connected,
+			      void		*cb_data);
 /* misc macros for debug */
 #define dump_entity_id(s, x) \
         do { \
@@ -326,3 +332,9 @@ static inline void  dump_rpttable(RPTable *table)
 }
 
 #endif
+
+/* called when a resource is removed (swapped?) */
+int ipmi_discover_resources(void *hnd);
+void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present);
+void ohoi_remove_entity(struct oh_handler_state *handler,
+			SaHpiResourceIdT res_id);
