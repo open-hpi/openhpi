@@ -11,7 +11,8 @@ Vendor: OpenHPI Project
 Packager: TariqX
 Source: @HPI_PKG@-@VERSION@.tar.gz
 Buildroot: /var/tmp/@HPI_PKG@-root
-BuildRequires: pkgconfig
+BuildRequires: pkgconfig glib-devel
+BuildRequires: docbook-utils docbook-utils-pdf docbook-dtd41-sgml
 Summary: Library that provides SAForum's HPI
 Group: Utilities
 AutoReq: no
