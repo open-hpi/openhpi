@@ -194,6 +194,7 @@ static int process_hpi_event(struct oh_event *full_event)
         /* FIXME: yes, we need to figure out the real domain at some point */
         trace("About to get session list");
         sessions = oh_list_sessions(oh_get_default_domain_id());
+dbg("process_hpi_event, done oh_list_sessions");
 
         /* multiplex event to the appropriate sessions */
         for(i = 0; i < sessions->len; i++) {
@@ -206,8 +207,10 @@ static int process_hpi_event(struct oh_event *full_event)
                 }
         }
         g_array_free(sessions, TRUE);
+dbg("process_hpi_event, done multiplex event => sessions");
         
         oh_release_domain(d);
+dbg("process_hpi_event, done oh_release_domain");
         
         return 0;
 }
