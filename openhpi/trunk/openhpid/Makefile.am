@@ -18,24 +18,11 @@ DIST_SUBDIRS 		= t
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 AM_CFLAGS		= @CFLAGS@
-INCLUDES 		= -I $(top_srcdir)/include
+INCLUDES 		= -I $(top_srcdir)/include -I $(top_srcdir)/marshal
 # just to clear LIBS
 LIBS			=
 
 EXTRA_DIST              = README openhpiclient.conf
-
-# marshal and connection used by the daemon and client library
-noinst_LIBRARIES        = libmarshal.a
-
-libmarshal_a_SOURCES    = \
-	connection.h \
-	connection.c \
-	marshal_hpi.h \
-	marshal_hpi.c \
-	marshal_hpi_types.h \
-	marshal_hpi_types.c \
-	marshal.h \
-        marshal.c
 
 # daemon
 bin_PROGRAMS            = openhpid
@@ -44,7 +31,7 @@ openhpid_SOURCES        = \
 	openhpid.h \
 	openhpid.cpp
 
-openhpid_LDADD          = $(top_builddir)/openhpid/libmarshal.a $(top_builddir)/src/libopenhpi.la
+openhpid_LDADD          = $(top_builddir)/marshal/libmarshal.a $(top_builddir)/src/libopenhpi.la
 openhpid_LDFLAGS        = -static
 
 # client library
@@ -53,13 +40,14 @@ openhpid_LDFLAGS        = -static
 lib_LTLIBRARIES	        = libopenhpiclient.la
 
 libopenhpiclient_la_SOURCES = \
+	client_config.h \
 	openhpiclient.h \
 	openhpiclient.c \
 	simple_config.h \
 	simple_config.c
 
 libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpiclient_la_LIBADD  = $(top_builddir)/openhpid/libmarshal.a
+libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libmarshal.a
 
 clean:
 	rm -f *~ core core.*

@@ -14,6 +14,7 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
+#include "client_config.h"
 #include "openhpiclient.h"
 #include "marshal_hpi.h"
 #include <assert.h>
