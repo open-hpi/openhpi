@@ -40,14 +40,9 @@ struct oh_domain_id {
  * can store any data pointer in ptr member so that it can map 
  * id back to solid data
  */
-/* oh_resource_id is replaced with SaHpiResourceIdT type arg */
-/* TODO: when we are comfortable remove the above comment and */
-/* the #if'd out code below *
-#if 0
 struct oh_resource_id {
 	void *ptr;
 };
-#endif
 
 
 /*
@@ -90,7 +85,7 @@ struct oh_resource_event {
  * is a member of a specific domain.
  */
 struct oh_domain_event {
-	SaHpiResourceIdT	res_id;
+	struct oh_resource_id	res_id;
 	struct oh_domain_id	domain_id;
 };
 
@@ -99,7 +94,7 @@ struct oh_domain_event {
  */
 struct oh_rdr_event {
 	/*This resource id which the rdr belongs to */
-	SaHpiResourceIdT	parent;
+	struct oh_resource_id	parent;
 	/*This is rdr id the RDR relate*/
 	struct oh_rdr_id	id;
 	
@@ -111,7 +106,7 @@ struct oh_rdr_event {
  */
 struct oh_hpi_event {
 	/*This is resource id which the event belongs to */
-	SaHpiResourceIdT	parent;
+	struct oh_resource_id	parent;
 	/*This is rdr id which the event relates*/
 	struct oh_rdr_id	id;
 	
@@ -123,13 +118,13 @@ struct oh_hpi_event {
 /* The structure is used to storage RSEL entry*/
 struct oh_rsel {
 	/* this is SEL's id */
-	SaHpiResourceIdT	parent;
+	struct oh_resource_id	parent;
 
 	/* this is the entry's id */
 	struct oh_sel_id	oid;
 	
 	/* This is resource id which the entry relates */
-	SaHpiResourceIdT	res_id;
+	struct oh_resource_id	res_id;
 	
 	/* This is rdr id which the entry relates */
 	struct oh_rdr_id	rdr_id;
@@ -233,94 +228,94 @@ struct oh_abi_v1 {
 	/**
 	 * del entry in RSEL
 	 */
-	int (*del_sel_entry)(void *hnd, struct oh_sel_id id);
+	int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id);
 
 	/**
 	 * get entry in RSEL
 	 */
-	int (*get_sel_entry)(void *hnd, struct oh_sel_id id, SaHpiSelEntryT *Event);
+	int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryT *Event);
 	
 	/**
 	 * get sensor data
 	 */
-	int (*get_sensor_data)(void *hnd, struct oh_rdr_id id, 
+	int (*get_sensor_data)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiSensorReadingT *data);
 
 	/**
 	 * get sensor thresholds
 	 */
-	int (*get_sensor_thresholds)(void *hnd, struct oh_rdr_id id,
+	int (*get_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
 				     SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * set sensor thresholds
 	 */
-	int (*set_sensor_thresholds)(void *hnd, struct oh_rdr_id id,
+	int (*set_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
 				     const SaHpiSensorThresholdsT *thres);
 
 	/**
 	 * get sensor event enables
 	 */
-	int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
+	int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
 					SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * set sensor event enables
 	 */
-	int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
+	int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
 					const SaHpiSensorEvtEnablesT *enables);
 	/**
 	 * get control info
 	 */
-	int (*get_control_info)(void *hnd, struct oh_rdr_id id,
+	int (*get_control_info)(void *hnd, SaHpiResourceIdT id,
 				SaHpiCtrlTypeT *type);
 
 	/**
 	 * get control state
 	 */
-	int (*get_control_state)(void *hnd, struct oh_rdr_id id,
+	int (*get_control_state)(void *hnd, SaHpiResourceIdT id,
 				 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
-	int (*set_control_state)(void *hnd, struct oh_rdr_id id,
+	int (*set_control_state)(void *hnd, SaHpiResourceIdT id,
 				 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set inventory state
 	 */
-	int (*get_inventory_size)(void *hnd, struct oh_rdr_id id,
+	int (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
 				  size_t *size);
 
 	/**
 	 * get inventory state
 	 */
-	int (*get_inventory_info)(void *hnd, struct oh_rdr_id id,
+	int (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
 				  SaHpiInventoryDataT *data);
 
 	/**
 	 * set inventory state
 	 */
-	int (*set_inventory_info)(void *hnd, struct oh_rdr_id id,
+	int (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
 				  const SaHpiInventoryDataT *data);
 
 	/**
 	 * get watchdog timer info
 	 */
-	int (*get_watchdog_info)(void *hnd, struct oh_rdr_id id,
+	int (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
 				 SaHpiWatchdogT *wdt);
 
 	/** 
 	 * set watchdog timer info
 	 */
-	int (*set_watchdog_info)(void *hnd, struct oh_rdr_id id,
+	int (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
 				 SaHpiWatchdogT *wdt);
 
 	/**
 	 * reset watchdog timer info
 	 */
-	int (*reset_watchdog)(void *hnd, struct oh_rdr_id id);
+	int (*reset_watchdog)(void *hnd, SaHpiResourceIdT id);
 
 	/**
 	 * get hotswap state
