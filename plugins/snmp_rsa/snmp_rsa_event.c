@@ -284,13 +284,13 @@ int rsa_log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *
 
         /* Parse RSA error log entry into its various components */
 	if (snmp_rsa_parse_sel_entry(handle, logstr, &log_entry)) {
-		dbg("Couldn't parse BladeCenter error log entry=%s", logstr);
+		dbg("Couldn't parse RSA error log entry=%s", logstr);
 		return -1;
 	}
 
-	/* Find default RID and BladeCenter resource info for error log's source */
+	/* Find default RID and RSA resource info for error log's source */
 	if (rsasrc2rid(hnd, log_entry.source, &resinfo)) {
-		dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
+		dbg("Cannot translate RSA Source string=%s to RID\n", log_entry.source);
 		return -1;
 	}
 	
@@ -316,7 +316,6 @@ int rsa_log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *
 
 	/* Discover Recovery event strings */
 	recovery_str = strstr(search_str, EVT_RECOVERY);
-
 	if (recovery_str && (recovery_str == search_str)) {
 		is_recovery_event = 1;
 		memset(search_str, 0, RSA_SEL_ENTRY_STRING);
@@ -378,7 +377,7 @@ int rsa_log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *
                         /* Set static event data defined during resource discovery */
 			working = *event_ptr; 
 
-			/* If OVR_RID, use rid from bc_resources.c
+			/* If OVR_RID, use rid from rsa_resources.c
 			   (unless dup strings have OVR_RID set incorrectly) */
 			if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
 				event_rid = event_ptr->Source;
@@ -435,7 +434,7 @@ int rsa_log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *
 				}
 			}
 			else {
-				dbg("Design Error! BladeCenter doesn't support events of type=%d\n", working.EventType);
+				dbg("Design Error! RSA doesn't support events of type=%d\n", working.EventType);
 				return -1;
 			}
 		} /* End found mapped event */
