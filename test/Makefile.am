@@ -34,6 +34,7 @@ CONFORMDIR = conform_html
 SERVER = shell1.sf.net
 RDIR = /home/groups/o/op/openhpi/htdocs/coverage_report
 CONFORMRDIR = /home/groups/o/op/openhpi/htdocs/conform_report
+SFUSER = $(shell if test $(SFUID) != "" > /dev/null 2>&1; then echo $(SFUID); else echo $(USER); fi;)
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
@@ -66,9 +67,9 @@ preport:
 	-chmod a+x $(shell echo $(REPORTDIR)/*html)
 	-echo "XBitHack on" > $(REPORTDIR)/.htaccess
 	-echo "Options +Indexes" >> $(REPORTDIR)/.htaccess 
-	-rsync -e ssh -rP --delete $(REPORTDIR)/ $(SERVER):$(RDIR)
-	-ssh $(SERVER) "find $(RDIR) -user `whoami` -exec chmod g+w {} \;"
-	-ssh $(SERVER) "find $(RDIR) -user `whoami` -type d -exec chmod g+s {} \;"
+	-rsync -e ssh -rP --delete $(REPORTDIR)/ $(SFUSER)@$(SERVER):$(RDIR)
+	-ssh $(SFUSER)@$(SERVER) "find $(RDIR) -user $(SFUSER) -exec chmod g+w {} \;"
+	-ssh $(SFUSER)@$(SERVER) "find $(RDIR) -user $(SFUSER) -type d -exec chmod g+s {} \;"
 
 publish-conform:: conform pconform
 
