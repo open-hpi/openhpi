@@ -26,19 +26,27 @@ static const int entry_id_offset = 1000;
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
-	if (OH_STAT_UNINIT!=oh_hpi_state) {
-		dbg("Cannot initialize twice");
-		return SA_ERR_HPI_DUPLICATE;
-	}
-	
-	init_session();
-	init_domain();
-	if (init_plugin()<0) {
-		dbg("Can not load/init plugin");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-	
-	oh_hpi_state= OH_STAT_READY;
+        const char *plugin_name = "libdummy";
+
+        if (OH_STAT_UNINIT!=oh_hpi_state) {
+                dbg("Cannot initialize twice");
+                return SA_ERR_HPI_DUPLICATE;
+        }
+        
+        init_session();
+        init_domain();
+        if (init_plugin()<0) {
+                dbg("Can not load/init plugin");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        if (load_plugin(plugin_name, 
+                        (const char*) NULL, 
+                        (const char*) NULL) < 0 ) {
+                dbg("Can not init dummy");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        oh_hpi_state= OH_STAT_READY;
 	return SA_OK;
 }
 
