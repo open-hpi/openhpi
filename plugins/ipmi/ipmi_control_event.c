@@ -203,6 +203,69 @@ static int add_alarm_rdrs(
 	return 0;
 }
 
+static void
+address_control(ipmi_control_t *control,
+		int		err,
+		unsigned char	*val,
+		int		length,
+		void		*cb_data)
+{
+	int i;
+	int *location = cb_data;
+	
+	if (control == NULL) {
+		dbg("Invalid control?");
+		return;
+	}
+	
+
+	for (i=0; i<length; i++) {
+		//dbg("Address control: 0x%2.2x", val[i]);
+		dbg("Address control: %d", val[i]);
+	}
+	*location = val[1];
+	dbg("Location %d", *location);
+
+}
+
+	
+static int
+address_control_get(ipmi_control_t			*control,
+			 struct oh_handler_state	*handler,
+			 ipmi_entity_t			*entity,
+			SaHpiRptEntryT	*rpt)
+{
+	int rv;
+	int location;
+	//SaHpiEntityPathT	entity_ep;
+	struct ohoi_handler *ipmi_handler = handler->data;
+
+	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
+
+	rv = ipmi_control_identifier_get_val(control, address_control, &location);
+
+	if(rv) {
+		dbg("Error getting identifier control val");
+		return -1;
+	}
+
+	ohoi_loop(&location, ipmi_handler);
+
+	//rpt->ResourceEntity.Entry[0].EntityLocation = 
+		//ipmi_entity_get_entity_instance(entity) - 96 ;
+	//rpt->ResourceEntity.Entry[1].EntityLocation = location;
+
+				//rpt.ResourceId =
+					//oh_uid_from_entity_path(&rpt.ResourceEntity);
+				//dbg("Control New ResourceId: %d", rpt.ResourceId);
+	//rv = oh_add_resource(handler->rptcache, *rpt, NULL, 1);
+	//if (rv) {
+	      	//dbg("oh_add_resource failed for %d = %s\n", rpt->ResourceId, oh_lookup_error(rv));
+	//}
+	g_static_rec_mutex_unlock(&ipmi_handler->ohoih_lock);	
+	return 0;
+}
+
 void ohoi_control_event(enum ipmi_update_e op,
 		        ipmi_entity_t      *ent,
 			ipmi_control_t     *control,
@@ -251,6 +314,14 @@ void ohoi_control_event(enum ipmi_update_e op,
                                 break;
 			case IPMI_CONTROL_ALARM:
 				rv = add_alarm_rdrs(handler,rpt_entry,control);
+				break;
+			case IPMI_CONTROL_IDENTIFIER:
+				dbg("Address control for AdvancedTCA entity %d",
+						rpt_entry->ResourceId);
+				rv = address_control_get(control,handler, ent, rpt_entry);
+				if (rv)
+					dbg("address_control_get failed");
+
 				break;
                         default:
                                 dbg("Other control(%d) is storaged in RDR", ctrl_type);

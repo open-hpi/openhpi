@@ -132,7 +132,7 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 	if (value_present == IPMI_BOTH_VALUES_PRESENT) {
 		p->reading.IsSupported = SAHPI_TRUE;
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
-		p->reading.Value.SensorFloat64 = raw_val;
+		p->reading.Value.SensorFloat64 = val;
 	}else if(value_present == IPMI_RAW_VALUE_PRESENT) {
 		p->reading.IsSupported = SAHPI_TRUE;
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;

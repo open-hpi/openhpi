@@ -536,8 +536,14 @@ void get_reset_state(ipmi_control_t *control,
 
 	rv = ipmi_control_get_val(control, get_reset_control_val, cb_data);
 	if (rv) {
-		dbg("[reset] control_get_val failed. IPMI error = %i", rv);
-		reset_info->err = SA_ERR_HPI_INTERNAL_ERROR;
+		//dbg("[reset] control_get_val failed. IPMI error = %i", rv);
+		dbg("This IPMI system has a pulse reset, state is always DEASSERT");
+		/* OpenIPMI will return an error for this call
+		   since pulse resets do not support get_state
+		   we will return UNSUPPORTED_API
+		 */
+		*reset_info->state = SAHPI_RESET_DEASSERT;
+		reset_info->err = SA_OK;
 		reset_info->done = 1;
 	}
 }
@@ -568,7 +574,7 @@ SaErrorT ohoi_get_reset_state(void *hnd,
 				     get_reset_state, &reset_state);
 	if(rv) {
 		dbg("[reset_state] controm pointer callback failed");
-		return SA_ERR_HPI_INTERNAL_ERROR;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 
 	ohoi_loop(&reset_state.done, ipmi_handler);
