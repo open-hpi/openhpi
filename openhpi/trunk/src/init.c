@@ -19,6 +19,8 @@
 #include <uid_utils.h>
 #include <sahpimacros.h>
 
+oh_init_state oh_hpi_state = OH_STAT_UNINIT;
+
 /**
  * oh_initialize
  *
