@@ -145,7 +145,8 @@ int main(int argc, char **argv)
         }
         
         printf( "Go and get the event\n");
-        while (1) {
+	int count = 0;
+        while (count < 10) {
             rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
                 if (rv != SA_OK) { 
                         if (rv != SA_ERR_HPI_TIMEOUT) {
@@ -246,6 +247,7 @@ int main(int argc, char **argv)
                         }
 */			
                 }
+		count++;
         }
 
         /* Unsubscribe to future events */
