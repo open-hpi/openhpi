@@ -230,6 +230,9 @@ static void event_start_element(GMarkupParseContext *context,
                         if (strstr(attribute_values[i], "OVR_EXP") != NULL) {
                                 working.event_ovr |= OVR_EXP;
                         }
+                        if (strstr(attribute_values[i], "OVR_MM") != NULL) {
+                                working.event_ovr |= OVR_MM;
+                        }
                         /* Ignore any other values */
                 }
                 else if (strcmp(attribute_names[i], "dup") == 0) {

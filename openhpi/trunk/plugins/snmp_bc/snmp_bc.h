@@ -30,11 +30,12 @@ typedef struct {
 /* This handle is unique per instance of this plugin. 
  * SNMP session data is stored in the handle along with config file data. */
 struct snmp_bc_hnd {
-	void   *sessp;			/*opaque pointer, not a pointer to struct snmp_session */
+	void   *sessp;			/* Opaque pointer, not a pointer to struct snmp_session */
         struct snmp_session session;
         struct snmp_session *ss; 	/* SNMP Session pointer */
 	GHashTable *event2hpi_hash_ptr; /* Global "Event Number to HPI Event" hash table */
 	int   platform;
+	int   active_mm;                /* Used for duplicate event RID override */
 	char  handler_timezone[10];
         int   handler_retries;          /* Number of retries attempted on SNMP target (client) */
 	RPTable *tmpcache;

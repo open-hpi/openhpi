@@ -904,6 +904,10 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						   snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
+			/* Set active MM location in handler's custom data - used to override
+                           duplicate MM events in snmp_bc_event.c */
+			custom_handle->active_mm = i + SNMP_BC_HPI_LOCATION_BASE;
+
 			trace("Discovered resource=%s; ID=%d",
 			      e->u.res_event.entry.ResourceTag.Data,
 			      e->u.res_event.entry.ResourceId);

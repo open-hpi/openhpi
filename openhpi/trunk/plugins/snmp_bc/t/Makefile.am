@@ -50,7 +50,7 @@ MOSTLYCLEANFILES = \
 		uid_map
 
 # FIXME:: Add when we can auto-generate files for SMP systems
-# MOSTLCLEANFILES += $(GENERATED_CODE)
+# MOSTLYCLEANFILES += $(GENERATED_CODE)
 
 SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
 
