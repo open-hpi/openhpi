@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,22 +20,15 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * ep_cmp test6
- *   null pointer test, expect error return code from calling ep_cmp
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_cmp_ep: null pointer testcase. */
 int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep;
-        int mydebug = 0;
 
-        if (ep_cmp(NULL, &ep)==0) {
-                if (mydebug) printf("ep_cmp test6 failed\n");
-                return 1;
-        }
+        if (oh_cmp_ep(NULL, &ep)) {
+  		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
+       }
 
-        if (mydebug) printf("ep_cmp test6 OK\n");
         return 0;
 }

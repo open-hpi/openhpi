@@ -27,16 +27,6 @@ extern "C" {
 /*********************** 
  * Text buffer utilities
  ***********************/
-#define OH_MAX_TEXT_BUFFER_LENGTH 1024
-
-/* Same as SaHpiTextBufferT, only more Data */
-typedef struct {   
-	SaHpiTextTypeT  DataType;
-	SaHpiLanguageT  Language;
-	SaHpiUint16T    DataLength;
-	SaHpiUint8T     Data[OH_MAX_TEXT_BUFFER_LENGTH];
-} oh_big_textbuffer;
-
 SaErrorT oh_init_textbuffer(SaHpiTextBufferT *buffer);
 SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from);
 SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from);
@@ -44,6 +34,21 @@ SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from
 /* Print just the Data portions of the text structures */
 #define oh_print_text(buf_ptr)  oh_fprint_text(stdout, buf_ptr)
 SaErrorT oh_fprint_text(FILE *stream, const SaHpiTextBufferT *buffer);
+
+/* Same as SaHpiTextBufferT, only more Data */
+#define OH_MAX_TEXT_BUFFER_LENGTH 1024
+typedef struct {   
+	SaHpiTextTypeT  DataType;
+	SaHpiLanguageT  Language;
+	SaHpiUint16T    DataLength;
+	SaHpiUint8T     Data[OH_MAX_TEXT_BUFFER_LENGTH];
+} oh_big_textbuffer;
+
+SaErrorT oh_init_bigtext(oh_big_textbuffer *big_buffer);
+SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const char *from);
+SaErrorT oh_copy_bigtext(oh_big_textbuffer *dest, const oh_big_textbuffer *from);
+
+/* Print just the Data portions of the text structures */
 #define oh_print_bigtext(bigbuf_ptr) oh_fprint_bigtext(stdout, bigbuf_ptr)
 SaErrorT oh_fprint_bigtext(FILE *stream, const oh_big_textbuffer *big_buffer);
 
@@ -97,6 +102,8 @@ int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
  * Print HPI data structures
  ***************************/
 #define OH_PRINT_OFFSET "  "  /* Offset string */
+
+SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets);
 
 #define oh_print_event(event_ptr, offsets) oh_fprint_event(stdout, event_ptr, offsets)
 SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event, int offsets);

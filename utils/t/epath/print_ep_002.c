@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,23 +20,22 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * print_ep test2
- *          call print_ep with single element entity path and expect inspect result
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_print_ep: Single element entity path testcase. */
 int main(int argc, char **argv)
 {
-        SaHpiEntityPathT ep = {{{SAHPI_ENT_ROOT,0},{0}}};
-        int mydebug = 0;
+	int offsets = 0;
+        SaHpiEntityPathT ep;
+	SaErrorT err;
 
-        if (print_ep(&ep) == 0) {
-                if (mydebug) printf ("print_ep test2 printed\n"); 
-                return 0;
-        }    
-        else {
-                if (mydebug) printf ("print_ep test2 failed\n");
-                return 1;
-        }    
+	oh_init_ep(&ep);
 
+	printf("Root only entity path testcase\n");
+	err = oh_print_ep(&ep, offsets);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
+
+	return 0;
 }

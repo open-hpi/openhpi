@@ -90,9 +90,9 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	
 	/* let's append entity_root from config */
 
-	string2entitypath(ipmi_handler->entity_root, &entity_ep);
+	oh_encode_entitypath(ipmi_handler->entity_root, &entity_ep);
 
-	ep_concat(&entry->ResourceEntity, &entity_ep);
+	oh_concat_ep(&entry->ResourceEntity, &entity_ep);
 
 	entry->EntryId = 0;
 	entry->ResourceId = oh_uid_from_entity_path(&entry->ResourceEntity);

@@ -241,7 +241,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_OCTET_STR)  {
 				ep = g_malloc0(vars->val_len + 1);
 				memcpy(ep, vars->val.string, vars->val_len);
-				if(string2entitypath(ep, &rpt_cache[i].ResourceEntity))
+				if(oh_encode_entitypath(ep, &rpt_cache[i].ResourceEntity))
 					dbg("something terrible happened with SA_HPI_RESOURCE_ENTITY_PATH");
 				g_free(ep);				
 			}

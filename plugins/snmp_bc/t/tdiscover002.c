@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 
 	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	char *root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
-	string2entitypath(root_tuple, &ep_root);
+	oh_encode_entitypath(root_tuple, &ep_root);
 	/************************** 
 	 * Test :
 	 **************************/

@@ -1,5 +1,4 @@
 /*      -*- linux-c -*-
- *      $Id$
  *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2004 
@@ -183,6 +182,7 @@ static void ShowSensor(SaHpiSessionIdT sessionid,
 int main(int argc, char **argv)
 {
         int c;
+        char *ep_string = NULL;
         SaErrorT rv;
         SaHpiDomainInfoT dinfo;
         SaHpiSessionIdT sessionid;
@@ -194,10 +194,8 @@ int main(int argc, char **argv)
         SaHpiResourceIdT resourceid;
         SaHpiRdrT rdr;
         SaHpiEntityPathT ep_target;
-        char *ep_string = NULL;
                 
-        
-        printf("%s: version %s\n",argv[0],progver); 
+	printf("%s: version %s\n",argv[0],progver); 
         
         while ( (c = getopt( argc, argv,"rte:x?")) != EOF )
                 switch(c) {
@@ -206,9 +204,9 @@ int main(int argc, char **argv)
                 case 'x': fdebug = 1; break;
                 case 'e':
                         if (optarg) {
-                                ep_string = (char *)strdup(optarg);
+				ep_string = (char *)strdup(optarg);
                         }
-                        string2entitypath(ep_string,&ep_target);
+			oh_encode_entitypath(ep_string, &ep_target);
                         break;
                 default:
                         printf("Usage %s [-t -r -x -e]\n",argv[0]);
@@ -247,7 +245,7 @@ int main(int argc, char **argv)
                         /* Walk the RDR list for this RPT entry */
 
                         /* Filter by entity path if specified */
-                        if (ep_string && ep_cmp(&ep_target,&(rptentry.ResourceEntity))) {
+                        if (ep_string && !oh_cmp_ep(&ep_target,&(rptentry.ResourceEntity))) {
                                 rptentryid = nextrptentryid;
                                 continue;
                         }
@@ -257,7 +255,7 @@ int main(int argc, char **argv)
                         rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
                         printf("\n\nRPTEntry[%d] tag: %s\n",
                                resourceid,rptentry.ResourceTag.Data);
-                        print_ep(&rptentry.ResourceEntity);
+                        oh_print_ep(&rptentry.ResourceEntity, 0);
                         while ((rv == SA_OK) && (entryid != SAHPI_LAST_ENTRY))
                         {
                                 rv = saHpiRdrGet(sessionid,resourceid,

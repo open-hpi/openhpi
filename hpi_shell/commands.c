@@ -101,7 +101,7 @@ static int sa_list_sensor(void)
                         /* Walk the RDR list for this RPT entry */
 
                         /* Filter by entity path if specified */
-                        if (ep_string && ep_cmp(&ep_target,&(rptentry.ResourceEntity))) {
+                        if (ep_string && !oh_cmp_ep(&ep_target,&(rptentry.ResourceEntity))) {
                                 rptentryid = nextrptentryid;
                                 continue;
                         }

@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,21 +20,19 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * print_ep test0
- *          call print_ep with NULL pointer entity path and expect the unknown
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_print_ep: NULL pointer testcase. */
 int main(int argc, char **argv)
 {
-        int mydebug = 0;
+	int offsets = 0;
+	SaErrorT err;
+	SaErrorT expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-        if (print_ep(NULL) == 0) {
-                if (mydebug) printf ("Null pointer entity path printed\n"); 
-        }    
-        else {
-                if (mydebug) printf ("Null pointer entity path can\'t be printed\n");
-        }    
+	err = oh_print_ep(NULL, offsets);
+	if (err != expected_err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
 
         return 0;
 }

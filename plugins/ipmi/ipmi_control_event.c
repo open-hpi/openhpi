@@ -83,9 +83,9 @@ static void add_control_event_rdr(ipmi_control_t		*control,
 	rdr->Entity = parent_ep;
 
 	/* append ep */
-	//string2entitypath(entity_root, &rdr_ep);
+	//oh_encode_entitypath(entity_root, &rdr_ep);
 
-	//ep_concat (&rdr->Entity, &rdr_ep);
+	//oh_concat_ep (&rdr->Entity, &rdr_ep);
 
 	add_control_event_control_rec(control, &rdr->RdrTypeUnion.CtrlRec);
 

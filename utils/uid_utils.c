@@ -79,7 +79,7 @@ guint oh_entity_path_hash(gconstpointer key)
  */
 gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
 {
-        if (!ep_cmp(a,b)) {
+        if (oh_cmp_ep(a,b)) {
                 return 1;
         }
         else {
@@ -151,8 +151,8 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         if (!ep) return 0;
 	
-	ep_init(&entitypath);
-	ep_concat(&entitypath,ep);
+	oh_init_ep(&entitypath);
+	oh_concat_ep(&entitypath,ep);
 	key = &entitypath;
 
         g_static_mutex_lock(&oh_uid_lock);
@@ -277,8 +277,8 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
 
         if (!ep) return 0;
         
-	ep_init(&entitypath);
-	ep_concat(&entitypath, ep);
+	oh_init_ep(&entitypath);
+	oh_concat_ep(&entitypath, ep);
 	key = &entitypath;
         
         /* check hash table for entry in oh_ep_table */

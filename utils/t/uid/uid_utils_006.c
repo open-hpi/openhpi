@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	if (oh_uid_initialize())
 		return 1;
 
-	ep_init(&ep);
+	oh_init_ep(&ep);
 
         for (i = 0; i < 10; i++) {
                 ep.Entry[0].EntityLocation = i;

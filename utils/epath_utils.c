@@ -16,190 +16,65 @@
  *      Chris Chia <cchia@users.sf.net.com>
  */
 
-/******************************************************************************
- * DESCRIPTION:
- * Module contains functions to convert between HPI's SaHpiEntityPathT
- * structure and an OpenHPI canonical string. The canonical string is formed
- * by removing the "SAHPI_ENT_" prefix from the HPI types, and creating 
- * tuples for the entity types. Order of significance is inverted to make 
- * entity paths look more like Unix directory structure. It is also assumed 
- * that {ROOT,0} exists implicitly before all of these entries. For example:
- *
- * {SYSTEM_CHASSIS,2}{PROCESSOR_BOARD,0}
- *
- * FUNCTIONS:
- * string2entitypath - Coverts canonical entity path string to HPI entity path
- * entitypath2string - Coverts HPI entity path to canonical entity path string
- * ep_concat         - Concatenates two SaHpiEntityPathT together.
- *
- * NOTES:
- *   - SAHPI_ENT_ROOT is used to identify end element of an entity path
- *     fully populated entity path may not have a SAHPI_ENT_ROOT.
- *   - Duplicate names in SaHPIEntityTypeT enumeration aren't handled
- *     Names below won't be preserved across conversion calls:
- *       - IPMI_GROUP              - IPMI_GROUP + 0x90
- *       - IPMI_GROUP + 0xB0       - IPMI_GROUP + 0xD0
- *       - ROOT_VALUE              - SAFHPI_GROUP
- *****************************************************************************/
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include <oh_utils.h>
 
-static unsigned int index2entitytype(unsigned int i);
-static int entitytype2index(unsigned int i);
-
-static gchar *eshort_names[] = {
-	"UNSPECIFIED",
-	"OTHER",
-	"UNKNOWN",
-	"PROCESSOR",
-	"DISK_BAY",
-	"PERIPHERAL_BAY",
-	"SYS_MGMNT_MODULE",
-	"SYSTEM_BOARD",
-	"MEMORY_MODULE",
-	"PROCESSOR_MODULE",
-	"POWER_SUPPLY",
-	"ADD_IN_CARD",
-	"FRONT_PANEL_BOARD",
-	"BACK_PANEL_BOARD",
-	"POWER_SYSTEM_BOARD",
-	"DRIVE_BACKPLANE",
-	"SYS_EXPANSION_BOARD",
-	"OTHER_SYSTEM_BOARD",
-	"PROCESSOR_BOARD",
-	"POWER_UNIT",
-	"POWER_MODULE",
-	"POWER_MGMNT",
-	"CHASSIS_BACK_PANEL_BOARD",
-	"SYSTEM_CHASSIS",
-	"SUB_CHASSIS",
-	"OTHER_CHASSIS_BOARD",
-	"DISK_DRIVE_BAY",
-	"PERIPHERAL_BAY_2",
-	"DEVICE_BAY",
-	"COOLING_DEVICE",
-	"COOLING_UNIT",
-	"INTERCONNECT",
-	"MEMORY_DEVICE",
-	"SYS_MGMNT_SOFTWARE",
-	"BIOS",
-	"OPERATING_SYSTEM",
-	"SYSTEM_BUS",
-	"GROUP",
-	"REMOTE",
-	"EXTERNAL_ENVIRONMENT",
-	"BATTERY",
-	"CHASSIS_SPECIFIC",     /* Jumps to 144 */
-	"BOARD_SET_SPECIFIC",   /* Jumps to 176 */
-	"OEM_SYSINT_SPECIFIC",  /* Jumps to 208 */
-	"ROOT",                 /* Jumps to 65535 and continues from there... */
-	"RACK",
-	"SUBRACK",
-	"COMPACTPCI_CHASSIS",
-	"ADVANCEDTCA_CHASSIS",
-	"RACK_MOUNTED_SERVER",
-        "SYSTEM_BLADE",
-        "SWITCH",
-        "SWITCH_BLADE",
-	"SBC_BLADE",
-	"IO_BLADE",
-	"DISK_BLADE",
-	"DISK_DRIVE",
-	"FAN",
-	"POWER_DISTRIBUTION_UNIT",
-	"SPEC_PROC_BLADE",
-	"IO_SUBBOARD",
-	"SBC_SUBBOARD",
-	"ALARM_MANAGER",
-	"SHELF_MANAGER",
-       	"DISPLAY_PANEL",
-	"SUBBOARD_CARRIER_BLADE",
-        "PHYSICAL_SLOT"
-};
-
-static unsigned int eshort_num_names = sizeof( eshort_names ) / sizeof( gchar * );
-
-static unsigned int index2entitytype(unsigned int i)
-{
-        if(i <= ESHORTNAMES_BEFORE_JUMP) {
-                return i;
-        } else if(i == ESHORTNAMES_FIRST_JUMP) {
-                return (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC;
-        } else if(i == ESHORTNAMES_SECOND_JUMP) {
-                return (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC;
-        } else if(i == ESHORTNAMES_THIRD_JUMP) {
-                return (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC;
-        } else {
-                assert(i >= ESHORTNAMES_LAST_JUMP);
-                return (i - ESHORTNAMES_LAST_JUMP + (unsigned int)SAHPI_ENT_ROOT);
-        }
-}
-
-static int entitytype2index(unsigned int i)
-{
-        if(i <= ESHORTNAMES_BEFORE_JUMP)
-                return i;
-        else if (i == (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC)
-                return ESHORTNAMES_FIRST_JUMP;
-        else if (i == (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC)
-                return ESHORTNAMES_SECOND_JUMP;
-        else if (i == (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC)
-                return ESHORTNAMES_THIRD_JUMP;
-        else if (i >= (unsigned int)SAHPI_ENT_ROOT &&
-                 i-(unsigned int)SAHPI_ENT_ROOT < eshort_num_names-ESHORTNAMES_LAST_JUMP)
-                return i-(unsigned int)SAHPI_ENT_ROOT+ESHORTNAMES_LAST_JUMP;
-
-        return -1;
-}
-
 /**
- * string2entitypath
- * @epathstr: IN. Pointer to canonical entity path string
- * @epathptr: OUT. Pointer to HPI's entity path structure
+ * oh_encode_entitypath:
+ * @epstr: Pointer to canonical entity path string.
+ * @ep: Location to store HPI's entity path structure.
  *
- * Converts an entity path canonical string into a
- * SaHpiEntityPathT structure.
+ * Converts an entity path canonical string (generally generated
+ * by oh_decode_entitypath()) into an SaHpiEntityPathT structure.
  * 
- * Returns: 0 Successful return, -1 Error return
- */
-int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
+ * Returns: 
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - Input pointer(s) NULL.
+ * SA_ERR_HPI_INVALID_DATA - Invalid canonical entity path string.
+ * SA_ERR_HPI_OUT_OF_SPACE - No memory for internal storage.
+ **/
+SaErrorT oh_encode_entitypath(const gchar *epstr, SaHpiEntityPathT *ep)
 {
-
-	gchar  **epathdefs = NULL, **epathvalues = NULL;
-	gchar  *gstr = NULL, *etype = NULL, *einstance = NULL, *endptr = NULL;
-        gint rtncode = 0;
-	guint   i, j, match, instance, num_valid_entities = 0;
-        GSList *epath_list = NULL, *lst = NULL;
+ 	gchar **epathdefs = NULL, **epathvalues = NULL;
+	gchar *gstr = NULL, *endptr = NULL;
+        GSList  *epath_list = NULL, *lst = NULL;
+        int   i, location, num_entities = 0;
+        SaErrorT  err = SA_OK;
 	SaHpiEntityT  *entityptr = NULL;
-        gint num = 0;
-        int is_numeric = 0;
-        
-	if (epathstr == NULL || epathstr[0] == '\0') {
-		dbg("Input entity path string is NULL"); 
-		return -1;
+	SaHpiTextBufferT tmpbuffer;
+	SaHpiEntityTypeT eptype;
+
+	if (!epstr || epstr[0] == '\0' || !ep) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	/* Check for runaway string */
+	if (strlen(epstr) >  OH_MAX_TEXT_BUFFER_LENGTH) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_DATA);
 	}
 
         /* Split out {xxx,yyy} definition pairs */
-       	gstr = g_strstrip(g_strdup(epathstr));
+       	gstr = g_strstrip(g_strdup(epstr));
 	if (gstr == NULL || gstr[0] == '\0') {
 		dbg("Stripped entity path string is NULL"); 
-		rtncode = -1;
+		err = SA_ERR_HPI_INVALID_DATA;
 		goto CLEANUP;
 	}
 
 	epathdefs = g_strsplit(gstr, EPATHSTRING_END_DELIMITER, -1);
 	if (epathdefs == NULL) {
-		dbg("Could not split entity path string.");
-		rtncode = -1;
+		dbg("Cannot split entity path string.");
+		err = SA_ERR_HPI_INTERNAL_ERROR;
 		goto CLEANUP;
         }
 
-	/* Split out HPI entity type and instance strings */
+	/* Split out HPI entity type and location strings */
 	for (i=0; epathdefs[i] != NULL && epathdefs[i][0] != '\0'; i++) {
 
 		epathdefs[i] = g_strstrip(epathdefs[i]);
@@ -207,7 +82,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		if ((epathdefs[i][0] != EPATHSTRING_START_DELIMITER_CHAR) || 
 		    (strpbrk(epathdefs[i], EPATHSTRING_VALUE_DELIMITER) == NULL)) {
 			dbg("Invalid entity path format.");
-			rtncode = -1;
+			err = SA_ERR_HPI_INVALID_DATA;
 			goto CLEANUP;
 		}
 
@@ -216,68 +91,55 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
                                          ELEMENTS_IN_SaHpiEntityT);
 		epathvalues[0] = g_strdelimit(epathvalues[0], EPATHSTRING_START_DELIMITER, ' ');
 
-		etype = g_strstrip(epathvalues[0]);
-		einstance = g_strstrip(epathvalues[1]);
+		/* Find entity type */
+		oh_init_textbuffer(&tmpbuffer);
+		oh_append_textbuffer(&tmpbuffer, g_strstrip(epathvalues[0]));
+		err = oh_encode_entitytype(&tmpbuffer, &eptype);
 
-		instance = strtol(einstance, &endptr, 10);
-		if (endptr[0] != '\0') { 
-			dbg("Invalid instance character"); 
-			rtncode = -1; 
+                /* If not an HPI type - support a numeric type. Needed by IPMI Direct plugin */
+		if (err) {
+			err = SA_OK;
+                        int num = strtol(g_strstrip(epathvalues[0]), &endptr, 0);
+                        if (num <= 0 || endptr[0] != '\0') {
+                                dbg("Invalid entity type string");
+                                err = SA_ERR_HPI_INVALID_DATA;
+                                goto CLEANUP;
+                        }
+			eptype = num;
+		}
+
+		/* Find entity location */
+		location = strtol(g_strstrip(epathvalues[1]), &endptr, 10);
+		if (endptr[0] != '\0') {
+			dbg("Invalid location character");
+			err = SA_ERR_HPI_INVALID_DATA;
 			goto CLEANUP;
                 }
 
-		for (match=0, j=0; j < eshort_num_names; j++) {
-			if (!strcmp(eshort_names[j], etype)) {
-				match = 1;
-				break;
-			}
-		}
-                
-                is_numeric = 0;
-
-		if (!match) { 
-                        // check for numeric type
-                        num = strtol(etype,&endptr, 0);
-
-                        if (num <= 0 || endptr[0] != '\0') {
-                                dbg("Invalid entity type string"); 
-                                rtncode = -1; 
-                                goto CLEANUP;
-                        }
-                        
-                        is_numeric = 1;
-		}
-
 		/* Save entity path definitions; reverse order */
-		if (num_valid_entities < SAHPI_MAX_ENTITY_PATH) {
+		if (num_entities < SAHPI_MAX_ENTITY_PATH) {
 			entityptr = (SaHpiEntityT *)g_malloc0(sizeof(*entityptr));
-			if (entityptr == NULL) { 
-				dbg("Out of memory"); 
-				rtncode = -1; 
+			if (entityptr == NULL) {
+				dbg("No memory.");
+				err = SA_ERR_HPI_OUT_OF_SPACE;
 				goto CLEANUP;
 			}
 
-                        if (is_numeric)
-                                entityptr->EntityType = num;
-                        else
-                                entityptr->EntityType = index2entitytype(j);
-
-			entityptr->EntityLocation = instance;
+			entityptr->EntityType = eptype;
+			entityptr->EntityLocation = location;
 			epath_list = g_slist_prepend(epath_list, (gpointer)entityptr);
 		}
-
-		num_valid_entities++; 
-	}  
+		num_entities++;
+	}
   
 	/* Initialize and write HPI entity path structure */
-	ep_init(epathptr);
-
+	oh_init_ep(ep);
 	for (i = 0; epath_list != NULL; i++) {
                 lst = epath_list;
                 if (i < SAHPI_MAX_ENTITY_PATH) {
-                        epathptr->Entry[i].EntityType = 
+                        ep->Entry[i].EntityType =
                                 ((SaHpiEntityT *)(lst->data))->EntityType;
-                        epathptr->Entry[i].EntityLocation = 
+                        ep->Entry[i].EntityLocation =
                                 ((SaHpiEntityT *)(lst->data))->EntityLocation;
                 }
                 epath_list = g_slist_remove_link(epath_list,lst);
@@ -285,9 +147,9 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		g_slist_free(lst);
 	}
 
-	if (num_valid_entities > SAHPI_MAX_ENTITY_PATH) {
+	if (num_entities > SAHPI_MAX_ENTITY_PATH) {
 		dbg("Too many entity defs");
-		rtncode = -1;
+		err = SA_ERR_HPI_INVALID_DATA;
 	}
 
  CLEANUP:
@@ -296,274 +158,301 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 	g_strfreev(epathvalues);
 	g_slist_free(epath_list);
 
-	return(rtncode);
-} /* End string2entitypath */
+	return(err);
+}
 
 /**
- * entitypath2string
- * @epathptr: IN. Pointer to HPI's entity path structure
- * @epathstr: OUT. Pointer to canonical entity path string
- * @strsize: IN. Canonical string length
+ * oh_decode_entitypath:
+ * @ep: Pointer to HPI's entity path structure.
+ * @bigbuf: Location to store canonical entity path string.
  *
- * Converts an entity path structure into its
- * canonical string version. 
+ * Converts an entity path structure into its canonical string version. 
+ * The canonical string is formed by removing the "SAHPI_ENT_" prefix
+ * from the HPI types, and creating tuples for the entity types.
+ * Order of significance is inverted to make entity paths look more
+ * like Unix directory structure. It is also assumed that {ROOT,0}
+ * exists implicitly before all of these entries. For example:
  *
- * Returns: >0 Number of characters written to canonical entity path string, 
- * -1 Error return. -2 Entity path has invalid entity types.
- */
-int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const gint strsize)
+ * {SYSTEM_CHASSIS,2}{PROCESSOR_BOARD,0}
+ *
+ * SAHPI_ENT_ROOT is used to identify end element of an entity path.
+ * Fully populated entity path may not have an SAHPI_ENT_ROOT.
+ * Duplicate names in SaHPIEntityTypeT enumeration aren't handled
+ * and won't be preserved across conversion calls.
+ *
+ * Returns: 
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Input pointer(s) NULL.
+ * SA_ERR_HPI_INVALID_DATA - Location value too big for OpenHpi.
+ * SA_ERR_HPI_OUT_OF_SPACE - No memory for internal storage.
+ **/
+SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
+			      oh_big_textbuffer *bigbuf)
 {
-     
-	gchar  *instance_str, *catstr, *tmpstr;
-	gint   err, i, strcount = 0, rtncode = 0;
-        int tidx;
-        gchar *type_str;
-        gchar type_str_buffer[20];
+ 	gchar  *locstr, *catstr;
+        gchar  typestr_buffer[20];
+	int    i;
+	oh_big_textbuffer tmpbuf;
+        SaHpiUint8T  *typestr;
+	SaErrorT  err = SA_OK;
 
-	if (epathstr == NULL || strsize <= 0) { 
-		dbg("Null string or invalid string size"); 
-		return -1;
+	if (!bigbuf || !ep) {
+		dbg("Invalid parameter");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        if (epathptr == NULL) {
-                *epathstr = '\0';
-                return 0;
-        }
+	err = oh_init_bigtext(&tmpbuf);
+	if (err) return(err);
 
-        /*if (validate_ep(epathptr)) {
-                dbg("Entity path contains invalid types. Unable to convert to string.");
-                return -2;
-        }*/
+#if 0
+	/* Turn off strict HPI EP validation, for IPMI Direct
+           numeric entity type support */
+	if (!oh_valid_ep(ep)) {
+		dbg("Invalid entity path");
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+#endif
 
-	instance_str = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
-	tmpstr = (gchar *)g_malloc0(strsize);
-	if (instance_str == NULL || tmpstr == NULL) { 
-		dbg("Out of memory"); 
-		rtncode = -1; 
+	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
+	if (locstr == NULL) {
+		dbg("No memory.");
+		err = SA_ERR_HPI_OUT_OF_SPACE;
 		goto CLEANUP;
 	}
         
         /* Find last element of structure. Disregard ROOT element
-         * and count as last in entity path.
-         */
-        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (epathptr->Entry[i].EntityType == SAHPI_ENT_ROOT) {                            
+         * and count as last in entity path. */
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+                if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
                             break;
                 }
         }
 
         /* Parse entity path into a string */
 	for (i--; i >= 0; i--) {
-                guint num_digits, work_instance_num;
+                guint num_digits, work_location_num;
                 
 		/* Validate and convert data */
-                work_instance_num = epathptr->Entry[i].EntityLocation;
-                for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
+                work_location_num = ep->Entry[i].EntityLocation;
+                for (num_digits=1;
+		     (work_location_num = work_location_num/10) > 0;
+		     num_digits++);
 		
-		if (num_digits > OH_MAX_LOCATION_DIGITS) { 
-                        dbg("Instance value too big");
-                        rtncode = -1; 
+		if (num_digits > OH_MAX_LOCATION_DIGITS) {
+                        dbg("Location value too big");
+                        err = SA_ERR_HPI_INVALID_DATA;
 			goto CLEANUP;
 		}
-                memset(instance_str, 0, OH_MAX_LOCATION_DIGITS + 1);
-                err = snprintf(instance_str, OH_MAX_LOCATION_DIGITS + 1,
-                               "%d", epathptr->Entry[i].EntityLocation);
+                memset(locstr, 0, OH_MAX_LOCATION_DIGITS + 1);
+                snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, 
+			 "%d", ep->Entry[i].EntityLocation);
 
                 /* Find string for current entity type */
-                tidx = entitytype2index(epathptr->Entry[i].EntityType);
-                if ( tidx >= 0 )
-                        type_str = eshort_names[tidx];
-                else { /* String for entity type not found. */
-                        err = snprintf(type_str_buffer, 20, "%d",
-                                       epathptr->Entry[i].EntityType);
-                        type_str = type_str_buffer;
-                }                
-                
-		strcount = strcount + 
-			strlen(EPATHSTRING_START_DELIMITER) + 
-			strlen(type_str) + 
-			strlen(EPATHSTRING_VALUE_DELIMITER) + 
-			strlen(instance_str) + 
-			strlen(EPATHSTRING_END_DELIMITER);
+		typestr = oh_lookup_entitytype(ep->Entry[i].EntityType);
 
-		if (strcount > strsize - 1) {
-			dbg("Not enough space allocated for string");
-			rtncode = -1;
-			goto CLEANUP;
+		/* Support numeric entity types - need by IPMI Direct plugin */
+		if (typestr == NULL) {
+			snprintf(typestr_buffer, 20, "%d", ep->Entry[i].EntityType);
+			typestr = (SaHpiUint8T *)typestr_buffer;
 		}
 
 		catstr = g_strconcat(EPATHSTRING_START_DELIMITER,
-				     type_str,
+				     typestr,
 				     EPATHSTRING_VALUE_DELIMITER,
-				     instance_str, 
-				     EPATHSTRING_END_DELIMITER, 
+				     locstr,
+				     EPATHSTRING_END_DELIMITER,
 				     NULL);
 
-		strcat(tmpstr, catstr);
+		oh_append_bigtext(&tmpbuf, catstr);
 		g_free(catstr);
 	}
-        rtncode = strcount;
+
 	/* Write string */
-	memset(epathstr, 0 , strsize);
-	strcpy(epathstr, tmpstr);
+	oh_init_bigtext(bigbuf);
+	oh_append_bigtext(bigbuf, tmpbuf.Data);
+
+	dbg("EP String=%s\n", bigbuf->Data);
 
  CLEANUP:
-	g_free(instance_str);
-	g_free(tmpstr);
+	g_free(locstr);
 
-	return(rtncode);
-} /* End entitypath2string */
+	return(err);
+}
 
 /**
- * ep_init
+ * oh_init_ep:
  * @ep: Pointer to SaHpiEntityPathT structure to initialize.
  *
- * Initializes the given entity path to all {ROOT,0} elements.
+ * Initializes an entity path to all {ROOT,0} elements.
  *
- * Returns: void.
+ * Returns:
+ * SA_OK - normal operations.
+ * SA_ERR_HPI_INVALID_PARAMS - @ep is NULL.
  **/
- void ep_init(SaHpiEntityPathT *ep) {
+SaErrorT oh_init_ep(SaHpiEntityPathT *ep)
+{
 	 int i;
 
-         if (!ep) return;
+         if (!ep) {
+		 dbg("Invalid parameter.");
+		 return(SA_ERR_HPI_INVALID_PARAMS);
+	 }
          
-         for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                  ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
                  ep->Entry[i].EntityLocation = 0;
          }
+
+	 return(SA_OK);
  }
 
 /**
- * ep_concat
- * @dest: IN,OUT Left-hand entity path. Gets appended with @append.
- * @append: IN Right-hand entity path. Pointer entity path to be appended.
+ * oh_concat_ep:
+ * @dest: Pointer to entity path. Gets appended with @append.
+ * @append: Pointer to entity path to append.
  *
  * Concatenate two entity path structures (SaHpiEntityPathT).
- * @dest is assumed to be the least significant entity path in the operation.
- * append will be truncated into @dest, if it doesn't fit completely in the space
- * that @dest has available relative to SAHPI_MAX_ENTITY_PATH.
+ * @append is appeded to @dest. If @dest doesn't have enough room, @append
+ * will be truncated into @dest.
  *
- * Returns: 0 on Success, -1 if dest is NULL.
+ * Returns:
+ * SA_OK - normal operations.
+ * SA_ERR_HPI_INVALID_PARAMS - @dest is NULL.
  **/
-int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
+SaErrorT oh_concat_ep(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
 {
-        unsigned int i, j;
+        int i, j;
 
-        if (!dest) return -1;
-        if (!append) return 0;
+        if (!dest) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
 
-        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (dest->Entry[i].EntityType == SAHPI_ENT_ROOT) {
-                        break;
-                }
+        if (!append) return(SA_OK);
+
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+                if (dest->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
         }
 
-        for (j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {                
+        for (j=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 dest->Entry[i].EntityLocation = append->Entry[j].EntityLocation;
                 dest->Entry[i].EntityType = append->Entry[j].EntityType;
                 if (append->Entry[j].EntityType == SAHPI_ENT_ROOT) break;
                 j++;
         }
-
-        return 0;
+	
+        return(SA_OK);
 }
 
 /**
- * validate_ep
+ * oh_valid_ep:
  * @ep: Pointer to an SaHpiEntityPathT structure.
  *
- * This will check the entity path to make sure it does not contain
- * any invalid entity types in it up to the root element if it has it.
+ * Check an entity path to make sure it does not contain
+ * any invalid entity types. The entity path is checked up to
+ * the first root element or to the end of the array, if there
+ * are no root elements in the structure.
  *
- * Returns: 0 if entity path is valid, -1 otherwise.
+ * Returns:
+ * SAHPI_TRUE - Valid entity path.
+ * SAHPI_FALSE - Invalid entity path.
  **/
-int validate_ep(const SaHpiEntityPathT *ep)
+SaHpiBoolT oh_valid_ep(const SaHpiEntityPathT *ep)
 {
-        int check = 0;
-	int i;
 
-        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (   entitytype2index(ep->Entry[i].EntityType) < 0
-                    && ep->Entry[i].EntityType > 255) {
-                        check = -1;
-                        break;
-                } else if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+	int i;
+	SaHpiUint8T *typestr;
+
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
+		if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
+
+		typestr = oh_lookup_entitytype(ep->Entry[i].EntityType);
+		if (typestr == NULL) return(SAHPI_FALSE);
         }
 
-        return check;
+        return(SAHPI_TRUE);
 }
 
 /**
- * set_ep_instance
+ * oh_set_ep_location:
  * @ep: Pointer to entity path to work on
  * @et: entity type to look for
- * @ei: entity instance to set when entity type is found
+ * @ei: entity location to set when entity type is found
  *
- * Set an instance number in the entity path given at the first
+ * Set an location number in the entity path given at the first
  * position (from least significant to most) the specified entity type is found.
  *
- * Returns: 0 on Success, -1 if the entity type was not found.
+ * Returns:
+ * SA_OK - normal operations.
+ * SA_ERR_HPI_INVALID_PARAMS - @ep is NULL.
+ * SA_ERR_HPI_INVALID_DATA - @ep invalid entity path.
  **/
-int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityLocationT ei)
+SaErrorT oh_set_ep_location(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityLocationT ei)
 {
         int i;
-        int retval = -1;
 
-	if (!ep) return retval;
+	if (!ep) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
 
-        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+	if (!oh_valid_ep(ep)) {
+		dbg("Invalid entity path");
+		return(SA_ERR_HPI_INVALID_DATA);
+	}
+
+        for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 if (ep->Entry[i].EntityType == et) {
                         ep->Entry[i].EntityLocation = ei;
-                        retval = 0;
-                        break;                        
-                } else if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         break;
+                } else {
+			if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) break;
                 }
         }
-        return retval;
+
+        return(SA_OK);
 }
 
 /**
- * ep_cmp
- * @ep1: Pointer to entity path struct
- * @ep2: Pointer to entity path struct
+ * oh_cmp_ep:
+ * @ep1: Pointer to entity path structure.
+ * @ep2: Pointer to entity path structure.
  *
- * Compare two entity paths up to their root element.
+ * Compares two entity paths up to their root element.
  * To be equal, they must have the same number of elements and each element
- * (type and instance pair) must be equal to the corresponding element
+ * (type and location pair) must be equal to the corresponding element
  * in the other entity path.
  *
- * Returns: 0 if equal, -1 if not.
+ * Returns:
+ * SAHPI_TRUE - if equal.
+ * SAHPI_FALSE - if not equal.
  **/
-int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
+SaHpiBoolT oh_cmp_ep(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
 {
         unsigned int i, j;
         
-        if ((!ep1) || (!ep2)) {
-                dbg("ep_cmp error - null pointer\n");
-                return -1;
+        if (!ep1 || !ep2) {
+                dbg("Invalid parameter.");
+                return(SAHPI_FALSE);
         }
 
-        for ( i = 0; i < SAHPI_MAX_ENTITY_PATH; i++ ) {
+        for (i=0; i <SAHPI_MAX_ENTITY_PATH; i++) {
                 if (ep1->Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         i++;
                         break;                                
                 }
         }
 
-        for ( j = 0; j < SAHPI_MAX_ENTITY_PATH; j++ ) {
+        for (j=0; j<SAHPI_MAX_ENTITY_PATH; j++) {
                 if (ep2->Entry[j].EntityType == SAHPI_ENT_ROOT) {
                         j++;
                         break;
                 }
         }
 
-        if ( i != j ) {
-                /* dbg("ep1 element count %d != ep2 %d\n", i, j); */
-                return -1;
-        }
+        if (i != j) return(SAHPI_FALSE);
 
-        for ( i = 0; i < j; i++ ) {
+        for (i=0; i<j; i++) {
                 if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType ||
                     ep1->Entry[i].EntityLocation != ep2->Entry[i].EntityLocation) {
                         /* dbg("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
@@ -571,42 +460,55 @@ int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
                             ep1->Entry[i].EntityLocation,
                             ep2->Entry[i].EntityType,
                             ep2->Entry[i].EntityLocation); */
-                        return -1;
+                        return(SAHPI_FALSE);
                 }
         }
         
-        return 0;
+        return(SAHPI_TRUE);
 }
 
 /**
- * print_ep
+ * oh_fprint_ep:
  * @ep: Pointer to entity path stucture.
  *
- * Print the string form of an entity path structure.
+ * Prints the string form of an entity path structure.
+ * The MACRO oh_print_ep(), uses this function to print to STDOUT.
  *
- * Returns: 0 on Success, -1 on Failure.
+ * Returns:
+ * SA_OK - normal operations.
+ * SA_ERR_HPI_INVALID_PARAMS - @ep is NULL.
  **/
-int print_ep(const SaHpiEntityPathT *ep)
+SaErrorT oh_fprint_ep(FILE *stream, const SaHpiEntityPathT *ep, int offsets)
 {
-        const int buffer_size = 512;
-        gchar epstr[buffer_size];
-        int len;
+	oh_big_textbuffer bigbuf1, bigbuf2;
+        SaErrorT err;
 	
-        memset(epstr,0,buffer_size);
-
         if (!ep) {
-		dbg("Error: null pointer \n");
-                return -1;
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
         }
-        
-	len = entitypath2string(ep, epstr, sizeof(epstr));
 
-        if (len < 0) return -1;
-        /* Entity path with a sole root element will be an empty string */
+	err = oh_init_bigtext(&bigbuf1);
+	if (err) return(err);
+	err = oh_init_bigtext(&bigbuf2);
+	if (err) return(err);
 
-	printf("Entity Path=\"%s\"\n", epstr);
+	err = oh_append_offset(&bigbuf1, offsets);
+	if (err) return(err);
+	err = oh_append_bigtext(&bigbuf1, "Entity Path: ");
+	if (err) return(err);
+	
+	err = oh_decode_entitypath(ep, &bigbuf2);
+	if (err) return(err);
 
-        return 0;
+	err = oh_append_bigtext(&bigbuf1, bigbuf2.Data);
+	if (err) return(err);
+	err = oh_append_bigtext(&bigbuf1, "\n");
+	if (err) return(err);
+
+	fprintf(stream, "%s", bigbuf1.Data);
+
+        return(SA_OK);
 }
 
 /**********************************************************************
@@ -616,8 +518,8 @@ int print_ep(const SaHpiEntityPathT *ep)
  *
  * This function "normalizes" a string (such as an SNMP OID) 
  * based on entity path. Starting from the end of @str, this routine 
- * replaces the letter 'x', with the last instance number of entity path,
- * the process is repeated until all 'x' are replaced by an instance number.
+ * replaces the letter 'x', with the last location number of entity path,
+ * the process is repeated until all 'x' are replaced by an location number.
  * For example,
  * 
  * @str = ".1.3.6.1.4.1.2.3.x.2.22.1.5.1.1.5.x"
@@ -642,7 +544,7 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
         gchar *new_str = NULL, *str_walker = NULL;
         gchar **fragments = NULL, **str_nodes = NULL;
         guint num_epe, num_blanks, str_strlen = 0;
-        guint total_num_digits, i, work_instance_num, num_digits;
+        guint total_num_digits, i, work_location_num, num_digits;
 
 	if (!ep || !str) return(NULL);
 
@@ -673,14 +575,14 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
         if (!str_nodes) { dbg("Out of memory."); goto CLEANUP; }
         total_num_digits = 0;
         for (i=0; i<num_blanks; i++) {
-                work_instance_num = ep->Entry[num_blanks-1-i].EntityLocation;
+                work_location_num = ep->Entry[num_blanks-1-i].EntityLocation;
                 for (num_digits = 1;
-                     (work_instance_num = work_instance_num/10) > 0; num_digits++);
+                     (work_location_num = work_location_num/10) > 0; num_digits++);
                 str_nodes[i] = g_malloc0((num_digits+1) * sizeof(gchar));
                 if (!str_nodes[i]) {dbg("Out of memory."); goto CLEANUP;}
                 snprintf(str_nodes[i], (num_digits + 1) * sizeof(gchar), "%d", 
 			 ep->Entry[num_blanks - 1 - i].EntityLocation);
-                /* trace("Instance number: %s", str_nodes[i]); */
+                /* trace("Location number: %s", str_nodes[i]); */
                 total_num_digits = total_num_digits + num_digits;
         }
 
@@ -692,7 +594,7 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
                 str_walker = str_walker + strlen(fragments[i]);
                 if (str_nodes[i]) {
                         str_walker = strcpy(str_walker, str_nodes[i]);
-                        /* trace("Instance number: %s", str_nodes[i]); */
+                        /* trace("Location number: %s", str_nodes[i]); */
                         str_walker = str_walker + strlen(str_nodes[i]);
                 }
                 /* trace("New str: %s", new_str); */

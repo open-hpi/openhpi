@@ -98,7 +98,7 @@ static void *watchdog_open(GHashTable *handler_config)
                 dbg("no entity root present");
                 return NULL;
         }
-        string2entitypath(er, &g_epbase);
+        oh_encode_entitypath(er, &g_epbase);
         
 	hnd = malloc(sizeof(*hnd));
         if (!hnd) {
@@ -296,7 +296,7 @@ static int watchdog_discover_resources(void *hnd)
 		/* Note:  .res_event.entry.ResourceInfo currently unassigned */
 		e->u.res_event.entry.ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
 		e->u.res_event.entry.ResourceEntity.Entry[0].EntityLocation = 0;
-		ep_concat( &(e->u.res_event.entry.ResourceEntity), &g_epbase);
+		oh_concat_ep( &(e->u.res_event.entry.ResourceEntity), &g_epbase);
 		puid = oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		e->u.res_event.entry.ResourceId = puid;
 		e->u.res_event.entry.EntryId = puid;
@@ -335,7 +335,7 @@ static int watchdog_discover_resources(void *hnd)
 		e->u.rdr_event.rdr.RdrTypeUnion.WatchdogRec.Oem = 0; /* n/a */
 		e->u.rdr_event.rdr.Entity.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
 		e->u.rdr_event.rdr.Entity.Entry[0].EntityLocation = 0;
-		ep_concat( &(e->u.rdr_event.rdr.Entity), &g_epbase);
+		oh_concat_ep( &(e->u.rdr_event.rdr.Entity), &g_epbase);
 		e->u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_ASCII6;
 		e->u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
 		e->u.rdr_event.rdr.IdString.DataLength = 8;

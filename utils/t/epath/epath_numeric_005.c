@@ -21,24 +21,34 @@
 #include <oh_utils.h>
 
 int main (int argc, char **argv) {
+
+        gchar test_string[512];
+	oh_big_textbuffer bigbuf;
+        SaErrorT err;
         SaHpiEntityPathT  ep;
-        const int MAX_STRING_SIZE = 512;
-        gchar test_string[MAX_STRING_SIZE];
-        gchar returned_string[MAX_STRING_SIZE];
-        int   err;
 
-        snprintf( test_string, MAX_STRING_SIZE, "{%d,13}", SAHPI_ENT_ROOT_VALUE*2);
+        snprintf(test_string, 512, "{%d,13}", SAHPI_ENT_ROOT_VALUE*2);
         
-	err = string2entitypath(test_string, &ep);
-	if (err)
-		return 1;
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
 
-        err = entitypath2string(&ep, returned_string, MAX_STRING_SIZE);
-        if (err < 0)
-                return 1;
+	oh_init_bigtext(&bigbuf);
+	err = oh_decode_entitypath(&ep, &bigbuf);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
 
-        if (strcmp(returned_string, test_string))
-                return 1;
+	if (strcmp(bigbuf.Data, test_string)) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received Entity Path=%s.\n", bigbuf.Data);
+		return -1;
+	}
 
         return 0;
 }

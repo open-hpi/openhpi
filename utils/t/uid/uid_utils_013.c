@@ -30,7 +30,7 @@ int main(int argc, char **argv)
         SaHpiEntityPathT ep;
         guint id;
 
-        ep_init(&ep);
+        oh_init_ep(&ep);
 
 	if (oh_uid_initialize())
 		return 1;

@@ -209,7 +209,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                         if (vars->type == ASN_OCTET_STR)  {
                                 ep = g_malloc0(vars->val_len + 1);
                                 memcpy(ep, vars->val.string, vars->val_len);
-                                if(string2entitypath(ep, &rdr_cache[i].Entity))
+                                if(oh_encode_entitypath(ep, &rdr_cache[i].Entity))
                                         dbg("something terrible happened with SA_HPI_RDR_ENTITY_PATH");
                                 g_free(ep);
                         }

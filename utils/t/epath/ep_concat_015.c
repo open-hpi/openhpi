@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,15 +20,12 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * ep_concat test15.
- *   concatenate a 5 element entity path that has garbage beyond end element with a 5 element,
- *   verify result, the garbage should be gone at end result.
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_concat_ep: concatenate a 5 element entity path that has garbage 
+   beyond end element with a 5 element. Garbage should be gone
+   at end result. */
 int main(int argc, char **argv)
 {
+	SaErrorT err;
         SaHpiEntityPathT ep1 = {{{SAHPI_ENT_GROUP,1},
                                  {SAHPI_ENT_REMOTE,2},
                                  {SAHPI_ENT_EXTERNAL_ENVIRONMENT,3},
@@ -53,17 +51,17 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_BATTERY,104},
                                  {SAHPI_ENT_CHASSIS_SPECIFIC,105},
                                  {SAHPI_ENT_ROOT,0}}};
-        int mydebug = 0;
 
-        if (ep_concat(&ep1, &ep2)) {
-                if (mydebug) printf("ep_concat test15 checkpoint 1 failed\n");
-                return 1;
+	err = oh_concat_ep(&ep1, &ep2);
+        if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
         }
-        if (ep_cmp(&ep1, &ep3)) {
-                if (mydebug) printf("ep_concat test15 checkpoint 2 failed\n");
-                return 1;
+        if (!oh_cmp_ep(&ep1, &ep3)) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
 
-        if (mydebug) printf("ep_concat test15 OK\n");
         return 0;
 }

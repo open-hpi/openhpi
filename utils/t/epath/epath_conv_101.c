@@ -19,31 +19,47 @@
 #include <oh_utils.h>
 
 /**
- * main: epathstr -> epath test
+ * main: 
+ * epathstr -> epath test
  * 
- * This test tests whether an entity path string is converted into
- * an entity path properly.  
- *
- * Return value: 0 on success, 1 on failure
+ * Test if an entity path string is converted properly into an entity path.
  **/
 int main(int argc, char **argv) 
 {
-        SaHpiEntityPathT tmp_ep;
-        char *entity_root = "{OEM_SYSINT_SPECIFIC,6}{BOARD_SET_SPECIFIC,30}";
+        char *test_string = "{OEM_SYSINT_SPECIFIC,6}{BOARD_SET_SPECIFIC,30}";
+	SaErrorT err;
+        SaHpiEntityPathT ep;
+       
+	err = oh_encode_entitypath(test_string, &ep);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
+		return -1;
+	}
+          
+        if (ep.Entry[0].EntityType != SAHPI_ENT_BOARD_SET_SPECIFIC) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received=%d; Expected=%d\n", ep.Entry[0].EntityType, SAHPI_ENT_BOARD_SET_SPECIFIC);
+		return -1;
+	}
         
-        string2entitypath(entity_root, &tmp_ep);
+        if (ep.Entry[0].EntityLocation != 30) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received=%d; Expected=%d\n", ep.Entry[0].EntityLocation, 30);
+                return -1;
+	}
         
-        if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_BOARD_SET_SPECIFIC)
-                return 1;
+        if (ep.Entry[1].EntityType != SAHPI_ENT_OEM_SYSINT_SPECIFIC) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received=%d; Expected=%d\n", ep.Entry[0].EntityType, SAHPI_ENT_OEM_SYSINT_SPECIFIC);
+                return -1;
+ 	}
         
-        if(tmp_ep.Entry[0].EntityLocation != 30)
-                return 1;
-        
-        if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_OEM_SYSINT_SPECIFIC)
-                return 1;
-        
-        if(tmp_ep.Entry[1].EntityLocation != 6)
-                return 1;
+        if (ep.Entry[1].EntityLocation != 6) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received=%d; Expected=%d\n", ep.Entry[0].EntityLocation, 6);
+                return -1;
+	}
         
         return 0;
 }

@@ -54,7 +54,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 dbg("Cannot find configuration parameter.");
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
-        err = string2entitypath(root_tuple, &ep_root);
+        err = oh_encode_entitypath(root_tuple, &ep_root);
         if (err) {
                 dbg("Cannot convert entity path to string. Error=%s.", oh_lookup_error(err));
                 return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -178,7 +178,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
                         struct oh_event *e = (struct oh_event *)tmpnode->data;
                         if (e->type == OH_ET_RDR &&
-                            ep_cmp(&(e->u.rdr_event.rdr.Entity),&(rdr->Entity)) == 0 &&
+                            oh_cmp_ep(&(e->u.rdr_event.rdr.Entity),&(rdr->Entity)) &&
                             e->u.rdr_event.rdr.RecordId == rdr->RecordId) {
                                 handle->eventq = g_slist_append(handle->eventq, e);
                                 custom_handle->tmpqueue = g_slist_remove_link(custom_handle->tmpqueue, tmpnode);

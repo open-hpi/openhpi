@@ -273,7 +273,6 @@ int sa_discover(void)
         printf("Scanning RPT...\n");
         next = SAHPI_FIRST_ENTRY;
         do {
-                char tmp_epath[128];
                 current = next;
                 ret = saHpiRptEntryGet(sessionid, current, &next, &entry);
                 if (SA_OK != ret) {
@@ -305,9 +304,7 @@ int sa_discover(void)
 
                 rpt_cap2str(entry.ResourceCapabilities);
 
-                printf("Entity Path:\n");
-                // entitypath2string(&entry.ResourceEntity, tmp_epath, sizeof(tmp_epath));
-                printf("\t%s\n", tmp_epath);
+		oh_print_ep(&entry.ResourceEntity, 0);
                 printf("\tResourceTag: ");
                        display_textbuffer(entry.ResourceTag);
 

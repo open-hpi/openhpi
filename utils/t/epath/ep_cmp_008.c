@@ -9,8 +9,9 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *     Chris Chia <cchia@users.sf.net>
+ *     Steve Sherman <stevees@us.ibm.com>
  */
 
 #include <string.h>
@@ -19,12 +20,7 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
-/**
- * ep_cmp test8
- *   compare zero to multi-element entity path, expect failure
- *
- * Return value: 0 on success, 1 on failure
- **/
+/* oh_cmp_ep: compare zero to multi-element entity path testcase. */
 int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep1 = {{{SAHPI_ENT_ROOT, 0}}};
@@ -33,13 +29,11 @@ int main(int argc, char **argv)
                                  {SAHPI_ENT_RACK,2},
                                  {SAHPI_ENT_ROOT,1},
                                  {SAHPI_ENT_ROOT, 0}}};
-        int mydebug = 0;
 
-        if (ep_cmp(&ep1, &ep2) == 0) {
-                if (mydebug) printf("ep_cmp test8 failed\n");
-                return 1;
+        if (oh_cmp_ep(&ep1, &ep2)) {
+ 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		return -1;
         }
 
-        if (mydebug) printf("ep_cmp test8 OK\n");
         return 0;
 }

@@ -70,8 +70,8 @@ ohpi_000_LDADD   = $(TDEPLIB)
 ohpi_001_SOURCES = ohpi_001.c
 ohpi_001_LDADD   = $(TDEPLIB)
 
-ohpi_002_SOURCES = ohpi_002.c
-ohpi_002_LDADD   = $(TDEPLIB)
+#ohpi_002_SOURCES = ohpi_002.c
+#ohpi_002_LDADD   = $(TDEPLIB)
 
 ohpi_003_SOURCES = ohpi_003.c
 ohpi_003_LDADD   = $(TDEPLIB)

@@ -348,7 +348,7 @@ SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int 
         } else if (entry->ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
                 dbg("Failed to add. RPT entry has an invalid/reserved id assigned. (SAHPI_UNSPECIFIED_RESOURCE_ID)");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (validate_ep(&(entry->ResourceEntity))) {
+        } else if (!oh_valid_ep(&(entry->ResourceEntity))) {
                 dbg("Failed to add RPT entry. Entity path does not contain root element.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
@@ -522,7 +522,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
 
         for (node = table->rptlist; node != NULL; node = node->next) {
                 rptentry = (RPTEntry *) node->data;
-                if (!ep_cmp(&(rptentry->rpt_entry.ResourceEntity), ep))
+                if (oh_cmp_ep(&(rptentry->rpt_entry.ResourceEntity), ep))
                         break;
                 else rptentry = NULL;
         }
