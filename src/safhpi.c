@@ -120,6 +120,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         
         /* set up our global domain */
         if (add_domain(OH_DEFAULT_DOMAIN_ID)) {
+                data_access_unlock();
                 return SA_ERR_HPI_ERROR;
         }
 
@@ -127,6 +128,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         default_rpt = g_malloc0(sizeof(RPTable));
         if(!default_rpt) {
                 dbg("Couldn't allocate RPT for Default Domain");
+                data_access_unlock();
                 return SA_ERR_HPI_ERROR;
         }
         default_rpt->rpt_info.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
@@ -135,6 +137,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 	rval = oh_uid_initialize();
 	if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
 		dbg("uid_intialization failed");
+                data_access_unlock();
 		return(rval);
 	}
         
@@ -257,22 +260,33 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 {
         struct oh_session *s;
         int rv;
-        
+
+        if (SecurityParams != NULL) {
+                dbg("SecurityParams must be NULL");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         OH_STATE_READY_CHECK;
-        
+
+        data_access_lock();
+
         if(!is_in_domain_list(DomainId)) {
                 dbg("domain does not exist!");
+                data_access_unlock();
+
                 return SA_ERR_HPI_INVALID_DOMAIN;
         }
-        
+
         rv = session_add(DomainId, &s);
         if(rv < 0) {
                 dbg("Out of space");
+                data_access_unlock();
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
-        
+
         *SessionId = s->session_id;
-        
+        data_access_unlock();
+
         return SA_OK;
 }
 
@@ -280,16 +294,20 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 SaErrorT SAHPI_API saHpiSessionClose(SAHPI_IN SaHpiSessionIdT SessionId)
 {
         struct oh_session *s;
-        
+
         OH_STATE_READY_CHECK;
-        
+        data_access_lock();
+
         s = session_get(SessionId);
         if (!s) {
                 dbg("Invalid session");
+                data_access_unlock();
                 return SA_ERR_HPI_INVALID_SESSION;
         }
-        
+
         session_del(s); 
+        data_access_unlock();
+
         return SA_OK;
 }
 
@@ -300,9 +318,9 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
         GSList *i;
         int rv =0;
 
-        data_access_lock();
-        
         OH_STATE_READY_CHECK;
+
+        data_access_lock();
 
         s = session_get(SessionId);
         if (!s) {
@@ -351,6 +369,7 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
            a domain or session keyed hash */
         RptInfo->UpdateCount = default_rpt->rpt_info.UpdateCount;
         RptInfo->UpdateTimestamp= default_rpt->rpt_info.UpdateTimestamp;
+
         return SA_OK;
 }
 
