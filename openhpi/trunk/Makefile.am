@@ -45,7 +45,7 @@ EXTRA_DIST		= openhpi.spec docs include
 AUTOMAKE_OPTIONS	= foreign
 
 MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub \
-			depcomp install-sh ltmain.sh missing mkinstalldirs \
+			depcomp install-sh ltmain.sh missing mkinstalldirs config.h.in \
 			stamp-h.in $(distdir).tar.gz
 MOSTLYCLEANFILES	= tags
 
