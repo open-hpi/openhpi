@@ -85,6 +85,7 @@ static struct option long_options[] = {
 /* verbose macro */
 #define PVERBOSE1(msg) if (verbose_flag) printf(msg); else
 #define PVERBOSE2(msg, arg1) if (verbose_flag) printf(msg, arg1); else
+#define PVERBOSE3(msg, arg1, arg2) if (verbose_flag) printf(msg, arg1, arg2); else
 
 
 /*--------------------------------------------------------------------*/
@@ -374,8 +375,9 @@ static void service_thread(gpointer data, gpointer user_data)
 	char buf[dMaxMessageLength];
         tResult result;
         GHashTable *thrdhashtable = NULL;
+        gpointer thrdid = g_thread_self();
 
-	PVERBOSE1("Servicing connection.\n");
+	PVERBOSE2("%p Servicing connection.\n", thrdid);
 
         /* set the read timeout for the socket */
         thrdinst->SetReadTimeout(sock_timeout);
@@ -383,9 +385,9 @@ static void service_thread(gpointer data, gpointer user_data)
 	while (stop == false) {
                 if (thrdinst->ReadMsg(buf)) {
                         if (thrdinst->GetErrcode() == EWOULDBLOCK) {
-                                PVERBOSE1("Timeout reading socket.\n");
+                                PVERBOSE2("%p Timeout reading socket.\n", thrdid);
                         } else {
-                                PVERBOSE1("Error reading socket.\n");
+                                PVERBOSE2("%p Error reading socket.\n", thrdid);
                         }
                         goto thrd_cleanup;
                 }
@@ -395,7 +397,7 @@ static void service_thread(gpointer data, gpointer user_data)
                                 result = HandleMsg(thrdinst, buf, &thrdhashtable);
                                 // marshal error ?
                                 if (result == eResultError) {
-                                        PVERBOSE1("Invalid API found.\n");
+                                        PVERBOSE2("%p Invalid API found.\n", thrdid);
                                         HandleInvalidRequest(thrdinst);
                                 }
                                 // done ?
@@ -404,7 +406,7 @@ static void service_thread(gpointer data, gpointer user_data)
                                 }
                                 break;
                         default:
-                                PVERBOSE1("Error in socket read buffer data.\n");
+                                PVERBOSE2("%p Error in socket read buffer data.\n", thrdid);
                                 HandleInvalidRequest(thrdinst);
                                 break;
                         }
@@ -414,7 +416,7 @@ static void service_thread(gpointer data, gpointer user_data)
         thrd_cleanup:
         delete thrdinst; // cleanup thread instance data
 
-	PVERBOSE1("Connection ended.\n");
+	PVERBOSE2("%p Connection ended.\n", thrdid);
 	return; // do NOT use g_thread_exit here!
 }
 
@@ -424,13 +426,14 @@ static void service_thread(gpointer data, gpointer user_data)
 /*--------------------------------------------------------------------*/
 
 void HandleInvalidRequest(psstrmsock thrdinst) {
+        gpointer thrdid = g_thread_self();
 
-  /* create and deliver a pong message */
-  PVERBOSE1("Invalid request.\n");
-  thrdinst->MessageHeaderInit(eMhError, 0, thrdinst->header.m_id, 0 );
-  thrdinst->WriteMsg(NULL);
+       /* create and deliver a pong message */
+       PVERBOSE2("%p Invalid request.\n", thrdid);
+       thrdinst->MessageHeaderInit(eMhError, 0, thrdinst->header.m_id, 0 );
+       thrdinst->WriteMsg(NULL);
 
-  return;
+       return;
 }
 
 
@@ -444,6 +447,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
   SaErrorT ret;
   tResult result = eResultReply;
   char *pReq = data + sizeof(cMessageHeader);
+  gpointer thrdid = g_thread_self();
 
   hm = HpiMarshalFind(thrdinst->header.m_id);
 
@@ -455,11 +459,12 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        case eFsaHpiVersionGet: {
 	      SaHpiVersionT ver;
 
-              PVERBOSE1("Processing saHpiVersionGet.\n");
+              PVERBOSE2("%p Processing saHpiVersionGet.\n", thrdid);
 
 	      ver = saHpiVersionGet( );
 
 	      thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ver );
+              result = eResultClose;
        }
        break;
 
@@ -468,7 +473,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT session_id = 0;
               void            *securityparams = NULL;
 
-              PVERBOSE1("Processing saHpiSessionOpen.\n");
+              PVERBOSE2("%p Processing saHpiSessionOpen.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &domain_id ) < 0 )
@@ -483,7 +488,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        case eFsaHpiSessionClose: {
 	      SaHpiSessionIdT session_id;
 
-              PVERBOSE1("Processing saHpiSessionClose.\n");
+              PVERBOSE2("%p Processing saHpiSessionClose.\n", thrdid);
 	
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
@@ -499,7 +504,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        case eFsaHpiDiscover: {
 	      SaHpiSessionIdT session_id;
 
-              PVERBOSE1("Processing saHpiDiscover.\n");
+              PVERBOSE2("%p Processing saHpiDiscover.\n", thrdid);
 	
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
@@ -515,7 +520,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT  session_id;
               SaHpiDomainInfoT domain_info;
 
-              PVERBOSE1("Processing saHpiDomainInfoGet.\n");
+              PVERBOSE2("%p Processing saHpiDomainInfoGet.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
@@ -533,7 +538,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT   next_entry_id = 0;
               SaHpiDrtEntryT  drt_entry;
 
-              PVERBOSE1("Processing saHpiDrtEntryGet.\n");
+              PVERBOSE2("%p Processing saHpiDrtEntryGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &entry_id ) < 0 )
@@ -550,7 +555,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT  session_id;
               SaHpiTextBufferT domain_tag;
 
-              PVERBOSE1("Processing saHpiDomainTagSet.\n");
+              PVERBOSE2("%p Processing saHpiDomainTagSet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &domain_tag ) < 0 )
@@ -568,7 +573,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT   next_entry_id = 0; // for valgring
               SaHpiRptEntryT  rpt_entry;
 
-              PVERBOSE1("Processing saHpiRptEntryGet.\n");
+              PVERBOSE2("%p Processing saHpiRptEntryGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &entry_id ) < 0 )
@@ -585,7 +590,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiRptEntryT   rpt_entry;
 
-              PVERBOSE1("Processing saHpiRptEntryGetByResourceId.\n");
+              PVERBOSE2("%p Processing saHpiRptEntryGetByResourceId.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -602,7 +607,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiSeverityT   severity;
 
-              PVERBOSE1("Processing saHpiResourceSeveritySet.\n");
+              PVERBOSE2("%p Processing saHpiResourceSeveritySet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -622,7 +627,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiTextBufferT resource_tag;
 
-              PVERBOSE1("Processing saHpiResourceTagSet.\n");
+              PVERBOSE2("%p Processing saHpiResourceTagSet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -640,7 +645,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT session_id;
               SaHpiResourceIdT resource_id = 0;
 
-              PVERBOSE1("Processing saHpiResourceIdGet.\n");
+              PVERBOSE2("%p Processing saHpiResourceIdGet.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
@@ -658,7 +663,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT   resource_id;
               SaHpiEventLogInfoT info;
 
-              PVERBOSE1("Processing saHpiEventLogInfoGet.\n");
+              PVERBOSE2("%p Processing saHpiEventLogInfoGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -680,7 +685,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiRdrT             rdr;
               SaHpiRptEntryT        rpt_entry;
 
-              PVERBOSE1("Processing saHpiEventLogEntryGet.\n");
+              PVERBOSE2("%p Processing saHpiEventLogEntryGet.\n", thrdid);
 
               memset( &rdr, 0, sizeof( SaHpiRdrT ) );
               memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
@@ -704,7 +709,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiEventT      evt_entry;
 
-              PVERBOSE1("Processing saHpiEventLogEntryAdd.\n");
+              PVERBOSE2("%p Processing saHpiEventLogEntryAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -722,7 +727,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT  session_id;
               SaHpiResourceIdT resource_id;
 
-              PVERBOSE1("Processing saHpiEventLogClear.\n");
+              PVERBOSE2("%p Processing saHpiEventLogClear.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -739,7 +744,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiTimeT       ti;
 
-              PVERBOSE1("Processing saHpiEventLogTimeGet.\n");
+              PVERBOSE2("%p Processing saHpiEventLogTimeGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -756,7 +761,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiTimeT       ti;
 
-              PVERBOSE1("Processing saHpiEventLogTimeSet.\n");
+              PVERBOSE2("%p Processing saHpiEventLogTimeSet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -774,7 +779,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiBoolT       enable;
 
-              PVERBOSE1("Processing saHpiEventLogStateGet.\n");
+              PVERBOSE2("%p Processing saHpiEventLogStateGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -791,7 +796,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiBoolT       enable;
 
-              PVERBOSE1("Processing saHpiEventLogStateSet.\n");
+              PVERBOSE2("%p Processing saHpiEventLogStateSet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -808,7 +813,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT  session_id;
               SaHpiResourceIdT resource_id;
 
-              PVERBOSE1("Processing saHpiEventLogOverflowReset.\n");
+              PVERBOSE2("%p Processing saHpiEventLogOverflowReset.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -823,7 +828,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        case eFsaHpiSubscribe: {
               SaHpiSessionIdT session_id;
 
-              PVERBOSE1("Processing saHpiSubscribe.\n");
+              PVERBOSE2("%p Processing saHpiSubscribe.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
@@ -838,7 +843,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        case eFsaHpiUnsubscribe: {
               SaHpiSessionIdT session_id;
 
-              PVERBOSE1("Processing saHpiUnsubscribe.\n");
+              PVERBOSE2("%p Processing saHpiUnsubscribe.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
@@ -858,7 +863,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiRptEntryT       rpt_entry;
               SaHpiEvtQueueStatusT status;
 
-              PVERBOSE1("Processing saHpiEventGet.\n");
+              PVERBOSE2("%p Processing saHpiEventGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &timeout ) < 0 )
@@ -875,7 +880,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT session_id;
               SaHpiEventT     event;
 
-              PVERBOSE1("Processing saHpiEventAdd.\n");
+              PVERBOSE2("%p Processing saHpiEventAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &event ) < 0 )
@@ -893,7 +898,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiBoolT      unack;
               SaHpiAlarmT     alarm;
 
-              PVERBOSE1("Processing saHpiAlarmGetNext.\n");
+              PVERBOSE2("%p Processing saHpiAlarmGetNext.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &severity,
@@ -911,7 +916,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiAlarmIdT   alarm_id;
               SaHpiAlarmT     alarm;
 
-              PVERBOSE1("Processing saHpiAlarmGet.\n");
+              PVERBOSE2("%p Processing saHpiAlarmGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm_id ) < 0 )
@@ -928,7 +933,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiAlarmIdT   alarm_id;
               SaHpiSeverityT  severity;
 
-              PVERBOSE1("Processing saHpiAlarmAcknowledge.\n");
+              PVERBOSE2("%p Processing saHpiAlarmAcknowledge.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm_id,
@@ -945,7 +950,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT session_id;
               SaHpiAlarmT     alarm;
 
-              PVERBOSE1("Processing saHpiAlarmAdd.\n");
+              PVERBOSE2("%p Processing saHpiAlarmAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm ) < 0 )
@@ -962,7 +967,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiAlarmIdT   alarm_id;
               SaHpiSeverityT  severity;
 
-              PVERBOSE1("Processing saHpiAlarmDelete.\n");
+              PVERBOSE2("%p Processing saHpiAlarmDelete.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm_id,
@@ -982,7 +987,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT    next_entry_id;
               SaHpiRdrT        rdr;
 
-              PVERBOSE1("Processing saHpiRdrGet.\n");
+              PVERBOSE2("%p Processing saHpiRdrGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1003,7 +1008,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiInstrumentIdT inst_id;
               SaHpiRdrT          rdr;
 
-              PVERBOSE1("Processing saHpiRdrGetByInstrumentId.\n");
+              PVERBOSE2("%p Processing saHpiRdrGetByInstrumentId.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1024,7 +1029,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorReadingT reading;
               SaHpiEventStateT    state;
 
-              PVERBOSE1("Processing saHpiSensorReadingGet.\n");
+              PVERBOSE2("%p Processing saHpiSensorReadingGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1044,7 +1049,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorNumT        sensor_num;
               SaHpiSensorThresholdsT sensor_thresholds;
 
-              PVERBOSE1("Processing saHpiSensorThresholdsGet.\n");
+              PVERBOSE2("%p Processing saHpiSensorThresholdsGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1055,7 +1060,6 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
                                               resource_id, sensor_num,
                                               &sensor_thresholds);
 
-              PVERBOSE1("Marshaling reply\n");
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &sensor_thresholds );
        }
        break;
@@ -1066,7 +1070,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorNumT        sensor_num;
               SaHpiSensorThresholdsT sensor_thresholds;
 
-              PVERBOSE1("Processing saHpiSensorThresholdsSet.\n");
+              PVERBOSE2("%p Processing saHpiSensorThresholdsSet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1088,7 +1092,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorTypeT    type;
               SaHpiEventCategoryT category;
 
-              PVERBOSE1("Processing saHpiSensorTypeGet.\n");
+              PVERBOSE2("%p Processing saHpiSensorTypeGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1108,7 +1112,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorNumT  sensor_num;
               SaHpiBoolT       enabled;
 
-              PVERBOSE1("Processing saHpiSensorEnableGet.\n");
+              PVERBOSE2("%p Processing saHpiSensorEnableGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1128,7 +1132,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorNumT  sensor_num;
               SaHpiBoolT       enabled;
 
-              PVERBOSE1("Processing saHpiSensorEnableSet.\n");
+              PVERBOSE2("%p Processing saHpiSensorEnableSet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1148,7 +1152,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorNumT  sensor_num;
               SaHpiBoolT       enables;
 
-              PVERBOSE1("Processing saHpiSensorEventEnableGet.\n");
+              PVERBOSE2("%p Processing saHpiSensorEventEnableGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1168,7 +1172,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSensorNumT  sensor_num;
               SaHpiBoolT       enables;
 
-              PVERBOSE1("Processing saHpiSensorEventEnableSet.\n");
+              PVERBOSE2("%p Processing saHpiSensorEventEnableSet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1189,7 +1193,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEventStateT assert_mask;
               SaHpiEventStateT deassert_mask;
 
-              PVERBOSE1("Processing saHpiSensorEventMasksGet.\n");
+              PVERBOSE2("%p Processing saHpiSensorEventMasksGet.\n", thrdid);
 
               if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1212,7 +1216,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEventStateT            assert_mask;
               SaHpiEventStateT            deassert_mask;
 
-              PVERBOSE1("Processing saHpiSensorEventMasksSet.\n");
+              PVERBOSE2("%p Processing saHpiSensorEventMasksSet.\n", thrdid);
 
               if ( HpiDemarshalRequest6( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1233,7 +1237,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiCtrlNumT    ctrl_num;
               SaHpiCtrlTypeT   type;
 
-              PVERBOSE1("Processing saHpiControlTypeGet.\n");
+              PVERBOSE2("%p Processing saHpiControlTypeGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1254,7 +1258,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiCtrlModeT   ctrl_mode;
               SaHpiCtrlStateT  ctrl_state;
 
-              PVERBOSE1("Processing saHpiControlGet.\n");
+              PVERBOSE2("%p Processing saHpiControlGet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1275,7 +1279,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiCtrlModeT   ctrl_mode;
               SaHpiCtrlStateT  ctrl_state;
 
-              PVERBOSE1("Processing saHpiControlSet.\n");
+              PVERBOSE2("%p Processing saHpiControlSet.\n", thrdid);
 
               if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1295,7 +1299,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiIdrIdT      idr_id;
               SaHpiIdrInfoT    info;
 
-              PVERBOSE1("Processing saHpiIdrInfoGet.\n");
+              PVERBOSE2("%p Processing saHpiIdrInfoGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1318,7 +1322,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT       next;
               SaHpiIdrAreaHeaderT header;
 
-              PVERBOSE1("Processing saHpiIdrAreaHeaderGet.\n");
+              PVERBOSE2("%p Processing saHpiIdrAreaHeaderGet.\n", thrdid);
 
               if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1339,7 +1343,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiIdrAreaTypeT   area;
               SaHpiEntryIdT       area_id;
 
-              PVERBOSE1("Processing saHpiIdrAreaAdd.\n");
+              PVERBOSE2("%p Processing saHpiIdrAreaAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1359,7 +1363,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiIdrIdT         idr_id;
               SaHpiEntryIdT       area_id;
 
-              PVERBOSE1("Processing saHpiIdrAreaAdd.\n");
+              PVERBOSE2("%p Processing saHpiIdrAreaAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1383,7 +1387,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT      next;
               SaHpiIdrFieldT     field;
 
-              PVERBOSE1("Processing saHpiIdrFieldGet.\n");
+              PVERBOSE2("%p Processing saHpiIdrFieldGet.\n", thrdid);
 
               if ( HpiDemarshalRequest6( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1403,7 +1407,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiIdrIdT        idr_id;
               SaHpiIdrFieldT     field;
 
-              PVERBOSE1("Processing saHpiIdrFieldAdd.\n");
+              PVERBOSE2("%p Processing saHpiIdrFieldAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1423,7 +1427,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiIdrIdT        idr_id;
               SaHpiIdrFieldT     field;
 
-              PVERBOSE1("Processing saHpiIdrFieldSet.\n");
+              PVERBOSE2("%p Processing saHpiIdrFieldSet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1444,7 +1448,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT    area_id;
               SaHpiEntryIdT    field_id;
 
-              PVERBOSE1("Processing saHpiIdrFieldSet.\n");
+              PVERBOSE2("%p Processing saHpiIdrFieldSet.\n", thrdid);
 
               if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1464,7 +1468,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiWatchdogNumT watchdog_num;
               SaHpiWatchdogT    watchdog;
 
-              PVERBOSE1("Processing saHpiWatchdogTimerGet.\n");
+              PVERBOSE2("%p Processing saHpiWatchdogTimerGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1484,7 +1488,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiWatchdogNumT watchdog_num;
               SaHpiWatchdogT    watchdog;
 
-              PVERBOSE1("Processing saHpiWatchdogTimerSet.\n");
+              PVERBOSE2("%p Processing saHpiWatchdogTimerSet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1503,7 +1507,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT  resource_id;
               SaHpiWatchdogNumT watchdog_num;
 
-              PVERBOSE1("Processing saHpiWatchdogTimerReset.\n");
+              PVERBOSE2("%p Processing saHpiWatchdogTimerReset.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1525,7 +1529,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiBoolT           unack;
               SaHpiAnnouncementT   announcement;
 
-              PVERBOSE1("Processing saHpiAnnunciatorGetNext.\n");
+              PVERBOSE2("%p Processing saHpiAnnunciatorGetNext.\n", thrdid);
 
               if ( HpiDemarshalRequest6( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1547,7 +1551,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT        entry_id;
               SaHpiAnnouncementT   announcement;
 
-              PVERBOSE1("Processing saHpiAnnunciatorGet.\n");
+              PVERBOSE2("%p Processing saHpiAnnunciatorGet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1568,7 +1572,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT        entry_id;
               SaHpiSeverityT       severity;
 
-              PVERBOSE1("Processing saHpiAnnunciatorAcknowledge.\n");
+              PVERBOSE2("%p Processing saHpiAnnunciatorAcknowledge.\n", thrdid);
 
               if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1588,7 +1592,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiAnnunciatorNumT annun_num;
               SaHpiAnnouncementT   announcement;
 
-              PVERBOSE1("Processing saHpiAnnunciatorAdd.\n");
+              PVERBOSE2("%p Processing saHpiAnnunciatorAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1609,7 +1613,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiEntryIdT        entry_id;
               SaHpiSeverityT       severity;
 
-              PVERBOSE1("Processing saHpiAnnunciatorAdd.\n");
+              PVERBOSE2("%p Processing saHpiAnnunciatorAdd.\n", thrdid);
 
               if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1629,7 +1633,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiAnnunciatorNumT  annun_num;
               SaHpiAnnunciatorModeT mode;
 
-              PVERBOSE1("Processing saHpiAnnunciatorModeGet.\n");
+              PVERBOSE2("%p Processing saHpiAnnunciatorModeGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1649,7 +1653,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiAnnunciatorNumT  annun_num;
               SaHpiAnnunciatorModeT mode;
 
-              PVERBOSE1("Processing saHpiAnnunciatorModeSet.\n");
+              PVERBOSE2("%p Processing saHpiAnnunciatorModeSet.\n", thrdid);
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1667,7 +1671,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT  session_id;
               SaHpiResourceIdT resource_id;
 
-              PVERBOSE1("Processing saHpiHotSwapPolicyCancel.\n");
+              PVERBOSE2("%p Processing saHpiHotSwapPolicyCancel.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1683,7 +1687,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT  session_id;
               SaHpiResourceIdT resource_id;
 
-              PVERBOSE1("Processing saHpiResourceActiveSet.\n");
+              PVERBOSE2("%p Processing saHpiResourceActiveSet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1699,7 +1703,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT  session_id;
               SaHpiResourceIdT resource_id;
 
-              PVERBOSE1("Processing saHpiResourceInactiveSet.\n");
+              PVERBOSE2("%p Processing saHpiResourceInactiveSet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1715,7 +1719,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT session_id;
               SaHpiTimeoutT   timeout;
 
-              PVERBOSE1("Processing saHpiAutoInsertTimeoutGet.\n");
+              PVERBOSE2("%p Processing saHpiAutoInsertTimeoutGet.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
@@ -1731,7 +1735,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiSessionIdT session_id;
               SaHpiTimeoutT   timeout;
 
-              PVERBOSE1("Processing saHpiAutoInsertTimeoutSet.\n");
+              PVERBOSE2("%p Processing saHpiAutoInsertTimeoutSet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &timeout ) < 0 )
@@ -1748,7 +1752,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiTimeoutT    timeout;
 
-              PVERBOSE1("Processing saHpiAutoExtractTimeoutGet.\n");
+              PVERBOSE2("%p Processing saHpiAutoExtractTimeoutGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1765,7 +1769,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiTimeoutT    timeout;
 
-              PVERBOSE1("Processing saHpiAutoExtractTimeoutSet.\n");
+              PVERBOSE2("%p Processing saHpiAutoExtractTimeoutSet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1783,7 +1787,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiHsStateT    state;
 
-              PVERBOSE1("Processing saHpiHotSwapStateGet.\n");
+              PVERBOSE2("%p Processing saHpiHotSwapStateGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1800,7 +1804,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiHsActionT   action;
 
-              PVERBOSE1("Processing saHpiHotSwapActionRequest.\n");
+              PVERBOSE2("%p Processing saHpiHotSwapActionRequest.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1818,7 +1822,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT       resource_id;
               SaHpiHsIndicatorStateT state;
 
-              PVERBOSE1("Processing saHpiHotSwapIndicatorStateGet.\n");
+              PVERBOSE2("%p Processing saHpiHotSwapIndicatorStateGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1835,7 +1839,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT       resource_id;
               SaHpiHsIndicatorStateT state;
 
-              PVERBOSE1("Processing saHpiHotSwapIndicatorStateSet.\n");
+              PVERBOSE2("%p Processing saHpiHotSwapIndicatorStateSet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1853,7 +1857,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiParmActionT action;
 
-              PVERBOSE1("Processing saHpiParmControl.\n");
+              PVERBOSE2("%p Processing saHpiParmControl.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1871,7 +1875,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT  resource_id;
               SaHpiResetActionT action;
 
-              PVERBOSE1("Processing saHpiResourceResetStateGet.\n");
+              PVERBOSE2("%p Processing saHpiResourceResetStateGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1888,7 +1892,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT  resource_id;
               SaHpiResetActionT action;
 
-              PVERBOSE1("Processing saHpiResourceResetStateSet.\n");
+              PVERBOSE2("%p Processing saHpiResourceResetStateSet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1907,7 +1911,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiPowerStateT state;
 
-              PVERBOSE1("Processing saHpiResourcePowerStateGet.\n");
+              PVERBOSE2("%p Processing saHpiResourcePowerStateGet.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
@@ -1924,7 +1928,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               SaHpiResourceIdT resource_id;
               SaHpiPowerStateT state;
 
-              PVERBOSE1("Processing saHpiResourcePowerStateGet.\n");
+              PVERBOSE2("%p Processing saHpiResourcePowerStateGet.\n", thrdid);
 
               if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
@@ -1940,7 +1944,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
        case eFoHpiPluginLoad: {
               oHpiTextBufferT buf;
 
-              PVERBOSE1("Processing oHpiPluginLoad.\n");
+              PVERBOSE2("%p Processing oHpiPluginLoad.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &buf ) < 0 )
@@ -1950,13 +1954,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiPluginLoad( (char *)buf.Data );
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiPluginUnload: {
               oHpiTextBufferT buf;
 
-              PVERBOSE1("Processing oHpiPluginUnload.\n");
+              PVERBOSE2("%p Processing oHpiPluginUnload.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &buf ) < 0 )
@@ -1966,6 +1971,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiPluginUnload( (char *)buf.Data );
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+              result = eResultClose;
        }
        break;
 
@@ -1973,7 +1979,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               oHpiTextBufferT buf;
               oHpiPluginInfoT info;
 
-              PVERBOSE1("Processing oHpiPluginInfo.\n");
+              PVERBOSE2("%p Processing oHpiPluginInfo.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &buf ) < 0 )
@@ -1983,13 +1989,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiPluginInfo( (char *)buf.Data, &info );
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiPluginGetNext: {
               oHpiTextBufferT buf, retbuf;
 
-              PVERBOSE1("Processing oHpiPluginGetNext.\n");
+              PVERBOSE2("%p Processing oHpiPluginGetNext.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &buf ) < 0 )
@@ -2002,12 +2009,13 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               retbuf.DataLength = strlen((char *)retbuf.Data);
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &retbuf );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiHandlerCreateInit: {
 
-              PVERBOSE1("Processing oHpiHandlerCreateInit.\n");
+              PVERBOSE2("%p Processing oHpiHandlerCreateInit.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &ret ) < 0 )
@@ -2029,6 +2037,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               }
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+              result = eResultClose;
        }
        break;
 
@@ -2036,7 +2045,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               oHpiTextBufferT key, value;
               char *newkey, *newvalue;
 
-              PVERBOSE1("Processing oHpiHandlerCreateAddTEntry.\n");
+              PVERBOSE2("%p Processing oHpiHandlerCreateAddTEntry.\n", thrdid);
 
               if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &key, &value ) < 0 )
@@ -2053,13 +2062,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               }
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiHandlerCreate: {
               oHpiHandlerIdT id;
 
-              PVERBOSE1("Processing oHpiHandlerCreate.\n");
+              PVERBOSE2("%p Processing oHpiHandlerCreate.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &id ) < 0 )
@@ -2068,13 +2078,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiHandlerCreate(*ht, &id);
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &id );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiHandlerDestroy: {
               oHpiHandlerIdT id;
 
-              PVERBOSE1("Processing oHpiHandlerDestroy.\n");
+              PVERBOSE2("%p Processing oHpiHandlerDestroy.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &id ) < 0 )
@@ -2083,6 +2094,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiHandlerDestroy(id);
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+              result = eResultClose;
        }
        break;
 
@@ -2090,7 +2102,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               oHpiHandlerIdT id;
               oHpiHandlerInfoT info;
 
-              PVERBOSE1("Processing oHpiHandlerInfo.\n");
+              PVERBOSE2("%p Processing oHpiHandlerInfo.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &id ) < 0 )
@@ -2099,13 +2111,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiHandlerInfo(id, &info);
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &info );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiHandlerGetNext: {
               oHpiHandlerIdT id, next_id;
 
-              PVERBOSE1("Processing oHpiHandlerGetNext.\n");
+              PVERBOSE2("%p Processing oHpiHandlerGetNext.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &id ) < 0 )
@@ -2114,13 +2127,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiHandlerGetNext(id, &next_id);
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &next_id );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiGlobalParamGet: {
               oHpiGlobalParamT param;
 
-              PVERBOSE1("Processing oHpiGlobalParamGet.\n");
+              PVERBOSE2("%p Processing oHpiGlobalParamGet.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &param ) < 0 )
@@ -2129,13 +2143,14 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiGlobalParamGet(&param);
 
               thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &param );
+              result = eResultClose;
        }
        break;
 
        case eFoHpiGlobalParamSet: {
               oHpiGlobalParamT param;
 
-              PVERBOSE1("Processing oHpiGlobalParamSet.\n");
+              PVERBOSE2("%p Processing oHpiGlobalParamSet.\n", thrdid);
 
               if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &param ) < 0 )
@@ -2144,22 +2159,23 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data, GHashTable **ht)
               ret = oHpiGlobalParamSet(&param);
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
+              result = eResultClose;
        }
        break;
 
        default:
-              PVERBOSE1("Function not found\n");
+              PVERBOSE2("%p Function not found\n", thrdid);
               return eResultError;
        }
 
        // send the reply
        bool wrt_result = thrdinst->WriteMsg(pReq);
        if (wrt_result) {
-               PVERBOSE1("Socket write failed\n");
+               PVERBOSE2("%p Socket write failed\n", thrdid);
                return eResultError;
        }
 
-       PVERBOSE2("Return code = %d\n", ret);
+       PVERBOSE3("%p Return code = %d\n", thrdid, ret);
 
        return result;
 }
