@@ -30,6 +30,7 @@ int sim_banner(void);
 int sim_init(void);
 int sim_close(void);
 
+extern unsigned int str2event_use_count;  
 /**
  * snmp_bc_open: open snmp blade center plugin
  * @handler_config: hash table passed by infrastructure
@@ -73,13 +74,17 @@ void *snmp_bc_open(GHashTable *handler_config)
 	handle->selcache->gentimestamp = FALSE;
 
 	/* Initialize String-to-Event hash table */
-	if (str2event_hash_init()) {
-		dbg("Couldn't initialize str2event hash table.");
-		return NULL;
-	}
+	if (str2event_use_count == 0) {  
+		if (str2event_hash_init()) {
+			dbg("Couldn't initialize str2event hash table.");
+			return NULL;
+		}
+		str2event_use_count++;
+	} else 
+		str2event_use_count++;
 	
 	/* Initialize BC_Event_Number-to-HPI_Event hash table */
-	if (event2hpi_hash_init()) {
+	if (event2hpi_hash_init(handle)) {
 		dbg("Couldn't initialize event2hpi hash table.");
 		return NULL;
 	}
@@ -251,9 +256,12 @@ void snmp_bc_close(void *hnd)
 		SOCK_CLEANUP;
 	}
 
-	/* Cleanup str2event hash table */
-	str2event_hash_free();
-
 	/* Cleanup event2hpi hash table */
-	event2hpi_hash_free();
+	event2hpi_hash_free(handle);
+
+	/* Cleanup str2event hash table */
+	str2event_use_count--;
+	if (str2event_use_count == 0) 
+		str2event_hash_free();
+
 }

@@ -30,10 +30,13 @@
 #include <bc_str2event.h>
 #include <bc_errorlog.h>
 #include <snmp_util.h>
+#include <snmp_bc.h>
 #include <snmp_bc_sel.h>
 #include <snmp_bc_utils.h>
 #include <snmp_bc_event.h>
 
+unsigned int str2event_use_count = 0; /* It is here for initialization */ 
+ 
 typedef enum {
 	EVENT_NOT_MAPPED,
 	EVENT_NOT_ALERTABLE,
@@ -68,9 +71,13 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str,
 					LogSource2ResourceT *resinfo);
 
 
-int event2hpi_hash_init()
+int event2hpi_hash_init(struct oh_handler_state *handle)
 {
-	event2hpi_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+	GHashTable *event2hpi_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	custom_handle->event2hpi_hash_ptr = event2hpi_hash;
+	
 	if (event2hpi_hash == NULL) {
 		dbg("Cannot allocate event2hpi_hash table");
 		return -1;
@@ -79,8 +86,11 @@ int event2hpi_hash_init()
 	return 0;
 }
 
-int event2hpi_hash_free()
+int event2hpi_hash_free(struct oh_handler_state *handle)
 {
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
+	
         g_hash_table_foreach(event2hpi_hash, free_hash_data, NULL);
 	g_hash_table_destroy(event2hpi_hash);
 
@@ -93,7 +103,7 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(value);
 }
 
-int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_info)
+int find_res_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_info)
 {
 	int i;
 	int max = MAX_RESOURCE_EVENT_ARRAY_SIZE;
@@ -101,6 +111,8 @@ int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_i
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
 	SaHpiResourceIdT rid = oh_uid_from_entity_path(ep);
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 	
 	for (i=0; bc_res_info->event_array[i].event != NULL && i < max; i++) {
 
@@ -146,7 +158,7 @@ int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_i
 	return 0;
 }
 
-int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor)
+int find_sensor_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor)
 {
 	int i;
 	int max = MAX_SENSOR_EVENT_ARRAY_SIZE;
@@ -154,7 +166,10 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
 	SaHpiResourceIdT rid = oh_uid_from_entity_path(ep);
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 	
+		
 	for (i=0; rpt_sensor->bc_sensor_info.event_array[i].event != NULL && i < max; i++) {
 		
 		/* Normalized and convert event string */
@@ -250,6 +265,9 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	SaHpiEventT working, *event_ptr;
 	SaHpiSeverityT severity;
 	Str2EventInfoT *strhash_data;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 
 	memset(&working, 0, sizeof(SaHpiEventT));
 	is_recovery_event = is_threshold_event = 0;
@@ -431,6 +449,7 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *strha
 	gchar dupstr[BC_SEL_ENTRY_STRING];
 	Str2EventInfoT *dupstr_hash_data;
 	short strnum;
+
 
 	strncpy(dupstr, search_str, BC_SEL_ENTRY_STRING);
 	dupstr_hash_data = strhash_data;

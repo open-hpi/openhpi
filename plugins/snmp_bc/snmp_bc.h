@@ -23,7 +23,8 @@
 
 struct snmp_bc_hnd {
         struct snmp_session session;
-        struct snmp_session *ss; /* SNMP Session pointer */
+        struct snmp_session *ss; 	/* SNMP Session pointer */
+	GHashTable *event2hpi_hash_ptr; /* Global BC Event Number to HPI Event Hash Table */
 };
 
 #endif

@@ -71,7 +71,7 @@ static inline int rdr_exists(struct snmp_session *ss, const char *oid, unsigned 
  * over optimization.
  **/
 
-struct oh_event * snmp_bc_discover_chassis(char *blade_vector, SaHpiEntityPathT *ep) 
+struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char *blade_vector, SaHpiEntityPathT *ep) 
 {
 	int len;
         struct oh_event working;
@@ -98,13 +98,13 @@ struct oh_event * snmp_bc_discover_chassis(char *blade_vector, SaHpiEntityPathT 
                 working.u.res_event.entry.ResourceEntity = *ep;
                 e = eventdup(&working);
 		
-		find_res_events(ep, &snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info);
+		find_res_events(handle,ep, &snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info);
         }
  
 	return e;
 }
 
-struct oh_event * snmp_bc_discover_mgmnt(char *mm_vector, SaHpiEntityPathT *ep, int mmnum)
+struct oh_event * snmp_bc_discover_mgmnt(struct oh_handler_state *handle, char *mm_vector, SaHpiEntityPathT *ep, int mmnum)
 {
 	int len;
         struct oh_event working;
@@ -136,14 +136,14 @@ struct oh_event * snmp_bc_discover_mgmnt(char *mm_vector, SaHpiEntityPathT *ep, 
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
                 e = eventdup(&working);
 
-		find_res_events(&working.u.res_event.entry.ResourceEntity, 
+		find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
 				&snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].bc_res_info);
         }
          
        return e;
 }
 
-struct oh_event * snmp_bc_discover_mediatray(long exists, SaHpiEntityPathT *ep, int mtnum) 
+struct oh_event * snmp_bc_discover_mediatray(struct oh_handler_state *handle, long exists, SaHpiEntityPathT *ep, int mtnum) 
 {
 	int len;
         struct oh_event working;
@@ -174,14 +174,14 @@ struct oh_event * snmp_bc_discover_mediatray(long exists, SaHpiEntityPathT *ep, 
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
                  e = eventdup(&working);
 
-		find_res_events(&working.u.res_event.entry.ResourceEntity, 
+		find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
 				&snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].bc_res_info);
         } 
           
 	return e;
 }
 
-struct oh_event * snmp_bc_discover_blade(char *blade_vector, SaHpiEntityPathT *ep, int bladenum) 
+struct oh_event * snmp_bc_discover_blade(struct oh_handler_state *handle, char *blade_vector, SaHpiEntityPathT *ep, int bladenum) 
 {
 	int len;
         struct oh_event working;
@@ -213,15 +213,16 @@ struct oh_event * snmp_bc_discover_blade(char *blade_vector, SaHpiEntityPathT *e
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
                 e = eventdup(&working);
 
-		find_res_events(&working.u.res_event.entry.ResourceEntity, 
+		find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
 				&snmp_rpt_array[BC_RPT_ENTRY_BLADE].bc_res_info);
         }
 
 	return e;
 }
 
-struct oh_event * snmp_bc_discover_blade_addin(struct snmp_session *ss, char *blade_vector,
-                                               SaHpiEntityPathT *ep, int bladenum)
+struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
+						char *blade_vector,
+                                               	SaHpiEntityPathT *ep, int bladenum)
 {
 	gchar bladenum_str[2]; /* Implies max number of blades is 99 */
 	gchar *oid = NULL; 
@@ -230,6 +231,8 @@ struct oh_event * snmp_bc_discover_blade_addin(struct snmp_session *ss, char *bl
 	int len;
         struct oh_event working;
         struct oh_event *e = NULL;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
 
         memset(&working, 0, sizeof(struct oh_event));
 
@@ -288,7 +291,7 @@ struct oh_event * snmp_bc_discover_blade_addin(struct snmp_session *ss, char *bl
                                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
 			e = eventdup(&working);
 
-			find_res_events(&working.u.res_event.entry.ResourceEntity, 
+			find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
 					&snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].bc_res_info);
 		}		
         }
@@ -300,7 +303,7 @@ CLEANUP:
         return e;
 }
 
-struct oh_event * snmp_bc_discover_fan(char *fan_vector, SaHpiEntityPathT *ep, int fannum)
+struct oh_event * snmp_bc_discover_fan(struct oh_handler_state *handle,char *fan_vector, SaHpiEntityPathT *ep, int fannum)
 {
 	int len;
         struct oh_event working;
@@ -331,14 +334,14 @@ struct oh_event * snmp_bc_discover_fan(char *fan_vector, SaHpiEntityPathT *ep, i
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
                 e = eventdup(&working);
 
-		find_res_events(&working.u.res_event.entry.ResourceEntity, 
+		find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
 				&snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].bc_res_info);
         }
 
 	return e;
 }
 
-struct oh_event * snmp_bc_discover_power(char *power_vector, SaHpiEntityPathT *ep, int powernum)
+struct oh_event * snmp_bc_discover_power(struct oh_handler_state *handle,char *power_vector, SaHpiEntityPathT *ep, int powernum)
 {
 	int len;
         struct oh_event working;
@@ -369,14 +372,14 @@ struct oh_event * snmp_bc_discover_power(char *power_vector, SaHpiEntityPathT *e
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
                 e = eventdup(&working);
                 
-		find_res_events(&working.u.res_event.entry.ResourceEntity, 
+		find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
 				&snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].bc_res_info);
         }
 
         return e;
 }
 
-struct oh_event * snmp_bc_discover_switch(char *switch_vector, SaHpiEntityPathT *ep, int switchnum)
+struct oh_event * snmp_bc_discover_switch(struct oh_handler_state *handle,char *switch_vector, SaHpiEntityPathT *ep, int switchnum)
 {
 	int len;
         struct oh_event working;
@@ -407,7 +410,7 @@ struct oh_event * snmp_bc_discover_switch(char *switch_vector, SaHpiEntityPathT 
                         oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
                 e = eventdup(&working);
 
- 		find_res_events(&working.u.res_event.entry.ResourceEntity, 
+ 		find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
 				&snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].bc_res_info);
        }
 
@@ -427,7 +430,7 @@ struct oh_event * snmp_bc_discover_switch(char *switch_vector, SaHpiEntityPathT 
  * Return value: Pointer to Plugin Event, if success, NULL, if error or control does not exist
  **/
 
-struct oh_event * snmp_bc_discover_controls(struct snmp_session *ss,
+struct oh_event * snmp_bc_discover_controls(struct oh_handler_state *handle,
 					    SaHpiEntityPathT parent_ep,
 					    const struct snmp_bc_control *control)
 {
@@ -435,6 +438,8 @@ struct oh_event * snmp_bc_discover_controls(struct snmp_session *ss,
 	int len;
         struct oh_event working;
         struct oh_event *e = NULL;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
 
         memset(&working, 0, sizeof(struct oh_event));
 
@@ -475,7 +480,7 @@ struct oh_event * snmp_bc_discover_controls(struct snmp_session *ss,
  * @control: Pointer to RDR's static control definition (SaHpiSensorRecT)
  * Return value: Pointer to Plugin Event, if success, NULL, if error or sensor does not exist
  **/
-struct oh_event * snmp_bc_discover_sensors(struct snmp_session *ss,
+struct oh_event * snmp_bc_discover_sensors(struct oh_handler_state *handle,
                                            SaHpiEntityPathT parent_ep,                                           
                                            const struct snmp_bc_sensor *sensor)
 {
@@ -483,6 +488,8 @@ struct oh_event * snmp_bc_discover_sensors(struct snmp_session *ss,
 	int len, sensor_event_only=0;
         struct oh_event working;
         struct oh_event *e = NULL;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
 
         memset(&working, 0, sizeof(struct oh_event));
 	
@@ -518,7 +525,7 @@ struct oh_event * snmp_bc_discover_sensors(struct snmp_session *ss,
 		}
 		e = eventdup(&working);
 
-		find_sensor_events(&parent_ep, sensor->sensor.Num, sensor);
+		find_sensor_events(handle, &parent_ep, sensor->sensor.Num, sensor);
 	}
 
 	g_free(oid);
@@ -534,7 +541,7 @@ struct oh_event * snmp_bc_discover_sensors(struct snmp_session *ss,
  * Return value: Pointer to Plugin Event, if success, NULL, if error or control does not exist
  **/
 
-struct oh_event * snmp_bc_discover_inventories(struct snmp_session *ss,
+struct oh_event * snmp_bc_discover_inventories(struct oh_handler_state *handle,
                                             SaHpiEntityPathT parent_ep,
                                             const struct snmp_bc_inventory *inventory)
 {
@@ -542,6 +549,8 @@ struct oh_event * snmp_bc_discover_inventories(struct snmp_session *ss,
         int len;
         struct oh_event working;
         struct oh_event *e = NULL;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
 
         memset(&working, 0, sizeof(struct oh_event));
 
