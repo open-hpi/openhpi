@@ -909,7 +909,7 @@ static void *dummy_open(GHashTable *handler_config)
 
         /* initialize hashtable pointer */
         i->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(i->rptcache, NULL);
+        oh_init_rpt(i->rptcache);
 
         /* fill in the local rpt cache */
         __build_the_rpt_cache(i);
@@ -963,14 +963,9 @@ static void *dummy_open(GHashTable *handler_config)
 
 static void dummy_close(void *hnd)
 {
-        struct oh_handler_state *inst = hnd;
-        /* TODO: free the rptcache RPTable *rptcache */
+        //struct oh_handler_state *inst = hnd;
 
-        /* free eventq entries GSList *eventq */
-        while ( g_slist_length( inst->eventq ) > 0 ) {
-                free(inst->eventq->data);
-                inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
-        }
+        /* TODO: free the rptcache RPTable *rptcache */
 
 	/* destroy mutex */
 //        g_static_rec_mutex_free(inst->handler_lock);
@@ -1162,11 +1157,6 @@ static int dummy_discover_resources(void *hnd)
                         memset(&event, 0, sizeof(event));
                         event.type = OH_ET_RESOURCE;
                         memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-
-                        /* old */
-			inst->eventq = g_slist_append(inst->eventq, __eventdup(&event) );
-
-			/* new */
 			g_async_queue_push(inst->eventq_async, __eventdup(&event));
 
 
@@ -1179,11 +1169,6 @@ static int dummy_discover_resources(void *hnd)
                                 event.type = OH_ET_RDR;
                                 event.u.rdr_event.parent = rpt_entry->ResourceId;
                                 memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
-
-				/* old */
-                                inst->eventq = g_slist_append(inst->eventq, __eventdup(&event));
-
-				/* new */
 				g_async_queue_push(inst->eventq_async, __eventdup(&event));
 
                                 rdr_entry = oh_get_rdr_next(inst->rptcache,
@@ -1252,7 +1237,6 @@ static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT
 
 	/* new */
 	g_async_queue_push(inst->eventq_async, e);
-        //inst->eventq = g_slist_append(inst->eventq, e);
 
 #endif
         return 0;
@@ -1769,10 +1753,6 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
                 if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_INACTIVE) {
                         dummy_resource_status[1].hotswap = SAHPI_HS_STATE_INSERTION_PENDING;
                         hotswap_event[0].u.hpi_event.res.ResourceId = id;
-			/* old */
-                        inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[0]));
-
-			/* new */
 			g_async_queue_push(inst->eventq_async, __eventdup(&hotswap_event[0]));
 
 
@@ -1785,11 +1765,6 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
                 if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_ACTIVE) {
                         dummy_resource_status[1].hotswap = SAHPI_HS_STATE_EXTRACTION_PENDING;
                         hotswap_event[1].u.hpi_event.res.ResourceId = id;
-
-			/* old */
-                        inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[1]));
-
-			/* new */
 			g_async_queue_push(inst->eventq_async, __eventdup(&hotswap_event[1]));
 
 
