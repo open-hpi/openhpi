@@ -68,11 +68,9 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
                 	if (vars->next_variable != NULL) {
                 		/* There are more values, set return type to null. */
                         	value->type = ASN_NULL;
-			} else if ( (vars->type == SNMP_NOSUCHOBJECT) 	||
-				    (vars->type == SNMP_NOSUCHINSTANCE)	||
-				    (vars->type == SNMP_ENDOFMIBVIEW)) {
+			} else if ( !CHECK_END(vars->type)) {
 				/* This is one of the exception condition */
-				returncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
+				returncode = SA_ERR_HPI_NOT_PRESENT;
 				dbg("snmp exception %d \n",vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
@@ -92,18 +90,13 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
 		} else {
                         dbg("Error in packet %s\nReason: %s\n",
                                	 objid, snmp_errstring(response->errstat));
-			if (response->errstat == SNMP_ERR_NOSUCHNAME)
-				response->errstat = SNMP_NOSUCHOBJECT;
-			returncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
+			returncode = errstat2hpi(response->errstat);
 		}
 
         } else {
-                /* Set return type to 0 in case of error. */
-		/* Probably not needed since we switch to returncode */
-		/* Leave it in until examine all users of this func  */
                 value->type = (u_char)0x00; 
                 snmp_sess_perror("snmpget", ss);
-		returncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
+		returncode = snmpstat2hpi(status);
         }
 
         /* Clean up: free the response */
@@ -156,7 +149,7 @@ SaErrorT snmp_set(
 			dataptr = value.string;
                         break;
                 default:
-                        rtncode = -1;
+                        rtncode = SA_ERR_HPI_INVALID_PARAMS;
                         dbg("datatype %c not yet supported by snmp_set()\n", value.type);
                         break;
         }
@@ -181,17 +174,11 @@ SaErrorT snmp_set(
         	/*
          	* Process the response.
          	*/
-                if (status == STAT_SUCCESS) {
-                        if (response->errstat == SNMP_ERR_NOERROR) {
-				rtncode = SA_OK;
-			} else {
-                                if (response->errstat == SNMP_ERR_NOSUCHNAME)
-					response->errstat = SNMP_NOSUCHOBJECT;
-                                rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
-			}
-                } else {
+                if (status == STAT_SUCCESS) 
+                                rtncode = errstat2hpi(response->errstat);
+                else {
 			snmp_sess_perror("snmpset", ss);
-			rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
+			rtncode = snmpstat2hpi(status);;
 		}
 		
         	/* Clean up: free the response */
@@ -252,13 +239,10 @@ SaErrorT snmp_get2(struct snmp_session *ss,
 	                if (vars->next_variable != NULL) {
 				/* If there are more values, set return type to null. */
        	                 	value->type = ASN_NULL;
-
-                        } else if ( (vars->type == SNMP_NOSUCHOBJECT)   ||
-                                    (vars->type == SNMP_NOSUCHINSTANCE) ||
-                                    (vars->type == SNMP_ENDOFMIBVIEW)) {
-                                /* This is one of the exception condition */
-                                returncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
-                                dbg("snmp exception %d \n",vars->type);
+			} else if ( !CHECK_END(vars->type)) {
+				/* This is one of the exception condition */
+				returncode = SA_ERR_HPI_NOT_PRESENT;
+				dbg("snmp exception %d \n",vars->type);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
 				    (vars->type == ASN_COUNTER) || 
@@ -303,13 +287,11 @@ SaErrorT snmp_get2(struct snmp_session *ss,
 			for(i = 0; i<objid_len; i++ )
 				fprintf(stderr, "%d.", (int)objid[i]);
 			fprintf(stderr, "\n");
-			if (response->errstat == SNMP_ERR_NOSUCHNAME)
-				response->errstat = SNMP_NOSUCHOBJECT;
-			returncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
-		}
+			returncode = errstat2hpi(response->errstat);		}
         } else {
 		snmp_sess_perror("snmpget", ss);
-		returncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
+		returncode = snmpstat2hpi(status);
+
         }
 
         /* Clean up: free the response */
@@ -362,7 +344,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 			dataptr = value->string;
                         break;
                 default:
-                        rtncode = -1;
+                        rtncode = SA_ERR_HPI_INVALID_PARAMS;
                         dbg("datatype %c not yet supported by snmp_set2()", 
 				value->type);
                         break;
@@ -399,23 +381,21 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 						fprintf(stderr, "snmp_set2(): No idea.\n");
 				fprintf(stderr, "********************************************************\n");
 #endif
-				if ((vars->type == SNMP_NOSUCHOBJECT)   ||
-                                    (vars->type == SNMP_NOSUCHINSTANCE) ||
-                                    (vars->type == SNMP_ENDOFMIBVIEW)) {
+				if (!CHECK_END(response->variables->type)) {
                                 	/* This is one of the exception condition */
-                                	rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
+				        rtncode = SA_ERR_HPI_NOT_PRESENT;
                                 	dbg("snmp exception %d \n",vars->type);
 				}
 			} else {
                         	dbg("snmp_set2: Error in packet, Reason: %s",
 						snmp_errstring(response->errstat));
-                        	if (response->errstat == SNMP_ERR_NOSUCHNAME)
-                                		response->errstat = SNMP_NOSUCHOBJECT;
-                        	rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
+                                rtncode = errstat2hpi(response->errstat);
+
 			}                
         	} else {
                        	snmp_sess_perror("snmpset", ss);
-                       	rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
+                       	rtncode = snmpstat2hpi(status);
+
         	}
 
         	/* Clean up: free the response */
@@ -456,11 +436,9 @@ SaErrorT snmp_getn_bulk( struct snmp_session *ss,
 	if (status == STAT_SUCCESS) {
 		vars = (*bulk_response)->variables;
 		if ((*bulk_response)->errstat == SNMP_ERR_NOERROR) {
-			if ((vars->type == SNMP_NOSUCHOBJECT)   ||
-			    (vars->type == SNMP_NOSUCHINSTANCE) ||
-			    (vars->type == SNMP_ENDOFMIBVIEW)) {
-				/* This is one of the exception condition */
-				rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - vars->type);
+			if (!CHECH_END(vars->type)) {
+                                /* This is one of the exception condition */
+				rtncode = SA_ERR_HPI_NOT_PRESENT;
 				dbg("snmp exception %d \n",vars->type);
 			}
 		} else {
@@ -485,4 +463,68 @@ void sc_free_pdu(struct snmp_pdu **p)
 		snmp_free_pdu(*p);
 		*p = NULL;
 	}
+}
+
+SaErrorT errstat2hpi(long pdu_errstat) 
+{
+	SaErrorT hpicode = SA_OK;
+	
+	switch(pdu_errstat) {
+		case SNMP_ERR_NOERROR:
+			hpicode = SA_OK;
+			break;
+		case SNMP_ERR_TOOBIG:
+		case SNMP_ERR_BADVALUE:
+		case SNMP_ERR_WRONGTYPE:
+		case SNMP_ERR_WRONGLENGTH:
+		case SNMP_ERR_WRONGENCODING:
+		case SNMP_ERR_WRONGVALUE:
+		case SNMP_ERR_COMMITFAILED:
+		case SNMP_ERR_UNDOFAILED:
+		case SNMP_ERR_INCONSISTENTVALUE:
+			hpicode = SA_ERR_HPI_INVALID_DATA;
+			break;
+		case SNMP_ERR_READONLY:
+		case SNMP_ERR_NOTWRITABLE:
+			hpicode = SA_ERR_HPI_READ_ONLY;
+			break;		
+		case SNMP_ERR_NOACCESS:
+		case SNMP_ERR_AUTHORIZATIONERROR:
+		case SNMP_ERR_INCONSISTENTNAME:
+		case SNMP_ERR_NOSUCHNAME:
+		case SNMP_ERR_NOCREATION:
+			hpicode = SA_ERR_HPI_INVALID_PARAMS;
+			break;
+		case SNMP_ERR_RESOURCEUNAVAILABLE:
+			hpicode = SA_ERR_HPI_OUT_OF_SPACE;
+			break;
+		case SNMP_ERR_GENERR:
+		default:
+			hpicode = SA_ERR_HPI_UNKNOWN;
+			break;		
+	}
+		
+	return(hpicode);
+}
+
+SaErrorT snmpstat2hpi(int snmpstat)
+{
+	SaErrorT hpicode = SA_OK;
+	
+	switch(snmpstat)
+	{
+		case STAT_SUCCESS:
+			hpicode = SA_OK;
+			break;
+		case STAT_TIMEOUT:
+			hpicode = SA_ERR_HPI_TIMEOUT;
+			break;
+		case STAT_ERROR:
+		default:
+			hpicode = SA_ERR_HPI_UNKNOWN;
+			break;
+	}
+	
+	return(hpicode);
+
 }
