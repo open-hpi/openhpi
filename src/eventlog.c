@@ -145,7 +145,7 @@ int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 {
 	struct oh_dsel *dsel;
 	
-	dbg("DSEL from plugin!");
+//	dbg("DSEL from plugin!");
 	dsel = malloc(sizeof(*dsel));
 	if (!dsel) {
 		dbg("Out of memory");

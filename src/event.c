@@ -66,6 +66,14 @@ static void process_resource_event(struct oh_handler *h, struct oh_resource_even
 	res = insert_resource(h, e->id);
 	memcpy(&res->entry, &e->entry, sizeof(res->entry));
 	res->entry.ResourceId = global_rpt_counter;
+	if (res->entry.ResourceCapabilities&SAHPI_CAPABILITY_DOMAIN) {
+		dbg("New domain in resource!");
+		if (!get_domain_by_oid(e->domain_id)) {
+			res->entry.DomainId = new_domain(e->domain_id);
+		} else {
+			dbg("Reported domain?! Buggy plugin!");
+		}
+	}
 		
 	/*Assume all resources blongs to DEFAULT_DOMAIN*/
 	res->domain_list = g_slist_append(res->domain_list, 
@@ -75,14 +83,21 @@ static void process_resource_event(struct oh_handler *h, struct oh_resource_even
 static void process_domain_event(struct oh_handler *h, struct oh_domain_event *e)
 {
 	struct oh_resource *res;
+	struct oh_domain *domain;
 
-	res = get_res_by_oid(e->id);
+	res = get_res_by_oid(e->res_id);
+	domain = get_domain_by_oid(e->domain_id);
+	
 	if (!res) {
 		dbg("Cannot find corresponding resource");
 		return;
 	}		
+	if (!domain) {
+		dbg("Cannot find corresponding domain");
+		return;
+	}		
 	res->domain_list = g_slist_append(res->domain_list,
-			GUINT_TO_POINTER(e->domain));
+			GUINT_TO_POINTER(domain->domain_id));
 }
 
 static void process_rdr_event(struct oh_handler *h, struct oh_rdr_event *e)

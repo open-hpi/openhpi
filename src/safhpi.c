@@ -274,29 +274,34 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 		return SA_ERR_HPI_INVALID_SESSION;
 	}
 	
-	switch (EntryId) {
-	case SAHPI_FIRST_ENTRY:
+	if (EntryId == SAHPI_FIRST_ENTRY) {
 		no = 0;
-		break;
-	default:
+		g_slist_for_each(i, global_rpt) {
+			if (resource_is_in_domain(i->data, s->domain_id)) 
+				break;
+			no++;
+		}
+		if (!i) {
+			dbg("Invalid EntryId");
+			return SA_ERR_HPI_INVALID;
+		}			
+	}else {
 		no = EntryId - entry_id_offset;
-		break;
-	}
+		if (no < 0 || no>=g_slist_length(global_rpt)) {
+			dbg("Invalid EntryId");
+			return SA_ERR_HPI_INVALID;
+		}
 	
-	if (no < 0 || no>=g_slist_length(global_rpt)) {
-		dbg("Invalid EntryId");
-		return SA_ERR_HPI_INVALID;
+		i = g_slist_nth(global_rpt, no);
+		if (!resource_is_in_domain(i->data, s->domain_id)) {
+			dbg("Invalid EntryId");
+			return SA_ERR_HPI_INVALID;
+		}
 	}
-	
-	i = g_slist_nth(global_rpt, no);
-	if (!resource_is_in_domain(i->data, s->domain_id)) {
-		dbg("Invalid EntryId");
-		return SA_ERR_HPI_INVALID;
-	}
+
 			
 	memcpy(RptEntry, &((struct oh_resource *)(i->data))->entry, 
 			sizeof(*RptEntry));
-	
 	i = g_slist_next(i);
 	no++;
 	g_slist_for_each(i, i) {
