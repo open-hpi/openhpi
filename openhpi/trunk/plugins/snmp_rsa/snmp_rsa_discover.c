@@ -70,7 +70,7 @@ struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep)
 }
 
 
-struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int mmnum) 
+struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int num) 
 {
 	int len;
         struct oh_event working;
@@ -94,9 +94,8 @@ struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int mmnum)
 
         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-        /* ???? Should we also set to index of active MM ???? */
         set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
-                           SAHPI_ENT_SYS_MGMNT_MODULE, mmnum+RSA_HPI_INSTANCE_BASE);
+                           SAHPI_ENT_PROCESSOR, num+RSA_HPI_INSTANCE_BASE);
         working.u.res_event.entry.ResourceId =
                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
 
@@ -109,7 +108,7 @@ struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int mmnum)
 }
 
 
-struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int mmnum) 
+struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num) 
 {
 	int len;
         struct oh_event working;
@@ -134,9 +133,8 @@ struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int mmnum)
 
         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
 
-        /* ???? Should we also set to index of active MM ???? */
         set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
-                           SAHPI_ENT_SYS_MGMNT_MODULE, mmnum+RSA_HPI_INSTANCE_BASE);
+                           SAHPI_ENT_DISK_BAY, num+RSA_HPI_INSTANCE_BASE);
         working.u.res_event.entry.ResourceId =
                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
 
