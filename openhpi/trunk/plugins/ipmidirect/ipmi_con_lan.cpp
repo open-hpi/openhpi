@@ -209,7 +209,7 @@ cIpmiConLan::WaitForPong( unsigned int timeout_ms )
   struct pollfd pfd;
   pfd.fd     = m_fd;
   pfd.events = POLLIN;
-  
+
   tResponseType ret;
 
   // loop

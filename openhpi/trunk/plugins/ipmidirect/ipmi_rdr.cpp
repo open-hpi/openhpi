@@ -17,17 +17,26 @@
 #include "ipmi_rdr.h"
 #include "ipmi_mc.h"
 #include "ipmi_entity.h"
+#include "ipmi_resource.h"
+#include "ipmi_domain.h"
 
 
 cIpmiRdr::cIpmiRdr( cIpmiMc *mc, SaHpiRdrTypeT type )
   : m_mc( mc ), m_resource( 0 ), m_type( type ),
-    m_lun( 0 )
+    m_lun( 0 ), m_populate( false )
 {
 }
 
 
 cIpmiRdr::~cIpmiRdr()
 {
+}
+
+
+cIpmiDomain *
+cIpmiRdr::Domain()
+{
+  return m_mc->Domain();
 }
 
 
@@ -52,6 +61,59 @@ cIpmiRdr::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
 }
 
 
+bool
+cIpmiRdr::Populate()
+{
+  if ( m_populate )
+       return true;
+
+  // find resource
+  SaHpiRptEntryT *resource = Domain()->FindResource( Resource()->m_resource_id );
+
+  if ( !resource )
+     {
+       assert( 0 );
+       return false;
+     }
+
+  // create event
+  struct oh_event *e;
+
+  e = (oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return false;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+
+  e->type = oh_event::OH_ET_RDR;
+
+  // create rdr
+  CreateRdr( *resource, e->u.rdr_event.rdr );
+
+  int rv = oh_add_rdr( Domain()->GetHandler()->rptcache,
+                       resource->ResourceId,
+                       &e->u.rdr_event.rdr, this, 1 );
+
+  assert( rv == 0 );
+
+  // assign the hpi record id to sensor, so we can find
+  // the rdr for a given sensor.
+  // the id comes from oh_add_rdr.
+  RecordId() = e->u.rdr_event.rdr.RecordId;
+
+  Domain()->AddHpiEvent( e );
+
+  m_populate = true;
+
+  return true;
+}
+
+
+/*
 cIpmiRdrContainer::cIpmiRdrContainer()
   : m_rdrs( 0 )
 {
@@ -136,3 +198,4 @@ cIpmiRdrContainer::Rem( cIpmiRdr *rdr )
 
   return true;
 }
+*/

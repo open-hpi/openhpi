@@ -131,7 +131,7 @@ cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
 
   cIpmiMsg rsp;
 
-  SaErrorT r = res->SendCommand( msg, rsp );
+  SaErrorT r = res->SendCommandReadLock( msg, rsp );
 
   if ( r != SA_OK )
      {
@@ -211,7 +211,7 @@ cIpmi::IfRequestHotswapAction( cIpmiResource *res,
 
   cIpmiMsg  rsp;
 
-  SaErrorT r = res->SendCommand( msg, rsp );
+  SaErrorT r = res->SendCommandReadLock( msg, rsp );
 
   if ( r != SA_OK )
      {
@@ -244,7 +244,7 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiHsPowerStateT &state )
   msg.m_data[2] = 0x01; // desired steady power
   msg.m_data_len = 3;
 
-  SaErrorT rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommandReadLock( msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -265,7 +265,7 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiHsPowerStateT &state )
   // get current power level
   msg.m_data[2]  = 0; // steady state power
 
-  rv = res->SendCommand( msg, rsp );
+  rv = res->SendCommandReadLock( msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -313,7 +313,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
        msg.m_data[3] = 0x01; // copy desierd level to present level
        msg.m_data_len = 4;
 
-       rv = res->SendCommand( msg, rsp );
+       rv = res->SendCommandReadLock( msg, rsp );
 
        if ( rv != SA_OK )
           {
@@ -341,7 +341,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
        msg.m_data[2] = 0x01; // desired steady power
        msg.m_data_len = 3;
 
-       rv = res->SendCommand( msg, rsp );
+       rv = res->SendCommandReadLock( msg, rsp );
 
        if ( rv != SA_OK )
           {
@@ -369,7 +369,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
   msg.m_data[3] = 0x01; // copy desierd level to present level
   msg.m_data_len = 4;
 
-  rv = res->SendCommand( msg, rsp );
+  rv = res->SendCommandReadLock( msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -402,7 +402,7 @@ cIpmi::IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state )
   msg.m_data[1]  = res->FruId();
   msg.m_data[2]  = 0; // blue led;
 
-  SaErrorT rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommandReadLock( msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -478,7 +478,7 @@ cIpmi::IfSetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT state )
   msg.m_data[5]  = 1; // blue
 
   cIpmiMsg rsp;
-  SaErrorT rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommandReadLock( msg, rsp );
 
   if ( rv != SA_OK )
      {
@@ -537,7 +537,7 @@ cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
   msg.m_data_len = 3;
 
   cIpmiMsg rsp;
-  SaErrorT rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommandReadLock( msg, rsp );
 
   if ( rv != SA_OK )
      {

@@ -30,7 +30,7 @@ cIpmiDomain::cIpmiDomain()
   : m_con( 0 ), m_is_atca( false ), m_main_sdrs( 0 ),
     m_sensors_in_main_sdr( 0 ),
     m_major_version( 0 ), m_minor_version( 0 ), m_sdr_repository_support( false ),
-    m_si_mc( 0 ), m_mcs( 0 ),
+    m_si_mc( 0 ),
     m_initial_discover( 0 ),
     m_mc_poll_interval( dIpmiMcPollInterval ),
     m_sel_rescan_interval( dIpmiSelQueryInterval )
@@ -288,7 +288,7 @@ cIpmiDomain::Init( cIpmiCon *con )
 void
 cIpmiDomain::Cleanup()
 {
-  unsigned int i;
+  int i;
 
   // stop MC threads
   for( i = 0; i < 256; i++ )
@@ -328,35 +328,24 @@ cIpmiDomain::Cleanup()
      {
        cIpmiSensor *sensor = (cIpmiSensor *)m_sensors_in_main_sdr->data;
        m_sensors_in_main_sdr = g_list_remove( m_sensors_in_main_sdr, sensor );
-       sensor->Resource()->Rem( sensor );
+       sensor->Resource()->RemRdr( sensor );
        delete sensor;
      }
 
   // cleanup all MCs
-  GList *l = g_list_first( m_mcs );
-
-  while( l )
+  for( i = m_mcs.Num() - 1; i >= 0; i-- )
      {
-       GList *n = g_list_next( l );
-
-       cIpmiMc *mc = (cIpmiMc *)l->data;
+       cIpmiMc *mc = m_mcs[i];
        CleanupMc( mc );
-
-       l = n;
      }
 
   // now all mc's are ready to destroy
-  l = g_list_first( m_mcs );
-
-  while( l )
+  while( m_mcs.Num() )
      {
-       GList *n = g_list_next( l );
+       cIpmiMc *mc = m_mcs[0];
 
-       cIpmiMc *mc = (cIpmiMc *)l->data;
        if ( CleanupMc( mc ) == false )
             assert( 0 );
-
-       l = n;
      }
 
   // destroy si
@@ -377,13 +366,10 @@ cIpmiDomain::Cleanup()
 }
 
 
-cIpmiMc *
-cIpmiDomain::NewMc( const cIpmiAddr &addr )
+void
+cIpmiDomain::AddMc( cIpmiMc *mc  )
 {
-  cIpmiMc *mc = new cIpmiMc( this, addr );
-  m_mcs = g_list_append( m_mcs, mc );
-
-  return mc;
+  m_mcs.Add( mc );
 }
 
 
@@ -393,7 +379,15 @@ cIpmiDomain::CleanupMc( cIpmiMc *mc )
   if ( !mc->Cleanup() )
        return false;
 
-  m_mcs = g_list_remove( m_mcs, mc );
+  int idx = m_mcs.Find( mc );
+  
+  if ( idx == -1 )
+     {
+       stdlog << "unable to find mc at " << (unsigned char)mc->GetAddress() << " in mc list !\n";
+       return false;
+     }
+  
+  m_mcs.Rem( idx );
   delete mc;
 
   return true;
@@ -521,17 +515,13 @@ cIpmiDomain::CheckAtca()
 cIpmiMc *
 cIpmiDomain::FindMcByAddr( const cIpmiAddr &addr )
 {
-  GList *l;
-
   if (    ( addr.m_type == eIpmiAddrTypeSystemInterface )
        && ( addr.m_channel == dIpmiBmcChannel ) )
        return m_si_mc;
 
-  l = 0;
-
-  for( l = g_list_first( m_mcs ); l; l = g_list_next( l ) )
+  for( int i = 0; i < m_mcs.Num(); i++ )
      {
-       cIpmiMc *mc = (cIpmiMc *)l->data;
+       cIpmiMc *mc = m_mcs[i];
 
        if ( addr == mc->Addr() )
             return mc;
@@ -555,13 +545,13 @@ cIpmiDomain::SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg,
 }
 
 
+/*
 cIpmiMc *
 cIpmiDomain::FindOrCreateMcBySlaveAddr( unsigned int slave_addr )
 {
-  cIpmiMc   *mc;
   cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, slave_addr );
 
-  mc = FindMcByAddr( addr );
+  cIpmiMc *mc = FindMcByAddr( addr );
 
   if ( mc )
        return mc;
@@ -571,6 +561,7 @@ cIpmiDomain::FindOrCreateMcBySlaveAddr( unsigned int slave_addr )
 
   return mc;
 }
+*/
 
 
 GList *
@@ -597,16 +588,12 @@ cIpmiDomain::SetSdrSensors( cIpmiMc *mc,
 cIpmiMc *
 cIpmiDomain::GetEventRcvr()
 {
-  GList *l = m_mcs;
-
-  while( l )
+  for( int i = 0; i < m_mcs.Num(); i++ )
      {
-       cIpmiMc *mc = (cIpmiMc *)l->data;
+       cIpmiMc *mc = m_mcs[i];
 
        if ( mc->SelDeviceSupport() )
-            return mc /*->GetAddress()*/;
-
-       l = g_list_next( l );
+            return mc;
      }
 
   return 0;
@@ -682,9 +669,9 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
 cIpmiResource *
 cIpmiDomain::VerifyResource( cIpmiResource *res )
 {
-  for( GList *list = m_mcs; list; list = g_list_next( list ) )
+  for( int i = 0; i < m_mcs.Num(); i++ )
      {
-       cIpmiMc *mc = (cIpmiMc *)list->data;
+       cIpmiMc *mc = m_mcs[i];
 
        if ( mc->FindResource( res ) )
 	    return res;
@@ -700,8 +687,25 @@ cIpmiDomain::VerifyMc( cIpmiMc *mc )
   if ( m_si_mc == mc )
        return mc;
 
-  if ( g_list_find( m_mcs, mc ) )
-       return mc;
+  int idx = m_mcs.Find( mc );
+  
+  if ( idx == -1 )
+       return 0;
+
+  return mc;
+}
+
+
+cIpmiRdr *
+cIpmiDomain::VerifyRdr( cIpmiRdr *rdr )
+{
+  for( int i = 0; i < m_mcs.Num(); i++ )
+     {
+       cIpmiMc *mc = m_mcs[i];
+
+       if ( mc->FindRdr( rdr ) )
+            return rdr;
+     }
 
   return 0;
 }
@@ -710,12 +714,12 @@ cIpmiDomain::VerifyMc( cIpmiMc *mc )
 cIpmiSensor *
 cIpmiDomain::VerifySensor( cIpmiSensor *s )
 {
-  for( GList *list = m_mcs; list; list = g_list_next( list ) )
+  for( int i = 0; i < m_mcs.Num(); i++ )
      {
-       cIpmiMc *mc = (cIpmiMc *)list->data;
+       cIpmiMc *mc = m_mcs[i];
 
-       if ( mc->Find( s ) )
-            return s;
+       if ( mc->FindRdr( s ) )
+	    return s;
      }
 
   return 0;
@@ -725,11 +729,11 @@ cIpmiDomain::VerifySensor( cIpmiSensor *s )
 cIpmiControl *
 cIpmiDomain::VerifyControl( cIpmiControl *c )
 {
-  for( GList *list = m_mcs; list; list = g_list_next( list ) )
+  for( int i = 0; i < m_mcs.Num(); i++ )
      {
-       cIpmiMc *mc = (cIpmiMc *)list->data;
+       cIpmiMc *mc = m_mcs[i];
 
-       if ( mc->Find( c ) )
+       if ( mc->FindRdr( c ) )
             return c;
      }
 
@@ -738,14 +742,14 @@ cIpmiDomain::VerifyControl( cIpmiControl *c )
 
 
 cIpmiInventory *
-cIpmiDomain::VerifyInventory( cIpmiInventory *i )
+cIpmiDomain::VerifyInventory( cIpmiInventory *inv )
 {
-  for( GList *list = m_mcs; list; list = g_list_next( list ) )
+  for( int i = 0; i < m_mcs.Num(); i++ )
      {
-       cIpmiMc *mc = (cIpmiMc *)list->data;
+       cIpmiMc *mc = m_mcs[i];
 
-       if ( mc->Find( i ) )
-            return i;
+       if ( mc->FindRdr( inv ) )
+            return inv;
      }
 
   return 0;
@@ -865,7 +869,7 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
                }
 
             const char *type = 0;
-            
+
             if ( fi->Site() == eIpmiAtcaSiteTypeAtcaBoard )
                  type = "AtcaBoard";
             else if ( fi->Site() == eIpmiAtcaSiteTypePowerEntryModule )
@@ -885,4 +889,15 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
      }
 
   dump.End();
+}
+
+
+bool
+cIpmiDomain::Populate()
+{
+  for( int i = 0; i < m_mcs.Num(); i++ )
+       if ( m_mcs[i]->Populate() == false )
+            return false;
+
+  return true;
 }

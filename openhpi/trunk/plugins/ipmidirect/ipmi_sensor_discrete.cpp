@@ -72,7 +72,7 @@ cIpmiSensorDiscrete::CreateRdr( SaHpiRptEntryT &resource,
 
   rec.Events = m_event_mask;
   rec.DataFormat.ReadingFormats = SAHPI_SRF_EVENT_STATE;
-  rec.DataFormat.IsNumeric      = FALSE;
+  rec.DataFormat.IsNumeric      = SAHPI_FALSE;
   rec.ThresholdDefn.IsThreshold = SAHPI_FALSE;
 
   return true;

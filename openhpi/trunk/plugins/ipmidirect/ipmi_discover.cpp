@@ -45,9 +45,7 @@ public:
 
 cIpmiMcThread::cIpmiMcThread( cIpmiDomain *domain,
                               unsigned char addr,
-                              unsigned int properties
-                              /* unsigned int mc_type,
-                                 int slot */ )
+                              unsigned int properties )
   : m_domain( domain ), m_addr( addr ),
     m_mc( 0 ),
     m_properties( properties ),
@@ -60,6 +58,20 @@ cIpmiMcThread::cIpmiMcThread( cIpmiDomain *domain,
 cIpmiMcThread::~cIpmiMcThread()
 {
   ClearMcTaskList();
+}
+
+
+void
+cIpmiMcThread::WriteLock()
+{
+  m_domain->WriteLock();
+}
+
+
+void
+cIpmiMcThread::WriteUnlock()
+{
+  m_domain->WriteUnlock();
 }
 
 
@@ -164,6 +176,9 @@ cIpmiMcThread::Run()
        m_domain->m_initial_discover_lock.Lock();
        m_domain->m_initial_discover--;
        m_domain->m_initial_discover_lock.Unlock();
+
+       // clear initial discover flag
+       m_properties &= ~dIpmiMcThreadInitialDiscover;
      }
 
   if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
@@ -256,93 +271,73 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
   unsigned int pid = IpmiGetUint16( get_device_id_rsp->m_data + 10 );
   stdlog << "\tproduct id            : " << pid << "\n";
 
-  // in the initial discover phase
-  // a write lock is not nessesary
-  m_domain->m_initial_discover_lock.Lock();
-  bool need_lock = m_domain->m_initial_discover ? false : true;
-  m_domain->m_initial_discover_lock.Unlock();
-
-  if ( need_lock )
-       WriteLock();
-
-  m_mc = m_domain->FindMcByAddr( addr );
-
-  if (    m_mc && m_mc->IsActive()
-       && !m_mc->DeviceDataCompares( *get_device_id_rsp ) )
+  if ( m_mc )
      {
-       // The MC was replaced with a new one, so clear the old
-       // one and add a new one.
-       m_domain->CleanupMc( m_mc );
-
-       m_mc = 0;
+       assert( 0 );
+       return;
      }
 
-  if ( !m_mc || !m_mc->IsActive() )
+  m_mc = new cIpmiMc( m_domain, addr );
+
+  int rrv = m_mc->GetDeviceIdDataFromRsp( *get_device_id_rsp );
+
+  if ( rrv )
      {
-       // It doesn't already exist, or it's inactive, so add
-       // it.
-       if ( !m_mc )
-          {
-            // If it's not there, then add it.  If it's just not
-            // active, reuse the same data.
-            m_mc = m_domain->NewMc( addr );
-          }
+       // If we couldn't handle the device data, just clean
+       // it up
+       stdlog << "couldn't handle the device data !\n";
 
-       int rrv = m_mc->GetDeviceIdDataFromRsp( *get_device_id_rsp );
+       delete m_mc;
+       m_mc = 0;
 
-       if ( rrv )
-          {
-            // If we couldn't handle the device data, just clean
-            // it up
-            stdlog << "couldn't handle the device data !\n";
+       return;
+     }
 
-            m_domain->CleanupMc( m_mc );
-            m_mc = 0;
+  cIpmiMcVendor *mv = cIpmiMcVendorFactory::GetFactory()->Get( mid, pid );
+  m_mc->SetVendor( mv );
 
-	    if ( need_lock )
-		 WriteUnlock();
+  if ( mv->InitMc( m_mc, *get_device_id_rsp ) == false )
+     {
+       stdlog << "cannot initialize MC: " <<  (unsigned char)m_mc->GetAddress() << " !\n";
 
-            return;
-          }
+       delete m_mc;
+       m_mc = 0;
 
-       cIpmiMcVendor *mv = cIpmiMcVendorFactory::GetFactory()->Get( mid, pid );
-       m_mc->SetVendor( mv );
+       return;
+     }
 
-       if ( mv->InitMc( m_mc, *get_device_id_rsp ) == false )
-          {
-            stdlog << "cannot initialize MC: " <<  (unsigned char)m_mc->GetAddress() << " !\n";
+  SaErrorT rv = m_mc->HandleNew();
 
-            m_domain->CleanupMc( m_mc );
-            m_mc = 0;
+  if ( rv != SA_OK )
+     {
+       stdlog << "error while discover MC " << m_addr << " !\n";
 
-	    if ( need_lock )
-		 WriteUnlock();
+       delete m_mc;
+       m_mc = 0;
 
-            return;
-          }
+       return;
+     }
 
-       SaErrorT rv = m_mc->HandleNew();
+  if ( m_properties & dIpmiMcThreadInitialDiscover )
+     {
+       // read the hotswap state for
+       // all resource
+       m_domain->ReadLock();
+       m_mc->GetHotswapStates();
+       m_domain->ReadUnlock();
+     }
 
-       if ( rv != SA_OK )
-          {
-            stdlog << "error while discover MC " << m_addr << " !\n";
+  WriteLock();
+  m_domain->AddMc( m_mc );
+  m_mc->Populate();
+  WriteUnlock();
 
-            m_domain->CleanupMc( m_mc );
-            m_mc = 0;
+  if ( m_mc->SelDeviceSupport() )
+     {
+       GList *new_events = m_mc->Sel()->GetEvents();
 
-	    if ( need_lock )
-		 WriteUnlock();
-
-            return;
-          }
-
-       if ( m_mc->SelDeviceSupport() )
-          {
-            GList *new_events = m_mc->Sel()->GetEvents();
-
-            if ( new_events )
-                 m_domain->HandleEvents( new_events );
-          }
+       if ( new_events )
+	    m_domain->HandleEvents( new_events );
      }
 
   if ( m_mc->SelDeviceSupport() )
@@ -357,17 +352,12 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
                   m_domain->m_sel_rescan_interval,
                   m_sel );
      }
-
-  if ( need_lock )
-       WriteUnlock();
 }
 
 
 void
 cIpmiMcThread::HandleEvents()
 {
-  WriteLock();
-
   bool loop = true;
 
   while( loop )
@@ -392,8 +382,6 @@ cIpmiMcThread::HandleEvents()
             delete event;
           }
      }
-
-  WriteUnlock();
 }
 
 
@@ -662,12 +650,8 @@ cIpmiMcThread::PollAddr( void *userdata )
 void 
 cIpmiMcThread::ReadSel( void *userdata )
 {
-  ReadLock();
-
   cIpmiSel *sel = (cIpmiSel *)userdata;
   GList *new_events = sel->GetEvents();
-
-  ReadUnlock();
 
   if ( m_domain->ConLogLevel( dIpmiConLogCmd ) )
        stdlog << "addr " << m_addr << ": add sel reading. cIpmiMcThread::ReadSel\n";

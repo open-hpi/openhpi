@@ -14,7 +14,6 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
-
 #include "ipmi_mc_vendor.h"
 #include "ipmi_mc_vendor_force.h"
 #include "ipmi_domain.h"
@@ -213,6 +212,8 @@ cIpmiMcVendor::CreateRdrs( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
 bool
 cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
 {
+  assert( source_mc );
+
   bool found = false;
 
   // create one resource per mcdlr and fdlr
@@ -244,7 +245,7 @@ cIpmiMcVendor::CreateResources( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSd
        else
 	    continue;
 
-       cIpmiMc *mc = domain->FindMcByAddr( addr );
+       cIpmiMc *mc = source_mc; // domain->FindMcByAddr( addr );
 
        // TODO: create mc !!!
        assert( mc );
@@ -364,6 +365,7 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
   // create rpt entry
   stdlog << "adding resource: " << res->EntityPath() << ".\n";
 
+/*
   struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
   if ( !e )
@@ -382,10 +384,12 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
        delete res;
        return 0;
      }
+*/
 
   // add res to mc
   mc->AddResource( res );
 
+/*
   // assign the hpi resource id to ent, so we can find
   // the resource for a given entity
   res->m_resource_id = e->u.res_event.entry.ResourceId;
@@ -396,6 +400,7 @@ cIpmiMcVendor::CreateResource( cIpmiDomain *domain, cIpmiMc *mc,
   assert( rv == 0 );
 
   domain->AddHpiEvent( e );
+*/
 
   return res;
 }
@@ -488,7 +493,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
           {
             // remove the old sensor
             old_sensors = g_list_remove( old_sensors, old_sensor );
-            old_sensor->Resource()->Rem( old_sensor );
+            old_sensor->Resource()->RemRdr( old_sensor );
             delete old_sensor;
           }
 
@@ -513,7 +518,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
 
        new_sensors = g_list_append( new_sensors, sensor );
        sensor->HandleNew( domain );
-       res->Add( sensor );
+       res->AddRdr( sensor );
      }
 
   // destry old sensors
@@ -521,7 +526,7 @@ cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs
      {
        cIpmiSensor *sensor = (cIpmiSensor *)old_sensors->data;
        old_sensors = g_list_remove( old_sensors, sensor );
-       sensor->Resource()->Rem( sensor );
+       sensor->Resource()->RemRdr( sensor );
        delete sensor;
      }
 
@@ -579,7 +584,7 @@ cIpmiMcVendor::CreateSensorFromFullSensorRecord( cIpmiDomain *domain, cIpmiMc *s
   for( GList *l = list; l; l = g_list_next( l ) )
      {
        cIpmiSensor *s = (cIpmiSensor *)l->data;
-       
+
        if ( s->GetSdr() == 0 )
 	    s->SetSdr( sdr );
      }
@@ -592,7 +597,7 @@ GList *
 cIpmiMcVendor::CreateSensorHotswap( cIpmiDomain *domain, cIpmiMc *source_mc,
                                     cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
-  cIpmiMc *mc = FindMcBySdr( domain, sdr );
+  cIpmiMc *mc = source_mc; // FindMcBySdr( domain, sdr );
   assert( mc );
 
   cIpmiSensorHotswap *hs = new cIpmiSensorHotswap( mc );
@@ -614,9 +619,9 @@ GList *
 cIpmiMcVendor::CreateSensorThreshold( cIpmiDomain *domain, cIpmiMc *source_mc,
                                       cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
-  cIpmiMc *mc = FindMcBySdr( domain, sdr );
+  cIpmiMc *mc = source_mc; // FindMcBySdr( domain, sdr );
   assert( mc );
-  
+
   cIpmiSensorThreshold *ts = new cIpmiSensorThreshold( mc );
   ts->SourceMc() = source_mc;
 
@@ -637,7 +642,7 @@ GList *
 cIpmiMcVendor::CreateSensorDiscrete( cIpmiDomain *domain, cIpmiMc *source_mc,
                                      cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
-  cIpmiMc *mc = FindMcBySdr( domain, sdr );
+  cIpmiMc *mc = source_mc; //FindMcBySdr( domain, sdr );
   assert( mc );
 
   cIpmiSensorDiscrete *ds = new cIpmiSensorDiscrete( mc );
@@ -697,7 +702,12 @@ cIpmiMcVendor::FindMcBySdr( cIpmiDomain *domain, cIpmiSdr *sdr )
        case eSdrTypeFullSensorRecord:
        case eSdrTypeMcDeviceLocatorRecord:
        case eSdrTypeFruDeviceLocatorRecord:
-            return domain->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
+            // return domain->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
+            {
+              cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, sdr->m_data[5] );
+
+              return domain->FindMcByAddr( addr );
+            }
 
        default:
             break;
@@ -803,7 +813,7 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res,
 
   f->IdString().SetAscii( "ATCA-Fan", SAHPI_TL_TYPE_LANGUAGE, SAHPI_LANG_ENGLISH );
 
-  res->Add( f );
+  res->AddRdr( f );
 
   return true;
 }
@@ -862,13 +872,13 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
      }
 
   // create mc if nessesary
-  cIpmiMc *m = FindMcBySdr( domain, sdr );
+  cIpmiMc *m = mc; //FindMcBySdr( domain, sdr );
   assert( m );
 
   cIpmiResource *res = FindOrCreateResource( domain, m, 0 /*fru_id*/, sdr, sdrs );
   assert( res );
 
-  cIpmiInventory *inv = (cIpmiInventory *)res->Find( m, SAHPI_INVENTORY_RDR, fru_id );
+  cIpmiInventory *inv = (cIpmiInventory *)res->FindRdr( m, SAHPI_INVENTORY_RDR, fru_id );
   bool need_add = false;
 
   if ( inv == 0 )
@@ -901,7 +911,7 @@ cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmi
   if ( !need_add )
        return true;
 
-  res->Add( inv );
+  res->AddRdr( inv );
 
   return true;
 }
@@ -927,6 +937,10 @@ cIpmiMcVendor::CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
   // create hpi sel
   stdlog << "adding SEL " << res->EntityPath() << "\n";
 
+  // sel capabilities
+  res->m_sel = true;
+
+/*
    // find resource
   SaHpiRptEntryT *resource = domain->FindResource( res->m_resource_id );
 
@@ -954,6 +968,7 @@ cIpmiMcVendor::CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
   e->u.res_event.entry = *resource;
 
   domain->AddHpiEvent( e );
+*/
 
   return true;
 }

@@ -16,7 +16,7 @@
 
 
 #include "ipmi_control_fan.h"
-#include "ipmi_mc.h"
+#include "ipmi_resource.h"
 #include "ipmi_log.h"
 
 
@@ -76,7 +76,7 @@ cIpmiControlFan::SetState( const SaHpiCtrlStateT &state )
 
   cIpmiMsg rsp;
 
-  SaErrorT rv = m_mc->SendCommand( msg, rsp );
+  SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp );
 
   if (    rv != SA_OK
        || rsp.m_data_len < 2
@@ -101,7 +101,7 @@ cIpmiControlFan::GetState( SaHpiCtrlStateT &state )
 
   cIpmiMsg rsp;
 
-  SaErrorT rv = m_mc->SendCommand( msg, rsp );
+  SaErrorT rv = Resource()->SendCommandReadLock( this, msg, rsp );
 
   if (    rv != SA_OK
        || rsp.m_data_len < 3

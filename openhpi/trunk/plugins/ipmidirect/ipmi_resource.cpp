@@ -19,17 +19,16 @@
 #include <glib.h>
 #include <assert.h>
 
-#include "ipmi_event.h"
-#include "ipmi_log.h"
+//#include "ipmi_resource.h"
 #include "ipmi_domain.h"
-#include "ipmi_resource.h"
 
 
 cIpmiResource::cIpmiResource( cIpmiMc *mc, unsigned int fru_id )
-  : m_mc( mc ), m_fru_id( fru_id ),
+  : m_sel( false ), m_mc( mc ), m_fru_id( fru_id ),
     m_hotswap_sensor( 0 ),
     m_fru_state( eIpmiFruStateNotInstalled ),
-    m_oem( 0 ), m_current_control_id( 0 )
+    m_oem( 0 ), m_current_control_id( 0 ),
+    m_populate( false )
 {
   for( int i = 0; i < 256; i++ )
        m_sensor_num[i] = -1;
@@ -41,6 +40,58 @@ cIpmiResource::~cIpmiResource()
 }
 
 
+cIpmiDomain *
+cIpmiResource::Domain() const
+{
+  return m_mc->Domain();
+}
+
+
+SaErrorT
+cIpmiResource::SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
+			    unsigned int lun, int retries )
+{
+  return m_mc->SendCommand( msg, rsp, lun, retries );
+}
+
+
+SaErrorT
+cIpmiResource::SendCommandReadLock( const cIpmiMsg &msg, cIpmiMsg &rsp,
+                                    unsigned int lun, int retries )
+{
+  cIpmiResource *resource = this;
+  cIpmiDomain *domain = Domain();
+  domain->ReadUnlock();
+
+  SaErrorT rv = SendCommand( msg, rsp, lun, retries );
+
+  domain->ReadLock();
+
+  if ( domain->VerifyResource( resource ) == false )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  return rv;
+}
+
+
+SaErrorT
+cIpmiResource::SendCommandReadLock( cIpmiRdr *rdr, const cIpmiMsg &msg, cIpmiMsg &rsp,
+                                    unsigned int lun, int retries )
+{
+  cIpmiDomain *domain = Domain();
+  domain->ReadUnlock();
+  
+  SaErrorT rv = SendCommand( msg, rsp, lun, retries );
+  
+  domain->ReadLock();
+  
+  if ( domain->VerifyRdr( rdr ) == false )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  return rv;
+}
+
+
 int
 cIpmiResource::CreateSensorNum( SaHpiSensorNumT num )
 {
@@ -48,7 +99,7 @@ cIpmiResource::CreateSensorNum( SaHpiSensorNumT num )
 
   if ( m_sensor_num[v] != -1 )
      {
-       for( int i = 255; i >= 0; i-- )
+       for( int i = 0xf8; i >= 0; i-- )
             if ( m_sensor_num[i] == -1 )
                {
                  v = i;
@@ -106,10 +157,10 @@ cIpmiResource::Destroy()
   stdlog << "removing resource: " << m_entity_path << ").\n";
 
   // remove sensors
-  while( m_rdrs )
+  while( Num() )
      {
-       cIpmiRdr *rdr = (cIpmiRdr *)m_rdrs->data;
-       Rem( rdr );
+       cIpmiRdr *rdr = GetRdr( 0 );
+       RemRdr( rdr );
        delete rdr;
      }
 
@@ -139,8 +190,27 @@ cIpmiResource::Destroy()
 }
 
 
+cIpmiRdr *
+cIpmiResource::FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type,
+			unsigned int num, unsigned int lun )
+{
+  for( int i = 0; i < NumRdr(); i++ )
+     {
+       cIpmiRdr *r = GetRdr( i );
+
+       if (    r->Mc()   == mc 
+            && r->Type() == type
+            && r->Num()  == num
+            && r->Lun()  == lun )
+	    return r;
+     }
+
+  return 0;
+}
+
+
 bool
-cIpmiResource::Add( cIpmiRdr *rdr )
+cIpmiResource::AddRdr( cIpmiRdr *rdr )
 {
   stdlog << "adding rdr: " << rdr->EntityPath();
   stdlog << " " << rdr->Num();
@@ -150,23 +220,17 @@ cIpmiResource::Add( cIpmiRdr *rdr )
   rdr->Resource() = this;
 
   // add rdr to entity
-  if ( cIpmiRdrContainer::Add( rdr ) == false )
+  if ( Add( rdr ) == -1 )
      {
        assert( 0 );
        return false;
      }
 
-  // this is for testing, because at the moment
+  // this is for testing, because currently
   // rdrs cannot exits without an mc
   assert( rdr->Mc() );
 
-  if ( rdr->Mc() )
-     {
-       // add rdr to mc
-       if ( rdr->Mc()->Add( rdr ) == false )
-            return false;
-     }
-
+/*
   // find resource
   SaHpiRptEntryT *resource = Domain()->FindResource( m_resource_id );
 
@@ -206,6 +270,7 @@ cIpmiResource::Add( cIpmiRdr *rdr )
   rdr->RecordId() = e->u.rdr_event.rdr.RecordId;
 
   Domain()->AddHpiEvent( e );
+*/
 
   // check for hotswap sensor
   cIpmiSensorHotswap *hs = dynamic_cast<cIpmiSensorHotswap *>( rdr );
@@ -223,9 +288,11 @@ cIpmiResource::Add( cIpmiRdr *rdr )
 
 
 bool
-cIpmiResource::Rem( cIpmiRdr *rdr )
+cIpmiResource::RemRdr( cIpmiRdr *rdr )
 {
-  if ( Find( rdr ) == false )
+  int idx = Find( rdr );
+  
+  if ( idx == -1 )
      {
        stdlog << "user requested removal of a control"
                 " from a resource, but the control was not there !\n";
@@ -235,14 +302,104 @@ cIpmiResource::Rem( cIpmiRdr *rdr )
   if ( rdr == m_hotswap_sensor )
        m_hotswap_sensor = 0;
 
-  // this is for testing, because at the moment
+  // this is for testing, because currently
   // rdrs cannot exits without an mc
   assert( rdr->Mc() );
 
-  if ( rdr->Mc() )
-       rdr->Mc()->Rem( rdr );
+  Rem( idx );
 
-  cIpmiRdrContainer::Rem( rdr );
+  return true;
+}
+
+
+bool
+cIpmiResource::PopulateSel()
+{
+   // find resource
+  SaHpiRptEntryT *resource = Domain()->FindResource( m_resource_id );
+
+  if ( !resource )
+     {
+       assert( 0 );
+       return true;
+     }
+
+  if ( resource->ResourceCapabilities & SAHPI_CAPABILITY_SEL )
+     {
+       assert( 0 );
+       return true;
+     }
+
+  // update resource
+  resource->ResourceCapabilities |= SAHPI_CAPABILITY_SEL;
+
+  struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return true;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+  e->type               = oh_event::OH_ET_RESOURCE;
+  e->u.res_event.entry = *resource;
+
+  Domain()->AddHpiEvent( e );
+
+  return true;
+}
+
+
+bool
+cIpmiResource::Populate()
+{
+  if ( m_populate == false )
+     {
+       // create rpt entry
+       stdlog << "populate resource: " << EntityPath() << ".\n";
+
+       struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+       if ( !e )
+          {
+            stdlog << "out of space !\n";
+            return false;
+          }
+
+       memset( e, 0, sizeof( struct oh_event ) );
+       e->type = oh_event::OH_ET_RESOURCE;
+
+       if ( Create( e->u.res_event.entry ) == false )
+          {
+            g_free( e );
+            return false;
+          }
+
+       // assign the hpi resource id to ent, so we can find
+       // the resource for a given entity
+       m_resource_id = e->u.res_event.entry.ResourceId;
+
+       // add the entity to the resource cache
+       int rv = oh_add_resource( Domain()->GetHandler()->rptcache,
+                                 &(e->u.res_event.entry), this, 1 );
+       assert( rv == 0 );
+
+       Domain()->AddHpiEvent( e );
+  
+       if ( m_sel )
+            PopulateSel();
+
+       m_populate = true;
+     }
+
+  for( int i = 0; i < NumRdr(); i++ )
+     {
+       cIpmiRdr *rdr = GetRdr( i );
+
+       if ( rdr->Populate() == false )
+	    return false;
+     }
 
   return true;
 }

@@ -230,22 +230,26 @@ public:
   // create an RDR sensor record
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
-  // read sensor
+  // read sensor. must be called with a global read lock held.
   virtual SaErrorT GetSensorReading( cIpmiMsg &rsp );
 
-  // get sensor data
+  // get sensor data. this function must called with the global read lock held
   virtual SaErrorT GetData( SaHpiSensorReadingT &data ) = 0;
 
+  // this function must called with the global read lock held
   virtual SaErrorT GetEventEnables( SaHpiSensorEvtEnablesT &enables ) = 0;
 
 protected:
+  // this function must called with the global read lock held
   virtual SaErrorT GetEventEnables( SaHpiSensorEvtEnablesT &enables,
                                     cIpmiMsg &rsp );
 
 public:
+  // this function must called with the global read lock held
  virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables ) = 0;
 
 protected:
+  // this function must called with the global read lock held
   virtual SaErrorT SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
                                     cIpmiMsg &msg );
 };
