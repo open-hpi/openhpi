@@ -28,14 +28,16 @@ SaErrorT tsetup (SaHpiSessionIdT *sessionid_ptr)
         
         err = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, sessionid_ptr, NULL);
         if (err != SA_OK) {
-                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                printf("Error! Can not open session.\n");
+		printf("  File=%s, Line=%d\n", __FILE__, __LINE__);
                 printf("  Received error=%s\n", oh_lookup_error(err));
         }
         
         if (!err) err = saHpiDiscover(*sessionid_ptr);
         if (err != SA_OK) {
-                printf("  Error! Testcase failed. Line=%d\n", __LINE__);
-                printf("  Received error=%s\n", oh_lookup_error(err));
+                printf("Error! Can not discover resources.\n");
+		printf("   File=%s, Line=%d\n", __FILE__, __LINE__);
+                printf("   Received error=%s\n", oh_lookup_error(err));
                 err = saHpiSessionClose(*sessionid_ptr);
         }
         
@@ -55,7 +57,8 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
         SaHpiEntryIdT  nextrptentryid;
         
         if (!sessionid_ptr) {
-                printf("  Error! Invalid test setup. Line=%d\n", __LINE__);
+                printf("Error! Invalid test setup.\n");
+		printf("   File=%s, Line=%d\n", __FILE__, __LINE__);
                 return(SA_ERR_HPI_INVALID_PARAMS);
 	} 
         
@@ -75,7 +78,8 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
                                          SAHPI_CAPABILITY_SENSOR); 
         
         if ((search_rdr_type & cap_mask) == 0) {
-                printf("  Error! Invalid resource type. Line=%d\n", __LINE__);
+                printf("Error! Invalid resource type.\n");
+		printf("   File=%s, Line=%d\n", __FILE__, __LINE__);
                 return(SA_ERR_HPI_INVALID_PARAMS);	
         }
 	
@@ -125,18 +129,4 @@ SaErrorT tcleanup(SaHpiSessionIdT *sessionid_ptr)
 
 }
 
-/*
- *
- *
- *
-
- 
-#define checkstatus(err, expected_err, testfail) 				\
-{										\
-    if (err != expected_err) {							\
-	printf("Error! Test fails: returned err=%s, expected=%s, Line=%d\n",	\
-	oh_lookup_error(*err), oh_lookup_error(*expected_err), __LINE__);	\
-	testfail = -1;								\
-    }										\
-}
-*/
+/* End of file */

@@ -41,13 +41,14 @@ int main(int argc, char **argv)
 	 * ************************************* */
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
-
 	}
 	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_SENSOR, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_FALSE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return -1;
 	}
