@@ -770,6 +770,7 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 		return rv;
 	}
 
+/*	bug #1046867. It looks process can hang up. 12/9/2004
 	while (0 == ipmi_handler->sel_clear_done) {
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
 		if (rv<0) {
@@ -779,6 +780,8 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 	}
 
 	return SA_OK;
+*/
+	return ohoi_loop(&ipmi_handler->sel_clear_done, ipmi_handler);	
 }
 
 SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
