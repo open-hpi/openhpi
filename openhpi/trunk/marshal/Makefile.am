@@ -37,5 +37,5 @@ libopenhpimarshal_la_SOURCES    = \
 
 libopenhpimarshal_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
 
-clean:
+clean-local:
 	rm -f *~ core core.*
