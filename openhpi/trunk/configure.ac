@@ -30,6 +30,17 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
+# die on int != 32bits.  This is too instrumental to our code right now.
+# AC_MSG_CHECKING(int is 4 bytes)
+OH_SET_SIZES
+if test "x$OH_SIZEOF_INT" != "x4"; then
+    AC_MSG_ERROR([
+*** int is not 4 bytes, it is $OH_SIZEOF_INT bytes on this platform
+*** undefined behavior will result
+*** please contact the openhpi development team to fix this
+])
+fi
+
 dnl Check fo libraries
 have_uuid=no
 have_openipmi=no
