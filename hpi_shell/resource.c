@@ -160,8 +160,10 @@ int sa_discover(void)
 {
 	SaErrorT        ret;
 
+	do_progress("Discover");
         ret = saHpiDiscover(sessionid);
         if (SA_OK != ret)
                 printf("saHpiResourcesDiscover failed\n");
+	delete_progress();
         return ret;
 }

@@ -37,6 +37,8 @@ extern SaHpiSessionIdT sessionid;
 extern struct command commands[];
 extern int prt_flag;
 
+extern void do_progress(char *mes);
+extern void delete_progress(void);
 void gdb(int level);
 int open_session(void);
 int close_session(void);
