@@ -98,8 +98,8 @@ static GScannerConfig oh_scanner_config =
                 TRUE			/* numbers_2_int */,
                 FALSE			/* int_2_float */,
                 TRUE			/* identifier_2_string */,
-                FALSE			/* char_2_token */,
-                FALSE			/* symbol_2_token */,
+                TRUE			/* char_2_token */,
+                TRUE			/* symbol_2_token */,
                 FALSE			/* scope_0_fallback */,
         };
 
@@ -354,7 +354,7 @@ int process_handler_token (GScanner* oh_scanner)
                 global_handler_configs = g_slist_append(
                         global_handler_configs,
                         (gpointer) handler_stanza);
-        }
+        }        
         
         return 0;
 
@@ -420,7 +420,7 @@ int oh_load_config (char *filename)
         while(!done) {
                 guint my_token;
                 my_token = g_scanner_peek_next_token (oh_scanner);
-                
+                /*dbg("token: %d", my_token);*/
                 switch (my_token) 
                 {
                 case G_TOKEN_EOF:
