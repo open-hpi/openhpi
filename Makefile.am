@@ -55,7 +55,8 @@ DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
 includedir=$(base_includedir)/openhpi
 
-include_HEADERS	= include/SaHpi.h 
+include_HEADERS	= include/SaHpi.h include/openhpi.h include/hash.h  include/list.h  \
+		  include/net_msg.h  include/oh_config.h  include/oh_plugin.h
 
 rpm: dist
 	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
