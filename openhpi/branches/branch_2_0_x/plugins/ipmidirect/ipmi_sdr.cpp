@@ -1147,9 +1147,12 @@ cIpmiSdrs::FindSdr( cIpmiMc *mc )
   return 0;
 }
 
-// here we try to find the FRU that is the "parent"
+// Here we try to find the FRU that is the "parent"
 // of the entity this SDR is attached to
-// TODO : Look at DEAR & EAR
+// The algorithm here is *not* sophisticated at all
+// The assumption is that most of the SDR will be attached
+// directly to a FRU so it was optimized for this case
+// Also only one level of parenthood is assumed - sorry Grand Pa !
 unsigned int
 cIpmiSdrs::FindParentFru( SaHpiEntityTypeT type,
                           SaHpiEntityLocationT instance,
@@ -1160,6 +1163,10 @@ cIpmiSdrs::FindParentFru( SaHpiEntityTypeT type,
   SaHpiEntityTypeT mc_type = SAHPI_ENT_UNSPECIFIED;
   SaHpiEntityLocationT mc_instance = 0;
 
+  parent_type = SAHPI_ENT_UNSPECIFIED;
+  parent_instance = 0;
+
+  // First look for FRUs themselves
   for( unsigned int i = 0; i < NumSdrs(); i++ )
     {
        cIpmiSdr *sdr = Sdr( i );
@@ -1189,6 +1196,175 @@ cIpmiSdrs::FindParentFru( SaHpiEntityTypeT type,
 
             parent_type = type;
             parent_instance = instance;
+
+            return sdr->m_data[6];
+       }
+    }
+
+  stdlog << "Entity ID " << type << ", Instance " << instance << " is not a FRU\n";
+
+  // SDR entity is not a FRU: look for association records
+  for( unsigned int i = 0; i < NumSdrs(); i++ )
+    {
+       cIpmiSdr *sdr = Sdr( i );
+
+       if ( sdr->m_type == eSdrTypeEntityAssociationRecord )
+       {
+           // Entity range
+           if ( sdr->m_data[7] & 0x80 )
+           {
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[8] )
+                   && ( type == (SaHpiEntityTypeT)sdr->m_data[10] )
+                   && ( ( instance >= (SaHpiEntityLocationT)sdr->m_data[9]  )
+                     && ( instance <= (SaHpiEntityLocationT)sdr->m_data[11] )))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[12] )
+                   && ( type == (SaHpiEntityTypeT)sdr->m_data[14] )
+                   && ( ( instance >= (SaHpiEntityLocationT)sdr->m_data[13]  )
+                     && ( instance <= (SaHpiEntityLocationT)sdr->m_data[15] )))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+           }
+           // Entity list
+           else
+           {
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[8] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[9] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[10] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[11] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[12] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[13] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[14] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[15] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+           }
+       }
+       else if ( sdr->m_type == eSdrTypeDeviceRelativeEntityAssociationRecord )
+       {
+           // Entity range
+           if ( sdr->m_data[9] & 0x80 )
+           {
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[12] )
+                   && ( type == (SaHpiEntityTypeT)sdr->m_data[16] )
+                   && ( ( instance >= (SaHpiEntityLocationT)sdr->m_data[13]  )
+                     && ( instance <= (SaHpiEntityLocationT)sdr->m_data[17] )))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[20] )
+                   && ( type == (SaHpiEntityTypeT)sdr->m_data[24] )
+                   && ( ( instance >= (SaHpiEntityLocationT)sdr->m_data[21]  )
+                     && ( instance <= (SaHpiEntityLocationT)sdr->m_data[25] )))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+           }
+           // Entity list
+           else
+           {
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[12] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[13] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[16] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[17] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[20] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[21] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+
+               if (( type == (SaHpiEntityTypeT)sdr->m_data[24] )
+                   && ( instance == (SaHpiEntityLocationT)sdr->m_data[25] ))
+               {
+                   parent_type = (SaHpiEntityTypeT)sdr->m_data[5];
+                   parent_instance = (SaHpiEntityLocationT)sdr->m_data[6];
+                   break;
+               }
+           }
+       }
+    }
+
+  // Didn't find proper association record
+  if ( parent_type == SAHPI_ENT_UNSPECIFIED )
+  {
+      stdlog << "WARNING : Entity ID " << type << ", Instance " << instance << " did not find parent FRU\n";
+      stdlog << "WARNING : Defaulting to FRU 0, Entity ID " << mc_type << ", Instance " << mc_instance << "\n";
+
+      // We didn't find an exact match
+      // Since a lot of ATCA boards have wrong SDRs
+      // we default the parent to the MC itself
+      parent_type = mc_type;
+      parent_instance = mc_instance;
+
+      return 0;
+  }
+
+  stdlog << "Entity ID " << type << ", Instance " << instance << " parent ID " << parent_type << ", Instance " << parent_instance << "\n";
+
+  // We found the parent now we want its FRU number
+  // We already have MC == FRU #0 data
+  if (( parent_type == mc_type )
+      && ( parent_instance == mc_instance ))
+      return 0;
+
+  // Now look for FRUs other than #0
+  for( unsigned int i = 0; i < NumSdrs(); i++ )
+    {
+       cIpmiSdr *sdr = Sdr( i );
+
+       if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord )
+        {
+            if ( (( sdr->m_data[7] & 0x80) == 0 )
+                || ( parent_type != (SaHpiEntityTypeT)sdr->m_data[12] )
+                || ( parent_instance != (SaHpiEntityLocationT)sdr->m_data[13] ) )
+
+                continue;
 
             return sdr->m_data[6];
        }
