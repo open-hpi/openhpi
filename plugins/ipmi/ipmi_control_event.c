@@ -139,6 +139,69 @@ static void add_control_event(ipmi_entity_t	*ent,
 	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, control_id, 1);
 }
 
+/*
+ * add_alarm_rdr
+ */
+static void add_alarm_rdr(
+                char			*name,
+                int			num,
+		SaHpiResourceIdT   	rptid,
+                SaHpiEntityPathT        parent_ent,
+		ipmi_control_id_t   	*control_id,
+		struct oh_handler_state *handler)
+{
+	SaHpiRdrT               rdr_temp;
+	SaHpiRdrT               *rdr;
+ 
+	rdr = &rdr_temp;
+        rdr->RecordId = 0;
+        rdr->RdrType = SAHPI_CTRL_RDR;
+        rdr->Entity = parent_ent;
+ 
+        rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
+        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
+        rdr->IdString.DataLength = strlen(name);
+        memcpy(rdr->IdString.Data, name, strlen(name));
+
+        rdr->RdrTypeUnion.CtrlRec.Num   = num;
+        rdr->RdrTypeUnion.CtrlRec.Type         = SAHPI_CTRL_TYPE_DIGITAL;
+        rdr->RdrTypeUnion.CtrlRec.OutputType   = SAHPI_CTRL_LED; 
+        rdr->RdrTypeUnion.CtrlRec.Oem          = OEM_ALARM_BASE + num;
+
+        oh_add_rdr(handler->rptcache, rptid, rdr, control_id, 1);
+	dbg("add_alarm_rdr: %s\n",name); 
+}
+
+/*
+ * add_alarm_rdrs
+ */
+static int add_alarm_rdrs(
+		struct oh_handler_state *handler,
+		SaHpiRptEntryT *rpt,
+		ipmi_control_t     *control)
+{
+	SaHpiResourceIdT   	rid;
+        SaHpiEntityPathT        ent;
+	static ipmi_control_id_t   alarm_control_id;  /*save this */
+	static int alarms_done = 0;
+
+	if (alarms_done) return 0;  /* only do alarms the first time */
+	rid = rpt->ResourceId;
+	ent = rpt->ResourceEntity;
+
+	alarm_control_id = ipmi_control_convert_to_id(control);
+
+	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR;
+	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_CONTROL;
+
+	add_alarm_rdr("Power Alarm LED",   0,rid,ent,&alarm_control_id,handler);
+	add_alarm_rdr("Critical Alarm LED",1,rid,ent,&alarm_control_id,handler);
+	add_alarm_rdr("Major Alarm LED",   2,rid,ent,&alarm_control_id,handler);
+	add_alarm_rdr("Minor Alarm LED",   3,rid,ent,&alarm_control_id,handler);
+	alarms_done = 1;
+	return 0;
+}
+
 void ohoi_control_event(enum ipmi_update_e op,
 		        ipmi_entity_t      *ent,
 			ipmi_control_t     *control,
@@ -185,7 +248,9 @@ void ohoi_control_event(enum ipmi_update_e op,
                                 rpt_entry->ResourceCapabilities |=
                                     SAHPI_CAPABILITY_POWER;
                                 break;
-
+			case IPMI_CONTROL_ALARM:
+				rv = add_alarm_rdrs(handler,rpt_entry,control);
+				break;
                         default:
                                 dbg("Other control(%d) is storaged in RDR", ctrl_type);
                                 rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_CONTROL;

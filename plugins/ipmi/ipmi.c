@@ -285,81 +285,6 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 	return 0;
 }
 
-/*
- * add_alarm_rdr
- */
-static void add_alarm_rdr(
-                char			*name,
-                int			num,
-		SaHpiResourceIdT   	rptid,
-                SaHpiEntityPathT        parent_ent,
-		ipmi_control_id_t   	*control_id,
-		struct oh_handler_state *handler)
-{
-	SaHpiRdrT               rdr_temp;
-	SaHpiRdrT               *rdr;
- 
-	rdr = &rdr_temp;
-        rdr->RecordId = 0;
-        rdr->RdrType = SAHPI_CTRL_RDR;
-        rdr->Entity = parent_ent;
- 
-        rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
-        rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-        rdr->IdString.DataLength = strlen(name);
-        memcpy(rdr->IdString.Data, name, strlen(name));
-
-        rdr->RdrTypeUnion.CtrlRec.Num   = num;
-        rdr->RdrTypeUnion.CtrlRec.Type         = SAHPI_CTRL_TYPE_DIGITAL;
-        rdr->RdrTypeUnion.CtrlRec.OutputType   = SAHPI_CTRL_LED; 
-        rdr->RdrTypeUnion.CtrlRec.Oem          = OEM_ALARM_BASE + num;
-
-        oh_add_rdr(handler->rptcache, rptid, rdr, control_id, 1);
-}
-
-/*
- * add_alarm_rdrs
- */
-static int add_alarm_rdrs(
-		struct oh_handler_state *handler,
-		SaHpiRptEntryT *rpt)
-{
-	SaHpiResourceIdT   	rid;
-        SaHpiEntityPathT        ent;
-        ipmi_control_id_t       control_id;
-	static ipmi_control_id_t   alarm_control_id;  /*save this */
-	static int alarms_done = 0;
-        struct ohoi_resource_info *res_info;
-	int rv;
-
-	if (alarms_done) return 0;  /* only do alarms the first time */
-	rid = rpt->ResourceId;
-	ent = rpt->ResourceEntity;
-
-        res_info = oh_get_resource_data(handler->rptcache, rid);
-	/* this is an RPT so the type is 0, entity_id */
-	if (res_info->ctrl_count == 0) {
-		dbg("add_alarm_rdrs: no alarm controls");
-		return 0;
-	}
-	rv = ipmi_control_find_id( res_info->u.entity_id.domain_id,
-		res_info->u.entity_id.entity_id,
-		res_info->u.entity_id.entity_instance,
-		res_info->u.entity_id.channel,
-		res_info->u.entity_id.address,
-		"", &control_id);
-	alarm_control_id = control_id;  /* must be static */
-
-	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR;
-	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_CONTROL;
-
-	add_alarm_rdr("Power Alarm LED",0,   rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Critical Alarm LED",1,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Major Alarm LED",2,   rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Minor Alarm LED",3,   rid,ent,&alarm_control_id,handler);
-	alarms_done = 1;
-	return 0;
-}
 
 /**
  * ipmi_discover_resources: discover resources in system
@@ -395,9 +320,6 @@ static int ipmi_discover_resources(void *hnd)
 	dbg("ipmi discover_resources, MC count: %d", ipmi_handler->mc_count);
         rpt_entry = oh_get_resource_next(handler->rptcache, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
-		if  (rpt_entry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_FRONT_PANEL_BOARD) {
-                        rv = add_alarm_rdrs(handler,rpt_entry);
-                }
                 event = g_malloc0(sizeof(*event));
                 memset(event, 0, sizeof(*event));
                 event->type = OH_ET_RESOURCE;
