@@ -88,9 +88,10 @@ rpm: dist
 documentation:
 	$(MAKE) -C docs
 
-clean: am_config_clean
+clean-local: am_config_clean-local
 	$(MAKE) -C examples clean
-am_config_clean:
+
+am_config_clean-local:
 	rm -fr $(PACKAGE)-*.tar.gz
 
 report:

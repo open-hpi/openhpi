@@ -50,7 +50,7 @@ openhpiclient.cpp:
 		ln -s $(top_srcdir)/openhpid/openhpiclient.c $(top_builddir)/plugins/remote_client/openhpiclient.cpp; \
 	fi
 
-clean:
+clean-local:
 	rm -f *~
 	if test -L $(top_builddir)/plugins/remote_client/openhpiclient.cpp; then \
 		rm -r $(top_builddir)/plugins/remote_client/openhpiclient.cpp; \

@@ -85,6 +85,6 @@ hpievent_SOURCES      = hpievent.c
 hpievent_LDADD        = $(COMMONLIBS)
 hpievent_LDFLAGS      =
 	
-clean:
+clean-local:
 	rm -f *~ *.o
 

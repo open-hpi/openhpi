@@ -66,5 +66,5 @@ event_get_LDADD       = libopenhpiclient.la $(top_builddir)/marshal/libopenhpima
 event_get_LDFLAGS     = -static
 
 
-clean:
+clean-local:
 	rm -f *~ core core.*
