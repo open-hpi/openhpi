@@ -66,6 +66,7 @@ static void hashtablefreeentry(gpointer key, gpointer value, gpointer data);
 
 static bool stop_server = FALSE;
 static int sock_timeout = CLIENT_TIMEOUT;
+static int max_threads = -1;  // unlimited
 
 /* options set by the command line */
 static char *pid_file = NULL;
@@ -102,6 +103,8 @@ void display_help(void)
         printf("                 pid file. This option is optional.\n\n");
         printf("   -s seconds    This overrides the default socket read timeout of 30\n");
         printf("                 minutes. This option is optional.\n\n");
+        printf("   -t threads    This sets the maximum number of connection threads.\n");
+        printf("                 The default is umlimited. This option is optional.\n\n");
         printf("A typical invocation might be\n\n");
         printf("   ./openhpid -c /etc/openhpi/openhpi.conf\n\n");
 }
@@ -149,6 +152,12 @@ int main (int argc, char *argv[])
                         sock_timeout = atoi(optarg);
                         if (sock_timeout < 0) {
                                 sock_timeout = CLIENT_TIMEOUT;
+                        }
+                        break;
+                case 't':
+                        max_threads = atoi(optarg);
+                        if (max_threads < -1 || max_threads == 0) {
+                                max_threads = -1;
                         }
                         break;
                 case '?':
@@ -248,7 +257,7 @@ int main (int argc, char *argv[])
 
         // create the thread pool
 	g_thread_init(NULL);
-	thrdpool = g_thread_pool_new(service_thread, NULL, -1, FALSE, NULL);
+	thrdpool = g_thread_pool_new(service_thread, NULL, max_threads, FALSE, NULL);
 
         // create the server socket
 	psstrmsock servinst = new sstrmsock;
