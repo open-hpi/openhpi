@@ -46,7 +46,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                 goto CLEANUP;
         }
 
-        dbg("BC_UUID string %s\n", get_value.string);
+        trace("BC_UUID string %s\n", get_value.string);
         // rid lead+trail blanks
         BC_UUID = g_strstrip(g_strdup(get_value.string));
         if (BC_UUID == NULL || BC_UUID[0] == '\0') {
@@ -55,7 +55,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                 goto CLEANUP;
         }
         if (g_ascii_strcasecmp( BC_UUID, NA ) == 0) {
-                dbg("UUID is N/A %s, set GUID to zeros\n", BC_UUID);
+                trace("UUID is N/A %s, set GUID to zeros\n", BC_UUID);
                 for ( i=0; i<16; i++ ) UUID_val[i] = 0;
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
@@ -64,8 +64,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         // separate substrings
         tmpstr = g_strsplit(BC_UUID, BCUUID_delimiter1, -1);
         for ( UUID_cnt=0; tmpstr[UUID_cnt] != NULL; UUID_cnt++ );
-        dbg("number of BC_UUID substrings = %d, strings =", UUID_cnt);
-        for (i=0; i<UUID_cnt; i++) dbg(" %s", tmpstr[i]); dbg("\n");
+        trace("number of BC_UUID substrings = %d, strings =", UUID_cnt);
+        for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n");
         if ( UUID_cnt == 0 ) {
                 dbg("Error: zero length UUID string\n");
                 status = SA_ERR_HPI_ERROR;
@@ -76,8 +76,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                 for ( UUID_cnt=0; ; UUID_cnt++ ) {
                         if ( tmpstr[UUID_cnt] == NULL ) break;
                 }
-                dbg("number of BC_UUID substrings = %d, strings =", UUID_cnt);
-                for (i=0; i<UUID_cnt; i++) dbg(" %s", tmpstr[i]); dbg("\n");
+                trace("number of BC_UUID substrings = %d, strings =", UUID_cnt);
+                for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n");
                 if ( UUID_cnt == 0 ) {
                         dbg("Error: zero length UUID string\n");
                         status = SA_ERR_HPI_ERROR;
@@ -97,15 +97,15 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }
-                dbg("UUID string %s\n", UUID);
+                trace("UUID string %s\n", UUID);
                 // convert UUID string to numberic UUID value
                 if ( (status = uuid_parse(UUID, UUID_val)) ) {
                         dbg("Error: failed parsing UUID string %d\n", status);
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }       
-                dbg("GUID value  ");
-                for (i=0; i<16; i++) { dbg("%02x", UUID_val[i]);} dbg("\n");
+                trace("GUID value  ");
+                for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n");
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
         }
@@ -121,15 +121,15 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }
-                dbg("UUID string %s\n", UUID);
+                trace("UUID string %s\n", UUID);
                 // convert UUID string to numberic UUID value
                 if ( (status = uuid_parse(UUID, UUID_val)) ) {
                         dbg("Error: failed parsing UUID string %d\n", status);
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }       
-                dbg("GUID value  ");
-                for (i=0; i<16; i++) { dbg("%02x", UUID_val[i]);} dbg("\n");
+                trace("GUID value  ");
+                for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n");
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
         }
@@ -143,7 +143,7 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         g_free(BC_UUID);
         g_strfreev(tmpstr);
                                                                                              
-        dbg("get_guid exit status %d\n",status);
+        //trace("get_guid exit status %d\n",status);
         return(status);
 } /* End of snmp_bc_get_guid */
 
