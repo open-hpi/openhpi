@@ -156,12 +156,19 @@ if test "x$THREAD_SAFE" = "xyes"; then
 fi
 AC_SUBST(LIST_RESOURCES_THREADED)
 
+
+dnl Enable the marshal directory only when needed by 
+dnl the deamon or remote_client plugin
+NEED_MARSHAL=
+
 AC_ARG_ENABLE([daemon],
     [  --enable-daemon         build HPI daemon and client library [default=yes]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
+	NEED_MARSHAL="yes"
     fi],
-    [ENABLED_DIRS="$ENABLED_DIRS openhpid"])
+    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
+     NEED_MARSHAL="yes"])
 
 AC_ARG_ENABLE([examples],
     [  --enable-examples       build HPI examples [default=yes]],
@@ -324,6 +331,20 @@ if test "x$IPMIDIRECT" = "xipmidirect"; then
         fi
 fi
 
+AC_ARG_ENABLE([remote_client],
+    [  --enable-remote_client     build remote client plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+            AC_SUBST(REMOTE_CLIENT,remote_client)
+	    NEED_MARSHAL="yes"
+     elif test "x$enableval" = "xstatic"; then
+            AC_SUBST(REMOTE_CLIENT,remote_client)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libmarshal.a -luuid"
+            NEED_MARSHAL="yes"
+     fi],
+    [AC_SUBST(REMOTE_CLIENT,remote_client)
+     NEED_MARSHAL="yes"])
+
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator       build simulator plugin [default=yes if fam is installed]],
@@ -337,6 +358,11 @@ AC_ARG_ENABLE([simulator],
 	[if test "x$have_fam" = "xyes"; then
     	AC_SUBST(SIMULATOR,simulator)
      fi])
+
+dnl enable marshal library when needed
+if test "x$NEED_MARSHAL" = "xyes"; then
+        AC_SUBST(MARSHALDIR,marshal)
+fi
 
 
 dnl
@@ -500,6 +526,8 @@ AC_CONFIG_FILES([openhpi.spec
 	utils/t/epath/Makefile
 	utils/t/rpt/Makefile
 	utils/t/sel/Makefile
+	marshal/Makefile
+	marshal/t/Makefile
         plugins/Makefile
 	plugins/snmp_client/Makefile
         plugins/dummy/Makefile
@@ -511,6 +539,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/sysfs/Makefile
         plugins/ipmidirect/Makefile
         plugins/ipmidirect/t/Makefile
+        plugins/remote_client/Makefile
         plugins/simulator/Makefile
         snmp/Makefile
         src/Makefile
