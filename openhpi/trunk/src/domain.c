@@ -33,12 +33,11 @@ static GSList *global_domain_list = NULL;
 
 int is_in_domain_list(SaHpiDomainIdT did) 
 {
-        int i;
+        GSList *i;
         
-        for (i = 0; i < g_slist_length(global_domain_list); i++) {
-		SaHpiDomainIdT temp;
-                temp = GPOINTER_TO_UINT(g_slist_nth_data(global_domain_list, i));
-                if(temp == did) {
+        g_slist_for_each(i, global_domain_list) {
+		SaHpiDomainIdT id = GPOINTER_TO_UINT(i->data);
+                if(id == did) {
                         return 1;
                 }
         }

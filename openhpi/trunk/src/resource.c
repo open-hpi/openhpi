@@ -41,11 +41,10 @@ static struct oh_resource *add_res(struct oh_handler *h, struct oh_resource_id o
 
 struct oh_resource *get_res_by_oid(struct oh_resource_id oid)
 {
-	int i;
+	GSList *i;
 	
-	for (i=0; i< g_slist_length(global_rpt); i++) {
-		struct oh_resource *res;
-		res = (struct oh_resource *) g_slist_nth_data(global_rpt, i);
+	g_slist_for_each(i, global_rpt) {
+		struct oh_resource *res = i->data;
 		if (memcmp(&res->oid, &oid, sizeof(oid))==0)
 				return res;
 	}
@@ -69,11 +68,10 @@ struct oh_resource *insert_resource(struct oh_handler *h, struct oh_resource_id 
 
 struct oh_resource *get_resource(SaHpiResourceIdT rid)
 {
-	int i;
+	GSList *i;
 	
-	for (i=0; i< g_slist_length(global_rpt); i++) {
-		struct oh_resource *res;
-		res = (struct oh_resource *) g_slist_nth_data(global_rpt, i);
+	g_slist_for_each(i, global_rpt) {
+		struct oh_resource *res = i->data;
 		if (res->entry.ResourceId == rid)
 			return res;
 	}
@@ -82,11 +80,10 @@ struct oh_resource *get_resource(SaHpiResourceIdT rid)
 
 int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT did)
 {
-	int i;
+	GSList *i;
 	
-	for (i=0; i< g_slist_length(res->domain_list); i++) {
-		SaHpiDomainIdT id;
-		id = GPOINTER_TO_UINT(g_slist_nth_data(res->domain_list, i));
+	g_slist_for_each(i, res->domain_list) {
+		SaHpiDomainIdT id = GPOINTER_TO_UINT(i->data);
 		if (id == did)
 			return 1;
 	}
@@ -112,11 +109,10 @@ static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_rdr_id oid)
 
 static struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid)
 {
-	int i;
+	GSList *i;
 	
-	for (i=0; i<g_slist_length(res->rdr_list); i++) {
-		struct oh_rdr *rdr;
-		rdr = g_slist_nth_data(res->rdr_list, i);
+	g_slist_for_each(i, res->rdr_list) {
+		struct oh_rdr *rdr = i->data;
 		if (memcmp(&rdr->oid, &oid, sizeof(oid))==0)
 			return rdr;
 	}

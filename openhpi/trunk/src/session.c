@@ -28,14 +28,12 @@ static SaHpiSessionIdT scounter = 0;
 
 struct oh_session *session_get(SaHpiSessionIdT sid)
 {
-        struct oh_session *temp = NULL;
-        int i;
+        GSList *i;
         
-        for (i = 0; i < g_slist_length(global_session_list); i++) {
-                temp = (struct oh_session*) 
-                        g_slist_nth_data(global_session_list, i);
-                if(temp->session_id == sid) {
-                        return temp;
+        g_slist_for_each(i, global_session_list) {
+		struct oh_session *s = i->data;
+                if(s->session_id == sid) {
+                        return s;
                 }
         }
         return NULL;
@@ -58,7 +56,7 @@ int session_add(SaHpiDomainIdT did,
         s->domain_id = did;
         s->eventq = NULL;
         
-        global_session_list = g_slist_append(global_session_list, (gpointer *) s);
+        global_session_list = g_slist_append(global_session_list, s);
         
 	*session = s;
 	return 0;
