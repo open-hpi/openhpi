@@ -19,6 +19,9 @@
 #include <SaHpi.h>
 #include <glib.h>
 
+#define RPT_ENTRY_BEGIN 0
+#define RDR_BEGIN 0
+
 typedef struct {
         SaHpiRptInfoT rpt_info;
         /* The structure to hold this is subject to change. */

@@ -23,10 +23,14 @@ static inline RPTEntry *get_rptentry_by_rid( RPTable *table, SaHpiResourceIdT ri
         RPTEntry *rptentry = NULL;
         GSList *node;
 
-        for (node = table->rptable; node != NULL; node = node->next) {
-                rptentry = (RPTEntry *) node->data;
-                if (rptentry->rpt_entry.ResourceId == rid) break;
-                else rptentry = NULL;
+        if (rid == RPT_ENTRY_BEGIN) {
+                rptentry = (RPTEntry *) (table->rptable->data);
+        } else {
+                for (node = table->rptable; node != NULL; node = node->next) {
+                        rptentry = (RPTEntry *) node->data;
+                        if (rptentry->rpt_entry.ResourceId == rid) break;
+                        else rptentry = NULL;
+                }        
         }
 
         return rptentry;
@@ -37,11 +41,15 @@ static inline RDRecord *get_rdrecord_by_id(GSList *records, SaHpiEntryIdT id)
         RDRecord *rdrecord = NULL;
         GSList *node;
 
-        for (node = records; node != NULL; node = node->next) {
-                rdrecord = (RDRecord *) node->data;
-                if (rdrecord->rdr.RecordId == id) break;
-                else rdrecord = NULL;
-        }
+        if (id == RDR_BEGIN) {
+                rdrecord = (RDRecord *) records->data;
+        } else {
+                for (node = records; node != NULL; node = node->next) {
+                        rdrecord = (RDRecord *) node->data;
+                        if (rdrecord->rdr.RecordId == id) break;
+                        else rdrecord = NULL;
+                }                
+        }        
 
         return rdrecord;
 }
@@ -105,16 +113,13 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data)
                 rptentry = (RPTEntry *)malloc(sizeof(RPTEntry));
                 if (!rptentry) return -1; /* Not enough memory to add resource. */
                 /* Put new RPTEntry in RPTable */
-                table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);
-                
+                table->rptable = g_slist_append(table->rptable, (gpointer)rptentry);                
         }
         /* Else, modify existing RPTEntry */
         rptentry->data = data;
         rptentry->rpt_entry = entry;
-        if (entry.EntryId == 0) { /* Assign id if there is none already. */
-                rptentry->rpt_entry.EntryId = entry.ResourceId; /** Is this ok? */
-        }
-               
+        rptentry->rpt_entry.EntryId = entry.ResourceId; /** Is this ok? */
+                       
         return 0; 
 }
 
@@ -134,7 +139,7 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
         rptentry = get_rptentry_by_rid(table, rid);
 
         if (!rptentry) return -1; /* No Resource found by that id */
-        else g_slist_remove(table->rptable, (gpointer)rptentry);
+        else table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
 
         return 0;
 }
@@ -215,13 +220,17 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
         RPTEntry *rptentry = NULL;
         GSList *node;
 
-        for (node = table->rptable; node != NULL; node = node->next) {
-                rptentry = (RPTEntry *) node->data;
-                if (rptentry->rpt_entry.ResourceId == rid_prev) {
-                        rptentry = (RPTEntry *)(node->next->data);
-                        break;
-                } else rptentry = NULL;
-        }        
+        if (rid_prev == RPT_ENTRY_BEGIN) {
+                rptentry = (RPTEntry *) (table->rptable->data);
+        } else {
+                for (node = table->rptable; node != NULL; node = node->next) {
+                        rptentry = (RPTEntry *) node->data;
+                        if (rptentry->rpt_entry.ResourceId == rid_prev) {
+                                rptentry = (RPTEntry *)(node->next->data);
+                                break;
+                        } else rptentry = NULL;
+                }                
+        }                
 
         return (rptentry) ? &(rptentry->rpt_entry) : NULL;
 }
@@ -257,14 +266,9 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
         if (!rptentry) return -1; /* Resource was not fount in table */
 
         /* Check if record exists */
-        if (rdr.RecordId == 0) {
-                rdrecord = NULL;
-                /* Assign record id. */
-                rdr.RecordId = get_rdr_uid(rdr.RdrType, get_rdr_type_num(rdr));
-        } else {
-                rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdr.RecordId);
-        }
-        
+        rdr.RecordId = get_rdr_uid(rdr.RdrType, get_rdr_type_num(rdr));
+        rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdr.RecordId);
+                
         /* If not, create new rdr */
         if (!rdrecord) {
                 rdrecord = (RDRecord *)malloc(sizeof(RDRecord));
@@ -272,7 +276,7 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
                 /* Put new rdrecord in rdr repository */
                 rptentry->rdrtable = g_slist_append(rptentry->rdrtable, (gpointer)rdrecord);                        
         }
-        /* Else, modify existing rdrecord */
+        /* Else, modify existing rdrecord */        
         rdrecord->rdr = rdr;
         rdrecord->data = data;
         
@@ -301,7 +305,7 @@ int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 
         rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdrid);
         if (!rdrecord) return -2; /* No rdr found by that id */
-        else g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
+        else rptentry->rdrtable = g_slist_remove(rptentry->rdrtable, (gpointer)rdrecord);
 
         return 0;
 }
@@ -325,9 +329,8 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
         if (!rptentry) return NULL; /* No resource found by that id */
 
         rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdrid);
-        if (!rdrecord) return NULL; /* No rdr found by that id */
 
-        return rdrecord->data;
+        return (rdrecord) ? rdrecord->data : NULL;
 }
 
 /**
@@ -349,9 +352,8 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
         if (!rptentry) return NULL; /* No resource found by that id */
 
         rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdrid);
-        if (!rdrecord) return NULL; /* No rdr found by that id */
 
-        return &(rdrecord->rdr);
+        return (rdrecord) ? &(rdrecord->rdr) : NULL;
 }
 
 /**
@@ -369,19 +371,15 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
                               SaHpiRdrTypeT type, SaHpiUint8T num)
 {
         RPTEntry *rptentry;
-        RDRecord *rdrecord = NULL;
-        GSList *node;
+        RDRecord *rdrecord;
+        SaHpiUint32T rdr_uid;
                         
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) return NULL; /* No resource found by that id */
 
-        /* Get rdrid from type/num combination */
-        for (node = rptentry->rdrtable; node != NULL; node = node->next) {
-                rdrecord = (RDRecord *)node->data;
-                if (rdrecord->rdr.RdrType == type && get_rdr_type_num(rdrecord->rdr) == num)
-                        break;
-                else rdrecord = NULL;
-        }        
+        /* Get rdr_uid from type/num combination */
+        rdr_uid = get_rdr_uid(type, num);
+        rdrecord = get_rdrecord_by_id(rptentry->rdrtable, (SaHpiEntryIdT)rdr_uid);       
 
         return (rdrecord) ? &(rdrecord->rdr) : NULL;
 }
@@ -395,7 +393,8 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
  *
  * Return value:
  * Pointer to the RDR found or NULL if the previous RDR by that
- * id was not found.
+ * id was not found. If the rdrid_prev was 0 (RDR_BEGIN), the first RDR in the list
+ * will be returned.
  **/
 SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev)
 {
@@ -406,14 +405,18 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) return NULL; /* No resource found by that id */
 
-        for (node = rptentry->rdrtable; node != NULL; node = node->next) {
-                rdrecord = (RDRecord *)node->data;
-                if (rdrecord->rdr.RecordId == rdrid_prev) {
-                        rdrecord = (RDRecord *)node->next->data;
-                        break;
-                }
-                else rdrecord = NULL;
-        }
+        if (rdrid_prev == RDR_BEGIN) {
+                rdrecord = (RDRecord *)(rptentry->rdrtable->data);
+        } else {
+                for (node = rptentry->rdrtable; node != NULL; node = node->next) {
+                        rdrecord = (RDRecord *)node->data;
+                        if (rdrecord->rdr.RecordId == rdrid_prev) {
+                                rdrecord = (RDRecord *)(node->next->data);
+                                break;
+                        }
+                        else rdrecord = NULL;
+                }                
+        }        
 
         return (rdrecord) ? &(rdrecord->rdr) : NULL;
 }
