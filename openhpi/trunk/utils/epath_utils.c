@@ -543,7 +543,10 @@ gchar * oh_derive_string(SaHpiEntityPathT *ep, const gchar *str)
         guint num_epe, num_blanks, str_strlen = 0;
         guint total_num_digits, i, work_location_num, num_digits;
 
-	if (!ep || !str) return(NULL);
+	if (!ep || !str) {
+		dbg("NULL parameter.");
+		return(NULL);
+	}
 
         for (num_epe = 0;
              ep->Entry[num_epe].EntityType != SAHPI_ENT_ROOT && num_epe < SAHPI_MAX_ENTITY_PATH;
