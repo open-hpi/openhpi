@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	SaErrorT rv;
 	SaHpiVersionT hpiVer;
 	SaHpiSessionIdT sessionid;
-	SaHpiRptInfoT rptinfo;
+//	SaHpiRptInfoT rptinfo;
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
 	SaHpiEntryIdT nextrptentryid;
@@ -65,13 +65,7 @@ int main(int argc, char **argv)
 	else
 		timeout = (SaHpiInt64T) SAHPI_TIMEOUT_IMMEDIATE;
 
-        rv = saHpiInitialize(&hpiVer);
-        if (rv != SA_OK) {
-                printf("saHpiInitialize: %s\n",decode_error(rv));
-                exit(-1);
-        }
-        
-	rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
                 if (rv == SA_ERR_HPI_ERROR) 
                         printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -80,15 +74,15 @@ int main(int argc, char **argv)
                 exit(-1);
         }
  
-        rv = saHpiResourcesDiscover(sessionid);
+        rv = saHpiDiscover(sessionid);
         if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
-        rv = saHpiRptInfoGet(sessionid,&rptinfo);
-        if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
-        printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
-               rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+//        rv = saHpiRptInfoGet(sessionid,&rptinfo);
+//        if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
+//        printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+        //              rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
         
 	printf( "Subscribe to events\n");
-	rv = saHpiSubscribe( sessionid, (SaHpiBoolT)0 );
+	rv = saHpiSubscribe( sessionid );
 	if (rv != SA_OK) return rv;
 
 
@@ -102,7 +96,7 @@ int main(int argc, char **argv)
                         resourceid = rptentry.ResourceId;
                         if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
                                            rptentry.ResourceCapabilities);
-                        if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+                        if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                                 if (fdebug) printf("RPT doesn't have SEL\n");
                                 rptentryid = nextrptentryid;
                                 continue;  /* no SEL here, try next RPT */
@@ -123,7 +117,7 @@ int main(int argc, char **argv)
         
 	printf( "Go and get the event\n");
 	while (1) {
-		rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry );
+            rv = saHpiEventGet( sessionid, timeout, &event, &rdr, &rptentry, NULL);
      		if (rv != SA_OK) { 
 			if (rv != SA_ERR_HPI_TIMEOUT) {
 	  			printf( "Error during EventGet - Test FAILED\n");
@@ -133,7 +127,7 @@ int main(int argc, char **argv)
 	  			break;
 			}
 		} else {
-			print_event(&event);
+                    //print_event(&event);
 		}
      	}
 
@@ -144,7 +138,6 @@ int main(int argc, char **argv)
 	rv = saHpiUnsubscribe( sessionid );
 
 	rv = saHpiSessionClose(sessionid);
-        rv = saHpiFinalize();
         
         exit(0);
         return(0);
