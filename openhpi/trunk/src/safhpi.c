@@ -342,17 +342,20 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 {
         struct oh_session *s;
         GSList *i;
-        int rv =0;
+        int rv = -1;
 
         OH_STATE_READY_CHECK;
 
         data_access_lock();
+
         OH_SESSION_SETUP(SessionId, s);
         
         g_slist_for_each(i, global_handler_list) {
                 struct oh_handler *h = i->data;
-                rv |= h->abi->discover_resources(h->hnd);
+                if (!(h->abi->discover_resources(h->hnd)))
+                        rv = 0;
         }
+        
         if (rv) {
                 dbg("Error attempting to discover resource");  
                 data_access_unlock();
@@ -362,7 +365,7 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
         data_access_unlock();
 
         rv = get_events();
-        if (rv<0) {
+        if (rv < 0) {
                 dbg("Error attempting to process resources");
                 return SA_ERR_HPI_UNKNOWN;
         }
