@@ -22,20 +22,18 @@ run ./BigBuild
 
 This will generate all files needed to compile.
 
-Note: by default, only the dummy plugin is enabled.
+Note: by default all plugins that can be built, will be built.
 
-If you want to enable the IPMI plugin, do either:
-Edit the BigBuid script and in the 
-	./configure line add
-	./configure --enable-ipmi
-of after running the BigBuild script, run:
-	./configure--enable-ipmi
+If you wish to disable a plugin, any flags you pass to BigBuild 
+will be passed to the configure program.
+
+i.e. ./BigBuild --disable-dummy will disable the dummy plugin
 
 then make (or make rpm)
 and then (as root or with proper system install permissions)
 	make install (or install from the rpm).
 
-It will generate the openhpi library and a sample application 
+It will generate the openhpi library and sample applications
 that uses the library.
 
 ---------------------------------------------------------
@@ -55,20 +53,15 @@ make maintainer-clean
 GENERAL RELEASE NOTES and WHAT'S NEW
 ---------------------------------------------------------
 Active plugins:
-Dummy
-IPMI
+dummy - dummy plugin for use in testing
+ipmi - OpenIPMI based plugin
+ipmidirect - IPMI plugin that talks to device driver directly
+snmp_bc - IBM Blade Center plugin (uses snmp)
+watchdog - Linux watchdog device interface
+sysfs - Linux sysfs plugin (LM sensors and I2C devices exported in 
+        sysfs requires kernel 2.6 or >= 2.5.72)
 
-Inactive:
-Watchdog
-sysfs (LM sensors and I2C devices exported in sysfs requires kernel 2.6 or >= 2.5.72)
-
-New in this release:
-	openhpi HPI remoting proof of concept and openhpid.
-	Enhanced configuration file parsing.
-	Updated openhpi.conf (see examples/openhpi.conf.example)
-	IPMI: Added reading values from discrete sensors.
-	IPMI: sensor ignore patch.
-	IPMI: resource removal.
+For information on recently changes, please the the ChangeLog file
 
 ---------------------------------------------------------
 FOR MORE INFO
