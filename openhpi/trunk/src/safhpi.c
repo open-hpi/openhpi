@@ -240,8 +240,16 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiRptInfoT *RptInfo)
 {
+	int rv =0;
+
 	OH_STATE_READY_CHECK;
 
+	rv = get_events();
+	if (rv<0) {
+		dbg("Error attempting to process events");
+		return SA_ERR_HPI_UNKNOWN;
+	}
+	
 	RptInfo->UpdateCount 	= global_rpt_counter;
 	RptInfo->UpdateTimestamp= (SaHpiTimeT)global_rpt_timestamp.tv_sec*1000000000 + global_rpt_timestamp.tv_usec*1000;
 	return SA_OK;
