@@ -418,7 +418,7 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
 
 
 /**
- * snmp_bc_snmp_set:
+ * snmp_bc_oid_snmp_set:
  * @custom_handle:  Plugin's data pointer.
  * @ep: Entity path of the resource
  * @oidstr: raw SNMP OID.
