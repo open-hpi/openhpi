@@ -17,7 +17,6 @@
 
 #include <snmp_util.h>
 #include <string.h>
-#include <openhpi.h>
 
 /**
  * snmp_get
