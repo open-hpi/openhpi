@@ -172,6 +172,11 @@ struct oh_session {
  *  Representation of a plugin instance
  */
 struct oh_handler {
+        /*
+         * pointer to configuration
+         */
+        GHashTable *config;
+
         /* 
            pointer to associated plugin interface
         */

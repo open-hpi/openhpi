@@ -18,6 +18,7 @@ plugin	libdummy
 #Strings are enclosed by "", numbers are not.
 
 handler	libdummy {
+        entity_root = "{SYSTEM_CHASSIS,0}"
         name = "test"
 	addr =	0
 }
