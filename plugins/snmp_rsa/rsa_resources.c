@@ -58,7 +58,6 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
                         },
-			.def_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
                         .event_array = {},
 		},
                 .comment = "Chassis"
@@ -90,7 +89,6 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
                         },
-			.def_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
                         .event_array = {},
 		},
                 .comment = "CPUs"
@@ -122,7 +120,6 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 .OidPowerState = '\0',
                                 .OidPowerOnOff = '\0',
                         },
-			.def_state = SAHPI_HS_STATE_ACTIVE_HEALTHY,
                         .event_array = {},
 		},
                 .comment = "DASD"
@@ -445,10 +442,10 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
                 .comment = "System ambient air temperature in degrees centigrade(C)."
         },
 
-        /* Main system thermal sensor on planar */
+        /* System ambient thermal sensor on planar */
         {
                 .sensor = {
-                        .Num = 1,
+                        .Num = 5,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
                         .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
@@ -666,18 +663,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
                                         .event = "06035500", /* EN_PFA_HI_FAULT_PLANAR_5V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "06034480", /* EN_CUTOFF_HI_FAULT_PLANAR_5V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "06035800", /* EN_PFA_LO_FAULT_PLANAR_5V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "06034800", /* EN_CUTOFF_LO_FAULT_PLANAR_5V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -754,18 +755,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
                                         .event = "0002D400", /* EN_PFA_HI_FAULT_3_35V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0002C480", /* EN_CUTOFF_HI_FAULT_3_35V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "08033880", /* EN_PFA_LO_FAULT_3_35V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0002C880", /* EN_CUTOFF_LO_FAULT_3_35V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -842,18 +847,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
                                         .event = "06037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
 			                .event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 		                },
 		                {
 			                .event = "06036480", /* EN_CUTOFF_HI_FAULT_12V_PLANAR */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "06037800", /* EN_PFA_LO_FAULT_12V_PLANAR */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "06036800", /* EN_CUTOFF_LO_FAULT_12V_PLANAR */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -930,18 +939,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
 					.event = "0803F500", /* EN_PFA_HI_FAULT_N12V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0803E480", /* EN_CUTOFF_HI_FAULT_N12V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0803F800", /* EN_PFA_LO_FAULT_N12V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0803E800", /* EN_CUTOFF_LO_FAULT_N12V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -1018,18 +1031,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
 					.event = "0803D500", /* EN_PFA_HI_FAULT_N5V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0803C480", /* EN_CUTOFF_HI_FAULT_N5V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0803D800", /* EN_PFA_LO_FAULT_N5V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0803C800", /* EN_CUTOFF_LO_FAULT_N5V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -1106,18 +1123,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
                                         .event = "08031480", /* EN_PFA_HI_FAULT_2_5V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "08030480", /* EN_CUTOFF_HI_FAULT_2_5V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "08031880", /* EN_PFA_LO_FAULT_2_5V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "08030880", /* EN_CUTOFF_LO_FAULT_2_5V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -1194,18 +1215,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
                                         .event = "08041400", /* EN_PFA_HI_FAULT_1_5V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "08040480", /* EN_CUTOFF_HI_FAULT_1_5V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "08041800", /* EN_PFA_LO_FAULT_1_5V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "08040880", /* EN_CUTOFF_LO_FAULT_1_5V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -1282,18 +1307,22 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				{
                                         .event = "08001400", /* EN_PFA_HI_FAULT_1_25V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "08000480", /* EN_CUTOFF_HI_FAULT_1_25V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "08001800", /* EN_PFA_LO_FAULT_1_25V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "08000880", /* EN_CUTOFF_LO_FAULT_1_25V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
+					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
 				{},
 			},
@@ -1381,19 +1410,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D501", /* EN_PFA_HI_OVER_TEMP_CPU1 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C481", /* EN_CUTOFF_HI_OVER_TEMP_CPU1 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C401", /* EN_PROC_HOT_CPU1 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C081", /* EN_OVER_TEMP_CPU1 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -1472,19 +1508,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D502", /* EN_PFA_HI_OVER_TEMP_CPU2 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C482", /* EN_CUTOFF_HI_OVER_TEMP_CPU2 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C402", /* EN_PROC_HOT_CPU2 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421D082", /* EN_THERM_TRIP_CPU2 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -1563,19 +1606,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D503", /* EN_PFA_HI_OVER_TEMP_CPU3 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C483", /* EN_CUTOFF_HI_OVER_TEMP_CPU3 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C403", /* EN_PROC_HOT_CPU3 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C083", /* EN_OVER_TEMP_CPU3 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -1654,19 +1704,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D504", /* EN_PFA_HI_OVER_TEMP_CPU4 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C484", /* EN_CUTOFF_HI_OVER_TEMP_CPU4 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C404", /* EN_PROC_HOT_CPU4 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421D084", /* EN_THERM_TRIP_CPU4 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -1745,19 +1802,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D505", /* EN_PFA_HI_OVER_TEMP_CPU5 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C485", /* EN_CUTOFF_HI_OVER_TEMP_CPU5 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C405", /* EN_PROC_HOT_CPU5 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C085", /* EN_OVER_TEMP_CPU5 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -1836,19 +1900,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D506", /* EN_PFA_HI_OVER_TEMP_CPU6 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C486", /* EN_CUTOFF_HI_OVER_TEMP_CPU6 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C406", /* EN_PROC_HOT_CPU6 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421D086", /* EN_THERM_TRIP_CPU6 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -1927,19 +1998,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D507", /* EN_PFA_HI_OVER_TEMP_CPU7 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C487", /* EN_CUTOFF_HI_OVER_TEMP_CPU7 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C407", /* EN_PROC_HOT_CPU7 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C087", /* EN_OVER_TEMP_CPU7 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -2018,19 +2096,26 @@ struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0421D508", /* EN_PFA_HI_OVER_TEMP_CPU8 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0421C488", /* EN_CUTOFF_HI_OVER_TEMP_CPU8 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421C408", /* EN_PROC_HOT_CPU8 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{
 					.event = "0421D088", /* EN_THERM_TRIP_CPU8 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -2118,11 +2203,14 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0681C403", /* EN_PFA_HI_OVER_TEMP_DASD1 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0681C483", /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},
@@ -2201,11 +2289,14 @@ struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[] = {
 			.event_array = {
 				{
                                         .event = "0681D491", /* EN_PFA_HI_OVER_TEMP_DASD2 */
-					.event_state = SAHPI_ES_UPPER_MAJOR,
+					.event_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
 					.event = "0681C491", /* EN_CUTOFF_HI_OVER_TEMP_DASD2 */
-					.event_state = SAHPI_ES_UPPER_CRIT,
+					.event_state = SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR |
+					               SAHPI_ES_UPPER_MINOR,
+					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
 				{},
 			},

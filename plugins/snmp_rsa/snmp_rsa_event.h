@@ -34,7 +34,7 @@ int event2hpi_hash_free(void);
 int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res_info);
 int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_rsa_sensor *rpt_sensor);
 
-int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst);
+int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled);
 int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo);
 
 int snmp_rsa_add_to_eventq(void *hnd, SaHpiEventT *thisEvent);

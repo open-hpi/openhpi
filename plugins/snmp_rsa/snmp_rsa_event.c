@@ -42,7 +42,7 @@ typedef enum {
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 static int  parse_sel_entry(char *text, rsa_sel_entry *sel, int isdst);
 static int  parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_str, gchar *trigger_value_str);
-static int  set_previous_event_state(void *hnd, SaHpiEventT *event);
+static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_event, int *event_enabled);
 static int  map2oem(void *hnd, SaHpiEventT *event, LogSource2ResourceT *resinfo,
 		    rsa_sel_entry *sel_entry, OEMReasonCodeT reason);
 static Str2EventInfoT *findevent4dupstr(gchar *search_str, Str2EventInfoT *dupstrhash_data, LogSource2ResourceT *resinfo);
@@ -96,27 +96,29 @@ int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res
 		if (g_hash_table_lookup_extended(event2hpi_hash, normalized_str,
 						 (gpointer)&hash_existing_key,
 						 (gpointer)&hash_value)) {
-			/* Set resource's event back to default state */
-			((SaHpiEventT *)hash_value)->EventDataUnion.HotSwapEvent.HotSwapState =
-				rsa_res_info->def_state;
-                        /* Recover space created in snmp_derive_objid */
-			g_free(normalized_str);
-		}		
-		else {
 			hpievent = g_malloc0(sizeof(SaHpiEventT));
 			if (!hpievent) {
 				dbg("Cannot allocate memory for HPI event");
+				g_free(normalized_str);
 				return -1;
 			}
 
-			/* Set values */
 			hpievent->Source = rid;
 			hpievent->EventType = SAHPI_ET_HOTSWAP;
 			hpievent->EventDataUnion.HotSwapEvent.HotSwapState = 
-				rsa_res_info->def_state;
+				rsa_res_info->event_array[i].event_state;
+
+			/* Overload field with recovery state - this will be overwritten
+			   when event is processed with current resource's state */
+			hpievent->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
+				rsa_res_info->event_array[i].recovery_state;
+
 
 			g_hash_table_insert(event2hpi_hash, normalized_str, hpievent);
 		}
+
+		/* Recover space created in snmp_derive_objid */
+		g_free(normalized_str);
 	}
 
 	if (i >= max) { 
@@ -171,20 +173,26 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 			hpievent->EventDataUnion.SensorEvent.Assertion = SAHPI_TRUE;
 
 			/* Setup trigger values for threshold sensors */
-			if ((rpt_sensor->sensor.ThresholdDefn.IsThreshold == SAHPI_TRUE) &&
-			    (rpt_sensor->sensor.DataFormat.Range.Max.ValuesPresent & SAHPI_SRF_INTERPRETED)) {
-				
-				hpievent->EventDataUnion.SensorEvent.TriggerReading.ValuesPresent = 
-					hpievent->EventDataUnion.SensorEvent.TriggerReading.ValuesPresent |
-					SAHPI_SRF_INTERPRETED;
-				hpievent->EventDataUnion.SensorEvent.TriggerReading.Interpreted.Type = 
-					rpt_sensor->sensor.DataFormat.Range.Max.Interpreted.Type;
-
-				hpievent->EventDataUnion.SensorEvent.TriggerThreshold.ValuesPresent =
-					hpievent->EventDataUnion.SensorEvent.TriggerThreshold.ValuesPresent |
-					SAHPI_SRF_INTERPRETED;
-				hpievent->EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Type =
-					rpt_sensor->sensor.DataFormat.Range.Max.Interpreted.Type;
+			if (rpt_sensor->sensor.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
+				if (rpt_sensor->sensor.DataFormat.Range.Max.ValuesPresent & SAHPI_SRF_INTERPRETED) {
+					hpievent->EventDataUnion.SensorEvent.TriggerReading.ValuesPresent = 
+						hpievent->EventDataUnion.SensorEvent.TriggerReading.ValuesPresent |
+						SAHPI_SRF_INTERPRETED;
+					hpievent->EventDataUnion.SensorEvent.TriggerReading.Interpreted.Type = 
+						rpt_sensor->sensor.DataFormat.Range.Max.Interpreted.Type;
+					
+					hpievent->EventDataUnion.SensorEvent.TriggerThreshold.ValuesPresent =
+						hpievent->EventDataUnion.SensorEvent.TriggerThreshold.ValuesPresent |
+						SAHPI_SRF_INTERPRETED;
+					hpievent->EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Type =
+						rpt_sensor->sensor.DataFormat.Range.Max.Interpreted.Type;
+				}
+				else {
+					dbg("DataFormat.Range.Max.Interpreted must be defined for threshold sensor=%s\n",
+					    rpt_sensor->comment);
+					g_free(normalized_str);
+					return -1;
+				}
 			}
 
 			g_hash_table_insert(event2hpi_hash, normalized_str, hpievent);
@@ -210,7 +218,7 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
  * query the RSA for DST info once then make multiple translation calls.
  *****************************************************************************/
 
-int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
+int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled)
 {
 	rsa_sel_entry log_entry;
 	gchar *recovery_str, *login_str, search_str[RSA_SEL_ENTRY_STRING];
@@ -227,13 +235,13 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 
         /* Parse RSA error log entry into its various components */
 	if (parse_sel_entry(logstr, &log_entry, isdst)) {
-		dbg("Couldn't parse RSA error log entry=%s", logstr);
+		dbg("Couldn't parse BladeCenter error log entry=%s", logstr);
 		return -1;
 	}
 
-	/* Find default RID and RSA resource info for error log's source */
+	/* Find default RID and BladeCenter resource info for error log's source */
 	if (rsasrc2rid(hnd, log_entry.source, &resinfo)) {
-		dbg("Cannot translate RSA Source string=%s to RID\n", log_entry.source);
+		dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
 		return -1;
 	}
 	
@@ -312,7 +320,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 		}
 
 		/* OVR_SEV overrides the event log's severity and uses 
-		 *  RSAT-level severity from calculated in off-line scripts 
+		 * RSAT-level severity from calculated in off-line scripts 
 		 */
 		if (strhash_data->event_ovr & OVR_SEV) {
 			severity = strhash_data->event_sev;
@@ -325,9 +333,21 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 
 			/* Handle sensor events */
 			if (working.EventType == SAHPI_ET_SENSOR) {
+
 				if (is_recovery_event) {
 					working.EventDataUnion.SensorEvent.Assertion = SAHPI_FALSE;
 				}
+
+				/* Set sensor's current/last state; see if sensor's events are disabled */
+				if (set_previous_event_state(hnd, &working, is_recovery_event, event_enabled)) {
+					dbg("Cannot set previous state for sensor event = %s\n", log_entry.text);
+					return -1;
+				}
+				
+				if (!(*event_enabled)) {
+					return 0;
+				}
+
 				/* Convert threshold strings into event values */
 				if (is_threshold_event) {
 					if (get_interpreted_value(thresh_read_value,
@@ -345,22 +365,17 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 						return -1;
 					}		
 				}
-				/* Set current/last state */
-				if (set_previous_event_state(hnd, &working)) {
-					dbg("Cannot set previous state for sensor event = %s\n", log_entry.text);
-					return -1;
-				}
 			}
 
                         /* Handle hot-swap events */
 			else if (working.EventType == SAHPI_ET_HOTSWAP) {
-				if (set_previous_event_state(hnd, &working)) {
+				if (set_previous_event_state(hnd, &working, is_recovery_event, event_enabled)) {
 					dbg("Cannot set previous state for hot-swap event = %s\n", log_entry.text);
 					return -1;
 				}
 			}
 			else {
-				dbg("Design Error! RSA doesn't support events of type=%d\n", working.EventType);
+				dbg("Design Error! BladeCenter doesn't support events of type=%d\n", working.EventType);
 				return -1;
 			}
 		} /* End found mapped event */
@@ -500,8 +515,10 @@ static int parse_threshold_str(gchar *str, gchar *root_str, gchar *read_value_st
 /**********************************
  * Set previous state info in event
  **********************************/
-static int set_previous_event_state(void *hnd, SaHpiEventT *event) 
+static int set_previous_event_state(void *hnd, SaHpiEventT *event, int recovery_event, int *event_enabled) 
 {
+	*event_enabled = 1;
+
 	switch (event->EventType) {
 	case SAHPI_ET_SENSOR:
 	{
@@ -524,29 +541,70 @@ static int set_previous_event_state(void *hnd, SaHpiEventT *event)
 			    event->EventDataUnion.SensorEvent.SensorNum);
 			return -1;
 		}
-		
-		event->EventDataUnion.SensorEvent.PreviousState = 
-			((struct RSA_SensorInfo *)rsa_data)->cur_state;
 
-		((struct RSA_SensorInfo *)rsa_data)->cur_state = 
-			event->EventDataUnion.SensorEvent.EventState;
+		/* Check to see if events are disabled for this sensor */
+		if (!((struct RSA_SensorInfo *)rsa_data)->sensor_evt_enablement.SensorStatus &
+		    SAHPI_SENSTAT_EVENTS_ENABLED) {
+			*event_enabled = 0;
+			return 0;
+		}
+
+		/********************************
+		 * Set Current and Previous State 
+		 ********************************/
+		if (recovery_event) {
+			/* Recovery state is stored in the previous state field in the
+			   event's hash table - too lazy to create a different field */
+			SaHpiEventStateT tmpstate;
+			
+			tmpstate = ((struct RSA_SensorInfo *)rsa_data)->cur_state;
+
+			((struct RSA_SensorInfo *)rsa_data)->cur_state = 
+				event->EventDataUnion.SensorEvent.PreviousState;
+
+			event->EventDataUnion.SensorEvent.PreviousState = tmpstate;
+		}
+		else { /* Normal non-recovery case */
+			event->EventDataUnion.SensorEvent.PreviousState = 
+				((struct RSA_SensorInfo *)rsa_data)->cur_state;
+			
+			((struct RSA_SensorInfo *)rsa_data)->cur_state = 
+				event->EventDataUnion.SensorEvent.EventState;
+		}
+
 		break;
 	}
 	case SAHPI_ET_HOTSWAP:
 	{
 		gpointer rsa_data = 
-			oh_get_resource_data(((struct oh_handler_state *)hnd)->rptcache, 
-					     event->Source);
+			oh_get_resource_data(((struct oh_handler_state *)hnd)->rptcache, event->Source);
 		
 		if (rsa_data == NULL) {
 			dbg("HotSwap Data Pointer is NULL; RID=%x\n", event->Source);
 			return -1;
 		}
 		
-		event->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
-			((struct RSA_ResourceInfo *)rsa_data)->cur_state;
-		((struct RSA_ResourceInfo *)rsa_data)->cur_state = 
-			event->EventDataUnion.HotSwapEvent.HotSwapState;
+		/********************************
+		 * Set Current and Previous State 
+		 ********************************/
+		if (recovery_event) {
+			/* Recovery state is stored in the previous state field in the
+			   event's hash table - too lazy to create a different field */
+			SaHpiHsStateT tmpstate;
+			
+			tmpstate = ((struct RSA_ResourceInfo *)rsa_data)->cur_state;
+
+			((struct RSA_ResourceInfo *)rsa_data)->cur_state = 
+				event->EventDataUnion.HotSwapEvent.PreviousHotSwapState;
+
+			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState = tmpstate;
+		}
+		else { /* Normal non-recovery case */
+			event->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
+				((struct RSA_ResourceInfo *)rsa_data)->cur_state;
+			((struct RSA_ResourceInfo *)rsa_data)->cur_state = 
+				event->EventDataUnion.HotSwapEvent.HotSwapState;
+		}
 		break;
 	}
 	default:
@@ -674,11 +732,7 @@ static int parse_sel_entry(char *text, rsa_sel_entry *sel, int isdst)
         if(sscanf(start,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
                   &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
                   &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-#if 0
-		set_rsa_dst(ss, &ent.time);
-#else
 		ent.time.tm_isdst = isdst;
-#endif
                 ent.time.tm_mon--;
                 ent.time.tm_year += 100;
         } else {
