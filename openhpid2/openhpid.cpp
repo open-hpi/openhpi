@@ -115,6 +115,7 @@ int main (int argc, char *argv[])
         char * configfile = NULL;
         char pid_buf[256];
         int pfile, len, pid = 0;
+        SaHpiUint64T version = 0;
 
         /* get the command line options */
         while (1) {
@@ -174,6 +175,18 @@ int main (int argc, char *argv[])
                         printf("       Aborting execution.\n");
                         exit(1);
                 }
+        }
+
+        // see if we are trying to use the wrong library
+        version = oHpiVersionGet();
+        if((version & 0x000000000000ffff) != 0) { 
+                // we're trying to run against the client lib
+                // danger will robinson!
+                printf("Error: Trying to run with the OpenHPI client library.\n");
+                printf("You DON'T WANT THIS!!!\n");
+                printf("Read openhpi-switcher man page to set the environment\n");
+                printf("for the daemon to use the standard lib\n");
+                exit(1);
         }
 
         // write the pid file

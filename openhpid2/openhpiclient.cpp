@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <errno.h>
+#include <config.h>
 extern "C"
 {
 #include <SaHpi.h>
@@ -145,6 +146,32 @@ CleanupClient(void)
 	pinst = NULL;
 }
 
+/*----------------------------------------------------------------------------*/
+/* oHpiVersionGet - get OpenHPI version                                       */
+/*----------------------------------------------------------------------------*/
+
+SaHpiUint64T oHpiVersionGet() 
+{
+        SaHpiUint64T v = 0;
+        char * version = NULL;
+        char * start = version;
+        char * end = version;
+        version = strdup(VERSION);
+        if(!version) {
+                /* even if we fail, we know we are the client lib */
+                return 1; 
+        }
+        v += (strtoull(start, &end, 10) << 48);
+        end++;
+        start = end;
+        v += (strtoull(start, &end, 10) << 32);
+        end++;
+        start = end;
+        v += (strtoull(start, &end, 10) << 16);
+        v += 1;
+        free(version);
+        return v;
+}
 
 /*----------------------------------------------------------------------------*/
 /* saHpiVersionGet                                                            */
