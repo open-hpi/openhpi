@@ -11,18 +11,23 @@ Vendor: OpenHPI Project
 Packager: TariqX
 Source: @HPI_PKG@-@VERSION@.tar.gz
 Buildroot: /var/tmp/@HPI_PKG@-root
-
+BuildRequires: pkgconfig
 Summary: Library that provides SAForum's HPI
 Group: Utilities
+AutoReq: no
+Requires: libc.so.6 libglib-1.2.so.0 libpthread.so.0
 
 %package devel
 Summary: Development files for HPI
 Group: Utilities
+AutoReq: yes
+Requires: openhpi 
+Requires: pkgconfig
 
 %package clients
 Summary: HPI command line applications
 Group: Utilities
-Requires: openhpi
+AutoReq: yes
 
 %description 
 This package contains an implementation of Service Availability Forum's 
