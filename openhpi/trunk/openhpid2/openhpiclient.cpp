@@ -89,9 +89,9 @@ static bool thrd_init = FALSE;
 /* Utility routines                                                           */
 /*----------------------------------------------------------------------------*/
 
-static cstrmsock * CreateConnx(void);
-static void DeleteConnx(cstrmsock *);
-static bool InsertConnx(SaHpiSessionIdT, cstrmsock *);
+static pcstrmsock CreateConnx(void);
+static void DeleteConnx(pcstrmsock);
+static bool InsertConnx(SaHpiSessionIdT, pcstrmsock);
 static bool RemoveConnx(SaHpiSessionIdT);
 static pcstrmsock GetConnx(SaHpiSessionIdT);
 static SaErrorT oHpiHandlerCreateInit(void);
@@ -102,7 +102,7 @@ static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer da
 /* CreateConnx                                                                */
 /*----------------------------------------------------------------------------*/
 
-static cstrmsock * CreateConnx(void)
+static pcstrmsock CreateConnx(void)
 {
 	const char      *host, *portstr;
 	int	       	port;
@@ -138,7 +138,7 @@ static cstrmsock * CreateConnx(void)
 /* DeleteConnx                                                                */
 /*----------------------------------------------------------------------------*/
 
-static void DeleteConnx(cstrmsock *pinst)
+static void DeleteConnx(pcstrmsock pinst)
 {
 	if (pinst == NULL)
 		return;
@@ -157,9 +157,9 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
         SaHpiSessionIdT *mysession = (SaHpiSessionIdT *)g_malloc(sizeof(SaHpiSessionIdT));
 
 	if (SessionId == 0)
-		return FALSE;
+		return TRUE;
 	if (pinst == NULL)
-		return FALSE;
+		return TRUE;
 
         if (thrd_init == FALSE && sessions == NULL) {
                 g_thread_init(NULL); // just to make sure, ignore any error
@@ -172,7 +172,7 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
         g_hash_table_insert(sessions, mysession, pinst);
         g_mutex_unlock(sessions_sem);
 
-        return TRUE;
+        return FALSE;
 }
 
 
@@ -182,17 +182,15 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 
 static bool RemoveConnx(SaHpiSessionIdT SessionId)
 {
-        pcstrmsock *pinst;
 
 	if (SessionId == 0)
-		return FALSE;
+		return TRUE;
 
-        pinst = (pcstrmsock *) g_hash_table_lookup(sessions, &SessionId);
         g_mutex_lock(sessions_sem);
         g_hash_table_remove(sessions, &SessionId);
         g_mutex_unlock(sessions_sem);
 
-        return TRUE;
+        return FALSE;
 }
 
 
