@@ -3,7 +3,7 @@ dnl autoconf and automake for openhpi
 dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
 dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
-AC_PREREQ(2.50)
+AC_PREREQ(2.57)
 AC_INIT(openhpi.spec.in)
 AM_INIT_AUTOMAKE(openhpi, 0.4)
 
