@@ -30,6 +30,7 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 static SaErrorT oh_build_sensordataformat(oh_big_textbuffer *buffer, const SaHpiSensorDataFormatT *format, int offsets);
 static SaErrorT oh_build_sensorthddefn(oh_big_textbuffer *buffer, const SaHpiSensorThdDefnT *tdef, int offsets);
 static SaErrorT oh_build_threshold_mask(oh_big_textbuffer *buffer, const SaHpiSensorThdMaskT tmask, int offsets);
+static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBufferT *textbuffer, int offsets);
 
 /************************************************************************
  * NOTES!
@@ -254,9 +255,6 @@ SaErrorT oh_fprint_bigtext(FILE *stream, const oh_big_textbuffer *big_buffer)
 {
 	int err;
 	
-	/* FIXME:: Why not support the other types - most represented as 8-bit 
-	   ASCII; so can print without a problem */
-
         if (big_buffer->DataType == SAHPI_TL_TYPE_TEXT) {
                 err = fprintf(stream, "%s\n", big_buffer->Data);
 		if (err < 0) {
@@ -876,6 +874,63 @@ SaErrorT oh_fprint_idrinfo(FILE *stream, const SaHpiIdrInfoT *idrinfo, int space
         err = fprintf(stream, "NumAreas:\t%d\n", idrinfo->NumAreas);
 	check_err(err);
 			
+	return(SA_OK);
+}
+
+SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *textbuffer) {
+
+	int err;
+	oh_big_textbuffer buffer;
+	
+	if (!stream || !textbuffer) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_bigtext(&buffer);
+	err = oh_build_textbuffer(&buffer, textbuffer, 0);
+	if (err) { return(err); }
+
+	err = oh_fprint_bigtext(stream, &buffer);
+	if (err) { return(err); }
+
+	return(SA_OK);
+}
+
+static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBufferT *textbuffer, int offsets)
+{
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+
+	oh_append_offset(buffer, offsets);
+	oh_append_bigtext(buffer, "Text Buffer:\n", strlen("Text Buffer:\n"));
+	offsets++;
+	
+	/* Text Buffer Data Type */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Data Type: %s\n", 
+		 oh_lookup_texttype(textbuffer->DataType));
+	oh_append_bigtext(buffer, str, strlen(str));
+
+	/* Text Buffer Language */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language: %s\n", 
+		 oh_lookup_language(textbuffer->Language));
+	oh_append_bigtext(buffer, str, strlen(str));
+	
+	/* Text Buffer Data Length */
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Data Length: %d\n", 
+		 textbuffer->DataLength);
+	oh_append_bigtext(buffer, str, strlen(str));
+
+	/* Text Buffer Data */
+	if (textbuffer->DataLength) {
+		oh_append_offset(buffer, offsets);
+		memset(str, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+		oh_append_bigtext(buffer, "Data: ", strlen("Data: "));
+		oh_append_bigtext(buffer, textbuffer->Data, textbuffer->DataLength);
+		oh_append_bigtext(buffer, "\n", strlen("\n"));
+	}
+
 	return(SA_OK);
 }
 

@@ -598,5 +598,43 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/******************************* 
+	 * oh_print_textbuffer testcases
+         *******************************/	
+	{
+		SaHpiTextBufferT textbuffer, default_textbuffer;
+		
+		textbuffer.DataType = SAHPI_TL_TYPE_TEXT;
+		textbuffer.Language = SAHPI_LANG_ZULU;
+		strcpy(textbuffer.Data, "Test Data");
+		textbuffer.DataLength = strlen(textbuffer.Data);
+
+		/* oh_print_textbuffer: Bad parameter testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_print_textbuffer(0);
+		if (err != expected_err) {
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
+			return -1;
+		}
+
+		/* oh_print_textbuffer: Default textbuffer testcase */
+		err = oh_print_textbuffer(&default_textbuffer);
+		if (err != SA_OK) {
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_print_textbuffer: Normal textbuffer testcase */
+		err = oh_print_textbuffer(&textbuffer);
+		if (err != SA_OK) {
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
+			return -1;
+		}
+	}
+
 	return(0);
 }
