@@ -83,7 +83,7 @@ SaErrorT oh_get_session_domain(SaHpiSessionIdT sid, SaHpiDomainIdT *did)
  *
  * Returns:
  **/
-SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session *session)
+SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session **session)
 {
         struct oh_session *sess = NULL;
         
@@ -92,7 +92,7 @@ SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session *session)
         sess = g_hash_table_lookup(session_table, &sid);
         if (!sess) return SA_ERR_HPI_NOT_PRESENT;
 
-        memcpy(session, sess, sizeof(struct oh_session));
+        *session = sess;
 
         return SA_OK;
 }

@@ -58,7 +58,7 @@ struct oh_session {
 
 SaErrorT oh_create_session(SaHpiDomainIdT did, SaHpiSessionIdT *sid);
 SaErrorT oh_get_session_domain(SaHpiSessionIdT sid, SaHpiDomainIdT *did);
-SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session *session);
+SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session **session);
 SaErrorT oh_list_sessions(SaHpiDomainIdT did, GSList **session_ids);
 SaHpiBoolT oh_is_session_subscribed(SaHpiDomainIdT sid);
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid);
