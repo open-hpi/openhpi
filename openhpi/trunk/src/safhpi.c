@@ -571,7 +571,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */        
@@ -2303,6 +2302,10 @@ SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 
         SaHpiDomainIdT did;
 
+        if (!Timeout) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
@@ -2334,6 +2337,10 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
         struct oh_resource_data *rd;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!Timeout) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2403,6 +2410,10 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!State) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2478,6 +2489,10 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!State) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2599,6 +2614,10 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
+        if (!ResetAction) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
@@ -2675,6 +2694,10 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!State) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
