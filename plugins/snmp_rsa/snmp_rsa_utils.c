@@ -18,7 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <SaHpi.h>
-
+#include <limits.h>
+#include <errno.h>
 #include <openhpi.h>
 #include <rsa_resources.h>
 #include <snmp_rsa_utils.h>
@@ -107,12 +108,10 @@ CLEANUP:
  * If type is SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER or -1,
  * then it simply copies the string to the right place in interpreted_value
  * and success is returned.
- * @entity_path: Contains the instance numbers to complete the oid.
- * @objid: string containing the OID
  * @string: IN. String to be converted to a number (e.g. " -1.43 Volts").
- * @type: IN. interpreted type of number to be extracted from string.
- * @interpreted_value: OUT. pointer to a union where the numeric value is
- * placed.
+ * @type: IN. type of number to be extracted from string
+ *        (e.g. SAHPI_SENSOR_INTERPRETED_TYPE_INT8).
+ * @value: OUT. pointer to a union where the numeric value is placed.
  *
  * return value: 0 success
  *               -1 failure
@@ -162,16 +161,17 @@ int get_interpreted_value(gchar *string,
 
                 if (i != 1) {
                         g_memmove(str+1, str+i, j-i);
+                        str[j-1] = '\0';
                 }
-                str[j-1] = '\0';
-
+                else str[j] = '\0';
         } else str = strtok(str," ");
         len = strlen(str);
         /*dbg("Hello: (%s)", str);*/
 
-        if (str[len - 1] == '%' || str[len - 1] == 'v') {      // special case for percentage value
+        // number can end with a character of % or v such as 50% or 3.3v
+        if (str[len - 1] == '%' || str[len - 1] == 'v') {
                 if (str[len - 1] == '%') percent = TRUE;
-                str[len - 1] = '\0';  // delete %
+                str[len - 1] = '\0';  // delete % or v
                 if (type != SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32) {
                         dbg("Error: can\'t convert fraction to an integer\n");
                         g_free(str);
@@ -208,9 +208,20 @@ int get_interpreted_value(gchar *string,
         case SAHPI_SENSOR_INTERPRETED_TYPE_INT8:
         case SAHPI_SENSOR_INTERPRETED_TYPE_INT16:
         case SAHPI_SENSOR_INTERPRETED_TYPE_INT32:
+                errno = 0;
                 result_l = strtol(str, &tail, 10);
+                if (errno) {
+                        dbg("Error: strtol failed, errno = %d\n", errno);
+                        return -1;
+                }
                 if (*tail != '\0') {
                         dbg("Error: strtol failed: %s\n", str);
+                        if (tail == str) {
+                                dbg("Info: no numeric value found in string, default to zero\n");
+                                value->SensorInt32 = 0;
+                                g_free(str);
+                                return 0;
+                        }
                         g_free(str);
                         return -1;
                 }
@@ -218,13 +229,13 @@ int get_interpreted_value(gchar *string,
                 dbg("converted signed value = %d\n", (int)result_l);
                 value->SensorInt32 = result_l;
                 if ((type == SAHPI_SENSOR_INTERPRETED_TYPE_INT8) &&
-                    ((result_ul >= (2<<7)) || (result_ul <= -(2<<7)))) {
+                    ((result_l > SCHAR_MAX) || (result_l < SCHAR_MIN))) {
                         dbg("Error: sign8 overflow\n");
                         g_free(str);
                         return -1;
                 }
                 if ((type == SAHPI_SENSOR_INTERPRETED_TYPE_INT16) &&
-                    ((result_ul >= (2<<15)) || (result_ul <= -(2<<15)))) {
+                    ((result_l > SHRT_MAX) || (result_l < SHRT_MIN))) {
                         dbg("Error: sign16 overflow\n");
                         g_free(str);
                         return -1;
@@ -235,6 +246,12 @@ int get_interpreted_value(gchar *string,
                 result_f = strtof(str, &tail);
                 if (*tail != '\0') {
                         dbg("Error: strtof failed\n");
+                        if (tail == str) {
+                                dbg("Info: no numeric value found in string, default to zero\n");
+                                value->SensorFloat32 = 0.0;
+                                g_free(str);
+                                return 0;
+                        }
                         g_free(str);
                         return -1;
                 }
