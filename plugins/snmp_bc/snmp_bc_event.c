@@ -818,12 +818,13 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 	event->EventType = SAHPI_ET_OEM;
 	event->EventDataUnion.OemEvent.MId = IBM_MANUFACTURING_ID;
 
-	/* FIXME:: Language set to ENGLISH; need to configure it??? */
+	/* Language set to ENGLISH, default  */
 	oh_init_textbuffer(&(event->EventDataUnion.OemEvent.OemEventData));
 	strncpy(event->EventDataUnion.OemEvent.OemEventData.Data,
 		sel_entry->text, SAHPI_MAX_TEXT_BUFFER_LENGTH - 1);
 	event->EventDataUnion.OemEvent.OemEventData.Data[SAHPI_MAX_TEXT_BUFFER_LENGTH - 1] = '\0';
-	
+	event->EventDataUnion.OemEvent.OemEventData.DataLength = 
+								strlen(sel_entry->text);
 	return(SA_OK);
 }
 
