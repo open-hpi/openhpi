@@ -847,16 +847,6 @@ SaErrorT get_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t *val)
 	return(SA_OK);
 }
 
-Domain_t *init_resources(SaHpiSessionIdT session)
-{
-	Domain_t	*domain;
-
-	domain = (Domain_t *)malloc(sizeof(Domain_t));
-	memset(domain, 0, sizeof(Domain_t));
-	domain->sessionId = session;
-	return(domain);
-}
-
 SaErrorT get_value(Attributes_t *Attrs, int num, union_type_t *val)
 {
 	int	type;

@@ -9,7 +9,6 @@ get_attr_name
 get_attr_type
 get_value_as_string
 get_rdr_attr_as_string
-init_resources
 get_rpt_attr
 get_rpt_attr_as_string
 get_rdr_attr
@@ -24,3 +23,4 @@ make_attrs_rpt
 make_attrs_rdr
 free_attrs
 show_control
+show_inventoty
