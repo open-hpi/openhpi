@@ -212,10 +212,11 @@ struct oh_resource {
         SaHpiRptEntryT		entry;
      
 	/*
-	 * Valid when resource is CAPABILITY_HOWSWAP
-	 * Status if the re
+	 * The two fields are valid when resource is CAPABILITY_HOTSWAP
 	 */
 	int controlled;
+	SaHpiTimeoutT auto_extract_timeout;
+	
 	
 	/*
 	   The handler of the resource
@@ -300,9 +301,20 @@ int free_handler(struct oh_handler*);
 int get_events(void);
 
 /* howswap */
+void process_hotswap_policy(void);
 int hotswap_push_event(struct oh_event *e);
 int hotswap_pop_event(struct oh_event *e); 
 int hotswap_has_event(void);
+SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
+void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
+
+
+static inline void gettimeofday1(SaHpiTimeT *t)
+{
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	*t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;	
+}
 
 #define dbg(format, ...)                                      \
         do {							                      \

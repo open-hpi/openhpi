@@ -21,18 +21,19 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static void process_hotswap_policy(void)
-{
-}
-
 static void process_session_event(struct oh_event *e)
 {
 	struct oh_resource *res;
 	GSList *i;
-	
+
 	res = get_res_by_oid(e->u.res_event.id);
 	if (!res) {
 		dbg("No the resource");
+	}
+
+	if (res->controlled == 0 
+		&& e->u.hpi_event.event.EventType == SAHPI_ET_HOTSWAP) {
+		hotswap_push_event(e);
 	}
 
 	g_slist_for_each(i, res->domain_list) {
@@ -102,8 +103,6 @@ static int get_event(void)
 	struct oh_event	event;
 	GSList *i;
 
-	process_hotswap_policy();
-
 	has_event = 0;
 	g_slist_for_each(i, global_handler_list) {
 		struct timeval to = {0, 0};
@@ -134,6 +133,8 @@ int get_events(void)
 	do {
 		has_event = get_event();
 	} while (has_event>0);
+
+	process_hotswap_policy();
 
 	return 0;
 }

@@ -449,13 +449,6 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
 	return SA_OK;
 }
 
-static void gettimeofday1(SaHpiTimeT *t)
-{
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	*t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;	
-}
-
 SaErrorT SAHPI_API saHpiEventGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiTimeoutT Timeout,
@@ -967,7 +960,14 @@ SaErrorT SAHPI_API saHpiHotSwapControlRequest (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+		return SA_ERR_HPI_INVALID;
+	res->controlled = 1;
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceActiveSet (
@@ -1000,21 +1000,64 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*set_hotswap_state)(void *hnd, struct oh_resource_id id,
+			SaHpiHsStateT state);
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+		return SA_ERR_HPI_INVALID;
+	if (!res->controlled)
+		return SA_ERR_HPI_INVALID_CMD;
+	
+	set_hotswap_state = res->handler->abi->set_hotswap_state;
+	if (!set_hotswap_state) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	res->controlled = 0;
+	if (set_hotswap_state(res->handler->hnd, res->oid, SAHPI_HS_STATE_INACTIVE)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiTimeoutT *Timeout)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	*Timeout = get_hotswap_auto_insert_timeout();
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAutoInsertTimeoutSet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiTimeoutT Timeout)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_session *s;
+	
+	OH_STATE_READY_CHECK;
+
+	s = session_get(SessionId);
+	if (!s) {
+		dbg("Invalid session");
+		return SA_ERR_HPI_INVALID_SESSION;
+	}
+	
+	set_hotswap_auto_insert_timeout(Timeout);
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
@@ -1022,7 +1065,16 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_OUT SaHpiTimeoutT *Timeout)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+		return SA_ERR_HPI_INVALID;
+	
+	*Timeout = res->auto_extract_timeout;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
@@ -1030,7 +1082,16 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiTimeoutT Timeout)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+		return SA_ERR_HPI_INVALID;
+	
+	res->auto_extract_timeout = Timeout;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapStateGet (
@@ -1062,7 +1123,25 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiHsActionT Action)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*request_hotswap_action)(void *hnd, struct oh_resource_id id,
+			SaHpiHsActionT act);
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+		return SA_ERR_HPI_INVALID;
+	
+	request_hotswap_action = res->handler->abi->request_hotswap_action;
+	if (!request_hotswap_action) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (request_hotswap_action(res->handler->hnd, res->oid, Action)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	get_events();
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourcePowerStateGet (
