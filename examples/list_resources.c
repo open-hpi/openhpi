@@ -2,32 +2,56 @@
 #include <stdio.h>
 #include <SaHpi.h>
 #include <unistd.h>
+#include <string.h>
 
+/* debug macros */
 #define warn(str) fprintf(stderr,"%s: " str "\n", __FUNCTION__)
 #define error(str, e) fprintf(stderr,str ": %s\n", get_error_string(e))
 
-SaErrorT discover_domain(SaHpiDomainIdT);
+/* Function prototypes */
+SaErrorT discover_domain(SaHpiDomainIdT, SaHpiSessionIdT, SaHpiRptEntryT);
 const char * get_error_string(SaErrorT);
 void display_entity_capabilities(SaHpiCapabilitiesT);
 const char * severity2str(SaHpiSeverityT);
 const char * type2string(SaHpiEntityTypeT type);
 const char * rdrtype2str(SaHpiRdrTypeT type);
 const char * rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
+const char * get_sensor_type(SaHpiSensorTypeT type);
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id);
 void display_id_string(SaHpiTextBufferT string);
 
-int main(int argc, char *argv[])
+/**
+ * main: main program loop
+ *
+ *
+ *
+ * Return value: int 0
+ **/
+int main(int arc, const char *argv[])
 {
-        SaErrorT err;
-        SaHpiVersionT version;
+        SaErrorT 		err;
+        SaHpiVersionT		version;
+        SaHpiSessionIdT 	session_id;
+        SaHpiRptEntryT		entry;
+        //SaHpiSelInfoT		Info;
+        
 	
+	/* First step in HPI and openhpi */
         err = saHpiInitialize(&version);
         if (SA_OK != err) {
                 error("saHpiInitialize", err);
                 exit(-1);
         }
         
-        err = discover_domain(SAHPI_DEFAULT_DOMAIN_ID);
+        /* Every domain requires a new session */
+	/* This example is for one domain, one session */
+        err = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID, &session_id, NULL);
+        if (SA_OK != err) {
+                error("saHpiSessionOpen", err);
+                return err;
+        }
+        
+        err = discover_domain(SAHPI_DEFAULT_DOMAIN_ID, session_id, entry);
         if (SA_OK != err) {
                 warn("an error was encountered, results may be incomplete");
         }
@@ -36,29 +60,20 @@ int main(int argc, char *argv[])
         if (SA_OK != err) {
                 error("saHpiFinalize", err);
                 exit(-1);
-        }
-        return 0;
+
+	}
+	return 0;
 }
 
-SaErrorT discover_domain(SaHpiDomainIdT domain_id)
+SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, SaHpiRptEntryT entry)
 {
-        SaErrorT         	err;
-        SaHpiSessionIdT 	session_id;
+	
+	SaErrorT		err;
         SaHpiRptInfoT        	rpt_info_before;
         SaHpiRptInfoT        	rpt_info_after;
         SaHpiEntryIdT        	current;
         SaHpiEntryIdT        	next;
-        SaHpiRptEntryT		entry;
-	SaHpiSelInfoT		Info;
-        
-	
-        /* every domain requires a new session */
-          err = saHpiSessionOpen(domain_id, &session_id, NULL);
-        if (SA_OK != err) {
-                error("saHpiSessionOpen", err);
-                return err;
-        }
-        
+
         err = saHpiResourcesDiscover(session_id);
         if (SA_OK != err) {
                 error("saHpiResourcesDiscover", err);
@@ -72,7 +87,6 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
                 return err;
         }
         
-rescan:
         warn("Scanning RPT...");
         next = SAHPI_FIRST_ENTRY;
         do {
@@ -110,17 +124,9 @@ rescan:
                                tmp.EntityInstance);
                 }
 
-                //display_entity_capabilities(entry.ResourceCapabilities);
-        
                 if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
                         list_rdr(session_id, entry.ResourceId);
                 
-                printf("\n");
-
-		err = saHpiEventLogInfoGet(session_id, entry.ResourceId, &Info);
-		printf("Event information:\n");
-		printf("Res: %d, info: %d\n", (int) entry.ResourceId, (int) Info.Entries);
-	
 #if 0
                 /* if the resource is also a domain, then 
                  * traverse its RPT */        
@@ -133,6 +139,7 @@ rescan:
         } while (next != SAHPI_LAST_ENTRY);
 
 	printf("SAHPI_LAST_ENTRY\n");
+		
         /* wait for update in RPT */
         while (1) {
                 err = saHpiRptInfoGet(session_id, &rpt_info_after);
@@ -142,18 +149,12 @@ rescan:
                 }
                 if (rpt_info_before.UpdateCount != rpt_info_after.UpdateCount) {
                         rpt_info_before = rpt_info_after;
-                        goto rescan;
                 } else
 			break;
         };
 
 	
         return SA_OK;
-}
-
-void display_entity_capabilities(SaHpiCapabilitiesT caps)
-{
-
 }
 
 const char * severity2str(SaHpiSeverityT severity)
@@ -386,10 +387,10 @@ const char * rdrtype2str(SaHpiRdrTypeT type)
 
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 {
-        SaErrorT        err;
+        SaErrorT             err;
         SaHpiEntryIdT        current_rdr;
         SaHpiEntryIdT        next_rdr;
-        SaHpiRdrT        rdr;
+        SaHpiRdrT            rdr;
 
         printf("RDR Info:\n");
         next_rdr = SAHPI_FIRST_ENTRY;
@@ -408,6 +409,43 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 
                 printf("\tRecordId: %x\n", rdr.RecordId);
                 printf("\tRdrType: %s\n", rdrtype2str(rdr.RdrType));
+		
+		if (rdr.RdrType == SAHPI_SENSOR_RDR)
+		{
+			SaHpiSensorReadingT	reading;
+			SaHpiSensorTypeT	type;
+			SaHpiSensorNumT		num;
+			SaHpiEventCategoryT 	category;
+			//SaHpiSensorThresholdsT	thres;
+			//SaHpiSensorReadingT 	converted;
+			
+			SaErrorT val;
+			
+			num = rdr.RdrTypeUnion.SensorRec.Num;
+			
+			val = saHpiSensorTypeGet(session_id, resource_id, num, &type, &category);
+			
+			printf("\tSensor num: %i\n\tType: %s\n", num, get_sensor_type(type)); 
+
+			err = saHpiSensorReadingGet(session_id, resource_id, num, &reading);
+			if (err != SA_OK) {
+				printf("Error reading sensor data {sensor, %d}", num);
+				continue;
+			} else {
+				if (reading.ValuesPresent == SAHPI_SRF_RAW)
+					printf("\tValues Present: RAW\n");
+				if (reading.ValuesPresent == SAHPI_SRF_INTERPRETED)
+					printf("\tValues Present: Interpreted\n");
+				if (reading.ValuesPresent == SAHPI_SRF_EVENT_STATE);
+					printf("\tValues Present: Event State\n");
+
+
+			}
+				
+			
+				
+		}
+
                 printf("\tEntity: \n");
                 for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++)
                 {
@@ -470,4 +508,97 @@ const char * rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
 			return("Unknown Capabilities");
 	}
 	return("\n");
+}
+
+const char * get_sensor_type(SaHpiSensorTypeT type) 
+{
+	switch(type) {
+		case SAHPI_TEMPERATURE:
+			return "TEMPERATURE SENSOR";
+		case SAHPI_VOLTAGE:
+			return "VOLTAGE SENSOR";
+		case SAHPI_FAN:
+			return "FAN SENSOR";
+		case SAHPI_PROCESSOR:
+			return "PROCESSOR";
+		case SAHPI_POWER_SUPPLY:
+			return "POWER SUPPLY";
+		case SAHPI_POWER_UNIT:
+			return "POWER UNIT";
+		case SAHPI_COOLING_DEVICE:
+			return "COOLING DEVICE";
+		case SAHPI_MEMORY:
+			return "MEMORY";
+		case SAHPI_OTHER_UNITS_BASED_SENSOR:
+			return "OTHER UNITS BASED SENSOR";
+		case SAHPI_LAN:
+			return "Lan Sensor";
+    		case SAHPI_PHYSICAL_SECURITY:
+			return("SAHPI_PHYSICAL_SECURITY"); 
+    		case SAHPI_PLATFORM_VIOLATION:
+			return("SAHPI_PLATFORM_VIOLATION"); 
+    		case SAHPI_DRIVE_SLOT:
+			return("SAHPI_DRIVE_SLOT"); 
+    		case SAHPI_POST_MEMORY_RESIZE:
+			return("SAHPI_POST_MEMORY_RESIZE"); 
+    		case SAHPI_SYSTEM_FW_PROGRESS:
+			return("SAHPI_SYSTEM_FW_PROGRESS"); 
+    		case SAHPI_EVENT_LOGGING_DISABLED:
+			return("SAHPI_EVENT_LOGGING_DISABLED"); 
+    		case SAHPI_RESERVED1:
+			return("SAHPI_RESERVED1"); 
+    		case SAHPI_SYSTEM_EVENT:
+			return("SAHPI_SYSTEM_EVENT"); 
+    		case SAHPI_CRITICAL_INTERRUPT:
+			return("SAHPI_CRITICAL_INTERRUPT"); 
+    		case SAHPI_BUTTON:
+			return("SAHPI_BUTTON"); 
+    		case SAHPI_MODULE_BOARD:
+			return("SAHPI_MODULE_BOARD"); 
+    		case SAHPI_MICROCONTROLLER_COPROCESSOR:
+			return("SAHPI_MICROCONTROLLER_COPROCESSOR"); 
+    		case SAHPI_ADDIN_CARD:
+			return("SAHPI_ADDIN_CARD"); 
+    		case SAHPI_CHASSIS:
+			return("SAHPI_CHASSIS"); 
+    		case SAHPI_CHIP_SET:
+			return("SAHPI_CHIP_SET"); 
+    		case SAHPI_OTHER_FRU:
+			return("SAHPI_OTHER_FRU"); 
+    		case SAHPI_CABLE_INTERCONNECT:
+			return("SAHPI_CABLE_INTERCONNECT"); 
+    		case SAHPI_TERMINATOR:
+			return("SAHPI_TERMINATOR"); 
+    		case SAHPI_SYSTEM_BOOT_INITIATED:
+			return("SAHPI_SYSTEM_BOOT_INITIATED"); 
+    		case SAHPI_BOOT_ERROR:
+			return("SAHPI_BOOT_ERROR"); 
+    		case SAHPI_OS_BOOT:
+			return("SAHPI_OS_BOOT"); 
+    		case SAHPI_OS_CRITICAL_STOP:
+			return("SAHPI_OS_CRITICAL_STOP"); 
+    		case SAHPI_SLOT_CONNECTOR:
+			return("SAHPI_SLOT_CONNECTOR"); 
+    		case SAHPI_SYSTEM_ACPI_POWER_STATE:
+			return("SAHPI_SYSTEM_ACPI_POWER_STATE"); 
+    		case SAHPI_RESERVED2:
+			return("SAHPI_RESERVED2"); 
+    		case SAHPI_PLATFORM_ALERT:
+			return("SAHPI_PLATFORM_ALERT"); 
+    		case SAHPI_ENTITY_PRESENCE:
+			return("SAHPI_ENTITY_PRESENCE"); 
+    		case SAHPI_MONITOR_ASIC_IC:
+			return("SAHPI_MONITOR_ASIC_IC"); 
+    		case SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH:
+			return("SAHPI_MANAGEMENT_SUBSYSTEM_HEALTH"); 
+    		case SAHPI_BATTERY:
+			return("SAHPI_BATTERY"); 
+    		case SAHPI_OEM_SENSOR && SAHPI_OEM_SENSOR == 0xC:
+			return("SAHPI_OEM_SENSOR=0xC"); 
+		default:
+			return "Other";
+	}
+
+return "\0";
+
 }
