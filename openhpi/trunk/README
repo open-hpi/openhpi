@@ -11,7 +11,7 @@ The following software is required to build openhpi
 autoconf >= 2.50
 automake >= 1.5
 uuid.h      (may be found in e2fsprogs-devel or uuid-dev)
-OpenIPMI >= 0.26 (http://openipmi.sf.net)
+OpenIPMI >= 0.26 (http://openipmi.sf.net)  suggest tip of CVS.
 GLIB-1.2	(note we may be switching to 2.0 in the next release)
 
 ---------------------------------------------------------
@@ -33,8 +33,13 @@ then make (or make rpm)
 and then (as root or with proper system install permissions)
 	make install (or install from the rpm).
 
-It will generate the openhpi library and sample applications
-that uses the library.
+It will install the openhpi library, enabled plug-ins and sample 
+applications that uses the library and plug-ins.
+
+NOTE: the configuration file is only installed by the RPM installation.
+	If you run "make install" manually, you will need to:
+		cp examples/openhpi.conf.example /etc/openhpi/openhpi.conf
+	and modify it for your needs.
 
 ---------------------------------------------------------
 CLEANUP
@@ -50,9 +55,8 @@ make maintainer-clean
 
 
 ---------------------------------------------------------
-GENERAL RELEASE NOTES and WHAT'S NEW
+Active Plug-ins
 ---------------------------------------------------------
-Active plugins:
 dummy - dummy plugin for use in testing
 ipmi - OpenIPMI based plugin
 ipmidirect - IPMI plugin that talks to device driver directly

@@ -1,3 +1,20 @@
+2003-12-11  Tariq Shureih <tariq.shureih@intel.com>
+	* docs/hld/:
+	Updated plugin guide.
+	Added section for obtaining openhpi, building, installing
+	and configuring it.
+
+2003-12-09  Louis Zhuang <louis.zhuang@intel.com>
+	* src/plugins/ipmi/ipmi.c and ipmi_sel.c:
+	Enhaned SEL entry retrieval to work both ways
+	oldest to newest and newest to oldest.
+	
+	Fixed copied data to HPI event.
+
+2003-12-08  Tariq Shureih <tariq.shureih@intel.com>
+	* src/plugins/ipmi/ipmi.c and ipmi_sel.c:
+	Enable SEL entry retrieval
+
 2003-12-05  Louis Zhuang  <louis.zhuang@linux.intel.com>
 
 	* src/plugins/ipmi/ipmi.c, src/plugins/ipmi/ipmi_sel.c: Fixed
