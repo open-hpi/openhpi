@@ -585,6 +585,7 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/ipmidirect/t/Makefile
         plugins/remote_client/Makefile
         plugins/simulator/Makefile
+	scripts/Makefile
         snmp/Makefile
 	snmp/t/Makefile
         src/Makefile
