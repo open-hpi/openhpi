@@ -187,9 +187,9 @@ struct oh_abi_v1 {
 	 * @param addr the interface name.
 	 * for example, "ipaddr:port" for SNMP, "if_num" for IPMI SMI
 	 */
-	void *(*open)(GHashTable *handler_config);
+	struct oh_handler_state *(*open)(GHashTable *handler_config);
 	
-	void (*close)(void *hnd);
+	void (*close)(struct oh_handler_state *hnd);
 	/**
 	 * The function wait for event. 
 	 * 
