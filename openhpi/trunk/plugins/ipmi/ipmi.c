@@ -283,19 +283,23 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 {
 	struct oh_handler_state *handler = hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	int ret = 1;
+	int sel_select_done = 0;
 
-	struct timeval to = {0, 0};
+	for (;;) {
+		if(g_slist_length(handler->eventq)>0) {
+			memcpy(event, handler->eventq->data, sizeof(*event));
+			event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+			free(handler->eventq->data);
+			handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
+			return 1;
+		};
 
-	sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &to);
-
-	if(g_slist_length(handler->eventq)>0) {
-		memcpy(event, handler->eventq->data, sizeof(*event));
-		event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
-		free(handler->eventq->data);
-		handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
-		return 1;
-	} else
-	
+		if (sel_select_done == 0) sel_select_done = 1;
+		else break;
+		while (ret == 1)
+			ret = sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
+	};
 	return 0;
 }
 
@@ -313,21 +317,39 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
  **/
 static int ipmi_discover_resources(void *hnd)
 {
-	int rv;
+	int rv = 1;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	struct oh_event *event;
 	SaHpiRptEntryT *rpt_entry;
 	SaHpiRdrT	*rdr_entry;
+	time_t		tm, tm1;
+	int		SDR_done = 0, scan_done = 0, mc_count = 0;
 
 	dbg("ipmi discover_resources");
 	
-	while (0 == ipmi_handler->SDRs_read_done || 0 == ipmi_handler->bus_scan_done
-				   	|| 0 != ipmi_handler->mc_count) {
+	time(&tm);
+	while ((0 == ipmi_handler->SDRs_read_done || 0 == ipmi_handler->bus_scan_done
+				   	|| 0 != ipmi_handler->mc_count) || (rv == 1)) {
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
-		if (rv<0) {
+		if (rv < 0) {
 			dbg("error on waiting for discovery");
 			return -1;
+		};
+		if ((rv == 1) || (SDR_done != ipmi_handler->SDRs_read_done)
+			|| (scan_done != ipmi_handler->bus_scan_done)
+			|| (mc_count != ipmi_handler->mc_count)) {
+			/* get new timeout for sel_select loop */
+			time(&tm);
+			SDR_done = ipmi_handler->SDRs_read_done;
+			scan_done = ipmi_handler->bus_scan_done;
+			mc_count = ipmi_handler->mc_count;
+		} else {
+			time(&tm1);
+			if ((tm1 - tm) > 60) {
+				dbg("timeout on waiting for discovery");
+				return -1;
+			}
 		}
 	}
 
