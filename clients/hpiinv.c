@@ -411,7 +411,7 @@ restart:
 	printf("\tType rediscover\n");
 	printf("Command> ");
 
-	rv = pthread_create(&event_thread, NULL, sahpi_event_thread, (void *)sessionid);
+	rv = pthread_create(&event_thread, NULL, sahpi_event_thread, (void *)(unsigned long)sessionid);
 	if(rv)
 			printf("Error creating event thread\n");
 
@@ -443,11 +443,12 @@ restart:
 	exit(0);
 }
 
-void *sahpi_event_thread(void *sessionid)
+void *sahpi_event_thread(void *_sessionid)
 {
 		int rv;
+		SaHpiSessionIdT sessionid = (unsigned long)_sessionid;
 		while (thread == 1) {
-			rv = saHpiResourcesDiscover((SaHpiSessionIdT)sessionid);
+			rv = saHpiResourcesDiscover(sessionid);
 			if (rv != SA_OK)
 					printf("discovery failed\n");
 		}

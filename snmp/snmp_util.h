@@ -35,11 +35,8 @@
 #include <winsock.h>
 #endif
 
-#define NETSNMP_IMPORT extern
-#define NETSNMP_INLINE
-#define RETSIGTYPE void
-#define NET_SNMP_CONFIG_H
 /**************************************/
+#include <net-snmp/net-snmp-config.h>
 #include <net-snmp/net-snmp-includes.h>
 #include <net-snmp/library/transform_oids.h>
 

@@ -398,7 +398,7 @@ SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
   b    += s;
 
   // placeholder for number of entries
-  tUint32 *num = (tUint32 *)b;
+  tUint32 *num = (void *)b;
   b += sizeof( tUint32 );
   size += sizeof( tUint32 );
 
@@ -508,7 +508,7 @@ SaHpiInventDataRecordMarshaller( const SaHpiInventDataRecordT *r,
   size += s;
   b    += s;
 
-  tUint32 *len = (tUint32 *)b;
+  tUint32 *len = (void *)b;
   size += sizeof( tUint32 );
   b += sizeof( tUint32 );
 
@@ -680,7 +680,7 @@ SaHpiInventGeneralDataDemarshaller( int byte_order, SaHpiUint32T *len,
        size += s;
        b    += s;
 
-       *tbp = (SaHpiTextBufferT *)data;
+       *tbp = (void *)data;
 
        data += sizeof( SaHpiTextBufferT );
        *data_size += sizeof( SaHpiTextBufferT );
@@ -851,7 +851,7 @@ SaHpiInventoryDataDemarshaller( int byte_order, const cMarshalType *type, void *
      {
        tUint32 data_size;
 
-       id->DataRecords[i] = (SaHpiInventDataRecordT *)data_ptr;
+       id->DataRecords[i] = (void *)data_ptr;
        s = SaHpiInventDataRecordDemarshaller( byte_order, id->DataRecords[i], b, &data_size );
 
        if ( s < 0 )
