@@ -117,11 +117,13 @@ void oh_wake_event_thread(void);
  */
 
 struct oh_handler_state {
+        GStaticRecMutex	handler_lock; /* this needs to 
+                                       * be a full type, 
+                                       * not a pointer */
         RPTable 	*rptcache;
         oh_el  		*elcache;
         GSList 		*eventq;
         GAsyncQueue 	*eventq_async;
-        GStaticRecMutex	*handler_lock;
 	GThread 	*thread_handle;
         GHashTable 	*config;
         void 		*data;
