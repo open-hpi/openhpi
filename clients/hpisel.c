@@ -415,7 +415,7 @@ int main(int argc, char **argv)
                 if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
                 if (rv == SA_OK) {
                         resourceid = rptentry.ResourceId;
-                        if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
+                        if (fdebug) printf("RPT %d capabilities = %x\n", resourceid,
                                            rptentry.ResourceCapabilities);
                         if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                                 if (fdebug) printf("RPT doesn't have SEL\n");
