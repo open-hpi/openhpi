@@ -40,9 +40,10 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-extern selector_t       *ohoi_sel;
 
 #define SENSOR_DATA_WAIT	5
+
+extern selector_t       *ohoi_sel;
 
 struct ohoi_handler {
 	int SDRs_read_done;
@@ -59,6 +60,7 @@ struct ohoi_handler {
 
 	selector_t *ohoi_sel;
 
+	char *entity_root;
 };
 
 struct ohoi_resource_info {
@@ -79,7 +81,6 @@ struct ohoi_resource_info {
 };
 
 
-char *entity_root;
 
 /* implemented in ipmi_event.c */
 void ohoi_setup_done(ipmi_domain_t *domain, int err, unsigned int  conn_num,

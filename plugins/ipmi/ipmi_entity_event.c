@@ -60,10 +60,12 @@ static void entity_presence(ipmi_entity_t	*entity,
 }
 
 static void get_entity_event(ipmi_entity_t	*entity,
-			     SaHpiRptEntryT	*entry)
+			     SaHpiRptEntryT	*entry, void *cb_data)
 {
 	char	*str;
 	SaHpiEntityPathT entity_ep;
+
+	struct ohoi_handler *ipmi_handler = cb_data;
 
 	entry->ResourceInfo.ResourceRev = 0;
 	entry->ResourceInfo.SpecificVer = 0;
@@ -83,7 +85,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	
 	/* let's append entity_root from config */
 
-	string2entitypath(entity_root, &entity_ep);
+	string2entitypath(ipmi_handler->entity_root, &entity_ep);
 
 	ep_concat(&entry->ResourceEntity, &entity_ep);
 
@@ -109,26 +111,31 @@ static void add_entity_event(ipmi_entity_t	        *entity,
          struct ohoi_resource_info *ohoi_res_info;
          struct oh_event	*e;
          int 		rv;
-        
+
 		 dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
-        ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
-        if (!ohoi_res_info) {
-                dbg("Out of memory");
-                return;
-        }	
-	e = g_malloc0(sizeof(*e));
-	if (!e) {
-                free(ohoi_res_info);
-		dbg("Out of space");   
-		return;
-	}
+
+		 struct ohoi_handler *ipmi_handler = handler->data;
+
+		 ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
+
+		 if (!ohoi_res_info) {
+				 dbg("Out of memory");
+				 return;
+		 }
+		 e = g_malloc0(sizeof(*e));
+
+		 if (!e) {
+				 free(ohoi_res_info);
+				 dbg("Out of space");   
+				 return;
+		 }
 
         ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
         ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
         
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_RESOURCE;			
-	get_entity_event(entity, &(e->u.res_event.entry));	
+	get_entity_event(entity, &(e->u.res_event.entry), ipmi_handler);	
 
 	handler->eventq = g_slist_append(handler->eventq, e);
 
