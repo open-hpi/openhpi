@@ -27,9 +27,7 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 #include "hpi_cmd.h"
-#include "resource.h"
 
-SaHpiSessionIdT		sessionid;
 static pthread_t	ge_thread;
 static pthread_t	prog_thread;
 int			prt_flag = 0;
@@ -96,7 +94,7 @@ static void* get_event(void *unused)
 	SaHpiEventT	event;
 	SaErrorT	rv;        
 
-	rv = saHpiSubscribe(sessionid);
+	rv = saHpiSubscribe(Domain->sessionId);
 	if (rv != SA_OK) {
 		printf("OpenHPI>Fail to Subscribe event\n");
 		return (void *)0;
@@ -105,9 +103,10 @@ static void* get_event(void *unused)
 	for(;;) {
 		memset(&event, 0xF, sizeof(event));
 
-		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_BLOCK, &event, NULL, NULL, NULL);		
+		rv = saHpiEventGet(Domain->sessionId, SAHPI_TIMEOUT_BLOCK, &event,
+			NULL, NULL, NULL);		
 		if (rv != SA_OK ) {
-			saHpiUnsubscribe(sessionid);
+			saHpiUnsubscribe(Domain->sessionId);
 			return (void *)1;
 		}
 		if (prt_flag == 1) {
@@ -123,6 +122,7 @@ static void* get_event(void *unused)
 int open_session(int eflag)
 {
 	SaErrorT rv;
+	SaHpiSessionIdT		sessionid;
 
         if (!g_thread_supported()) {
                 g_thread_init(NULL);
@@ -134,7 +134,7 @@ int open_session(int eflag)
 	if (rv != SA_OK) {
      		printf("saHpiSessionOpen error %s\n", oh_lookup_error(rv));
 		return -1;
-	}
+	};
 	if (eflag) {
 		show_event_short = 1;
 		prt_flag = 1;
@@ -168,7 +168,7 @@ int close_session()
 
 	pthread_kill(ge_thread, SIGKILL);
 	
-	rv = saHpiSessionClose(sessionid);
+	rv = saHpiSessionClose(Domain->sessionId);
 	if (rv != SA_OK) {
                 printf("saHpiSessionClose error %s\n", oh_lookup_error(rv));
                 return -1;

@@ -13,14 +13,13 @@ AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
 
 bin_PROGRAMS		= hpi_cmd
 
-include_HEADERS		= hpi_cmd.h resource.h
+include_HEADERS		= hpi_cmd.h
 
 HS_SOURCES		= \
 			hpi_cmd.c \
 			cmdparser.c \
 			commands.c \
-			session.c \
-			resource.c
+			session.c
 
 hpi_cmd_SOURCES      = ${HS_SOURCES}
 hpi_cmd_LDADD        = $(COMMONLIBS)
