@@ -39,7 +39,10 @@ Start with 10 resources, multiple rdrs on some resources
              - search for rdr by id (017)
              - search for rdr by type (018)
              - call next through chain, make sure things are right (019)
-    - flush rpt - check to see if there are no resources left in the table (062)    
+    - flush rpt - check to see if there are no resources left in the table (062)
+    
+Check rpt info
+    - add a resource, and check that rpt info has been modified. (068)
 
 The negative tests:
     oh_add_resource
@@ -100,6 +103,9 @@ The negative tests:
         - rdrid not there (058)
         - rdrid == special value (059)
         - rdrid == last rdr (060)
+    rpt_info
+        - add same resource twice and check that the update count
+          is stays the same on the second addition. (069)
     oh_flush_rpt
     	- RPTable == NULL (061)
 
