@@ -28,7 +28,7 @@
 
 #define NCT 25
 
-char progver[] = "0.8";
+char progver[] = "0.a";
 char *chasstypes[NCT] = {
 	"Not Defined", "Other", "Unknown", "Desktop", "Low Profile Desktop",
 	"Pizza Box", "Mini Tower", "Tower", "Portable", "Laptop",
@@ -41,13 +41,12 @@ int fasset = 0;
 int fdebug = 0;
 int fxdebug = 0;
 int i,j,k = 0;
-SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
 char progname[] = "hpi_invent";
 char *asset_tag;
-char inbuff[1024];
 char outbuff[256];
 SaHpiInventoryDataT *inv;
+const SaHpiUint32T   invsize = 16384;
 SaHpiInventChassisTypeT chasstype;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
@@ -55,6 +54,12 @@ SaHpiTextBufferT *strptr;
 static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
+        if ( strptr == 0 )
+        {
+                outbuff[0] = 0;
+                return;
+        }
+        
 	size_t datalen;
 	if ((datalen=strptr->DataLength) != 0)
 		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
@@ -205,14 +210,14 @@ prtboardinfo(void)
 	fixstr((SaHpiTextBufferT *)strptr);
 	printf( "\tBoard Asset Tag     : %s\n", outbuff);
 
-	if (dataptr->CustomField[0] != 0)
-	{
-		if (dataptr->CustomField[0]->DataLength != 0)
-			strncpy ((char *)outbuff, (char *)dataptr->CustomField[0]->Data,
-							dataptr->CustomField[0]->DataLength);
-		outbuff[dataptr->CustomField[0]->DataLength] = 0;
-		printf( "\tBoard OEM Field     : %s\n", outbuff);
-	}
+	for (j = 0; j < 10 && dataptr->CustomField[j] ; j++)
+		if (dataptr->CustomField[j] != NULL
+                    && dataptr->CustomField[0]->DataLength != 0) {
+                        strncpy ((char *)outbuff, (char *)dataptr->CustomField[j]->Data,
+							dataptr->CustomField[j]->DataLength);
+                        outbuff[dataptr->CustomField[j]->DataLength] = 0;
+                        printf( "\tBoard OEM Field     : %s\n", outbuff);
+                }
 }
 
 int
@@ -220,7 +225,7 @@ main(int argc, char **argv)
 {
 	int prodrecindx=0;
 	int asset_len=0;
-	char c;
+	int c;
 	SaErrorT rv;
 	SaErrorT rvx;
 	SaErrorT rvxx;
@@ -263,7 +268,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	inv = (SaHpiInventoryDataT *)&inbuff[0];
+	inv = (SaHpiInventoryDataT *)malloc(invsize);
 	rv = saHpiInitialize(&hpiVer);
 	if (rv != SA_OK) {
 		printf("saHpiInitialize error %d\n",rv);
@@ -291,7 +296,9 @@ main(int argc, char **argv)
 	{
 		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
 		if (rvx != SA_OK) printf("RptEntryGet: rv = %d\n",rv);
-		if (rvx == SA_OK)
+		if (rvx == SA_OK 
+                    && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
+                    && (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA))
 		{
 			/* walk the RDR list for this RPT entry */
 			entryid = SAHPI_FIRST_ENTRY;
@@ -318,11 +325,9 @@ main(int argc, char **argv)
 								rdr.RecordId,
 								rdr.RdrType, eirid, rdr.IdString.Data);
 
-						buffersize = sizeof(inbuff);
-						if (fdebug) printf("BufferSize=%d InvenDataRecSize=%d\n",
-										buffersize, sizeof(inbuff));
+						if (fdebug) printf("BufferSize=%d\n", invsize);
 						rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-									eirid, buffersize, inv, &actualsize);
+									eirid, invsize, inv, &actualsize);
 
 						if (fxdebug) printf(
 							"saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
@@ -331,13 +336,15 @@ main(int argc, char **argv)
 						if (rv == SA_OK)
 	      					{
 	 						/* Walk thru the list of inventory data */
-		 					 if (inv->Validity == SAHPI_INVENT_DATA_VALID) 
+		 					if (inv->Validity == SAHPI_INVENT_DATA_VALID) 
 		  					{
-		    						if (fdebug) printf( "Index = %d type=%x len=%d\n", i, 
-											inv->DataRecords[0]->RecordType, 
-											inv->DataRecords[0]->DataLength);
-								switch (inv->DataRecords[0]->RecordType)
-								{
+                                                                for( i = 0; inv->DataRecords[i] != NULL; i++ )
+                                                                {
+                                                                        if (fdebug) printf( "Record = %d Index = %d type=%x len=%d\n", i, 
+                                                                                            i, inv->DataRecords[i]->RecordType, 
+                                                                                            inv->DataRecords[i]->DataLength);
+                                                                        switch (inv->DataRecords[i]->RecordType)
+                                                                        {
 									case SAHPI_INVENT_RECTYPE_INTERNAL_USE:
 										if (fdebug) printf( "Internal Use\n");
 										break;
@@ -359,20 +366,22 @@ main(int argc, char **argv)
 										break;
 									default:
 										printf(" Invalid Invent Rec Type =%x\n",  
-												inv->DataRecords[i]->RecordType);
+                                                                                       inv->DataRecords[i]->RecordType);
 										break;
-								}
-							}
+                                                                        }
+                                                                }
+                                                        }
 						} else { printf(" InventoryDataRead returns HPI Error: rv=%d\n", rv); }
 					} 
 				} /* Inventory Data Records - Type 3 */
 				entryid = nextentryid;
 			}
-			rptentryid = nextrptentryid;
 		}
+		rptentryid = nextrptentryid;
 	}
 	rv = saHpiSessionClose(sessionid);
 	rv = saHpiFinalize();
+        free(inv);
 	exit(0);
 }
  /* end hpi_invent.c */

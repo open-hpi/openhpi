@@ -16,30 +16,50 @@
 
 use strict;
 use Cwd;
+use File::Basename;
+
+chdir("..");
 
 my $start = cwd();
-
-chdir("../src");
 
 my $report = "";
 
 # this needs to be made more generic over time
 my %files = (
-             "sel_utils.c" => "t/sel",
-             "rpt_utils.c" => "t/rpt",
-             "epath_utils.c" => "t/epath",
+             "src/sel_utils.c" => "t/sel",
+             "src/rpt_utils.c" => "t/rpt",
+             "src/epath_utils.c" => "t/epath",
+             # now for the blade center stuff
+             "src/plugins/snmp_bc/bc_resources.c" => "t",
+             "src/plugins/snmp_bc/bc_str2event.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_control.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_discover.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_hotswap.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_sel.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_sensor.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_session.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_utils.c" => "t",
+             "src/plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
             );
 
 # we must ensure that we have coverage created
-system("make -ks check");
+system("make -ks clean check");
 
-foreach my $file (sort keys %files) {
-    my $report = "Coverage Report for $file\n\n";
+foreach my $fullfile (sort keys %files) {
+    chdir($start);
+    my $file = basename($fullfile);
+    my $dir = dirname($fullfile);
+    chdir($dir);
+    print STDERR "Cwd is now" . cwd() . "\n";
+    my $cmd = "gcov -blf -o $files{$fullfile} $file";
+    
+    my $report = "Coverage Report for $fullfile\n\n";
     my $body = "";
     my $header = "";
-    open(GCOV,"gcov -blf -o $files{$file} $file |");
+    open(GCOV,"$cmd |");
     while(<GCOV>) {
-        if(/^File.*$file/) {
+        if(s{^(File.*)($file)}{$1$dir/$file}) {
             $header .= $_; # File
             $header .= <GCOV>; # Lines
             $header .= <GCOV>; # Branches

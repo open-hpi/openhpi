@@ -32,7 +32,7 @@ $ENV{OPENHPI_PATH} .= "$plugroot/dummy:$plugroot/ipmi:$plugroot/ipmidirect:$plug
 
 
 # first we have to rebuild the library with --enable-testcover
-system("./bootstrap && ./configure --enable-testcover @ARGV && make");
+system("./bootstrap && ./configure --enable-testcover @ARGV && make clean && make");
 
 chdir("../hpitest");
 

@@ -1,39 +1,17 @@
-/*
- * hpifru.c
+/*      -*- linux-c -*-
  *
- * Author:  Bill Barkley
- * Copyright (c) 2003 Intel Corporation.
+ * Copyright (c) 2003 by Intel Corp.
  *
- * 04/18/03 
- * 06/09/03 - new CustomField parsing, including SystemGUID
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Andy Cress <arcress@users.sourceforge.net>
  */
-/*M*
-Copyright (c) 2003, Intel Corporation
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions are met:
-
-  a.. Redistributions of source code must retain the above copyright notice, 
-      this list of conditions and the following disclaimer. 
-  b.. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation 
-      and/or other materials provided with the distribution. 
-  c.. Neither the name of Intel Corporation nor the names of its contributors 
-      may be used to endorse or promote products derived from this software 
-      without specific prior written permission. 
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *M*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,19 +35,18 @@ int fasset = 0;
 int fdebug = 0;
 int fxdebug = 0;
 int i,j,k = 0;
-SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
 char progname[] = "hpifru";
 char bmctag[] = "Basbrd Mgmt Ctlr";
 char *asset_tag;
-char inbuff[1024];
 char outbuff[256];
 SaHpiInventoryDataT *inv;
+const SaHpiUint32T   invsize = 16384;
 SaHpiInventChassisTypeT chasstype;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
 
-void
+static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
 	size_t datalen;
@@ -78,12 +55,12 @@ fixstr(SaHpiTextBufferT *strptr)
 	outbuff[datalen] = 0;
 }
 
-void
+static void
 prtchassinfo(void)
 {
   chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
   for (k=0; k<NCT; k++) {
-	  if (k == chasstype)
+	  if ((unsigned int)k == chasstype)
 		  printf( "Chassis Type        : %s\n", chasstypes[k]);
   }	  
 
@@ -129,7 +106,7 @@ prtchassinfo(void)
   }
 }
 
-void
+static void
 prtprodtinfo(void)
 {
   int j;
@@ -186,7 +163,7 @@ prtprodtinfo(void)
   } /*end for*/
 }
 
-void
+static void
 prtboardinfo(void)
 {
   dataptr = (SaHpiInventGeneralDataT *)&inv->DataRecords[i]->RecordData.BoardInfo;
@@ -237,7 +214,7 @@ main(int argc, char **argv)
 {
   int prodrecindx=0;
   int asset_len=0;
-  char c;
+  int c;
   SaErrorT rv;
   SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
@@ -276,7 +253,7 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
-  inv = (SaHpiInventoryDataT *)&inbuff[0];
+  inv = (SaHpiInventoryDataT *)malloc(invsize);
   rv = saHpiInitialize(&hpiVer);
   if (rv != SA_OK) {
     printf("saHpiInitialize error %d\n",rv);
@@ -322,15 +299,12 @@ main(int argc, char **argv)
 	    rdr.IdString.Data[rdr.IdString.DataLength] = 0;	    
 	    if (fdebug) printf( "RDR[%d]: type=%d num=%d %s\n", rdr.RecordId,
 		    rdr.RdrType, eirid, rdr.IdString.Data);
-	    buffersize = sizeof(inbuff);
-	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%d\n",
-		    buffersize, sizeof(inbuff));
- 	    if (strncmp(rdr.IdString.Data, bmctag,
-			rdr.IdString.DataLength) == 0)
+	    if (fdebug) printf("BufferSize=%d\n", invsize);
+
 
 	    {
 	      rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-		  eirid, buffersize, inv, &actualsize);
+		  eirid, invsize, inv, &actualsize);
   	      if (fxdebug) printf(
 		    "saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
 	      if (fdebug) printf("ActualSize=%d\n", actualsize);
@@ -398,7 +372,7 @@ main(int argc, char **argv)
 		    {
 		      printf ("Good write - re-reading!\n");
 	              rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
-		          eirid, buffersize, inv, &actualsize);
+		          eirid, invsize, inv, &actualsize);
   	              if (fxdebug) printf(
 		      "saHpiEntityInventoryDataRead[%d] rv = %d\n", eirid, rv);
 	              if (fdebug) printf("ActualSize=%d\n", actualsize);
@@ -453,6 +427,7 @@ main(int argc, char **argv)
   }
   rv = saHpiSessionClose(sessionid);
   rv = saHpiFinalize();
+  free(inv);
   exit(0);
 }
  /* end hpifru.c */

@@ -2,16 +2,19 @@ MAINTAINERCLEANFILES = Makefile.in
 
 INCLUDES 		= -I$(top_srcdir)/include 
 
-COMMONLIBS		= $(top_srcdir)/src/libopenhpi.la
+COMMONLIBS		= $(top_builddir)/src/libopenhpi.la
 
 AM_CFLAGS 		= @CFLAGS@
 
 bin_PROGRAMS		= hpialarmpanel \
                           hpievent \
+                          hpifan \
 	                  hpifru \
                           hpireset \
-                          hpisel \
                           hpisensor \
+                          hpisel \
+                          hpiinv \
+                          hpisettime \
                           hpiwdt
 
 include_HEADERS		= 
@@ -23,6 +26,10 @@ hpialarmpanel_LDFLAGS	=
 hpievent_SOURCES	= hpievent.c
 hpievent_LDADD		= $(COMMONLIBS)
 hpievent_LDFLAGS	= 
+
+hpifan_SOURCES		= hpifan.c
+hpifan_LDADD		= $(COMMONLIBS)
+hpifan_LDFLAGS		= 
 
 hpifru_SOURCES		= hpifru.c
 hpifru_LDADD		= $(COMMONLIBS)
@@ -43,6 +50,15 @@ hpisensor_LDFLAGS	=
 hpiwdt_SOURCES		= hpiwdt.c
 hpiwdt_LDADD		= $(COMMONLIBS)
 hpiwdt_LDFLAGS		= 
+
+hpiinv_SOURCES		= hpiinv.c
+hpiinv_LDADD		= $(COMMONLIBS)
+hpiinv_LDFLAGS		= 
+
+hpisettime_SOURCES              = hpisettime.c
+hpisettime_LDADD                = $(COMMONLIBS)
+hpisettime_LDFLAGS              =
+
 
 clean:
 	rm -f *~
