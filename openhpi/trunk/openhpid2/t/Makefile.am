@@ -13,27 +13,39 @@
 #
 
 MAINTAINERCLEANFILES    = Makefile.in *~ core core.*
-MOSTLYCLEANFILES 	= client.cpp
-INCLUDES			= -I$(top_srcdir)/utils -I$(top_srcdir)/include -I$(top_srcdir)/openhpid2 -I$(top_srcdir)/marshal
 
-AM_CFLAGS               = @CFLAGS@
+REMOTE_LIB_SOURCES 	= client.cpp \
+		  	  client.h
 
-bin_PROGRAMS      = ctest_01
+MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
+			  $(REMOTE_LIB_SOURCES)
 
-ctest_01_SOURCES= \
-	client.cpp \
-	ctest_01.cpp
+INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/openhpid2 -I$(top_srcdir)/utils -I$(top_srcdir)/marshal
 
-ctest_01_LDADD = $(top_builddir)/marshal/libohtcpconnx.la
-ctest_01_LDFLAGS=
+AM_CFLAGS		= -g @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
-client.cpp:
+$(REMOTE_LIB_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		ln -s $(top_srcdir)/openhpid2/client.cpp $(top_builddir)/openhpid2/t/client.cpp; \
+		ln -s ../$@; \
 	fi
 
-clean-local:
-	rm -f *~
-	if test -L $(top_builddir)/openhpid2/t/client.cpp; then \
-		rm -r $(top_builddir)/openhpid2/t/client.cpp; \
-	fi
+noinst_LTLIBRARIES	= libclient.la
+
+libclient_la_SOURCES = $(REMOTE_LIB_SOURCES)
+
+libclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+libclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
+
+# Setup environment variables for TESTS programs
+TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../src/.libs:$(shell pwd)/../../../utils/.libs
+TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
+TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
+
+TESTS = ctest_01
+
+check_PROGRAMS = $(TESTS)
+
+ctest_01_SOURCES = ctest_01.cpp
+ctest_01_LDADD   = libclient.la
+

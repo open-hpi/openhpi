@@ -476,9 +476,9 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               memset( &rdr, 0, sizeof( SaHpiRdrT ) );
               memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id, 
-                                         &entry_id ) < 0 )
+                                         &entry_id, &rdr, &rpt_entry ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogEntryGet( session_id, resource_id, entry_id,
@@ -654,8 +654,8 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
-                                         hm, pReq, &session_id, &timeout ) < 0 )
+              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+                                         hm, pReq, &session_id, &timeout, &rdr, &rpt_entry, &status ) < 0 )
                    return eResultError;
 
               ret = saHpiEventGet( session_id, timeout, &event, &rdr,
@@ -691,9 +691,9 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAlarmGetNext.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &severity,
-                                         &unack ) < 0 )
+                                         &unack, &alarm ) < 0 )
                    return eResultError;
 
               ret = saHpiAlarmGetNext( session_id, severity, unack, &alarm );
@@ -749,7 +749,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               ret = saHpiAlarmAdd( session_id, &alarm );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &alarm );
        }
        break;
 
@@ -1055,9 +1055,9 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiControlGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
-                                         &ctrl_num ) < 0 )
+                                         &ctrl_num, &ctrl_state ) < 0 )
                    return eResultError;
 
               ret = saHpiControlGet( session_id, resource_id, ctrl_num,
