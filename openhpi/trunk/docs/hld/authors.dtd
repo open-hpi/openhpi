@@ -54,6 +54,12 @@
   <surname>Kanngieser</surname>
 </author>
 ">
+<!ENTITY renier-morales "
+<author>
+  <firstname>Renier</firstname>
+  <surname>Morales</surname>
+</author>
+">
 <!ENTITY openhpi-authors "
 <authorgroup>
   &sean-dague;
@@ -63,5 +69,6 @@
   &louis-zhuang;
   &tariq-shureih;
   &thomas-kanngieser;
+  &renier-morales;
 </authorgroup>
 ">
