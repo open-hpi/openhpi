@@ -13,12 +13,20 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <snmp_bc_plugin.h>
+#include <glib.h>
+#include <SaHpi.h>
 
-SaErrorT snmp_bc_get_control_state(void *hnd, 
-				   SaHpiResourceIdT id,
+#include <openhpi.h>
+#include <oh_plugin.h>
+#include <snmp_util.h>
+
+#include <bc_resources.h>
+#include <snmp_bc.h>
+#include <snmp_bc_utils.h>
+#include <snmp_bc_control.h>
+
+SaErrorT snmp_bc_get_control_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
-				   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state)
 {
         gchar *oid;
@@ -52,7 +60,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		return -1;
 	}
 	
-	status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
 	if(( status != SA_OK) | (get_value.type != ASN_INTEGER)) {
 		dbg("SNMP could not read %s; Type=%d.\n", oid, get_value.type);
 		g_free(oid);
@@ -67,7 +75,8 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	case SAHPI_CTRL_TYPE_DIGITAL:
 		
 		found = 0;
-		for(i=0; i<OH_MAX_CTRLSTATEDIGITAL; i++) {
+		/* Icky dependency on SaHpiStateDigitalT enum */
+		for(i=0; i<ELEMENTS_IN_SaHpiStateDigitalT; i++) {
 			if(s->mib.digitalmap[i] == get_value.integer) { 
 				found++;
 				break; 
@@ -88,8 +97,11 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 			case 3:
 				working.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_ON;
 				break;
+			case 4:
+				working.StateUnion.Digital = SAHPI_CTRL_STATE_AUTO;
+				break;
 			default:
-				dbg("Invalid Case=%d", i);
+				dbg("Spec Change: MAX_SaHpiStateDigitalT incorrect?\n");
 				return -1;
 			}
 		} else {
@@ -121,11 +133,9 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	return SA_OK;
 }
 
-SaErrorT snmp_bc_set_control_state(void *hnd, 
-				   SaHpiResourceIdT id,
-				   SaHpiCtrlNumT num,
-				   SaHpiCtrlModeT *mode,
-				   SaHpiCtrlStateT *state)
+SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
+                                     SaHpiCtrlNumT num,
+                                     SaHpiCtrlStateT *state)
 {
         gchar *oid;
 	int value;
@@ -156,6 +166,8 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 
 	switch (state->Type) {
 	case SAHPI_CTRL_TYPE_DIGITAL:
+
+		/* More icky dependencies on SaHpiStateDigitalT enum */
 		switch (state->StateUnion.Digital) {
 		case SAHPI_CTRL_STATE_OFF:
 			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_OFF];
@@ -167,10 +179,13 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_OFF];
 			break;
 		case SAHPI_CTRL_STATE_PULSE_ON:
-			value = s->mib.digitalwmap[OH_MAX_CTRLSTATEDIGITAL - 1];
+			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_ON];
+			break;
+		case SAHPI_CTRL_STATE_AUTO:
+			value = s->mib.digitalwmap[ELEMENTS_IN_SaHpiStateDigitalT - 1];
 			break;
 		default:
-			dbg("Invalid Case=%d", state->StateUnion.Digital);
+			dbg("Spec Change: MAX_SaHpiStateDigitalT incorrect?\n");
 			return -1;
 		}
 
@@ -189,7 +204,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		set_value.str_len = 1;
 		set_value.integer = value;
 
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
+		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
 		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Value=%d.\n", oid, value);
 			g_free(oid);
@@ -210,7 +225,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		set_value.str_len = 1;
 		set_value.integer = state->StateUnion.Discrete;
 
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
+		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
 		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Value=%d.\n", oid, (int)set_value.integer);
 			g_free(oid);

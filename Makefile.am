@@ -51,7 +51,8 @@ MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub
 MOSTLYCLEANFILES	= tags
 
 SUBDIRS			= utils @SNMPDIR@ @MARSHALDIR@ plugins src docs @ENABLED_DIRS@ test
-DIST_SUBDIRS 		= utils snmp marshal plugins src docs openhpid examples clients test scripts
+DIST_SUBDIRS 		= utils snmp marshal plugins src docs openhpid examples clients test \
+			hpi_shell
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
@@ -61,20 +62,16 @@ ALLSOURCES = \
 
 includedir=$(base_includedir)/openhpi
 
-# These are the only headers that users should have any access to
+# these are the only headers that users should have any access to
 include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
-		  $(top_srcdir)/utils/el_utils.h \
-		  $(top_srcdir)/utils/epath_utils.h \
-		  $(top_srcdir)/utils/oh_utils.h \
-		  $(top_srcdir)/utils/sahpi_enum_utils.h \
-		  $(top_srcdir)/utils/sahpi_event_utils.h \
-		  $(top_srcdir)/utils/sahpi_struct_utils.h \
-		  $(top_srcdir)/utils/sahpi_time_utils.h \
-		  $(top_srcdir)/utils/rpt_utils.h \
-		  $(top_srcdir)/utils/uid_utils.h
-
-$(top_srcdir)/utils/sahpi_enum_utils.h:
-	make -C $(top_builddir)/utils sahpi_enum_utils.h
+                  $(top_srcdir)/utils/epath_utils.h \
+                  $(top_srcdir)/utils/uid_utils.h \
+                  $(top_srcdir)/utils/rpt_utils.h \
+                  $(top_srcdir)/utils/sel_utils.h \
+                  $(top_srcdir)/utils/ecode_utils.h \
+                  $(top_srcdir)/utils/printevent_utils.h \
+                  $(top_srcdir)/utils/sensor_utils.h \
+                  $(top_srcdir)/utils/oh_utils.h
 
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
@@ -94,6 +91,7 @@ documentation:
 
 clean-local: am_config_clean-local
 	$(MAKE) -C examples clean
+
 am_config_clean-local:
 	rm -fr $(PACKAGE)-*.tar.gz
 

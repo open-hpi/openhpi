@@ -14,7 +14,8 @@
  */
 
 #include "ipmi.h"
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
 #include <string.h>
 
 
@@ -53,29 +54,23 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	entry->ResourceInfo.AuxFirmwareRev = (SaHpiUint8T)vals[0];
 	entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_MODULE ;
 	/*we get MC number on IPMB for unique identifier */
-	entry->ResourceEntity.Entry[0].EntityLocation = ipmi_mc_get_address(mc);
+	entry->ResourceEntity.Entry[0].EntityInstance = ipmi_mc_get_address(mc);
         
         entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        entry->ResourceEntity.Entry[1].EntityLocation = 0;
+        entry->ResourceEntity.Entry[1].EntityInstance = 0;
         
-	dbg ("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityLocation);
+	dbg ("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityInstance);
 	sel_support = ipmi_mc_sel_device_support(mc);
 	if (sel_support == 1) {
 		dbg("MC supports SEL");
-#if 0
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_SEL | SAHPI_CAPABILITY_RESOURCE;
-#else
-		entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
-#endif
 	}
 	else {
 		entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
 		dbg("MC does not support SEL");
 	}
 	entry->ResourceSeverity = SAHPI_OK;
-#if 0
 	entry->DomainId = 0;
-#endif
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
 	entry->ResourceTag.DataLength = strlen(mc_name); 
@@ -90,11 +85,14 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 static void mc_add(ipmi_mc_t                    *mc,
                    struct oh_handler_state      *handler)
 {
+	
         struct ohoi_resource_info *ohoi_res_info;
         struct oh_event *e;
-
-		struct ohoi_handler *ipmi_handler = handler->data;
+	struct ohoi_handler *ipmi_handler = handler->data;
         
+	SaHpiRptEntryT *entry, *old_entry;
+
+	
         ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
         if (!ohoi_res_info) {
                 dbg("Out of space");
@@ -115,8 +113,15 @@ static void mc_add(ipmi_mc_t                    *mc,
 	get_mc_entity_event(mc, &(e->u.res_event.entry), ipmi_handler);
 
 	/* add to rptcache */
-	oh_add_resource(handler->rptcache, &(e->u.res_event.entry), ohoi_res_info, 1);
 
+	entry = &(e->u.res_event.entry);
+	
+	old_entry = oh_get_resource_by_id(handler->rptcache, entry->ResourceId);
+	if(old_entry) {
+		 memcpy(&entry->ResourceTag, &old_entry->ResourceTag, 
+				 sizeof(entry->ResourceTag));
+	}			
+	oh_add_resource(handler->rptcache, entry, ohoi_res_info, 1);
 }
 
 static

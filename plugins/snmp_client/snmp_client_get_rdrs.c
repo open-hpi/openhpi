@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,7 +11,9 @@
  *
  * Authors:
  *      David Judkovics <djudkovi@us.ibm.com>
+ *
  */
+ 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,11 +21,17 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <oh_utils.h>
-#include <snmp_utils.h>
+#include <epath_utils.h>
+#include <rpt_utils.h>
+#include <uid_utils.h>
+#include <snmp_util.h>
+
 #include <snmp_client.h>
 #include <snmp_client_res.h>
+
 #include <snmp_client_utils.h>
+#include <oh_utils.h>
+
 #include <sc_sensor_data.h>
 
 #include <netinet/in.h>
@@ -817,21 +825,10 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 		/* temp storage variable for build_state_value() */ 
 
                 for (i = 0; i < get_value.integer; i++) {
-                        if (vars->type == ASN_OCTET_STR) {
-				SaHpiTextBufferT buffer;
-				SaHpiEventCategoryT cat;
-				
-				oh_init_textbuffer(&buffer);
-				oh_append_textbuffer(&buffer, vars->val.string);
-				oh_encode_eventstate(&buffer,
-						     &sahpi_sensor_cap[i].SensorRec.Events,
-						     &cat);
-#if 0
+                        if (vars->type == ASN_OCTET_STR) 
 				build_state_value (vars->val.string,
 						   vars->val_len,
 						   &sahpi_sensor_cap[i].SensorRec.Events);
-#endif
-			}
                         else
                                 dbg("SA_HPI_SENSOR_EVENT_STATE:something terrible has happened");
                         vars = vars->next_variable;

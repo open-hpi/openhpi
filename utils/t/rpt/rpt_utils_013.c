@@ -17,7 +17,7 @@
 #include <SaHpi.h>
 #include <string.h>
 #include <glib.h>
-#include <oh_utils.h>
+#include <rpt_utils.h>
 #include <rpt_resources.h>
 
 /**
@@ -31,7 +31,6 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(rptable);
         SaHpiRdrT *tmprdr = NULL;
         guint i = 0;
 

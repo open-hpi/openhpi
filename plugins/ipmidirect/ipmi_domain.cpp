@@ -54,7 +54,6 @@ cIpmiDomain::cIpmiDomain()
 
   // default site type properties
   unsigned int prop =   dIpmiMcThreadInitialDiscover
-                      | dIpmiMcThreadPollAliveMc
                       | dIpmiMcThreadCreateM0;
 
   // atca board
@@ -201,6 +200,11 @@ cIpmiDomain::Init( cIpmiCon *con )
           }
      }
 
+  if ( num == 0 )
+     {
+       num = 1;
+     }
+                                                                                                                    
   stdlog << "max number of outstanding = " << num << ".\n";
   m_con->SetMaxOutstanding( num );
 
@@ -473,6 +477,9 @@ cIpmiDomain::CheckAtca()
      {
        if ( !m_atca_site_property[i].m_property )
             continue;
+
+       if ( m_atca_poll_alive_mcs == true )
+            m_atca_site_property[i].m_property |= dIpmiMcThreadPollAliveMc;
 
        if ( i < map_num )
             stdlog << "checking for " << map[i] << ".\n";

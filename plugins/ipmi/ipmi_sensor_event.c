@@ -14,8 +14,10 @@
  */
 
 #include "ipmi.h"
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
 #include <string.h>
+
 
 enum ohoi_event_type {
 	EVENT_DATA_0 = 0,
@@ -112,7 +114,9 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_HPI;
-	e->u.hpi_event.event.Source = 0;
+	e->u.hpi_event.parent = rpt_entry->ResourceId;
+	
+	e->u.hpi_event.event.Source = rpt_entry->ResourceId;
 	/* Do not find EventType in IPMI */
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
 	e->u.hpi_event.event.Timestamp 
@@ -133,7 +137,9 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 
 	set_discrete_sensor_misc_event
 		(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent);
-
+	
+	handler->eventq = g_slist_append(handler->eventq, e);
+	
 }
 
 static void 
@@ -197,9 +203,8 @@ static void set_thresholds_sensor_misc_event(ipmi_event_t	*event,
 	
 	type = data[10] >> 6;
 	if (type == EVENT_DATA_1) {
-		e->TriggerReading.IsSupported = SAHPI_TRUE;
-		e->TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
-		e->TriggerReading.Value.SensorUint64 = data[11];
+		e->TriggerReading.ValuesPresent = SAHPI_SRF_RAW;
+		e->TriggerReading.Raw = data[11];
 	}
 	else if (type == EVENT_DATA_2) 
 		e->Oem = data[11]; 
@@ -208,9 +213,8 @@ static void set_thresholds_sensor_misc_event(ipmi_event_t	*event,
 
 	type = (data[10] & 0x30) >> 4;
 	if (type == EVENT_DATA_1) {
-		e->TriggerReading.IsSupported = SAHPI_TRUE;
-                e->TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
-                e->TriggerReading.Value.SensorUint64 = data[12];
+		e->TriggerThreshold.ValuesPresent = SAHPI_SRF_RAW;
+		e->TriggerThreshold.Raw = data[12];
 	}
 	else if (type == EVENT_DATA_2)
 		e->Oem = data[12];
@@ -263,6 +267,8 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_HPI;
+	e->u.hpi_event.parent = rpt_entry->ResourceId;
+	
 	e->u.hpi_event.event.Source = 0;
 	/* Do not find EventType in IPMI */
 	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR;
@@ -296,22 +302,21 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 	unsigned int		access;
 
 	if (rec->Category != SAHPI_EC_THRESHOLD) {
-		rec->ThresholdDefn.IsAccessible = SAHPI_FALSE;
+		rec->ThresholdDefn.IsThreshold = SAHPI_FALSE;
 		return;
 	}
 	
 	access = ipmi_sensor_get_threshold_access(sensor);
 	if (access == IPMI_THRESHOLD_ACCESS_SUPPORT_NONE) {
-		rec->ThresholdDefn.IsAccessible = SAHPI_FALSE;
+		rec->ThresholdDefn.IsThreshold = SAHPI_FALSE;
 		return;
 	}
 
 	if (access >= IPMI_THRESHOLD_ACCESS_SUPPORT_READABLE) {
-		rec->ThresholdDefn.IsAccessible = SAHPI_TRUE;
-#if 0
+		rec->ThresholdDefn.IsThreshold = SAHPI_TRUE;
 		rec->ThresholdDefn.TholdCapabilities = SAHPI_SRF_RAW |
 						       SAHPI_SRF_INTERPRETED;
-#endif		
+		
 		temp = 0;
 		ipmi_sensor_threshold_readable(sensor,
 				IPMI_LOWER_NON_CRITICAL, &val);
@@ -395,25 +400,30 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 			
 		rec->ThresholdDefn.WriteThold = temp;
 	}
-/* Fix Me */	
-#if 0
+	
 	temp = 0;
 	val = ipmi_sensor_get_hysteresis_support(sensor);
 	if (val == IPMI_HYSTERESIS_SUPPORT_FIXED)
 		temp |= SAHPI_STM_UP_HYSTERESIS | SAHPI_STM_LOW_HYSTERESIS;
 	rec->ThresholdDefn.FixedThold = temp;
-#endif
 }
 
 static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 					 SaHpiSensorRecT	*rec)
 {
-	double accur = 0;
+	SaHpiSensorRangeFlagsT temp = 0;
 	
-	rec->DataFormat.IsSupported = SAHPI_TRUE;
+	/* Depends on IPMI */
+	if (rec->Category == SAHPI_EC_THRESHOLD)
+		rec->DataFormat.ReadingFormats = SAHPI_SRF_RAW |
+						 SAHPI_SRF_INTERPRETED;
+	else
+		rec->DataFormat.ReadingFormats = SAHPI_SRF_EVENT_STATE;
 	
-	rec->DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;	
-
+	/*No info about IsNumeric in IPMI */
+	rec->DataFormat.IsNumeric = SAHPI_TRUE;
+	rec->DataFormat.SignFormat = (SaHpiSensorSignFormatT)
+		ipmi_sensor_get_analog_data_format(sensor);
 	rec->DataFormat.BaseUnits = (SaHpiSensorUnitsT)
 		ipmi_sensor_get_base_unit(sensor);
 	rec->DataFormat.ModifierUnits = (SaHpiSensorUnitsT)
@@ -421,14 +431,29 @@ static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 	rec->DataFormat.ModifierUse = (SaHpiSensorModUnitUseT)
 		ipmi_sensor_get_modifier_unit_use(sensor);
 	
-	ipmi_sensor_get_accuracy(sensor, 0, &accur);
-	rec->DataFormat.AccuracyFactor = (SaHpiFloat64T)accur;
-
+	rec->DataFormat.FactorsStatic = SAHPI_TRUE;
+	/* We use first...*/
+	rec->DataFormat.Factors.M_Factor = (SaHpiInt16T)
+		ipmi_sensor_get_raw_m(sensor, 0);
+	rec->DataFormat.Factors.B_Factor = (SaHpiInt16T)
+		ipmi_sensor_get_raw_b(sensor, 0);
+	rec->DataFormat.Factors.AccuracyFactor = (SaHpiUint16T)
+		ipmi_sensor_get_raw_accuracy(sensor, 0);
+	rec->DataFormat.Factors.ToleranceFactor = (SaHpiUint8T)
+		ipmi_sensor_get_raw_tolerance(sensor, 0);
+	rec->DataFormat.Factors.ExpA = (SaHpiUint8T)
+		ipmi_sensor_get_raw_accuracy_exp(sensor, 0);
+	rec->DataFormat.Factors.ExpR = (SaHpiUint8T)
+		ipmi_sensor_get_raw_r_exp(sensor, 0);
+	rec->DataFormat.Factors.ExpB = (SaHpiUint8T)
+		ipmi_sensor_get_raw_b_exp(sensor, 0);
+	rec->DataFormat.Factors.Linearization = (SaHpiSensorLinearizationT)
+		ipmi_sensor_get_linearization(sensor);
+	
 	rec->DataFormat.Percentage = (SaHpiBoolT)
 		ipmi_sensor_get_percentage(sensor);
 
-#if 0
-	/* Fix Me: Range */
+	temp |= SAHPI_SRF_MAX | SAHPI_SRF_MIN;	
 	rec->DataFormat.Range.Max.ValuesPresent = SAHPI_SRF_RAW;
 	rec->DataFormat.Range.Max.Raw = (SaHpiUint32T)
 		ipmi_sensor_get_raw_sensor_max(sensor);
@@ -458,7 +483,6 @@ static void add_sensor_event_data_format(ipmi_sensor_t		*sensor,
 		temp |= SAHPI_SRF_NORMAL_MIN;
 	}	
 	rec->DataFormat.Range.Flags = temp;
-#endif
 }
 
 static SaHpiEventCategoryT ohoi_sensor_get_event_reading_type(ipmi_sensor_t   *sensor)
@@ -481,9 +505,6 @@ static SaHpiEventCategoryT ohoi_sensor_get_event_reading_type(ipmi_sensor_t   *s
 static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 					SaHpiSensorRecT	*rec)
 {
-	ipmi_entity_t *ent;	
-
-
 	rec->Type = (SaHpiSensorTypeT)ipmi_sensor_get_sensor_type(sensor);
 	rec->Category = (SaHpiEventCategoryT)
 		ohoi_sensor_get_event_reading_type(sensor);
@@ -492,13 +513,7 @@ static void add_sensor_event_sensor_rec(ipmi_sensor_t	*sensor,
 	/* Cannot find Events in IPMI. */
 	rec->Events = 0xffff;
 
-	ent = ipmi_sensor_get_entity(sensor);
-#if 0
-	if (ipmi_entity_is_present(ent)) 
-		rec->Ignore = SAHPI_FALSE;
-	else
-		rec->Ignore = SAHPI_TRUE;
-#endif
+        rec->Ignore = is_ignored_sensor(sensor)? SAHPI_TRUE: SAHPI_FALSE;
 
 	add_sensor_event_data_format(sensor, rec);
 
@@ -520,9 +535,9 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 	rdr->RecordId = 0;
 	rdr->RdrType = SAHPI_SENSOR_RDR;
 	//rdr->Entity.Entry[0].EntityType = (SaHpiEntityTypeT)id;
-	//rdr->Entity.Entry[0].EntityLocation = (SaHpiEntityLocationT)instance;
+	//rdr->Entity.Entry[0].EntityInstance = (SaHpiEntityInstanceT)instance;
 	//rdr->Entity.Entry[1].EntityType = 0;
-	//rdr->Entity.Entry[1].EntityLocation = 0;
+	//rdr->Entity.Entry[1].EntityInstance = 0;
 	rdr->Entity = parent_ep;
 
 	/* append ep */
@@ -541,8 +556,6 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 		case IPMI_EVENT_SUPPORT_PER_STATE:
 			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_PER_EVENT;
 			break;
-/*Fix Me*/
-#if 0
 		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
 		 	rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_ENTIRE_SENSOR;
 			break;
@@ -552,15 +565,6 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 		case IPMI_EVENT_SUPPORT_NONE:
 			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_NO_EVENTS;
 			break;
-#else
-		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
-                case IPMI_EVENT_SUPPORT_GLOBAL_ENABLE:
-                        rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY_MASKS;
-                        break;
-                case IPMI_EVENT_SUPPORT_NONE:
-                        rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_READ_ONLY;
-                        break;
-#endif
 	}
 	
 	memcpy(rdr->IdString.Data,name, strlen(name) + 1);
@@ -654,4 +658,5 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 			dbg("Unable to reg sensor event handler: %#x\n", rv);
 	}
 }
+
 

@@ -14,9 +14,10 @@
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
-#include <openhpid.h>
-#include <openhpi.h>
-#include <oh_utils.h>
+#include "openhpid.h"
+#include "openhpi.h"
+#include "ecode_utils.h"
+#include "printevent_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,7 +34,7 @@
 cConnection::cConnection( cServerConnection *con )
   : m_con( con ), m_sessions( 0 ), m_outstanding_pings( 0 )
 {
-  oh_gettimeofday( &m_ping_timer );
+  gettimeofday1( &m_ping_timer );
   m_ping_timer += dPingTimeout;
 }
 
@@ -329,7 +330,7 @@ cOpenHpiDaemon::Initialize()
   if ( rv != SA_OK )
      {
        fprintf( stderr, "cannot initialize openhpi: %s !\n",
-		oh_lookup_error( rv ) );
+		decode_error( rv ) );
        return false;
      }
 
@@ -339,7 +340,7 @@ cOpenHpiDaemon::Initialize()
   if ( rv != SA_OK )
      {
        fprintf( stderr, "cannot create session: %s !\n", 
-		oh_lookup_error( rv ) );
+		decode_error( rv ) );
 
        saHpiFinalize();
        return false;
@@ -351,7 +352,7 @@ cOpenHpiDaemon::Initialize()
   if ( rv != SA_OK )
      {
        fprintf( stderr, "cannot subscribe: %s !\n", 
-		oh_lookup_error( rv ) );
+		decode_error( rv ) );
 
        saHpiSessionClose( m_session );
        saHpiFinalize();
@@ -578,10 +579,10 @@ cOpenHpiDaemon::Idle()
   else if ( ret == SA_ERR_HPI_TIMEOUT )
        DbgEvent( "idle: saHpiEventGet timeout.\n", ret );
   else
-       DbgEvent( "idle: saHpiEventGet %s.\n", oh_lookup_error( ret ) );
+       DbgEvent( "idle: saHpiEventGet %s.\n", decode_error( ret ) );
 
   SaHpiTimeT now;
-  oh_gettimeofday( &now );
+  gettimeofday1( &now );
 
   // check for pending event get
   for( int i = m_num_connections - 1; i >= 0; i-- )
@@ -620,7 +621,7 @@ cOpenHpiDaemon::Idle()
 		 // set ping timer
 		 SaHpiTimeT ti;
 
-		 oh_gettimeofday( &ti );
+		 gettimeofday1( &ti );
 		 ti += dPingTimeout;
 
 		 c->PingTimer() = ti;
@@ -738,7 +739,7 @@ cOpenHpiDaemon::HandlePong( cConnection *c, const cMessageHeader &header )
        c->OutstandingPings() = 0;
 
        SaHpiTimeT now;
-       oh_gettimeofday( &now );
+       gettimeofday1( &now );
 
        now += dPingTimeout;
        c->PingTimer() = now;
@@ -1236,7 +1237,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 			s->EventGet( true );
 
 			SaHpiTimeT end;
-			oh_gettimeofday( &end );
+			gettimeofday1( &end );
 
 			if ( timeout == SAHPI_TIMEOUT_BLOCK )
 			     end += (SaHpiTimeT)10000*1000000000; //set a long time

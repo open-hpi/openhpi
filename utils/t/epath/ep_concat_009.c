@@ -11,13 +11,13 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
+ *
  */
 
 #include <string.h>
 #include <stdio.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
 
 /**
  * ep_concat test9.
@@ -35,9 +35,9 @@ int main(int argc, char **argv)
 
         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 ep2.Entry[i].EntityType = SAHPI_ENT_RACK;
-                ep2.Entry[i].EntityLocation = 3456;
+                ep2.Entry[i].EntityInstance = 3456;
                 ep3.Entry[i].EntityType = SAHPI_ENT_RACK;
-                ep3.Entry[i].EntityLocation = 3456;
+                ep3.Entry[i].EntityInstance = 3456;
         }
         if (ep_concat(&ep1, &ep2)) {
                 if (mydebug) printf("ep_concat test9 checkpoint 1 failed\n");

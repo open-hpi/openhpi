@@ -13,7 +13,9 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <snmp_bc_plugin.h>
+#include <SaHpi.h>
+
+#include <snmp_bc_watchdog.h>
 
 SaErrorT snmp_bc_get_watchdog_info(void *hnd,
 				   SaHpiResourceIdT id,

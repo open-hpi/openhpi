@@ -17,14 +17,12 @@
  * sysfs plugin.  It should be able to work for other plugins
  * too, but you may want to change the test cases.
  */
-
 #include <stdlib.h>
 #include <stdio.h>
+#include <SaHpi.h>
 #include <unistd.h>
 #include <string.h>
-
-#include <SaHpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
 
 /* debug macros */
 #define warn(str) fprintf(stderr,"%s: " str "\n", __FUNCTION__)
@@ -53,7 +51,7 @@ int main(int arc, const char *argv[])
         SaHpiVersionT		version;
         SaHpiSessionIdT 	session_id;
         SaHpiRptEntryT		entry;
-        //SaHpiEventLogInfoT		Info;
+        //SaHpiSelInfoT		Info;
         
 	
 	/* First step in HPI and openhpi */

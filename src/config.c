@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003-2004
+ * (C) Copyright IBM Corp. 2003
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,41 +14,34 @@
  *     Sean Dague <http://dague.net/sean>
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     David Judkovics <djudkovi@us.ibm.com>
+ * Contributors:
  *     Thomas Kangieser <Thomas.Kanngieser@fci.com>
  *     Renier Morales <renierm@users.sf.net>
  */
 
+#include <openhpi.h>
+#include <oh_config.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <glib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <oh_config.h>
-#include <oh_plugin.h>
-#include <oh_error.h>
-#include <oh_lock.h>
-
-/*
- * Global Parameters Table
- */
-static GHashTable *global_params = NULL;
-
-static const char *known_globals[] = {
-        "OPENHPI_LOG_SEV",
-        "OPENHPI_ON_EP"
-};
-
-/*
- * List of plugin names specified in configuration file.
- */
-static GSList *plugin_names = NULL;
-
-/*
- *  List of handler configs (parameter tables).  This list is
- *  populated during config file parse, and used to build the handler_table
- */
-static GSList *handler_configs = NULL;
 
 /*******************************************************************************
- *  In order to use the glib lexical parser we need to define token
+ *  global_plugin_list - list of all the plugins that should be loaded
+ *
+ *  global_handler_list - list of handlers that have been loaded
+ *
+ *  global_handler_configs - configuration blocks for each handler.
+ ******************************************************************************/
+
+GSList *global_plugin_list = NULL;
+GSList *global_handler_list = NULL;
+GSList *global_handler_configs = NULL;
+
+/*******************************************************************************
+ *  In order to use the glib lexical parser we need to define token 
  *  types which we want to switch on
  ******************************************************************************/
 
@@ -62,20 +55,19 @@ struct tokens {
         gchar *name;
         guint token;
 };
-
-static struct tokens oh_conf_tokens[] = {
+struct tokens oh_conf_tokens[] = {
         {
                 .name = "global",
                 .token = HPI_CONF_TOKEN_GLOBAL
         },
-        {
-                .name = "handler",
-                .token = HPI_CONF_TOKEN_HANDLER
+	{
+                .name = "handler", 
+		.token = HPI_CONF_TOKEN_HANDLER
         },
-        {
-                .name = "plugin",
-                .token = HPI_CONF_TOKEN_PLUGIN
-        }
+        { 
+		.name = "plugin", 
+                .token = HPI_CONF_TOKEN_PLUGIN 
+	}
 
 };
 
@@ -86,7 +78,7 @@ static struct tokens oh_conf_tokens[] = {
  *
  * G_TOKEN_STRING will be created when anything starts with a-zA-z_/.
  * due to cset_identifier_first and identifier2string values below.
- * Therefor, if you want 0 to be scanned as a string, you need to quote
+ * Therefor, if you want 0 to be scanned as a string, you need to quote 
  * it (e.g. "0")
  *
  *******************************************************************************/
@@ -130,38 +122,60 @@ static GScannerConfig oh_scanner_config =
                 FALSE                   /* scope_0_fallback */,
         };
 
-static int seen_plugin(char *plugin_name)
+/*******************************************************************************
+ *  prototypes for functions internal to this file
+ ******************************************************************************/
+
+int process_plugin_token (GScanner *);
+int process_handler_token (GScanner *, int);
+void free_hash_table (gpointer, gpointer, gpointer);
+struct oh_plugin_config * new_plugin_config (char *);
+
+
+/**
+ * new_plugin_config: generates a new plugin config
+ * @plugin: 
+ * 
+ * 
+ * 
+ * Return value: 
+ **/
+
+struct oh_plugin_config *new_plugin_config (char *plugin) 
 {
-        int seen = 0;
-        GSList *node = NULL;
-
-        for (node = plugin_names; node; node = node->next) {
-                char *p_name = (char *)node->data;
-                if (strcmp(plugin_name, p_name) == 0) {
-                        seen = 1;
-                        break;
-                }
+        struct oh_plugin_config *pc;
+        
+        pc = calloc(1,sizeof(*pc));
+        if(pc == NULL) {
+                dbg("Couldn't allocate memory for handler_config");
+                return pc;
         }
+        
+        if(plugin != NULL) {
+                pc->name = calloc(strlen(plugin)+1, sizeof(char));
+                strcpy(pc->name,plugin);
+        }
+        pc->refcount = 0;
 
-        return seen;
+        return pc;
 }
 
 /**
  * process_plugin_token:
- * @oh_scanner:
- *
- *
- *
- * Return value:
+ * @oh_scanner: 
+ * 
+ * 
+ * 
+ * Return value: 
  **/
-static int process_plugin_token (GScanner *oh_scanner)
+int process_plugin_token (GScanner *oh_scanner) 
 {
         guint my_token;
-        int seen = 0;
-
+        int refcount;
+        
         data_access_lock();
 
-        my_token = g_scanner_get_next_token(oh_scanner);
+        my_token = g_scanner_get_next_token(oh_scanner); 
         if (my_token != HPI_CONF_TOKEN_PLUGIN) {
                 dbg("Token is not what I was promissed");
                 data_access_unlock();
@@ -173,36 +187,77 @@ static int process_plugin_token (GScanner *oh_scanner)
                 data_access_unlock();
                 return -1;
         }
-
-        seen = seen_plugin(oh_scanner->value.v_string);
-
-        if(!seen) {
-                plugin_names = g_slist_append(
-                        plugin_names,
-                        (gpointer) g_strdup(oh_scanner->value.v_string)
+        
+        refcount = plugin_refcount(oh_scanner->value.v_string);
+        if(refcount < 0) {
+                global_plugin_list = g_slist_append(
+                        global_plugin_list,
+                        (gpointer) new_plugin_config(oh_scanner->value.v_string)
                         );
         } else {
-                dbg("Plugin name %s was found more than once. Ignoring.",
-                    oh_scanner->value.v_string);
+                dbg("WARNING: Attempt to load a plugin more than once");
+                data_access_unlock();
+                return -1;
         }
-
+        
         data_access_unlock();
 
         return 0;
 }
 
 /**
+ * plugin_refcount:
+ * @name: 
+ * 
+ * 
+ * 
+ * Return value: 
+ **/
+int plugin_refcount (char *name) 
+{
+        struct oh_plugin_config *temp_config;
+        int refcount = -1;
+        
+        temp_config = plugin_config(name); 
+
+        if(temp_config != NULL) {
+                refcount = temp_config->refcount;
+        }
+        return refcount;
+}
+
+struct oh_plugin_config * plugin_config (char *name) 
+{
+        GSList *node;
+        struct oh_plugin_config *return_config = NULL;
+
+        data_access_lock();
+
+        g_slist_for_each(node, global_plugin_list) {
+                struct oh_plugin_config *pconf = node->data;
+                if(strcmp(pconf->name, name) == 0) {
+                        return_config = pconf;
+                        break;
+                }
+        }
+        
+        data_access_unlock();
+        
+        return return_config;
+}
+
+/**
  * process_handler_token
  * @oh_scanner
  * @is_global: says if the handler is global (true) or not.
- *
+ * 
  * handles parsing of handler tokens into a hash table.
  * If the the handler is global, it converts the name/values to
  * environment variables.
- *
+ * 
  * Return value: 0 on sucess, < 0 on fail
  **/
-static int process_handler_token (GScanner* oh_scanner, int is_global)
+int process_handler_token (GScanner* oh_scanner, int is_global) 
 {
         GHashTable *handler_stanza = NULL;
         char *tablekey, *tablevalue;
@@ -211,10 +266,9 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
 
         data_access_lock();
 
-        if (is_global) {
-                THIS_TOKEN = HPI_CONF_TOKEN_GLOBAL;
-        } else THIS_TOKEN = HPI_CONF_TOKEN_HANDLER;
-
+        if (is_global) THIS_TOKEN = HPI_CONF_TOKEN_GLOBAL;
+        else THIS_TOKEN = HPI_CONF_TOKEN_HANDLER;
+        
         if (g_scanner_get_next_token(oh_scanner) != THIS_TOKEN) {
                 dbg("Processing handler: Unexpected token.");
                 data_access_unlock();
@@ -227,18 +281,17 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
                 data_access_unlock();
                 return -1;
         } else if (!is_global) {
-                handler_stanza = g_hash_table_new_full(g_str_hash, g_str_equal,
-                                                       g_free, g_free);
+                handler_stanza = g_hash_table_new(g_str_hash, g_str_equal);
                 tablekey = g_strdup("plugin");
-                if (!tablekey) {
-                        dbg("Processing handler: Unable to allocate memory");
-                        goto free_table;
-                }
-                tablevalue = g_strdup(oh_scanner->value.v_string);
-                if (!tablevalue) {
-                        dbg("Processing handler: Unable to allocate memory");
-                        goto free_table_and_key;
-                }
+		if (!tablekey) {
+		        dbg("Processing handler: Unable to allocate memory");
+		        goto free_table;
+		}
+		tablevalue = g_strdup(oh_scanner->value.v_string);
+		if (!tablevalue) {
+		        dbg("Processing handler: Unable to allocate memory");
+		        goto free_table_and_key;
+		}
                 g_hash_table_insert(handler_stanza,
                                     (gpointer) tablekey,
                                     (gpointer) tablevalue);
@@ -257,10 +310,10 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
                         goto free_table;
                 } else {
                         tablekey = g_strdup(oh_scanner->value.v_string);
-                        if (!tablekey) {
-                                dbg("Processing handler: Unable to allocate memory");
-                                goto free_table;
-                        }
+			if (!tablekey) {
+			        dbg("Processing handler: Unable to allocate memory");
+		                goto free_table;
+			}                        
                 }
 
                 /* Check for the equal sign next. If we have it, continue parsing */
@@ -293,7 +346,7 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
                         if (current_token == G_TOKEN_INT) {
                                 value_int = (gulong *)g_malloc(sizeof(gulong));
                                 if (value_int != NULL) *value_int = oh_scanner->value.v_int;
-                                value = (gpointer)value_int;
+                                value = (gpointer)value_int;                                
                         } else if (current_token == G_TOKEN_FLOAT) {
                                 value_float = (gdouble *)g_malloc(sizeof(gdouble));
                                 if (value_float != NULL) *value_float = oh_scanner->value.v_float;
@@ -301,8 +354,8 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
                         } else {
                                 value_string = g_strdup(oh_scanner->value.v_string);
                                 value = (gpointer)value_string;
-                        }
-
+                        }                        
+                        
                         if (value == NULL) {
                                 dbg("Processing handler: Unable to allocate memory for value. Token Type: %d",
                                     current_token);
@@ -310,9 +363,16 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
                         }
 
                         if (is_global) {
-                                g_hash_table_insert(global_params,
-                                                    (gpointer) tablekey,
-                                                    value);
+                                /* Only set env variable if we are not setting
+                                   OPENHPI_CONF and the env variable starts with
+                                   OPENHPI.
+                                 */
+                                if (strcmp(tablekey,"OPENHPI_CONF")) {
+                                        setenv(tablekey,(gchar *)value,0);
+                                } else { /* Could we always free these? */
+                                        g_free(tablekey);
+                                        g_free(value);
+                                }
                         } else {
                                 g_hash_table_insert(handler_stanza,
                                                     (gpointer) tablekey,
@@ -328,28 +388,49 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
 
         /* Attach table describing handler stanza to the global linked list of handlers */
         if(!is_global && handler_stanza != NULL) {
-                handler_configs = g_slist_append(
-                        handler_configs,
+                global_handler_configs = g_slist_append(
+                        global_handler_configs,
                         (gpointer) handler_stanza);
-        }
-
+        }        
+        
         data_access_unlock();
 
         return 0;
 
 free_table_and_key:
-        g_free(tablekey);
+        free(tablekey);
 free_table:
         /**
         There was an error reading a token so we need to error out,
-        but not before cleaning up. Destroy the table.
+        but not before cleaning up. Iterate through the table
+        freeing each key and value set. Then destroy the table.
         */
+        g_hash_table_foreach(handler_stanza, free_hash_table, NULL);
         g_hash_table_destroy(handler_stanza);
 
         data_access_unlock();
 
         return -1;
 }
+
+/**
+ * free_hash_table
+ * @key: key into a GHashTable
+ * @value: value correspoinding to key in GHashTable
+ * @user_data: It is NULL. Not used here.
+ *
+ * used in the g_hash_table_foreach call in process_handler_token.
+ * This funtion is passed to that table call by reference.
+ * Frees the memory allocated for the key and value arguments it receives.
+ *
+ * Return value: None (void).
+ **/
+void free_hash_table (gpointer key, gpointer value, gpointer user_data)
+{
+        g_free(key);
+        g_free(value);
+}
+
 
 /**
  * scanner_msg_handler: a reference of this function is passed into the GScanner.
@@ -366,57 +447,31 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
   g_return_if_fail (scanner != NULL);
 
   dbg("%s:%d: %s%s\n",
-      scanner->input_name ? scanner->input_name : "<memory>",
-      scanner->line, is_error ? "error: " : "", message );
-}
-
-/* Read in globals from environment and replace in table for globals */
-static void read_globals_from_env(void)
-{
-        int known_globals_total = sizeof(known_globals)/sizeof(known_globals[0]);
-        int i;
-
-        for (i = 0; i < known_globals_total; i++) {
-                char *g = getenv(known_globals[i]);
-                if (g) {
-                        if (!oh_set_global_param(known_globals[i], g))
-                                trace("Set global param %s from environment.",
-                                      known_globals[i]);
-                }
-        }
+              scanner->input_name ? scanner->input_name : "<memory>",
+              scanner->line, is_error ? "error: " : "", message );
 }
 
 /**
  * oh_load_config:
- * @filename:
- * @config
- *
- *
- * Return value:
+ * @filename: 
+ * 
+ * 
+ * 
+ * Return value: 
  **/
-int oh_load_config (char *filename, struct oh_parsed_config *config)
+int oh_load_config (char *filename) 
 {
         int oh_conf_file, i;
         GScanner *oh_scanner;
         int done = 0;
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
-        if (!filename || !config) {
-                dbg("Error. Invalid parameters");
-                return -1;
-        }
-
+        init_plugin();
+        
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if(!oh_scanner) {
                 dbg("Couldn't allocate g_scanner for file parsing");
-                return -2;
-        }
-
-        global_params = g_hash_table_new_full(g_str_hash, g_str_equal,
-                                              g_free, g_free);
-        if (!global_params) {
-                dbg("Could not allocate for global_params hash table.");
-                return -3;
+                return -1;
         }
 
         oh_scanner->msg_handler = scanner_msg_handler;
@@ -426,21 +481,21 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         if(oh_conf_file < 0) {
                 dbg("Configuration file '%s' could not be opened", filename);
                 g_scanner_destroy(oh_scanner);
-                return -4;
+                return -2;
         }
 
         g_scanner_input_file(oh_scanner, oh_conf_file);
-
+        
         for (i = 0; i < num_tokens; i++) {
-                g_scanner_scope_add_symbol(oh_scanner, 0, oh_conf_tokens[i].name,
-                                           (void *)((unsigned long)oh_conf_tokens[i].token));
+                g_scanner_scope_add_symbol (oh_scanner, 0, oh_conf_tokens[i].name, 
+                                     (void *)((unsigned long)oh_conf_tokens[i].token));
         }
 
         while(!done) {
                 guint my_token;
                 my_token = g_scanner_peek_next_token (oh_scanner);
                 /*dbg("token: %d", my_token);*/
-                switch (my_token)
+                switch (my_token) 
                 {
                 case G_TOKEN_EOF:
                         done = 1;
@@ -462,84 +517,38 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
                         break;
                 }
         }
-
+        
         if(close(oh_conf_file) != 0) {
                 dbg("Couldn't close file '%s'.", filename);
                 g_scanner_destroy(oh_scanner);
-                return -5;
+                return -2;
         }
 
         done = oh_scanner->parse_errors;
 
         g_scanner_destroy(oh_scanner);
-
-        trace("Done processing conf file.\nNumber of parse errors:%d", done);
-
-        read_globals_from_env();
-        config->plugin_names = plugin_names;
-        config->handler_configs = handler_configs;
-
+        dbg("Done processing conf file.\nNumber of parse errors:%d", done);
+        
         return 0;
 }
 
-void oh_clean_config()
-{
-        /* Free list of plugin names read from configuration file. */
-        g_slist_free(plugin_names);
-
-        /* Free list of handler configuration blocks */
-        g_slist_free(handler_configs);
-}
 
 void oh_unload_config()
 {
-        g_hash_table_destroy(global_params);
+        while(global_handler_configs) {
+                GHashTable *hash_table = global_handler_configs->data;
+
+                global_handler_configs = g_slist_remove(
+                        global_handler_configs,
+                        (gpointer)hash_table );
+                g_hash_table_foreach(hash_table, free_hash_table, NULL);
+                g_hash_table_destroy(hash_table);
+        }
+
+        uninit_plugin();
+
 }
 
-/**
- * oh_lookup_global_param
- * @param
- * @value
- * @size
- *
- * Returns: 0 on Success.
- **/
-int oh_lookup_global_param(char *param, char *value, int size)
-{
-        char *v = NULL;
 
-        if (!param || !value) {
-                dbg("ERROR. Invalid parameters.");
-                return -1;
-        }
 
-        data_access_lock();
-        v = (char *)g_hash_table_lookup(global_params, param);
-        if (v) {
-                strncpy(value, v, size);
-        }
-        data_access_unlock();
 
-        return (v) ? 0 : -1;
-}
-
-int oh_set_global_param(const char *param, char *value)
-{
-        char c;
-
-        if (!oh_lookup_next_plugin_name(NULL, &c, sizeof(c))) {
-                dbg("ERROR. Cannot set global params. Plugins already loaded.");
-                return -1;
-        }
-
-        if (!param || !value) {
-                dbg("ERROR. Invalid parameters.");
-                return -1;
-        }
-
-        data_access_lock();
-        g_hash_table_replace(global_params, g_strdup(param), g_strdup(value));
-        data_access_unlock();
-
-        return 0;
-}

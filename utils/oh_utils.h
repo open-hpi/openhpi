@@ -9,26 +9,20 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Author(s):
+ * Authors:
  *      Renier Morales <renierm@users.sf.net>
- *      Steve Sherman <stevees@us.ibm.com>
+ *
  */
 
 #ifndef OH_UTILS_H
 #define OH_UTILS_H
 
-#include <oh_error.h>
-
-/* Order is important */
-#include <el_utils.h>
 #include <epath_utils.h>
-#include <rpt_utils.h>
-#include <event_utils.h>
-#include <sahpi_enum_utils.h>
-#include <sahpi_event_encode.h>
-#include <sahpi_event_utils.h>
-#include <sahpi_struct_utils.h>
-#include <sahpi_time_utils.h>
 #include <uid_utils.h>
+#include <rpt_utils.h>
+#include <sel_utils.h>
+#include <ecode_utils.h>
+#include <printevent_utils.h>
+#include <sensor_utils.h>
 
 #endif

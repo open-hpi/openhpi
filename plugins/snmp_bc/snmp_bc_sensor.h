@@ -13,15 +13,13 @@
  *      Steve Sherman <sesherman@us.ibm.com>
  */
 
-#ifndef __SNMP_BC_SENSOR_H
-#define __SNMP_BC_SENSOR_H
+#ifndef SNMP_BC_SENSOR_H
+#define SNMP_BC_SENSOR_H
 
-/* FIXME:: ?? Can we pass handle in; instead of hnd - better error checking */
-SaErrorT snmp_bc_get_sensor_reading(void *hnd,
+SaErrorT snmp_bc_get_sensor_data(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiSensorNumT num,
-				 SaHpiSensorReadingT *data,
-				 SaHpiEventStateT    *state);
+				 SaHpiSensorReadingT *data);
 
 SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT id,
@@ -33,13 +31,15 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 				       SaHpiSensorNumT num,
 				       const SaHpiSensorThresholdsT *thres);
 
+
 SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  SaHpiBoolT *enables);
+					  SaHpiSensorEvtEnablesT *enables);
 
 SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  const SaHpiBoolT *enables);
-#endif
+					  const SaHpiSensorEvtEnablesT *enables);
+
+#endif /* SNMP_BC_SENSOR_H */

@@ -38,10 +38,7 @@
 #include <OpenIPMI/ipmi_posix.h>
 
 #include <SaHpi.h>
-#include <oh_utils.h>
-#include <oh_error.h>
-#include <oh_handler.h>
-
+#include <openhpi.h>
 
 
 #define IPMI_DATA_WAIT	5
@@ -54,7 +51,7 @@ struct ohoi_handler {
     int SELs_read_done;
 	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
 	int sel_clear_done;		/* we need to wait for mc_sel_reread for clear to succeed */
-//	int FRU_done;			/* we have to track FRUs */
+	int FRU_done;			/* we have to track FRUs */
 
 	ipmi_domain_id_t domain_id;
 
@@ -80,9 +77,7 @@ struct ohoi_resource_info {
                 ipmi_entity_id_t entity_id;
                 ipmi_mcid_t      mc_id;
         } u;
-
-	int present;
-	
+        
         ipmi_control_id_t reset_ctrl;
         ipmi_control_id_t power_ctrl;
 };
@@ -95,44 +90,19 @@ void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
 void ohoi_close_connection(ipmi_domain_t *domain, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
-int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id, 
-			    SaHpiSensorReadingT * reading,
-			    SaHpiEventStateT * ev_state,
-			    void *cb_data);
-
+int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, SaHpiSensorReadingT *data, void *cb_data);
 int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
-			       SaHpiSensorThresholdsT *thres,
-			       void *cb_data);
-
+			   					SaHpiSensorThresholdsT *thres,
+			   					void *cb_data);
 int ohoi_set_sensor_thresholds(ipmi_sensor_id_t                 sensor_id, 
                                const SaHpiSensorThresholdsT     *thres,
-			       void *cb_data);
-
-int ohoi_get_sensor_enable(ipmi_sensor_id_t sensor_id, 
-			   SaHpiBoolT   *enable,
-			   void *cb_data);
-
-int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
-			   SaHpiBoolT   enable,
-			   void *cb_data);
-
-int ohoi_get_sensor_event_enable(ipmi_sensor_id_t              sensor_id,
-				 SaHpiBoolT   *enable,
-				 void *cb_data);
-
-int ohoi_set_sensor_event_enable(ipmi_sensor_id_t              sensor_id,
-			         const SaHpiBoolT enable,
-				 void *cb_data);
-
-int ohoi_get_sensor_event_masks(ipmi_sensor_id_t  sensor_id,
-			 	SaHpiEventStateT  *assert,
-				SaHpiEventStateT  *deassert,
-				void *cb_data);
-
-int ohoi_set_sensor_event_masks(ipmi_sensor_id_t  sensor_id,
-			 	SaHpiEventStateT  assert,
-				SaHpiEventStateT  deassert,
-				void *cb_data);
+							   void *cb_data);
+int ohoi_get_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
+			          SaHpiSensorEvtEnablesT        *enables,
+					  void *cb_data);
+int ohoi_set_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
+			          const SaHpiSensorEvtEnablesT  *enables,
+					  void *cb_data);
 
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
@@ -150,7 +120,7 @@ void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id,
 void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id, 
                              ipmi_event_t *event, 
                              unsigned int *record_id);
-void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ipmi_event_t **event);
+void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_event_t **event);
 
 /* This is used to help plug-in to find resource in rptcache by entity_id */
 SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
@@ -210,18 +180,19 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                            SaHpiRdrTypeT                 type,
                            SaHpiUint8T                   num,
                            void                          **pdata);
+/*
+ * ABI stub functions
+ */ 
+SaErrorT ohoi_get_inventory_size(void *hnd, SaHpiResourceIdT id,
+                          SaHpiEirIdT num, /* yes, they don't call it a
+                                            * num, but it still is one
+                                            */
+                          SaHpiUint32T *size);
 
-SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo);
-SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype,
-                              SaHpiEntryIdT areaid,  SaHpiEntryIdT *nextareaid, SaHpiIdrAreaHeaderT *header);
-SaErrorT ohoi_add_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype, SaHpiEntryIdT *areaid);
-SaErrorT ohoi_del_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid);
-SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
-                             SaHpiEntryIdT areaid, SaHpiIdrFieldTypeT fieldtype, SaHpiEntryIdT fieldid,
-                             SaHpiEntryIdT *nextfieldid, SaHpiIdrFieldT *field);
-SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field );
-SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field );
-SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid, SaHpiEntryIdT fieldid);
+SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
+                          SaHpiEirIdT num,
+                          SaHpiInventoryDataT *data);
+
 
 int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
                      enum ipmi_hot_swap_states last_state,
@@ -245,18 +216,16 @@ SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id,
 				  SaHpiHsIndicatorStateT state);
 
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
-                              SaHpiPowerStateT state);
+                              SaHpiHsPowerStateT state);
 	
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act);
 
 SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
-                                SaHpiCtrlModeT *mode,
                                 SaHpiCtrlStateT *state);
 SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
-                                SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state);
 
 /* misc macros for debug */
@@ -272,6 +241,21 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                      (x).seq);                  \
         } while(0)
 
+
+static inline int is_ignored_sensor(ipmi_sensor_t *sensor)
+{
+        ipmi_entity_t *ent;
+
+        ent = ipmi_sensor_get_entity(sensor);
+
+        if (ent && ipmi_entity_is_present(ent))
+                return 0;
+        
+        if ( !ipmi_sensor_get_ignore_if_no_entity(sensor) )
+                return 0;
+
+        return 1;
+}
 
 /* dump rpttable to make debug easy 
    if you don't like it, feel free to delete it.

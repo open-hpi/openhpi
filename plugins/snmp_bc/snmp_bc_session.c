@@ -11,45 +11,57 @@
  *
  * Author(s):
  *      Renier Morales <renierm@users.sf.net>
- *      Steve Sherman <stevees@us.ibm.com>
+ *      Steve Sherman  <stevees@us.ibm.com>
  */
 
-#include <snmp_bc_plugin.h>
-#include <sim_init.h>
+#include <SaHpi.h>
 
+#include <snmp_util.h>
+#include <snmp_bc_session.h>
+#include <snmp_bc.h>
+#include <rpt_utils.h>
+#include <sel_utils.h>
+#include <bc_resources.h>
+#include <bc_str2event.h>
+#include <snmp_bc_event.h>
+
+
+int is_simulator(void);
+int sim_banner(struct snmp_bc_hnd *);
+int sim_init(void);
+int sim_close(void);
+
+extern unsigned int str2event_use_count;  
 /**
- * snmp_bc_open:
- * @handler_config: Pointer to hash table (passed by infrastructure)
- *
- * Open an SNMP BladeCenter/RSA plugin handler instance.
- *
- * Returns:
- * Plugin handle - normal operation.
- * NULL - on error.
+ * snmp_bc_open: open snmp blade center plugin
+ * @handler_config: hash table passed by infrastructure
  **/
+
 void *snmp_bc_open(GHashTable *handler_config)
 {
         struct oh_handler_state *handle;
         struct snmp_bc_hnd *custom_handle;
         char *hostname, *version, *sec_level, *authtype, *user, *pass, *community;
         char *root_tuple;
+	SaErrorT rc;
 
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
-        if (!root_tuple) {
-                dbg("Cannot find \"entity_root\" configuration parameter.");
+        if(!root_tuple) {
+                dbg("ERROR: Cannot open snmp_bc plugin. No entity root found in configuration.");
                 return NULL;
         }
 
         hostname = (char *)g_hash_table_lookup(handler_config, "host");
         if (!hostname) {
-                dbg("Cannot find \"host\" configuration parameter.");
+                dbg("ERROR: Cannot open snmp_bc plugin. No hostname found in configuration.");
                 return NULL;
         }
 
         handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
-        custom_handle = (struct snmp_bc_hnd *)g_malloc0(sizeof(struct snmp_bc_hnd));
-        if (!handle || !custom_handle) {
-                dbg("Cannot allocate memory for handle or custom_handle.");
+        custom_handle =
+                (struct snmp_bc_hnd *)g_malloc0(sizeof(struct snmp_bc_hnd));
+        if(!handle || !custom_handle) {
+                dbg("Could not allocate memory for handle or custom_handle.");
                 return NULL;
         }
 
@@ -58,44 +70,49 @@ void *snmp_bc_open(GHashTable *handler_config)
 
         /* Initialize RPT cache */
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
-        oh_init_rpt(handle->rptcache);
-	 
-        /* Initialize event log cache */
-	/* FIXME:: RSA has 512 here */
-        handle->elcache = oh_el_create(OH_EL_MAX_SIZE);
-	handle->elcache->gentimestamp = FALSE;
+ 
+        /* Initialize SEL cache */
+        handle->selcache = oh_sel_create(OH_SEL_MAX_SIZE);
+	handle->selcache->gentimestamp = FALSE;
 
-	/* Initialize "String to Event" mapping hash table */
-	/* FIXME:: Add RSA initialization here */
-	if (bc_xml2event_hash_use_count == 0) {
-		if (xml2event_hash_init(&bc_xml2event_hash, bc_eventxml)) {
-			dbg("Out of memory.");
+	/* Initialize String-to-Event hash table */
+	if (str2event_use_count == 0) {  
+		if (str2event_hash_init()) {
+			dbg("Couldn't initialize str2event hash table.");
 			return NULL;
 		}
-	}
-	bc_xml2event_hash_use_count++;
+		str2event_use_count++;
+	} else 
+		str2event_use_count++;
 	
-	/* Initialize "Event Number to HPI Event" mapping hash table */
+	/* Initialize BC_Event_Number-to-HPI_Event hash table */
 	if (event2hpi_hash_init(handle)) {
-		dbg("Out of memory.");
+		dbg("Couldn't initialize event2hpi hash table.");
 		return NULL;
 	}
-  
+       
 	/* Initialize simulator tables */
 	if (is_simulator()) {
 		custom_handle->ss = NULL;
 		sim_init();
 	}
 	else {
-		/* Initialize SNMP library */
-		init_snmp("oh_snmp_bc");
-		snmp_sess_init(&(custom_handle->session));
+		/* Initialize snmp library */
+		init_snmp("oh_snmp_bc");        
+		snmp_sess_init(&(custom_handle->session)); /* Setting up all defaults for now. */
+		/* Set snmp agent's hostname */
 		custom_handle->session.peername = hostname;
-		/* Set retries - based on testing with BC/BCT MM SNMP V3 agent */
-		custom_handle->session.retries = 3;
+							/* From testing with mm snmpv3 agent, */
+		custom_handle->session.retries  = 3;	/* set retries to 3.                  */ 
+							/* Number of uS until first timeout,  */
+							/* then exponential backoff.          */
+							/* Set timeout value to 2 secs.       */			
+		custom_handle->session.timeout  = 2000000; 
+
+		/* Get config parameters */
 		version = (char *)g_hash_table_lookup(handle->config, "version");
 		if (!version) {
-			dbg("Cannot find \"version\" configuration parameter.");
+			dbg("Cannot open snmp_bc. Need version configuration parameter.");
 			return NULL;
 		}
 		sec_level = (char *)g_hash_table_lookup(handle->config, "security_level");
@@ -104,10 +121,10 @@ void *snmp_bc_open(GHashTable *handler_config)
 		pass = (char *)g_hash_table_lookup(handle->config, "passphrase");
 		community = (char *)g_hash_table_lookup(handle->config, "community");
 		
-		/* Configure SNMP V3 session */
-		if (!strcmp(version, "3")) {
+		/* Configure snmp session */
+		if (!strcmp(version,"3")) { /* if snmp version 3*/
 			if (!user) {
-				dbg("Cannot find \"security_name\" configuration parameter.");
+				dbg("Cannot open snmp_bc. Need security_name configuration parameter.");
 				return NULL;
 			}
 			custom_handle->session.version = SNMP_VERSION_3;
@@ -115,9 +132,9 @@ void *snmp_bc_open(GHashTable *handler_config)
 			custom_handle->session.securityNameLen = strlen(user);
 			custom_handle->session.securityLevel = SNMP_SEC_LEVEL_NOAUTH;
 			
-			if (!strncmp(sec_level, "auth", 4)) { /* If using password */
+			if (!strncmp(sec_level,"auth",4)) { /* if using password */
 				if (!pass) {
-					dbg("Cannot find \"passphrase\" configuration parameter.");
+					dbg("Cannot open snmp_bc. Need passphrase configuration parameter.");
 					return NULL;
 				}
 				
@@ -128,12 +145,8 @@ void *snmp_bc_open(GHashTable *handler_config)
 				} else if (!strcmp(authtype,"SHA")) {
 					custom_handle->session.securityAuthProto = usmHMACSHA1AuthProtocol;
 					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_SHA_LEN;
-				} else {
-					dbg("Unrecognized authenication type=%s.", authtype); 
-					return NULL;
-				}
+				} else {dbg("Cannot open snmp_bc. Wrong auth_type."); return NULL;}
 				
-				/* FIXME:: What do snmp_perror and snmp_log buy us? Below as well */
 				custom_handle->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
 				if (generate_Ku(custom_handle->session.securityAuthProto,
 						custom_handle->session.securityAuthProtoLen,
@@ -143,11 +156,11 @@ void *snmp_bc_open(GHashTable *handler_config)
 					snmp_perror("snmp_bc");
 					snmp_log(LOG_ERR,
 						 "Error generating Ku from authentication passphrase.\n");
-					dbg("Unable to establish SNMP authnopriv session.");
+					dbg("Unable to establish snmp authnopriv session.");
 					return NULL;
 				}
 				
-				if (!strcmp(sec_level, "authPriv")) { /* if using encryption */
+				if (!strcmp(sec_level,"authPriv")) { /* if using encryption */
 					custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
 					custom_handle->session.securityPrivProto = usmDESPrivProtocol;
 					custom_handle->session.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
@@ -160,100 +173,83 @@ void *snmp_bc_open(GHashTable *handler_config)
 						snmp_perror("snmp_bc");
 						snmp_log(LOG_ERR,
 							 "Error generating Ku from private passphrase.\n");
-						dbg("Unable to establish SNMP authpriv session.");
+						dbg("Unable to establish snmp authpriv session.");
 						return NULL;
 					}
 					
 				}
 			}                                
-                /* Configure SNMP V1 session */
-		} else if (!strcmp(version, "1")) { 
+		} else if (!strcmp(version,"1")) { /* if using snmp version 1 */
 			if (!community) {
-				dbg("Cannot find \"community\" configuration parameter.");
+				dbg("Cannot open snmp_bc. Need community configuration parameter.");
 				return NULL;
 			}
 			custom_handle->session.version = SNMP_VERSION_1;
 			custom_handle->session.community = community;
 			custom_handle->session.community_len = strlen(community);
 		} else {
-			dbg("Unrecognized SNMP version=%s.", version);
+			dbg("Cannot open snmp_bc. Unrecognized version parameter %s",version);
 			return NULL;
 		}
                 
-		/* Windows32 specific net-snmp initialization (noop on unix) */
+		/* windows32 specific net-snmp initialization (is a noop on unix) */
 		SOCK_STARTUP;
 
 		custom_handle->ss = snmp_open(&(custom_handle->session));
 
-		if (!custom_handle->ss) {
+		if(!custom_handle->ss) {
 			snmp_perror("ack");
-			snmp_log(LOG_ERR, "Something horrible happened!!!\n");
-		 	dbg("Unable to open SNMP session.");
+			snmp_log(LOG_ERR, "something horrible happened!!!\n");
+			dbg("Unable to open snmp session.");
 			return NULL;
 		}
 	}
 
-	/* Determine platform type and daylight savings time */
+	/* Set BladeCenter Type */
 	{
-		const char *oid;
 		struct snmp_value get_value;
-		SaErrorT err;
 
-		err = snmp_get(custom_handle->ss, SNMP_BC_PLATFORM_OID_RSA, &get_value);
-		if (err == SA_OK) {
-			custom_handle->platform = SNMP_BC_PLATFORM_RSA;
-		}
-		else {
-			err = snmp_get(custom_handle->ss, SNMP_BC_PLATFORM_OID_BCT, &get_value);
-			if (err == SA_OK) {
-				custom_handle->platform = SNMP_BC_PLATFORM_BCT;
-			}
-			else {
-				if ((err == SA_ERR_SNMP_NOSUCHOBJECT) || (err == SA_ERR_SNMP_NOSUCHINSTANCE)) {
-					custom_handle->platform = SNMP_BC_PLATFORM_BC;
-				}
-				else {
-					dbg("Cannot read model type=%s; Error=%d.",
-					      SNMP_BC_PLATFORM_OID_BCT, err);
-					return NULL;
-				}
-			}
-		}
-
-		/* DST */
-		if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) { oid = SNMP_BC_DST_RSA; }
-		else { oid = SNMP_BC_DST; }
-
-		err = snmp_get(custom_handle->ss, oid, &get_value);
-		if (err == SA_OK) {
+		if (snmp_get(custom_handle->ss,SNMP_BC_TIME_DST,&get_value) == SA_OK) 
 			strcpy(custom_handle->handler_timezone, get_value.string);
-		}
-		else {
-			dbg("Cannot read DST=%s; Error=%d.", oid, get_value.type);
+		else { 
+		
+			dbg("SNMP could not read BC DST %s; Type=%d.\n", 
+			    SNMP_BC_TIME_DST, get_value.type);
 			return NULL;
 		}
+		
+		rc = snmp_get(custom_handle->ss, BC_TELCO_SYSTEM_HEALTH_STAT_OID, &get_value); 
+		if (rc == SA_OK) {
+			strcpy(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT);
+		} else if (( rc == SA_ERR_SNMP_NOSUCHOBJECT) || (rc == SA_ERR_SNMP_NOSUCHINSTANCE)) { 
+			strcpy(custom_handle->bc_type, SNMP_BC_PLATFORM_BC);
+		} else {		 
+
+			dbg("SNMP could not read %s; Type=%d.\n", 
+			    SNMP_BC_BLADECENTER_TYPE, get_value.type);
+			return NULL;
+		}
+
 	}
 
-	if (is_simulator) {
+	if (is_simulator) 
 		sim_banner(custom_handle);
-	}
 	
+
         return handle;
 }
 
 /**
- * snmp_bc_close: 
- * @hnd: Pointer to handler structure.
- * 
- * Close an SNMP BladeCenter/RSA plugin handler instance.
- *
- * Returns:
- * Void
+ * snmp_bc_close: shut down plugin connection
+ * @hnd: a pointer to the snmp_bc_hnd struct that contains
+ * a pointer to the snmp session and another to the configuration
+ * data.
  **/
+
 void snmp_bc_close(void *hnd)
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        oh_el_close(handle->elcache);
+        oh_sel_close(handle->selcache);
 
 	if (is_simulator()) {
 		sim_close();
@@ -261,9 +257,9 @@ void snmp_bc_close(void *hnd)
 	else {
 		struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-		/* FIXME:: Should we free handle->config - same question on A.1.1 code? */
+		/* Should we free handle->config? */
+		/* windows32 specific net-snmp cleanup (is a noop on unix) */
 		snmp_close(custom_handle->ss);
-		/* Windows32 specific net-snmp cleanup (noop on unix) */
 		SOCK_CLEANUP;
 	}
 
@@ -271,9 +267,8 @@ void snmp_bc_close(void *hnd)
 	event2hpi_hash_free(handle);
 
 	/* Cleanup str2event hash table */
-	/* FIXME:: Add RSA free here */
-	bc_xml2event_hash_use_count--;
-	if (bc_xml2event_hash_use_count == 0) {
-		xml2event_hash_free(&bc_xml2event_hash);
-	}
+	str2event_use_count--;
+	if (str2event_use_count == 0) 
+		str2event_hash_free();
+
 }

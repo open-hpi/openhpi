@@ -11,13 +11,13 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
+ *
  */
 
 #include <string.h>
 #include <stdio.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
 
 /**
  * set_ep_instance test7.
@@ -29,31 +29,31 @@
 int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep = {{{SAHPI_ENT_INTERCONNECT, 1515},
-                                {SAHPI_ENT_PHYSICAL_SLOT, 2525},
+                                {SAHPI_ENT_SYSTEM_SLOT, 2525},
                                 {SAHPI_ENT_SUBRACK, 3535},
                                 {SAHPI_ENT_IO_SUBBOARD, 4545},
                                 {0}}};
-        SaHpiEntityLocationT x = 98765;
+        SaHpiEntityInstanceT x = 98765;
         int mydebug = 0;
          
         if (mydebug) printf(" test7\n");
-        if(set_ep_instance(&ep, SAHPI_ENT_PHYSICAL_SLOT, x)) {
+        if(set_ep_instance(&ep, SAHPI_ENT_SYSTEM_SLOT, x)) {
                 if (mydebug) printf("set_ep_inst test7 checkpoint 1 failed\n");
                 return 1;
         }
-        if (ep.Entry[1].EntityLocation != x) {
+        if (ep.Entry[1].EntityInstance != x) {
                 if (mydebug) printf("set_ep_inst test7 failed, entInst %d != %d\n",
-                                   ep.Entry[1].EntityLocation, x);
+                                   ep.Entry[1].EntityInstance, x);
                 return 1;
         }
-        if (ep.Entry[1].EntityType != SAHPI_ENT_PHYSICAL_SLOT) {
-                if (mydebug) printf("set_ep_inst test7 failed, entType %d != SAHPI_ENT_PHYSICAL_SLOT\n",
+        if (ep.Entry[1].EntityType != SAHPI_ENT_SYSTEM_SLOT) {
+                if (mydebug) printf("set_ep_inst test7 failed, entType %d != SAHPI_ENT_SYSTEM_SLOT\n",
                                    ep.Entry[1].EntityType);
                 return 1;
         }
-        if (ep.Entry[0].EntityLocation != 1515) {
+        if (ep.Entry[0].EntityInstance != 1515) {
                 if (mydebug) printf("set_ep_inst test7 failed, entInst %d != 1515\n",
-                                   ep.Entry[0].EntityLocation);
+                                   ep.Entry[0].EntityInstance);
                 return 1;
         }
         if (ep.Entry[0].EntityType != SAHPI_ENT_INTERCONNECT) {
@@ -61,9 +61,9 @@ int main(int argc, char **argv)
                                    ep.Entry[0].EntityType);
                 return 1;
         }
-        if (ep.Entry[2].EntityLocation != 3535) {
+        if (ep.Entry[2].EntityInstance != 3535) {
                 if (mydebug) printf("set_ep_inst test7 failed, entInst %d != 3535\n",
-                                   ep.Entry[2].EntityLocation);
+                                   ep.Entry[2].EntityInstance);
                 return 1;
         }
         if (ep.Entry[2].EntityType != SAHPI_ENT_SUBRACK) {
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
                                    ep.Entry[2].EntityType);
                 return 1;
         }
-        if (ep.Entry[3].EntityLocation != 4545) {
+        if (ep.Entry[3].EntityInstance != 4545) {
                 if (mydebug) printf("set_ep_inst test7 failed, entInst %d != 4545\n",
-                                   ep.Entry[3].EntityLocation);
+                                   ep.Entry[3].EntityInstance);
                 return 1;
         }
         if (ep.Entry[3].EntityType != SAHPI_ENT_IO_SUBBOARD) {

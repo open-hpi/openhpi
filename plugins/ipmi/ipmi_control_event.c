@@ -15,7 +15,8 @@
  */
 
 #include "ipmi.h"
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
 #include <string.h>
 
 //static void add_control_event_data_format(ipmi_control_t	*control,
@@ -57,7 +58,7 @@ static void add_control_event_control_rec(ipmi_control_t	*control,
         rec->OutputType = _control_type_from_ipmi_to_hpi(control_type);
         rec->Type       = SAHPI_CTRL_TYPE_OEM; 
 		
-	//rec->Ignore     = (SaHpiBoolT)ipmi_control_get_ignore_if_no_entity(control);
+	rec->Ignore     = (SaHpiBoolT)ipmi_control_get_ignore_if_no_entity(control);
 
 	//add_control_event_data_format(control, rec);
 
@@ -77,9 +78,9 @@ static void add_control_event_rdr(ipmi_control_t		*control,
 	rdr->RecordId = 0;
 	rdr->RdrType = SAHPI_CTRL_RDR;
 	//rdr->Entity.Entry[0].EntityType = (SaHpiEntityTypeT)id;
-	//rdr->Entity.Entry[0].EntityLocation = (SaHpiEntityLocationT)instance;
+	//rdr->Entity.Entry[0].EntityInstance = (SaHpiEntityInstanceT)instance;
 	//rdr->Entity.Entry[1].EntityType = 0;
-	//rdr->Entity.Entry[1].EntityLocation = 0;
+	//rdr->Entity.Entry[1].EntityInstance = 0;
 	rdr->Entity = parent_ep;
 
 	/* append ep */

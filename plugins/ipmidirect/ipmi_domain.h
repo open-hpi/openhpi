@@ -32,7 +32,8 @@ extern "C" {
 }
 
 #include <openhpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
 
 
 #ifndef dIpmiCon_h
@@ -93,7 +94,7 @@ public:
   unsigned int m_con_atca_timeout;
 
   unsigned int m_max_outstanding; // 0 => use default
-
+  bool         m_atca_poll_alive_mcs;
 protected:
   // ipmi connection
   cIpmiCon     *m_con;

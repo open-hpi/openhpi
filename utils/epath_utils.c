@@ -47,7 +47,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include <oh_utils.h>
+#include <oh_error.h>
+#include <epath_utils.h>
 
 static unsigned int index2entitytype(unsigned int i);
 static int entitytype2index(unsigned int i);
@@ -102,10 +103,7 @@ static gchar *eshort_names[] = {
 	"SUBRACK",
 	"COMPACTPCI_CHASSIS",
 	"ADVANCEDTCA_CHASSIS",
-	"RACK_MOUNTED_SERVER",
-        "SYSTEM_BLADE",
-        "SWITCH",
-        "SWITCH_BLADE",
+	"SYSTEM_SLOT",
 	"SBC_BLADE",
 	"IO_BLADE",
 	"DISK_BLADE",
@@ -116,10 +114,8 @@ static gchar *eshort_names[] = {
 	"IO_SUBBOARD",
 	"SBC_SUBBOARD",
 	"ALARM_MANAGER",
-	"SHELF_MANAGER",
-       	"DISPLAY_PANEL",
+	"ALARM_MANAGER_BLADE",
 	"SUBBOARD_CARRIER_BLADE",
-        "PHYSICAL_SLOT"
 };
 
 static unsigned int eshort_num_names = sizeof( eshort_names ) / sizeof( gchar * );
@@ -191,7 +187,6 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		rtncode = -1;
 		goto CLEANUP;
 	}
-
 	epathdefs = g_strsplit(gstr, EPATHSTRING_END_DELIMITER, -1);
 	if (epathdefs == NULL) {
 		dbg("Could not split entity path string.");
@@ -226,7 +221,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 			goto CLEANUP;
                 }
 
-		for (match=0, j=0; j < eshort_num_names; j++) {
+		for (match=0, j=0; j < ESHORTNAMES_ARRAY_SIZE + 1; j++) {
 			if (!strcmp(eshort_names[j], etype)) {
 				match = 1;
 				break;
@@ -262,7 +257,7 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
                         else
                                 entityptr->EntityType = index2entitytype(j);
 
-			entityptr->EntityLocation = instance;
+			entityptr->EntityInstance = instance;
 			epath_list = g_slist_prepend(epath_list, (gpointer)entityptr);
 		}
 
@@ -277,8 +272,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
                 if (i < SAHPI_MAX_ENTITY_PATH) {
                         epathptr->Entry[i].EntityType = 
                                 ((SaHpiEntityT *)(lst->data))->EntityType;
-                        epathptr->Entry[i].EntityLocation = 
-                                ((SaHpiEntityT *)(lst->data))->EntityLocation;
+                        epathptr->Entry[i].EntityInstance = 
+                                ((SaHpiEntityT *)(lst->data))->EntityInstance;
                 }
                 epath_list = g_slist_remove_link(epath_list,lst);
                 g_free(lst->data);
@@ -335,7 +330,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 return -2;
         }*/
 
-	instance_str = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
+	instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
 	tmpstr = (gchar *)g_malloc0(strsize);
 	if (instance_str == NULL || tmpstr == NULL) { 
 		dbg("Out of memory"); 
@@ -357,17 +352,17 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 guint num_digits, work_instance_num;
                 
 		/* Validate and convert data */
-                work_instance_num = epathptr->Entry[i].EntityLocation;
+                work_instance_num = epathptr->Entry[i].EntityInstance;
                 for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
 		
-		if (num_digits > OH_MAX_LOCATION_DIGITS) { 
+		if (num_digits > MAX_INSTANCE_DIGITS) { 
                         dbg("Instance value too big");
                         rtncode = -1; 
 			goto CLEANUP;
 		}
-                memset(instance_str, 0, OH_MAX_LOCATION_DIGITS + 1);
-                err = snprintf(instance_str, OH_MAX_LOCATION_DIGITS + 1,
-                               "%d", epathptr->Entry[i].EntityLocation);
+                memset(instance_str, 0, MAX_INSTANCE_DIGITS + 1);
+                err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
+                               "%d", epathptr->Entry[i].EntityInstance);
 
                 /* Find string for current entity type */
                 tidx = entitytype2index(epathptr->Entry[i].EntityType);
@@ -429,7 +424,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
          
          for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                  ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
-                 ep->Entry[i].EntityLocation = 0;
+                 ep->Entry[i].EntityInstance = 0;
          }
  }
 
@@ -459,7 +454,7 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
         }
 
         for (j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {                
-                dest->Entry[i].EntityLocation = append->Entry[j].EntityLocation;
+                dest->Entry[i].EntityInstance = append->Entry[j].EntityInstance;
                 dest->Entry[i].EntityType = append->Entry[j].EntityType;
                 if (append->Entry[j].EntityType == SAHPI_ENT_ROOT) break;
                 j++;
@@ -504,7 +499,7 @@ int validate_ep(const SaHpiEntityPathT *ep)
  *
  * Returns: 0 on Success, -1 if the entity type was not found.
  **/
-int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityLocationT ei)
+int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
 {
         int i;
         int retval = -1;
@@ -513,7 +508,7 @@ int set_ep_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityLocati
 
         for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                 if (ep->Entry[i].EntityType == et) {
-                        ep->Entry[i].EntityLocation = ei;
+                        ep->Entry[i].EntityInstance = ei;
                         retval = 0;
                         break;                        
                 } else if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
@@ -565,12 +560,12 @@ int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
 
         for ( i = 0; i < j; i++ ) {
                 if (ep1->Entry[i].EntityType != ep2->Entry[i].EntityType ||
-                    ep1->Entry[i].EntityLocation != ep2->Entry[i].EntityLocation) {
+                    ep1->Entry[i].EntityInstance != ep2->Entry[i].EntityInstance) {
                         /* dbg("Entity element %d: EP1 {%d,%d} != EP2 {%d,%d}", i, 
                             ep1->Entry[i].EntityType,
-                            ep1->Entry[i].EntityLocation,
+                            ep1->Entry[i].EntityInstance,
                             ep2->Entry[i].EntityType,
-                            ep2->Entry[i].EntityLocation); */
+                            ep2->Entry[i].EntityInstance); */
                         return -1;
                 }
         }

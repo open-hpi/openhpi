@@ -1,4 +1,4 @@
-/* -*- linux-c -*-
+                                            /* -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2004
  *
@@ -11,17 +11,17 @@
  *
  * Authors:
  *     Chris Chia <cchia@users.sf.net>
+ *
  */
 
 #include <string.h>
 #include <stdio.h>
-
 #include <SaHpi.h>
-#include <oh_utils.h>
+#include <epath_utils.h>
 
 /**
  * print_ep test4
- *          call print_ep with multi-element entity path and expect inspect result
+ *          call print_ep with multi element entity path and expect inspect result
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv)
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
                                 {SAHPI_ENT_DEVICE_BAY,7},
                                 {SAHPI_ENT_SYSTEM_BUS,6},
                                 {SAHPI_ENT_SBC_BLADE,5},
-                                {SAHPI_ENT_PHYSICAL_SLOT,4},
+                                {SAHPI_ENT_SYSTEM_SLOT,4},
                                 {SAHPI_ENT_COMPACTPCI_CHASSIS,3},
                                 {SAHPI_ENT_SUBRACK,2},
                                 {SAHPI_ENT_RACK,1},

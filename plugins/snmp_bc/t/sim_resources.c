@@ -18,7 +18,7 @@
  *************************************************************************/
 
 #include <glib.h>
-#include <snmp_utils.h>
+#include <snmp_util.h>
 #include <sim_resources.h>
 
 struct snmp_bc_data sim_resource_array[] = {
@@ -29,21 +29,6 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_OCTET_STR,
                         .value = {
                                 .string = "12/25/2003,06:30:00",
-                        },
-                },
-        },
-        {
-                /* RSA DST
-                 *
-                 * This OID is used to determine if the system is a RSA or not
-                 * If integer == SA_ERR_SNMP_NOSUCHOBJECT, platform is not an RSA.
-                 * If SA_ERR_SNMP_NOSUCHOBJECT, platform determine by OID below.
-                 */
-                .oid = ".1.3.6.1.4.1.2.3.51.1.4.4.2.0",
-                .mib = {
-                        .type = ASN_INTEGER,
-                        .value = {
-                                .integer = SA_ERR_SNMP_NOSUCHOBJECT,
                         },
                 },
         },

@@ -1,6 +1,7 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ *
+ * (C) Copyright IBM Corp. 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,7 @@
  *
  * Authors:
  *      David Judkovics <djudkovi@us.ibm.com>
+ *
  */
  
 /* used for defining and externing the arrays that hold oids */
@@ -19,11 +21,16 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-#include <oh_utils.h>
-#include <snmp_utils.h>
+#include <epath_utils.h>
+#include <rpt_utils.h>
+#include <snmp_util.h>
+
 #include <snmp_client.h>
 #include <snmp_client_res.h>
+
 #include <snmp_client_utils.h>
+#include <oh_utils.h>
+
 #include <sc_sensor_data.h>
 
 #include <string.h>
@@ -456,21 +463,10 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 				   anOID, 
 				   SA_HPI_SEN_READING_MAX_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 				   &get_value);
-		if ( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {
-			SaHpiTextBufferT buffer;
-			SaHpiEventCategoryT cat;
-			
-			oh_init_textbuffer(&buffer);
-			oh_append_textbuffer(&buffer, get_value.string);
-			oh_encode_eventstate(&buffer,
-					     &data->EventStatus.EventStatus,
-					     &cat);
-#if 0
+		if ( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) ) 
 			build_state_value(get_value.string,
 					  get_value.str_len,
 					  &data->EventStatus.EventStatus);
-#endif
-		}
 		else
 			dbg("snmp_client_get_sensor_data: error getting SENSOR_EVENT_STATUS ");
 	}
@@ -775,21 +771,10 @@ static int snmp_client_get_sensor_event_enables(void *hnd,
 			    anOID, 
 			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
-	if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {
-		SaHpiTextBufferT buffer;
-		SaHpiEventCategoryT cat;
-		
-		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, get_value.string);
-		oh_encode_eventstate(&buffer,
-				     &enables->AssertEvents,
-				     &cat);
-#if 0
+	if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) )
 		build_state_value(get_value.string, 
 				  get_value.str_len, 
 				  &enables->AssertEvents);
-#endif
-	}
 	else
 		dbg("snmp_client_get_sensor_data: error getting ASSERTEVENTS ");
 
@@ -804,21 +789,10 @@ static int snmp_client_get_sensor_event_enables(void *hnd,
 			    anOID, 
 			    SA_HPI_SEN_ENTRY_TABLE_VARIABLE_FULL_OID_LENGTH,
 			    &get_value);
-	if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {
-		SaHpiTextBufferT buffer;
-		SaHpiEventCategoryT cat;
-		
-		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, get_value.string);
-		oh_encode_eventstate(&buffer,
-				     &enables->DeassertEvents,
-				     &cat);
-#if 0
+	if( (status == SA_OK) && (get_value.type == ASN_OCTET_STR) )
 		build_state_value(get_value.string, 
 				  get_value.str_len,
 				  &enables->DeassertEvents);
-#endif
-	}
 	else
 		dbg("snmp_client_get_sensor_data: error getting DEASSERTEVENTS ");
 
@@ -883,23 +857,14 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
 
 	/* ASSERTEVENTS */
 	if (status == SA_OK) {
-		SaHpiTextBufferT buffer;
 		memset(&set_value, 0, sizeof(set_value));
 		set_value.type = ASN_OCTET_STR;			  
 		set_value.str_len = strlen(set_value.string);
-
-		oh_decode_eventstate(enables->AssertEvents,
-				     rdr->RdrTypeUnion.SensorRec.Category,
-				     &buffer);
-		strcpy(set_value.string, buffer.Data);
-		set_value.str_len = buffer.DataLength;
-#if 0
 		build_state_string(rdr->RdrTypeUnion.SensorRec.Category,
 				    enables->AssertEvents,
 				    set_value.string, 
 				    &set_value.str_len, 			
 				    MAX_ASN_STR_LEN);
-#endif
 		
 		build_res_oid(anOID, 
 			      sa_hpi_sen_assert_evts, 
@@ -914,24 +879,14 @@ static int snmp_client_set_sensor_event_enables(void *hnd,
 	}
 	/* DEASSERTEVENTS */
 	if (status == SA_OK) {
-		SaHpiTextBufferT buffer;
 		memset(&set_value, 0, sizeof(set_value));
 		set_value.type = ASN_OCTET_STR;
 		set_value.str_len = strlen(set_value.string);
-
-		oh_decode_eventstate(enables->DeassertEvents,
-				     rdr->RdrTypeUnion.SensorRec.Category,
-				     &buffer);
-		strcpy(set_value.string, buffer.Data);
-		set_value.str_len = buffer.DataLength;
-
-#if 0
 		build_state_string(rdr->RdrTypeUnion.SensorRec.Category,
 				    enables->DeassertEvents,
 				    set_value.string, 
 				    &set_value.str_len, 			
 				    MAX_ASN_STR_LEN);
-#endif
 
 		build_res_oid(anOID, 
 			      sa_hpi_sen_deassert_evts, 

@@ -14,7 +14,8 @@
  */
 
 #include "ipmi.h"
-#include <oh_utils.h>
+#include <epath_utils.h>
+#include <uid_utils.h>
 #include <string.h>
 
 static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
@@ -24,7 +25,6 @@ static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
 	while (rdr) {
 		if(rdr->RdrType == SAHPI_SENSOR_RDR) {
-#if 0
 			if (present) {
 				dbg("present");
 				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_FALSE;
@@ -32,7 +32,6 @@ static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 				dbg("not present");
 				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_TRUE;
 			}
-#endif
 		}
 		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
 	}
@@ -123,10 +122,15 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->ResourceInfo.AuxFirmwareRev = 0;
 	entry->ResourceEntity.Entry[0].EntityType 
                 = ipmi_entity_get_entity_id(entity);
-	entry->ResourceEntity.Entry[0].EntityLocation 
+	entry->ResourceEntity.Entry[0].EntityInstance 
                 = ipmi_entity_get_entity_instance(entity);
+	/* AdvancedTCA fixe-up */
+	if (ipmi_entity_get_entity_instance(entity) >= 96)
+			entry->ResourceEntity.Entry[0].EntityInstance -= 96;
+	
 	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-	entry->ResourceEntity.Entry[1].EntityLocation = 0;
+	//entry->ResourceEntity.Entry[1].EntityInstance = 0;
+	entry->ResourceEntity.Entry[1].EntityInstance = ipmi_entity_get_slave_address(entity);
 	
 	/* let's append entity_root from config */
 
@@ -149,9 +153,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	}
 				
 	entry->ResourceSeverity = SAHPI_OK;
-#if 0
 	entry->DomainId = 0;
-#endif
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
@@ -162,14 +164,14 @@ static void get_entity_event(ipmi_entity_t	*entity,
 			char *str;
 			str = ipmi_entity_get_entity_id_string(entity);
 			memcpy(entry->ResourceTag.Data, str, strlen(str) + 1);
-	}
+	} 
 }
 
 static void add_entity_event(ipmi_entity_t	        *entity,
 			     struct oh_handler_state    *handler)
 {
 		struct ohoi_resource_info *ohoi_res_info;
-		SaHpiRptEntryT	entry;
+		SaHpiRptEntryT	entry /*, *old_entry */;
 		int 		rv;
 
 		dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
@@ -238,6 +240,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        void                     *cb_data)
 {
 		struct oh_handler_state *handler = cb_data;
+		int rv;
 
 		if (op == IPMI_ADDED) {
 				add_entity_event(entity, handler);
@@ -262,7 +265,16 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 								ipmi_entity_get_entity_id(entity), 
 								ipmi_entity_get_entity_instance(entity));
 		} else {
-				dbg("Entity: Unknow change?!");
+				dbg("Entity: Unknown change?!");
 		}
+
+		/* inventory (a.k.a FRU) */
+
+		rv = ipmi_entity_set_fru_update_handler(entity, ohoi_inventory_event, handler);
+
+		if (rv) {
+                dbg("ipmi_entity_set_fru_update_handler: %#x", rv);
+                return;
+        }
 
 }

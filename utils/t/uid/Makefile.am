@@ -10,9 +10,7 @@
 
 REMOTE_SOURCES		= uid_utils.c epath_utils.c
 
-MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
-	                  $(REMOTE_SOURCES) \
-			  uid_map
+MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
@@ -23,7 +21,6 @@ $(REMOTE_SOURCES):
 		ln -s ../../$@; \
 	fi
 
-TESTS_ENVIRONMENT = OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS = uid_utils_000 \
 	uid_utils_001 \
 	uid_utils_002 \

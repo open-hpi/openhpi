@@ -10,145 +10,56 @@
  * full licensing terms.
  *
  * Author(s):
- *	Peter Phan  <pdphan@sourceforge.net>
+ *	peter d phan  <pdphan@sourceforge.net>
  *      Renier Morales <renierm@users.sf.net>
+ *
+ *	02/16/2004 pdphan Split from snmp_bc.h for ease of test
+ *
  */
 
-#ifndef __SNMP_BC_INVENTORY_H
-#define __SNMP_BC_INVENTORY_H
+#ifndef SNMP_BC_INVENTORY_H
+#define SNMP_BC_INVENTORY_H
 
 #include <snmp_bc.h>
 
-#define NOS_BC_INVENTORY_FIELDS 10
-
-/************************************************************************/
-/* Resource one inventory data   					*/
-/************************************************************************/
-struct  bc_idr_area {
-        SaHpiIdrAreaHeaderT  idrareas;
-        SaHpiIdrFieldT  field[NOS_BC_INVENTORY_FIELDS];
-};
-
-struct bc_inventory_record {
-        SaHpiIdrInfoT   idrinfo;
-        struct bc_idr_area area[2];
+struct snmp_bc_inventory_data {
+        SaHpiInventDataValidityT Validity;
+        SaHpiInventDataRecordT   *DataRecords[2];
+        SaHpiInventDataRecordT   DataRecord;
+        SaHpiTextBufferT         TextBuffers[0];
 };
 
 /* 
  * Functions prototype
  */
 
-/**
- * snmp_bc_get_idr_info:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_get_idr_info( void *hnd,  
-		SaHpiResourceIdT        ResourceId,
-		SaHpiIdrIdT             IdrId,
-		SaHpiIdrInfoT          *IdrInfo);
+SaErrorT get_inventory_data(	void *hnd, SaHpiRdrT *rdr,
+				struct BC_InventoryInfo *s,
+				struct snmp_bc_inventory_data *l_data,
+				SaHpiInventGeneralDataT *working,
+				SaHpiUint32T  *vpdrecordlength);
 
-/**
- * snmp_bc_get_idr_area_header:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_get_idr_area_header( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrAreaTypeT        AreaType,
-		SaHpiEntryIdT            AreaId,
-		SaHpiEntryIdT           *NextAreaId,
-		SaHpiIdrAreaHeaderT     *Header);
+SaErrorT snmp_bc_get_inventory_info(void *hnd,
+				    SaHpiResourceIdT id,
+				    SaHpiEirIdT num,
+				    SaHpiInventoryDataT *data);
 
-/**
- * snmp_bc_add_idr_area:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_add_idr_area( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrAreaTypeT        AreaType,
-		SaHpiEntryIdT           *AreaId);
 
-/**
- * snmp_bc_del_idr_area:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_del_idr_area( void *hnd,
-		SaHpiResourceIdT       ResourceId,
-		SaHpiIdrIdT            IdrId,
-		SaHpiEntryIdT          AreaId);
+SaErrorT snmp_bc_get_inventory_size(void *hnd, SaHpiResourceIdT id,
+				    SaHpiEirIdT num,
+				    SaHpiUint32T *size);
 
-/**
- * snmp_bc_get_idr_field:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_get_idr_field( void *hnd,
-		SaHpiResourceIdT       ResourceId,
-		SaHpiIdrIdT             IdrId,
-		SaHpiEntryIdT           AreaId,
-		SaHpiIdrFieldTypeT      FieldType,
-		SaHpiEntryIdT           FieldId,
-		SaHpiEntryIdT          *NextFieldId,
-		SaHpiIdrFieldT         *Field);
+SaErrorT snmp_bc_set_inventory_info(void *hnd, SaHpiResourceIdT id,
+				    SaHpiEirIdT num,
+				    const SaHpiInventoryDataT *data);
 
-/**
- * snmp_bc_add_idr_field:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_add_idr_field( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrFieldT        	*Field);
+/*
+SaErrorT find_inventories(	struct snmp_bc_hnd *custom_handle,
+				struct snmp_bc_inventory * rdr_array,
+				struct oh_event *e,
+				GSList *tmpqueue,
+				RPTable *tmpcache);
 
-/**
- * snmp_bc_set_idr_field:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_set_idr_field( void *hnd,
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiIdrFieldT           *Field);
+*/
 
-/**
- * snmp_bc_del_idr_field:
- * @hnd:
- * @event:
- * @timeout:
- *
- * Return value:
- **/
-SaErrorT snmp_bc_del_idr_field( void *hnd, 
-		SaHpiResourceIdT         ResourceId,
-		SaHpiIdrIdT              IdrId,
-		SaHpiEntryIdT            AreaId,
-		SaHpiEntryIdT            FieldId);
-	
 #endif

@@ -13,8 +13,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef __SNMP_BC_HOTSWAP_H
-#define __SNMP_BC_HOTSWAP_H
+#ifndef SNMP_BC_HOTSWAP_H
+#define SNMP_BC_HOTSWAP_H
 
 SaErrorT snmp_bc_get_hotswap_state(void *hnd,
 				   SaHpiResourceIdT id,
@@ -38,11 +38,11 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 
 SaErrorT snmp_bc_get_power_state(void *hnd,
 				 SaHpiResourceIdT id,
-				 SaHpiPowerStateT *state);
+				 SaHpiHsPowerStateT *state);
 
 SaErrorT snmp_bc_set_power_state(void *hnd,
 				 SaHpiResourceIdT id,
-				 SaHpiPowerStateT state);
+				 SaHpiHsPowerStateT state);
 
 SaErrorT snmp_bc_get_indicator_state(void *hnd,
 				     SaHpiResourceIdT id,
