@@ -20,10 +20,21 @@
 #include <SaHpi.h>
 #include <oh_event.h>
 
-SaErrorT oh_detect_event_alarm(struct oh_event *e);
-SaErrorT oh_detect_resource_alarm(SaHpiRptEntryT *res);
-SaErrorT oh_detect_sensor_alarm(SaHpiRdrT *rdr, SaHpiBoolT enable);
-SaErrorT oh_detect_sensor_mask_alarm(SaHpiRdrT *rdr, SaHpiEventStateT state);
+struct oh_dat {
+        SaHpiAlarmIdT next_id;
+        GList *list;        
+};
+
+SaErrorT oh_detect_event_alarm(SaHpiDomainIdT did, struct oh_event *e);
+SaErrorT oh_detect_res_sev_alarm(SaHpiDomainIdT did,
+                                 SaHpiRptEntryT *res,
+                                 SaHpiSeverityT sev);
+SaErrorT oh_detect_sensor_alarm(SaHpiDomainIdT did,
+                                SaHpiRdrT *rdr,
+                                SaHpiBoolT enable);
+SaErrorT oh_detect_sensor_mask_alarm(SaHpiDomainIdT did,
+                                     SaHpiRdrT *rdr,
+                                     SaHpiEventStateT state);
 
 #endif /* __OH_ALARM_H */
 
