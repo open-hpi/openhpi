@@ -15,8 +15,10 @@
  *
  */
 
-#include <snmp_util.h>
 #include <string.h>
+
+#include <openhpi.h> /* Replace with new error.h */
+#include <snmp_util.h>
 
 /**
  * snmp_get
