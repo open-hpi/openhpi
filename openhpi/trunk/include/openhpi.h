@@ -119,7 +119,10 @@ enum oh_sel_state {
  */
 struct oh_domain {
 	SaHpiDomainIdT domain_id;
+
+	/* System Event Log */
 	enum oh_sel_state sel_state;
+	int sel_counter;
 	GSList *sel;
 };
 
@@ -345,6 +348,7 @@ SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
 SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry);
+void dsel_add2(struct oh_domain *d, struct oh_event *e);
 void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
 void dsel_clr(SaHpiDomainIdT domain_id);
 
@@ -377,4 +381,7 @@ static inline void gettimeofday1(SaHpiTimeT *t)
 
 #define g_slist_for_each(pos, head) \
 	for (pos = head; pos != NULL; pos = g_slist_next(pos))
+
+#define g_slist_for_each_safe(pos, pos1, head) \
+	for (pos = head, pos1 = g_slist_next(pos); pos; pos = pos1, pos1 = g_slist_next(pos1))
 #endif/*__OPENHPI_H*/

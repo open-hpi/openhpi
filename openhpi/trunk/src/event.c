@@ -38,9 +38,16 @@ static void process_session_event(struct oh_event *e)
 
 	g_slist_for_each(i, res->domain_list) {
 		SaHpiDomainIdT domain_id;
+		struct oh_domain *d;
 		GSList *j;
 
 		domain_id = GPOINTER_TO_UINT(i->data);
+		d = get_domain_by_id(domain_id);
+		if (d) 
+			dsel_add2(d, e);
+		else 
+			dbg("Invalid domain");
+
 		g_slist_for_each(j, global_session_list) {
 			struct oh_session *s = j->data;
 			if (domain_id == s->domain_id
