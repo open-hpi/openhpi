@@ -1323,6 +1323,32 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int sp
 	return(err);
 }
 
+/* FIXME:: Add support for this - its just a link stub now */
+SaErrorT oh_fprint_event(FILE *stream, const SaHpiEventT *event) 
+{
+	
+	printf("Need to implment oh_fprint_event\n");
+#if 0
+	int err;
+	oh_big_textbuffer buffer;
+	
+	if (!stream || !event) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+	
+	oh_init_bigtext(&buffer);
+	
+	/* Add switch statement and oh_build_xxxevent routines */
+	err = oh_build_xxxxevent(&buffer, textbuffer, 0);
+	if (err) { return(err); }
+
+	err = oh_fprint_bigtext(stream, &buffer);
+	if (err) { return(err); }
+#endif
+
+	return(SA_OK);
+}
+
 
 #if 0
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT text_buffer) {
