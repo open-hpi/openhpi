@@ -12,17 +12,17 @@ bin_PROGRAMS = \
         hpiinv \
 	hpiel \
 	hpisensor \
+        hpipower \
 	hpitree
 
 #bin_PROGRAMS           = hpialarmpanel \
 #                          hpithres \
 #                          hpifan \
 #                         hpifru \
-#                          hpireset \
+#		        hpireset \
 #                         hpireset2 \
 #                          hpisettime \
 #                          hpiwdt \
-#                          hpipower \
 #                         hpipower2 \
 #                         hpievent
 
@@ -76,9 +76,9 @@ hpigetevents_SOURCES      = hpigetevents.c
 hpigetevents_LDADD        = $(COMMONLIBS)
 hpigetevents_LDFLAGS      =
 
-#hpipower_SOURCES      = hpipower.c
-#hpipower_LDADD        = $(COMMONLIBS)
-#hpipower_LDFLAGS      =
+hpipower_SOURCES      = hpipower.c
+hpipower_LDADD        = $(COMMONLIBS)
+hpipower_LDFLAGS      =
 
 #hpipower2_SOURCES      = hpipower2.c
 #hpipower2_LDADD        = $(COMMONLIBS)

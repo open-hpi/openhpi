@@ -15,6 +15,7 @@
 
 #include <snmp_bc_plugin.h>
 
+#if 0
 SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiHsStateT *state)
 {
@@ -73,6 +74,7 @@ SaErrorT snmp_bc_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
         return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
+#endif
 SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiResetActionT *act)
 {
@@ -80,7 +82,7 @@ SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
         struct BC_ResourceInfo *s =
                 (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 	if(s->mib.OidReset == NULL) { 
 		return SA_ERR_HPI_INVALID_CMD;
@@ -107,7 +109,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
         struct BC_ResourceInfo *s =
                 (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 	if(s->mib.OidReset == NULL) { 
 		return SA_ERR_HPI_INVALID_CMD;
@@ -122,7 +124,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidReset);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.OidReset);
-			return -1;
+			return SA_ERR_HPI_INVALID_CMD;
 		}
 		
 		set_value.type = ASN_INTEGER;
@@ -163,7 +165,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
          struct BC_ResourceInfo *s =
                 (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 	if(s->mib.OidPowerState == NULL) { 
 		return SA_ERR_HPI_INVALID_CMD;
@@ -172,7 +174,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 	oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidPowerState);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerState);
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 
@@ -180,14 +182,14 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
 		switch (get_value.integer) {
 		case 0:
-			*state = SAHPI_HS_POWER_OFF;
+			*state = SAHPI_POWER_OFF;
 			break;
 		case 1:
-			*state = SAHPI_HS_POWER_ON;
+			*state = SAHPI_POWER_ON;
 			break;
 		default:
 			dbg("Invalid power state read for oid=%s\n",oid);
-			rtn_code = -1;
+			rtn_code = SA_ERR_HPI_INTERNAL_ERROR;
 		}
         } else {
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
@@ -216,7 +218,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
         struct BC_ResourceInfo *s =
                 (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	}
 	if(s->mib.OidPowerOnOff == NULL) { 
 		return SA_ERR_HPI_INVALID_CMD; 
@@ -225,13 +227,13 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 	oid = snmp_derive_objid(res->ResourceEntity, s->mib.OidPowerOnOff);
 	if(oid == NULL) {
 		dbg("NULL SNMP OID returned for %s\n",s->mib.OidPowerOnOff);
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	set_value.type = ASN_INTEGER;
 	set_value.str_len = 1;
 	switch (state) {
-	case SAHPI_HS_POWER_OFF:
+	case SAHPI_POWER_OFF:
 		set_value.integer = 0;
 		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (status != SA_OK) {
@@ -241,7 +243,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 		}
 		break;
 		
-	case SAHPI_HS_POWER_ON:
+	case SAHPI_POWER_ON:
 		set_value.integer = 1;
 		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (status != SA_OK) {
@@ -251,7 +253,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 		}
 		break;
 		
-	case SAHPI_HS_POWER_CYCLE:
+	case SAHPI_POWER_CYCLE:
 	        {
 			SaHpiResetActionT act = SAHPI_COLD_RESET;
 			rtn_code=snmp_bc_set_reset_state(hnd, id, act);

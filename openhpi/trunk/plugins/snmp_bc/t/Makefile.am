@@ -27,10 +27,9 @@ REMOTE_SIM_SOURCES   = \
 			snmp_bc_control.c \
 			snmp_bc_xml2event.c \
 			snmp_bc_watchdog.c \
+			snmp_bc_hotswap.c \
 			stubs.c
 
-#			  snmp_bc_hotswap.c \
-#			  snmp_bc_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(GENERATED_CODE) \
