@@ -554,3 +554,49 @@ static int parse_sel_entry(char *text, bc_sel_entry *sel, int isdst)
         *sel = ent;
         return 0;
 }
+
+/**
+ * snmp_bc_add_to_eventq
+ * @hnd: 
+ * @thisEvent: 
+ * 
+ * Return value:	-1 Error encountered - no Event entry created
+ 			0  SA_OK
+ **/
+
+int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent  )
+{
+
+        struct oh_event working;
+        struct oh_event *e = NULL;
+        struct oh_handler_state *handle = hnd;
+        SaHpiRptEntryT *rptentry;
+
+        memset(&working, 0, sizeof(struct oh_event));
+
+        rptentry = oh_get_resource_by_id(handle->rptcache, thisEvent->Source);
+        if (!rptentry) {
+                dbg("Warning: RPT entry not found. Cannot find RDR.\n");
+                return -1; /*  No resource found by that id */
+        }
+
+        working.type = OH_ET_HPI;
+        working.u.hpi_event.parent  = rptentry->ResourceId;
+	/* TODO:  working.u.hpi_event.id = rdrId, not to rptId*/
+        working.u.hpi_event.id = rptentry->EntryId;
+        memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
+
+        /* 
+         * Insert entry to eventq for processing
+        */
+        e = g_malloc0(sizeof(struct oh_event));
+        if (!e) {
+                dbg("Out of memory!\n");
+                return -1;
+        }
+        memcpy(e, &working, sizeof(struct oh_event));
+        handle->eventq = g_slist_append(handle->eventq, e);
+
+        return 0;
+}
+

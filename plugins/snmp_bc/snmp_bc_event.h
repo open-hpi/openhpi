@@ -28,4 +28,5 @@ int find_res_events(SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_i
 int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor);
 int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst);
 
+int snmp_bc_add_to_eventq(void *hnd, SaHpiEventT *thisEvent);
 #endif

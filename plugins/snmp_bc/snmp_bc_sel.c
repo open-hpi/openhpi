@@ -23,17 +23,52 @@
 #include <snmp_bc.h>
 #include <snmp_bc_sel.h>
 #include <snmp_bc_time.h>
+#include <snmp_bc_event.h>
+
 
 oh_sel *bc_selcache = NULL;
 
-static int get_bc_sel_size(struct snmp_session *ss)
+/**
+ * get_bc_sel_size:
+ * @hnd: 
+ * @id: 
+ * 
+ * Return value: Number of event log entries
+ **/
+static int get_bc_sel_size(void *hnd, SaHpiResourceIdT id)
+{
+
+        int i = 1;
+        struct oh_handler_state *handle = hnd;
+	
+	/*
+	 * Go synchronize cache and hardware copy of the SEL
+	*/
+        snmp_bc_check_selcache(hnd, id, SAHPI_NEWEST_ENTRY);
+	
+	/* Return the entry count    */
+        i = g_list_length(handle->selcache->selentries);
+        return i;
+
+}
+
+/**
+ * get_bc_sel_size_from_hardware:
+ * @ss: 
+ * 
+ * 
+ * Return value:  Number of event log entries read from Blade Center 
+ **/
+static int get_bc_sel_size_from_hardware(struct snmp_session *ss)
 {
         struct snmp_value run_value;
         char oid[50];
         int i = 1;
+
         /*
-          yes there clearly must be a much less dumb way of doing this.
-          wait for Konrad next week to figure this out 
+          Since Blade Center snmp agent does not provide this count,
+          this is the only way to figure out how entries there are
+	  in Blade Center SEL.
         */
         do {
                 sprintf(oid, "%s.%d", BC_SEL_INDEX_OID, i);
@@ -45,6 +80,14 @@ static int get_bc_sel_size(struct snmp_session *ss)
         return i;
 }
 
+/**
+ * snmp_bc_get_sel_entry:
+ * @hnd: 
+ * @id: 
+ * @info: 
+ * 
+ * Return value: 0 on success, < 0 on error
+ **/
 int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info) 
 {
         struct snmp_value first_value;
@@ -82,7 +125,7 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
                         (SaHpiTimeT) mktime(&curtime) * 1000000000;
         }
         
-        sel.Entries = get_bc_sel_size(custom_handle->ss);
+        sel.Entries = get_bc_sel_size(hnd, id);
         *info = sel;
         
         return 0;
@@ -141,7 +184,7 @@ SaErrorT snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id)
 	struct oh_handler_state *handle = hnd;
 	struct snmp_bc_hnd *custom_handle = handle->data;
 	
-	current = get_bc_sel_size(custom_handle->ss);
+	current = get_bc_sel_size_from_hardware(custom_handle->ss);
 	if (current != 0) {
 		do {
 			rv = snmp_bc_sel_read_add (hnd, id, current); 
@@ -337,44 +380,27 @@ int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
  * @current: 
  * 
  * 
- * Return value: -1
+ * Return value: -1 if fails. 0 SA_OK
  **/
 int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current)
 {
         struct snmp_value get_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
-        bc_sel_entry sel_entry;
         SaHpiSelEntryT tmpentry;
         char oid[50];
         SaErrorT rv;
+	int isdst = 0;
 
 	sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
 	snmp_get(custom_handle->ss,oid,&get_value);
 
 	if(get_value.type == ASN_OCTET_STR) {
-		if(snmp_bc_parse_sel_entry(custom_handle->ss,get_value.string, &sel_entry) < 0) {
-			dbg("Couldn't parse SEL Entry");
-			return -1;
-		}
-
-		tmpentry.EntryId = current;
-		tmpentry.Timestamp = (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
-		tmpentry.Event.Severity = sel_entry.sev;
-		tmpentry.Event.Timestamp = (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
-		/* TODO: do this for real, sel_entry.source will give this sort of */
-		tmpentry.Event.Source = id;
-		tmpentry.Event.EventType = SAHPI_ET_OEM;
-		tmpentry.Event.EventDataUnion.OemEvent.MId = 2;
-		/* TODO: break down events better.  It would be nice if there was
-		a TEXT type event for informational messages */
-		strncpy(tmpentry.Event.EventDataUnion.OemEvent.OemEventData,
-				sel_entry.text, SAHPI_OEM_EVENT_DATA_SIZE - 1);
-		tmpentry.Event.EventDataUnion.OemEvent.OemEventData
-				[SAHPI_OEM_EVENT_DATA_SIZE - 1] = '\0';
-
-
-		rv = oh_sel_add(handle->selcache, &tmpentry);
+                log2event(hnd, get_value.string, &tmpentry.Event, isdst);
+                tmpentry.EntryId = current;
+                tmpentry.Timestamp = tmpentry.Event.Timestamp;
+                rv = oh_sel_add(handle->selcache, &tmpentry);
+                rv = snmp_bc_add_to_eventq(hnd, &tmpentry.Event);
 	} else {
 		dbg("Couldn't fetch SEL Entry from BladeCenter snmp");
 		return -1;
@@ -438,10 +464,7 @@ int snmp_bc_parse_sel_entry(struct snmp_session *ss, char * text, bc_sel_entry *
         if(sscanf(start,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
                   &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
                   &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-                /* TODO: real test for DST */
-                /* ent.time.tm_isdst = 0; */
 		set_bc_dst(ss, &ent.time);
-                /* that word, I do not think it means what you think it means */
                 ent.time.tm_mon--;
                 ent.time.tm_year += 100;
         } else {
@@ -640,11 +663,7 @@ int get_bc_sp_time(struct snmp_session *ss, struct tm *time) {
                 if(sscanf(get_value.string,"%2d/%2d/%4d,%2d:%2d:%2d",
                           &tmptime.tm_mon, &tmptime.tm_mday, &tmptime.tm_year, 
                           &tmptime.tm_hour, &tmptime.tm_min, &tmptime.tm_sec)) {
-                        /* TODO: real test for DST */
-                        /* tmptime.tm_isdst = 0;   */
 			set_bc_dst(ss, &tmptime);
-
-                        /* that word, I do not think it means what you think it means */
                         tmptime.tm_mon--;
                         tmptime.tm_year -= 1900;
                 } else {
