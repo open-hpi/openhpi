@@ -78,7 +78,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
                 = ipmi_entity_get_entity_id(entity);
 	entry->ResourceEntity.Entry[0].EntityInstance 
                 = ipmi_entity_get_entity_instance(entity);
-	entry->ResourceEntity.Entry[1].EntityType = 0;
+	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
 	entry->ResourceEntity.Entry[1].EntityInstance = 0;
 	
 	/* let's append entity_root from config */
