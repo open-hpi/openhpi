@@ -32,26 +32,6 @@
 
 #include <snmp_rsa.h>
 
-/* oid's to detect CPUs */
-const char *rsa_oid_cpu_detect[RSA_MAX_CPU] = {
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.1",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.2",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.3",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.4",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.5",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.6",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.7",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.8"
-};
-
-/* oid's to detect DASDs */
-const char *rsa_oid_dasd_detect[RSA_MAX_DASD] = {
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.1",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.2",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.3",
-        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.4"
-};
-
 /**
  * snmp_rsa_get_event:
  * @hnd: 
@@ -170,7 +150,9 @@ static int snmp_rsa_discover_resources(void *hnd)
         /* discover all cpus */
         for (i = 0; i < RSA_MAX_CPU; i++) {
                 /* see if the cpu exists by querying the thermal sensor */
-                if((snmp_get(custom_handle->ss,rsa_oid_cpu_detect[i],&get_value) != 0) ||
+                if((snmp_get(custom_handle->ss,
+                             snmp_rsa_cpu_thermal_sensors[i].rsa_sensor_info.mib.oid,
+                             &get_value) != 0) ||
                    (get_value.type != ASN_OCTET_STR) ||
                    (strcmp(get_value.string, "Not Readable!") == 0)) {
                         /* If we get here the CPU is not installed */
@@ -187,15 +169,25 @@ static int snmp_rsa_discover_resources(void *hnd)
                         tmpqueue = g_slist_append(tmpqueue, e);
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
                         SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
-  		        find_sensors(snmp_rsa_cpu_sensors);                        
-//		        find_inventories(snmp_rsa_cpu_inventories);
+                        /* add the CPU thermal sensor */
+                        e = snmp_rsa_discover_sensors(custom_handle->ss,
+                                                      parent_ep,
+                                                      &snmp_rsa_cpu_thermal_sensors[i]);
+                        if(e != NULL) {
+                                struct RSA_SensorInfo *rsa_data = g_memdup(&(snmp_rsa_cpu_thermal_sensors[i].rsa_sensor_info),
+                                                                           sizeof(struct RSA_SensorInfo));
+                                oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0);
+                                tmpqueue = g_slist_append(tmpqueue, e);
+                        }
                 }
         }
 
         /* discover all dasd */
         for (i = 0; i < RSA_MAX_DASD; i++) {
                 /* see if the dasd exists by querying the thermal sensor */
-                if((snmp_get(custom_handle->ss,rsa_oid_dasd_detect[i],&get_value) != 0) ||
+                if((snmp_get(custom_handle->ss,
+                             snmp_rsa_dasd_thermal_sensors[i].rsa_sensor_info.mib.oid,
+                             &get_value) != 0) ||
                    (get_value.type != ASN_OCTET_STR) ||
                    (strcmp(get_value.string, "Not Readable!") == 0)) {
                         /* If we get here the DASD is not installed */
@@ -212,8 +204,16 @@ static int snmp_rsa_discover_resources(void *hnd)
                         tmpqueue = g_slist_append(tmpqueue, e);
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
                         SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
-  		        find_sensors(snmp_rsa_dasd_sensors);                        
-//		        find_inventories(snmp_rsa_dasd_inventories);
+                        /* add the DASD thermal sensor */
+                        e = snmp_rsa_discover_sensors(custom_handle->ss,
+                                                      parent_ep,
+                                                      &snmp_rsa_dasd_thermal_sensors[i]);
+                        if(e != NULL) {
+                                struct RSA_SensorInfo *rsa_data = g_memdup(&(snmp_rsa_dasd_thermal_sensors[i].rsa_sensor_info),
+                                                                           sizeof(struct RSA_SensorInfo));
+                                oh_add_rdr(tmpcache,rid,&(e->u.rdr_event.rdr), rsa_data, 0);
+                                tmpqueue = g_slist_append(tmpqueue, e);
+                        }
                 }
         }
 
