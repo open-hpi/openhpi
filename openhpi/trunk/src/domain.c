@@ -1,6 +1,18 @@
-/* BSD License
- * Copyright (C) by Intel Crop.
- * Author: Louis Zhuang <louis.zhuang@linux.intel.com>
+/*      -*- linux-c -*-
+ *
+ * Copyright (c) 2003 by Intel Corp.
+ * Copyright (c) 2003 by International Business Machines
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Sean Dague <sean@dague.net>
  */
 
 #include <stdio.h>
@@ -10,63 +22,59 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static struct list_head dlist;
+/* sd: I think we need global mappings here, we'll need to 
+   address this issue later */
 static SaHpiDomainIdT dcounter = SAHPI_DEFAULT_DOMAIN_ID;
 
-
-int init_domain(void) 
+int reset_domain_list(void) 
 {
-	list_init(&dlist);
-	return 0;
+        SaHpiDomainIdT *temp;
+        int i;
+
+        for (i = 0; i < g_slist_length(global_domain_list); i++) {
+                temp = (SaHpiDomainIdT*) g_slist_nth_data(global_domain_list, i);
+                free(temp);
+        }
+        g_slist_free(global_domain_list);
+        global_domain_list = NULL;
+
+        return 0;
 }
 
-int uninit_domain(void) 
+int domain_exists(SaHpiDomainIdT did) 
 {
-	return 0;
+        SaHpiDomainIdT *temp;
+        int i;
+        
+        for (i = 0; i < g_slist_length(global_domain_list); i++) {
+                temp = (SaHpiDomainIdT*) g_slist_nth_data(global_domain_list, i);
+                if(temp == did) {
+                        return 1;
+                }
+        }
+        return 0;
 }
 
-struct oh_domain *domain_get(SaHpiDomainIdT did)
+int domain_add(SaHpiDomainIdT did)
 {
-	struct list_head *i;
-	list_for_each(i, &dlist) {
-		struct oh_domain *d;
-		d = list_container(i, struct oh_domain, node);
-		if (d->did == did) return d;
-	}
-
-	return NULL;
+        SaHpiDomainIdT *temp;
+        temp = calloc(1,sizeof(*temp));
+        *temp = did;
+        
+        if(domain_exists(did) > 0) {
+                dbg("Domain %d exists already, something is fishy", did);
+                return -1;
+        }
+        global_domain_list = g_slist_append(global_domain_list, (gpointer *) temp);
+        
+        return 0;
 }
 
-struct oh_domain *domain_add()
-{
-	struct oh_domain  *d;
-	
-	d = malloc(sizeof(*d));
-	if (!d) {
-		dbg("Cannot get memory!");
-		return NULL;
-	}
-	memset(d, 0, sizeof(*d));
-	
-	d->did = dcounter++;
-
-	list_add(&d->node, &dlist);
-	list_init(&d->session_list);
-	list_init(&d->zone_list);
-
-	d->res_counter = 0;
-
-	return d;
-}
-
-#if 0
-void domain_del(struct oh_domain *domain)
+int domain_del(SaHpiDomainIdT did)
 {
 	/* FIXME cleaup resources in domain */
-	list_del(&domain->node);
-	free(domain);
+        return 0;
 }
-#endif
 
 void domain_process_event(struct oh_zone *z, struct oh_event *e)
 {
@@ -116,27 +124,4 @@ void domain_process_event(struct oh_zone *z, struct oh_event *e)
 		dbg("Error! Should not touch here!");
 		break;
 	}
-}
-
-struct oh_zone *domain_add_zone(struct oh_domain *domain,
-		struct oh_abi_v1 *abi, void *hnd)
-{
-	struct oh_zone  *z;
-
-	z = malloc(sizeof(*z));
-	if (!z) {
-		dbg("Cannot get memory!");
-		return NULL;
-	}
-	
-	memset(z, 0, sizeof(*z));
-	
-	list_add(&z->node, &domain->zone_list);
-	list_init(&z->res_list);
-	
-	z->domain = domain;
-	z->abi = abi;
-	z->hnd = hnd;
-	
-	return z;
 }
