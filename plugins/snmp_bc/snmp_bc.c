@@ -280,6 +280,7 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 		break;                             \
 	} else {                                   \
 		l_retry++;                         \
+		trace("Retrying OID=%s.", objid);  \
 		continue;                          \
 	}
 
@@ -321,7 +322,7 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                         	err = SA_ERR_HPI_NO_RESPONSE;
 				break;
                 	} else {
-				trace("HPI_TIMEOUT %s\n", objid);
+				trace("HPI_TIMEOUT %s", objid);
 				snmp_bc_internal_retry();			
 			}
         	} else {
@@ -333,6 +334,7 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 					snmp_bc_internal_retry();
 				} else if (strncmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) {
                         		custom_handle->handler_retries = 0;
+					trace("Not Readable! reading from OID=%s.", objid);
                         		err = SA_ERR_HPI_NO_RESPONSE;
 					break;
 				} else {
