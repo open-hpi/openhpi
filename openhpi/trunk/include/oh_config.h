@@ -10,7 +10,7 @@
  * full licensing terms.
  *
  * Authors:
- *     Sean Dague <sean@dague.net>
+ *     Sean Dague <http://dague.net/sean>
  */
 
 #ifndef __OH_CONFIG_H

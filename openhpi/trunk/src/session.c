@@ -12,7 +12,7 @@
  *
  * Authors:
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
- *     Sean Dague <sean@dague.net>
+ *     Sean Dague <http://dague.net/sean>
  */
 
 #include <stdio.h>

@@ -11,7 +11,7 @@
  * full licensing terms.
  *
  * Authors:
- *     Sean Dague <sean@dague.net>
+ *     Sean Dague <http://dague.net/sean>
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  * Contributors:
  *     Thomas Kangieser <Thomas.Kanngieser@fci.com>
