@@ -117,28 +117,29 @@ AC_ARG_ENABLE([dummy],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(LIBDUMMY,libdummy.la)
     fi],
-    [PLUGINS="$PLUGINS dummy"])
+    [AC_SUBST(LIBDUMMY,libdummy.la)])
     
 AC_ARG_ENABLE([text_remote],
     [  --enable-text_remote          build text_remote plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(LIBTEXT_REMOTE,libtext_remote.la)
     fi],
-    [PLUGINS="$PLUGINS text_remote"])
+    [AC_SUBST(LIBTEXT_REMOTE,libtext_remote.la)])
 
 
 AC_ARG_ENABLE([watchdog],
-    [  --enable-watchdog       build watchdog plugin [default=no]],
+    [  --enable-watchdog       build watchdog plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(LIBWATCHDOG,libwatchdog.la)
-    fi])
+    fi],
+    [AC_SUBST(LIBWATCHDOG,libwatchdog.la)])
 
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
 
 AC_ARG_ENABLE([ipmi],
-    [  --enable-ipmi           build openipmi plugin [default=no]],
+    [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(LIBIPMI,libipmi.la)
@@ -146,10 +147,14 @@ AC_ARG_ENABLE([ipmi],
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI)
         fi
-    fi])
+    fi],
+    [if test "x$have_openipmi" = "xyes"; then
+            AC_SUBST(LIBIPMI,libipmi.la)
+     fi
+    ])
 
 AC_ARG_ENABLE([sysfs],
-    [  --enable-sysfs          build sysfs plugin [default=no]],
+    [  --enable-sysfs          build sysfs plugin [default=yes if libsysfs exists]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_sysfs" = "xyes"; then
             AC_SUBST(LIBSYSFS2HPI,libsysfs2hpi.la)
@@ -157,7 +162,11 @@ AC_ARG_ENABLE([sysfs],
             OH_CHECK_FAIL(libsysfs,,http://linux-diag.sf.net,
                 Can not build sysfs support without libsysfs)
         fi
-    fi])
+    fi],
+    [if test "x$have_sysfs" = "xyes"; then
+            AC_SUBST(LIBSYSFS2HPI,libsysfs2hpi.la)
+     fi
+    ])
 
 AC_ARG_ENABLE([snmp_bc],
     [  --enable-snmp_bc        build IBM Blade Center plugin [default=no]],
