@@ -25,9 +25,14 @@ enum oh_id_type {
 	OH_ID_CONTROL,
 };
 
+/* 
+ * struct oh_id is filled by plugin and used by Open HPI.
+ * Open HPI never assume any detail in struct oh_id.
+ * Plugin can store any data pointer in ptr member so that
+ * it can map id back to solid data
+ */
 struct oh_id {
-	//enum oh_id_type type;
-	unsigned char id[32];
+	void *ptr;
 };
 	
 
