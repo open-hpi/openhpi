@@ -127,7 +127,7 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
              index++;
              rdr_id = sim_util_get_rdr_id(feh->ids, fe->filename, index);
         }
-        sim_util_free_res_id(feh->ids, fe->filename);
+        feh->ids = sim_util_free_res_id(feh->ids, fe->filename);
         printf("remove resource and sensor:%s, code:%d\n", fe->filename, fe->code);
         return;
 }
@@ -166,7 +166,6 @@ static void* fhs_event_process(void *data)
         FAMMonitorDirectory(&fc, root_path, &fr, (void*)req_res);
 
         while(!feh->done) {   
-
                 FAMNextEvent(&fc, &fe);
                 if ((fe.userdata == (void *)req_res) &&
                     ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
@@ -187,7 +186,7 @@ static void* fhs_event_process(void *data)
         } 
         FAMClose(&fc);
 #if 1
-        sim_util_free_all_res_id(feh->ids);   
+        feh->ids = sim_util_free_all_res_id(feh->ids);   
 #endif
         return 0;
 }
@@ -197,7 +196,7 @@ struct fe_handler* fhs_event_init(struct oh_handler_state *hnd)
         int retval;     
         struct fe_handler *feh;
 
-        feh = (struct fe_handler *)malloc(sizeof(*feh));
+        feh = (struct fe_handler *)g_malloc0(sizeof(*feh));
         if (feh == NULL)
                 return NULL;
         feh->ohh = hnd;
@@ -213,5 +212,5 @@ void fhs_event_finish(struct fe_handler *feh)
 {     
         feh->done = 1;
         pthread_join(feh->tid, NULL);
-        free(feh);
+        g_free(feh);
 }
