@@ -7,7 +7,7 @@ MOSTLYCLEANFILES        = @TEST_CLEAN@
 REMOTE_LIB_SOURCES 	= openhpiclient.cpp \
 		  	  openhpiclient.h
 
-if OPENHPID_DINAMIC
+if SHELL_CLIENT
 COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la libopenhpiclient.la \
 				-L$(top_builddir)/utils/.libs -lopenhpiutils
 INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils \
@@ -40,7 +40,7 @@ $(REMOTE_LIB_SOURCES):
 		ln -s ../openhpid2/$@; \
 	fi
 
-if OPENHPID_DINAMIC
+if SHELL_CLIENT
 noinst_LTLIBRARIES	= libopenhpiclient.la
 
 libopenhpiclient_la_SOURCES = $(REMOTE_LIB_SOURCES)
