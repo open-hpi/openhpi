@@ -346,8 +346,10 @@ SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int 
                                     rptentry);
         }
         /* Else, modify existing RPTEntry */
-        rptentry->owndata = owndata;
+        if (rptentry->data && rptentry->data != data && !rptentry->owndata)
+                g_free(rptentry->data);
         rptentry->data = data;
+        rptentry->owndata = owndata;        
         rptentry->rpt_entry = *entry;
 
         update_rptable(table);
@@ -618,9 +620,11 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
                                     rdrecord);
         }
         /* Else, modify existing rdrecord */
-        rdrecord->owndata = owndata;
-        rdrecord->rdr = *rdr;
+        if (rdrecord->data && rdrecord->data != data && !rdrecord->owndata)
+                g_free(rdrecord->data);
         rdrecord->data = data;
+        rdrecord->owndata = owndata;
+        rdrecord->rdr = *rdr;        
 
         return SA_OK;
 }
