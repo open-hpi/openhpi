@@ -14,6 +14,7 @@
  *     Louis Zhuang     <louis.zhuang@intel.com>
  */
 
+ 
 #include "ipmi.h"
 
 static unsigned char oem_alarm_state = 0xff;

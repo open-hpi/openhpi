@@ -145,6 +145,7 @@ static void add_control_event(ipmi_entity_t	*ent,
 	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr, control_id, 1);
 }
 
+
 /*
  * add_alarm_rdr
  */
