@@ -12,8 +12,8 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 MOSTLYCLEANFILES	= @TEST_CLEAN@
 
-SNMPUTILSDIR    = $(top_srcdir)/src/$(SNMPDIR)
-SNMPUTILBDIR    = $(top_builddir)/src/$(SNMPDIR)
+SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
+SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 
 SUBDIRS 		= t
 
@@ -54,5 +54,5 @@ libsnmp_bc_la_SOURCES	=	bc_resources.c \
 				snmp_bc_inventory.c \
 				snmp_bc_watchdog.c
 
-libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libsnmp_util.la
+libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la
 libsnmp_bc_la_LDFLAGS	= -avoid-version

@@ -11,8 +11,8 @@
  
 MAINTAINERCLEANFILES 	= Makefile.in
 
-SNMPUTILSDIR    = $(top_srcdir)/src/$(SNMPDIR)
-SNMPUTILBDIR    = $(top_builddir)/src/$(SNMPDIR)
+SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
+SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 
 EXTRA_DIST 		= \
 			  snmp_client.h \
@@ -33,5 +33,5 @@ libsnmp_client_la_SOURCES	= \
 				  snmp_client_utils.c \
 				  sc_sensor_data.c
 				  
-libsnmp_client_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILSDIR)/libsnmp_util.la
+libsnmp_client_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILSDIR)/libopenhpi_snmp.la
 libsnmp_client_la_LDFLAGS	= -avoid-version

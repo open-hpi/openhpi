@@ -50,8 +50,8 @@ MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub
 			stamp-h.in cscope.files cscope.out $(distdir).tar.gz 
 MOSTLYCLEANFILES	= tags
 
-SUBDIRS			= utils plugins src docs @ENABLED_DIRS@ test
-DIST_SUBDIRS 		= utils plugins src docs examples util test
+SUBDIRS			= utils @SNMPDIR@ plugins src docs @ENABLED_DIRS@ test
+DIST_SUBDIRS 		= utils snmp plugins src docs examples util test
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 

@@ -493,8 +493,8 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/ipmidirect/Makefile
         plugins/ipmidirect/t/Makefile
         plugins/simulator/Makefile
+        snmp/Makefile
         src/Makefile
-        src/snmp/Makefile
         src/plugin_static.c
         test/Makefile
         docs/Makefile
