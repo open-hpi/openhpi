@@ -43,7 +43,16 @@ struct ohoi_handler {
 	int SDRs_read_done;
 	int bus_scan_done;
     int SELs_read_done;
+	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
+
 	ipmi_domain_id_t domain_id;
+
+	/* OpenIPMI connection and os_handler */
+	os_handler_t *os_hnd;
+	ipmi_con_t *con;
+
+	selector_t *ohoi_sel;
+
 };
 
 struct ohoi_resource_id {
@@ -68,17 +77,22 @@ void ohoi_setup_done(ipmi_domain_t *domain, int err, unsigned int  conn_num,
 		unsigned int  port_num, int still_connected, void *user_data);
 
 /* implemented in ipmi_sensor.c	*/
-int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, SaHpiSensorReadingT *data);
-int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id, SaHpiSensorThresholdsT *thres);
+int ohoi_get_sensor_data(ipmi_sensor_id_t sensor_id, SaHpiSensorReadingT *data, void *cb_data);
+int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
+			   					SaHpiSensorThresholdsT *thres,
+			   					void *cb_data);
 int ohoi_set_sensor_thresholds(ipmi_sensor_id_t                 sensor_id, 
-                               const SaHpiSensorThresholdsT     *thres);
+                               const SaHpiSensorThresholdsT     *thres,
+							   void *cb_data);
 int ohoi_get_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
-			          SaHpiSensorEvtEnablesT        *enables);
+			          SaHpiSensorEvtEnablesT        *enables,
+					  void *cb_data);
 int ohoi_set_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
-			          const SaHpiSensorEvtEnablesT  *enables);
+			          const SaHpiSensorEvtEnablesT  *enables,
+					  void *cb_data);
 
-void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time);
-void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time);
+void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
+void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
 void ohoi_get_sel_updatetime(ipmi_mcid_t mc_id, SaHpiTimeT *time);
 void ohoi_get_sel_count(ipmi_mcid_t mc_id, int *count);
 void ohoi_get_sel_overflow(ipmi_mcid_t mc_id, char *overflow);
@@ -127,7 +141,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        ipmi_entity_t            *entity,
                        void                     *cb_data);
 
-int ohoi_loop(int *done_flag);
+int ohoi_loop(int *done_flag, void *cb_data);
 /**
  * loop_indicator_cb:
  * @cb_data: callback data
@@ -139,7 +153,7 @@ int ohoi_loop(int *done_flag);
  * end.
  **/
 typedef int (*loop_indicator_cb)(const void *cb_data);
-int ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int timeout); 
+int ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int timeout, void *cb_data2); 
 
 /*
  * ABI stub functions
