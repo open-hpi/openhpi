@@ -358,16 +358,15 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
                 data_access_unlock();
                 return SA_ERR_HPI_UNKNOWN;
         }
-        
+
+        data_access_unlock();
+
         rv = get_events();
         if (rv<0) {
                 dbg("Error attempting to process resources");
-                data_access_unlock();
                 return SA_ERR_HPI_UNKNOWN;
         }
 
-        data_access_unlock();
-        
         return SA_OK;
 }
 
@@ -379,22 +378,26 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
         /* determine the right pointer later when we do multi domains */
         RPTable *rpt;
         int rv = 0;
-        
-        OH_STATE_READY_CHECK;
-        
-        OH_SESSION_SETUP(SessionId, s);
-        
-        OH_RPT_GET(SessionId, rpt);
-        
+
         rv = get_events();
         
         if (rv<0) {
                 dbg("Error attempting to process events");
                 return SA_ERR_HPI_UNKNOWN;
         }
-                
+
+        data_access_lock();
+
+        OH_STATE_READY_CHECK;
+        
+        OH_SESSION_SETUP(SessionId, s);
+        
+        OH_RPT_GET(SessionId, rpt);
+
         RptInfo->UpdateCount = rpt->rpt_info.UpdateCount;
         RptInfo->UpdateTimestamp= rpt->rpt_info.UpdateTimestamp;
+
+        data_access_unlock();
 
         return SA_OK;
 }
@@ -442,9 +445,9 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         } else {
                 *NextEntryId = SAHPI_LAST_ENTRY;
         }
-        
+
         data_access_unlock();
-        
+
         return SA_OK;
 }
 
@@ -669,7 +672,6 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 
         rv = get_func(h->hnd, ResourceId, Info);
         if (rv != SA_OK) {
-		data_access_unlock();
                 dbg("SEL info get failed");
         }
 
@@ -743,7 +745,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                            NextEntryId, EventLogEntry);
 
         if(rv != SA_OK) {
-		data_access_unlock();
                 dbg("SEL entry get failed");
         }
 
@@ -823,18 +824,17 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
         rv = add_sel_entry(h->hnd, ResourceId, EvtEntry);
         if(rv != SA_OK) {
-		data_access_unlock();
                 dbg("SEL add entry failed");
         }
-        
+
+        data_access_unlock();
+
         /* to get RSEL entry into infrastructure */
         rv = get_events();
         if(rv != SA_OK) {
-		data_access_unlock();
                 dbg("Event loop failed");
         }
 
-	data_access_unlock();
         return rv;
 }
 
@@ -883,7 +883,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
 
         rv = del_sel_entry(h->hnd, ResourceId, EntryId);
         if(rv != SA_OK) {
-		data_access_unlock();
                 dbg("SEL delete entry failed");
         }
 
@@ -1002,7 +1001,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         set_sel_time = h->abi->set_sel_time;
 
         if (!set_sel_time) {
-      	data_access_unlock();
+                data_access_unlock();
                 return SA_ERR_HPI_UNSUPPORTED_API;
         }
 
@@ -1152,6 +1151,8 @@ SaErrorT SAHPI_API saHpiEventGet (
 		data_access_unlock();
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
+		
+	data_access_unlock();
 
         gettimeofday1(&now);
         end = now + Timeout;
@@ -1160,19 +1161,18 @@ SaErrorT SAHPI_API saHpiEventGet (
                 struct oh_hpi_event e;
                 
                 if (get_events() < 0) {
-			data_access_unlock();
                         return SA_ERR_HPI_UNKNOWN;
 		} else if (session_pop_event(s, &e) < 0) {
                         switch (Timeout) {
                                 case SAHPI_TIMEOUT_IMMEDIATE:
-					data_access_unlock();
                                         return SA_ERR_HPI_TIMEOUT;
+
                                 case SAHPI_TIMEOUT_BLOCK:
                                         break;
+
                                 default: /* Check if we have timed out */
                                         gettimeofday1(&now);
                                         if (now >= end) {
-						data_access_unlock();
 						return SA_ERR_HPI_TIMEOUT;
 					}
                         }
@@ -1185,6 +1185,8 @@ SaErrorT SAHPI_API saHpiEventGet (
                         SaHpiRdrT *rdr;
 
                         memcpy(Event, &e.event, sizeof(*Event));
+
+                        data_access_lock();
 
                         if (RptEntry) {
                                 res = oh_get_resource_by_id(rpt, e.parent);
@@ -1202,9 +1204,9 @@ SaErrorT SAHPI_API saHpiEventGet (
                                         memcpy(Rdr, rdr, sizeof(*Rdr));
                                 else
                                         Rdr->RdrType = SAHPI_NO_RECORD;
-                        }                        
+                        }
 
-			data_access_unlock();
+                        data_access_unlock();
 
                         return SA_OK;
                 }
@@ -1575,6 +1577,8 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
 		data_access_unlock();
                 return SA_ERR_HPI_ERROR;
         }
+	
+	data_access_unlock();
 
         return SA_OK;
 }
@@ -1702,6 +1706,8 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
 		data_access_unlock();
                 return SA_ERR_HPI_ERROR;
 	}
+
+        data_access_unlock();
 
         return SA_OK;
 }
@@ -1835,8 +1841,10 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
                 return rv;
 	}
 
-        if (*ActualSize>BufferSize)
+        if (*ActualSize>BufferSize) {
+                data_access_unlock();
                 return SA_ERR_INVENT_DATA_TRUNCATED;
+        }
 
         rv = get_func(h->hnd, ResourceId, EirId, InventData);
 	data_access_unlock();
@@ -2508,10 +2516,9 @@ SaErrorT SAHPI_API saHpiParmControl (
                 return SA_ERR_HPI_UNSUPPORTED_API;
 	}
 
+        rv = control_parm(h->hnd, ResourceId, Action);
         data_access_unlock();
 
-        rv = control_parm(h->hnd, ResourceId, Action);
-        
         return rv;
 }
 
