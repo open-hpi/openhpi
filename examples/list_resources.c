@@ -128,6 +128,8 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                         printf("\t{%s, %i}\n", type2string(tmp.EntityType),
                                tmp.EntityInstance);
                 }
+                printf("\tResourceTag: ");
+                       display_id_string(entry.ResourceTag);
 
                 if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
                         list_rdr(session_id, entry.ResourceId);
