@@ -34,12 +34,14 @@
  *
  * Returns: 0 if successful, <0 if there was an error.
  **/
-SaErrorT snmp_get(struct snmp_session *ss, const char *objid, 
-             struct snmp_value *value) 
+SaErrorT snmp_get( void *sessp,
+		   const char *objid, 
+                   struct snmp_value *value) 
 {
         struct snmp_pdu *pdu;
         struct snmp_pdu *response;
-        
+	struct snmp_session *session;
+	        
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
         struct variable_list *vars;
@@ -56,7 +58,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
         /*
          * Send the Request out.
          */
-        status = snmp_synch_response(ss, pdu, &response);
+        status = snmp_sess_synch_response(sessp, pdu, &response);
 
         /*
          * Process the response.
@@ -96,7 +98,8 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
 
         } else {
                 value->type = (u_char)0x00; 
-                snmp_sess_perror("snmpget", ss);
+		session = snmp_sess_session(sessp);
+                snmp_sess_perror("snmpget", session);
 		dbg("OID=%s", objid);
 		returncode = snmpstat2hpi(status);
         }
@@ -119,12 +122,13 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
  * Returns: 0 if Success, less than 0 if Failure.
  **/
 SaErrorT snmp_set(
-        struct snmp_session *ss,
+        void *sessp,
         char *objid,
         struct snmp_value value) 
 {
         struct snmp_pdu *pdu;
         struct snmp_pdu *response;
+	struct snmp_session *session;
 
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
@@ -171,7 +175,7 @@ SaErrorT snmp_set(
         	/*
          	* Send the Request out.
          	*/
-        	status = snmp_synch_response(ss, pdu, &response);
+        	status = snmp_sess_synch_response(sessp, pdu, &response);
 
         	/*
          	* Process the response.
@@ -179,7 +183,8 @@ SaErrorT snmp_set(
                 if (status == STAT_SUCCESS) 
                                 rtncode = errstat2hpi(response->errstat);
                 else {
-			snmp_sess_perror("snmpset", ss);
+			session = snmp_sess_session(sessp);
+			snmp_sess_perror("snmpset", session);
 			rtncode = snmpstat2hpi(status);;
 		}
 		

@@ -83,12 +83,12 @@ struct snmp_value {
 };
 
 SaErrorT snmp_get(
-        struct snmp_session *ss,
+        void *sessp,
         const char *objid,
         struct snmp_value *value);
 
 SaErrorT snmp_set(
-        struct snmp_session *ss,
+        void *sessp,
         char *objid,
         struct snmp_value value);
 

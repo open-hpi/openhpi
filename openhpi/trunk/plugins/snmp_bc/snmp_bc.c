@@ -329,14 +329,14 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 			  SaHpiBoolT retry)
 {
         SaErrorT err;
-        struct snmp_session *ss = custom_handle->ss;
+        /* struct snmp_session *ss = custom_handle->ss; */
 	int l_retry;
 	
 	if (retry) l_retry = 0;
 	else l_retry = 2;
 	
 	do {	
-        	err = snmp_get(ss, objid, value);
+        	err = snmp_get(custom_handle->sessp, objid, value);
         	if (err == SA_ERR_HPI_TIMEOUT) {
                 	if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
                         	custom_handle->handler_retries = 0;
@@ -430,9 +430,9 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
 			  struct snmp_value value)
 {
         SaErrorT err;
-	struct snmp_session *ss = custom_handle->ss;
+	/* struct snmp_session *ss = custom_handle->ss; */
 
-        err = snmp_set(ss, objid, value);
+        err = snmp_set(custom_handle->sessp, objid, value);
         if (err == SA_ERR_HPI_TIMEOUT) {
                 if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
                         custom_handle->handler_retries = 0;
