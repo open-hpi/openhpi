@@ -57,6 +57,7 @@ EXTRA_DIST = \
 		snmp_bc_time.h \
 		snmp_bc_utils.h \
 		snmp_bc_watchdog.h \
+		snmp_bc_lock.h \
 		sim_init.h
 
 # Generated files must be listed first
