@@ -1003,6 +1003,9 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	struct ohoi_sensor_info *sensor_info;
+	struct oh_event  *e;
+        SaHpiRdrT *rdr;
+	SaHpiSensorEnableChangeEventT *sen_evt;
 	
 	SENSOR_CHECK(handler, sensor_info, id, num);
 	
@@ -1014,7 +1017,37 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 	if (rv)
 		return rv;
 
+	if (sensor_info->enable == enable)
+		return(SA_OK);
 	sensor_info->enable = enable;
+	e = malloc(sizeof(*e));
+	if (!e) {
+		dbg("Out of space");
+		return IPMI_EVENT_NOT_HANDLED;
+	}
+	
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	};
+	memset(e, 0, sizeof(*e));
+	e->type = OH_ET_HPI;
+	e->u.hpi_event.event.Source = id;
+	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
+	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent);
+	sen_evt->SensorNum = num;
+	sen_evt->SensorType = rdr->RdrTypeUnion.SensorRec.Type;
+	sen_evt->EventCategory = rdr->RdrTypeUnion.SensorRec.Category;
+	sen_evt->SensorEnable = sensor_info->enable;
+	sen_evt->SensorEventEnable = sensor_info->enable;
+	sen_evt->AssertEventMask = sensor_info->assert;
+	sen_evt->DeassertEventMask = sensor_info->deassert;
+
+	handler->eventq = g_slist_append(handler->eventq, e);
 	return SA_OK;
 
 }
@@ -1152,7 +1185,7 @@ static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
 		rv = ipmi_set_sensor_event_enable(hnd, id, num, SAHPI_FALSE);
 		if (rv == SA_OK) {
 			sensor_info->sen_enabled = SAHPI_FALSE;
-		}
+		};
 		return rv;
 	}
 	// enable == SAHPI_TRUE
@@ -1215,6 +1248,9 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 	struct ohoi_sensor_info *sensor_info;
 	SaHpiEventStateT t_assert;
 	SaHpiEventStateT t_deassert;
+	struct oh_event  *e;
+        SaHpiRdrT *rdr;
+	SaHpiSensorEnableChangeEventT *sen_evt;
 	
 	SENSOR_CHECK(handler, sensor_info, id, num);
 	
@@ -1234,9 +1270,39 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 	if (rv)
 		return rv;
 
+	if ((sensor_info->assert == t_assert) &&
+		(sensor_info->deassert == t_deassert))
+		return (SA_OK);
 	sensor_info->assert = t_assert;
 	sensor_info->deassert = t_deassert;
+	e = malloc(sizeof(*e));
+	if (!e) {
+		dbg("Out of space");
+		return IPMI_EVENT_NOT_HANDLED;
+	}
+	
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
 
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	};
+	memset(e, 0, sizeof(*e));
+	e->type = OH_ET_HPI;
+	e->u.hpi_event.event.Source = id;
+	e->u.hpi_event.event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+	e->u.hpi_event.event.Severity = SAHPI_INFORMATIONAL;
+	e->u.hpi_event.event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	sen_evt = &(e->u.hpi_event.event.EventDataUnion.SensorEnableChangeEvent);
+	sen_evt->SensorNum = num;
+	sen_evt->SensorType = rdr->RdrTypeUnion.SensorRec.Type;
+	sen_evt->EventCategory = rdr->RdrTypeUnion.SensorRec.Category;
+	sen_evt->SensorEnable = sensor_info->enable;
+	sen_evt->SensorEventEnable = sensor_info->enable;
+	sen_evt->AssertEventMask = sensor_info->assert;
+	sen_evt->DeassertEventMask = sensor_info->deassert;
+
+	handler->eventq = g_slist_append(handler->eventq, e);
 	return SA_OK;
 }
 
