@@ -571,7 +571,7 @@ int main(int argc, char **argv)
 		sensor.DataFormat.Range.NormalMin.IsSupported = SAHPI_TRUE;
 		sensor.DataFormat.Range.NormalMin.Type = SAHPI_SENSOR_READING_TYPE_INT64;
 		sensor.DataFormat.Range.NormalMin.Value.SensorInt64 = 25;
-		sensor.DataFormat.AccuracyFactor = 0x1234;
+		sensor.DataFormat.AccuracyFactor = 0.05;
 		sensor.Oem = 0xFF;
 		sensor.ThresholdDefn.IsAccessible = SAHPI_TRUE;
 		sensor.ThresholdDefn.ReadThold = SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT | SAHPI_STM_LOW_HYSTERESIS;
