@@ -25,6 +25,7 @@
 #include <SaHpi.h>
 #include <config.h>
 #include <oh_error.h>
+#include <epath_utils.h>
 #include <uid_utils.h>
 
 
@@ -81,7 +82,7 @@ guint oh_entity_path_hash(gconstpointer key)
  */
 gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
 {
-        if (!memcmp(a, b, sizeof(SaHpiEntityPathT))) {
+        if (!ep_cmp(a,b)) {
                 return(TRUE);
         }
         else {
