@@ -23,8 +23,7 @@ extern "C" {
 
 #include <glib.h>
 #include <SaHpi.h>
-
-#define OH_GLOBAL_STR_MAX_LENGTH SAHPI_MAX_TEXT_BUFFER_LENGTH*2
+#include <oh_utils.h>
 
 struct oh_parsed_config {
         GSList *plugin_names;
@@ -60,8 +59,8 @@ typedef union {
         //unsigned char dbg_trace; /* !0 = YES, 0 = NO */
         //unsigned char dbg_lock; /* !0 = YES, 0 = NO */
         SaHpiBoolT threaded; /* !0 = YES, 0 = NO */
-        char path[OH_GLOBAL_STR_MAX_LENGTH];
-        char varpath[OH_GLOBAL_STR_MAX_LENGTH];
+        char path[OH_MAX_TEXT_BUFFER_LENGTH];
+        char varpath[OH_MAX_TEXT_BUFFER_LENGTH];
         char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 } oh_global_param_union;
 
