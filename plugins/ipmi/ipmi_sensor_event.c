@@ -312,10 +312,7 @@ static void add_sensor_event_thresholds(ipmi_sensor_t	*sensor,
 
 	if (access >= IPMI_THRESHOLD_ACCESS_SUPPORT_READABLE) {
 		rec->ThresholdDefn.IsAccessible = SAHPI_TRUE;
-#if 0
-		rec->ThresholdDefn.TholdCapabilities = SAHPI_SRF_RAW |
-						       SAHPI_SRF_INTERPRETED;
-#endif		
+		
 		temp = 0;
 		ipmi_sensor_threshold_readable(sensor,
 				IPMI_LOWER_NON_CRITICAL, &val);

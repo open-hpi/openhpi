@@ -363,25 +363,25 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 {
         unsigned int count;
         unsigned int size;
-		int rv;
+	int rv;
 	char del_support;
 
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
         const struct ohoi_resource_info *ohoi_res_info;
 
-		dbg("starting wait for sel retrieval");
+	dbg("starting wait for sel retrieval");
 
-		while (0 == ipmi_handler->SELs_read_done) {
-				rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
-				if (rv<0) {
-						dbg("error on waiting for SEL");
-						return -1;
-				}
+	while (0 == ipmi_handler->SELs_read_done) {
+		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
+		if (rv<0) {
+			dbg("error on waiting for SEL");
+			return -1;
 		}
+	}
 
-		dbg("done retrieving sel");
+	dbg("done retrieving sel");
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");
@@ -390,13 +390,13 @@ static SaErrorT ipmi_get_el_info(void               *hnd,
 	
         ohoi_get_sel_count(ohoi_res_info->u.mc_id, &count);
 	
-		if (count == 0)
-				info->Entries = 0;
-		else
-				info->Entries = count;
-		dbg("sel count: %d", count);
+	if (count == 0)
+		info->Entries = 0;
+	else
+		info->Entries = count;
+	dbg("sel count: %d", count);
 
-		ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
+	ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
         info->Size              = size / 16;
         ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id, &info->UpdateTimestamp);
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime, ipmi_handler);
@@ -423,13 +423,13 @@ static int ipmi_set_el_time(void               *hnd,
                              SaHpiResourceIdT   id,
                              SaHpiTimeT    time)
 {
-		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-		struct ohoi_resource_info *ohoi_res_info;
+	struct ohoi_resource_info *ohoi_res_info;
         struct timeval tv;
         
-		dbg("sel_set_time called");
+	dbg("sel_set_time called");
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
@@ -625,22 +625,22 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-		ipmi_handler->sel_clear_done = 0;
+	ipmi_handler->sel_clear_done = 0;
 
         rv = ohoi_clear_sel(ohoi_res_info->u.mc_id, ipmi_handler);
 
-		if (rv != SA_OK)
-				dbg("Error in attempting to clear sel");
+	if (rv != SA_OK)
+		dbg("Error in attempting to clear sel");
 
-		while (0 == ipmi_handler->sel_clear_done) {
-				rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
-				if (rv<0) {
-						dbg("error on waiting for SEL");
-						return -1;
-				}
+	while (0 == ipmi_handler->sel_clear_done) {
+		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
+		if (rv<0) {
+			dbg("error on waiting for SEL");
+			return -1;
 		}
+	}
 
-		return SA_OK;
+	return SA_OK;
 }
 
 SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
