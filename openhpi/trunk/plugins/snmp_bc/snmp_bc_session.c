@@ -17,6 +17,7 @@
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 
+
 /**
  * snmp_bc_open:
  * @handler_config: Pointer to hash table (passed by infrastructure)
@@ -61,7 +62,7 @@ void *snmp_bc_open(GHashTable *handler_config)
         oh_init_rpt(handle->rptcache);
 	 
         /* Initialize event log cache */
-        handle->elcache = oh_el_create(OH_EL_MAX_SIZE);
+        handle->elcache = oh_el_create(BC_EL_MAX_SIZE);
 	handle->elcache->gentimestamp = FALSE;
 
 	/* Initialize simulator tables */
