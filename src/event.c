@@ -91,15 +91,23 @@ SaErrorT harvest_events()
 static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 {
         unsigned int log_severity;
+        struct oh_domain *d;
+        SaErrorT rv = SA_OK;
 
+        /* FIXME: this needs to be locked at boot time */
         log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));
-        if (e->event.Severity <= log_severity) {
-                struct oh_domain *d;
+        
+        if (e->event.Severity <= log_severity) { // less is more
                 /* yes, we need to add real domain support later here */
-                d = get_domain_by_id(did);
-                return oh_el_add(d->del, &(e->event));
+                d = oh_get_domain(did);
+                if(d) {
+                        rv = oh_el_add(d->del, &e->event);
+                        oh_release_domain(d);
+                } else {
+                        rv = SA_ERR_HPI_ERROR;
+                }
         }
-        return SA_OK;
+        return rv;
 }
 
 
