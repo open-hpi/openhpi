@@ -750,7 +750,19 @@ static struct dummy_sensor {
 			},
 
 
-		}
+		},
+		/* Sensor Event Enables */
+		/* typedef struct {
+			SaHpiSensorStatusT SensorStatus;
+			SaHpiEventStateT   AssertEvents; 
+			SaHpiEventStateT   DeassertEvents;
+		} SaHpiSensorEvtEnablesT; */
+		/* .Category = SAHPI_EC_THRESHOLD, from above*/
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_LOWER_MINOR,
+			.DeassertEvents = SAHPI_ES_UPPER_MINOR,
+		},
 	},
 	{
 	/*This is temp sensor on system board*/
@@ -798,7 +810,12 @@ static struct dummy_sensor {
 				.Raw = 0x208,
 			},
 
-		}
+		},
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_LOWER_MAJOR,
+			.DeassertEvents = SAHPI_ES_UPPER_MAJOR,
+		},
 	},
 	{
 	/*This is temp sensor on system board*/
@@ -841,7 +858,12 @@ static struct dummy_sensor {
 			},
 
 
-		}
+		},
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_LOWER_CRIT,
+			.DeassertEvents = SAHPI_ES_UPPER_CRIT,
+		},
 	},
 	{
 	/*This is temp sensor on system board*/
@@ -883,7 +905,12 @@ static struct dummy_sensor {
 				.Raw = 0x408,
 			},
 
-		}
+		},
+		.enables = {
+			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+			.AssertEvents = SAHPI_ES_UPPER_CRIT,
+			.DeassertEvents = SAHPI_ES_LOWER_CRIT,
+		},
 	},     
 };
 
@@ -1431,6 +1458,8 @@ static int dummy_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
 					  SaHpiSensorEvtEnablesT *enables)
 {
+
+dbg(" ********* dummy_get_sensor_event_enables *******");
 	memcpy(enables, &dummy_sensors[num - 1].enables, sizeof(*enables));
 
 	return 0;
@@ -1439,8 +1468,11 @@ static int dummy_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 static int dummy_set_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
 					  const SaHpiSensorEvtEnablesT *enables)
-{			   
-	memcpy(&dummy_sensors[num - 1].enables, enables, sizeof(*enables));
+{	  
+
+dbg(" ********* dummy_set_sensor_event_enables *******");
+	
+memcpy(&dummy_sensors[num - 1].enables, enables, sizeof(*enables));
 
 	return 0;
 }
