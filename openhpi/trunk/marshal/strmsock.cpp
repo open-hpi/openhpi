@@ -186,7 +186,7 @@ void* strmsock::ConReadMsg(void)
 	return ((char *)pBuf + sizeof( cMessageHeader));
 }
 
-void strmsock::MessageHeaderInit(tMessageType, unsigned char flags, unsigned char seq_in,
+void strmsock::MessageHeaderInit(tMessageType, unsigned char flags,
 				unsigned int id, unsigned int len )
 {
 	header.m_type    = type;

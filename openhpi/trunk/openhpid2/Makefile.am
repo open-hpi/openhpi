@@ -39,7 +39,7 @@ client_SOURCES        = \
 #openhpid_LDADD = $(top_builddir)/marshal/libohtcpconnx.la
 #openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
 #openhpid_LDFLAGS        = -static
-client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la
+#client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la
 #client_LDADD            = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
 #client_LDFLAGS          = -static
 #else
