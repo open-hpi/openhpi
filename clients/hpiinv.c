@@ -282,10 +282,11 @@ main(int argc, char **argv)
 		printf("saHpiSessionOpen error %d\n",rv);
 		exit(-1);
 	}
-restart: 
+
 	rv = saHpiResourcesDiscover(sessionid);
 	if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
 
+restart: 
 	rv = saHpiRptInfoGet(sessionid,&rptinfo);
 	if (fxdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
 	if (fdebug) printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
@@ -392,16 +393,18 @@ restart:
                 rv = saHpiRptInfoGet(sessionid, &rptinfo);
                 if (SA_OK != rv) {
                         fprintf(stderr, "saHpiRptInfoGet return: %d\n", rv);
-                        break;;
+                        break;
                 }
 
                 if (rpt_info_before.UpdateCount != rptinfo.UpdateCount) {
                         rpt_info_before = rptinfo;
-                } else {
-                        rpt_info_before = rptinfo;
 			fprintf(stderr, "Updated RptInfo, rescanning...");
 			goto restart;
-		}
+		} else { 
+			/* Try again */
+			rv = saHpiResourcesDiscover(sessionid);
+			if (fxdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
+		}	
         };
 	
 	rv = saHpiSessionClose(sessionid);
