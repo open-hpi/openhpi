@@ -2604,7 +2604,7 @@ SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 	if( (status == SA_OK) && (get_value.type == ASN_INTEGER) )
 		is_writable = (get_value.integer == 1) ? SAHPI_TRUE : SAHPI_FALSE;
 	else
-		printf("get_sensor_threshold_data: error getting THOLD_IS_READABLE \n");
+		printf("get_sensor_threshold_data: error getting THOLD_WRITEABLE \n");
 
 	/* if the threshold MIB OIDS are not writable return */
 	if (is_writable == SAHPI_FALSE) {
