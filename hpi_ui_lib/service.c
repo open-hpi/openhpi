@@ -35,6 +35,7 @@
 #define CTRLOUTPUT_PROC	11
 #define CTRLDIGIT_PROC	12
 #define SEVERITY_PROC	13
+#define EVENTCTRL_PROC	14
 
 //	function numbers for decode_proc
 
@@ -114,6 +115,8 @@ char *lookup_proc(int num, int val)
 			string = oh_lookup_ctrlstatedigital(val); break;
 		case SEVERITY_PROC:
 			string = oh_lookup_severity(val); break;
+		case EVENTCTRL_PROC:
+			string = oh_lookup_sensoreventctrl(val); break;
 	};
 	if (string == (char *)NULL)
 		return("");
@@ -334,8 +337,8 @@ attr_t	Def_sensor_rdr[] = {
 	{ "Type",		LOOKUP_TYPE,	SENTYPE_PROC, { .d = 0} },  //  1
 	{ "Category",		LOOKUP_TYPE,	CATEGORY_PROC, { .d = 0} }, //  2
 	{ "EnableCtrl",		BOOL_TYPE,	0, { .d = 0} },	//  3
-	{ "EventCtrl",		INT_TYPE,	0, { .d = 0} },	//  4
-	{ "Events",		INT_TYPE,	0, { .d = 0} },	//  5
+	{ "EventCtrl",		LOOKUP_TYPE,	EVENTCTRL_PROC, { .d = 0} }, //  4
+	{ "Events",		HEX_TYPE,	0, { .d = 0} },	//  5
 	{ "DataFormat",		STRUCT_TYPE,	0, { .d = 0} },	//  6
 	{ "ThresholdDefn",	STRUCT_TYPE,	0, { .d = 0} },	//  7
 	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  8
@@ -769,6 +772,9 @@ SaErrorT get_value_as_string(Attributes_t *Attrs, int num, char *val, int len)
 			break;
 		case INT_TYPE:
 			snprintf(val, len, "%d", Attrs->Attrs[num].value.i);
+			break;
+		case HEX_TYPE:
+			snprintf(val, len, "0x%x", Attrs->Attrs[num].value.i);
 			break;
 		case FLOAT_TYPE:
 			snprintf(val, len, "%f", Attrs->Attrs[num].value.d);

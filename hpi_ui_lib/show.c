@@ -209,15 +209,10 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	if (proc(buf) != 0) return(rv);
 	rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
-        if (rv != SA_OK)  {
-		snprintf(buf, SHOW_BUF_SZ, "\nERROR: saHpiSensorReadingGet error = %s\n",
-			oh_lookup_error(rv));
-		proc(buf);
-		return rv;
-        }
+        if (rv != SA_OK) return rv;
 
         if (reading.IsSupported) {
-		snprintf(buf, SHOW_BUF_SZ, "     Sensor status = %x", status);
+		snprintf(buf, SHOW_BUF_SZ, "     Event states = %x", status);
 		proc(buf);
 		print_thres_value(&reading, "     Reading Value =", NULL, 0, proc);
 	};
@@ -553,103 +548,13 @@ static int show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
 	
 SaErrorT show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc)
 {
-	int			i = 0, type;
-	Attributes_t		*attrs;
-	union_type_t		val;
-	char			buf[SHOW_BUF_SZ];
-	char			tmp[256], *name;
-	SaErrorT		rv;
-
-	attrs = &(Rpt->Attrutes);
-	for (i = 0; i < attrs->n_attrs; i++) {
-		name = get_attr_name(attrs, i);
-		if (name == (char *)NULL)
-			break;
-		type = get_attr_type(attrs, i);
-		rv = get_value(attrs, i, &val);
-		if (rv != SA_OK) continue;
-		switch (type) {
-			case NO_TYPE:	continue;
-			case STRUCT_TYPE:
-				snprintf(buf, SHOW_BUF_SZ, "%s:\n", name);
-				if (proc(buf) != 0) return(-1);
-				if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
-					return(-1);
-				continue;
-			case LOOKUP_TYPE:
-				strncpy(tmp, lookup_proc(attrs->Attrs[i].lunum,
-					val.i), 256);
-				break;
-			case DECODE_TYPE:
-				rv = decode_proc(attrs->Attrs[i].lunum, val.a, tmp, 256);
-				if (rv != SA_OK) continue;
-				break;
-			case DECODE1_TYPE:
-				rv = decode1_proc(attrs->Attrs[i].lunum, val.i, tmp, 256);
-				if (rv != SA_OK) continue;
-				break;
-			case READING_TYPE:
-				thres_value(val.a, tmp, 256);
-				continue;
-			default:
-				rv = get_value_as_string(attrs, i, tmp, 256);
-				if (rv != SA_OK) continue;
-		};
-		snprintf(buf, SHOW_BUF_SZ, "%s: %s\n", name, tmp);
-		if (proc(buf) != 0)
-			return(-1);
-	};
+	show_attrs(&(Rpt->Attrutes), 0, proc);
 	return(SA_OK);
 }
 
 SaErrorT show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc)
 {
-	int		i = 0, type;
-	Attributes_t	*attrs;
-	char		buf[SHOW_BUF_SZ];
-	char		tmp[256], *name;
-	SaErrorT	rv;
-	union_type_t	val;
-
-	attrs = &(Rdr->Attrutes);
-	for (i = 0; i < attrs->n_attrs; i++) {
-		name = get_attr_name(attrs, i);
-		if (name == (char *)NULL)
-			break;
-		type = get_attr_type(attrs, i);
-		rv = get_value(attrs, i, &val);
-		if (rv != SA_OK) continue;
-		switch (type) {
-			case NO_TYPE:	continue;
-			case STRUCT_TYPE:
-				snprintf(buf, SHOW_BUF_SZ, "%s:\n", name);
-				if (proc(buf) != 0) return(-1);
-				if (show_attrs((Attributes_t *)(val.a), 1, proc) != 0)
-					return(-1);
-				continue;
-			case LOOKUP_TYPE:
-				strncpy(tmp, lookup_proc(attrs->Attrs[i].lunum,
-					val.i), 256);
-				break;
-			case DECODE_TYPE:
-				rv = decode_proc(attrs->Attrs[i].lunum, val.a, tmp, 256);
-				if (rv != SA_OK) continue;
-				break;
-			case DECODE1_TYPE:
-				rv = decode1_proc(attrs->Attrs[i].lunum, val.i, tmp, 256);
-				if (rv != SA_OK) continue;
-				break;
-			case READING_TYPE:
-				thres_value(val.a, tmp, 256);
-				continue;
-			default:
-				rv = get_value_as_string(attrs, i, tmp, 256);
-				if (rv != SA_OK) continue;
-		};
-		snprintf(buf, SHOW_BUF_SZ, "%s: %s\n", name, tmp);
-		if (proc(buf) != 0)
-			return(-1);
-	};
+	show_attrs(&(Rdr->Attrutes), 0, proc);
 	return(SA_OK);
 }
 
@@ -659,6 +564,7 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 	SaHpiSensorEventT	*sen;
 	SaErrorT		rv;
 	char			buf[SHOW_BUF_SZ];
+	char			*str;
 
 	rv = oh_decode_time(event->Timestamp, &tmbuf);
 	if (rv)
@@ -671,23 +577,14 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 	switch (event->EventType) {
 		case SAHPI_ET_SENSOR:
 			sen = &(event->EventDataUnion.SensorEvent);
-			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s ",
+			if (sen->Assertion == SAHPI_TRUE) str = "ASSERTED";
+			else str = "DEASSERTED";
+			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s STATE(%4.4x):%s",
 				oh_lookup_sensortype(sen->SensorType),
 				event->Source, sen->SensorNum,
 				oh_lookup_severity(event->Severity),
-				oh_lookup_eventcategory(sen->EventCategory));
-			proc(buf);
-			rv = oh_decode_eventstate(sen->EventState,  sen->EventCategory,
-				   &tmbuf);
-			if (rv == SA_OK) {
-				snprintf(buf, SHOW_BUF_SZ, "%s:", tmbuf.Data);
-				if (sen->Assertion == SAHPI_TRUE)
-					strcat(buf, "ASSERTED");
-				else
-					strcat(buf, "DEASSERTED");
-			} else {
-				snprintf(buf, SHOW_BUF_SZ, "evtstate:%d", sen->EventState);
-			};
+				oh_lookup_eventcategory(sen->EventCategory),
+				sen->EventState, str);
 			proc(buf);
 			break;
 		case SAHPI_ET_RESOURCE:
@@ -724,7 +621,8 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
 
 	alarm.AlarmId = SAHPI_FIRST_ENTRY;
 	while (rv == SA_OK) {
-		rv = saHpiAlarmGetNext(domain->sessionId, SAHPI_ALL_SEVERITIES, FALSE, &alarm);
+		rv = saHpiAlarmGetNext(domain->sessionId, SAHPI_ALL_SEVERITIES, FALSE,
+			&alarm);
 		if (rv != SA_OK) break;
 		snprintf(buf, SHOW_BUF_SZ, "(%d) ", alarm.AlarmId);
 		time2str(alarm.Timestamp, time, 256);

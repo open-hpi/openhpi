@@ -44,6 +44,7 @@ typedef union {
 #define	DECODE1_TYPE	8	// call encode1 function
 #define	READING_TYPE	9	// call reading print function
 #define	BOOL_TYPE	10	// boolean
+#define	HEX_TYPE	11	// hexadecimal
 
 typedef struct {
 	char		*name;		// attribute name
