@@ -1229,6 +1229,7 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
         SaHpiRdrT *rdr;
 
         rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+
         
         if (!rdr)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1250,23 +1251,25 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorEvtEnablesT *Enables)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-        int (*get_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
+        int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT, 
+                                        SaHpiSensorNumT,
                                         SaHpiSensorEvtEnablesT *enables);
         
-        OH_GET_RESOURCE;
+        RPTable *rpt = &default_rpt;
+        struct oh_handler *h;
 
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        if (!rdr)
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
-        get_sensor_event_enables = res->handler->abi->get_sensor_event_enables;
+        get_sensor_event_enables = h->abi->get_sensor_event_enables;
         
         if (!get_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (get_sensor_event_enables(res->handler->hnd, rdr->oid, Enables))
+        if (get_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables))
                 return SA_ERR_HPI_UNKNOWN;
         return SA_OK;
 }
@@ -1277,23 +1280,25 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_IN SaHpiSensorEvtEnablesT *Enables)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-        int (*set_sensor_event_enables)(void *hnd, struct oh_rdr_id id,
+        int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
+                                        SaHpiSensorNumT,
                                         const SaHpiSensorEvtEnablesT *enables);
         
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        RPTable *rpt = &default_rpt;
+        struct oh_handler *h;
         
-        if (!rdr)
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
                 return SA_ERR_HPI_INVALID_PARAMS;
-
-        set_sensor_event_enables = res->handler->abi->set_sensor_event_enables;
+        }
+        
+        set_sensor_event_enables = h->abi->set_sensor_event_enables;
         
         if (!set_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (set_sensor_event_enables(res->handler->hnd, rdr->oid, Enables))
+        if (set_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables))
                 return SA_ERR_HPI_UNKNOWN;
         return SA_OK;
 }
