@@ -18,7 +18,7 @@ AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
-HPI_LIB_VERSION=10:2:9
+HPI_LIB_VERSION=10:3:9
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
@@ -516,10 +516,11 @@ CC_WARNINGS="\
 
 CXX_WARNINGS="\
         -Wall \
-        -Wmissing-prototypes \
-	-Wstrict-prototypes \
-	-Wpointer-arith \
-	-Wcast-qual \
+   	-Wpointer-arith \	
+        -Wformat=2 \
+        -Wformat-security \
+        -Wformat-nonliteral \
+        -Wcast-qual \
 	-Wcast-align \
         -Wshadow \
         -Wwrite-strings \
@@ -532,8 +533,8 @@ CFLAGS="$CFLAGS $CC_WARNINGS"
 dnl lastly, we add things if we are thread safe
 dnl (this could probably happen earlier in this file)
 if test "x$THREAD_SAFE" = "xyes" ; then
-        CFLAGS="$CFLAGS -D_GNU_SOURCE -fexceptions"
-        CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -fexceptions"
+        CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
+        CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 fi
 
 dnl there are certain places we always want to turn off optimization
