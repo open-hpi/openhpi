@@ -10,22 +10,20 @@
 # full licensing terms.
 
 # Generated files - need to keep in sync with parent's directory's Makefile.am
-XMLDATA = bc_xmlevents.c rsa_xmlevents.c
-XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/BC_STRING.XML
-XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/RSA_STRING.XML
+GENERATED_CODE = event_array.c event_array_rsa.c
 
 REMOTE_SIM_SOURCES   = \
-			com_xml2event.c \
-			bc_resources.c \
 			snmp_bc.c \
 	     		snmp_bc_discover.c \
 			snmp_bc_discover_bc.c \
 			snmp_bc_discover_rsa.c \
 			snmp_bc_event.c \
 			snmp_bc_inventory.c \
+			snmp_bc_resources.c \
 			snmp_bc_sel.c \
 			snmp_bc_session.c \
 	 		snmp_bc_time.c \
+			snmp_bc_xml2event.c \
 			stubs.c
 
 #			  snmp_bc_control.c \
@@ -34,7 +32,7 @@ REMOTE_SIM_SOURCES   = \
 #			  snmp_bc_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
-			  $(XMLDATA) \
+			  $(GENERATED_CODE) \
 			  $(REMOTE_SIM_SOURCES) \
 			  uid_map
 
@@ -56,7 +54,7 @@ $(REMOTE_SIM_SOURCES):
 		ln -s ../$@; \
 	fi
 
-libsnmp_bc_la_SOURCES	= $(XMLDATA) \
+libsnmp_bc_la_SOURCES	= $(GENERATED_CODE) \
 			  $(REMOTE_SIM_SOURCES) \
 			  sim_init.c \
 			  sim_resources.c \
@@ -69,9 +67,12 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Keep in sync with parent directory's Makefile.am
-$(XMLDATA): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
-	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml $(XMLDATA_BC) > bc_xmlevents.c
-	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > rsa_xmlevents.c
+XMLDATA_BC = $(top_srcdir)/plugins/snmp_bc/event.xml
+XMLDATA_RSA = $(top_srcdir)/plugins/snmp_bc/event_rsa.xml
+
+$(GENERATED_CODE): $(XMLDATA_BC) $(XMLDATA_RSA) $(top_srcdir)/scripts/text2cstr.pl
+	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml $(XMLDATA_BC) > event_array.c
+	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml $(XMLDATA_RSA) > event_array_rsa.c
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
