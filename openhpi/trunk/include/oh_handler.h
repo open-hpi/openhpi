@@ -384,6 +384,17 @@ struct oh_abi_v2 {
         SaErrorT (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
                               SaHpiWatchdogNumT num);
 
+        /**********************************************************************
+         * Annuciator Functions
+         *
+         *********************************************************************/
+        
+        SaErrorT (*get_annunc_mode)(void *hnd, SaHpiResourceIdT id,
+                                    SaHpiAnnunciatorNumT num, SaHpiAnnunciatorModeT *mode);
+        SaErrorT (*set_annunc_mode)(void *hnd, SaHpiResourceIdT id,
+                                    SaHpiAnnunciatorNumT num, SaHpiAnnunciatorModeT mode);
+
+
         /**
          * get hotswap state
          */
