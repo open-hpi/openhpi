@@ -64,6 +64,8 @@ static void ShowSensor(
                 printf("ReadingGet ret=%d\n", rv);
                 return;
         }
+
+
         
         if ((reading.ValuesPresent & SAHPI_SRF_INTERPRETED) == 0) { 
                 if ((reading.ValuesPresent & SAHPI_SRF_RAW) == 0) {
@@ -287,10 +289,14 @@ int main(int argc, char **argv)
                                         else eol = "\n";
                                         printf("    RDR[%6d]: %s %s %s",rdr.RecordId,
                                                rtypes[rdr.RdrType],rdr.IdString.Data,eol);
-                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) {
+                                        if (rdr.RdrType == SAHPI_SENSOR_RDR &&
+						rdr.RdrTypeUnion.SensorRec.Ignore != TRUE) {
                                                 ShowSensor(sessionid,resourceid,
                                                            &rdr.RdrTypeUnion.SensorRec);
-                                        } 
+                                        } else {
+						printf("Sensor ignored probably due to Resource not present\n");
+					}
+
                                         entryid = nextentryid;
                                 } else {
                                         rv = SA_OK;
