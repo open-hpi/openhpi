@@ -19,7 +19,8 @@ bin_PROGRAMS		= hpialarmpanel \
                           hpisettime \
                           hpiwdt \
 			  hpigetevents \
-                          hpipower
+                          hpipower \
+			  hpipower2
 
 include_HEADERS		= 
 
@@ -74,6 +75,10 @@ hpigetevents_LDFLAGS      =
 hpipower_SOURCES      = hpipower.c
 hpipower_LDADD        = $(COMMONLIBS)
 hpipower_LDFLAGS      =
+
+hpipower2_SOURCES      = hpipower2.c
+hpipower2_LDADD        = $(COMMONLIBS)
+hpipower2_LDFLAGS      =
 
 clean:
 	rm -f *~
