@@ -24,7 +24,6 @@
 #include <ctype.h>
 #include <hpi_ui.h>
 #include "hpi_cmd.h"
-#include "resource.h"
 
 #define READ_BUF_SIZE	1024
 
@@ -158,7 +157,7 @@ static int sa_set_thres(int argc, char *argv[])
 	resourceid = (SaHpiResourceIdT)atoi(argv[1]);
 	sensornum = (SaHpiResourceIdT)atoi(argv[2]);
 
-	rv = saHpiSensorThresholdsGet(sessionid, resourceid,
+	rv = saHpiSensorThresholdsGet(Domain->sessionId, resourceid,
 					sensornum, &stbuff);
 	if (rv != SA_OK) 
 		printf("saHpiSensorThresholdsGet error %d\n",rv);
@@ -197,8 +196,7 @@ static int sa_set_thres(int argc, char *argv[])
 		}
 	}
 
-	rv = saHpiSensorThresholdsSet(
-			sessionid, resourceid, sensornum, &stbuff);
+	rv = saHpiSensorThresholdsSet(Domain->sessionId, resourceid, sensornum, &stbuff);
 	if (rv != SA_OK) 
 		printf("saHpiSensorThresholdsSet error %d\n",rv);
 	else
@@ -212,7 +210,7 @@ static int sa_show_hs_ind(SaHpiResourceIdT resourceid)
 	SaErrorT rv;
 	SaHpiHsIndicatorStateT state;
 
-	rv = saHpiHotSwapIndicatorStateGet(sessionid, resourceid, &state);
+	rv = saHpiHotSwapIndicatorStateGet(Domain->sessionId, resourceid, &state);
 	if (rv != SA_OK) { 
 		printf("saHpiHotSwapStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
@@ -237,7 +235,7 @@ static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
 	SaErrorT rv;
 	SaHpiHsStateT state;
 
-	rv = saHpiHotSwapStateGet(sessionid, resourceid, &state);
+	rv = saHpiHotSwapStateGet(Domain->sessionId, resourceid, &state);
 	if (rv != SA_OK) { 
 		printf("saHpiHotSwapStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
@@ -272,10 +270,11 @@ static int sa_power(int argc, char *argv[])
 	SaErrorT rv;
 	SaHpiResourceIdT resourceid;
 	SaHpiPowerStateT state;
+	int	do_set = 1;
 
         resourceid = (SaHpiResourceIdT)atoi(argv[1]);
 
-	if (argc == 2) goto L1;
+	if (argc == 2) do_set = 0;
 	else if (!strcmp(argv[2], "on")) {
 		state = SAHPI_POWER_ON;
 	} else if (!strcmp(argv[2], "off")) {
@@ -286,14 +285,16 @@ static int sa_power(int argc, char *argv[])
 	 	return HPI_SHELL_PARM_ERROR;
 	}
 
-        rv = saHpiResourcePowerStateSet(sessionid, resourceid, state);
-        if (rv != SA_OK) {
-                printf("saHpiResourcePowerStateSet error %s\n", oh_lookup_error(rv));
-		return -1;
+	if (do_set) {
+	        rv = saHpiResourcePowerStateSet(Domain->sessionId, resourceid, state);
+       		if (rv != SA_OK) {
+			printf("saHpiResourcePowerStateSet error %s\n",
+				oh_lookup_error(rv));
+			return -1;
+		}
 	}
 
-L1:
-        rv = saHpiResourcePowerStateGet(sessionid, resourceid, &state);
+        rv = saHpiResourcePowerStateGet(Domain->sessionId, resourceid, &state);
         if (rv != SA_OK) {
                 printf("saHpiResourcePowerStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
@@ -312,10 +313,11 @@ static int sa_reset(int argc, char *argv[])
 	SaErrorT rv;
 	SaHpiResourceIdT resourceid;
 	SaHpiResetActionT state;
+	int	do_set = 1;
 
         resourceid = (SaHpiResourceIdT)atoi(argv[1]);
 
-	if (argc == 2) goto L1;
+	if (argc == 2) do_set = 0;
 	else if (!strcmp(argv[2], "cold")) {
 		state = SAHPI_COLD_RESET;
 	} else if (!strcmp(argv[2], "warm")) {
@@ -326,14 +328,16 @@ static int sa_reset(int argc, char *argv[])
 	 	return HPI_SHELL_PARM_ERROR;
 	}
 
-        rv = saHpiResourceResetStateSet(sessionid, resourceid, state);
-        if (rv != SA_OK) {
-                printf("saHpiResourceResetStateSet error %s\n", oh_lookup_error(rv));
-		return -1;
+	if (do_set) {
+		rv = saHpiResourceResetStateSet(Domain->sessionId, resourceid, state);
+		if (rv != SA_OK) {
+			printf("saHpiResourceResetStateSet error %s\n",
+				oh_lookup_error(rv));
+			return -1;
+		}
 	}
 
-L1:
-	rv = saHpiResourceResetStateGet(sessionid, resourceid, &state);
+	rv = saHpiResourceResetStateGet(Domain->sessionId, resourceid, &state);
 	if (rv != SA_OK) {
 		printf("saHpiResourceResetStateGet error %s\n", oh_lookup_error(rv));
 		return -1;
@@ -349,37 +353,11 @@ L1:
 	return SA_OK;
 }
 
-static int sa_set_tag(int argc, char *argv[])
-{
-	SaErrorT rv;
-	SaHpiResourceIdT resourceid;
-	SaHpiTextBufferT resourcetag;
-
-        resourceid = (SaHpiResourceIdT)atoi(argv[1]);
-	resourcetag.DataLength = strlen(argv[2]);
-	resourcetag.DataType = SAHPI_TL_TYPE_TEXT;
-	resourcetag.Language = SAHPI_LANG_ENGLISH;
-
-	if (resourcetag.DataLength == 0)
-		return HPI_SHELL_PARM_ERROR;
-	else
-		strcpy((char *)(resourcetag.Data), argv[2]);
-
-
-	rv = saHpiResourceTagSet(sessionid,resourceid,&resourcetag);
-	if (rv != SA_OK) {
-		printf("saHpiResourceTagSet error = %s\n", oh_lookup_error(rv));
-		return -1;
-	}
-
-	return SA_OK;
-}
-
 static int sa_clear_evtlog(SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv = SA_OK;
 
-	rv = saHpiEventLogClear(sessionid,resourceid);
+	rv = saHpiEventLogClear(Domain->sessionId, resourceid);
 	if (rv != SA_OK) {
 		printf("EventLog clear, error = %s\n", oh_lookup_error(rv));
 		return -1;
@@ -602,7 +580,8 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 
 	rdrentryid = SAHPI_FIRST_ENTRY;
 	while (rdrentryid != SAHPI_LAST_ENTRY) {
-		rv = saHpiRdrGet(sessionid, resourceid, rdrentryid, &nextrdrentryid, &rdr);
+		rv = saHpiRdrGet(Domain->sessionId, resourceid, rdrentryid,
+			&nextrdrentryid, &rdr);
 		if (rv != SA_OK) {
 			printf("saHpiRdrGet error %s\n", oh_lookup_error(rv));
 			return -1;
@@ -614,7 +593,7 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 		};
 		
 		idrid = rdr.RdrTypeUnion.InventoryRec.IdrId;
-		rv = saHpiIdrInfoGet(sessionid, resourceid, idrid, &idrInfo);
+		rv = saHpiIdrInfoGet(Domain->sessionId, resourceid, idrid, &idrInfo);
 		if (rv != SA_OK) {
 			printf("saHpiIdrInfoGet error %s\n", oh_lookup_error(rv));
 			return -1;
@@ -624,10 +603,11 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 		areaType = SAHPI_IDR_AREATYPE_UNSPECIFIED;
 		areaId = SAHPI_FIRST_ENTRY; 
 		while (areaId != SAHPI_LAST_ENTRY) {
-			rva = saHpiIdrAreaHeaderGet(sessionid, resourceid, idrInfo.IdrId,
-				areaType, areaId, &nextareaId, &areaHeader);
+			rva = saHpiIdrAreaHeaderGet(Domain->sessionId, resourceid,
+				idrInfo.IdrId, areaType, areaId, &nextareaId, &areaHeader);
 			if (rva != SA_OK) {
-				printf("saHpiIdrAreaHeaderGet error %s\n", oh_lookup_error(rva));
+				printf("saHpiIdrAreaHeaderGet error %s\n",
+					oh_lookup_error(rva));
 				break;
 			}
 			oh_print_idrareaheader(&areaHeader, 2);
@@ -635,12 +615,13 @@ static int sa_show_inv(SaHpiResourceIdT resourceid)
 			fieldType = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
 			fieldId = SAHPI_FIRST_ENTRY;
 			while (fieldId != SAHPI_LAST_ENTRY) {
-				rvf = saHpiIdrFieldGet(sessionid, resourceid,
+				rvf = saHpiIdrFieldGet(Domain->sessionId, resourceid,
 						idrInfo.IdrId, areaHeader.AreaId, 
 						fieldType, fieldId, &nextFieldId,
 						&thisField);
 				if (rvf != SA_OK) {
-					printf("saHpiIdrFieldGet error %s\n", oh_lookup_error(rvf));
+					printf("saHpiIdrFieldGet error %s\n",
+						oh_lookup_error(rvf));
 					break;
 				}
 				oh_print_idrfield(&thisField, 4);
@@ -663,7 +644,7 @@ static int event(int argc, char *argv[])
 
 static int list_sensor(int argc, char *argv[])
 {
-	sensor_list(sessionid, ui_print);
+	sensor_list(Domain->sessionId, ui_print);
 	return SA_OK;
 }
 
@@ -671,7 +652,7 @@ static int show_sensor1(int argc, char *argv[])
 {
 	if (argc < 3)
 		return HPI_SHELL_PARM_ERROR;
-	return show_sensor(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
+	return show_sensor(Domain->sessionId, (SaHpiResourceIdT)atoi(argv[1]),
 				(SaHpiSensorNumT)atoi(argv[2]), ui_print);
 }
 
@@ -679,7 +660,7 @@ static int get_thres(int argc, char *argv[])
 {
         if (argc < 3)
                 return HPI_SHELL_PARM_ERROR;
-	return show_threshold(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
+	return show_threshold(Domain->sessionId, (SaHpiResourceIdT)atoi(argv[1]),
 			(SaHpiSensorNumT)atoi(argv[2]), ui_print);
 }
 
@@ -724,15 +705,66 @@ static int reset(int argc, char *argv[])
 
 static int set_tag(int argc, char *argv[])
 {
-	if (argc != 3)
-		return HPI_SHELL_PARM_ERROR;
+	SaHpiResourceIdT	resid = 0;
+	SaHpiTextBufferT	tbuf;
+	int			res, i;
+	char			buf[SAHPI_MAX_TEXT_BUFFER_LENGTH + 1];
+	char			*str;
+	SaErrorT		rv;
+	SaHpiRptEntryT		rpt_entry;
+	Rpt_t			tmp_rpt;
 
-	return sa_set_tag(argc, argv);
+	clear_input();
+	if (argc < 2) {
+		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
+		if (i == 1) resid = (SaHpiResourceIdT)res;
+		else return SA_OK;
+	} else {
+		resid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+	printf("New tag: ");
+	fgets(buf, READ_BUF_SIZE, stdin);
+	for (res = 0; res < SAHPI_MAX_TEXT_BUFFER_LENGTH; res++)
+		if (buf[res] == '\n') buf[res] = 0;
+	str = buf;
+	while (*str == ' ') str++;
+	i = strlen(str);
+	while ((i > 0) && (str[i - 1] == ' ')) i--;
+	str[i] = 0;
+	if (i == 0) {
+		printf("Invalid tag: %s\n", buf);
+		return(-1);
+	};
+	strcpy(tbuf.Data, str);
+	tbuf.DataType = SAHPI_TL_TYPE_TEXT;
+	tbuf.Language = SAHPI_LANG_ENGLISH;
+	tbuf.DataLength = i;
+	rv = saHpiResourceTagSet(Domain->sessionId, resid, &tbuf);
+	if (rv != SA_OK) {
+		printf("saHpiResourceTagSet error = %s\n", oh_lookup_error(rv));
+		return -1;
+	};
+	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
+	make_attrs_rpt(&tmp_rpt, &rpt_entry);
+	show_Rpt(&tmp_rpt, ui_print);
+	free_attrs(&(tmp_rpt.Attrutes));
+	return (SA_OK);
 }
 
 static int discovery(int argc, char *argv[])
 {
-	return sa_discover();
+	SaErrorT        ret;
+
+	do_progress("Discover");
+        ret = saHpiDiscover(Domain->sessionId);
+        if (SA_OK != ret) {
+                printf("saHpiResourcesDiscover failed\n");
+		delete_progress();
+        	return ret;
+	};
+	delete_progress();
+        return ret;
 }
 
 static int dat_list(int argc, char *argv[])
@@ -758,7 +790,7 @@ static int show_evtlog(int argc, char *argv[])
 	if (argc < 2)
 		return HPI_SHELL_PARM_ERROR;
 			
-	return show_event_log(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
+	return show_event_log(Domain->sessionId, (SaHpiResourceIdT)atoi(argv[1]),
 		show_event_short, ui_print);
 }
 
@@ -773,7 +805,7 @@ static int sen_block(int argc, char *argv[])
 	SaHpiEventStateT		assert, deassert;
 	SaHpiSensorEventMaskActionT	act;
 	int				res, i;
-	char				buf[256], t, *str;
+	char				buf[256], *str;
 	char				rep[10];
 
 	clear_input();
@@ -789,34 +821,8 @@ static int sen_block(int argc, char *argv[])
 	} else {
 		rptid = (SaHpiResourceIdT)atoi(argv[1]);
 	};
+	type = SAHPI_SENSOR_RDR;
 	if (argc < 3) {
-		i = get_int_param("RDR Type (s|a|c|w|i|all) ==> ", &res, buf, 9);
-		if (i != 0) return HPI_SHELL_PARM_ERROR;
-	} else {
-		memset(buf, 0, 10);
-		strncpy(buf, argv[2], 3);
-	};
-	if (strncmp(buf, "all", 3) == 0) t = 'n';
-	else t = *buf;
-	if (t == 'c') type = SAHPI_CTRL_RDR;
-	else if (t == 's') type = SAHPI_SENSOR_RDR;
-	else if (t == 'i') type = SAHPI_INVENTORY_RDR;
-	else if (t == 'w') type = SAHPI_WATCHDOG_RDR;
-	else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
-	else type = SAHPI_NO_RECORD;
-	if (type == SAHPI_NO_RECORD) {
-		show_rdr_list(Domain, rptid, type, ui_print);
-		i = get_int_param("Select RDR Type (s|a|c|w|i) ==> ", &res, buf, 9);
-		if (i != 0) return HPI_SHELL_PARM_ERROR;
-		t = *buf;
-		if (t == 'c') type = SAHPI_CTRL_RDR;
-		else if (t == 's') type = SAHPI_SENSOR_RDR;
-		else if (t == 'i') type = SAHPI_INVENTORY_RDR;
-		else if (t == 'w') type = SAHPI_WATCHDOG_RDR;
-		else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
-		else return HPI_SHELL_PARM_ERROR;
-	};
-	if (argc < 4) {
 		show_rdr_list(Domain, rptid, type, ui_print);
 		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
 		if (i != 1) return SA_OK;
@@ -843,7 +849,7 @@ static int sen_block(int argc, char *argv[])
 			if (rv != SA_OK) {
 				printf("saHpiSensorEventEnableGet: error: %s\n",
 					oh_lookup_error(rv));
-				break;
+				continue;
 			};
 			if (val) strcpy(buf, "Enable");
 			else strcpy(buf, "disable");
@@ -858,14 +864,14 @@ static int sen_block(int argc, char *argv[])
 			if (rv != SA_OK) {
 				printf("saHpiSensorEventEnableSet: error: %s\n",
 					oh_lookup_error(rv));
-				break;
+				continue;
 			};
 			rv = saHpiSensorEventEnableGet(Domain->sessionId, rptid, rdrnum,
 				&val);
 			if (rv != SA_OK) {
 				printf("saHpiSensorEventEnableGet: error: %s\n",
 					oh_lookup_error(rv));
-				break;
+				continue;
 			};
 			if (val) strcpy(buf, "Enable");
 			else strcpy(buf, "disable");
@@ -878,7 +884,7 @@ static int sen_block(int argc, char *argv[])
 			if (rv != SA_OK) {
 				printf("saHpiSensorEventMasksGet: error: %s\n",
 					oh_lookup_error(rv));
-				break;
+				continue;
 			};
 			printf("Sensor:(%d/%d) masks: assert = 0x%4.4x   "
 				"deassert = 0x%4.4x\n", rptid, rdrnum, assert, deassert);
@@ -897,7 +903,7 @@ static int sen_block(int argc, char *argv[])
 			if (rv != SA_OK) {
 				printf("saHpiSensorEventMasksGet: error: %s\n",
 					oh_lookup_error(rv));
-				break;
+				continue;
 			};
 			printf("Assert mask = 0x");
 			strcpy(buf, "0x");
@@ -911,24 +917,19 @@ static int sen_block(int argc, char *argv[])
 			str = buf;
 			if (strlen(str) < 3) continue;
 			deassert = strtol(str, (char **)NULL, 16);
-			if (strcmp(buf, "maskadd") == 0) {
-				act = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
-				strcpy(buf, "add");
-			} else {
-				act = SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS;
-				strcpy(buf, "remove");
-			};
 			printf("Sensor:(%d/%d) %s masks: assert = 0x%4.4x   "
 				"deassert = 0x%4.4x  (yes/no)?", rptid, rdrnum, rep,
 				assert, deassert);
 			fgets(buf, 256, stdin);
-			if (strcmp(buf, "yes") != 0) continue;
+			if (strncmp(buf, "yes", 3) != 0) {
+				printf("No action.\n");
+				continue;
+			};
 			rv = saHpiSensorEventMasksSet(Domain->sessionId, rptid, rdrnum,
 				act, assert, deassert);
 			if (rv != SA_OK) {
 				printf("saHpiSensorEventMasksSet: error: %s\n",
 					oh_lookup_error(rv));
-				break;
 			};
 			continue;
 		};
@@ -1070,7 +1071,7 @@ const char resethelp[] = "reset: perform specified reset on the entity\n"  \
 			"Usage: reset <resource id> [cold|warm|assert]";
 const char senhelp[] = "sen: sensor block commands\n"        \
 			"Usage: sen [<sensorId> [<command>]]"
-			"	sensorId:: <resourceId> <type> <num>";
+			"	sensorId:: <resourceId> <num>";
 const char setthreshelp[] = "setthreshold: set sensor threshold values\n"  \
 			"Usage: setthreshold <resource id> <sensor id>\n"  \
 			"                    [lc val] [la val] [li val]\n" \

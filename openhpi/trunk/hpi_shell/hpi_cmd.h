@@ -19,9 +19,6 @@
 #include <SaHpi.h>
 #include <hpi_ui.h>
 
-#define HPI_SHELL_MAJOR	0
-#define HPI_SHELL_MINOR 2
-
 enum error_type{
 	HPI_SHELL_OK = 0,
 	HPI_SHELL_PARM_ERROR,
@@ -34,7 +31,6 @@ struct command {
     const char *help;
 };
 
-extern SaHpiSessionIdT	sessionid;
 extern struct command	commands[];
 extern int		prt_flag;
 extern int		show_event_short;
@@ -44,13 +40,8 @@ extern void	delete_progress(void);
 extern void	do_progress(char *mes);
 extern int	ui_print(char *Str);
 extern int	help(int argc, char *argv[]);
-
-int open_session(int eflag);
-int close_session(void);
-void cmd_shell(void);
-int sa_show_rpt(SaHpiResourceIdT resourceid);  //show the rpt of a specific resource
-int sa_list_res(void);                         //list all rpt information
-int sa_show_rdr(SaHpiResourceIdT resourceid);
-void time2str(SaHpiTimeT time, char * str, size_t size);
+extern int	open_session(int eflag);
+extern int	close_session(void);
+extern void	cmd_shell(void);
 #endif
 
