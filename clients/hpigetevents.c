@@ -125,9 +125,12 @@ int main(int argc, char **argv)
                         if ( (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                                 /* Using EventLogInfo to build up event queue - for now */
                                 rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
-
+				
                                 if (fdebug) 
                                         printf("saHpiEventLogInfoGet %s\n", oh_lookup_error(rv));
+					
+				if (rv == SA_OK) 
+					oh_print_eventloginfo(&info, 4);
                         } else {
                                 if (fdebug) 
                                         printf("RPT doesn't have SEL\n");
@@ -161,79 +164,7 @@ int main(int argc, char **argv)
                                 break;
                         }
                 } else {
-                        printf("\nReceived Event of Type: %s\n", 
-                               oh_lookup_eventtype(event.EventType));
-
-			switch (rdr.RdrType) {
-			case SAHPI_NO_RECORD:
-				break;
-			case SAHPI_CTRL_RDR:
-				printf("\tRDR TYPE: SAHPI_CTRL_RDR\n");
-				break;
-			case SAHPI_SENSOR_RDR:
-				printf("\tRDR TYPE: SAHPI_SENSOR_RDR\n");
-				break;
-			case SAHPI_INVENTORY_RDR:
-				printf("\tRDR TYPE: SAHPI_INVENTORY_RDR\n");
-				break;
-			case SAHPI_WATCHDOG_RDR:
-				printf("\tRDR TYPE: SAHPI_WATCHDOG_RDR\n");
-				break;
-			case SAHPI_ANNUNCIATOR_RDR:
-				printf("\tRDR TYPE: SAHPI_ANNUNCIATOR_RDR\n");
-				break;
-			default:
-				break;
-			}
-		       
-			switch (event.EventType) {
-			case SAHPI_ET_RESOURCE:
-				printf("\tEvent Subtype:[%s]\n",
-				       oh_lookup_resourceeventtype(event.EventDataUnion.ResourceEvent.ResourceEventType));
-				printf("\tReouceId: [%d]\n", event.Source);
-				break;
-
-			case SAHPI_ET_DOMAIN:
-				printf("\tEvent Subtype: [%s]\n",
-				       oh_lookup_domaineventtype(event.EventDataUnion.DomainEvent.Type));
-				printf("\tDomainId: [%d]\n", event.Source);
-				break;
-
-			case SAHPI_ET_SENSOR:
-				break;
-
-			case SAHPI_ET_SENSOR_ENABLE_CHANGE:
-				break;
-
-			case SAHPI_ET_HOTSWAP:
-				break;
-
-			case SAHPI_ET_WATCHDOG:
-				break;
-
-			case SAHPI_ET_HPI_SW:
-				printf("   Event Subtype: [%s]\n",
-				       oh_lookup_sweventtype(event.EventDataUnion.HpiSwEvent.Type));
-				printf("\tSW Source Id: [%d]\n", event.Source);
-				break;
-
-			case SAHPI_ET_OEM:
-				break;
-
-			case SAHPI_ET_USER:
-				break;
-
-			default:
-				printf(" NOT FOUND, ERROR\n");
-				break;
-			}
-/*
-                        if(event.EventType == SAHPI_ET_RESOURCE) {
-                                printf("   Subtype: %s\n", 
-                                       oh_lookup_resourceeventtype(
-                                               event.EventDataUnion.ResourceEvent.ResourceEventType));
-                        }
-*/			
+			oh_print_event(&event, 4);			
                 }
 		//count++;
         }
