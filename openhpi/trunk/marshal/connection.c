@@ -34,7 +34,7 @@
 #include "marshal.h"
 
 
-void 
+void
 MessageHeaderInit( cMessageHeader *header, tMessageType type,
 		   unsigned char seq, unsigned int id,
 		   unsigned int len )
