@@ -7,14 +7,8 @@
 #include <SaHpi.h>
 
 enum oh_id_type {
-	OH_ID_EVENT_LOG,
-	OH_ID_WATCHDOG,
-	OH_ID_INVENTORY,
-	OH_ID_ENTITY,
-	OH_ID_SENSOR,
-	OH_ID_CONTROL,
-	OH_ID_SEL,
-	OH_ID_DOMAIN
+	OH_ID_RESOURCE,
+	OH_ID_RDR,
 };
 
 /* 
@@ -28,29 +22,42 @@ struct oh_id {
 	void *ptr;
 };
 	
-
-struct oh_entity_event {
-	SaHpiEventCategoryT	category;
-	SaHpiEventStateT	state;
+/*
+ * The event is used for plugin to report its resources
+ * (Domain, SEL and RDR etc.).
+ */
+struct oh_resource_event {
+	/* XXX: upper layer will fill some fields which does not 
+	 * owned by plugins (such as domain Id)
+	 */
+	SaHpiRptEntryT		entry;
 };
 
-struct oh_sel_event {
-	SaHpiEventCategoryT	category;
-	SaHpiEventStateT	state;
+/* 
+ * The event is used for plugin to report its RDR against resource.
+ */
+struct oh_rdr_event {
+	struct oh_id parent; /*This is resource oid the RDR relate*/
+	/* FIXME: should add more information*/
 };
 
+/* 
+ * This is the main event structure. It is used for plugin report
+ * its discovery about new resource/rdr or what happend on resource
+ */
 struct oh_event {
+	enum {
+		OH_ET_RESOURCE,
+		OH_ET_RDR,
+		OH_ET_HPI
+	}type;
 	struct oh_id			oid;
-	struct timeval			timestamp;
-	SaHpiSeverityT			severity;
 	union {
-		SaHpiSensorEventT   sensor;
-		SaHpiHotSwapEventT  hotswap;
-		SaHpiWatchdogEventT watchdog;
-		SaHpiOemEventT      oem;
-		SaHpiUserEventT     user;
-		struct oh_entity_event entity;
-		struct oh_sel_event sel;
+		struct oh_resource_event res_event;
+		struct oh_rdr_event	 rdr_event;
+		/* XXX: upper layer will fill some fields which does not
+		 * owned by plugins (ResourceId etc.). */
+		SaHpiEventT		 hpi_event;
 	} u;		    
 };
 
@@ -63,21 +70,28 @@ static const uuid_t UUID_OH_ABI_V1 = {
 struct oh_abi_v1 {
 	/**
 	 * The function create an instance 
-	 * @return the handler of the instance
+	 * @return the handler of the instance, this can be recognised 
+	 * as a domain in upper layer
 	 * @param name the mechanism's name. 
 	 * for example, "snmp" for SNMP, "smi" for IPMI SMI
 	 * @param addr the interface name.
 	 * for example, "ipaddr:port" for SNMP, "if_num" for IPMI SMI
 	 */
 	void *(*open)(const char *name, const char *addr);
-
+	
+	/**
+	 * open the domain which is on the corresponding resource oid.
+	 * Note, the id must be resource id.
+	 */
+	void *(*open_domain)(void *hnd, struct oh_id *id);
+	
 	void (*close)(void *hnd);
 	/**
 	 * The function wait for event. 
 	 * 
 	 *
-	 * @remark at the start-up, plugins must send out ADD event for all
-	 * resources and items so as to OpenHPI can build up RPT/RDR.
+	 * @remark at the start-up, plugins must send out res/rdr event for all
+	 * resources and rdrs so as to OpenHPI can build up RPT/RDR.
 	 * @return >0 if an event is returned; 0 if timeout; otherwise an error
 	 * occur.
 	 * @param event if existing, plugin store the event. 
@@ -86,11 +100,6 @@ struct oh_abi_v1 {
 	 * immediately.
 	 */
 	int (*get_event)(void *hnd, struct oh_event *event, struct timeval *timeout);
-	
-	/**
-	 * get the entity info
-	 */
-	int (*get_res_info)(void *hnd, struct oh_id *id, SaHpiRptEntryT *res);
 	
 	/**
 	 * get the id which the caller is running
