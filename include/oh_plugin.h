@@ -114,12 +114,6 @@ struct oh_abi_v1 {
 	 */
 	void *(*open)(const char *name, const char *addr);
 	
-	/**
-	 * open the domain which is on the corresponding resource oid.
-	 * Note, the id must be resource id.
-	 */
-	void *(*open_domain)(void *hnd, struct oh_resource_id *id);
-	
 	void (*close)(void *hnd);
 	/**
 	 * The function wait for event. 
