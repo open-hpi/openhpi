@@ -443,7 +443,9 @@ SaErrorT oh_get_events()
 
         /* this waits for the event thread to sleep, then 
            runs to deal with sync issues */
-        g_mutex_lock(oh_thread_mutex);
+        if(oh_run_threaded())
+		g_mutex_lock(oh_thread_mutex);
+	
         trace("Harvesting events synchronously");
         rv = oh_harvest_events();
         if(rv != SA_OK) {
@@ -457,7 +459,8 @@ SaErrorT oh_get_events()
         
         process_hotswap_policy();
         
-        g_mutex_unlock(oh_thread_mutex);
+	if(oh_run_threaded())
+        	g_mutex_unlock(oh_thread_mutex);
         
         return rv;
 }
