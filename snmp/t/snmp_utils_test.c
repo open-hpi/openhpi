@@ -29,11 +29,9 @@
  **/
 int main(int argc, char **argv) 
 {
-
 	/*****************************
 	 * snmp_derive_objid testcases
          *****************************/
-
 	gchar *oid, *in_oid, *expected_oid;
 	SaHpiEntityPathT ep = {
 		.Entry[0] = 
@@ -51,7 +49,7 @@ int main(int argc, char **argv)
 	in_oid = "1.x.3.x";
 	expected_oid = "1.99.3.100";
 
-	oid = snmp_derive_objid(ep, in_oid);
+	oid = snmp_derive_objid(&ep, in_oid);
 	if (strcmp(expected_oid, oid)) {
 		g_free(oid);
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -64,7 +62,7 @@ int main(int argc, char **argv)
 	in_oid = "1.99.3.100";
 	expected_oid = "1.99.3.100";
 
-	oid = snmp_derive_objid(ep, in_oid);
+	oid = snmp_derive_objid(&ep, in_oid);
 	if (strcmp(expected_oid, oid)) {
 		g_free(oid);
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -72,7 +70,6 @@ int main(int argc, char **argv)
                 return -1;
         }
         g_free(oid);
-
 
         return 0;
 }

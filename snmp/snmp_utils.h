@@ -109,6 +109,6 @@ SaErrorT errstat2hpi(long pdu_errstat);
 #define OID_BLANK_CHAR 'x'
 #define OID_BLANK_STR "x"
 
-gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid);
+gchar * snmp_derive_objid(SaHpiEntityPathT *ep, const gchar *oid);
 
 #endif
