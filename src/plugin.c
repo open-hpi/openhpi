@@ -173,13 +173,13 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
 {
         struct oh_plugin_config *p_config;
         struct oh_handler *handler;
+        static unsigned int handler_id = 1;
 
-        handler = malloc(sizeof(*handler));
+        handler = g_malloc0(sizeof(struct oh_handler));
         if (!handler) {
                 dbg("Out of Memory!");
                 goto err;
-        }
-        memset(handler, '\0', sizeof(*handler));
+        }        
 
         if(plugin_refcount((char *)g_hash_table_lookup(handler_config, "plugin")) < 1) {
                 dbg("Attempt to create handler for unknown plugin %s",
@@ -196,13 +196,14 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         handler->abi = p_config->abi;
         handler->config = handler_config;
 
-        /* this should be done elsewhere.  if 0 it for now to make it
+        /* FIXME: this should be done elsewhere.  if 0 it for now to make it
            easier to migrate */
         handler->hnd = handler->abi->open(handler->config);
         if (!handler->hnd) {
-                dbg("The plugin can not work");
+                dbg("A plugin instance could not be opened.");
                 goto err;
         }
+        handler->id = handler_id++;
 
         return handler;
 err:
@@ -222,11 +223,10 @@ int load_handler (GHashTable *handler_config)
                 data_access_unlock();
                 return -1;
         }
-
-        global_handler_list = g_slist_append(
-                global_handler_list,
-                (gpointer) handler
-                );
+                
+        g_hash_table_insert(global_handler_table,
+                            &(handler->id),
+                            handler);
 
         data_access_unlock();
 
@@ -238,12 +238,7 @@ void unload_handler(struct oh_handler *handler)
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
 
-        global_handler_list = g_slist_remove(
-                global_handler_list,
-                (gpointer) handler
-                );
+        g_hash_table_remove(global_handler_table, &(handler->id));        
 
         free(handler);
 }
-
-

@@ -80,23 +80,28 @@ SaErrorT SAHPI_API saHpiSessionClose(
         return oh_destroy_session(SessionId);
 }
 
+static void oh_handler_table_discover(gpointer key, gpointer value, gpointer data)
+{
+        struct oh_handler *h = (struct oh_handler*)value;
+        SaErrorT *error = (SaErrorT *)data;
+
+        if (!(h->abi->discover_resources(h->hnd)))
+                *error = SA_OK;
+}
+
 SaErrorT SAHPI_API saHpiDiscover(
         SAHPI_IN SaHpiSessionIdT SessionId)
 {
         SaHpiDomainIdT did;
-        GSList *i = NULL;
         int rv = -1;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-
-        /* FIXME: This should not look on the handlers directly, let's encapsulate later */
-        data_access_lock();
-        g_slist_for_each(i, global_handler_list) {
-                struct oh_handler *h = i->data;
-                if (!(h->abi->discover_resources(h->hnd)))
-                        rv = 0;
-        }
+                
+        data_access_lock();        
+        g_hash_table_foreach(global_handler_table,
+                              oh_handler_table_discover,
+                              &rv);
         data_access_unlock();
 
         if (rv) {
@@ -936,7 +941,7 @@ SaErrorT SAHPI_API saHpiEventAdd (
         OH_GET_DID(SessionId, did);
 
         e.did = did;
-        e.from = NULL;
+        e.hid = 0;
         e.type = OH_ET_HPI;
         e.u.hpi_event.event = *EvtEntry;
 

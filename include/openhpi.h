@@ -57,9 +57,9 @@ extern "C" {
 struct oh_resource_data
 {
         /*
-           The handler of the resource
+           The handler id of the resource
         */
-        struct oh_handler *handler;
+        unsigned int hid;
 
         /*
          * The two fields are valid when resource is

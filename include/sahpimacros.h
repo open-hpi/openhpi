@@ -72,12 +72,12 @@
         do { \
                 struct oh_resource_data *rd; \
                 rd = oh_get_resource_data(&(d->rpt), rid); \
-                if(!rd || !rd->handler) { \
+                if(!rd || !rd->hid) { \
                         dbg("Can't find handler for Resource %d in Domain %d", rid, d->id); \
                         oh_release_domain(d); \
                         return SA_ERR_HPI_INVALID_PARAMS; \
                 } \
-                h = rd->handler; \
+                h = (struct oh_handler *)g_hash_table_lookup(global_handler_table, &(rd->hid)); \
         } while (0)
 
 /*

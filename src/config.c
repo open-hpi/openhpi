@@ -31,13 +31,13 @@
 /*******************************************************************************
  *  global_plugin_list - list of all the plugins that should be loaded
  *
- *  global_handler_list - list of handlers that have been loaded
+ *  global_handler_table - table of handlers that have been loaded
  *
  *  global_handler_configs - configuration blocks for each handler.
  ******************************************************************************/
 
 GSList *global_plugin_list = NULL;
-GSList *global_handler_list = NULL;
+GHashTable *global_handler_table = NULL;
 GSList *global_handler_configs = NULL;
 
 /*******************************************************************************
@@ -513,7 +513,6 @@ int oh_load_config (char *filename)
 
         return 0;
 }
-
 
 void oh_unload_config()
 {

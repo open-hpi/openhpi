@@ -75,7 +75,7 @@ typedef union {
 
 struct oh_event {
         SaHpiDomainIdT did; /* domain id for the event */
-        struct oh_handler* from; /* handler for the event */
+        unsigned int hid; /* handler id for the event */
         oh_event_type type;
         oh_event_union u;
 };

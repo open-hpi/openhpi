@@ -43,20 +43,21 @@ extern GSList *global_plugin_list;
 /*
  *  Global listing of handler configs (GHashTable).  This list is
  *  populated during config file parse, and used to build
- *  global_handler_list
+ *  global_handler_table
  */
 extern GSList *global_handler_configs;
 
 /*
- *  Global listing of handlers (oh_handler).  This list is populated
+ *  Global table of handlers (oh_handler).  This list is populated
  *  by the first call the saHpiSessionOpen().
  */
-extern GSList *global_handler_list;
+extern GHashTable *global_handler_table;
 
 /*
  *  Representation of a plugin instance
  */
 struct oh_handler {
+        unsigned int id; /* handler id */        
         /*
          * pointer to configuration
          */
