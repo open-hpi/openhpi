@@ -191,8 +191,8 @@ void oh_flush_rpt(RPTable *table)
  * @rdr_gone: OUT. List of old and not present rdrs.
  **/
 void rpt_diff(RPTable *current, RPTable *new,
-              GSList *res_new, GSList *rdr_new,
-              GSList *res_gone, GSList *rdr_gone) {
+              GSList **res_new, GSList **rdr_new,
+              GSList **res_gone, GSList **rdr_gone) {
 
         SaHpiRptEntryT *res = NULL;
 
@@ -203,7 +203,7 @@ void rpt_diff(RPTable *current, RPTable *new,
                 
                 SaHpiRptEntryT *tmp_res = oh_get_resource_by_id(new, res->ResourceId);
                 
-                if (tmp_res == NULL) res_gone = g_slist_append(res_gone, (gpointer)res);
+                if (tmp_res == NULL) *res_gone = g_slist_append(*res_gone, (gpointer)res);
                 else {
                         SaHpiRdrT *rdr = NULL;
                         
@@ -215,7 +215,7 @@ void rpt_diff(RPTable *current, RPTable *new,
                                         oh_get_rdr_by_id(new, res->ResourceId, rdr->RecordId);
                                         
                                 if (tmp_rdr == NULL)
-                                        rdr_gone = g_slist_append(rdr_gone, (gpointer)rdr);
+                                        *rdr_gone = g_slist_append(*rdr_gone, (gpointer)rdr);
                         }
                 }
         }
@@ -227,9 +227,8 @@ void rpt_diff(RPTable *current, RPTable *new,
 
                 SaHpiRptEntryT *tmp_res = oh_get_resource_by_id(current, res->ResourceId);
                 SaHpiRdrT *rdr = NULL;
-                
-                if (tmp_res == NULL || memcmp(res, tmp_res, sizeof(SaHpiRptEntryT))) {
-                        res_new = g_slist_append(res_new, (gpointer)res);
+                if (!tmp_res || memcmp(res, tmp_res, sizeof(SaHpiRptEntryT))) {
+                        *res_new = g_slist_append(*res_new, (gpointer)res);
                 }
 
                 
@@ -244,7 +243,7 @@ void rpt_diff(RPTable *current, RPTable *new,
                                 tmp_rdr = oh_get_rdr_by_id(current, res->ResourceId, rdr->RecordId);                        
 
                         if (tmp_rdr == NULL || memcmp(rdr, tmp_rdr, sizeof(SaHpiRdrT)))
-                                rdr_new = g_slist_append(rdr_new, (gpointer)rdr);
+                                *rdr_new = g_slist_append(*rdr_new, (gpointer)rdr);
                 
                 }
         }
@@ -337,7 +336,7 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
                         oh_remove_rdr(table, rid, RDR_BEGIN);
                 }
                 /* then remove the resource itself. */
-                g_free(rptentry->data);
+                /*g_free(rptentry->data);*/
                 table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
                 g_free((gpointer)rptentry);
         }
@@ -364,7 +363,7 @@ void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid)
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
-                dbg("Warning: RPT entry not found. Returning NULL.");
+                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -387,7 +386,7 @@ SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid)
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry) {
-                dbg("Warning: RPT entry not found. Returning NULL.");
+                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -421,7 +420,7 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep)
         }
 
         if (!rptentry) {
-                dbg("Warning: RPT entry not found. Returning NULL.");
+                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -471,7 +470,7 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
         }                
 
         if (!rptentry) {
-                dbg("Warning: RPT entry not found. Returning NULL.");
+                /*dbg("Warning: RPT entry not found. Returning NULL.");*/
                 return NULL;
         }
         
@@ -627,7 +626,7 @@ void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 
         rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdrid);
         if (!rdrecord) {
-                dbg("Warning: RDR not found. Returning NULL.");
+                /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -661,7 +660,7 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
 
         rdrecord = get_rdrecord_by_id(rptentry->rdrtable, rdrid);
         if (!rdrecord) {
-                dbg("Warning: RDR not found. Returning NULL.");
+                /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
 
@@ -699,7 +698,7 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
         rdr_uid = get_rdr_uid(type, num);
         rdrecord = get_rdrecord_by_id(rptentry->rdrtable, (SaHpiEntryIdT)rdr_uid);
         if (!rdrecord) {
-                dbg("Warning: RDR not found. Returning NULL.");
+                /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }
         
@@ -757,7 +756,7 @@ SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT r
         }
 
         if (!rdrecord) {
-                dbg("Warning: RDR not found. Returning NULL.");
+                /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;
         }        
 
