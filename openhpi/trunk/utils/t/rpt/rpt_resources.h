@@ -510,9 +510,6 @@ SaHpiRdrT rdrs[] = {
                                                 }
                                         }
                                 },
-                                .ThresholdDefn = {
-                                        .IsThreshold = SAHPI_FALSE
-                                },
                                 .Oem = 1
                         }
                 },
@@ -559,25 +556,16 @@ SaHpiRdrT rdrs[] = {
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 1,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_CRITICAL
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 1.0
                                                 },
                                                 .Min = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 0,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_OK
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 0.0
                                                 }
                                         }
-                                },
-                                .ThresholdDefn = {
-                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 2
                         }
@@ -625,25 +613,16 @@ SaHpiRdrT rdrs[] = {
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 1,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_CRITICAL
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 1.0
                                                 },
                                                 .Min = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 0,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_OK
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 0.0
                                                 }
                                         }
-                                },
-                                .ThresholdDefn = {
-                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 3
                         }
@@ -691,25 +670,16 @@ SaHpiRdrT rdrs[] = {
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 1,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_CRITICAL
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 1.0
                                                 },
                                                 .Min = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 0,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_OK
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 0.0
                                                 }
                                         }
-                                },
-                                .ThresholdDefn = {
-                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 4
                         }
@@ -757,25 +727,16 @@ SaHpiRdrT rdrs[] = {
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 1,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_CRITICAL
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 1.0
                                                 },
                                                 .Min = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 0,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_OK
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 0.0
                                                 }
                                         }
-                                },
-                                .ThresholdDefn = {
-                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 5
                         }
@@ -815,25 +776,16 @@ SaHpiRdrT rdrs[] = {
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 1,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_CRITICAL
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 1.0
                                                 },
                                                 .Min = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 0,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_OK
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 0.0
                                                 }
                                         }
-                                },
-                                .ThresholdDefn = {
-                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 6
                         }
@@ -873,25 +825,16 @@ SaHpiRdrT rdrs[] = {
                                         .Range = {
                                                 .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                 .Max = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 1,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_CRITICAL
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 1.0
                                                 },
                                                 .Min = {
-                                                        .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                        .Raw = 0,
-                                                        .EventStatus = {
-                                                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                                .EventStatus = SAHPI_ES_OK
-                                                        }
+                                                        .IsSupported = SAHPI_TRUE,
+                                                        .Type = SAHPI_SENSOR_READING_TYPE_FLOAT64,
+                                                        .Value.SensorFloat64 = 0.0
                                                 }
                                         }
-                                },
-                                .ThresholdDefn = {
-                                        .IsThreshold = SAHPI_FALSE
                                 },
                                 .Oem = 7
                         }
