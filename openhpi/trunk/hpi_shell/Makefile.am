@@ -1,10 +1,9 @@
 
+MAINTAINERCLEANFILES = Makefile.in
+MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 REMOTE_LIB_SOURCES 	= openhpiclient.cpp \
 		  	  openhpiclient.h
-
-MAINTAINERCLEANFILES = Makefile.in
-MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 if OPENHPID_DINAMIC
 COMMONLIBS		= $(top_builddir)/hpi_ui_lib/libopenhpiui.la libopenhpiclient.la \
@@ -34,6 +33,11 @@ hpi_cmd_SOURCES      = ${HS_SOURCES}
 hpi_cmd_LDADD        = $(COMMONLIBS)
 hpi_cmd_LDFLAGS      = 
 	
+$(REMOTE_LIB_SOURCES):
+	if test ! -f $@ -a ! -L $@; then \
+		ln -s ../openhpid2/$@; \
+	fi
+
 if OPENHPID_DINAMIC
 noinst_LTLIBRARIES	= libopenhpiclient.la
 
@@ -42,10 +46,6 @@ libopenhpiclient_la_SOURCES = $(REMOTE_LIB_SOURCES)
 libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
 
-$(REMOTE_LIB_SOURCES):
-	if test ! -f $@ -a ! -L $@; then \
-		ln -s ../openhpid2/$@; \
-	fi
 endif
 
 clean-local:
