@@ -108,6 +108,10 @@ int oh_load_config (struct oh_config *config)
 	for (i=0; name[i]!=NULL; i++) {
 		struct oh_handler *h 
 			= new_handler(name[i], NULL, NULL);
+		if (!h) {
+			dbg("Error on new handler");
+			return -1;
+		}
 		global_handler_list = g_slist_append(global_handler_list, h);
 	}
 #endif
