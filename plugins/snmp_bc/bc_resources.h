@@ -52,8 +52,15 @@
 #ifndef __BC_RESOURCES_H
 #define __BC_RESOURCES_H
 
+/* FIXME: Add RSA #defines to this file and change description above */
+
+/* Start HPI Instance numbers from 1 */
+#define BC_HPI_INSTANCE_BASE 1 /* FIXME:: Get rid of this one; use one below */
+#define SNMP_BC_HPI_LOCATION_BASE 1
+
 /* HPI Spec dependencies */
-#define ELEMENTS_IN_SaHpiStateDigitalT 5
+/* FIXME: Kill this - use OH_MAX_CTRLSTATEDIGITAL from sahpi_enum_utils.h */
+#define ELEMENTS_IN_SaHpiStateDigitalT 5 
 
 /* IBM Manufacturing Number */
 #define IBM_MANUFACTURING_ID 2
@@ -78,9 +85,6 @@ typedef enum {
         BC_RPT_ENTRY_BLOWER_MODULE,
         BC_RPT_ENTRY_POWER_MODULE
 } BCRptEntryT;
-
-/* Start HPI Instance numbers from 1 */
-#define BC_HPI_INSTANCE_BASE 1
 
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"

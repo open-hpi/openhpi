@@ -335,7 +335,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 return -2;
         }*/
 
-	instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+	instance_str = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
 	tmpstr = (gchar *)g_malloc0(strsize);
 	if (instance_str == NULL || tmpstr == NULL) { 
 		dbg("Out of memory"); 
@@ -360,13 +360,13 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 work_instance_num = epathptr->Entry[i].EntityLocation;
                 for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
 		
-		if (num_digits > MAX_INSTANCE_DIGITS) { 
+		if (num_digits > OH_MAX_LOCATION_DIGITS) { 
                         dbg("Instance value too big");
                         rtncode = -1; 
 			goto CLEANUP;
 		}
-                memset(instance_str, 0, MAX_INSTANCE_DIGITS + 1);
-                err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
+                memset(instance_str, 0, OH_MAX_LOCATION_DIGITS + 1);
+                err = snprintf(instance_str, OH_MAX_LOCATION_DIGITS + 1,
                                "%d", epathptr->Entry[i].EntityLocation);
 
                 /* Find string for current entity type */

@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003, 2004
+ * (C) Copyright IBM Corp. 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,34 +10,38 @@
  * full licensing terms.
  *
  * Author(s):
- *      Sean Dague <sdague@users.sf.net>
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
 #ifndef SNMP_BC_DISCOVER_H
 #define SNMP_BC_DISCOVER_H
 
-/* Resource discovery prototypes */
-struct oh_event * snmp_bc_discover_blade(struct oh_handler_state *handle, char *blade_vector, SaHpiEntityPathT *ep, int bladenum);
-struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle, char *blade_vector, SaHpiEntityPathT *ep, int bladenum);
-struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char *blade_vector, SaHpiEntityPathT *ep);
-struct oh_event * snmp_bc_discover_fan(struct oh_handler_state *handle, char *fan_vector, SaHpiEntityPathT *ep, int fannum);
-struct oh_event * snmp_bc_discover_mediatray(struct oh_handler_state *handle, long exists, SaHpiEntityPathT *ep, int mtnum);
-struct oh_event * snmp_bc_discover_mgmnt(struct oh_handler_state *handle, char *mm_vector, SaHpiEntityPathT *ep, int mmnum);
-struct oh_event * snmp_bc_discover_power(struct oh_handler_state *handle, char *power_vector, SaHpiEntityPathT *ep, int powernum);
-struct oh_event * snmp_bc_discover_switch(struct oh_handler_state *handle, char *switch_vector, SaHpiEntityPathT *ep, int switchnum);
+SaErrorT snmp_bc_discover_resources(void *hnd);
 
-/* RDR discovery prototypes */
-struct oh_event * snmp_bc_discover_controls(struct oh_handler_state *handle,
-					    SaHpiEntityPathT parent_ep,
-					    const struct snmp_bc_control *control);
+SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
+			  SaHpiEntityPathT *ep_root);
 
-struct oh_event * snmp_bc_discover_sensors(struct oh_handler_state *handle,
-                                           SaHpiEntityPathT parent_ep,
-                                           const struct snmp_bc_sensor *sensor);
+SaErrorT snmp_bc_discover_rsa(struct oh_handler_state *handle,
+			      SaHpiEntityPathT *ep_root);
 
-struct oh_event * snmp_bc_discover_inventories(struct oh_handler_state *handle,
-                                           SaHpiEntityPathT parent_ep,
-                                           const struct snmp_bc_inventory *inventory);
+SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
+				  struct snmp_bc_sensor *sensor_array,
+				  struct oh_event *res_event);
 
+SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
+				   struct snmp_bc_control *control_array,
+				   struct oh_event *parent_res_event);
+
+SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
+				      struct snmp_bc_inventory *inventory_array,
+				      struct oh_event *parent_res_event);
+
+SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer,
+				    const char *str,
+				    SaHpiEntityLocationT location);
+
+SaHpiBoolT rdr_exists(struct snmp_session *ss,
+		      const char *oid,
+		      unsigned int na,
+		      int write_only);
 #endif

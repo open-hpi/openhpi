@@ -9,11 +9,13 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
  
-REMOTE_SIM_SOURCES 	= bc_resources.c \
-			  snmp_bc.c \
-	     		  snmp_bc_discover.c \
-			  snmp_bc_session.c \
-			  stubs.c	
+REMOTE_SIM_SOURCES   = 	bc_resources.c \
+			snmp_bc.c \
+	     		snmp_bc_discover.c \
+			snmp_bc_discover_bc.c \
+			snmp_bc_discover_rsa.c \
+			snmp_bc_session.c \
+			stubs.c	
 
 #			  bc_str2event.c \
 #			  snmp_bc_control.c \
@@ -60,69 +62,69 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Setup environment variables for TESTS programs
-TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
-TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
-TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
-TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
+#TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
+#TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
+#TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
+#TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
-TESTS = tevent \
-	thotswap_state \
-	thotswap_state_err \
-	thotswap_reset \
-	thotswap_reset_err \
-	thotswap_reset_set \
-	thotswap_reset_set_err \
-	thotswap_power \
-	thotswap_power_err \
-	thotswap_power_set \
-	thotswap_power_set_err \
-	thotswap_unsupported \
-	tsensor
+#TESTS = tevent \
+#	thotswap_state \
+#	thotswap_state_err \
+#	thotswap_reset \
+#	thotswap_reset_err \
+#	thotswap_reset_set \
+#	thotswap_reset_set_err \
+#	thotswap_power \
+#	thotswap_power_err \
+#	thotswap_power_set \
+#	thotswap_power_set_err \
+#	thotswap_unsupported \
+#	tsensor
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
 # XFAIL_TESTS = thotswap_reset
 
-check_PROGRAMS = $(TESTS)
+#check_PROGRAMS = $(TESTS)
 
 # Unit test using normal IF calls and simulation library
-tevent_SOURCES = tevent.c
-tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-		 $(top_builddir)/src/libopenhpi.la \
-		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+#tevent_SOURCES = tevent.c
+#tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit tests with IF and snmp calls stubbed out
-tsensor_SOURCES = tsensor.c
-tsensor_LDADD   = snmp_bc_sensor.o 
+#tsensor_SOURCES = tsensor.c
+#tsensor_LDADD   = snmp_bc_sensor.o 
 
-thotswap_state_SOURCES = thotswap_state.c
-thotswap_state_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_state_SOURCES = thotswap_state.c
+#thotswap_state_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_state_err_SOURCES = thotswap_state_err.c
-thotswap_state_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_state_err_SOURCES = thotswap_state_err.c
+#thotswap_state_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_reset_SOURCES = thotswap_reset.c
-thotswap_reset_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_reset_SOURCES = thotswap_reset.c
+#thotswap_reset_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_reset_err_SOURCES = thotswap_reset_err.c
-thotswap_reset_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_reset_err_SOURCES = thotswap_reset_err.c
+#thotswap_reset_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_reset_set_SOURCES = thotswap_reset_set.c
-thotswap_reset_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_reset_set_SOURCES = thotswap_reset_set.c
+#thotswap_reset_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_reset_set_err_SOURCES = thotswap_reset_set_err.c
-thotswap_reset_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_reset_set_err_SOURCES = thotswap_reset_set_err.c
+#thotswap_reset_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_power_SOURCES = thotswap_power.c
-thotswap_power_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_power_SOURCES = thotswap_power.c
+#thotswap_power_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_power_err_SOURCES = thotswap_power_err.c
-thotswap_power_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_power_err_SOURCES = thotswap_power_err.c
+#thotswap_power_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_power_set_SOURCES = thotswap_power_set.c
-thotswap_power_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_power_set_SOURCES = thotswap_power_set.c
+#thotswap_power_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_power_set_err_SOURCES = thotswap_power_set_err.c
-thotswap_power_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_power_set_err_SOURCES = thotswap_power_set_err.c
+#thotswap_power_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
-thotswap_unsupported_SOURCES = thotswap_unsupported.c
-thotswap_unsupported_LDADD = snmp_bc_hotswap.o @SNMPLIBS@
+#thotswap_unsupported_SOURCES = thotswap_unsupported.c
+#thotswap_unsupported_LDADD = snmp_bc_hotswap.o @SNMPLIBS@

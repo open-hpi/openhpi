@@ -19,11 +19,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <SaHpi.h>
-#include <openhpi.h>
-#include <oh_plugin.h>
-#include <oh_utils.h>
-#include <snmp_util.h>
 #include <snmp_bc_plugin.h>
 
 unsigned int str2event_use_count = 0; /* It is here for initialization */ 
@@ -91,7 +86,9 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(value);
 }
 
-int find_res_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, const struct BC_ResourceInfo *bc_res_info)
+int snmp_bc_discover_res_events(struct oh_handler_state *handle,
+				SaHpiEntityPathT *ep,
+				const struct BC_ResourceInfo *bc_res_info)
 {
 	int i;
 	int max = MAX_RESOURCE_EVENT_ARRAY_SIZE;
@@ -152,7 +149,10 @@ int find_res_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, const 
 	return 0;
 }
 
-int find_sensor_events(struct oh_handler_state *handle,SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_bc_sensor *rpt_sensor)
+SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
+					SaHpiEntityPathT *ep,
+					SaHpiSensorNumT sid,
+					const struct snmp_bc_sensor *rpt_sensor)
 {
 	int i;
 	int max = MAX_SENSOR_EVENT_ARRAY_SIZE;

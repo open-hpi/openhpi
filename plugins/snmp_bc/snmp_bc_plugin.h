@@ -17,16 +17,18 @@
 #define SNMP_BC_PLUGIN_H
 
 /* Order is important */
-#include <snmp_bc.h>
+#include <openhpi.h>
+#include <snmp_util.h>
+
 #include <bc_errorlog.h>
 #include <bc_resources.h>
 #include <bc_str2event.h>
+#include <snmp_bc.h>
 #include <snmp_bc_control.h>
 #include <snmp_bc_discover.h>
 #include <snmp_bc_event.h>
 #include <snmp_bc_hotswap.h>
 #include <snmp_bc_inventory.h>
-#include <snmp_bc_plugin.h>
 #include <snmp_bc_sel.h>
 #include <snmp_bc_sensor.h>
 #include <snmp_bc_session.h>
