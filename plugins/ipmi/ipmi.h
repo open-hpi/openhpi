@@ -103,6 +103,14 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t                 sensor_id,
                                const SaHpiSensorThresholdsT     *thres,
 			       void *cb_data);
 
+int ohoi_get_sensor_enable(ipmi_sensor_id_t sensor_id, 
+			   SaHpiBoolT   *enable,
+			   void *cb_data);
+
+int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
+			   SaHpiBoolT   enable,
+			   void *cb_data);
+
 int ohoi_get_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
 				  SaHpiBoolT   *enables,
 				  void *cb_data);
