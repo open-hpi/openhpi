@@ -55,7 +55,7 @@
 
 #define def_text_buffer(string)                                 \
         {                                                       \
-                .DataType = SAHPI_TL_TYPE_ASCII6,               \
+                .DataType = SAHPI_TL_TYPE_TEXT,                 \
                         .Language = SAHPI_LANG_ENGLISH,         \
                         .DataLength = strlen(string),           \
                         .Data = string                          \
@@ -66,6 +66,9 @@
 #define NUM_RDRS        8
 
 #define VIRTUAL_NODES 2
+
+#define NO_ID 0	 /* Arbitrarily define IdrId == 0 as end-of-inventory */
+	   	 /* instead of using a counter of some kind           */
 
 /* static int remove_resource(struct oh_handler_state *inst); */
 
@@ -723,7 +726,9 @@ static struct dummy_inventories {
                 
                 {}
         },
-        {}
+        {} /* Terminate Array */
+	   /* Arbitrarily define IdrId == 0 as end-of-inventory */
+	   /* instead of using a counter of some kind           */
 },
 {}
 };
@@ -1347,13 +1352,25 @@ static SaErrorT dummy_get_idr_info( void *hnd,
 		SaHpiIdrInfoT          *IdrInfo)
 {
 	SaErrorT  rv = SA_OK;
+	int i = 0;
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	SaHpiBoolT foundmatch = SAHPI_FALSE;
 
 	if (rdr != NULL) {
-		struct dummy_inventories *s = dummy_inventory;
-		memcpy(IdrInfo, &(s->idrinfo), sizeof(SaHpiIdrInfoT));
 
+		while (dummy_inventory[i].idrinfo.IdrId != NO_ID) {
+			if (dummy_inventory[i].idrinfo.IdrId == IdrId) { 
+				memcpy(IdrInfo, &(dummy_inventory[i].idrinfo.IdrId), sizeof(SaHpiIdrInfoT));
+				foundmatch = SAHPI_TRUE;
+				break;
+			} else 
+				i++;
+		} 
+		
+		if (!foundmatch) 
+			rv = SA_ERR_HPI_NOT_PRESENT;
+		
 	} else {
 		rv = SA_ERR_HPI_NOT_PRESENT;
 	}
@@ -1374,7 +1391,7 @@ static SaErrorT dummy_get_idr_area_header( void *hnd,
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
 	SaHpiIdrAreaTypeT        thisAreaType;
 	SaHpiEntryIdT            thisAreaId;
-	SaHpiBoolT foundArea = FALSE;
+	SaHpiBoolT foundArea = SAHPI_FALSE;
 	int num_areas, i;
 
 	if (rdr != NULL) {
