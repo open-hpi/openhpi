@@ -22,6 +22,8 @@
 #include <bc_resources.h>
 #include <sim_resources.h>
 
+GHashTable * sim_hash;
+
 int is_simulator(void);
 int sim_banner(struct snmp_bc_hnd *);
 int sim_init(void);
