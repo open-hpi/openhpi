@@ -1,3 +1,25 @@
+2003-07-15  yzhuang  <yzhuang@hawk.sh.intel.com>
+
+	* include/openhpi.h, src/eventlog.c, src/safhpi.c:
+	Change sel into sel_list in oh_domain
+
+	* include/oh_plugin.h: Change SEL interface a bit
+
+2003-07-14  yzhuang  <yzhuang@hawk.sh.intel.com>
+
+	* ChangeLog: Add ChangeLog now. Sorry for error email address.
+
+2003-07-10  kxgao  <kxgao@hawk.sh.intel.com>
+
+	* src/plugins/ipmi/ipmi.c, src/plugins/ipmi/ipmi.h, src/plugins/ipmi/ipmi_sensor.c:
+	Update code for get/set sensor event enable.
+
+2003-07-10  yzhuang  <yzhuang@hawk.sh.intel.com>
+
+	* src/safhpi.c: * Fix last stupid bug
+
+	* src/safhpi.c: * fix a stupid bug in typo error
+
 2003-07-10  kxgao  <kxgao@hawk.sh.intel.com>
 
 	* src/plugins/ipmi/ipmi.c, src/plugins/ipmi/ipmi.h, src/plugins/ipmi/ipmi_sensor.c:
