@@ -1040,8 +1040,6 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         static unsigned int toggle = 0;
         static unsigned int count = 0;
 
-if (!inst->handler_lock) printf("\n\n\n\n\the fucking hnd pointer is NULL!!!!!\n\n\n");
-
         if (g_slist_length(inst->eventq)>0) {
                 trace("List has an event, send it up");
                 memcpy(event, inst->eventq->data, sizeof(*event));
