@@ -14,8 +14,8 @@
 
 MAINTAINERCLEANFILES    = Makefile.in *~ core core.*
 
-REMOTE_LIB_SOURCES 	= client.cpp \
-		  	  client.h
+REMOTE_LIB_SOURCES 	= openhpiclient.cpp \
+		  	  openhpiclient.h
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 			  $(REMOTE_LIB_SOURCES)
@@ -29,12 +29,12 @@ $(REMOTE_LIB_SOURCES):
 		ln -s ../$@; \
 	fi
 
-noinst_LTLIBRARIES	= libclient.la
+noinst_LTLIBRARIES	= libopenhpiclient.la
 
-libclient_la_SOURCES = $(REMOTE_LIB_SOURCES)
+libopenhpiclient_la_SOURCES = $(REMOTE_LIB_SOURCES)
 
-libclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
+libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
@@ -47,5 +47,5 @@ TESTS = ctest_01
 check_PROGRAMS = $(TESTS)
 
 ctest_01_SOURCES = ctest_01.cpp
-ctest_01_LDADD   = libclient.la
+ctest_01_LDADD   = libopenhpiclient.la
 

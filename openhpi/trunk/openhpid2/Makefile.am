@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 AM_CFLAGS		= @CFLAGS@
 INCLUDES 		= @OPENHPI_INCLUDES@  -I $(top_srcdir)/marshal
 
-#EXTRA_DIST              = README openhpiclient.conf openhpid.conf
+#EXTRA_DIST              = README openhpid.conf
 
 #pkgconfigdir            = $(libdir)/pkgconfig
 #pkgconfig_DATA          =
@@ -41,14 +41,14 @@ openhpid_LDFLAGS        =
 endif
 
 
-lib_LTLIBRARIES	        = libclient.la
+lib_LTLIBRARIES	        = libopenhpiclient.la
 
-libclient_la_SOURCES = \
-	client.cpp \
-	client.h
+libopenhpiclient_la_SOURCES = \
+	openhpiclient.cpp \
+	openhpiclient.h
 
-libclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
+libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
 
 clean-local:
 	rm -f *~ core core.*
