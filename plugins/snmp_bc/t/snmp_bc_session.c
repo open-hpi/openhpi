@@ -96,7 +96,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		}
 
 		if (!strcmp(get_value.string, SNMP_BC_BCE_MODEL)) {
-			strcpy(bc_type, SNMP_BC_PLATFORM_BCE);
+			strcpy(bc_type, SNMP_BC_PLATFORM_BC);
 		}
 		else if (!strcmp(get_value.string, SNMP_BC_BCT_MODEL_AC)) {
 			strcpy(bc_type, SNMP_BC_PLATFORM_BCT);
@@ -113,7 +113,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 	printf("************************************\n");
 	printf("****** BladeCenter Simulator  ******\n");
 
-	if (!strcmp(bc_type, SNMP_BC_PLATFORM_BCE)) {
+	if (!strcmp(bc_type, SNMP_BC_PLATFORM_BC)) {
 		printf("****** BladeCenter Integrated ******\n");
 	}
 	if (!strcmp(bc_type, SNMP_BC_PLATFORM_BCT)) {
