@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef OH_ERROR_H
-#define OH_ERROR_H
+#ifndef __OH_ERROR_H
+#define __OH_ERROR_H
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -21,7 +21,7 @@
 #include <oh_utils.h>
 
 #ifdef __cplusplus
-/*extern "C" {*/
+extern "C" {
 #endif
 
 /*
@@ -91,7 +91,7 @@ SaErrorT harvest_events(void);
 SaErrorT process_events(RPTable *rpt);
 
 #ifdef __cplusplus
-/*}*/
+}
 #endif
         
 #endif /* __OH_EVENT_H */

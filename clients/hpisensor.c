@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 {
         int c;
         SaErrorT rv;
-        // SaHpiVersionT hpiVer;
+        SaHpiDomainInfoT dinfo;
         SaHpiSessionIdT sessionid;
         SaHpiRptEntryT rptentry;
         SaHpiEntryIdT rptentryid;
@@ -225,13 +225,13 @@ int main(int argc, char **argv)
         rv = saHpiDiscover(sessionid);
         if (fdebug) printf("saHpiResourcesDiscover %s\n", oh_lookup_error(rv));
         
-        /*
-        rv = saHpiRptInfoGet(sessionid,&rptinfo);
+        
+        rv = saHpiDomainInfoGet(sessionid,&dinfo);
 
-        if (fdebug) printf("saHpiRptInfoGet %s\n", oh_lookup_error(rv));
+        if (fdebug) printf("saHpiDomainInfoGet %s\n", oh_lookup_error(rv));
+        
         printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
-               rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
-        */
+               dinfo.RptUpdateCount, (unsigned long)dinfo.RptUpdateTimestamp);
         
         /* walk the RPT list */
         rptentryid = SAHPI_FIRST_ENTRY;
