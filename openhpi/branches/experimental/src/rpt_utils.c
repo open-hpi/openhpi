@@ -431,27 +431,27 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data)
         rptentry = get_rptentry_by_rid(table, rid);
 
         if (!rptentry){
-                char parent_ep[128];
-                char child_ep[128];
+                char parent_ep[255];
+                char child_ep[255];
                 SaHpiEntityPathT parent;
 
                 dbg("Failed to add RDR. Parent RPT entry was not found in table.");
                 memset(&parent, 0, sizeof(SaHpiEntityPathT));
                 oh_entity_path_lookup(&rid, &parent);
                 if (parent.Entry[0].EntityType != 0) {
-                        entitypath2string(&parent, parent_ep, 128);
+                        entitypath2string(&parent, parent_ep, 255);
                         dbg("RID: %d, Parent EP: %s", rid, parent_ep);
                 }
-                entitypath2string(&(rdr->Entity), child_ep, 128);
+                entitypath2string(&(rdr->Entity), child_ep, 255);
                 dbg("Child EP: %s", child_ep);
                 return -1;
         }
 
         if (memcmp(&(rptentry->rpt_entry.ResourceEntity), &(rdr->Entity), sizeof(SaHpiEntityPathT))) {
-                char parent_ep[128];
-                char child_ep[128];
-                entitypath2string(&(rptentry->rpt_entry.ResourceEntity), parent_ep, 128);
-                entitypath2string(&(rdr->Entity), child_ep, 128);
+                char parent_ep[255];
+                char child_ep[255];
+                entitypath2string(&(rptentry->rpt_entry.ResourceEntity), parent_ep, 255);
+                entitypath2string(&(rdr->Entity), child_ep, 255);
                 dbg("Failed to add RDR. Entity path is different from parent RPT entry.");
                 dbg("Parent EP: %s, Child EP: %s", parent_ep, child_ep);
                 return -2;
