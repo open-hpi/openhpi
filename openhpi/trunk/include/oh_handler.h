@@ -117,9 +117,6 @@ void oh_wake_event_thread(SaHpiBoolT);
  */
 
 struct oh_handler_state {
-        GStaticRecMutex	handler_lock; /* this needs to 
-                                       * be a full type, 
-                                       * not a pointer */
         RPTable 	*rptcache;
         oh_el  		*elcache;
         GSList 		*eventq;
