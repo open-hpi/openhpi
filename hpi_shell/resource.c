@@ -100,8 +100,14 @@ int sa_discover(void)
 
 	do_progress("Discover");
         ret = saHpiDiscover(sessionid);
-        if (SA_OK != ret)
+        if (SA_OK != ret) {
                 printf("saHpiResourcesDiscover failed\n");
+		delete_progress();
+        	return ret;
+	};
+	ret = check_resources(Domain);
+        if (SA_OK != ret)
+                printf("check_resources\n");
 	delete_progress();
         return ret;
 }
