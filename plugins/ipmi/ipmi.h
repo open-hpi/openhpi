@@ -230,7 +230,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlStateT *state);
 SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
-                                SaHpiCtrlModeT *mode,
+                                SaHpiCtrlModeT mode,
                                 SaHpiCtrlStateT *state);
 
 /* misc macros for debug */
