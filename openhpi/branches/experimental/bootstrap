@@ -1,4 +1,9 @@
-#! /bin/sh -x
+#! /bin/sh 
+# -x
+
+echo "Experimental Tree is closed for now"
+echo "Please work in the stable tree"
+exit 1
 
 #
 # Copyright (c) 2003, Intel Corporation

@@ -1,4 +1,9 @@
-#!/bin/sh -x
+#!/bin/sh
+
+echo "Experimental Tree is closed for now"
+echo "Please work in stable tree"
+exit 1
+
 #
 ./nukem.sh
 ./bootstrap
