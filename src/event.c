@@ -21,6 +21,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
+#include <epath_utils.h>
 
 static void process_session_event(struct oh_hpi_event *e)
 {
@@ -68,11 +69,20 @@ static void process_session_event(struct oh_hpi_event *e)
 static void process_resource_event(struct oh_handler *h, struct oh_resource_event *e) 
 {
         struct oh_resource *res;
-
+        const char *entity_root;
+        SaHpiEntityPathT root_ep;
+        
         data_access_lock();
 
         res = insert_resource(h, e->id);
         memcpy(&res->entry, &e->entry, sizeof(res->entry));
+        entity_root = g_hash_table_lookup(h->config,"entity_root");
+        if (entity_root != NULL) {
+                dbg("Append entity root %s", entity_root);
+                string2entitypath(entity_root, &root_ep);
+                ep_concat(&res->entry.ResourceEntity, &root_ep);
+        }
+        
         res->entry.ResourceId = global_rpt_counter;
         if (res->entry.ResourceCapabilities&SAHPI_CAPABILITY_DOMAIN) {
                 dbg("New domain in resource!");
@@ -121,6 +131,8 @@ static void process_rdr_event(struct oh_handler *h, struct oh_rdr_event *e)
 {
         struct oh_resource *res;
         struct oh_rdr *rdr;
+        const char *entity_root;
+        SaHpiEntityPathT root_ep;
 
         res = get_res_by_oid(e->parent);
         if (!res) {
@@ -129,6 +141,13 @@ static void process_rdr_event(struct oh_handler *h, struct oh_rdr_event *e)
         }
         rdr = insert_rdr(res, e->id);
         memcpy(&rdr->rdr, &e->rdr, sizeof(rdr->rdr));
+        entity_root = g_hash_table_lookup(h->config,"entity_root");
+        if (entity_root != NULL) {
+                dbg("Append entity root %s", entity_root);
+                string2entitypath(entity_root, &root_ep);
+                ep_concat(&rdr->rdr.Entity, &root_ep);
+        }
+        
         switch (rdr->rdr.RdrType) {
         case SAHPI_SENSOR_RDR: 
                 rdr->rdr.RdrTypeUnion.SensorRec.Num = res->sensor_counter++;

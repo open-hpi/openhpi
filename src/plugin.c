@@ -155,17 +155,11 @@ struct oh_handler *new_handler(GHashTable *handler_config)
         }
         
         handler->abi = p_config->abi;
-#if 0        
-        err = get_interface(&handler->abi, UUID_OH_ABI_V1);
-        if (err < 0 || !handler->abi || !handler->abi->open) {
-                dbg("Can not get ABI V1");
-                goto err;
-        }
-#endif
+        handler->config = handler_config;
 
         /* this should be done elsewhere.  if 0 it for now to make it
            easier to migrate */
-        handler->hnd = handler->abi->open(handler_config);
+        handler->hnd = handler->abi->open(handler->config);
         if (!handler->hnd) {
                 dbg("The plugin can not work");
                 goto err;
