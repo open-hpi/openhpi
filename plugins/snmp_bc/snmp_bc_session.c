@@ -75,8 +75,9 @@ void *snmp_bc_open(GHashTable *handler_config)
 		init_snmp("oh_snmp_bc");
 		snmp_sess_init(&(custom_handle->session));
 		custom_handle->session.peername = hostname;
-		/* Set retries - based on testing with BC/BCT MM SNMP V3 agent */
+		/* Set retries/timeouts - based on testing with BC/BCT MM SNMP V3 agent */
 		custom_handle->session.retries = 3;
+		custom_handle->session.timeout = 2000000; /* in microseconds */  
 		version = (char *)g_hash_table_lookup(handle->config, "version");
 		if (!version) {
 			dbg("Cannot find \"version\" configuration parameter.");
