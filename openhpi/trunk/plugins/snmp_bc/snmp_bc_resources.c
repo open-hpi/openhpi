@@ -18,12 +18,6 @@
 #include <snmp_bc_plugin.h>
 
 /**************************************************************************
- * RESTRICTIONS!!!
- *
- * - Digital controls must be integers and depend on SaHpiCtrlStateDigitalT
- **************************************************************************/
-
-/**************************************************************************
  *                        Resource Definitions
  **************************************************************************/
 
@@ -5852,45 +5846,11 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
    discover the common controls */
 
 struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
-        /* Front Panel Information R/W LED - System updates; user can clear */
-        {
-                .control = {
-                        .Num = 1,
-                        .OutputType = SAHPI_CTRL_LED,
-                        .Type = SAHPI_CTRL_TYPE_DIGITAL,
-                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_MANUAL,
-				.ReadOnly = SAHPI_TRUE,
-			},
-			.WriteOnly = SAHPI_FALSE,
-                        .Oem = 0,
-                },
-                .control_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.2.0",
-				/* Read values */
-                                .digitalmap[0] =  0, /* Off */
-                                .digitalmap[1] =  1, /* On */
-                                .digitalmap[2] = -1, /* Not applicable */
-                                .digitalmap[3] = -1, /* Not applicable */
-                                /* Write values */
-                                .digitalwmap[0] =  0, /* Off */
-                                .digitalwmap[1] = -1, /* Cannot write this value */
-                                .digitalwmap[2] = -1, /* Not applicable */
-                                .digitalwmap[3] = -1, /* Not applicable */
-                        },
-			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
-                },
-                .comment = "Front Panel Information LED"
-        },
-        /* Front Panel Identify R/W LED. User controlled. */
+        /* Front Panel Identify LED. User controlled. */
   	/* 0 is Off; 1 is solid on; 2 is blinking */
 	{
                 .control = {
-                        .Num = 2,
+                        .Num = 1,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,
                         .TypeUnion.Discrete.Default = 0,
@@ -5916,7 +5876,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
 };
 
 struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
-        /* Front Panel Identify R/W LED. User controlled. */
+        /* Front Panel Identify LED. User controlled. */
   	/* 0 is Off; 1 is solid on; 2 is blinking */
 	{
                 .control = {
@@ -5949,48 +5909,12 @@ struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
  * Blade Controls
  ****************/
 
-#define LAST_COMMON_BLADE_CONTROL_NUM 2
-
 struct snmp_bc_control snmp_bc_blade_controls[] = {
-        /* Blade Information R/W LED - System updates; user can clear */
-        {
-                .control = {
-                        .Num = 1,
-                        .OutputType = SAHPI_CTRL_LED,
-                        .Type = SAHPI_CTRL_TYPE_DIGITAL,
-                        .TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF,
-			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_MANUAL,
-				.ReadOnly = SAHPI_TRUE,
-			},
-			.WriteOnly = SAHPI_FALSE,
-                        .Oem = 0,
-                },
-                .control_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.8.x",
-				/* Read values */
-                                .digitalmap[0] =  0, /* Off */
-                                .digitalmap[1] =  1, /* On */
-                                .digitalmap[2] = -1, /* Not applicable */
-                                .digitalmap[3] = -1, /* Not applicable */
-				/* Write values */
-                                .digitalwmap[0] =  0, /* Off */
-                                .digitalwmap[1] = -1, /* Cannot write this value */
-                                .digitalwmap[2] = -1, /* Not applicable */
-                                .digitalwmap[3] = -1, /* Not applicable */
-                        },
-			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
-                },
-                .comment = "Blade Information LED"
-        },
-        /* Blade Identify R/W LED */
+        /* Blade Identify LED. User controlled. */
 	/* 0 is Off; 1 is solid on; 2 is blinking */
         {
                 .control = {
-                        .Num = LAST_COMMON_BLADE_CONTROL_NUM,
+                        .Num = 1,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,
                         .TypeUnion.Discrete.Default = 0,
@@ -6011,37 +5935,6 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                },
                 .comment = "Blade Identify LED"
         },
-
-        {} /* Terminate array with a null element */
-};
-
-struct snmp_bc_control snmp_bc_blade_controls_bct[] = {
-#if 0
-        /* Blade's number of restarts counter - System sets; User clears */
-        {
-                .control = {
-                        .Num = LAST_COMMON_BLADE_CONTROL_NUM + 1,
-                        .OutputType = SAHPI_CTRL_GENERIC,
-                        .Type = SAHPI_CTRL_TYPE_DISCRETE,
-                        .TypeUnion.Discrete.Default = 0,
-  			.DefaultMode = {
-				.Mode = SAHPI_CTRL_MODE_MANUAL,
-				.ReadOnly = SAHPI_TRUE,
-			},
-			.WriteOnly = SAHPI_FALSE,
-                        .Oem = 0,
-                },
-                .control_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.10.1.1.3.x", 
-                        },
-  			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
-                },
-               .comment = "Blade restart counter"
-        },
-#endif
 
         {} /* Terminate array with a null element */
 };
