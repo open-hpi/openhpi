@@ -643,7 +643,7 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
 	return SA_OK;
 }
 
-SaErrorT SAHPI_API saHpiSensorThresholdsGet (
+SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiSensorNumT SensorNum,
@@ -652,7 +652,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
-SaErrorT SAHPI_API saHpiSensorThresholdsSet (
+SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiSensorNumT SensorNum,
@@ -679,6 +679,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 
 	if (get_func(zone->hnd, &rdr->oid, SensorThresholds))
 		return SA_ERR_HPI_UNKNOWN;
+	dbg("Thresholds Get called");
 
 	return SA_OK;
 }
