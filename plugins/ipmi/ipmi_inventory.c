@@ -18,260 +18,238 @@
 #include <oh_utils.h>
 #include <string.h>
 
-#define OHOI_IDR_DEFAULT_ID            0
-
-#define OHOI_AREA_INTERNAL_USE_ID      0
-#define OHOI_AREA_CHASSIS_INFO_ID      1
-#define OHOI_AREA_BOARD_INFO_ID        2
-#define OHOI_AREA_PRODUCT_INFO_ID      3
-#define OHOI_AREA_MAX_ID               3
-
-
-#define OHOI_CHECK_RPT_ENTRY()                               \
-do{                                                          \
-rpt_entry = oh_get_resource_by_id(handler->rptcache, rid);   \
-	if (!rpt_entry) {                                    \
-		dbg("No rptentry");                          \
-		return SA_ERR_HPI_INVALID_PARAMS;            \
-	}                                                    \
+#define OHOI_IDR_DEFAULT_ID         0
+#define OHOI_CHECK_RPT_CAP_IDR()                                     \
+do{                                                                  \
+	SaHpiRptEntryT           *rpt_entry;                         \
+	rpt_entry = oh_get_resource_by_id(handler->rptcache, rid);   \
+	if (!rpt_entry) {                                            \
+		dbg("No rptentry");                                  \
+		return SA_ERR_HPI_INVALID_PARAMS;                    \
+	}                                                            \
+	if (rpt_entry->ResourceCapabilities &                        \
+	    SAHPI_CAPABILITY_INVENTORY_DATA) {                       \
+		dbg("no inventory capability");                      \
+		return SA_ERR_HPI_INVALID_PARAMS;                    \
+	}                                                            \
+	if (idrid != OHOI_IDR_DEFAULT_ID) {                          \
+		dbg("error id");                                     \
+		return SA_ERR_HPI_INVALID_PARAMS;                    \
+	}                                                            \
 }while(0)
 
-#define OHOI_CHECK_CAPABILITY()                              \
-do{                                                          \
-	if (rpt_entry->ResourceCapabilities &                \
-	    SAHPI_CAPABILITY_INVENTORY_DATA) {               \
-		dbg("no inventory capability");              \
-		return SA_ERR_HPI_INVALID_PARAMS;            \
-	}                                                    \
-}while(0)
+struct ohoi_field_data {
+	SaHpiIdrFieldTypeT fieldtype;
+	int (*get_len)(ipmi_entity_t *, unsigned int*);
+	int (*get_data)(ipmi_entity_t *, char*, unsigned int*);
+	SaHpiIdrFieldT  *field;
+};
 
-#define OHOI_CHECK_IRD_ID()                                  \
-do{                                                          \
-	if (idrid != OHOI_IDR_DEFAULT_ID) {                  \
-		dbg("error id");                             \
-		return SA_ERR_HPI_INVALID_PARAMS;            \
-	}                                                    \
-}while(0)
+static struct ohoi_field_data chassis_fields[] = {
+	{
+		SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER, 
+		ipmi_entity_get_chassis_info_serial_number_len,
+		ipmi_entity_get_chassis_info_serial_number,
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_PART_NUMBER,
+		ipmi_entity_get_chassis_info_part_number_len,
+		ipmi_entity_get_chassis_info_part_number
+	,},
+};
 
-#define OHOI_CHECK_AREA_TYPE_ID()                                           \
-do {                                                                        \
-	if (areatype == SAHPI_IDR_AREATYPE_UNSPECIFIED) {                   \
-		if (areaid == SAHPI_FIRST_ENTRY)                            \
-			areaid = OHOI_AREA_INTERNAL_USE_ID;                 \
-                                                                            \
-		switch (areaid) {                                           \
-			case OHOI_AREA_INTERNAL_USE_ID:                     \
-				areatype = SAHPI_IDR_AREATYPE_INTERNAL_USE; \
-				break;                                      \
-			case OHOI_AREA_CHASSIS_INFO_ID:                     \
-				areatype = SAHPI_IDR_AREATYPE_CHASSIS_INFO; \
-				break;                                      \
-			case OHOI_AREA_BOARD_INFO_ID:                       \
-				areatype = SAHPI_IDR_AREATYPE_BOARD_INFO;   \
-				break;                                      \
-			case OHOI_AREA_PRODUCT_INFO_ID:                     \
-				areatype = SAHPI_IDR_AREATYPE_PRODUCT_INFO; \
-				break;                                      \
-			default:                                            \
-				return SA_ERR_HPI_INVALID_PARAMS;           \
-		}                                                           \
-	}                                                                   \
-	switch (areatype) {                                                 \
-		case SAHPI_IDR_AREATYPE_INTERNAL_USE:                       \
-			fnum = 1;                                           \
-			if (areaid == SAHPI_FIRST_ENTRY)                    \
-				areaid = OHOI_AREA_INTERNAL_USE_ID;         \
-			if (areaid != OHOI_AREA_INTERNAL_USE_ID)            \
-				return SA_ERR_HPI_INVALID_PARAMS;           \
-		case SAHPI_IDR_AREATYPE_CHASSIS_INFO:                       \
-			fnum = 2;                                           \
-			if (areaid == SAHPI_FIRST_ENTRY)                    \
-				areaid = OHOI_AREA_CHASSIS_INFO_ID;         \
-			if (areaid != OHOI_AREA_CHASSIS_INFO_ID)            \
-				return SA_ERR_HPI_INVALID_PARAMS;           \
-		case SAHPI_IDR_AREATYPE_BOARD_INFO:                         \
-			fnum = 5;                                           \
-			if (areaid == SAHPI_FIRST_ENTRY)                    \
-				areaid = OHOI_AREA_BOARD_INFO_ID;           \
-			if (areaid != OHOI_AREA_BOARD_INFO_ID)              \
-				return SA_ERR_HPI_INVALID_PARAMS;           \
-		case SAHPI_IDR_AREATYPE_PRODUCT_INFO:                       \
-			fnum = 7;                                           \
-			if (areaid == SAHPI_FIRST_ENTRY)                    \
-				areaid = OHOI_AREA_PRODUCT_INFO_ID;         \
-			if (areaid != OHOI_AREA_PRODUCT_INFO_ID);           \
-				return SA_ERR_HPI_INVALID_PARAMS;           \
-			break;                                              \
-		default:                                                    \
-			return SA_ERR_HPI_INVALID_PARAMS;                   \
-	}                                                                   \
-}while(0)
+static struct ohoi_field_data board_fields[] = {
+	{
+		SAHPI_IDR_FIELDTYPE_MANUFACTURER,
+		ipmi_entity_get_board_info_board_manufacturer_len, 
+		ipmi_entity_get_board_info_board_manufacturer,
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_PRODUCT_NAME, 
+		ipmi_entity_get_board_info_board_product_name_len, 
+		ipmi_entity_get_board_info_board_product_name
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER, 
+		ipmi_entity_get_board_info_board_serial_number_len, 
+		ipmi_entity_get_board_info_board_serial_number
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_PART_NUMBER, 
+		ipmi_entity_get_board_info_board_part_number_len, 
+		ipmi_entity_get_board_info_board_part_number
+	},
+	{
+		SAHPI_IDR_FIELDTYPE_FILE_ID, 
+		ipmi_entity_get_board_info_fru_file_id_len, 
+		ipmi_entity_get_board_info_fru_file_id
+	},
+};
 
+static struct ohoi_field_data product_fields[] = {
+	{
+		SAHPI_IDR_FIELDTYPE_MANUFACTURER, 
+		ipmi_entity_get_product_info_manufacturer_name_len, 
+		ipmi_entity_get_product_info_manufacturer_name
+	}
+};
 
-#define OHOI_CHECK_FIELDID(num)                  \
-do {                                             \
-	if (fieldid < (num-1))                   \
-		*nextfieldid = fieldid + 1;      \
-	else if(fieldid == (num-1))              \
-		*nextfieldid = SAHPI_LAST_ENTRY; \
-	else  return SA_ERR_HPI_INVALID_PARAMS;  \
-} while(0)
+static struct ohoi_area_data {
+	int field_num;
+	SaHpiIdrAreaTypeT areatype;
+	struct ohoi_field_data *fields;
+} areas [] = {
+	{	sizeof(chassis_fields)/sizeof(chassis_fields[0]),
+		SAHPI_IDR_AREATYPE_CHASSIS_INFO,
+		chassis_fields
+	}, 
+	{
+		sizeof(board_fields)/sizeof(board_fields[0]),
+		SAHPI_IDR_AREATYPE_BOARD_INFO,
+		board_fields
+	},
+	{
+		sizeof(product_fields)/sizeof(product_fields[0]),
+		SAHPI_IDR_AREATYPE_BOARD_INFO,
+		product_fields
+	},
+};
 
+#define OHOI_AREA_NUM        (sizeof(areas)/sizeof(areas[0]))
+#define OHOI_AREA_EMPTY_ID   0
+#define OHOI_AREA_FIRST_ID   1
+#define OHOI_AREA_LAST_ID    OHOI_AREA_NUM
 
-static void _get_inventroy_internal_use(ipmi_entity_t *ent,
-		                        void          *cb_data)
+#define OHOI_FIELD_NUM(area)         (area->field_num)
+#define OHOI_FIELD_EMPTY_ID          0
+#define OHOI_FIELD_FIRST_ID          1
+#define OHOI_FIELD_LAST_ID(area)     (area->field_num)
+
+static int get_first_area(SaHpiIdrAreaTypeT areatype)
 {
-	SaHpiIdrFieldT *field;
-	int len;
+	int i;
+	for (i = 0; i < OHOI_AREA_NUM; i++)
+		if (areas[i].areatype == areatype)
+			return (i + 1);
+	return OHOI_AREA_EMPTY_ID;
+}
+
+static int get_first_field(struct ohoi_area_data *area,
+			   SaHpiIdrFieldTypeT fieldtype)
+{
+	int i;
+	for (i = 0; i < OHOI_FIELD_NUM(area); i++)
+		if (area->fields[i].fieldtype == fieldtype)
+			return (i + 1);
+	return OHOI_FIELD_EMPTY_ID;
+}
+
+static void get_field(ipmi_entity_t *ent,
+		      void          *cb_data)
+{
 	int rv;
+	int len;
+	int (*get_len)(ipmi_entity_t *, unsigned int*);
+	int (*get_data)(ipmi_entity_t *, char*, unsigned int*);
+	struct ohoi_field_data *data = cb_data;	
 	
-	field = cb_data;
+	SaHpiIdrFieldT *field = data->field;
+	get_len = data->get_len;
+	get_data = data->get_data;
 	
-	field->AreaId = 0;
-	field->FieldId = 0; 
-	field->Type = SAHPI_IDR_FIELDTYPE_CUSTOM;
+	field->Type = data->fieldtype;
 	field->ReadOnly = SAHPI_TRUE;
 
 	field->Field.DataType = SAHPI_TL_TYPE_ASCII6;
 	field->Field.Language = SAHPI_LANG_ENGLISH;
 	field->Field.DataLength = 0;
 
-	rv = ipmi_entity_get_internal_use_length(ent, &len);
+	rv = get_len(ent, &len);
 	if (rv) {
-		dbg("Error on ipmi_entity_get_internal_use_length: %d", rv);
+		dbg("Error on get_len: %d", rv);
 		return;
 	}
 
 	if (len > SAHPI_MAX_TEXT_BUFFER_LENGTH)
 		len = SAHPI_MAX_TEXT_BUFFER_LENGTH;
 
-	rv = ipmi_entity_get_internal_use_data(
-		        ent,
-		        &field->Field.Data[0],
-		        &len);
+	rv = get_data(ent, &field->Field.Data[0], &len);
 	if (!rv)
 		field->Field.DataLength = len;
 	else 
-		dbg("Error on  ipmi_entity_get_internal_use_data: %d", rv);
-
-}
-
-static SaErrorT get_inventroy_internal_use(ipmi_entity_id_t       ent_id,
-		                           SaHpiIdrFieldT *field)
-{
-	int rv;
-
-	rv = ipmi_entity_pointer_cb(ent_id, _get_inventroy_internal_use, field);
-	if (rv) {
-		dbg("Error on ipmi_entity_pointer_cb: %d", rv);
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	return SA_OK;
-}
-
-
-static void _get_inventroy_chassis_info(ipmi_entity_t *ent,
-		                        void          *cb_data)
-{
-	return;	
-}
-
-static SaErrorT get_inventory_chassis_info(ipmi_entity_id_t       ent_id)
-{
-	int rv;
-
-	rv = ipmi_entity_pointer_cb(ent_id, _get_inventroy_chassis_info, NULL);
-	if (rv) {
-		dbg("Error on ipmi_entity_pointer_cb: %d", rv);
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	return SA_OK;
-}
-
-static void _get_inventroy_board_info(ipmi_entity_t *ent,
-		                      void          *cb_data)
-{
-	return;
-}
-
-static SaErrorT get_inventory_board_info(ipmi_entity_id_t       ent_id)
-{
-	int rv;
-
-	rv = ipmi_entity_pointer_cb(ent_id, _get_inventroy_board_info, NULL);
-	if (rv) {
-		dbg("Error on ipmi_entity_pointer_cb: %d", rv);
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	return SA_OK;
-}
-
-static void _get_inventroy_product_info(ipmi_entity_t *ent,
-		                        void          *cb_data)
-{
-	return;
-}
-
-static SaErrorT get_inventory_product_info(ipmi_entity_id_t ent_id)
-{
-	int rv;
-
-	rv = ipmi_entity_pointer_cb(ent_id, _get_inventroy_product_info, NULL);
-	if (rv) {
-		dbg("Error on ipmi_entity_pointer_cb: %d", rv);
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	return SA_OK;
+		dbg("Error on  get_data: %d", rv);
 }
 
 SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                            SaHpiIdrInfoT *idrinfo)
 {
 	struct oh_handler_state  *handler = hnd;
-	SaHpiRptEntryT           *rpt_entry;
 
-	OHOI_CHECK_RPT_ENTRY();
-	OHOI_CHECK_CAPABILITY();
-	OHOI_CHECK_IRD_ID();
+	OHOI_CHECK_RPT_CAP_IDR();
 
 	idrinfo->IdrId = OHOI_IDR_DEFAULT_ID;
 	idrinfo->UpdateCount = 0;
 	idrinfo->ReadOnly = SAHPI_TRUE;
 
-	/*provide inventory:
-          INTERNAL_USE, CHASSIS_INFO, BOARD_INFO, PRODUCT_INFO */
-	idrinfo->NumAreas = 4;
+	idrinfo->NumAreas = OHOI_AREA_NUM;
 
 	return SA_OK;
 }
 
-SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
-                                  SaHpiIdrAreaTypeT areatype, SaHpiEntryIdT areaid,
-                                  SaHpiEntryIdT *nextareaid, SaHpiIdrAreaHeaderT *header)
+SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid,
+				  SaHpiIdrIdT idrid,
+                                  SaHpiIdrAreaTypeT areatype,
+				  SaHpiEntryIdT areaid,
+                                  SaHpiEntryIdT *nextareaid,
+				  SaHpiIdrAreaHeaderT *header)
 {
 	struct oh_handler_state  *handler = hnd;
-	SaHpiRptEntryT           *rpt_entry;
+	struct ohoi_area_data *area;
+	OHOI_CHECK_RPT_CAP_IDR();
 
-	int fnum;
+	if (areaid > OHOI_AREA_LAST_ID)
+		return SA_ERR_HPI_NOT_PRESENT;
 
-	OHOI_CHECK_RPT_ENTRY();
-	OHOI_CHECK_CAPABILITY();
-	OHOI_CHECK_IRD_ID();
-	OHOI_CHECK_AREA_TYPE_ID();
+	if ((areatype == SAHPI_ENTRY_UNSPECIFIED) &&
+	    (areaid == SAHPI_FIRST_ENTRY)) {
 
-	if (areaid < OHOI_AREA_MAX_ID)
+		areaid = OHOI_AREA_FIRST_ID;
+
+	}else if ((areatype != SAHPI_ENTRY_UNSPECIFIED) &&
+	    (areaid == SAHPI_FIRST_ENTRY)) {
+
+		areaid = get_first_area(areatype);
+		if (areaid == OHOI_AREA_EMPTY_ID)
+			return SA_ERR_HPI_NOT_PRESENT;
+
+	}else if ((areatype == SAHPI_ENTRY_UNSPECIFIED) &&
+	    (areaid != SAHPI_FIRST_ENTRY)) {
+
+		if (areaid > OHOI_AREA_LAST_ID)
+			return SA_ERR_HPI_NOT_PRESENT;
+
+	}else if ((areatype != SAHPI_ENTRY_UNSPECIFIED) && 
+	    (areaid != SAHPI_FIRST_ENTRY)) {
+
+		if (areaid > OHOI_AREA_LAST_ID)
+			return SA_ERR_HPI_NOT_PRESENT;
+		if (areas[areaid - 1].areatype != areatype)
+			return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+	if (areaid < OHOI_AREA_LAST_ID) {
 		*nextareaid = areaid + 1;
-	else 
+	}else if (areaid == OHOI_AREA_LAST_ID) {
 		*nextareaid = SAHPI_LAST_ENTRY;
-	
+	}
+
+	area = &areas[areaid -1];
+
 	header->AreaId = areaid;
-	header->Type = areatype;
+	header->Type = area->areatype;
+
 	header->ReadOnly = SAHPI_TRUE;
-	header->NumFields = fnum;
+	header->NumFields = area->field_num;
 
 	return SA_OK;
 }
@@ -293,37 +271,64 @@ SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
                             SaHpiIdrFieldT *field)
 {
 	struct oh_handler_state  *handler = hnd;
-	SaHpiRptEntryT           *rpt_entry;
 	ipmi_entity_id_t         ent_id;
+	struct ohoi_field_data   *field_data;
+	struct ohoi_area_data  *area_data;
 
-	OHOI_CHECK_RPT_ENTRY();
-	OHOI_CHECK_CAPABILITY();
-	OHOI_CHECK_IRD_ID();
+	OHOI_CHECK_RPT_CAP_IDR();
 
-	/*Fix Me : ent_id = 0*/
+	if (areaid == SAHPI_FIRST_ENTRY)
+		areaid = OHOI_AREA_FIRST_ID;
 
-	switch (areaid) {
-		case OHOI_AREA_INTERNAL_USE_ID:
-			OHOI_CHECK_FIELDID(1);
-			get_inventroy_internal_use(ent_id, field);
-			break; 
-		case OHOI_AREA_CHASSIS_INFO_ID:
-			OHOI_CHECK_FIELDID(2);
-			get_inventory_chassis_info(ent_id);			
-			break;
-		case OHOI_AREA_BOARD_INFO_ID:
-			OHOI_CHECK_FIELDID(5);
-			get_inventory_board_info(ent_id);	
-			break;
-		case OHOI_AREA_PRODUCT_INFO_ID:
-			OHOI_CHECK_FIELDID(7);
-			get_inventory_product_info(ent_id);
-			break;
-		default:
+	if (areaid > OHOI_AREA_LAST_ID)
+		return SA_ERR_HPI_NOT_PRESENT;
+
+
+	area_data = &areas[areaid - 1];
+	field_data = area_data->fields;
+
+	if (fieldid > OHOI_FIELD_LAST_ID(area_data))
+		return SA_ERR_HPI_NOT_PRESENT;
+
+	if ((fieldtype == SAHPI_ENTRY_UNSPECIFIED) &&
+	    (fieldid == SAHPI_FIRST_ENTRY)) {
+
+		fieldid = OHOI_FIELD_FIRST_ID;
+
+	}else if ((fieldtype != SAHPI_ENTRY_UNSPECIFIED) &&
+	    (fieldid == SAHPI_FIRST_ENTRY)) {
+
+		fieldid = get_first_field(area_data, fieldtype);
+		if (fieldid == OHOI_FIELD_EMPTY_ID)
+			return SA_ERR_HPI_NOT_PRESENT;
+
+	}else if ((fieldtype == SAHPI_ENTRY_UNSPECIFIED) &&
+	    (fieldid != SAHPI_FIRST_ENTRY)) {
+
+		if (fieldid > OHOI_FIELD_LAST_ID(area_data))
+			return SA_ERR_HPI_NOT_PRESENT;
+
+	}else if ((fieldtype != SAHPI_ENTRY_UNSPECIFIED) && 
+	    (fieldid != SAHPI_FIRST_ENTRY)) {
+
+		if (fieldid > OHOI_FIELD_LAST_ID(area_data))
+			return SA_ERR_HPI_NOT_PRESENT;
+		if (field_data[fieldid - 1].fieldtype != fieldtype)
 			return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-	return SA_OK;
+	field_data = &area_data->fields[fieldid - 1];
+
+	if (fieldid < OHOI_AREA_LAST_ID) {
+		*nextfieldid = fieldid + 1;
+	}else if (fieldid == OHOI_AREA_LAST_ID) {
+		*nextfieldid = SAHPI_LAST_ENTRY;
+	}
+
+	field->FieldId = fieldid;
+	field->Type = field_data->fieldtype;
+
+	return ipmi_entity_pointer_cb(ent_id, get_field, field_data);
 }
 
 SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
