@@ -19,7 +19,7 @@ void display_entity_capabilities(SaHpiCapabilitiesT);
 const char * severity2str(SaHpiSeverityT);
 const char * rdrtype2str(SaHpiRdrTypeT type);
 char * interpreted2str (SaHpiSensorInterpretedT interpreted);
-char * rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
+void rpt_cap2str(SaHpiCapabilitiesT ResourceCapabilities);
 const char * ctrldigital2str(SaHpiCtrlStateDigitalT digstate);
 const char * get_sensor_type(SaHpiSensorTypeT type);
 const char * get_control_type(SaHpiCtrlTypeT type);
@@ -99,7 +99,6 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
         warn("Scanning RPT...");
         next = SAHPI_FIRST_ENTRY;
         do {
-                char * tmp;
                 char tmp_epath[80];
                 current = next;
                 err = saHpiRptEntryGet(session_id, current, &next, &entry);
@@ -129,10 +128,8 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
 		       entry.ResourceInfo.AuxFirmwareRev);
                 printf("Severity: %s\n",severity2str(entry.ResourceSeverity));
                 
-                tmp = rpt_cap2str(entry.ResourceCapabilities);
-                printf("Resource Capability: %s\n", tmp);
-                free(tmp);
-                
+                rpt_cap2str(entry.ResourceCapabilities);
+                                
                 printf("Entity Path:\n");
                 entitypath2string(&entry.ResourceEntity, tmp_epath, sizeof(tmp_epath));
                 printf("\t%s\n", tmp_epath);
@@ -151,6 +148,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                                 return err;
                 }
 #endif
+                printf("\tEntryId: %d\n", next);
         } while (next != SAHPI_LAST_ENTRY);
 
 	printf("SAHPI_LAST_ENTRY\n");
@@ -535,40 +533,36 @@ char * interpreted2str (SaHpiSensorInterpretedT interpreted)
 	return str;
 }
 
-char * rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
+void rpt_cap2str (SaHpiCapabilitiesT ResourceCapabilities)
 {
-        /* I'm lazy, lets just make sure we have more than enough space */
-        char *answer = calloc(1,512);
-        strcpy(answer,"\n");
-                
+        printf("\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN)
-                strcat(answer, "\tSAHPI_CAPABILITY_DOMAIN\n");
+                printf("\tSAHPI_CAPABILITY_DOMAIN\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE)
-                strcat(answer, "\tSAHPI_CAPABILITY_RESOURCE\n");
+                printf("\tSAHPI_CAPABILITY_RESOURCE\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_SEL)
-                strcat(answer, "\tSAHPI_CAPABILITY_SEL\n");
+                printf("\tSAHPI_CAPABILITY_SEL\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)
-                strcat(answer, "\tSAHPI_CAPABILITY_EVT_DEASSERTS\n");
+                printf("\tSAHPI_CAPABILITY_EVT_DEASSERTS\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_AGGREGATE_STATUS)
-                strcat(answer, "\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n");
+                printf("\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION)
-                strcat(answer, "\tSAHPI_CAPABILITY_CONFIGURATION\n");
+                printf("\tSAHPI_CAPABILITY_CONFIGURATION\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)
-                strcat(answer, "\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n");
+                printf("\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)
-                strcat(answer, "\tSAHPI_CAPABILITY_WATCHDOG\n");
+                printf("\tSAHPI_CAPABILITY_WATCHDOG\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)
-                strcat(answer, "\tSAHPI_CAPABILITY_CONTROL\n");
+                printf("\tSAHPI_CAPABILITY_CONTROL\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_FRU)
-                strcat(answer, "\tSAHPI_CAPABILITY_FRU\n");
+                printf("\tSAHPI_CAPABILITY_FRU\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)
-                strcat(answer, "\tSAHPI_CAPABILITY_INVENTORY_DATA\n");
+                printf("\tSAHPI_CAPABILITY_INVENTORY_DATA\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_RDR)
-                strcat(answer, "\tSAHPI_CAPABILITY_RDR\n");
+                printf("\tSAHPI_CAPABILITY_RDR\n");
         if(ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)
-                strcat(answer, "\tSAHPI_CAPABILITY_SENSOR\n");
+                printf("\tSAHPI_CAPABILITY_SENSOR\n");
         
-	return answer;
 }
 
 const char * get_control_type(SaHpiCtrlTypeT type) 
