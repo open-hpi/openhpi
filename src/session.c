@@ -97,24 +97,24 @@ int session_del(struct oh_session *session)
  * needn't care about ref counter of the event.
 */
 
-int session_push_event(struct oh_session *s, struct oh_hpi_event *e)
+int session_push_event(struct oh_session *s, struct oh_session_event *e)
 {
-        struct oh_event *e1;
+        struct oh_session_event *e1;
 
         data_access_lock();
-        
-        e1 = malloc(sizeof(*e1));
+
+        e1 = malloc(sizeof(struct oh_session_event ));
         if (!e1) {
                 dbg("Out of memory!");
                 data_access_unlock();
                 return -1;
         }
-        memcpy(e1, e, sizeof(*e));
+        memcpy(e1, e, sizeof(struct oh_session_event));
 
         s->eventq = g_slist_append(s->eventq, (gpointer *) e1);
 
         data_access_unlock();
-        
+
         return 0;
 }
 
@@ -122,25 +122,24 @@ int session_push_event(struct oh_session *s, struct oh_hpi_event *e)
  * session_pop_event - pops events off the session.  
  */
 
-int session_pop_event(struct oh_session *s, struct oh_hpi_event *e) 
+int session_pop_event(struct oh_session *s, struct oh_session_event *e)
 {
         GSList *head;
-        
         data_access_lock();
-        
+
         if (g_slist_length(s->eventq) == 0) {
                 data_access_unlock();
                 return -1;
         }
-       
+
         head = s->eventq;
         s->eventq = g_slist_remove_link(s->eventq, head);
-        
-        memcpy(e, head->data, sizeof(*e));
-        
+
+        memcpy(e, head->data, sizeof(struct oh_session_event));
+
         free(head->data);
         g_slist_free_1(head);
-        
+
         data_access_unlock();
 
         return 0;

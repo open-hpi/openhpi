@@ -31,6 +31,8 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         SaHpiRptEntryT *res;
         GSList *i;
         unsigned int log_severity;
+        SaHpiRdrT *rdr;
+        struct oh_session_event se;
 
         data_access_lock();
         
@@ -40,12 +42,12 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
                 data_access_unlock();
                 return -1;
         }
-        
+
         if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP 
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
                 hotswap_push_event(e);
         }
-        
+  
         /* 
            Domain System Event Logging Mechanism.
            Check the handler configuration for the "log_severity" value
@@ -62,8 +64,24 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
                 selentry.Event = e->event;
                 oh_sel_add(d->sel, &selentry);                
         }
-        
-        
+
+        /* create a session event */
+        memset(&se, 0, sizeof(struct oh_session_event ));
+
+        /* copy the event */
+        memcpy(&se.event, &e->event, sizeof(SaHpiEventT));
+
+        /* copy rpt entry */
+        memcpy(&se.rpt_entry, res, sizeof(SaHpiRptEntryT));
+
+        /* find the rdr */
+        rdr = oh_get_rdr_by_id(rpt, e->parent, e->id);
+
+        if (rdr)
+             memcpy(&se.rdr, rdr, sizeof(SaHpiRdrT));
+        else
+             se.rdr.RdrType = SAHPI_NO_RECORD;
+
         g_slist_for_each(i, global_session_list) {
                 struct oh_session *s = i->data;
                 /* yes, we need to add real domain support later here */
@@ -76,7 +94,7 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
 			Push event if session is subscribed, or, if session
 			is unsubscribed, the event is an active alarm.
 			*/
-                        session_push_event(s, e);
+                        session_push_event(s, &se);
                 }
         }
 
