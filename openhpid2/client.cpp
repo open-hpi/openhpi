@@ -121,6 +121,45 @@ CleanupClient(void)
 
 
 /*----------------------------------------------------------------------------*/
+/* saHpiVersionGet                                                            */
+/*----------------------------------------------------------------------------*/
+
+SaHpiVersionT SAHPI_API dOpenHpiClientFunction(VersionGet)
+	dOpenHpiClientParam(void)
+{
+	void				*request;
+	void				*reply;  
+	void				*dummy = NULL;  
+	SaHpiVersionT			err; 
+
+	char				cmd[] = "saHpiVersionget";
+
+	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiVersionGet);
+
+	pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiVersionGet,
+				    hm->m_request_len);
+	pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiVersionGet, 0);
+	request = malloc(hm->m_request_len);
+
+	pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &dummy);
+
+	SendRecv();
+
+	int mr = HpiDemarshalReply0(pinst->repheader.m_flags & dMhEndianBit,
+				    hm, reply, &err);
+
+	cdebug_out(cmd, "end");
+
+	if (request)
+		free(request);
+	if (mr < 0)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
+}
+
+
+/*----------------------------------------------------------------------------*/
 /* saHpiSessionOpen                                                           */
 /*----------------------------------------------------------------------------*/
 
@@ -704,7 +743,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
 SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
 	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT  SessionId,
                              SAHPI_IN SaHpiResourceIdT ResourceId,
-                             SAHPI_IN SaHpiRptEntryT   *RptEntry)
+                             SAHPI_IN SaHpiEventT      *EvtEntry)
 {
         void *request;
         void *reply;  
@@ -721,7 +760,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
         pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogEntryAdd, 0);
         request = malloc(hm->m_request_len);
 
-        pinst->reqheader.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &RptEntry);
+        pinst->reqheader.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EvtEntry);
 
         pinst->WriteMsg(request, NULL);
         pinst->ReadMsg();
@@ -1568,7 +1607,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
 	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT        SessionId,
                              SAHPI_IN SaHpiResourceIdT       ResourceId,
                              SAHPI_IN SaHpiSensorNumT        SensorNum,
-                             SAHPI_IN SaHpiSensorThresholdsT Thresholds)
+                             SAHPI_IN SaHpiSensorThresholdsT *Thresholds)
 {
         void *request;
         void *reply;  
@@ -2099,6 +2138,53 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrInfoGet)
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaHeaderGet)
+	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT      SessionId,
+                             SAHPI_IN SaHpiResourceIdT     ResourceId,
+                             SAHPI_IN SaHpiIdrIdT          Idrid,
+                             SAHPI_IN SaHpiIdrAreaTypeT    AreaType,
+                             SAHPI_IN SaHpiEntryIdT        AreaId,
+                             SAHPI_OUT SaHpiEntryIdT       *NextAreaId,
+                             SAHPI_OUT SaHpiIdrAreaHeaderT *Header)
+{
+        void *request;
+        void *reply;  
+        SaErrorT err; 
+
+        if (SessionId < 0 )
+             return SA_ERR_HPI_INVALID_PARAMS;
+	if (pinst == NULL) {
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiIdrAreaHeaderGet);
+        pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaHeaderGet, hm->m_request_len);
+        pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaHeaderGet, 0);
+        request = malloc(hm->m_request_len);
+
+        pinst->reqheader.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &Idrid, &AreaType, &AreaId);
+
+        pinst->WriteMsg(request, NULL);
+        pinst->ReadMsg();
+        reply = (char *)request + (sizeof(cMessageHeader) * 2) + pinst->reqheader.m_len;
+
+        int mr = HpiDemarshalReply2(pinst->repheader.m_flags & dMhEndianBit, hm, reply, &err, &NextAreaId, &Header);
+
+        if (pinst->repheader.m_type == eMhError)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (request)
+             free(request);
+        if (mr < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
+	return err;
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* saHpiIdrAreaAdd                                                            */
+/*----------------------------------------------------------------------------*/
+
+SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaAdd)
 	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT   SessionId,
                              SAHPI_IN SaHpiResourceIdT  ResourceId,
                              SAHPI_IN SaHpiIdrIdT       Idrid,
@@ -2115,9 +2201,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaHeaderGet)
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiIdrAreaHeaderGet);
-        pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaHeaderGet, hm->m_request_len);
-        pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaHeaderGet, 0);
+        cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiIdrAreaAdd);
+        pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaAdd, hm->m_request_len);
+        pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiIdrAreaAdd, 0);
         request = malloc(hm->m_request_len);
 
         pinst->reqheader.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &Idrid, &AreaType);
