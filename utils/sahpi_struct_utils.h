@@ -72,9 +72,9 @@ SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
  * Validate HPI structures
  *************************/
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
-SaErrorT oh_valid_threshold(SaHpiSensorThresholdsT *thds,
-			    SaHpiSensorDataFormatT *format,
-			    SaHpiSensorThdMaskT writable_thds);
+SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
+			     SaHpiSensorDataFormatT *format,
+			     SaHpiSensorThdMaskT writable_thds);
 
 /***************************
  * Print HPI data structures
