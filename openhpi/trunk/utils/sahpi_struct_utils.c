@@ -263,7 +263,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 {
         char  numstr[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 	char *endptr;
-        int   i, j;
+        int   i, j, skip;
 	int   found_sign, found_number, found_float, in_number;
 	int   is_percent = 0;
         SaHpiFloat64T num_float64 = 0.0;
@@ -289,14 +289,19 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 	working.IsSupported = SAHPI_TRUE;
 	working.Type = type;
 
-	/* Search string and pull out first numeric string.
-         * The strtol type functions below are pretty good at handling
-         * non-numeric junk in string, but they don't handle spaces
-         * after a sign or commas within a number.
-         * So we normalize the string a bit first.
+	/* Search string and pull out first numeric string. The strtol type 
+         * functions below are pretty good at handling non-numeric junk in 
+         * string, but they don't handle spaces after a sign or commas within 
+         * a number. So we normalize the string a bit first.
 	 */
+	
+	/* Skip any characters before an '=' sign */
+	char *skipstr = strchr(buffer->Data, '=');
+	if (skipstr) skip = (int)skipstr - (int)(buffer->Data) + 1;
+	else skip = 0;
+
 	j = found_sign = in_number = found_number = found_float = 0;
-	for (i=0; i<buffer->DataLength && !found_number; i++) {
+	for (i=skip; i<buffer->DataLength && !found_number; i++) {
 		if (buffer->Data[i] == '+' || buffer->Data[i] == '-') {
 			if (found_sign) { 
 				dbg("Cannot parse multiple sign values");

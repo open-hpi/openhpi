@@ -60,6 +60,7 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				 SaHpiSensorReadingTypeT type,
 				 SaHpiSensorReadingT *reading);
+
 SaErrorT oh_decode_capabilities(SaHpiCapabilitiesT ResourceCapabilities,
 				SaHpiTextBufferT *buffer);
 
