@@ -585,7 +585,7 @@ static int snmp_bc_set_inventory_info(void *hnd, SaHpiResourceIdT id,
                                       SaHpiEirIdT num,
                                       const SaHpiInventoryDataT *data)
 {
-        return -1;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 static int snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act)
