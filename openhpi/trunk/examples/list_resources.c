@@ -83,6 +83,8 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
 	SaHpiEntryIdT	current;
 	SaHpiEntryIdT   next;
 
+	SaHpiSelInfoT	info;
+
         err = saHpiResourcesDiscover(session_id);
         if (SA_OK != err) {
                 error("saHpiResourcesDiscover", err);
@@ -136,9 +138,11 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
                 printf("\tResourceTag: ");
                        display_textbuffer(entry.ResourceTag);
 
+                if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL) {
+			saHpiEventLogInfoGet(session_id, entry.ResourceId, &info);
+		}
                 if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
                         list_rdr(session_id, entry.ResourceId);
-                
 #if 0
                 /* if the resource is also a domain, then 
                  * traverse its RPT */        
@@ -343,7 +347,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			err = saHpiSensorReadingGet(session_id, resource_id, sensor_num, &reading);
 			if (err != SA_OK) {
 				printf("Error=%d reading sensor data {sensor, %d}\n", err, sensor_num);
-				break;
+				continue;
 			}
 
 			if (reading.ValuesPresent & SAHPI_SRF_RAW) {
@@ -452,8 +456,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 					printf("Invalid control type=%d from saHpiControlStateGet\n", 
 					       state.Type);
 			}
-		}
-
+	}
                 printf("\tEntity: \n");
                 entitypath2string(&rdr.Entity, tmp_epath, sizeof(tmp_epath));
                 printf("\t\t%s\n", tmp_epath);
