@@ -32,6 +32,26 @@
 
 #include <snmp_rsa.h>
 
+/* oid's to detect CPUs */
+const char *rsa_oid_cpu_detect[RSA_MAX_CPU] = {
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.1",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.2",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.3",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.4",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.5",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.6",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.7",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.5.1.1.3.8"
+};
+
+/* oid's to detect DASDs */
+const char *rsa_oid_dasd_detect[RSA_MAX_DASD] = {
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.1",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.2",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.3",
+        ".1.3.6.1.4.1.2.3.51.1.2.20.1.6.1.1.3.4"
+};
+
 /**
  * snmp_rsa_get_event:
  * @hnd: 
@@ -61,9 +81,10 @@ static int snmp_rsa_discover_resources(void *hnd)
         SaHpiEntityPathT entity_root;        
         guint i;
         struct oh_event *e;
-//	struct snmp_value get_value, get_active;
+	struct snmp_value get_value;
+//	struct snmp_value get_active;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-//      struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+        struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
         RPTable *tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
         GSList *tmpqueue = NULL;
         char *root_tuple = (char *)g_hash_table_lookup(handle->config,"entity_root");        
@@ -72,6 +93,16 @@ static int snmp_rsa_discover_resources(void *hnd)
         string2entitypath(root_tuple, &entity_root);
         append_root(&entity_root);
 
+        /* see if the chassis exists by querying system health */
+        if(snmp_get(custom_handle->ss,".1.3.6.1.4.1.2.3.51.1.2.7.1.0",&get_value) != 0) {
+                /* If we get here, something is hosed. No need to do more discovery */
+                dbg("Couldn't fetch SNMP RSA system health.\n");
+                dbg("There is no chassis.");
+                g_free(tmpcache);
+                return -1;
+        }
+
+        /* discover the chassis */
         e = snmp_rsa_discover_chassis(&entity_root);
         if(e != NULL) {
                 struct ResourceMibInfo *res_mib =
@@ -86,7 +117,17 @@ static int snmp_rsa_discover_resources(void *hnd)
 //		find_inventories(snmp_rsa_chassis_inventories);
         }
 
+        /* discover all cpus */
         for (i = 0; i < RSA_MAX_CPU; i++) {
+                /* see if the cpu exists by querying the thermal sensor */
+                if((snmp_get(custom_handle->ss,rsa_oid_cpu_detect[i],&get_value) != 0) ||
+                   (get_value.type != ASN_OCTET_STR) ||
+                   (strcmp(get_value.string, "Not Readable!") == 0)) {
+                        /* If we get here the CPU is not installed */
+                        dbg("CPU %d not found.\n", i);
+                        continue;
+                }
+
                 e = snmp_rsa_discover_cpu(&entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =
@@ -101,7 +142,17 @@ static int snmp_rsa_discover_resources(void *hnd)
                 }
         }
 
+        /* discover all dasd */
         for (i = 0; i < RSA_MAX_DASD; i++) {
+                /* see if the cpu exists by querying the thermal sensor */
+                if((snmp_get(custom_handle->ss,rsa_oid_dasd_detect[i],&get_value) != 0) ||
+                   (get_value.type != ASN_OCTET_STR) ||
+                   (strcmp(get_value.string, "Not Readable!") == 0)) {
+                        /* If we get here the CPU is not installed */
+                        dbg("CPU %d not found.\n", i);
+                        continue;
+                }
+
                 e = snmp_rsa_discover_dasd(&entity_root, i);
                 if(e != NULL) {
                         struct ResourceMibInfo *res_mib =

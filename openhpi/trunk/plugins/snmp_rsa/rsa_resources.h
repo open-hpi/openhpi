@@ -13,6 +13,23 @@
  *      W. David Ashley <dashley@us.ibm.com>
  */
 
+/**************************************************************************
+ * This header file stubs resource and RDR static infomation that are used
+ * in constructing RPT and RDR for IBM's RSA - models Integrated
+ * and separate adapter.
+ *
+ * The RSA Integrated model has the following entity hierarchy:
+ *
+ *  {CHASSIS,X}
+ *      |
+ *      +-- {PROCESSOR,[1-8]}        (CPUs)
+ *      |
+ *      +-- {DISK_BAY,[1-4]}         (DASD)
+ *
+ * Differences between the RSA models are discovered dynamically 
+ * by this plugin at run-time during resource discovery.
+ *************************************************************************/
+
 /*************************************************************************
  * RESTRICTIONS!!!
  *
@@ -45,6 +62,7 @@ typedef enum {
 #define RSA_MAX_CPU    8
 #define RSA_MAX_FAN    8
 #define RSA_MAX_DASD   4
+
 
 /*************************************************************************
  *                   Resource Definitions
