@@ -106,11 +106,6 @@ struct oh_abi_v2 {
          */
         SaErrorT (*set_resource_severity)(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev);
 
-        /**
-	 * get the id which the caller is running
-	 */
-	SaErrorT (*get_self_id)(void *hnd, SaHpiResourceIdT id);
-
         /******************************************************
          *
          *  System Event Log functions
