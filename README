@@ -25,6 +25,9 @@ sysfs plugin
 snmp_bc plugin
   net-snmp >= 5.07
 
+snmp_rsa plugin
+  net-snmp >= 5.07
+
 snmp_client plugin
   net-snmp >= 5.07
 
