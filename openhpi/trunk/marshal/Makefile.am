@@ -12,6 +12,8 @@
 #    Thomas Kanngieser <thomas.kanngieser@fci.com>
 #
 
+.NOTPARALLEL:
+
 SUBDIRS			= t
 DIST_SUBDIRS 		= t
 
