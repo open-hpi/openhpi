@@ -88,8 +88,8 @@ struct snmp_bc_sensor test_sensor = {
 			.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
 			.threshold_oids = {
 				.InterpretedThresholds = {
-					.OidLowMinor     = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
-					.OidUpMinor      = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
+					.LowMinor     = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
+					.UpMinor      = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
 					/*  FIXME:: Hysteresis correct? */
 					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
 					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
