@@ -93,7 +93,7 @@ static cstrmsock * CreateConnx(void);
 static void DeleteConnx(cstrmsock *);
 static bool InsertConnx(SaHpiSessionIdT, cstrmsock *);
 static bool RemoveConnx(SaHpiSessionIdT);
-static cstrmsock * GetConnx(SaHpiSessionIdT);
+static pcstrmsock GetConnx(SaHpiSessionIdT);
 static SaErrorT oHpiHandlerCreateInit(void);
 static void oHpiHandlerCreateAddTEntry(gpointer key, gpointer value, gpointer data);
 
@@ -152,10 +152,9 @@ static void DeleteConnx(cstrmsock *pinst)
 /* InsertConnx                                                                */
 /*----------------------------------------------------------------------------*/
 
-static bool InsertConnx(SaHpiSessionIdT SessionId, cstrmsock *pinst)
+static bool InsertConnx(SaHpiSessionIdT SessionId, pcstrmsock pinst)
 {
         SaHpiSessionIdT *mysession = (SaHpiSessionIdT *)g_malloc(sizeof(SaHpiSessionIdT));
-        pcstrmsock *myinst = (pcstrmsock *)g_malloc(sizeof(pinst));
 
 	if (SessionId == 0)
 		return FALSE;
@@ -170,8 +169,7 @@ static bool InsertConnx(SaHpiSessionIdT SessionId, cstrmsock *pinst)
         }
         g_mutex_lock(sessions_sem);
         *mysession = SessionId;
-        *myinst = pinst;
-        g_hash_table_insert(sessions, mysession, myinst);
+        g_hash_table_insert(sessions, mysession, pinst);
         g_mutex_unlock(sessions_sem);
 
         return TRUE;
@@ -193,7 +191,6 @@ static bool RemoveConnx(SaHpiSessionIdT SessionId)
         g_mutex_lock(sessions_sem);
         g_hash_table_remove(sessions, &SessionId);
         g_mutex_unlock(sessions_sem);
-        g_free(pinst);
 
         return TRUE;
 }
@@ -203,17 +200,17 @@ static bool RemoveConnx(SaHpiSessionIdT SessionId)
 /* GetConnx                                                                   */
 /*----------------------------------------------------------------------------*/
 
-static cstrmsock * GetConnx(SaHpiSessionIdT SessionId)
+static pcstrmsock GetConnx(SaHpiSessionIdT SessionId)
 {
-        pcstrmsock *pinst;
+        pcstrmsock pinst;
 
 	if (SessionId == 0)
 		return FALSE;
 
         g_mutex_lock(sessions_sem);
-        pinst = (pcstrmsock *) g_hash_table_lookup(sessions, &SessionId);
+        pinst = (pcstrmsock) g_hash_table_lookup(sessions, &SessionId);
         g_mutex_unlock(sessions_sem);
-        return *pinst;
+        return pinst;
 }
 
 
