@@ -271,16 +271,31 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst)
 	/* See if adjusted search string is a recognized BC "alertable" event */
 	strhash_data = (Str2EventInfoT *)g_hash_table_lookup(str2event_hash, search_str);
 	if (strhash_data) {
-		/* Check to see if we can use BCT-level severity; OVR means use
-		 *  default parse log severity; NOOVR means use BCT-level 
-		 *  severity from str2event_hash table 
-		 */
-		if (strhash_data->event_sev_ovr == NOOVR) {
+
+
+
+		/* OVR_SEV overrides the event log's severity and uses 
+		 *  BCT-level severity from calculated in off-line scripts */
+                /*###### MOVE THIS TO AFTER PARSE */
+		if (strhash_data->event_ovr & OVR_SEV) {
 			severity = strhash_data->event_sev;
 		}
+
+		/* #### Move error log parse to here ?? */
+		/*
+		  ### Can't have dups and rid override
+		  ### Handle DUPS
+		  ### 
+		  ### Calculate RID and RPT entry
+		  ### Handle RID override
+		  ###
+		*/
+
 		/* Look to see if event is mapped to an HPI entity */
 		event_ptr = (SaHpiEventT *)g_hash_table_lookup(event2hpi_hash, strhash_data->event);
 		if (event_ptr) {
+
+
 			working = *event_ptr;
 
 			/* Handle sensor events */

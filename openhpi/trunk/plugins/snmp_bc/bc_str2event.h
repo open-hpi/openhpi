@@ -18,15 +18,17 @@
 #ifndef __BC_STR2EVENT_H
 #define __BC_STR2EVENT_H
 
-typedef enum {
-	NOOVR,
-	OVR,
-} BcSevOvrT;
+#define HPIDUP_STRING  "HPIDUP"
+
+#define NO_OVR  0x0000
+#define OVR_SEV 0x0001
+#define OVR_RID 0x0010
 
 typedef struct {
         gchar *event;
 	SaHpiSeverityT event_sev;
-	BcSevOvrT event_sev_ovr;
+	unsigned short event_ovr;
+        short          event_dup;
 } Str2EventInfoT;
 
 /* Global String 2 Event Hash Table */

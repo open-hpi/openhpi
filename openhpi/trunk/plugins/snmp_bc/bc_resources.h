@@ -64,7 +64,7 @@
 #define SNMP_BC_BCT_MODEL_AC "8730"
 #define SNMP_BC_BCT_MODEL_DC "8720"
 #define SNMP_BC_PLATFORM_BCT "BCT"
-#define SNMP_BC_PLATFORM_BCE "BCE"
+#define SNMP_BC_PLATFORM_BC  "BC"
 char    bc_type[4];
 
 /* Resource indexes to snmp_rpt array below */
@@ -117,7 +117,7 @@ struct BC_ResourceMibInfo {
 	const char *OidPowerOnOff;
 };
 
-#define MAX_EVENTS_PER_RESOURCE 3 
+#define MAX_EVENTS_PER_RESOURCE 6
 #define MAX_RESOURCE_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_RESOURCE + 1) 
                                        /* Includes an ending NULL entry */
 struct res_event_map {
@@ -179,7 +179,7 @@ struct BC_SensorMibInfo {
         struct SnmpSensorThresholdOids threshold_oids;
 };
 
-#define MAX_EVENTS_PER_SENSOR 3 
+#define MAX_EVENTS_PER_SENSOR 6
 #define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1) 
                                      /* Includes an ending NULL entry */
 
