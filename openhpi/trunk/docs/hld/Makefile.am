@@ -75,4 +75,4 @@ OpenHPI_HLD/book1.html: $(SGML_FILES)
 
 clean:
 	rm -fR OpenHPI_HLD
-	rm -f *~
+	rm -f *~ *.tex *.aux *.log *.out
