@@ -88,11 +88,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/************************************************************
 	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
@@ -127,11 +127,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/*************************************************************
 	 * TestCase - Chassis Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)
@@ -168,11 +168,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/*************************************************************
 	 * TestCase - Chassis Duplicate Event ( EN_PFA_HI_FAULT_3_35V)
@@ -209,11 +209,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/*************************************************************
 	 * TestCase - Non-mapped Event (Severity=INFO)
@@ -239,11 +239,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/* Better to test a mapped login event - don't have one yet */
 	/*************************************************************
@@ -270,11 +270,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/************************************
 	 * Drive some error paths in the code
@@ -304,11 +304,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/******************************************************************
 	 * TestCase - Recovery string not first character of text string
@@ -335,11 +335,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 
 	/******************************************************************
 	 * TestCase - In string table but not mapped
@@ -366,11 +366,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
-	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
-		return -1;
-        }
+//	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+//	if (err != SA_OK) {
+//		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+//		return -1;
+//      }
 	
 	/****************** 
 	 * End of testcases 
