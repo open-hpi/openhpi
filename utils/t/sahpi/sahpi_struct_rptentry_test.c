@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 				.ProductId = 2222,
 				.FirmwareMajorRev = 42,
 				.FirmwareMinorRev = 52,
-				.AuxFirmwareRev = 62
+				.AuxFirmwareRev = 62,
 		},
 		.ResourceEntity = {
 			.Entry[0] = {
@@ -119,7 +119,8 @@ int main(int argc, char **argv)
 	/* ------------------------------------------------ */
 	/* Normal write to file test                        */
 	/* ------------------------------------------------ */
-	
+	strncpy(thisrptentry.ResourceInfo.Guid, "GUID-123", sizeof("GUID-123"));
+
 	err = oh_fprint_rptentry(fp, &thisrptentry, 3);
 	if (err != SA_OK) {
 		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
