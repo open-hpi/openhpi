@@ -216,8 +216,9 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
                         epathptr->Entry[i].EntityInstance = 
                                 ((SaHpiEntityT *)(lst->data))->EntityInstance;
                 }
+                epath_list = g_slist_remove_link(epath_list,lst);
                 g_free(lst->data);
-                epath_list = g_slist_remove(epath_list,lst);                
+		g_slist_free(lst);
 	}
         
 	if (num_valid_entities > SAHPI_MAX_ENTITY_PATH) { 
