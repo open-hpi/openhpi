@@ -21,6 +21,7 @@
 #include <endian.h>
 #include <byteswap.h>
 #include "marshal.h"
+#include "marshal_hpi_types.h"
 
 
 cMarshalType VoidType =
@@ -182,6 +183,9 @@ MarshalSize( const cMarshalType *type )
 	      for( i = 0; type->m_u.m_struct.m_elements[i].m_type == eMtStructElement; i++ )
 		 {
 		   cMarshalType *elem = &type->m_u.m_struct.m_elements[i];
+                   printf("Struct element %d offset = %d\n", i, elem->m_u.m_struct_element.m_offset);
+                   printf("Struct element address = %p\n",elem->m_u.m_struct_element.m_type);
+                   printf("Address of Uint32Type = %p\n", &Uint32Type);
 		   int s = MarshalSize( elem->m_u.m_struct_element.m_type );
 
 		   if ( s < 0 )

@@ -26,84 +26,12 @@
 #include <pthread.h>
 
 
-// retries
-#define dDefaultMessageRetries 120
-
-// timeout for one retry
-#define dDefaultMessageTimeout 250
-
-// outstanding messages before block
-#define dDefaultMaxOutstanding 12
-
-struct sOpenHpiClientRequest;
-typedef struct sOpenHpiClientRequest cOpenHpiClientRequest;
-
-
-struct sOpenHpiClientRequest
-{
-  cOpenHpiClientRequest *m_next;
-  SaErrorT        m_error;
-
-  cMessageHeader *m_request_header;
-  void           *m_request;
-
-  cMessageHeader *m_reply_header;
-  void          **m_reply;
-
-  int             m_retries_left;
-  struct timeval  m_timeout;
-
-  pthread_mutex_t *m_lock;
-  pthread_cond_t  *m_cond;
-  int              m_cond_var;
-};
-
-
-typedef enum
-{
-  eOpenHpiClientThreadStateUnknown,
-  eOpenHpiClientThreadStateSuspend,
-  eOpenHpiClientThreadStateRun,
-  eOpenHpiClientThreadStateExit
-} tOpenHpiClientThreadState;
-
-
-typedef struct
-{
-  char                   m_server[dConfigStringMaxLength];
-  int                    m_port;
-  int                    m_debug;
-
-  // maximum outstanding requests
-  int                    m_max_outstanding; // must be <= 256
-  unsigned int           m_retries;
-  unsigned int           m_timeout;
-
-  cClientConnection     *m_client_connection;
-  int                    m_initialize;
-
-  pthread_mutex_t        m_lock;
-  cOpenHpiClientRequest *m_queue;
-  cOpenHpiClientRequest *m_outstanding[256];
-  int                    m_num_outstanding;
-
-  pthread_t              m_thread;
-  tOpenHpiClientThreadState m_thread_state;
-  int                    m_thread_exit;
-
-  SaHpiSessionIdT       *m_session;
-  int                    m_num_sessions;
-} cOpenHpiClientConf;
-
-
 // default prefix for function names
 #ifndef dOpenHpiClientFunction
 #define dOpenHpiClientFunction(name) saHpi##name
 #define dOpenHpiClientParam(...) (__VA_ARGS__)
 #define dOpenHpiClientWithConfig
 #else
-SaErrorT SAHPI_API dOpenHpiClientFunction(Initialize)dOpenHpiClientParam( SAHPI_OUT SaHpiVersionT *HpiImplVersion );
-SaErrorT SAHPI_API dOpenHpiClientFunction(Finalize)dOpenHpiClientParam();
 SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT   DomainId,
 							SAHPI_OUT SaHpiSessionIdT *SessionId,
 							SAHPI_IN  void            *SecurityParams );

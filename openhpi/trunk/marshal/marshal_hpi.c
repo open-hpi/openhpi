@@ -15,6 +15,7 @@
  *     W. David Ashley <dashley@us.ibm.com.com>
  */
 
+#include <stdio.h>
 #include "marshal_hpi.h"
 
 
@@ -1349,15 +1350,19 @@ HpiMarshalFind( int id )
      {
        int i;
 
+       printf("Initializing marshal array\n");
        for( i = 0; i < hpi_marshal_num; i++ )
 	  {
+            printf("Initializing marshal request entry %d\n", i);
 	    hpi_marshal[i].m_request_len = MarshalSizeArray( hpi_marshal[i].m_request );
+            printf("Initializing marshal reply entry %d\n", i);
 	    hpi_marshal[i].m_reply_len   = MarshalSizeArray( hpi_marshal[i].m_reply );
 	  }
 
        hpi_marshal_init = 1;
      }
 
+  printf("Initializing marshal array, id = %d\n", id);
   id--;
 
   if ( id < 0 || id >= hpi_marshal_num )

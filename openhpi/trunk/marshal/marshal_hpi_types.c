@@ -751,7 +751,7 @@ cMarshalType SaHpiEventType = dStruct( SaHpiEventT, SaHpiEventElements );
 // resource presence table
 
 
-static cMarshalType GuidDataArray = dVarArray( SaHpiUint8Type, 16 );
+static cMarshalType GuidDataArray = dArray( SaHpiUint8Type, 16 );
 
 static cMarshalType SaHpiResourceInfoElements[] =
 {

@@ -58,24 +58,6 @@ int strmsock::GetErrcode(void)
 	return(errcode);
 }
 
-cMessageHeader* strmsock::GetHeader(void)
-{
-	return(&header);
-}
-
-void strmsock::SetBufferSize(
-        unsigned long ulNewSize)        // the new buffer size
-{
-	if (ulNewSize > 4096)
-		ulBufSize = ulNewSize;
-	pBuf = g_realloc(pBuf, ulBufSize);
-	if (pBuf == NULL)
-		errcode = errno;
-	else
-		errcode = 0;
-	return;
-}
-
 
 void strmsock::SetDomain(
         int lNewDomain)                 // the new domain
@@ -103,109 +85,118 @@ void strmsock::SetType(
 	return;
 }
 
-void strmsock::ConWriteMsg(const void *msg)
+bool strmsock::WriteMsg(const void *request, const void *reply)
 {
+	char data[dMaxMessageLength];
+	int l = (sizeof(cMessageHeader) * 2) + reqheader.m_len + repheader.m_len;
+        int x = 0;
+
 	if (!fOpen) {
-		errcode = -1;
-		return;
+		return true;
 	}
 
-	 int l = sizeof( cMessageHeader ) + header.m_len;
-
-	if ( l > dMaxMessageLength ) {
-		errcode = -1;
-		return;
+	if (l > dMaxMessageLength) {
+		return true;
 	}
 
-	 char data[dMaxMessageLength];
+	memcpy(&data[x], &reqheader, sizeof(cMessageHeader));
+        x += sizeof(cMessageHeader);
+	memcpy(&data[x], &request, reqheader.m_len);
+        x += reqheader.m_len;
+	memcpy(&data[x], &repheader, sizeof(cMessageHeader));
+        x += sizeof(cMessageHeader);
+	memcpy(&data[x], &reply, repheader.m_len);
 
-	memcpy( data, &header, sizeof( cMessageHeader ) );
-
-	if ( header.m_len ) {
-		memcpy( data + sizeof( cMessageHeader ), msg, header.m_len );
-	}
-
-	int rv = write( s, data, l);
+	int rv = write(s, data, l);
 
 	if ( rv != l ) {
-		errcode = errno;
-		return;
+		return true;
 	}
 
-	errcode = 0;
-	return;
+	return false;
 }
 
-void* strmsock::ConReadMsg(void)
+void *strmsock::ReadMsg(void)
 {
+	char *data = (char *)malloc(dMaxMessageLength);
+        int x = 0;
 
 	if (!fOpen) {
-		errcode = -1;
 		return NULL;
 	}
 
-	unsigned int len = read( s, pBuf, ulBufSize);
+	unsigned int len = read( s, data, dMaxMessageLength);
 
 	if (len < 0) {
-		errcode = errno;
 		return NULL;
 	} else if (len == 0) {	//connection has been aborted by the peer
-		errcode = 0;
 		Close();
 		return NULL;
-	} else if ( len < sizeof( cMessageHeader) ) {
-		errcode = -1;
+	} else if (len < sizeof(cMessageHeader) * 2) {
 		return NULL;
 	}
 
-	memcpy( &header, pBuf, sizeof( cMessageHeader ) );
+	memcpy(&reqheader, &data[x], sizeof(cMessageHeader));
+        x += sizeof(cMessageHeader);
+        // swap id and len if nessesary in the request header
+	if ((reqheader.m_flags & dMhEndianBit) != MarshalByteOrder()) {
+		reqheader.m_id  = bswap_32(reqheader.m_id);
+		reqheader.m_len = bswap_32(reqheader.m_len);
+	}
+        x += reqheader.m_len;
+	memcpy(&repheader, &data[x], sizeof(cMessageHeader));
+        x += sizeof(cMessageHeader);
+        // swap id and len if nessesary in the reply header
+	if ((repheader.m_flags & dMhEndianBit) != MarshalByteOrder()) {
+		repheader.m_id  = bswap_32(repheader.m_id);
+		repheader.m_len = bswap_32(repheader.m_len);
+	}
 
-	if ( (header.m_flags >> 4) != dMhVersion ) {
-		errcode = -1;
+	if ( (repheader.m_flags >> 4) != dMhVersion ) {
 		return NULL;
 	}
 
-// swap id and len if nessesary
-	if ( (header.m_flags & dMhEndianBit) != MarshalByteOrder() ) {
-		header.m_id  = bswap_32( header.m_id );
-		header.m_len = bswap_32( header.m_len );
-	}
-
-	if (header.m_len != 0) {
-		while (len - sizeof( cMessageHeader) < header.m_len) {
-			unsigned int add_len = read( s, (char *)pBuf + len, ulBufSize - len);
-				if (add_len <= 0) {
-					errcode = errno;
-					return NULL;
-				}
-			len += add_len;
-		}
-	}
-
-	errcode = 0;
-	return ((char *)pBuf + sizeof( cMessageHeader));
+	return (data);
 }
 
-void strmsock::MessageHeaderInit(tMessageType, unsigned char flags,
-				unsigned int id, unsigned int len )
+void strmsock::ReqMessageHeaderInit(tMessageType mtype, unsigned char flags,
+		          	    unsigned int id, unsigned int len )
 {
-	header.m_type    = type;
-	header.m_flags   = flags;
+	reqheader.m_type    = mtype;
+	reqheader.m_flags   = flags;
 
-// set version
-	header.m_flags &= 0x0f;
-	header.m_flags |= dMhVersion << 4;
+        // set version
+	reqheader.m_flags &= 0x0f;
+	reqheader.m_flags |= dMhVersion << 4;
 
-// set endian
-	header.m_flags &= ~dMhEndianBit;
-	header.m_flags |= MarshalByteOrder();
+        // set endian
+	reqheader.m_flags &= ~dMhEndianBit;
+	reqheader.m_flags |= MarshalByteOrder();
 
-	header.m_id = id;
-	header.m_len = len;
+	reqheader.m_id = id;
+	reqheader.m_len = len;
+}
+
+void strmsock::RepMessageHeaderInit(tMessageType mtype, unsigned char flags,
+		          	    unsigned int id, unsigned int len )
+{
+	repheader.m_type    = mtype;
+	repheader.m_flags   = flags;
+
+        // set version
+	repheader.m_flags &= 0x0f;
+	repheader.m_flags |= dMhVersion << 4;
+
+        // set endian
+	repheader.m_flags &= ~dMhEndianBit;
+	repheader.m_flags |= MarshalByteOrder();
+
+	repheader.m_id = id;
+	repheader.m_len = len;
 }
 
 /*--------------------------------------------------------------------*/
-/* Stream Sockets client class methods                   */
+/* Stream Sockets client class methods                                */
 /*--------------------------------------------------------------------*/
 
 
@@ -217,13 +208,6 @@ cstrmsock::cstrmsock()
 	type = SOCK_STREAM;
 	protocol = 0;
 	s = -1;
-	bzero(&header, sizeof(cMessageHeader));
-	pBuf = g_malloc(ulBufSize);
-	if (pBuf == NULL) {
-		errcode = -1;
-	} else {
-		errcode = 0;
-	}
 	next = NULL;
 }
 
@@ -232,8 +216,6 @@ cstrmsock::~cstrmsock()
 {
 	if (fOpen)
 		Close();
-	if (pBuf)
-		g_free(pBuf);
 }
 
 
@@ -244,13 +226,13 @@ bool cstrmsock::Open(
 	struct sockaddr_in  addr;		// address structure
 	struct hostent     *phe;		 // pointer to a host entry
 
-// get a socket
+        // get a socket
 	s = socket(domain, type, protocol);
 	if (s == -1) {
 		errcode = errno;
 		return(TRUE);
 	}
-// convert the host entry/name to an address
+        // convert the host entry/name to an address
 	phe = gethostbyname(pszHost);
 	if (phe)
 		bcopy(phe -> h_addr, (char *) &addr.sin_addr, phe -> h_length);
@@ -261,7 +243,7 @@ bool cstrmsock::Open(
 		close(s);
 		return(TRUE);
 	}
-// connect to the remote host
+        // connect to the remote host
 	addr.sin_family = domain;
 	addr.sin_port = htons(lPort);
 	errcode = connect(s, (struct sockaddr *) &addr, sizeof(addr));
@@ -274,16 +256,6 @@ bool cstrmsock::Open(
 	errcode = 0;
 	fOpen = TRUE;
 	return(FALSE);
-}
-
-void cstrmsock::ClientWriteMsg(const void *msg)
-{
-	return ConWriteMsg(msg);
-}
-
-void* cstrmsock::ClientReadMsg(void)
-{
-	return ConReadMsg();
 }
 
 
@@ -301,15 +273,8 @@ sstrmsock::sstrmsock()
 	type = SOCK_STREAM;
 	protocol = 0;
 	backlog = 20;
-	bzero(&header, sizeof(cMessageHeader));
 	s = -1;
 	ss = -1;
-	pBuf = g_malloc(ulBufSize);
-	if (pBuf == NULL) {
-		errcode = -1;
-	} else {
-		errcode = 0;
-	}
 }
 
 
@@ -327,7 +292,6 @@ sstrmsock::sstrmsock(const sstrmsock &copy)
 	backlog = copy.backlog;
 	s = copy.s;
 	ss = copy.ss;
-	pBuf = g_malloc(ulBufSize); // each copy needs its own buffer
 	errcode = 0;
 }
 
@@ -338,8 +302,6 @@ sstrmsock::~sstrmsock()
 // an error in a multi-threaded environment.
 	if (fOpen)
 		Close();
-	if (pBuf)
-		g_free(pBuf);
 }
 
 
@@ -380,16 +342,16 @@ bool sstrmsock::Create(
 	int    Rc;				// return code
 	int    so_reuseaddr = TRUE;	// socket reuse flag
 
-// get a server socket
+        // get a server socket
 	ss = socket(domain, type, protocol);
 	if (ss == -1) {
 		errcode = errno;
 		return(TRUE);
 	}
-// set the socket option to reuse the address
+        // set the socket option to reuse the address
 	setsockopt(ss, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr,
 							sizeof(so_reuseaddr));
-// bind the server socket to a port
+        // bind the server socket to a port
 	memset(&addr, sizeof (addr), 0);
 	addr.sin_family = domain;
 	addr.sin_port = htons(Port);
@@ -399,7 +361,7 @@ bool sstrmsock::Create(
 		errcode = errno;
 		return (TRUE);
 	}
-// listen for a client at the port
+        // listen for a client at the port
 	Rc = listen(ss, backlog);
 	if (Rc == -1) {
 		errcode = errno;
@@ -409,14 +371,4 @@ bool sstrmsock::Create(
 	errcode = 0;
 	fOpenS = TRUE;
 	return(FALSE);
-}
-
-void sstrmsock::ServerWriteMsg(const void *msg)
-{
-	return ConWriteMsg(msg);
-}
-
-void* sstrmsock::ServerReadMsg(void)
-{
-	return ConReadMsg();
 }
