@@ -17,13 +17,7 @@
 #ifndef _SNMP_CLIENT_RES_H_
 #define _SNMP_CLIENT_RES_H_
 
-#define MAX_LEN_OID 128
-
-#if 0
-#define CHECK_END(a) ((a != SNMP_ENDOFMIBVIEW) &&  \
-                  (a != SNMP_NOSUCHOBJECT) &&  \
-                  (a != SNMP_NOSUCHINSTANCE))? 1:0 
-#endif		  
+#define MAX_LEN_OID 128		  
 
 int get_sahpi_table_entries(RPTable *temp_rptable, 
                             struct oh_handler_state *handle, 
@@ -32,13 +26,6 @@ int get_sahpi_table_entries(RPTable *temp_rptable,
 int get_sahpi_rdr_table( RPTable *temp_rptable,
                          struct oh_handler_state *handle, 
                          int num_entries );
-#if 0
-int snmp_get_bulk( struct snmp_session *ss, 
-                          const char *bulk_objid, 
-                          struct snmp_pdu *bulk_pdu, 
-                          struct snmp_pdu **bulk_response );
-#endif
-
 
 // New Mib 02/09/04
 #define HPI_MIB 1,3,6,1,4,1,18568,1,1,1
