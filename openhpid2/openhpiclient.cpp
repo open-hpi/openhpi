@@ -20,8 +20,11 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <errno.h>
+extern "C"
+{
 #include <SaHpi.h>
 #include <oHpi.h>
+}
 
 
 #include "marshal_hpi.h"
@@ -235,6 +238,28 @@ static const char * oh_lookup_annunciatormode(SaHpiAnnunciatorModeT value)
                 return NULL;
         }
 }
+
+
+static const char * oh_lookup_ctrltype(SaHpiCtrlTypeT value)
+{
+        switch (value) {
+        case SAHPI_CTRL_TYPE_DIGITAL:
+                return "DIGITAL";
+        case SAHPI_CTRL_TYPE_DISCRETE:
+                return "DISCRETE";
+        case SAHPI_CTRL_TYPE_ANALOG:
+                return "ANALOG";
+        case SAHPI_CTRL_TYPE_STREAM:
+                return "STREAM";
+        case SAHPI_CTRL_TYPE_TEXT:
+                return "TEXT";
+        case SAHPI_CTRL_TYPE_OEM:
+                return "OEM";
+        default:
+                return NULL;
+        }
+}
+
 
 static const char * oh_lookup_hsaction(SaHpiHsActionT value)
 {
@@ -955,6 +980,8 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "saHpiEventLogEntryGet";
+        SaHpiRdrT tmp_rdr;
+        SaHpiRptEntryT tmp_rpt;
 
         if (SessionId < 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -970,11 +997,18 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventLogEntryGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &EntryId, Rdr, RptEntry);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &EntryId);
 
 	SendRecv(cmd);
 
-        int mr = HpiDemarshalReply5(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, PrevEntryId, NextEntryId, EventLogEntry, Rdr, RptEntry);
+        int mr = HpiDemarshalReply5(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, PrevEntryId, NextEntryId, EventLogEntry, &tmp_rdr, &tmp_rpt);
+
+        if (Rdr != NULL) {
+                memcpy(Rdr, &tmp_rdr, sizeof(SaHpiRdrT));
+        }
+        if (RptEntry != NULL) {
+                memcpy(RptEntry, &tmp_rpt, sizeof(SaHpiRptEntryT));
+        }
 
         if (request)
                 free(request);
@@ -1379,6 +1413,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventGet)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "saHpiEventGet";
+        SaHpiRdrT tmp_rdr;
+        SaHpiRptEntryT tmp_rpt;
+        SaHpiEvtQueueStatusT tmp_status;
 
         if (SessionId < 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1392,11 +1429,21 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventGet)
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiEventGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &Timeout, Rdr, RptEntry, EventQueueStatus);
+        pinst->header.m_len = HpiMarshalRequest2(hm, request, &SessionId, &Timeout);
 
 	SendRecv(cmd);
 
-        int mr = HpiDemarshalReply4(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Event, Rdr, RptEntry, EventQueueStatus);
+        int mr = HpiDemarshalReply4(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Event, &tmp_rdr, &tmp_rpt, &tmp_status);
+
+        if (Rdr != NULL) {
+                memcpy(Rdr, &tmp_rdr, sizeof(SaHpiRdrT));
+        }
+        if (RptEntry != NULL) {
+                memcpy(RptEntry, &tmp_rpt, sizeof(SaHpiRptEntryT));
+        }
+        if (EventQueueStatus != NULL) {
+                memcpy(EventQueueStatus, &tmp_status, sizeof(SaHpiEvtQueueStatusT));
+        }
 
         if (request)
                 free(request);
@@ -1482,7 +1529,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGetNext)
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiAlarmGetNext, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &Severity, &Unack, &Alarm);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &Severity, &Unack, Alarm);
 
 	SendRecv(cmd);
 
@@ -1782,6 +1829,8 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorReadingGet)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "saHpiSensorReadingGet";
+        SaHpiSensorReadingT tmp_reading;
+        SaHpiEventStateT tmp_state;
 
         if (SessionId < 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1793,11 +1842,18 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorReadingGet)
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSensorReadingGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &SensorNum, Reading, EventState);
+        pinst->header.m_len = HpiMarshalRequest3(hm, request, &SessionId, &ResourceId, &SensorNum);
 
 	SendRecv(cmd);
 
-        int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Reading, EventState);
+        int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &tmp_reading, &tmp_state);
+
+        if (Reading != NULL) {
+                memcpy(Reading, &tmp_reading, sizeof(SaHpiSensorReadingT));
+        }
+        if (EventState != NULL) {
+                memcpy(EventState, &tmp_state, sizeof(SaHpiEventStateT));
+        }
 
         if (request)
                 free(request);
@@ -2265,6 +2321,8 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
 	char reply[dMaxMessageLength];
         SaErrorT err;
 	char cmd[] = "saHpiControlGet";
+        SaHpiCtrlModeT tmp_mode;
+        SaHpiCtrlStateT tmp_state;
 
         if (SessionId < 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2272,15 +2330,32 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
+        if (State != NULL) {
+                memcpy(&tmp_state, State, sizeof(SaHpiCtrlStateT));
+                if (oh_lookup_ctrltype(tmp_state.Type) == NULL) {
+                        tmp_state.Type = SAHPI_CTRL_TYPE_OEM;
+                }
+        }
+        else {
+                tmp_state.Type = SAHPI_CTRL_TYPE_OEM;
+        }
+
         cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiControlGet);
         pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiControlGet, hm->m_request_len);
         request = malloc(hm->m_request_len);
 
-        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &CtrlNum, State);
+        pinst->header.m_len = HpiMarshalRequest4(hm, request, &SessionId, &ResourceId, &CtrlNum, &tmp_state);
 
 	SendRecv(cmd);
 
-        int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Mode, State);
+        int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, &tmp_mode, &tmp_state);
+
+        if (Mode != NULL) {
+                memcpy(Mode, &tmp_mode, sizeof(SaHpiCtrlModeT));
+        }
+        if (State != NULL) {
+                memcpy(State, &tmp_state, sizeof(SaHpiCtrlStateT));
+        }
 
         if (request)
                 free(request);
@@ -3310,6 +3385,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutGet)
 
         if (SessionId < 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
+        if (Timeout == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3380,7 +3458,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutSet)
 
 
 /*----------------------------------------------------------------------------*/
-/* saHpiAutoExtractTimeoutGet                                                 */
+/* saHpiAutoExtractGet                                                        */
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutGet)
