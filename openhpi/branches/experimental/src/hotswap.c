@@ -25,6 +25,7 @@
 
 void process_hotswap_policy(void)
 {
+#if 0
         SaHpiTimeT cur, est;
         struct oh_hpi_event e;
         struct oh_resource *res;
@@ -76,6 +77,7 @@ dbg("TODO: THIS IS NOW BUSTED needs to use resourceid instead of res->oid");
                         dbg();
                 }
         }
+#endif
 }
 
 static GSList *hs_eq=NULL;
