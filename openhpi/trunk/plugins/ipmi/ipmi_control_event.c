@@ -161,7 +161,7 @@ void ohoi_control_event(enum ipmi_update_e op,
 		dbg("resource: %s", rpt_entry->ResourceTag.Data);
                 ctrl_type = ipmi_control_get_type(control);
                 switch (ctrl_type) {
-                        case IPMI_CONTROL_RESET:
+                        case IPMI_CONTROL_ONE_SHOT_RESET:
                                 dbg("Attach reset control into entity");
                                 ohoi_res_id->reset_ctrl
                                         = ipmi_control_convert_to_id(control);
@@ -173,6 +173,7 @@ void ohoi_control_event(enum ipmi_update_e op,
                                 break;
 
                         default:
+                                dbg("Other control(%d) is storaged in RDR", ctrl_type);
                                 rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_CONTROL;
                                 add_control_event(ent, control, handler,
                                                   rpt_entry->ResourceEntity,
