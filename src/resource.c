@@ -10,6 +10,7 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
+#if 0
 static void init_res(struct oh_resource *res)
 {
 	memset(res, 0, sizeof(res));
@@ -17,27 +18,31 @@ static void init_res(struct oh_resource *res)
 	list_init(&res->rdr_list);
 	return;
 }
+#endif
 
-static struct oh_resource *add_res(struct oh_zone *z, struct oh_resource_id oid)
+static struct oh_resource *add_res(struct oh_handler *h, struct oh_resource_id oid)
 {
-	struct oh_resource *r;
+	struct oh_resource *res;
 	
-	r = malloc(sizeof(*r));
-	if (!r) {
+	res = malloc(sizeof(*res));
+	if (!res) {
 		dbg("Cannot get memory!");
 		return NULL;
 	}
-	init_res(r);
+	memset(res, 0, sizeof(*res));
 	
-	memcpy(&r->oid, &oid, sizeof(oid));
-
-	z->domain->update_counter++;
-	gettimeofday(&z->domain->update_time, NULL);
-	list_add(&r->node, &z->res_list);
+	global_rpt_counter++;
+	gettimeofday(&global_rpt_timestamp, NULL);
 	
-	return r;
+	memcpy(&res->oid, &oid, sizeof(oid));
+	res->entry.ResourceId = global_rpt_counter;
+	res->handler = h;
+	h->resource_list = g_slist_append(h->resource_list, res);
+	
+	return res;
 }
 
+#if 0
 static struct oh_resource *get_zone_res(struct oh_zone *z, struct oh_resource_id oid)
 {
 	struct list_head *i;
@@ -50,30 +55,29 @@ static struct oh_resource *get_zone_res(struct oh_zone *z, struct oh_resource_id
 	}
 	return NULL;
 }
+#endif
 
-struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_resource_id oid)
+struct oh_resource *get_res_by_oid(struct oh_resource_id oid)
 {
-	struct list_head *i;
+	int i;
 	
-	list_for_each(i, &d->zone_list) {
-		struct oh_resource *r;
-		struct oh_zone *z
-			= list_container(i, struct oh_zone, node);
-		
-		r = get_zone_res(z, oid);
-		if (r) return r;
+	for (i=0; i< g_slist_length(global_rpt); i++) {
+		struct oh_resource *res;
+		res = (struct oh_resource *) g_slist_nth_data(global_rpt, i);
+		if (memcmp(&res->oid, &oid, sizeof(oid))==0)
+				return res;
 	}
 	return NULL;
 }
 
-struct oh_resource *insert_resource(struct oh_zone *z, struct oh_resource_id oid)
+struct oh_resource *insert_resource(struct oh_handler *h, struct oh_resource_id oid)
 {
 	struct oh_resource *res;
 
-	res = get_zone_res(z, oid);
+	res = get_res_by_oid(oid);
 	if (!res) {
 		dbg("New entity, add it");
-		res = add_res(z, oid);
+		res = add_res(h, oid);
 	}
 	if (!res) {
 		dbg("Cannot add new entity");
@@ -81,28 +85,27 @@ struct oh_resource *insert_resource(struct oh_zone *z, struct oh_resource_id oid
 	return res;
 }
 
-struct oh_resource *get_resource(struct oh_domain *d, SaHpiResourceIdT rid)
+struct oh_resource *get_resource(SaHpiResourceIdT rid)
 {
-	struct list_head *i;
-	list_for_each(i, &d->zone_list) {
-		struct oh_zone *z = list_container(i, struct oh_zone, node);
-		struct list_head *j;
-		list_for_each(j, &z->res_list) {
-			struct oh_resource *res;
-			res = list_container(j, struct oh_resource, node);
-			if (res->entry.ResourceId == rid) return res;
-		}
+	int i;
+	
+	for (i=0; i< g_slist_length(global_rpt); i++) {
+		struct oh_resource *res;
+		res = (struct oh_resource *) g_slist_nth_data(global_rpt, i);
+		if (res->entry.ResourceId == rid)
+			return res;
 	}
-
 	return NULL;
 }
 
+#if 0
 static void init_rdr(struct oh_rdr *rdr)
 {
 	memset(rdr, 0, sizeof(*rdr));
 	list_init(&rdr->node);
 	return;
 }
+#endif
 
 static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_rdr_id oid)
 {
@@ -113,20 +116,21 @@ static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_rdr_id oid)
 		dbg("Cannot get memory!");
 		return NULL;
 	}
-	init_rdr(rdr);
+	memset(rdr, 0, sizeof(*rdr));
 	
 	memcpy(&rdr->oid, &oid, sizeof(oid));
 	
-	list_add(&rdr->node, &res->rdr_list);
+	res->rdr_list = g_slist_append(res->rdr_list, rdr);
 	return rdr;
 }
 
 static struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid)
 {
-	struct list_head *i;
-	list_for_each(i, &res->rdr_list) {
+	int i;
+	
+	for (i=0; i<g_slist_length(res->rdr_list); i++) {
 		struct oh_rdr *rdr;
-		rdr = list_container(i, struct oh_rdr, node);
+		rdr = g_slist_nth_data(res->rdr_list, i);
 		if (memcmp(&rdr->oid, &oid, sizeof(oid))==0)
 			return rdr;
 	}

@@ -80,7 +80,7 @@ static const int entry_id_offset = 1000;
 			return SA_ERR_HPI_INVALID_RESOURCE;	\
 		}						\
 	}while(0)
-
+#if 0
 static struct oh_zone *get_zone(struct oh_domain *d, SaHpiResourceIdT rid)
 {
 	struct list_head *i;
@@ -96,16 +96,17 @@ static struct oh_zone *get_zone(struct oh_domain *d, SaHpiResourceIdT rid)
 
 	return NULL;
 }
-
+#endif
 static inline struct oh_rdr * get_rdr(
 	struct oh_resource *res, 
 	SaHpiRdrTypeT type, 
 	SaHpiUint8T num)
 {
-	struct list_head *tmp;
-	struct oh_rdr *rdr;
-	list_for_each(tmp, &res->rdr_list) {
-		rdr = list_container(tmp, struct oh_rdr, node);
+	int i;
+
+	for (i=0; i<g_slist_length(res->rdr_list); i++) {
+		struct oh_rdr *rdr;
+		rdr = g_slist_nth_data(res->rdr_list, i);
 		
 		switch (type) {
 		case SAHPI_CTRL_RDR:
@@ -151,19 +152,10 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 
 SaErrorT SAHPI_API saHpiFinalize(void)
 {
-        struct oh_domain *d;
-	
         OH_STATE_READY_CHECK;	
-
-        d = domain_get(SAHPI_DEFAULT_DOMAIN_ID);
-        if (!d) {
-                dbg("No DEFAULT DOMAIN");
-                return SA_ERR_HPI_UNKNOWN;
-	}
         
-        /*
+	/*
           we should be doing handler shutdown here.
-
         */
         oh_hpi_state = OH_STAT_FINAL;
 	return SA_OK;
