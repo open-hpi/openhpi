@@ -16,6 +16,7 @@
 
 
 int add_event(oh_el *el, int idx);
+int el_compare(oh_el *el1, oh_el *el2);
 
 #define OH_ELTEST_MAX_ENTRIES 5
 
