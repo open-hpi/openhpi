@@ -508,7 +508,16 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
 
         rv = set_res_tag(h->hnd, ResourceId, ResourceTag);
 
-        if ( rv )
+        if ( !rv ) {
+                SaHpiRptEntryT *rptentry;
+ 
+                rptentry = oh_get_resource_by_id(rpt, ResourceId);
+                if (!rptentry) {
+                        return SA_ERR_HPI_NOT_PRESENT;
+                }
+
+                rptentry->ResourceTag = *ResourceTag;
+        } else
                 dbg("Tag set failed for Resource %d", ResourceId);
 
         /* to get RSEL entry into infrastructure */
