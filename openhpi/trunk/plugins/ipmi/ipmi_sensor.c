@@ -120,7 +120,7 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 	struct ohoi_sensor_reading *p = cb_data;
  
 	p->done = 1;
-printf("sensor_reading: raw_val = %i; val = %f\n", raw_val, val);
+
 	if (err) {
 		dbg("sensor reading error");
 		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
