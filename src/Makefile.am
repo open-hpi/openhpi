@@ -46,7 +46,7 @@ libopenhpi_la_SOURCES   = \
                            config.c \
                            domain.c \
                            domain2.c \
-                           event2.c \
+                           event.c \
                            hotswap.c \
                            lock.c \
                            plugin.c \
