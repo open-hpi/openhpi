@@ -933,20 +933,25 @@ SaErrorT SAHPI_API saHpiSubscribe (
         OH_STATE_READY_CHECK;
 
         OH_SESSION_SETUP(SessionId,s);
-        
-        if (s->event_state == OH_EVENT_SUBSCRIBE) {
-                dbg("Duplicate subscribe");
-                return SA_ERR_HPI_DUPLICATE;
+
+        if (s->event_state != OH_EVENT_UNSUBSCRIBE) {
+                dbg("Cannot subscribe if session is not unsubscribed.");
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
-        
-        if (ProvideActiveAlarms) {
-                /*FIXME: nothing to do here?! */
+                
+        if (!ProvideActiveAlarms) {
+                /* Flush session's event queue */
+                GSList *eventq = NULL;
+                for (eventq = s->eventq; eventq != NULL;
+                     eventq = eventq->next) {
+                         g_free(eventq->data);
+                }
+                g_slist_free(eventq);
         }
 
         s->event_state = OH_EVENT_SUBSCRIBE;
         return SA_OK;
 }
-
 
 SaErrorT SAHPI_API saHpiUnsubscribe (
                 SAHPI_IN SaHpiSessionIdT SessionId)
