@@ -14,6 +14,12 @@
  *
  */
  
+#include <string.h>
+#include <stdio.h>
+#include <glib.h>
+
+#include <openhpi.h>
+#include <sensor_utils.h>
 
  
 static state_category_string state_string[] = {
@@ -93,6 +99,12 @@ static state_category_string state_string[] = {
 #define STATESTRING_MAX_LENGTH 1000
 #define STATESTRING_MAX_ENTRIES 63
 
+char *format[] = {
+	"%d",
+	"%u",
+	"%f"
+};
+
 int
 build_state_string (SaHpiEventCategoryT category,
 		    SaHpiEventStateT state,
@@ -104,12 +116,14 @@ build_state_string (SaHpiEventCategoryT category,
   size_t temp_len;
   int i;
 
-  int rc = AGENT_ERR_NOERROR;
+  int rc = SA_OK;
   *len = 0;
   idx = 0;
-  temp = (char *) malloc (STATESTRING_MAX_LENGTH);
-  if (temp == NULL)
-    return AGENT_ERR_MEMORY_FAULT;
+  temp = (char *) g_malloc0 (STATESTRING_MAX_LENGTH);
+  if (temp == NULL) {
+	  dbg("Memory Fault: temp");
+	  return SA_ERR_HPI_ERROR;
+  }
 
   if (category == SAHPI_EC_USER)
     category = SAHPI_EC_GENERIC;
@@ -132,11 +146,11 @@ build_state_string (SaHpiEventCategoryT category,
 	       */
 	      temp_len = strlen (state_string[i].str);
 	      if (idx + temp_len + STATESTRING_VALUE_DELIMITER_LENGTH >
-		  max_len)
-		{
-		  rc = AGENT_ERR_MEMORY_FAULT;
+		  max_len) {
+		  dbg("rc = ERR_MEMORY_FAULT");
+		  rc = SA_ERR_HPI_ERROR;
 		  break;
-		}
+	      }
 	      memcpy (temp + idx, state_string[i].str, temp_len);
 	      idx = idx + temp_len;
 	      memcpy (temp + idx, STATESTRING_VALUE_DELIMITER,
@@ -158,7 +172,7 @@ build_state_string (SaHpiEventCategoryT category,
   memcpy (str, temp, idx);
   *len = idx;
 
-  free (temp);
+  g_free (temp);
   temp = NULL;
   return rc;
 }
@@ -167,22 +181,24 @@ int
 build_state_value (unsigned char *str, size_t len, SaHpiEventStateT * state)
 {
 
-  int rc = AGENT_ERR_NOERROR;
+  int rc = SA_OK;
   char *s = NULL;
   char *delim = NULL;
   char *tok = NULL;
   int i = 0;
 
-  s = (char *) malloc (len);
-  if (s == NULL)
-    return AGENT_ERR_MEMORY_FAULT;
+  s = (char *) g_malloc0 (len);
+  if (s == NULL){
+    dbg("build_state_value: Memory Fault, s");
+    return SA_ERR_HPI_ERROR;
+  }
 
-  delim = (char *) malloc (STATESTRING_VALUE_DELIMITER_LENGTH);
-  if (delim == NULL)
-    {
-      free (s);
-      return AGENT_ERR_MEMORY_FAULT;
-    }
+  delim = (char *) g_malloc0 (STATESTRING_VALUE_DELIMITER_LENGTH);
+  if (delim == NULL) {
+      g_free (s);
+      dbg("build_state_value: Memory Fault, delim");
+      return SA_ERR_HPI_ERROR;
+  }
 
   memcpy (s, str, len);
   s[len] = 0x00;
@@ -208,11 +224,11 @@ build_state_value (unsigned char *str, size_t len, SaHpiEventStateT * state)
 	      *state = *state + state_string[i].state;
 	    }
 	}
-      tok = strtok (NULL, delim);
+      tok = strtok ((char *)NULL, delim);
     }
 
-  free (s);
-  free (delim);
+  g_free (s);
+  g_free (delim);
   return rc;
 }
 
@@ -230,7 +246,7 @@ build_reading_strings (SaHpiSensorReadingT * reading,
 		       size_t * event_status_len, size_t event_status_max)
 {
 
-  char format[SENSOR_READING_MAX_LEN];
+//  char format[SENSOR_READING_MAX_LEN];
   size_t len;
 
   if (values_present) {
@@ -280,9 +296,9 @@ build_reading_strings (SaHpiSensorReadingT * reading,
 
       else
 	{
-	  memset (&format, 0x00, SENSOR_READING_MAX_LEN);
+//	  memset (&format, 0x00, SENSOR_READING_MAX_LEN);
 	  /* Setting up the format  - %d or %u or %f .. etc */
-	  switch (reading->Interpreted.Type)
+/*	  switch (reading->Interpreted.Type)
 	    {
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_INT8:
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_INT16:
@@ -302,13 +318,14 @@ build_reading_strings (SaHpiSensorReadingT * reading,
 
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32:
 	      strncpy (format,
-		       SENSOR_READING_FLOAT, SENSOR_READING_FLOAT_LEN);
+		       SENSOR_READING_FLOAT, 
+		       SENSOR_READING_FLOAT_LEN);
 	      break;
 
 	    default:
 	      break;
 	    }
-	  /* Done with setting up the format. Parsing the value.
+*/	  /* Done with setting up the format. Parsing the value.
 	   * This could be done using a void pointer, but where 
 	   * would I put the type information? Cast it back to its type?
 	   *
@@ -321,43 +338,50 @@ build_reading_strings (SaHpiSensorReadingT * reading,
 		*interpreted_reading_len =
 		  snprintf (interpreted_reading,
 			    interpreted_reading_max,
-			    format, reading->Interpreted.Value.SensorInt8);
+			    "%d",/*format[0],*/ 
+			    reading->Interpreted.Value.SensorInt8);
 		break;
 	      case SAHPI_SENSOR_INTERPRETED_TYPE_INT16:
 		*interpreted_reading_len =
 		snprintf (interpreted_reading,
 			  interpreted_reading_max,
-			  format, reading->Interpreted.Value.SensorInt16);
+			  "%d", /*format[0], */
+			  reading->Interpreted.Value.SensorInt16);
 	      break;
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_INT32:
 	      *interpreted_reading_len =
 		snprintf (interpreted_reading,
 			  interpreted_reading_max,
-			  format, reading->Interpreted.Value.SensorInt32);
+			  "%d", /*format[0], */
+			  reading->Interpreted.Value.SensorInt32);
 	      break;
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_UINT8:
 	      *interpreted_reading_len =
 		snprintf (interpreted_reading,
 			  interpreted_reading_max,
-			  format, reading->Interpreted.Value.SensorUint8);
+			  "%u", /*format[1],*/ 
+			  reading->Interpreted.Value.SensorUint8);
 	      break;
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_UINT16:
 	      *interpreted_reading_len =
 		snprintf (interpreted_reading,
 			  interpreted_reading_max,
-			  format, reading->Interpreted.Value.SensorUint16);
+			  "%u", /*format[1],*/ 
+			  reading->Interpreted.Value.SensorUint16);
 	      break;
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_UINT32:
 	      *interpreted_reading_len =
 		snprintf (interpreted_reading,
 			  interpreted_reading_max,
-			  format, reading->Interpreted.Value.SensorUint32);
+			  "%u", /*format[1],*/ 
+			  reading->Interpreted.Value.SensorUint32);
 	      break;
 	    case SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32:
 	      *interpreted_reading_len =
 		snprintf (interpreted_reading,
 			  interpreted_reading_max,
-			  format, reading->Interpreted.Value.SensorFloat32);
+			  "%f", /*format[2], */
+			  reading->Interpreted.Value.SensorFloat32);
 	      break;
 
 	    default:
@@ -381,5 +405,5 @@ build_reading_strings (SaHpiSensorReadingT * reading,
 			    reading->EventStatus.EventStatus,
 			    event_status, event_status_len, event_status_max);
     }
-  return AGENT_ERR_NOERROR;
+  return SA_OK;
 } 
