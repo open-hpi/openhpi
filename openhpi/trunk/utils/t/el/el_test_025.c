@@ -38,7 +38,7 @@
 int main(int argc, char **argv)
 {
         oh_el *el;
-	SaHpiBoolT flag;
+	SaHpiBoolT flag=1;
  	SaErrorT retc;
 
 	
