@@ -15,7 +15,9 @@
  */
 
 #include "openhpid.h"
+#include "openhpi.h"
 #include "ecode_utils.h"
+#include "printevent_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,6 +29,75 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
+
+
+cConnection::cConnection( cServerConnection *con )
+  : m_con( con ), m_sessions( 0 ), m_outstanding_pings( 0 )
+{
+  SaHpiTimeT now;
+  gettimeofday1( &now );
+  now += dPingTimeout;
+}
+
+
+cConnection::~cConnection()
+{
+  if ( m_con )
+       ServerConnectionClose( m_con );
+
+  while( m_sessions )
+     {
+       cSession *s = (cSession *)m_sessions->data;
+       saHpiSessionClose( s->SessionId() );
+
+       m_sessions = g_list_remove( m_sessions, s );
+       delete s;
+     }
+}
+
+
+cSession *
+cConnection::FindSession( SaHpiSessionIdT sid )
+{
+  for( GList *e = m_sessions; e; e = g_list_next( e ) )
+       {
+	 cSession *s = (cSession *)m_sessions->data;
+
+	 if ( s->SessionId() == sid )
+	      return s;
+      }
+
+    return 0;
+}
+
+
+bool
+cConnection::AddSession( SaHpiSessionIdT sid )
+{
+  if ( FindSession( sid ) )
+       return false;
+
+  cSession *s = new cSession( this, sid );
+  m_sessions = g_list_append( m_sessions, s );
+
+  return true;
+}
+
+
+bool
+cConnection::RemSession( SaHpiSessionIdT sid )
+{
+  cSession *s = FindSession( sid );
+
+  if ( s == 0 )
+       return false;
+
+  m_sessions = g_list_remove( m_sessions, s );
+  
+  delete s;
+
+  return true;
+}
 
 
 cOpenHpiDaemon::cOpenHpiDaemon()
@@ -77,6 +148,32 @@ cOpenHpiDaemon::DbgFunc( const char *fmt, ... )
   va_start( args, fmt );
 
   if ( m_debug & dDebugFunction )
+       vprintf( fmt, args );
+
+  va_end( args );
+}
+
+
+void
+cOpenHpiDaemon::DbgEvent( const char *fmt, ... )
+{
+  va_list args;
+  va_start( args, fmt );
+
+  if ( m_debug & dDebugEvent )
+       vprintf( fmt, args );
+
+  va_end( args );
+}
+
+
+void
+cOpenHpiDaemon::DbgPing( const char *fmt, ... )
+{
+  va_list args;
+  va_start( args, fmt );
+
+  if ( m_debug & dDebugPing )
        vprintf( fmt, args );
 
   va_end( args );
@@ -220,7 +317,7 @@ cOpenHpiDaemon::Initialize()
   // use config file given by the command line
   if ( m_config )
        setenv( "OPENHPI_CONF", m_config, 1 );
-       
+
   // initialize openhpi
   DbgInit( "initialize openhpi.\n" );
   SaErrorT rv = saHpiInitialize( &m_version );
@@ -244,6 +341,19 @@ cOpenHpiDaemon::Initialize()
        return false;
      }
 
+  // subscribe
+  rv = saHpiSubscribe( m_session, SAHPI_TRUE );
+
+  if ( rv != SA_OK )
+     {
+       fprintf( stderr, "cannot subscribe: %s !\n", 
+		decode_error( rv ) );
+
+       saHpiSessionClose( m_session );
+       saHpiFinalize();
+       return false;
+     }
+
   // open daemon socket
   DbgInit( "create daemon connection port %d.\n", m_daemon_port );
 
@@ -254,6 +364,7 @@ cOpenHpiDaemon::Initialize()
        fprintf( stderr, "cannot create daemon socket: %d, %s !\n",
                 errno, strerror( errno ) );
 
+       saHpiUnsubscribe( m_session );
        saHpiSessionClose( m_session );
        saHpiFinalize();
        return false;
@@ -283,6 +394,7 @@ cOpenHpiDaemon::Finalize()
        m_main_socket = 0;
      }
 
+  saHpiUnsubscribe( m_session );
   saHpiSessionClose( m_session );
   saHpiFinalize();
 }
@@ -300,7 +412,7 @@ cOpenHpiDaemon::MainLoop()
 
   while( true )
      {
-       int rv = poll( m_pollfd, m_num_connections + 1, 100 );
+       int rv = poll( m_pollfd, m_num_connections + 1, 250 );
 
        if ( rv < 0 )
 	  {
@@ -321,7 +433,7 @@ cOpenHpiDaemon::MainLoop()
 	    continue;
 	  }
 
-       for( int i = 0; i < m_num_connections; i++ )
+       for( int i = m_num_connections - 1; i >= 0; i-- )
 	    if ( m_pollfd[i].revents )
 		 if ( !HandleData( m_connections[i] ) )
 		      CloseConnection( i );
@@ -368,7 +480,7 @@ cOpenHpiDaemon::NewConnection( cServerConnection *c )
 }
 
 
-void 
+void
 cOpenHpiDaemon::CloseConnection( int id )
 {
   DbgCon( "closing connection.\n" );
@@ -408,13 +520,118 @@ void
 cOpenHpiDaemon::Idle()
 {
   // read events to keep auto insertion/extraction running
-  SaHpiEventT event;
+  SaHpiEventT    event;
+  SaHpiRdrT      rdr;
+  SaHpiRptEntryT rpt_entry;
 
-  SaErrorT rv = saHpiEventGet( m_session, 0, &event, 0, 0 );
+  SaErrorT ret = saHpiEventGet( m_session, SAHPI_TIMEOUT_IMMEDIATE, &event, &rdr, &rpt_entry );
 
-  if ( rv != SA_OK && rv != SA_ERR_HPI_TIMEOUT )
-       DbgCon( "event loop saHpiEventGet: %s !\n", 
-	       decode_error( rv ) );
+  if ( ret == SA_OK )
+     {
+       DbgEvent( "idle: saHpiEventGet read event\n" );
+
+       if ( m_debug & dDebugEvent )
+	    print_event( &event );
+     }
+  else if ( ret == SA_ERR_HPI_TIMEOUT )
+       DbgEvent( "idle: saHpiEventGet timeout.\n", ret );
+  else
+       DbgEvent( "idle: saHpiEventGet %s.\n", decode_error( ret ) );
+
+  SaHpiTimeT now;
+  gettimeofday1( &now );
+
+  // check for pending event get
+  for( int i = m_num_connections - 1; i >= 0; i-- )
+     {
+       cConnection *c = m_connections[i];
+
+       // ping
+       if ( now > c->PingTimer() )
+	  {
+	    if ( c->OutstandingPings() )
+	       {
+		 // ping timeout
+		 DbgPing( "ping timeout !\n" );
+		 CloseConnection( i );
+		 continue;
+	       }
+	    else if ( now > c->PingTimer() )
+	       {
+		 // send ping
+		 cMessageHeader header;
+		 MessageHeaderInit( &header, eMhPing, 1, 0, 0 );
+
+		 int rv = ConnectionWriteHeader( c->Fd(), &header );
+
+		 if ( rv )
+		    {
+		      DbgPing( "cannot send ping !\n" );
+		      CloseConnection( i );
+		      continue;
+		    }
+
+		 DbgPing( "send ping.\n" );
+
+		 c->OutstandingPings() = 1;
+
+		 // set ping timer
+		 SaHpiTimeT ti;
+		 
+		 gettimeofday1( &ti );
+		 ti += dPingTimeout;
+
+		 c->PingTimer() = ti;
+	       }
+	  }
+
+       for( GList *e = c->Sessions(); e; e = g_list_next( e ) )
+	  {
+	    cSession *s = (cSession *)e->data;
+
+	    if ( !s->IsEventGet() )
+		 continue;
+
+	    // check for event
+	    ret = saHpiEventGet( s->SessionId(), SAHPI_TIMEOUT_IMMEDIATE,
+					  &event, &rdr, &rpt_entry );
+
+	    if (    ret == SA_ERR_HPI_TIMEOUT
+		 && now < s->Timeout() )
+		 continue;
+
+	    if ( ret == SA_ERR_HPI_TIMEOUT )
+		 DbgEvent( "saHpiEventGet( %x ): TIMEOUT\n",
+			   s->SessionId() );
+	    else
+		 DbgEvent( "saHpiEventGet( %x ): send event\n",
+			   s->SessionId() );
+
+	    s->EventGet( false );
+
+	    // send response
+	    cHpiMarshal *hm = HpiMarshalFind( eFsaHpiEventGet );
+	    assert( hm );
+
+	    cMessageHeader rh;
+	    MessageHeaderInit( &rh, eMhReply, s->Seq(), eFsaHpiEventGet,
+			       hm->m_reply_len );
+
+	    // alloc reply buffer
+	    void *rd = calloc( 1, hm->m_reply_len );
+
+	    rh.m_len = HpiMarshalReply3( hm, rd, &ret, &event, &rdr, &rpt_entry );
+
+	    int rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
+
+	    if ( rd )
+		 free( rd );
+
+	    // cannot send message => close connection
+	    if ( rv )
+		 CloseConnection( i );
+	  }
+     }
 }
 
 
@@ -424,7 +641,7 @@ cOpenHpiDaemon::HandleData( cConnection *c )
   cMessageHeader header;
   void *data = 0;
 
-  int rv = ConnectionReadMsg( c->Fd(), &header, &data, 1000 );
+  int rv = ConnectionReadMsg( c->Fd(), &header, &data, 0 );
 
   if ( rv )
      {
@@ -436,18 +653,25 @@ cOpenHpiDaemon::HandleData( cConnection *c )
        return false;
      }
 
+  if ( header.m_type == eMhPong )
+     {
+       HandlePong( c, header );
+       return true;
+     }
+
   cMessageHeader rh;
   void *rd = 0;
 
-  bool r = HandleMsg( header, data, rh, rd );
+  tResult r = HandleMsg( c, header, data, rh, rd );
 
   if ( data )
        free( data );
 
-  if ( !r )
+  if ( r == eResultError )
        return false;
 
-  rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
+  if ( r == eResultReply )
+       rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
 
   if ( rd )
        free( rd );
@@ -456,21 +680,43 @@ cOpenHpiDaemon::HandleData( cConnection *c )
 }
 
 
-bool
-cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
-		    cMessageHeader &rh, void *&rd )
+void
+cOpenHpiDaemon::HandlePong( cConnection *c, const cMessageHeader &header )
+{
+  if ( c->OutstandingPings() )
+     {
+       DbgPing( "read pong.\n" );
+       c->OutstandingPings() = 0;
+
+       SaHpiTimeT now;
+       gettimeofday1( &now );
+
+       now += dPingTimeout;
+       c->PingTimer() = now;
+
+       return;
+     }
+
+  DbgPing( "read pong without ping !\n" );
+}
+
+
+cOpenHpiDaemon::tResult
+cOpenHpiDaemon::HandleMsg( cConnection *c, 
+			   const cMessageHeader &header, const void *data,
+			   cMessageHeader &rh, void *&rd )
 {
   cHpiMarshal *hm = HpiMarshalFind( header.m_id );
 
   // check for function and data length
   if ( !hm || hm->m_request_len != header.m_len )
      {
-       MessageHeaderInit( &rh, eMhError, header.m_seq, 0, 0 );
-       rd = 0;
+       //MessageHeaderInit( &rh, eMhError, header.m_seq, 0, 0 );
+       //rd = 0;
 
        fprintf( stderr, "wrong message length: id %d !\n", header.m_id );
 
-       return true;
+       return eResultError;
      }
 
   assert( hm->m_reply_len );
@@ -497,6 +743,9 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 	      DbgFunc( "saHpiSessionOpen( %x, %x ) = %d\n",
                        domain_id, session_id, ret );
 
+	      if ( ret == SA_OK )
+		   c->AddSession( session_id );
+
 	      rh.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
 	    }
  
@@ -511,6 +760,9 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 	      ret = saHpiSessionClose( session_id );
 
 	      DbgFunc( "saHpiSessionClose( %x ) = %d\n", session_id, ret );
+
+	      if ( ret == SA_OK )
+		   c->RemSession( session_id );
 
 	      rh.m_len = HpiMarshalReply0( hm, rd, &ret );
 	    }
@@ -592,19 +844,19 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 	      SaHpiSessionIdT session_id;
 	      SaHpiResourceIdT resource_id;
 	      SaHpiSeverityT   severity;
-	      
+
 	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
 				   &session_id, &resource_id, &severity );
 
 	      ret = saHpiResourceSeveritySet( session_id,
 					      resource_id, severity );
-	      
+
 	      DbgFunc( "saHpiResourceSeveritySet( %x, %x ) = %d\n",
                        session_id, resource_id, ret );
 
 	      rh.m_len = HpiMarshalReply0( hm, rd, &ret );
 	    }
-	    
+
 	    break;
 
        case eFsaHpiResourceTagSet:
@@ -842,7 +1094,7 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 
 	      rh.m_len = HpiMarshalReply0( hm, rd, &ret );
 	    }
-	    
+
 	    break;
 
        case eFsaHpiSubscribe:
@@ -854,7 +1106,7 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 				    &session_id, &provide_active_alarms );
 
 	      ret = saHpiSubscribe( session_id, provide_active_alarms );
-	      
+
 	      DbgFunc( "saHpiSubscribe( %x, %s ) = %d\n",
                        session_id,  provide_active_alarms ? "true" : "false",
 		       ret );
@@ -892,12 +1144,45 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
 				   &session_id, &timeout );
 
-	      ret = saHpiEventGet( session_id, timeout, &event, &rdr, &rpt_entry );
+	      if ( timeout == 0 )
+		 {
+		   ret = saHpiEventGet( session_id, timeout, &event, &rdr, &rpt_entry );
 
-	      DbgFunc( "saHpiEventGet( %x ) = %d\n",
-                       session_id, ret );
+		   DbgFunc( "saHpiEventGet( %x ) = %d\n",
+			    session_id, ret );
 
-	      rh.m_len = HpiMarshalReply3( hm, rd, &ret, &event, &rdr, &rpt_entry );
+		   rh.m_len = HpiMarshalReply3( hm, rd, &ret, &event, &rdr, &rpt_entry );
+		 }
+	      else
+		 {
+		   cSession *s = c->FindSession( session_id );
+
+		   if ( s && !s->IsEventGet() )
+		      {
+			s->EventGet( true );
+
+			SaHpiTimeT end;
+			gettimeofday1( &end );
+
+			if ( timeout == SAHPI_TIMEOUT_BLOCK )
+			     end += (SaHpiTimeT)10000*1000000000; //set a long time
+			else
+			     end += timeout;
+
+			s->Timeout() = end;
+
+			s->Seq() = header.m_seq;
+
+			DbgEvent( "saHpiEventGet( %x ): add to event listener.\n",
+				  s->SessionId() );
+
+			return eResultOk;
+		      }
+
+		   // error
+		   ret = SA_ERR_HPI_BUSY;
+		   rh.m_len = HpiMarshalReply3( hm, rd, &ret, &event, &rdr, &rpt_entry );
+		 }
 	    }
 
 	    break;
@@ -1141,7 +1426,55 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 
 	      rh.m_len = HpiMarshalReply0( hm, rd, &ret );
 	    }
-	    
+
+	    break;
+
+       case eFsaHpiEntityInventoryDataRead:
+	    {
+	      SaHpiSessionIdT  session_id;
+	      SaHpiResourceIdT resource_id;
+	      SaHpiEirIdT      eir_id;
+	      SaHpiUint32T     buffer_size;
+	      unsigned char    buffer[10240];
+	      SaHpiUint32T     actual_size;
+
+	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &eir_id, &buffer_size );
+
+	      // check size
+	      if ( buffer_size > 10240 )
+		   buffer_size = 10240;
+
+	      ret = saHpiEntityInventoryDataRead( session_id, resource_id, eir_id,
+						  buffer_size, (SaHpiInventoryDataT *)buffer,
+						  &actual_size );
+
+	      DbgFunc( "saHpintityInventoryDataRead( %x, %x, %x, %d ) = %d\n",
+                       session_id, resource_id, eir_id, buffer_size, ret );
+
+	      rh.m_len = HpiMarshalReply2( hm, rd, &ret, buffer, &actual_size );
+	    }
+
+	    break;
+
+       case eFsaHpiEntityInventoryDataWrite:
+	    {
+	      SaHpiSessionIdT  session_id;
+	      SaHpiResourceIdT resource_id;
+	      SaHpiEirIdT      eir_id;
+	      unsigned char    buffer[10240];
+
+	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &eir_id, buffer );
+
+	      ret = saHpiEntityInventoryDataWrite( session_id, resource_id, eir_id,
+						   (SaHpiInventoryDataT *)buffer );
+
+	      DbgFunc( "saHpintityInventoryDataWrite( %x, %x, %x ) = %d\n",
+                       session_id, resource_id, eir_id, ret );
+
+	      rh.m_len = HpiMarshalReply0( hm, rd, &ret );
+	    }
 	    break;
 
        case eFsaHpiWatchdogTimerGet:
@@ -1419,13 +1752,13 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 				   &session_id, &resource_id );
 
 	      ret = saHpiHotSwapIndicatorStateGet( session_id, resource_id, &state );
-	      
+
 	      DbgFunc( "saHpiHotSwapIndicatorStateGet( %x, %x ) = %d\n",
                        session_id, resource_id , ret );
 
 	      rh.m_len = HpiMarshalReply1( hm, rd, &ret, &state );
 	    }
-	    
+
 	    break;
 
        case eFsaHpiHotSwapIndicatorStateSet:
@@ -1512,7 +1845,7 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 
   assert( rh.m_len <= hm->m_reply_len );
 
-  return true;
+  return eResultReply;
 }
 
 

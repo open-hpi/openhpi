@@ -31,7 +31,7 @@ openhpid_SOURCES        = \
 	openhpid.h \
 	openhpid.cpp
 
-openhpid_LDADD          = $(top_builddir)/marshal/libmarshal.a $(top_builddir)/src/libopenhpi.la
+openhpid_LDADD          = $(top_builddir)/marshal/libmarshal.a $(top_builddir)/src/libopenhpi.la $(top_builddir)/utils/libopenhpiutils.la
 openhpid_LDFLAGS        = -static
 
 # client library
@@ -48,6 +48,14 @@ libopenhpiclient_la_SOURCES = \
 
 libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libmarshal.a
+
+noinst_PROGRAMS         = event_get
+
+# check saHpiEventGet function of the daemon
+event_get_SOURCES     = event_get.c
+event_get_LDADD       = libopenhpiclient.la $(top_builddir)/marshal/libmarshal.a $(top_builddir)/utils/libopenhpiutils.la
+event_get_LDFLAGS     = -static
+
 
 clean:
 	rm -f *~ core core.*
