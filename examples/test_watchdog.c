@@ -26,6 +26,7 @@
 
 /* Function prototypes */
 SaErrorT discover_domain(SaHpiDomainIdT, SaHpiSessionIdT, SaHpiRptEntryT);
+int print_wdt(SaHpiWatchdogT wdt);
 int test_watchdogtimer(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiRdrT rdr);
 
 /**
@@ -137,20 +138,16 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
         return SA_OK;
 }
 
-int test_watchdogtimer(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiRdrT rdr)
+/**
+ * print_wdt:
+ * @wdt: watchdog timer structure
+ *
+ * Print the info in wdt to standard output
+ *
+ * Return value: 0 for success | Error code
+ **/
+int print_wdt(SaHpiWatchdogT wdt)
 {
-        SaHpiWatchdogT wdt;
-        SaHpiWatchdogNumT wdt_num;
-        SaErrorT err;
-
-	wdt_num = rdr.RdrTypeUnion.WatchdogRec.WatchdogNum;
-
-	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
-	if (SA_OK != err) {
-		printf("saHpiWatchdogTimerGet() failed\n");
-		return err;
-	}
-	
 	printf("\tWatchdog timer data:\n");
 	printf("\t\tLog %s\n", (SAHPI_TRUE==wdt.Log)? "TRUE" : "FALSE");
 	printf("\t\tRunning %s\n", (SAHPI_TRUE==wdt.Running)? "TRUE" : "FALSE");
@@ -164,10 +161,25 @@ int test_watchdogtimer(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
 	printf("\t\tIntitialCount %d\n", wdt.InitialCount);
 	printf("\t\tPresentCount %d\n", wdt.PresentCount);
 
-	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt);
-	if (SA_OK != err) {
-		printf("saHpiWatchdogTimerSet failed\n");
-		SaHpiWatchdogT wdreset = {
+	return 0;
+}
+
+/**
+ * test_watchdogtimer:
+ * @session_id: session id of program
+ * @resource_id: resource id with watchdog timer
+ * @rdr: RDR for the watchdog timer
+ *
+ * Test the Get, Set, and Reset functions of the watchdog timer.
+ *
+ * Return value: 0 for success | Error code
+ **/
+int test_watchdogtimer(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiRdrT rdr)
+{
+        SaHpiWatchdogT wdt;
+        SaHpiWatchdogNumT wdt_num = rdr.RdrTypeUnion.WatchdogRec.WatchdogNum;
+        SaErrorT err;
+	SaHpiWatchdogT wdt_set1 = {
         	.Log                    = SAHPI_FALSE,
         	.Running                = SAHPI_FALSE,
         	.TimerUse               = SAHPI_WTU_SMS_OS,
@@ -175,17 +187,67 @@ int test_watchdogtimer(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
         	.PretimerInterrupt      = SAHPI_WPI_NONE,
         	.PreTimeoutInterval     = 0,
         	.TimerUseExpFlags       = 0,
-        	.InitialCount           = 120000, //120 seconds
+        	.InitialCount           = 999000, /* 999 seconds */
         	.PresentCount           = 0
-		};
+	};
+	SaHpiWatchdogT wdt_set2 = {
+        	.Log                    = SAHPI_TRUE, /* should cause error */
+        	.Running                = SAHPI_TRUE,
+        	.TimerUse               = SAHPI_WTU_OS_LOAD,
+        	.TimerAction            = SAHPI_WA_POWER_DOWN, /* should cause error */
+        	.PretimerInterrupt      = SAHPI_WPI_SMI, /* should cause error */
+        	.PreTimeoutInterval     = 10, /* should cause error */
+        	.TimerUseExpFlags       = 0,
+        	.InitialCount           = 10000, /* 10 seconds */
+        	.PresentCount           = 0
+	};
 
-		if (SA_OK != saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdreset)) {
+	/* test saHpiWatchdogTimerGet() */
+	printf("*****Test saHpiWatchdogTimerGet()*****\n");
+	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
+	if (SA_OK != err) {
+		printf("saHpiWatchdogTimerGet() failed\n");
+		return err;
+	}
+	print_wdt(wdt);
+	
+	/* test saHpiWatchdogTimerSet() */
+	printf("*****Test saHpiWatchdogTimerSet()*****\n");
+	printf("Before:\n");
+	print_wdt(wdt_set1);
+	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_set1);
+	if (SA_OK != err) {
+		printf("saHpiWatchdogTimerSet failed\n");
+		if (SA_OK != saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt)) {
 			printf("saHpiWatchdogTimerSet() failed again\n");
 		}
 
 		return err;
 	}
+	printf("After:\n");
+	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
+	if (SA_OK != err) {
+		printf("saHpiWatchdogTimerGet() failed\n");
+		return err;
+	}
+	print_wdt(wdt);
 
+	printf("Next Before:\n");
+	print_wdt(wdt_set2);
+	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_set2);
+	if (SA_OK == err) {
+		printf("saHpiWatchdogTimerSet didn't fail as expected\n");
+	}
+	printf("Next After:\n");
+	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
+	if (SA_OK != err) {
+		printf("saHpiWatchdogTimerGet() failed\n");
+		return err;
+	}
+	print_wdt(wdt);
+
+	/* test saHpiWatchdogTimerReset() */
+	printf("*****Test saHpiWatchdogTimerReset()*****\n");
 	err = saHpiWatchdogTimerReset(session_id, resource_id, wdt_num);
 	if (SA_OK != err) {
 		printf("saHpiWatchdogTimerReset failed\n");
