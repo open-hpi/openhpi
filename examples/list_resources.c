@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <SaHpi.h>
-
+#include <unistd.h>
 
 #define warn(str) fprintf(stderr,"%s: " str "\n", __FUNCTION__)
 #define error(str, e) fprintf(stderr,str ": %s\n", get_error_string(e))
@@ -56,19 +56,31 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 		return err;
 	}
 
-	/* force regeneration of the RPT */
- 	err = saHpiResourcesDiscover(session_id);
-	if (SA_OK != err) {
-		error("saHpiResourcesDiscover", err);
-		return err;
-	}
-
 	/* grab copy of the update counter before traversing RPT */
 	err = saHpiRptInfoGet(session_id, &rpt_info_before);
 	if (SA_OK != err) {
 		error("saHpiRptInfoGet", err);
 		return err;
 	}
+	rpt_info_after.UpdateCount = rpt_info_before.UpdateCount;
+
+	while (rpt_info_before.UpdateCount == rpt_info_after.UpdateCount) {
+
+		/* force regeneration of the RPT */
+		err = saHpiResourcesDiscover(session_id);
+		if (SA_OK != err) {
+			error("saHpiResourcesDiscover", err);
+			return err;
+		}
+
+		err = saHpiRptInfoGet(session_id, &rpt_info_after);
+		if (SA_OK != err) {
+			error("saHpiRptInfoGet", err);
+			return err;
+		}
+
+	}
+	rpt_info_before.UpdateCount = rpt_info_after.UpdateCount;
 
 	do {
 		int i;
