@@ -7919,8 +7919,18 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Chassis Identity LED */
+                /* Chassis Identity LED - BC */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.4.0",
+                .mib = {
+                        .type = ASN_INTEGER,
+                        .value = {
+                                .integer = 0, /* off=0; on=1; blinking=2; NA=3 */
+                        },
+                },
+        },
+        {
+                /* Chassis Identity LED - BCT */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.3.4.0",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
