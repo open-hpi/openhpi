@@ -117,7 +117,7 @@ struct oh_handler_config * new_handler_config (char *, char *, char *);
 
 
 /**
- * new_plugin_config:
+ * new_plugin_config: generates a new plugin config
  * @plugin: 
  * 
  * 
@@ -354,12 +354,16 @@ int oh_load_config (char *filename)
         add_domain(SAHPI_DEFAULT_DOMAIN_ID);	
         
         oh_scanner = g_scanner_new(&oh_scanner_config);
-        if(!oh_scanner)
+        if(!oh_scanner) {
+                dbg("Couldn't allocate g_scanner for file parsing");
                 return -1;
+        }
 
         oh_conf_file = open(filename, O_RDONLY);
-        if(!oh_conf_file)
+        if(oh_conf_file < 0) {
+                dbg("Configuration file '%s' could not be opened", filename);
                 return -2;
+        }
 
         g_scanner_input_file(oh_scanner, oh_conf_file);
         
@@ -390,7 +394,10 @@ int oh_load_config (char *filename)
                 }
         }
         
-        close(oh_conf_file);
+        if(close(oh_conf_file) != 0) {
+                dbg("Couldn't close file '%s'.", filename);
+                return -2;
+        }
         g_scanner_destroy(oh_scanner);
         dbg("Done processing conf file");
         
