@@ -37,7 +37,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
-openhpi_docs_DATA	= openhpi-manual/book1.html 
+#openhpi_docs_DATA	= openhpi-manual/book1.html 
 
 SGML_FILES              = $(shell ls *.dtd) $(shell ls *.sgml) function_docs.sgml
 
