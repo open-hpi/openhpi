@@ -130,7 +130,7 @@ static int process_rdr_event(struct oh_handler *h, RPTable *rpt, struct oh_rdr_e
         
         return rv;
 }
-
+/*
 static void process_rsel_event(struct oh_handler *h, struct oh_rsel_event *e)
 {
         struct oh_resource *res;
@@ -141,11 +141,12 @@ static void process_rsel_event(struct oh_handler *h, struct oh_rsel_event *e)
                 dbg("Cannot find corresponding resource");
                 return;
         }
-        /*
-          TODO: address the rsel work later
-          rsel_add2(res, e);
-        */
+        
+        TODO: address the rsel work later
+        rsel_add2(res, e);
+        
 }
+*/
 
 /**
  * get_handler_event:
@@ -182,9 +183,13 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         case OH_ET_RDR:
                 process_rdr_event(h, rpt, &event.u.rdr_event);
                 break;
-        case OH_ET_RSEL:
+/* Resource System event logs will be handled by the plugins and
+ * will not be bubbled up.
+ */
+/*        case OH_ET_RSEL:
                 process_rsel_event(h, &event.u.rsel_event);
                 break;
+*/
         default:
                 dbg("Error! Should not reach here!");
                 return -1;
