@@ -1018,8 +1018,13 @@ static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
 	
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_sensor_info *sensor_info;
-
+	SaErrorT         rv;	
+printf("ipmi_set_sensor_enable\n");
 	SENSOR_CHECK(handler, sensor_info, id, num);
+	rv = ohoi_set_sensor_enable(sensor_info->sensor_id, enable, NULL);
+	if (rv) {
+		return rv;
+	}
 	sensor_info->enable = enable;
 	return SA_OK;	
 }
@@ -1066,7 +1071,7 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	struct ohoi_sensor_info *sensor_info;
-
+	
 	SENSOR_CHECK(handler, sensor_info, id, num);
 	
 	rv = ohoi_set_sensor_event_enable_masks(sensor_info->sensor_id,
@@ -1441,19 +1446,21 @@ static SaErrorT ipmi_set_res_tag (void 			*hnd,
 	/* do it in openIPMI's memory first for subsequest updates */
 
 	/* can only be an Entity in the ohoi_resource_info struct */
-	dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
-	rv = ipmi_entity_pointer_cb(res_info->u.entity_id, ohoi_set_resource_tag,
+	if (rpt_entry->ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE) {
+		dbg("Setting new Tag: %s for resource: %d", (char *) tag->Data, id);
+		rv = ipmi_entity_pointer_cb(res_info->u.entity_id, ohoi_set_resource_tag,
 				    tag->Data);
-	if (rv)
-		dbg("Error retrieving entity pointer for resource %d",
-		       rpt_entry->ResourceId);
+		if (rv)
+			dbg("Error retrieving entity pointer for resource %d",
+		       	rpt_entry->ResourceId);
+	}
 
 	rpt_entry->ResourceTag.DataType = tag->DataType;
 	rpt_entry->ResourceTag.Language = tag->Language;
-	rpt_entry->ResourceTag.DataLength = strlen(tag->Data);
+	rpt_entry->ResourceTag.DataLength = tag->DataLength;
 	
 	/* change it in our memory as well */
-	memcpy(&rpt_entry->ResourceTag.Data, tag->Data, strlen(tag->Data) + 1);
+	memcpy(&rpt_entry->ResourceTag.Data, tag->Data, sizeof(tag->Data));
 	oh_add_resource(handler->rptcache, rpt_entry, res_info, 1);
 	return 0;
 }
