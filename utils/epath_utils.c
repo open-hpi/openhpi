@@ -271,8 +271,6 @@ SaErrorT oh_decode_entitypath(const SaHpiEntityPathT *ep,
 	oh_init_bigtext(bigbuf);
 	oh_append_bigtext(bigbuf, (char *)tmpbuf.Data);
 
-	dbg("EP String=%s\n", bigbuf->Data);
-
  CLEANUP:
 	g_free(locstr);
 
