@@ -71,9 +71,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					   build_name.Data,
 					   ep_root->Entry[0].EntityLocation);
 	}
-#if 0
+
 	trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 	/* Create platform-specific info space to add to infra-structure */
 	res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info),
 				sizeof(struct BC_ResourceInfo));
@@ -119,9 +119,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 						   snmp_rpt_array[BC_RPT_ENTRY_BLADE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
-#if 0
+
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE].bc_res_info),
 						sizeof(struct BC_ResourceInfo));
@@ -160,6 +160,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 				ep = snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt.ResourceEntity;
 				ep_concat(&ep, ep_root);
 				set_ep_instance(&ep, SAHPI_ENT_ADD_IN_CARD, i + SNMP_BC_HPI_LOCATION_BASE);
+				set_ep_instance(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 
 				oid = snmp_derive_objid(ep, SNMP_BC_BLADE_ADDIN_VECTOR);
 				if (oid == NULL) {
@@ -187,9 +188,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 								   snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment,
 								   i + SNMP_BC_HPI_LOCATION_BASE);
-#if 0					
+
 					trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 					/* Create platform-specific info space to add to infra-structure */
 					res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].bc_res_info),
 								sizeof(struct BC_ResourceInfo));
@@ -246,9 +247,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 						   snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
-#if 0
+
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].bc_res_info),
 						sizeof(struct BC_ResourceInfo));
@@ -303,9 +304,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 						   snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
-#if 0
+
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].bc_res_info),
 						sizeof(struct BC_ResourceInfo));
@@ -360,9 +361,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 						   snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
-#if 0
+
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].bc_res_info),
 						sizeof(struct BC_ResourceInfo));
@@ -416,9 +417,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 					   snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment,
 					   SNMP_BC_HPI_LOCATION_BASE);
-#if 0
+
 		trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 		/* Create platform-specific info space to add to infra-structure */
 		res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].bc_res_info),
 					sizeof(struct BC_ResourceInfo));
@@ -481,9 +482,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
 						   snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
-#if 0
+
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
-#endif
+
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].bc_res_info),
 						sizeof(struct BC_ResourceInfo));
