@@ -1019,8 +1019,8 @@ SaErrorT SAHPI_API saHpiEventGet (
                                         gettimeofday1(&now);
                                         if (now >= end) return SA_ERR_HPI_TIMEOUT;
                         }
-                        /* Sleep for 1 milli second */
-                        struct timespec req = { 0, 1000000 }, rem;
+                        /* Sleep for 1 second */
+                        struct timespec req = { 0, 1000000000 }, rem;
                         nanosleep(&req, &rem);
                         
                 } else { /* Return event, resource and rdr */
