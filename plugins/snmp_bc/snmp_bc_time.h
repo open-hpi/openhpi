@@ -11,11 +11,8 @@
  * full licensing terms.
  *
  *
- * Authors:
- *      peter d phan   <pdphan@users.sf.net>
- *      
- * Logs:
- *	 Duplicate enums from IBM Blade Center
+ * Author(s):
+ *      Peter Phan  <pdphan@users.sf.net>
  */
 
 #ifndef SNMP_BC_TIME_H

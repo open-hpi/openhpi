@@ -30,4 +30,4 @@ SaErrorT snmp_bc_reset_watchdog(void *hnd,
 				SaHpiResourceIdT id,
 				SaHpiWatchdogNumT num);
 
-#endif /* SNMP_BC_WATCHDOG_H */
+#endif

@@ -18,7 +18,7 @@
 
 /* Order is important */
 #include <openhpi.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 
 #include <bc_errorlog.h>
 #include <bc_resources.h>
