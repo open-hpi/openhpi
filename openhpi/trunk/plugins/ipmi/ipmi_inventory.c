@@ -209,6 +209,7 @@ static void get_field(ipmi_entity_t *ent,
 		dbg("Error on get_len: %d", rv);
 		return;
 	}
+	len++;  /* if ASCII string (yes), add one for NULL char. */
 
 	if (len > SAHPI_MAX_TEXT_BUFFER_LENGTH)
 		len = SAHPI_MAX_TEXT_BUFFER_LENGTH;
