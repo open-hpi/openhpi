@@ -46,18 +46,18 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* RSA DST
+                /* RSA Health
                  *
                  * This OID is used to determine if the system is a RSA or not
                  * If integer == SA_ERR_SNMP_NOSUCHOBJECT, platform is not an RSA.
-                 * If SA_ERR_SNMP_NOSUCHOBJECT, platform determine by OID below.
+		 * Code checks for RSA platform before it checks for BC platform
+                 * type.
                  */
-                .oid = ".1.3.6.1.4.1.2.3.51.1.4.4.2.0",
+                .oid = ".1.3.6.1.4.1.2.3.51.1.2.7.1.0",
                 .mib = {
                         .type = ASN_INTEGER,
                         .value = {
-				/* .integer = 1, */
-				.integer = SA_ERR_SNMP_NOSUCHOBJECT,
+				.integer = SA_ERR_SNMP_NOSUCHOBJECT, /* 255 = RSA */
                         },
                 },
         },

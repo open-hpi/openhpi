@@ -17,7 +17,6 @@
 
 #include <glib.h>
 #include <snmp_bc_plugin.h>
-#include <snmp_bc_utils.h>
 
 static SaErrorT snmp_bc_get_oid_value(struct snmp_bc_hnd *custom_handle,
 				      SaHpiEntityPathT *ep,
@@ -376,19 +375,26 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root)
 {
-
-	if (!handle || !ep_root)
-		return SA_ERR_HPI_INVALID_PARAMS;
 	int i;
+        char *oid_ptr;
+        SaHpiGuidT guid;
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value, get_active;
 	struct ResourceInfo *res_info_ptr;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-        SaHpiGuidT guid;
-        char    *oid_ptr;
 
-        /* Discover Chassis, Blades, Expansion Cards */
+	if (!handle || !ep_root) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        /* Discover chassis, blades, expansion cards */
 	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
@@ -410,10 +416,10 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	e->did = oh_get_default_domain_id();
 
 	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
-		e->u.res_event.entry = snmp_rpt_array_bct[BCT_RPT_ENTRY_CHASSIS].rpt;
+		e->u.res_event.entry = snmp_bc_rpt_array_bct[BCT_RPT_ENTRY_CHASSIS].rpt;
 	}
 	else {
-		e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;	
+		e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].rpt;	
 	}
 
 	e->u.res_event.entry.ResourceEntity = *ep_root;
@@ -423,7 +429,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		SaHpiTextBufferT build_name;
 
 		oh_init_textbuffer(&build_name);
-		oh_append_textbuffer(&build_name, snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment);
+		oh_append_textbuffer(&build_name, snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].comment);
 		if (custom_handle->platform == SNMP_BC_PLATFORM_BC) {
 			oh_append_textbuffer(&build_name, " Integrated Chassis");
 		}
@@ -443,11 +449,11 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 	/* Create platform-specific info space to add to infra-structure */
-	res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].res_info),
+	res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].res_info),
 				sizeof(struct ResourceInfo));
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
-        /* Get BC UUID and convert to GUID */
+        /* Get UUID and convert to GUID */
         GET_GUID();
 
 	/* Add resource to temporary event cache/queue */
@@ -481,20 +487,20 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 			e->type = OH_ET_RESOURCE;
 			e->did = oh_get_default_domain_id();
-			e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_BLADE].rpt;
+			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].rpt;
 			ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
 			set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
 					SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-						   snmp_rpt_array[BC_RPT_ENTRY_BLADE].comment,
+						   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE].res_info),
+			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].res_info),
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
@@ -529,7 +535,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 				SaHpiEntityPathT ep;
                                 gchar *oid;
 
-				ep = snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt.ResourceEntity;
+				ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt.ResourceEntity;
 				ep_concat(&ep, ep_root);
 				set_ep_instance(&ep, SAHPI_ENT_ADD_IN_CARD, i + SNMP_BC_HPI_LOCATION_BASE);
 				set_ep_instance(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
@@ -554,17 +560,17 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	
 					e->type = OH_ET_RESOURCE;
 					e->did = oh_get_default_domain_id();
-					e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt;
+					e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt;
 					e->u.res_event.entry.ResourceEntity = ep;
 					e->u.res_event.entry.ResourceId = oh_uid_from_entity_path(&ep);
 					snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-								   snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment,
+								   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment,
 								   i + SNMP_BC_HPI_LOCATION_BASE);
 
 					trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 					/* Create platform-specific info space to add to infra-structure */
-					res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].res_info),
+					res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].res_info),
 								sizeof(struct ResourceInfo));
 					res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
@@ -613,20 +619,20 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 			e->type = OH_ET_RESOURCE;
 			e->did = oh_get_default_domain_id();
-			e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].rpt;
+			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].rpt;
 			ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
 			set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
 					SAHPI_ENT_FAN, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-						   snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment,
+						   snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].res_info),
+			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].res_info),
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
@@ -673,20 +679,20 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 			e->type = OH_ET_RESOURCE;
 			e->did = oh_get_default_domain_id();
-			e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].rpt;
+			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_POWER_MODULE].rpt;
 			ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
 			set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
 					SAHPI_ENT_POWER_SUPPLY, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-						   snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment,
+						   snmp_bc_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].res_info),
+			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_POWER_MODULE].res_info),
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
@@ -733,20 +739,20 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 			e->type = OH_ET_RESOURCE;
 			e->did = oh_get_default_domain_id();
-			e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].rpt;
+			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].rpt;
 			ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
 			set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
 					SAHPI_ENT_INTERCONNECT, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-						   snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment,
+						   snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].res_info),
+			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].res_info),
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
@@ -792,20 +798,20 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 		e->type = OH_ET_RESOURCE;
 		e->did = oh_get_default_domain_id();
-		e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].rpt;
+		e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].rpt;
 		ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
 		set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
 				SAHPI_ENT_PERIPHERAL_BAY, i + SNMP_BC_HPI_LOCATION_BASE);
 		e->u.res_event.entry.ResourceId = 
 			oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 		snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-					   snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment,
+					   snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment,
 					   SNMP_BC_HPI_LOCATION_BASE);
 
 		trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 		/* Create platform-specific info space to add to infra-structure */
-		res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].res_info),
+		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].res_info),
 					sizeof(struct ResourceInfo));
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
@@ -861,20 +867,20 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 			e->type = OH_ET_RESOURCE;
 			e->did = oh_get_default_domain_id();
-			e->u.res_event.entry = snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt;
+			e->u.res_event.entry = snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].rpt;
 			ep_concat(&(e->u.res_event.entry.ResourceEntity), ep_root);
 			set_ep_instance(&(e->u.res_event.entry.ResourceEntity),
 					SAHPI_ENT_SYS_MGMNT_MODULE, i + SNMP_BC_HPI_LOCATION_BASE);
 			e->u.res_event.entry.ResourceId = 
 				oh_uid_from_entity_path(&(e->u.res_event.entry.ResourceEntity));
 			snmp_bc_create_resourcetag(&(e->u.res_event.entry.ResourceTag),
-						   snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment,
+						   snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
 			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
 
 			/* Create platform-specific info space to add to infra-structure */
-			res_info_ptr = g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].res_info),
+			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].res_info),
 						sizeof(struct ResourceInfo));
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 

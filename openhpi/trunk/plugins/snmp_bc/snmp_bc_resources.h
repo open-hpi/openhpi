@@ -18,7 +18,7 @@
 /**************************************************************************
  * This header file stubs resource and RDR static infomation that are used
  * in constructing RPT and RDR for IBM's BladeCenter - models Integrated
- * and Telco.
+ * and Telco and IBM's RSA (Integrated and separate adapter models).
  *
  * The BladeCenter Integrated model has the following entity hierarchy:
  *
@@ -45,14 +45,20 @@
  *   - Telco supports 4 blower modules (instead of 2)
  *   - Telco supports 8 blades (instead of 14)
  *
- * Differences between the BladeCenter models are discovered dynamically
- * by this plugin at run-time during resource discovery.
+ * The RSA Integrated model has the following entity hierarchy:
+ *
+ *  {CHASSIS,X}
+ *      |
+ *      +-- {PROCESSOR,[1-8]}        (CPUs)
+ *      |
+ *      +-- {DISK_BAY,[1-4]}         (DASD)
+ *
+ * Differences between the models are discovered dynamically by this
+ * plugin at run-time during resource discovery.
  *************************************************************************/
 
 #ifndef __BC_RESOURCES_H
 #define __BC_RESOURCES_H
-
-/* FIXME:: Add RSA #defines to this file and change/enhance description above */
 
 /* Start HPI location numbers from 1 */
 #define SNMP_BC_HPI_LOCATION_BASE 1
@@ -65,7 +71,7 @@
 
 /* OIDs to determine platform types */
 #define SNMP_BC_PLATFORM_OID_BCT  ".1.3.6.1.4.1.2.3.51.2.2.9.1.0" /* BCT System Health */
-#define SNMP_BC_PLATFORM_OID_RSA  ".1.3.6.1.4.1.2.3.51.1.4.4.2.0" /* RSA DST */
+#define SNMP_BC_PLATFORM_OID_RSA  ".1.3.6.1.4.1.2.3.51.1.2.7.1.0" /* RSA System Health */
 
 /* Run-time variables to distinguish platform types */
 #define SNMP_BC_PLATFORM_BCT   0x0001
@@ -73,7 +79,9 @@
 #define SNMP_BC_PLATFORM_RSA   0x0004
 #define SNMP_BC_PLATFORM_ALL   0xFFFF
 
-/* Resource indexes to snmp_rpt array in bc_resources.c */
+/* Resource indexes to snmp_rpt array in discovery */
+#define BCT_RPT_ENTRY_CHASSIS 0
+
 typedef enum {
         BC_RPT_ENTRY_CHASSIS = 0,
         BC_RPT_ENTRY_MGMNT_MODULE,
@@ -85,7 +93,17 @@ typedef enum {
         BC_RPT_ENTRY_POWER_MODULE
 } BCRptEntryT;
 
-#define BCT_RPT_ENTRY_CHASSIS 0
+typedef enum {
+	RSA_RPT_ENTRY_CHASSIS = 0,
+	RSA_RPT_ENTRY_CPU,
+	RSA_RPT_ENTRY_DASD,
+	RSA_RPT_ENTRY_FAN
+} RSARptEntryT;
+
+/* Maximum number of RSA resources */
+#define RSA_MAX_CPU    8
+#define RSA_MAX_FAN    8
+#define RSA_MAX_DASD   4
 
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
@@ -105,9 +123,9 @@ typedef enum {
 #define SNMP_BC_SEL_ENTRY_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2"
 #define SNMP_BC_CLEAR_SEL_OID ".1.3.6.1.4.1.2.3.51.2.3.4.3.0"
 
-/*************************************************************************
- *                   Resource Definitions
- *************************************************************************/
+/**********************
+ * Resource Definitions
+ **********************/
 
 struct ResourceMibInfo {
         const char *OidHealth;
@@ -141,12 +159,13 @@ struct snmp_rpt {
         const  char *comment;
 };
 
-extern struct snmp_rpt snmp_rpt_array[];
-extern struct snmp_rpt snmp_rpt_array_bct[];
+extern struct snmp_rpt snmp_bc_rpt_array[];
+extern struct snmp_rpt snmp_bc_rpt_array_bct[];
+extern struct snmp_rpt snmp_bc_rpt_array_rsa[];
 
-/******************************************************************************
- *                      Sensor Definitions
- ******************************************************************************/
+/********************
+ * Sensor Definitions
+ ********************/
 
 struct SnmpSensorThresholdOids {
         const char *LowMinor;
@@ -240,9 +259,15 @@ extern struct snmp_bc_sensor snmp_bc_fan_sensors[];
 extern struct snmp_bc_sensor snmp_bc_power_sensors[];
 extern struct snmp_bc_sensor snmp_bc_switch_sensors[];
 
-/*************************************************************************
- *                   Control Definitions
- *************************************************************************/
+extern struct snmp_bc_sensor snmp_bc_chassis_sensors_rsa[];
+extern struct snmp_bc_sensor snmp_bc_cpu_thermal_sensors_rsa[];
+extern struct snmp_bc_sensor snmp_bc_dasd_thermal_sensors_rsa[];
+extern struct snmp_bc_sensor snmp_bc_fan_sensors_rsa[];
+
+/*********************
+ * Control Definitions
+ *********************/
+
 struct ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
@@ -272,9 +297,10 @@ extern struct snmp_bc_control snmp_bc_fan_controls[];
 extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
 
-/*************************************************************************
- *                   Inventory Definitions
- *************************************************************************/
+/***********************
+ * Inventory Definitions
+ ***********************/
+
 struct SnmpInventoryOids {
         const char *OidChassisType;
         const char *OidMfgDateTime;
@@ -312,5 +338,7 @@ extern struct snmp_bc_inventory snmp_bc_blade_inventories[];
 extern struct snmp_bc_inventory snmp_bc_blade_addin_inventories[];
 extern struct snmp_bc_inventory snmp_bc_mediatray_inventories[];
 extern struct snmp_bc_inventory snmp_bc_power_inventories[];
+
+extern struct snmp_bc_inventory snmp_bc_chassis_inventories_rsa[];
 
 #endif

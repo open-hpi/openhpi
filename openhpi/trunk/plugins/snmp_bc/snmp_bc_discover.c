@@ -189,7 +189,6 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         }        
         g_slist_free(rdr_new);
 
-	/* FIXME:: RSA doesn't have??? */
 	/* Build cache copy of SEL */
 	snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 

@@ -28,7 +28,7 @@
  **************************************************************************/
 
 /* Unfortunately, BCT has different OID for System Health */
-struct snmp_rpt snmp_rpt_array_bct[] = {
+struct snmp_rpt snmp_bc_rpt_array_bct[] = {
         /* Chassis */
         {
                 .rpt = {
@@ -43,11 +43,11 @@ struct snmp_rpt snmp_rpt_array_bct[] = {
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
+                                                SAHPI_CAPABILITY_EVENT_LOG |
                                                 SAHPI_CAPABILITY_EVT_DEASSERTS |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_RESOURCE |
-                                                SAHPI_CAPABILITY_EVENT_LOG |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
@@ -71,7 +71,7 @@ struct snmp_rpt snmp_rpt_array_bct[] = {
         {} /* Terminate array with a null element */	
 };
 
-struct snmp_rpt snmp_rpt_array[] = {
+struct snmp_rpt snmp_bc_rpt_array[] = {
         /* Chassis */
         {
                 .rpt = {
@@ -87,10 +87,10 @@ struct snmp_rpt snmp_rpt_array[] = {
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_CONTROL |
                                                 SAHPI_CAPABILITY_EVT_DEASSERTS |
+                                                SAHPI_CAPABILITY_EVENT_LOG |
                                                 SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_RESOURCE |
-                                                SAHPI_CAPABILITY_EVENT_LOG |
                                                 SAHPI_CAPABILITY_SENSOR,
                         .ResourceSeverity = SAHPI_CRITICAL,
 			.ResourceFailed = SAHPI_FALSE,
@@ -715,7 +715,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .threshold_oids = {
 					.LowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
 					.UpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
-					.TotalPosThdHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
+					.TotalPosThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
 					.TotalNegThdHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
                                 },
 				.threshold_write_oids = {},
