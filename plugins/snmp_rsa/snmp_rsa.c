@@ -30,6 +30,7 @@
 #include <snmp_rsa_session.h>
 #include <snmp_rsa_hotswap.h>
 #include <snmp_rsa_watchdog.h>
+#include <snmp_rsa_inventory.h>
 
 #include <snmp_rsa.h>
 
