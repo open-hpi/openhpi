@@ -15,8 +15,6 @@
  *     David Judkovics <djudkovi@us.ibm.com>
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <SaHpi.h>
@@ -59,7 +57,7 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         if (e->event.Severity <= log_severity) {
                 struct oh_domain *d;                
                 /* yes, we need to add real domain support later here */
-                d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
+                d = get_domain_by_id(SAHPI_UNSPECIFIED_DOMAIN_ID);
                 oh_sel_add(d->sel, &(e->event));
         }
 

@@ -51,6 +51,7 @@ libopenhpi_la_SOURCES   = \
                            lock.c \
                            plugin.c \
                            plugin_static.c \
+                           init.c \
                            safhpi.c \
                            session.c \
                            session2.c

@@ -16,8 +16,6 @@
 #ifndef __OH_CONFIG_H
 #define __OH_CONFIG_H
 
-#include <glib.h>
-#include <SaHpi.h>
 #include <oh_plugin.h>
 
 /*
@@ -36,27 +34,31 @@
 extern "C" {
 #endif 
 
-/* oh_plugin_config, currently with only one item.  There are thoughts of
-   having explicit path to the plugin, but I'm not sure this is a good plan */
 struct oh_plugin_config {
         char *name;
-        void *dl_handle; /* handle returned by lt_dlopenext or 0 for static plugins */
+        /* handle returned by lt_dlopenext or 0 for static plugins */
+        void *dl_handle;
         int refcount;
         struct oh_abi_v2 *abi;
 };
 
-/*struct oh_handler_config {
-        char *plugin;
-        char *name;
-        char *addr;
-};*/
-
+/* Plugin configuration information prototypes */
 int oh_load_config(char *);
 void oh_unload_config(void);
 
 int plugin_refcount (char *);
 
 struct oh_plugin_config * plugin_config (char *);
+
+/* Plugin and instances prototypes. Implemented in plugin.c */
+int init_plugin(void);
+void uninit_plugin(void);
+int load_plugin(struct oh_plugin_config *);
+void unload_plugin(struct oh_plugin_config *config);
+
+int load_handler(GHashTable *handler_config);
+void unload_handler( struct oh_handler *handler );
+struct oh_handler *new_handler(GHashTable *handler_config);
 
 #ifdef __cplusplus
 }
