@@ -328,7 +328,6 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 		if(g_slist_length(handler->eventq)>0) {
 			memcpy(event, handler->eventq->data, sizeof(*event));
 			event->did = oh_get_default_domain_id();
-			//event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
 			free(handler->eventq->data);
 			handler->eventq = g_slist_remove_link(handler->eventq,
 					handler->eventq);
@@ -409,7 +408,6 @@ int ipmi_discover_resources(void *hnd)
 	while (rpt_entry) {
 		res_info = oh_get_resource_data(handler->rptcache,
 			rpt_entry->ResourceId);
-//		printf("res: %d(%s) presence: %d; updated:%d\n",
 		dbg("res: %d(%s) presence: %d; updated:%d",
 			rpt_entry->ResourceId, rpt_entry->ResourceTag.Data,
 			res_info->presence, res_info->updated);
@@ -423,8 +421,9 @@ int ipmi_discover_resources(void *hnd)
 		event->type = res_info->presence ?
 			OH_ET_RESOURCE : OH_ET_RESOURCE_DEL;
 		memcpy(&event->u.res_event.entry, rpt_entry,
-			sizeof(SaHpiRptEntryT));
+						sizeof(SaHpiRptEntryT));
 		handler->eventq = g_slist_append(handler->eventq, event);
+
 		if (res_info->presence == 1) {
 			/* Add all RDRs of this RPTe */	
 			rdr_entry = oh_get_rdr_next(handler->rptcache,
