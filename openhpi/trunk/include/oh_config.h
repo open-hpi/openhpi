@@ -32,7 +32,7 @@
  */
 #define OH_PLUGIN_PATH "/usr/lib/openhpi:/usr/local/lib/openhpi:/usr/local/lib"
 
-#define OH_DEFAULT_CONF "/etc/openhpi.conf"
+#define OH_DEFAULT_CONF "/etc/openhpi/openhpi.conf"
 
 /* oh_plugin_config, currently with only one item.  There are thoughts of
    having explicit path to the plugin, but I'm not sure this is a good plan */
