@@ -13,6 +13,10 @@ plugin	libdummy
 #Depends on net-snmp being installed on the system:
 #plugin libsnmp_bc
 
+#Depends openhpi being configured 
+#"configure --enable-dummy=static":
+#plugin dummy
+
 #############################################################################
 ##**WARNING** System administrators have to make sure that entity paths are
 ## unique in a domain. If entity paths are conflicting among handlers, make
@@ -60,4 +64,16 @@ handler	libdummy {
 #        entity_root = "{SYSTEM_CHASSIS,4}"
 #        host = "bc.ibm.com"
 #        community = "community"
+#}
+
+#Section for static dummy plugin:
+#If openhpi configured with
+#configure --enable-dummy=static
+#the dummy plugin is compiled in.
+#It is possible to use dummy and libdummy
+#at the same time.
+#handler dummy {
+#        entity_root = "{SYSTEM_CHASSIS,5}"
+#        name = "test"
+#        addr = 2
 #}

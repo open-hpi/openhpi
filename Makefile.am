@@ -66,7 +66,6 @@ include_HEADERS	= $(shell find include -name '*.h')
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
-	# and now build the state dir
 	$(mkinstalldirs) $(DESTDIR)/var/lib/$(PACKAGE)
 
 rpm: dist

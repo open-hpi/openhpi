@@ -63,7 +63,7 @@ case "$GLIB_REQUIRED_VERSION" in
         ;;
     2*)
         GLIB=glib-2.0;
-        AC_MSG_WARN([using glib 2.0 is not recommended, please use glib 1.2])
+        AC_MSG_WARN([glib 2.0 is not recommended, please use glib 1.2])
         ;;
     *)
         AC_MSG_ERROR([
@@ -164,10 +164,18 @@ AC_PATH_PROGS(RPM, rpmbuild)
 
 dnl plugin enablement stanzas
 
+dnl list of static plugins
+STATIC_PLUGIN_LIST=
+STATIC_PLUGIN_EXTRA_LIBS=
+
 AC_ARG_ENABLE([dummy],
     [  --enable-dummy          build dummy plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(DUMMY,dummy)
+     elif test "x$enableval" = "xstatic"; then
+        AC_SUBST(DUMMY,dummy)
+        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
+        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
     fi],
     [AC_SUBST(DUMMY,dummy)])
     
@@ -230,6 +238,28 @@ AC_ARG_ENABLE([snmp_bc],
             CFLAGS="$CFLAGS $SNMPFLAGS"
     fi]
     )
+
+dnl
+dnl create static plugin config
+dnl
+
+STATIC_PLUGIN=
+STATIC_PLUGIN_EXTERN=
+STATIC_PLUGIN_LIBS=
+
+for name in $STATIC_PLUGIN_LIST; do
+        STATIC_PLUGIN="$STATIC_PLUGIN { \"$name\", ${name}_get_interface },";
+        STATIC_PLUGIN_EXTERN="${STATIC_PLUGIN_EXTERN} extern int ${name}_get_interface(void **pp, const uuid_t uuid);";
+        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/src/plugins/$name/.libs/lib${name}.a";
+done
+
+dnl use src/plugin_static.c.in
+AC_SUBST(STATIC_PLUGIN_EXTERN)
+AC_SUBST(STATIC_PLUGIN)
+
+dnl additional libs
+AC_SUBST(STATIC_PLUGIN_LIBS)
+AC_SUBST(STATIC_PLUGIN_EXTRA_LIBS)
 
 dnl defines OH_DEFAULT_UID_MAP and VARPATH
 dnl set VARPATH only if unset or null.
@@ -301,6 +331,7 @@ AC_CONFIG_FILES([openhpi.spec
         rt-env.sh
         Makefile
         src/Makefile
+        src/plugin_static.c
         src/plugins/Makefile
         src/plugins/dummy/Makefile
         src/plugins/watchdog/Makefile
