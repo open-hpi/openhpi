@@ -306,3 +306,36 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 
 	return(strcount);
 } /* End entitypath2string */
+
+
+/**
+ * ep_concat: Concatenate two entity path structures (SaHpiEntityPathT).
+ * @dest: IN,OUT Left-hand entity path. Gets appended with 'append'.
+ * @append: IN Right-hand entity path. Pointer entity path to be appended.
+ *
+ * 'dest' is assumed to be the least significant entity path in the operation.
+ *
+ * Returns value: 0 on Success, Negative number on Failure.
+ **/
+int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
+{
+        unsigned int i, j;
+
+        if(!dest) return -1;
+        if(!append) return 0;
+
+        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if(dest->Entry[i].EntityType == 0) {
+                        break;
+                }
+        }
+
+        for (j = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
+                if(append->Entry[j].EntityType == 0) break;
+                dest->Entry[i].EntityInstance = append->Entry[j].EntityInstance;
+                dest->Entry[i].EntityType = append->Entry[j].EntityType;
+                j++;
+        }
+
+        return 0;
+}

@@ -29,4 +29,6 @@ int entitypath2string(const SaHpiEntityPathT *epathptr,
 		      gchar *epathstr,
 		      gint strsize);
 
+int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append);
+
 #endif /* EPATH_UTILS_H */
