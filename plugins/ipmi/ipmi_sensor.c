@@ -612,7 +612,8 @@ static void get_sensor_event_enables(ipmi_sensor_t	*sensor,
 		return;
 	}	
 
-	if (ipmi_sensor_get_event_support(sensor) != IPMI_EVENT_SUPPORT_NONE) {
+	if ((ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE)||
+	   (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_ENTIRE_SENSOR)){
 		rv = ipmi_sensor_events_enable_get(sensor, enables_read,
 					           enables_data);
 		if (rv) {
@@ -659,13 +660,14 @@ static void set_sensor_event_enables(ipmi_sensor_t      *sensor,
 
         enables_data = cb_data;
 
-		if (ignore_sensor(sensor)) {
-				dbg("sensor is ignored");
-				enables_data->done = 1;
-				return;
+	if (ignore_sensor(sensor)) {
+		dbg("sensor is ignored");
+		enables_data->done = 1;
+		return;
 	}	
         
-	if (ipmi_sensor_get_event_support(sensor) != IPMI_EVENT_SUPPORT_NONE) {
+	if ((ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE)||
+	    (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_ENTIRE_SENSOR)) {
 		ipmi_event_state_init(&info);
 		if (enables_data->sensor_enables->SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED)
 			ipmi_event_state_set_events_enabled(&info, 1);
