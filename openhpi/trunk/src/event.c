@@ -15,6 +15,7 @@
  *     David Judkovics <djudkovi@us.ibm.com>
  */
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,13 +24,30 @@
 #include <oh_event.h>
 #include <glib.h>
 
-GAsyncQueue *oh_process_q;
+#define OH_THREAD_SLEEP_TIME 5 * G_USEC_PER_SEC
+
+/* This is a short term hack to get this running properly.  Will 
+   be changed to more robust mechanisms later */
+// #define OPENHPI_RUN_THREADED
+#ifdef OPENHPI_RUN_THREADED
+#define oh_run_threaded() 1
+#else
+#define oh_run_threaded() 0
+#endif
+
+GAsyncQueue *oh_process_q = NULL;
+GCond *oh_thread_wait = NULL;
+GThread *oh_event_thread = NULL;
+GError *oh_event_thread_error = NULL;
+GMutex *oh_thread_mutex = NULL;
 
 /*
  *  The following is required to set up the thread state for
  *  the use of async queues.  This is true even if we aren't
  *  using live threads.
  */
+
+gpointer oh_event_thread_loop(gpointer);
 
 int oh_event_init()
 {
@@ -42,12 +60,22 @@ int oh_event_init()
         }
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
+        if(oh_run_threaded()) {
+                oh_thread_wait = g_cond_new();
+                oh_thread_mutex = g_mutex_new();
+                oh_event_thread = g_thread_create(oh_event_thread_loop,
+                                                  NULL, FALSE, &oh_event_thread_error);
+        }
         return 1;
 }
 
 int oh_event_final()
 {
         g_async_queue_unref(oh_process_q);
+        if(oh_run_threaded()) {
+                g_mutex_free(oh_thread_mutex);
+                g_cond_free(oh_thread_wait);
+        }
         return 1;
 }
 
@@ -82,9 +110,11 @@ static int harvest_events_for_handler(struct oh_handler *h)
 SaErrorT harvest_events()
 {
         GSList *i;
+        data_access_lock();
         g_slist_for_each(i, global_handler_list) {
                 harvest_events_for_handler(i->data);
         }
+        data_access_unlock();
         return SA_OK;
 }
 
@@ -94,12 +124,12 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         SaHpiTextBufferT buffer;
         struct oh_domain *d;
         SaErrorT rv = SA_OK;     
-	char *env_var = NULL;
-
+        char *env_var = NULL;
+        
         /* FIXME: this needs to be locked at boot time */
-	env_var = getenv("OPENHPI_LOG_SEV"); 
-	if (env_var) 
-		strncpy(buffer.Data, env_var, strlen(env_var));
+        env_var = getenv("OPENHPI_LOG_SEV"); 
+        if (env_var) 
+                strncpy(buffer.Data, env_var, strlen(env_var));
         if (oh_encode_severity(&buffer, &log_severity) != SA_OK) {
                 log_severity = SAHPI_MINOR;
         }
@@ -116,7 +146,6 @@ static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
         }
         return rv;
 }
-
 
 static int process_hpi_event(struct oh_event *full_event)
 {
@@ -177,6 +206,7 @@ static int process_resource_event(struct oh_event *e)
         int rv;
         RPTable *rpt = NULL;
         struct oh_domain *d = NULL;
+        struct oh_event hpie;
         
         d = oh_get_domain(e->did);
         if(!d) {
@@ -185,8 +215,17 @@ static int process_resource_event(struct oh_event *e)
         }
         rpt = &(d->rpt);
         
+        memset(&hpie, 0, sizeof(hpie));
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_event.entry.ResourceId);
+                
+                hpie.did = e->did;
+                hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
+                hpie.u.hpi_event.event.Source = e->u.res_event.entry.ResourceId;
+                hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
+                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
+                        SAHPI_RESE_RESOURCE_FAILURE;
+                
         } else {
                 struct oh_resource_data *rd = g_malloc0(sizeof(struct oh_resource_data));
 
@@ -200,8 +239,19 @@ static int process_resource_event(struct oh_event *e)
                 rd->auto_extract_timeout = get_default_hotswap_auto_extract_timeout();
 
                 rv = oh_add_resource(rpt,&(e->u.res_event.entry),rd,0);
+                
+                hpie.did = e->did;
+                hpie.u.hpi_event.event.Severity = e->u.res_event.entry.ResourceSeverity;
+                hpie.u.hpi_event.event.Source = e->u.res_event.entry.ResourceId;
+                hpie.u.hpi_event.event.EventType = SAHPI_ET_RESOURCE;
+                hpie.u.hpi_event.event.EventDataUnion.ResourceEvent.ResourceEventType = 
+                        SAHPI_RESE_RESOURCE_ADDED;
         }
         oh_release_domain(d);
+        
+        if(rv == SA_OK) {
+                rv = process_hpi_event(&hpie);
+        }
 
         return rv;
 }
@@ -279,17 +329,49 @@ SaErrorT process_events()
 SaErrorT get_events()
 {
         // in a thread world this becomes a noop
-        SaErrorT rv = SA_OK;
-        rv = harvest_events();
-        if(rv != SA_OK) {
-                dbg("Error on harvest of events, aborting");
+        if(!oh_run_threaded()) {
+                SaErrorT rv = SA_OK;
+                dbg("About to harvest events in the loop");
+                rv = harvest_events();
+                if(rv != SA_OK) {
+                        dbg("Error on harvest of events, aborting");
+                        return rv;
+                }
+                rv = process_events();
+                if(rv != SA_OK) {
+                        dbg("Error on processing of events, aborting");
+                        return rv;
+                }
                 return rv;
+        } else {
+                dbg("Running threaded");
+                g_cond_signal(oh_thread_wait);
+                dbg("Signaled thread to process");
+                sleep(1);
+                return SA_OK;
         }
-        rv = process_events();
-        if(rv != SA_OK) {
-                dbg("Error on processing of events, aborting");
-                return rv;
-        }
-        return rv;
 }
 
+gpointer oh_event_thread_loop(gpointer data) {
+        SaErrorT rv = SA_OK;
+        GTimeVal time;
+        
+        while(oh_run_threaded()) {
+                dbg("About to run through the event loop");
+                rv = harvest_events();
+                if(rv != SA_OK) {
+                        dbg("Error on harvest of events %s", oh_lookup_error(rv));
+                }
+                rv = process_events();
+                if(rv != SA_OK) {
+                        dbg("Error on processing of events %s", oh_lookup_error(rv));
+                }
+                g_get_current_time(&time);
+                g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
+                dbg("Going to sleep");
+                g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time);
+                dbg("Woke up, am looping again");
+        }
+        g_thread_exit(0);
+        return 0;
+}
