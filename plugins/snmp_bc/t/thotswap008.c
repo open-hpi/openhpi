@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 **************************/
-	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	expected_err = SA_ERR_HPI_INVALID_REQUEST;
 	state = 0xFF;
 	err = snmp_bc_set_power_state((void *)h->hnd, id, state);
 	checkstatus(&err, &expected_err, &testfail);
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	if (s != NULL)
 		s->mib.OidPowerOnOff = NULL;
 
-	expected_err = SA_ERR_HPI_INVALID_CMD;      
+	expected_err = SA_ERR_HPI_INVALID_REQUEST;      
 	err = snmp_bc_set_power_state((void *)h->hnd, id, state);
 	checkstatus(&err, &expected_err, &testfail);
 

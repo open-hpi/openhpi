@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	if (s != NULL)
 		s->mib.OidPowerState = NULL;
 
-	expected_err = SA_ERR_HPI_INVALID_CMD;      
+	expected_err = SA_ERR_HPI_INTERNAL_ERROR;      
 	err = snmp_bc_get_power_state((void *)h->hnd, id, &state);
 	checkstatus(&err, &expected_err, &testfail);
 

@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 **************************/
-	expected_err = SA_ERR_HPI_INVALID_CMD;      
+	expected_err = SA_ERR_HPI_INVALID_REQUEST;      
 	act = SAHPI_RESET_ASSERT;
 	err = snmp_bc_set_reset_state((void *)h->hnd, id, act);   
 	checkstatus(&err, &expected_err, &testfail);

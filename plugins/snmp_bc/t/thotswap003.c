@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	if (s != NULL)
 		s->mib.OidReset = NULL;
 
-	expected_err = SA_ERR_HPI_INVALID_CMD;      
+	expected_err = SA_OK;      
 	err = snmp_bc_get_reset_state((void *)h->hnd, id, &act);   
 	checkstatus(&err, &expected_err, &testfail);
 
