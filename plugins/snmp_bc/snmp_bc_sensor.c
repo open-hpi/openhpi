@@ -175,7 +175,7 @@ do { \
 		                return SA_ERR_HPI_NO_RESPONSE; \
 	                } \
 	                g_free(oid); \
-	                found_raw++; \
+	                found_raw = found_raw | thdmask; \
 	                working.thdname.Raw = get_value.integer; \
 	                working.thdname.ValuesPresent = working.thdname.ValuesPresent | SAHPI_SRF_RAW; \
 	        } else { \
@@ -199,7 +199,7 @@ do { \
 			        g_free(oid); \
 			        return SA_ERR_HPI_NO_RESPONSE; \
 		        } \
-		        found_interpreted++; \
+                        found_interpreted = found_interpreted | thdmask; \
 		        /* Means we always need to define this field in bc_resources.h */ \
 		        working.thdname.Interpreted.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Interpreted.Type; \
 		        working.thdname.ValuesPresent = working.thdname.ValuesPresent | SAHPI_SRF_INTERPRETED; \
@@ -224,13 +224,35 @@ do { \
         } \
 } while(0)
 
+
+/* Assuming floating point - not generic but works for BladeCenter */
+#define get_up_hysteresis_value(thdname, thdmatch) \
+do { \
+         working.thdname.Interpreted.Value.SensorFloat32 = working.thdmatch.Interpreted.Value.SensorFloat32 - \
+                                                           working.thdname.Interpreted.Value.SensorFloat32; \
+         if (working.thdname.Interpreted.Value.SensorFloat32 < 0) { \
+                dbg("Positive Hysteresis delta is less than 0"); \
+         	working.thdname.ValuesPresent = 0; \
+         } \
+} while(0)
+
+#define get_low_hysteresis_value(thdname, thdmatch) \
+do { \
+         working.thdname.Interpreted.Value.SensorFloat32 = working.thdname.Interpreted.Value.SensorFloat32 - \
+                                                           working.thdmatch.Interpreted.Value.SensorFloat32; \
+         if (working.thdname.Interpreted.Value.SensorFloat32 < 0) { \
+                dbg("Negitive Hysteresis delta is less than 0"); \
+         	working.thdname.ValuesPresent = 0; \
+         } \
+} while(0)
+
 SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT id,
 				       SaHpiSensorNumT num,
 				       SaHpiSensorThresholdsT *thres)
 {
         gchar *oid = NULL;
-	int  found_raw, found_interpreted;
+	SaHpiUint8T found_raw, found_interpreted;
 	SaHpiSensorThresholdsT working;
 	SaHpiSensorInterpretedUnionT value;
         struct snmp_value get_value;
@@ -262,8 +284,8 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			get_raw_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
 			get_raw_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
 			get_raw_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
-			/* Ignore any PosThdHysteresis and NegThdHysteresis for RAW 
-			   (going away in 1.1) */			 	
+			/* Ignore any PosThdHysteresis and NegThdHysteresis for RAW
+			   (going away in 1.1) */
 		}
 
 		if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_STC_INTERPRETED) {
@@ -273,9 +295,61 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			get_interpreted_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
 			get_interpreted_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
 			get_interpreted_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
+			get_interpreted_thresholds(SAHPI_STM_UP_HYSTERESIS, OidUpHysteresis, PosThdHysteresis);
+			get_interpreted_thresholds(SAHPI_STM_LOW_HYSTERESIS, OidLowHysteresis, NegThdHysteresis);
 
-			/* FIXME:: Add PosThdHysteresis and NegThdHysteresis */			 	
-		}
+			/* Hysteresis - BladeCenter supports a reset value for some single threshold
+			 * sensors. So there may be a major threshold of 78 and a reset of 76. This
+                         * extremely ugly code, calculates the delta to report hysteresis. 
+			 * If multiple thresholds are defined, the most severe one is used as the 
+			 * basis for the delta calculation. Also we assume all values are float32 */
+			if ((found_interpreted & SAHPI_STM_UP_HYSTERESIS) && 
+			    ((found_interpreted & SAHPI_STM_UP_CRIT) || 
+			    (found_interpreted & SAHPI_STM_UP_MAJOR) ||
+			    (found_interpreted & SAHPI_STM_UP_MINOR))) {
+				if (found_interpreted & SAHPI_STM_UP_CRIT) {
+					get_up_hysteresis_value(PosThdHysteresis, UpCritical);
+				}
+				else {
+					if (found_interpreted & SAHPI_STM_UP_MAJOR) {
+						get_up_hysteresis_value(PosThdHysteresis, UpMajor);	
+					}
+					else {
+						if (found_interpreted & SAHPI_STM_UP_MINOR) {
+							get_up_hysteresis_value(PosThdHysteresis, UpMinor);
+						}	
+					}	
+				}
+			}
+			else {
+				dbg("Positive Hysteresis is defined but not any positive thresholds");
+				working.PosThdHysteresis.ValuesPresent = 0;
+			}    
+			
+			/* Negitive hysteresis */
+			if ((found_interpreted & SAHPI_STM_LOW_HYSTERESIS) && 
+			    ((found_interpreted & SAHPI_STM_LOW_CRIT) || 
+			    (found_interpreted & SAHPI_STM_LOW_MAJOR) ||
+			    (found_interpreted & SAHPI_STM_LOW_MINOR))) {
+				if (found_interpreted & SAHPI_STM_LOW_CRIT) {
+					get_low_hysteresis_value(NegThdHysteresis, LowCritical);
+				}
+				else {
+					if (found_interpreted & SAHPI_STM_LOW_MAJOR) {
+						get_low_hysteresis_value(NegThdHysteresis, LowMajor);	
+					}
+					else {
+						if (found_interpreted & SAHPI_STM_LOW_MINOR) {
+							get_low_hysteresis_value(NegThdHysteresis, LowMinor);
+						}	
+					}	
+				}
+			}
+			else {
+				dbg("Negitive Hysteresis is defined but not any negitive thresholds");
+				working.NegThdHysteresis.ValuesPresent = 0;
+			}    
+		}			    
 
 		if (found_raw || found_interpreted) {
 			memcpy(thres, &working, sizeof(SaHpiSensorThresholdsT));
