@@ -30,6 +30,9 @@
 #  
 DIAGRAMS = $(shell ls images/*png images/*gif) 
 
+SERVER = shell1.sourceforge.net
+HLDDIR = /home/groups/o/op/openhpi/htdocs/hld2
+
 MAINTAINERCLEANFILES 	= Makefile.in  
 
 openhpi_docsdir		= $(datadir)/openhpi/docs/hld
@@ -79,6 +82,11 @@ OpenHPI_HLD/book1.html: $(SGML_FILES)
 	-db2html OpenHPI_HLD.sgml
 	-mkdir -p OpenHPI_HLD/images
 	-cp $(DIAGRAMS) OpenHPI_HLD/images
+
+publish: OpenHPI_HLD/book1.html
+	-rsync -rP OpenHPI_HLD/ $(SERVER):$(HLDDIR)
+	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -exec chmod g+w {} \;"
+	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -type d -exec chmod g+s {} \;"
 
 clean:
 	rm -fR OpenHPI_HLD

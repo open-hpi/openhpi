@@ -56,7 +56,11 @@
     <sect2>
       <title>Resource Capabilities</title>
       <para>
+        Every RPT entry has one field dedicated to capabilities of the
+        resource.  This field is a 32bit vector, each bit
+        corresponding to a capability.  They include:
       </para>
+      
     </sect2>
     <sect2>
       <title>Resource Data Records</title>
