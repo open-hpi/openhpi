@@ -19,6 +19,33 @@
 #include <oh_plugin.h>
 #include <oh_error.h>
 #include <oh_lock.h>
+#include <config.h>
+/* Version Call */
+
+/**
+ * oHpiVersionGet
+ * 
+ * Returns the version of the library as an SaHpiUint64T.  The version
+ * consists of 4 16 bit ints, MAJOR, MINOR, PATCH, and TYPE.  TYPE
+ * is used to determine if this is the stand alone library or the client library.
+ */
+
+SaHpiUint64T oHpiVersionGet() 
+{
+        SaHpiUint64T v = 0;
+        char * version = VERSION;
+        char * start = version;
+        char * end = version;
+
+        v += (strtoull(start, &end, 10) << 48);
+        end++;
+        start = end;
+        v += (strtoull(start, &end, 10) << 32);
+        end++;
+        start = end;
+        v += (strtoull(start, &end, 10) << 16);
+        return v;
+}
 
 /* Plugin operations */
 

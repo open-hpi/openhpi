@@ -25,6 +25,7 @@ extern "C" {
 
 #include <SaHpi.h>
 #include <oHpi.h>
+#include <oh_utils.h>
 #ifdef __cplusplus
 }
 #endif
@@ -246,6 +247,12 @@ extern cMarshalType oHpiPluginInfoType;
 extern cMarshalType oHpiHandlerInfoType;
 #define oHpiGlobalParamTypeType SaHpiUint32Type
 extern cMarshalType oHpiGlobalParamType;
+
+typedef struct {
+        SaHpiUint16T   DataLength;
+        SaHpiUint8T    Data[OH_MAX_TEXT_BUFFER_LENGTH];  /* Data buffer */
+} oHpiTextBufferT;
+
 extern cMarshalType oHpiTextBufferType;
 
 
