@@ -140,48 +140,6 @@ static int sa_event(int argc, char *argv[])
 	return SA_OK;
 }
 
-static int sa_sen_evt_set(
-	SaHpiResourceIdT resourceid,
-	SaHpiSensorNumT sensornum )
-{
-	SaErrorT rv;
-	SaHpiSensorEventMaskActionT	enables;
-	SaHpiEventStateT		assert;
-	SaHpiEventStateT		deassert;
-	SaHpiBoolT			status;
-
-	assert = 0x0400;
-	deassert = 0x0400;
-	enables = SAHPI_SENS_ADD_EVENTS_TO_MASKS;
-	rv = saHpiSensorEventMasksSet(
-			sessionid, resourceid, sensornum, enables, assert, deassert);
-	if (rv != SA_OK) {
-		printf("saHpiSensorEventMasksSet error %d\n",rv); 
-		return -1; 
-	}
-	printf("Sensor Event Enables Successfully\n");
-
-	rv = saHpiSensorEventEnableGet(
-			sessionid, resourceid, sensornum, &status);
-	if (rv != SA_OK) {
-		printf("saHpiSensorEventEnableGet error %d\n",rv); 
-		return -1; 
-	}
-	rv = saHpiSensorEventMasksGet(
-			sessionid, resourceid, sensornum, &assert, &deassert);
-	if (rv != SA_OK) {
-		printf("saHpiSensorEventMasksGet error %d\n",rv); 
-		return -1; 
-	}
-
-	printf("Sensor Event Masks: \n");
-	printf("  Sensor Status: %x\n", status);
-	printf("  Assert Events: %x\n", assert);
-	printf("  Deassert Events: %x\n", deassert);
-
-	return SA_OK;
-}
-
 static void Set_thres_value(SaHpiSensorReadingT *item, double value)
 {
 	item->IsSupported = 1;
@@ -730,22 +688,6 @@ static int set_thres(int argc, char *argv[])
         return sa_set_thres(argc, argv);
 }
 
-static int sen_evt_get(int argc, char *argv[])
-{
-        if (argc < 3)
-                return HPI_SHELL_PARM_ERROR;
-	return show_sensor_status(sessionid, (SaHpiResourceIdT)atoi(argv[1]),
-		(SaHpiSensorNumT)atoi(argv[2]), ui_print);
-}
-
-static int sen_evt_set(int argc, char *argv[])
-{
-        if (argc < 3)
-                return HPI_SHELL_PARM_ERROR;
-        return sa_sen_evt_set((SaHpiResourceIdT)atoi(argv[1]),
-                                (SaHpiSensorNumT)atoi(argv[2]));
-}
-
 static int show_hs_ind(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -860,6 +802,18 @@ static int sen_block(int argc, char *argv[])
 	else if (t == 'w') type = SAHPI_WATCHDOG_RDR;
 	else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
 	else type = SAHPI_NO_RECORD;
+	if (type == SAHPI_NO_RECORD) {
+		show_rdr_list(Domain, rptid, type, ui_print);
+		i = get_int_param("Select RDR Type (s|a|c|w|i) ==> ", &res, buf, 9);
+		if (i != 0) return HPI_SHELL_PARM_ERROR;
+		t = *buf;
+		if (t == 'c') type = SAHPI_CTRL_RDR;
+		else if (t == 's') type = SAHPI_SENSOR_RDR;
+		else if (t == 'i') type = SAHPI_INVENTORY_RDR;
+		else if (t == 'w') type = SAHPI_WATCHDOG_RDR;
+		else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
+		else return HPI_SHELL_PARM_ERROR;
+	};
 	if (argc < 4) {
 		show_rdr_list(Domain, rptid, type, ui_print);
 		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
@@ -1114,12 +1068,7 @@ const char resethelp[] = "reset: perform specified reset on the entity\n"  \
 			"Usage: reset <resource id> [cold|warm|assert]";
 const char senhelp[] = "sen: sensor block commands\n"        \
 			"Usage: sen [<sensorId> [<command>]]"
-			"	command:: evtget"
 			"	sensorId:: <resourceId> <type> <num>";
-const char senevtgethelp[] = "senevtget: get sensor event status\n"        \
-			"Usage: senevtget <resource id> <sensor id>";
-const char senevtsethelp[] = "senevtelb: enable sensor event message\n"    \
-			"Usage: senevtelb <resource id> <sensor id>";
 const char setthreshelp[] = "setthreshold: set sensor threshold values\n"  \
 			"Usage: setthreshold <resource id> <sensor id>\n"  \
 			"                    [lc val] [la val] [li val]\n" \
@@ -1159,8 +1108,6 @@ struct command commands[] = {
     { "reset",		reset,			resethelp },
     { "rpt",		show_rpt,		showrpthelp },
     { "sen",		sen_block,		senhelp },
-    { "senevtget",	sen_evt_get,		senevtgethelp },
-    { "senevtelb",	sen_evt_set,		senevtsethelp },
     { "sethreshold",	set_thres,		setthreshelp },
     { "settag",		set_tag,		settaghelp },
     { "showevtlog",	show_evtlog,		showevtloghelp },
