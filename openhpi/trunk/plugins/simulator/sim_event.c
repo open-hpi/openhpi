@@ -3,11 +3,14 @@
 #include <fam.h>
 #include <pthread.h>
 #include <dirent.h>
+#include <string.h>
 
 #include <SaHpi.h>
 #include <openhpi.h>
+#include <uid_utils.h>
 
 #include "sim_util.h"
+#include "sim_parser.h"
 #include "sim_event.h"
 
 
@@ -38,12 +41,11 @@ static int str2uint32(char *str, SaHpiUint32T *val)
 static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *fe)
 {
         FAMRequest fr;
-        SaHpiRptEntryT *rpt;
         DIR *pdir;
         struct dirent *pd;
         char  *path, *root_path;
         int len;
-        
+        struct oh_event *event;
 
 #ifndef UNIT_TEST
         root_path = g_hash_table_lookup(feh->ohh->config, "root_path");
@@ -60,25 +62,33 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
             g_free(path);
             return -1;
         }
-  
-        rpt = g_malloc0(sizeof(*rpt));
-#if 0
-        parse rpt entry(contain entity path, then calulate resource id)
-        
-        insert resource event into event queue;
-#else
-        printf("add resource:%s\n", fe->filename);
+
+#if 1
+        event = g_malloc0(sizeof(*event));
+        event->type = OH_ET_RESOURCE;
+        sprintf(path, "%s/%s/rpt", root_path, fe->filename);
+        sim_parser_get_rpt(path, &event->u.res_event.entry);
+        event->u.res_event.entry.ResourceId = oh_uid_from_entity_path(
+                                     &event->u.res_event.entry.ResourceEntity);
+        sim_util_insert_event(feh->ohh->eventq, event);
 #endif
-        feh->ids = sim_util_add_res_id(feh->ids, fe->filename, rpt->EntryId, 
-                                       &rpt->ResourceEntity);
+
+        feh->ids = sim_util_add_res_id(feh->ids, fe->filename,
+                                       event->u.res_event.entry.ResourceId, 
+                                       &event->u.res_event.entry.ResourceEntity);
         for (pd = readdir(pdir); pd; pd = readdir(pdir)) {
                 DIR *tmp;
                 unsigned int index;
 
                 if (str2uint32(pd->d_name, &index)) continue;
-#if 0
-                insert rdr event into event queue; 
-#else
+#if 1
+                event = g_malloc0(sizeof(*event));
+                event->type = OH_ET_RDR;
+                sprintf(path, "%s/%s/%s/rdr", root_path, fe->filename, pd->d_name);
+                sim_parser_get_rdr(path, &event->u.rdr_event.rdr);
+                event->u.res_event.entry.ResourceId = oh_uid_from_entity_path(
+                                     &event->u.res_event.entry.ResourceEntity);
+                sim_util_insert_event(feh->ohh->eventq, event);
                 printf("add rdr:%s\n", pd->d_name);
 #endif
                 sprintf(path, "%s/%s/%s/sensor", root_path, res, pd->d_name); 
@@ -87,7 +97,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                         FAMMonitorDirectory(fe->fc, path, &fr, (void *)req_rdr);
                         sim_util_add_rdr_id(feh->ids, fe->filename, fr.reqnum, index);
                         printf("monitor sensor:%s\n", pd->d_name);
-                        close(tmp);
+                        closedir(tmp);
                 }
         }
         closedir(pdir);
@@ -98,8 +108,14 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
 {
         struct sim_rdr_id   *rdr_id;
         int index;
-#if 0
-        insert resource event and rdr event to event queue
+        struct oh_event *event;
+        struct sim_res_id *id;
+#if 1
+        event = g_malloc0(sizeof(*event));
+        event->type = OH_ET_RESOURCE_DEL;
+        id = sim_util_get_res_id_by_reqnum(feh->ids, fe->fr.reqnum);
+        event->u.res_del_event.resource_id = id->res_id;
+        sim_util_insert_event(feh->ohh->eventq, event);
 #endif
         index = 0;
         rdr_id = sim_util_get_rdr_id(feh->ids, fe->filename, index);
@@ -170,16 +186,14 @@ static void* fhs_event_process(void *data)
                 }
         } 
         FAMClose(&fc);
-#if 0
-        free all resource id and rdr id;
+#if 1
+        sim_util_free_all_res_id(feh->ids);   
 #endif
         return 0;
 }
 
 struct fe_handler* fhs_event_init(struct oh_handler_state *hnd)
 {
-
-        pthread_t tid;
         int retval;     
         struct fe_handler *feh;
 
@@ -201,21 +215,3 @@ void fhs_event_finish(struct fe_handler *feh)
         pthread_join(feh->tid, NULL);
         free(feh);
 }
-
-#ifdef UNIT_TEST
-int main()
-{
-        struct fe_handler *feh;
-
-        feh = fhs_event_init(NULL);
-        while(1);
-        fhs_event_finish(feh);
-        return 0;
-}
-/*
- *   How to do module test
- *   gcc  -DUNIT_TEST -g -I. -I../../..  -I../../../include
- *   -I/usr/include/glib-1.2 -I/usr/lib/glib/include 
- *   -lfam -lglib -lpthread  sim_event.c
- */
-#endif
