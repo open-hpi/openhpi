@@ -33,12 +33,10 @@
  
 
 
-aclocal
-libtoolize -c --automake
+libtoolize -c --force --ltdl --automake
+aclocal -I m4 $ACLOCAL_FLAGS
 autoheader
 automake -a -c --foreign
-aclocal
 autoconf
-automake --foreign
 
 
