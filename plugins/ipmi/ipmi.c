@@ -897,6 +897,7 @@ static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 
 static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
    			  	       SaHpiSensorNumT num,
+				       SaHpiSensorEventMaskActionT act,
 			 	       SaHpiEventStateT  assert,
 				       SaHpiEventStateT  deassert)
 {
