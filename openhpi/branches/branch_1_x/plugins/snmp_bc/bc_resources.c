@@ -69,7 +69,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Top-level blade chassis"
+                .comment = "BladeCenter"
         },
         /* Management module */
         {
@@ -117,7 +117,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Management module"
+                .comment = "Management Module"
         },
         /* Switch module */
         {
@@ -180,7 +180,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Network switch module"
+                .comment = "Network Switch Module"
         },
         /* Blade */
         {
@@ -291,7 +291,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Blade expansion card"
+                .comment = "Blade Expansion Card"
         },
         /* Media Tray */
         {
@@ -338,7 +338,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Control panel/Media tray"
+                .comment = "Control Panel/Media Tray"
         },
         /* Blower module */
         {
@@ -376,7 +376,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Blower module"
+                .comment = "Blower Module"
         },
         /* Power module */
         {
@@ -424,7 +424,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Power module"
+                .comment = "Power Module"
         },
 
         {} /* Terminate array with a null element */
