@@ -180,21 +180,21 @@ SaErrorT snmp_set(
         	/*
          	* Process the response.
          	*/
-        	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-			/* TO DO - Check for snmp exception cases */ 
-                	rtncode = SA_OK;
-        	} else {
-                	rtncode = -1;
-                	if (status == STAT_SUCCESS)
-                        	dbg("Error in packet %s\nReason: %s\n",
-                                		objid, snmp_errstring(response->errstat));
-                	else
-                        	snmp_sess_perror("snmpset", ss);
-        	}
-
+                if (status == STAT_SUCCESS) {
+                        if (response->errstat == SNMP_ERR_NOERROR) {
+				rtncode = SA_OK;
+			} else {
+                                if (response->errstat == SNMP_ERR_NOSUCHNAME)
+					response->errstat = SNMP_NOSUCHOBJECT;
+                                rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - response->errstat);
+			}
+                } else {
+			snmp_sess_perror("snmpset", ss);
+			rtncode = (SaErrorT) (SA_ERR_SNMP_BASE - status);
+		}
+		
         	/* Clean up: free the response */
         	if (response) snmp_free_pdu(response);
-	
 	}
 
         return rtncode;
