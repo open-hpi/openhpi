@@ -189,9 +189,10 @@ SaErrorT ohoi_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
         int done = 0;
 
         handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = handler->data;
+	struct ohoi_handler *ipmi_handler = handler->data;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;

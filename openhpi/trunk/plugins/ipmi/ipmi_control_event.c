@@ -208,16 +208,15 @@ void ohoi_control_event(enum ipmi_update_e op,
 			void               *cb_data)
 {
 	struct oh_handler_state *handler = cb_data;
+        struct ohoi_resource_info *ohoi_res_info;
 	
 	ipmi_entity_id_t	entity_id;	
 	SaHpiRptEntryT		*rpt_entry;
-        struct ohoi_resource_info *ohoi_res_info;
 	int rv;
         
 	entity_id = ipmi_entity_convert_to_id(ent);
-	rpt_entry = ohoi_get_resource_by_entityid(
-			handler->rptcache,
-			&entity_id);   
+	rpt_entry = ohoi_get_resource_by_entityid(handler->rptcache,
+						  &entity_id);   
 	
 	if (!rpt_entry) {
 			dump_entity_id("Control with RPT Entry?!", entity_id);
@@ -261,5 +260,6 @@ void ohoi_control_event(enum ipmi_update_e op,
                 }
                                 
 	}
+	ohoi_res_info->updated = 1;
 }
 	

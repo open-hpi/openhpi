@@ -673,14 +673,15 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 			     SaHpiEntityPathT	parent_ep,
 			     SaHpiResourceIdT	rid)
 {
-	struct ohoi_sensor_info *sensor_info;
+      	struct ohoi_sensor_info *sensor_info;
 	struct oh_event         *e;
         struct ohoi_resource_info *info;
+	int lun, num;
 
 	sensor_info = malloc(sizeof(*sensor_info));
 
 	if (!sensor_info) {
-		dbg("Out of memory for sensor info");
+	      	dbg("Out of memory for sensor info");
 		return;
 	}
 
@@ -690,7 +691,7 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 	
 	e = malloc(sizeof(*e));
 	if (!e) {
-                free(sensor_info);
+	      	free(sensor_info);
 		dbg("Out of space");   
 		return;
 	}
@@ -698,7 +699,7 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 
 	e->type = OH_ET_RDR;
 	add_sensor_event_rdr(sensor, &e->u.rdr_event.rdr,
-			     parent_ep,rid);	
+					 	parent_ep,rid);	
 
         info = oh_get_resource_data(handler->rptcache, rid);
         if (!info) {
@@ -707,13 +708,14 @@ static void add_sensor_event(ipmi_entity_t	*ent,
                 return;
         }
         e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num =
-	                                       info->sensor_count;
-        info->sensor_count++;
+	    				ipmi_sensor_get_num(sensor,
+							    &lun,
+							    &num);
 
 	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 
 	oh_add_rdr(handler->rptcache, rid, &e->u.rdr_event.rdr,
-	                            sensor_info, 1);
+				   	sensor_info, 1);
 }
 
 void ohoi_sensor_event(enum ipmi_update_e op,
@@ -721,9 +723,13 @@ void ohoi_sensor_event(enum ipmi_update_e op,
                        ipmi_sensor_t      *sensor,
                        void               *cb_data)
 {
-	char			name[33];    
+      	char			name[33];    
 	int			rv;
+
 	struct oh_handler_state *handler = cb_data;
+	struct ohoi_resource_info *res_info;
+							
+
         ipmi_entity_id_t entity_id;
         SaHpiRptEntryT *rpt_entry;
      
@@ -731,46 +737,46 @@ void ohoi_sensor_event(enum ipmi_update_e op,
 
         entity_id = ipmi_entity_convert_to_id(ent);
 
-        rpt_entry = ohoi_get_resource_by_entityid(
-                        handler->rptcache,
-                        &entity_id);
+        rpt_entry = ohoi_get_resource_by_entityid(handler->rptcache,
+						  &entity_id);
         if (!rpt_entry) {
                 dump_entity_id("Sensor without RPT Entry?!", entity_id);
                 return;
         }
 
-	switch (op) {
-		case IPMI_ADDED:
-			rpt_entry->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR 
-                                                    | SAHPI_CAPABILITY_SENSOR;
+	res_info =  oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId); 
 
-	                /* fill in the sensor data, add it to ipmi_event_list
+	switch (op) {
+	      	case IPMI_ADDED:
+		    	rpt_entry->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR 
+			    				| SAHPI_CAPABILITY_SENSOR;
+
+	               	/* fill in the sensor data, add it to ipmi_event_list
 			 * and finally to the rpt-cache
 			 */		 
-			add_sensor_event(ent, sensor, handler, 
-        	                         rpt_entry->ResourceEntity, 
-                	                 rpt_entry->ResourceId);
+			add_sensor_event(ent, sensor, handler,
+					 rpt_entry->ResourceEntity,
+					 rpt_entry->ResourceId);
 		
 			if (ipmi_sensor_get_event_reading_type(sensor) == 
-					IPMI_EVENT_READING_TYPE_THRESHOLD) 
-				rv = ipmi_sensor_threshold_set_event_handler(
-						sensor, sensor_threshold_event,
-						handler);
+						IPMI_EVENT_READING_TYPE_THRESHOLD)
+			      	rv = ipmi_sensor_threshold_set_event_handler(sensor,
+									     sensor_threshold_event,
+									     handler);
 			else
-				rv = ipmi_sensor_discrete_set_event_handler(
-						sensor, sensor_discrete_event,
-						handler);
-
+			      	rv = ipmi_sensor_discrete_set_event_handler(sensor,
+									    sensor_discrete_event,
+									    handler);
 			if (rv)
-				dbg("Unable to reg sensor event handler: %#x\n", rv);
+			      	dbg("Unable to reg sensor event handler: %#x\n", rv);
 		case IPMI_CHANGED:
-			add_sensor_event(ent, sensor, handler, 
-        	                         rpt_entry->ResourceEntity, 
-                	                 rpt_entry->ResourceId);
+			add_sensor_event(ent, sensor, handler,
+					 rpt_entry->ResourceEntity, 
+					 rpt_entry->ResourceId);
 		case IPMI_DELETED:
 			dbg("Sensor DELETED");
-		
 	}
+	res_info->updated = 1;
 }
 
 /*
