@@ -60,7 +60,7 @@ struct oh_resource {
 		struct oh_sel *sel;
 		/* valid when OH_ENTITY */
 		struct list_head rdr_list;
-	};
+	} u;
 	SaHpiRptEntryT rpt_entry;
 	int present:1;
 };
@@ -77,7 +77,7 @@ struct oh_rdr {
 		struct oh_inventory	*inventory;
 		/* valid when OH_WATCHDOG */
 		struct oh_watchdog	*watchdog;
-	};
+	} u;
 };
 
 struct oh_sensor {

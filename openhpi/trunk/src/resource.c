@@ -17,13 +17,13 @@ static int init_res(struct oh_resource *res, enum oh_item type)
 	
 	switch (type) {
 		case OH_DOMAIN:
-			res->domain = NULL;
+			res->u.domain = NULL;
 			break;
 		case OH_SEL:
-			res->sel = NULL;
+			res->u.sel = NULL;
 			break;
 		case OH_ENTITY:
-			list_init(&res->rdr_list);
+			list_init(&res->u.rdr_list);
 			break;
 		default:
 			dbg("Error resource type");
