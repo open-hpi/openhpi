@@ -43,7 +43,10 @@ EXTRA_DIST		= sim_resources.h \
 			  tsensor.h \
 			  tstubs_rdr.h \
 			  tstubs_res.h \
-			  tstubs_snmp.h 
+			  tstubs_snmp.h \
+			  tstubs_rdr.c \
+			  tstubs_res.c \
+			  tstubs_snmp.c 
 
 noinst_LTLIBRARIES	= libsnmp_bc.la
 
@@ -113,10 +116,10 @@ tutils_conv_LDADD   = snmp_bc_utils.o
 tsensor_SOURCES = tsensor.c
 tsensor_LDADD   = snmp_bc_sensor.o snmp_bc_utils.o
 
-thotswap_state_SOURCES = thotswap_state.c
+thotswap_state_SOURCES = thotswap_state.c 
 thotswap_state_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
 
-thotswap_state_err_SOURCES = thotswap_state_err.c
+thotswap_state_err_SOURCES = thotswap_state_err.c 
 thotswap_state_err_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
 
 thotswap_reset_SOURCES = thotswap_reset.c

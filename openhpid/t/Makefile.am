@@ -17,7 +17,7 @@ REMOTE_SOURCES		= simple_config.c
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) $(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
-INCLUDES		= -I..
+INCLUDES		= -I $(srcdir)/..
 
 AM_CFLAGS		= @CFLAGS@ -ftest-coverage -fprofile-arcs
 
