@@ -21,11 +21,6 @@
 #include <glib.h>
 #include <oh_utils.h>
 
-/* Domain id for the first domain created.
- * This is the default domain
- */
-#define OH_FIRST_DOMAIN 1
-
 /* Number of pre-alloced session slots for a domain. */
 #define OH_SESSION_PREALLOC 5
 
@@ -73,6 +68,7 @@ struct oh_domain {
 SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                                 SaHpiBoolT isPeer,
                                 SaHpiTextBufferT *tag);
+SaHpiDomainIdT oh_get_default_domain_id(void);
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did);
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did);
 GArray *oh_list_domains(void);

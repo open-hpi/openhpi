@@ -76,6 +76,16 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
 }
 
 /**
+ * oh_get_default_domain_id
+ *
+ * Returns:
+ **/
+SaHpiDomainIdT oh_get_default_domain_id()
+{
+        return (SaHpiDomainIdT)1;
+}
+
+/**
  * oh_destroy_domain
  * @did:
  *
