@@ -205,22 +205,22 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
         SaHpiRptEntryT *res = NULL;
 
         /* Look for absent resources and rdrs */
-        for (res = oh_get_resource_by_id(current, RPT_ENTRY_BEGIN);
+        for (res = oh_get_resource_by_id(cur_rpt, RPT_ENTRY_BEGIN);
              res != NULL;
-             res = oh_get_resource_next(current, res->ResourceId)) {
+             res = oh_get_resource_next(cur_rpt, res->ResourceId)) {
                 
-                SaHpiRptEntryT *tmp_res = oh_get_resource_by_id(new, res->ResourceId);
+                SaHpiRptEntryT *tmp_res = oh_get_resource_by_id(new_rpt, res->ResourceId);
                 
                 if (tmp_res == NULL) *res_gone = g_slist_append(*res_gone, (gpointer)res);
                 else {
                         SaHpiRdrT *rdr = NULL;
                         
-                        for (rdr = oh_get_rdr_by_id(current, res->ResourceId, RDR_BEGIN);
+                        for (rdr = oh_get_rdr_by_id(cur_rpt, res->ResourceId, RDR_BEGIN);
                              rdr != NULL;
-                             rdr = oh_get_rdr_next(current, res->ResourceId, rdr->RecordId)) {
+                             rdr = oh_get_rdr_next(cur_rpt, res->ResourceId, rdr->RecordId)) {
 
                                 SaHpiRdrT *tmp_rdr =
-                                        oh_get_rdr_by_id(new, res->ResourceId, rdr->RecordId);
+                                        oh_get_rdr_by_id(new_rpt, res->ResourceId, rdr->RecordId);
                                         
                                 if (tmp_rdr == NULL)
                                         *rdr_gone = g_slist_append(*rdr_gone, (gpointer)rdr);
@@ -229,11 +229,11 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
         }
 
         /* Look for new resources and rdrs*/
-        for (res = oh_get_resource_by_id(new, RPT_ENTRY_BEGIN);
+        for (res = oh_get_resource_by_id(new_rpt, RPT_ENTRY_BEGIN);
              res != NULL;
-             res = oh_get_resource_next(new, res->ResourceId)) {
+             res = oh_get_resource_next(new_rpt, res->ResourceId)) {
 
-                SaHpiRptEntryT *tmp_res = oh_get_resource_by_id(current, res->ResourceId);
+                SaHpiRptEntryT *tmp_res = oh_get_resource_by_id(cur_rpt, res->ResourceId);
                 SaHpiRdrT *rdr = NULL;
                 if (!tmp_res || memcmp(res, tmp_res, sizeof(SaHpiRptEntryT))) {
                         *res_new = g_slist_append(*res_new, (gpointer)res);
@@ -241,14 +241,14 @@ void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
 
                 
                         
-                for (rdr = oh_get_rdr_by_id(new, res->ResourceId, RDR_BEGIN);
+                for (rdr = oh_get_rdr_by_id(new_rpt, res->ResourceId, RDR_BEGIN);
                      rdr != NULL;
-                     rdr = oh_get_rdr_next(new, res->ResourceId, rdr->RecordId)) {
+                     rdr = oh_get_rdr_next(new_rpt, res->ResourceId, rdr->RecordId)) {
 
                         SaHpiRdrT *tmp_rdr = NULL;
                                 
                         if (tmp_res != NULL) 
-                                tmp_rdr = oh_get_rdr_by_id(current, res->ResourceId, rdr->RecordId);                        
+                                tmp_rdr = oh_get_rdr_by_id(cur_rpt, res->ResourceId, rdr->RecordId);                        
 
                         if (tmp_rdr == NULL || memcmp(rdr, tmp_rdr, sizeof(SaHpiRdrT)))
                                 *rdr_new = g_slist_append(*rdr_new, (gpointer)rdr);
