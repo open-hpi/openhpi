@@ -494,7 +494,8 @@ CC_WARNINGS="\
         -Wformat-nonliteral \
 	-Wno-format-y2k \
 	-Wcast-qual \
-	-Wcast-align"
+	-Wcast-align \
+	-Werror "
 
 CXX_WARNINGS="\
         -Wall \
