@@ -252,7 +252,7 @@ dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
 
-if pkg-config --atleast-version 1.4.8 OpenIPMI; then
+if pkg-config --atleast-version 1.3.11 OpenIPMI; then
     have_openipmi=yes
     AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
     OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
