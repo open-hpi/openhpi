@@ -72,7 +72,7 @@ static enum {
 #define OH_HANDLER_GET(rpt,rid,h)                                       \
         do {                                                            \
                 struct oh_resource_data *rd;                            \
-                if(rpt != NULL) {                                       \
+                if(rpt == NULL) {                                       \
                         dbg("Invalide RPTable");                        \
                         return SA_ERR_HPI_INVALID_SESSION;              \
                 }                                                       \
