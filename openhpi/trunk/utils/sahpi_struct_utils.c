@@ -142,6 +142,9 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
                 return(SA_ERR_HPI_INVALID_CMD);
         }
 	
+	if (reading.Type != format.ReadingType)
+			return(SA_ERR_HPI_INVALID_DATA);
+
 	oh_init_textbuffer(&working);
 	memset(text, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 
