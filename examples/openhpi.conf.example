@@ -35,6 +35,7 @@ handler	libdummy {
 #section for ipmi plugin using SMI -- local interface
 
 #handler libipmi	{
+#       entity_root = "{SYSTEM_CHASSIS,2}"
 #	name = "smi"
 #	addr = 0
 #}
@@ -42,6 +43,7 @@ handler	libdummy {
 #Section for ipmi plugin based on OpenIPMI:
 
 #handler libipmi {
+#       entity_root = "{SYSTEM_CHASSIS,3}"
 #	name = "lan"
 #	addr = "x.x.x.x" 	#ipaddress
 #	port = 999
@@ -55,7 +57,7 @@ handler	libdummy {
 #The root entry can be omitted in 'entity_root',
 #but not the chassis entry.
 #handler libsnmp_bc {
+#        entity_root = "{SYSTEM_CHASSIS,4}"
 #        host = "bc.ibm.com"
 #        community = "community"
-#        entity_root = "{SYSTEM_CHASSIS,1}"
 #}
