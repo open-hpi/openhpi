@@ -395,6 +395,9 @@ CC_WARNINGS="\
 	-Wmissing-declarations \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
+        -Wformat=2 \
+        -Wformat-security \
+        -Wformat-nonliteral \
 	-Werror \
 	-Wcast-qual \
 	-Wcast-align"
