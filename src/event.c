@@ -120,20 +120,19 @@ SaErrorT harvest_events()
 
 static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 {
-        SaHpiSeverityT log_severity;
+        SaHpiSeverityT log_severity = SAHPI_MINOR;
         SaHpiTextBufferT buffer;
         struct oh_domain *d;
         SaErrorT rv = SA_OK;     
-        char *env_var = NULL;
+	char *openhpi_log_sev = NULL;
         
-        /* FIXME: this needs to be locked at boot time */
-        env_var = getenv("OPENHPI_LOG_SEV"); 
-        if (env_var) 
-                strncpy(buffer.Data, env_var, strlen(env_var));
-        if (oh_encode_severity(&buffer, &log_severity) != SA_OK) {
-                log_severity = SAHPI_MINOR;
+	/* FIXME: this needs to be locked at boot time */
+	openhpi_log_sev = getenv("OPENHPI_LOG_SEV"); 
+	if (openhpi_log_sev) {
+		strncpy(buffer.Data, openhpi_log_sev, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+                oh_encode_severity(&buffer, &log_severity);                
         }
-        
+
         if (e->event.Severity <= log_severity) { /* less is more */
                 /* yes, we need to add real domain support later here */
                 d = oh_get_domain(did);
