@@ -19,10 +19,11 @@
 
 #define MAX_LEN_OID 128
 
-
+#if 0
 #define CHECK_END(a) ((a != SNMP_ENDOFMIBVIEW) &&  \
                   (a != SNMP_NOSUCHOBJECT) &&  \
                   (a != SNMP_NOSUCHINSTANCE))? 1:0 
+#endif		  
 
 int get_sahpi_table_entries(RPTable *temp_rptable, 
                             struct oh_handler_state *handle, 
