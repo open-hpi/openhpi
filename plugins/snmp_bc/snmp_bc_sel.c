@@ -115,14 +115,20 @@ int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
                 if(snmp_bc_parse_sel_entry(handle,first_value.string, &sel_entry) < 0) {
                         dbg("Couldn't get first date");
                 } else {
-                        sel.UpdateTimestamp = 
-                                (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
+			if (sel_entry.time.tm_year > 138) 
+                        	sel.UpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+			else 
+                        	sel.UpdateTimestamp = 
+                                	(SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
                 }
         }
         
         if(get_bc_sp_time(handle,&curtime) == 0) {
-                sel.CurrentTime = 
-                        (SaHpiTimeT) mktime(&curtime) * 1000000000;
+		if (curtime.tm_year > 138)
+			sel.CurrentTime = SAHPI_TIME_UNSPECIFIED;
+		else
+                	sel.CurrentTime = 
+                        	(SaHpiTimeT) mktime(&curtime) * 1000000000;
         }
         
         sel.Entries = get_bc_sel_size(hnd, id);
@@ -159,6 +165,17 @@ int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 		if (rc != SA_OK) {
 			dbg("Error fetching entry number %d from cache, errnum %d  >>>\n", current, rc);
 		} else {
+		
+			/* If BladeCenter target has year set out of range, */
+			/* 1970 =< range =< 2038, set timestamp to          */
+			/* SAHPI_TIME_UNSPECIFIED before sending SEL entry  */
+			/* to user.  Test for a more negative number        */ 
+			if ((unsigned long long)tmpentryptr->Event.Timestamp  >
+				(unsigned long long) SAHPI_TIME_UNSPECIFIED ) {
+	
+				tmpentryptr->Timestamp = SAHPI_TIME_UNSPECIFIED;
+				tmpentryptr->Event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+			}
 			memcpy(entry, tmpentryptr, sizeof(SaHpiSelEntryT));
 		}
 	} else {
@@ -397,14 +414,30 @@ int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 	if(get_value.type == ASN_OCTET_STR) {
 		int event_enabled;
 
-		/*snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);*/
-		/* isdst = sel_entry.time.tm_isdst;*/
                 log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
                 tmpentry.EntryId = current;
                 tmpentry.Timestamp = tmpentry.Event.Timestamp;
-                rv = oh_sel_add(handle->selcache, &tmpentry);
 		
+		/* Keep the original BladeCenter timestamp in cache copy     */
+		/* even if timestamp is set out of range, 1970 =< yr =< 2038 */
+		/* Because original timestamp is used to determine if cache  */
+		/* synchronization is needed. If we convert  out-of-range    */
+		/* timestamp in the cache SEL, then we will refresh cache on */
+		/* every SEL get.                                            */
+                rv = oh_sel_add(handle->selcache, &tmpentry);
+			
 		if (event_enabled) {
+		
+			/* If BladeCenter target has year set out of range, */
+			/* 1970 =< range =< 2038, set timestamp to          */
+			/* SAHPI_TIME_UNSPECIFIED before placing SEL entry  */
+			/* in event queue. Test for more negative number.   */ 
+			if ((unsigned long long)tmpentry.Timestamp > 
+				(unsigned long long)SAHPI_TIME_UNSPECIFIED) {
+				
+				tmpentry.Timestamp = SAHPI_TIME_UNSPECIFIED;
+				tmpentry.Event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+			} 
 			rv = snmp_bc_add_to_eventq(hnd, &tmpentry.Event);
 		}
 	} else {
@@ -479,7 +512,8 @@ int snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char * text, bc_sel
                   	&ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
 			set_bc_dst(handle, &ent.time);
                 	ent.time.tm_mon--;
-                	ent.time.tm_year += 100;
+                	ent.time.tm_year += 100;  /* based year == 1900 */
+						  /* expected  2000 =< current yr =< 2038 */ 
         	} else {
                 	dbg("Couldn't parse Date/Time from Blade Center Log Entry");
                 	return -1;
