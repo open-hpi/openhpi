@@ -280,10 +280,11 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
   case eFsaHpiSessionOpen: {
          SaHpiDomainIdT  domain_id;
          SaHpiSessionIdT session_id = 0;
+         void            *securityparams;
 
          printf("Processing saHpiSessionOpen.\n");
-         if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
-                                    hm, pReq, (void *)&domain_id ) < 0 )
+         if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+                                    hm, pReq, &domain_id, &securityparams ) < 0 )
               return eResultError;
 
          ret = saHpiSessionOpen( domain_id, &session_id, 0 );
@@ -846,9 +847,9 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorReadingGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
-                                         &sensor_num ) < 0 )
+                                         &sensor_num, &reading, &state ) < 0 )
                    return eResultError;
 
               ret = saHpiSensorReadingGet( session_id, resource_id,
@@ -1012,9 +1013,10 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorEventMasksGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
-                                         &sensor_num ) < 0 )
+                                         &sensor_num, &assert_mask,
+                                         &deassert_mask ) < 0 )
                    return eResultError;
 
               ret = saHpiSensorEventMasksGet( session_id, resource_id, sensor_num,

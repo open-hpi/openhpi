@@ -192,7 +192,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 	pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionOpen, 0);
 	request = malloc(hm->m_request_len);
 
-	pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &DomainId);
+	pinst->reqheader.m_len = HpiMarshalRequest2(hm, request, &DomainId, &SecurityParams);
 
 	SendRecv();
 
@@ -375,7 +375,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DrtEntryGet)
         pinst->ReadMsg();
         reply = (char *)request + (sizeof(cMessageHeader) * 2) + pinst->reqheader.m_len;
 
-        int mr = HpiDemarshalReply0(pinst->repheader.m_flags & dMhEndianBit, hm, reply, &err);
+        int mr = HpiDemarshalReply2(pinst->repheader.m_flags & dMhEndianBit, hm, reply, &err, &NextEntryId, &DrtEntry);
 
         if (pinst->repheader.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1341,7 +1341,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAcknowledge)
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
 	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT SessionId,
-                             SAHPI_OUT SaHpiAlarmT    *Alarm)
+                             SAHPI_INOUT SaHpiAlarmT  *Alarm)
 {
         void *request;
         void *reply;  
@@ -2049,11 +2049,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
-	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT    SessionId,
-                             SAHPI_IN SaHpiResourceIdT   ResourceId,
-                             SAHPI_IN SaHpiCtrlNumT      CtrlNum,
-                             SAHPI_OUT SaHpiCtrlModeT    Mode,
-                             SAHPI_INOUT SaHpiCtrlStateT *State)
+	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT  SessionId,
+                             SAHPI_IN SaHpiResourceIdT ResourceId,
+                             SAHPI_IN SaHpiCtrlNumT    CtrlNum,
+                             SAHPI_IN SaHpiCtrlModeT   Mode,
+                             SAHPI_IN SaHpiCtrlStateT  *State)
 {
         void *request;
         void *reply;  
@@ -2586,12 +2586,12 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerReset)
 /*----------------------------------------------------------------------------*/
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGetNext)
-	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT      SessionId,
-                             SAHPI_IN SaHpiResourceIdT     ResourceId,
-                             SAHPI_IN SaHpiAnnunciatorNumT AnnNum,
-                             SAHPI_IN SaHpiSeverityT       Severity,
-                             SAHPI_IN SaHpiBoolT           Unack,
-                             SAHPI_OUT SaHpiAnnouncementT  *Announcement)
+	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT       SessionId,
+                             SAHPI_IN SaHpiResourceIdT      ResourceId,
+                             SAHPI_IN SaHpiAnnunciatorNumT  AnnNum,
+                             SAHPI_IN SaHpiSeverityT        Severity,
+                             SAHPI_IN SaHpiBoolT            Unack,
+                             SAHPI_INOUT SaHpiAnnouncementT *Announcement)
 {
         void *request;
         void *reply;  
@@ -2608,7 +2608,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGetNext)
         pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiAnnunciatorGetNext, 0);
         request = malloc(hm->m_request_len);
 
-        pinst->reqheader.m_len = HpiMarshalRequest5(hm, request, &SessionId, &ResourceId, &AnnNum, &Severity, &Unack);
+        pinst->reqheader.m_len = HpiMarshalRequest6(hm, request, &SessionId, &ResourceId, &AnnNum, &Severity, &Unack, &Announcement);
 
         pinst->WriteMsg(request, NULL);
         pinst->ReadMsg();
