@@ -79,20 +79,31 @@ sub set_status {
 sub make_html_body {
     my @lines = @_;
     my $html;
+    my $count = 0;
     foreach my $line (@lines) {
-        if($line =~ /^Function/) {
-            $line =~ s/.*`([^']+).*/$1/;
-            # close the last table
-            $html .= "</table>\n";
-            $html .= "<h4 class='function'>$line</h4>\n<table class='report'>\n";
-        } elsif($line =~ /^File/) {
-            $line =~ s/.*`([^']+).*/$1/;
-            $html .= "<h4 class='file'>$line</h4>\n<table class='report'>\n"
-        } elsif ($line =~ /^No/) {
-            $html .= "<tr class='na'><td>$line</td></tr>\n";
-        } elsif ($line =~ /(\d+\.\d{2})%/) {
+    	if ($line =~ /^No/) {
+	    $html .= "<tr class='na'><td>$line</td></tr>\n";
+	    if (($count%4) == 3) {	    	
+	        # close the last table
+	        $html .= "</table>\n";
+	    }
+	    if ($line =~ /^No branches/) { $count = $count + 1; }
+	    $count = $count + 1;
+	} elsif ($line =~ /(\d+\.\d{2})%/) {
             my $per = $1;
             my $status = "bad";
+	    my $boundary;
+	    
+	    if ($line =~ /(in function )(.+)$/) {
+	        $boundary .= "<h4 class='function'>$2</h4>\n<table class='report'>\n";
+	    } elsif ($line =~ /(in file )(.+)$/) {
+	        $boundary .= "<h4 class='file'>$2</h4>\n<table class='report'>\n"
+	    }
+	    $line =~ s/$1$2//;
+	    if (($count%4) == 0) {
+	    	$html .= $boundary;
+	    }
+	    
             if($per >= 100) {
                 $status = "great";
             } elsif($per > 80) {
@@ -100,7 +111,13 @@ sub make_html_body {
             } elsif($per > 50) {
                 $status = "ok";
             }
-            $html .= "<tr class='$status'><td>$line</td></tr>\n";
+            
+	    $html .= "<tr class='$status'><td>$line</td></tr>\n";	    
+	    if (($count%4) == 3) {	    	
+	        # close the last table
+	        $html .= "</table>\n";
+	    }
+	    $count = $count + 1;
         }
     }
     return $html;
