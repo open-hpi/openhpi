@@ -16,6 +16,7 @@
 
 #include <SaHpi.h>
 #include <string.h>
+#include <stdio.h>
 #include <glib.h>
 #include <rpt_utils.h>
 #include <rpt_resources.h>
@@ -38,8 +39,10 @@ int main(int argc, char **argv)
         if (oh_add_rdr(rptable, rptentries[0].ResourceId, rdrs, data, 1))
                 return 1;
 
-        if (oh_get_rdr_data(rptable, rptentries[0].ResourceId, rdrs[1].RecordId))
+        if (oh_get_rdr_data(rptable, rptentries[0].ResourceId, 255)) {
+		printf("Data: %s\n",(char *)oh_get_rdr_data(rptable, rptentries[0].ResourceId, 0));
                 return 1;
+	}
 
         return 0;
 }

@@ -22,7 +22,7 @@
 
 /**
  * main: Starts with an RPTable of 1 resource, adds 5 rdrs to first resource.
- * Fetches an rdr by id using RDR_BEGIN for the Record Id.
+ * Fetches an rdr by id using SAHPI_FIRST_ENTRY for the Record Id.
  * Success if the interface returns ok, otherwise there was a failure.
  *
  * Return value: 0 on success, 1 on failure
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
                         return 1;
         }
 
-        if (!oh_get_rdr_by_id(rptable, rptentries[0].ResourceId, RDR_BEGIN))
+        if (!oh_get_rdr_by_id(rptable, rptentries[0].ResourceId, SAHPI_FIRST_ENTRY))
                 return 1;
 
         return 0;

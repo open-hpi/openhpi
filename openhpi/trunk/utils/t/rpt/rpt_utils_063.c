@@ -23,7 +23,7 @@
 /**
  * main: Starting with an empty RPTable, adds 1 resource to it
  * and then adds 1 rdr to it. Removes rdr using a special value like
- * RDR_BEGIN.
+ * SAHPI_FIRST_ENTRY.
  * Passes the test if the interface returns ok, else it fails.
  *
  * Return value: 0 on success, 1 on failure
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         if (oh_add_rdr(rptable, rptentries[0].ResourceId, rdrs, NULL, 1))
                 return 1;
 
-        if (oh_remove_rdr(rptable, rptentries[0].ResourceId, RDR_BEGIN))
+        if (oh_remove_rdr(rptable, rptentries[0].ResourceId, SAHPI_FIRST_ENTRY))
                 return 1;
 
         return 0;

@@ -73,7 +73,7 @@ SaHpiRptEntryT *ohoi_get_resource_by_entityid(RPTable                *table,
         res_id1.type            = OHOI_RESOURCE_ENTITY;
         res_id1.u.entity_id     = *entity_id;
         
-        rpt_entry = oh_get_resource_next(table, RPT_ENTRY_BEGIN);
+        rpt_entry = oh_get_resource_next(table, SAHPI_FIRST_ENTRY);
         while (rpt_entry) {
                 struct ohoi_resource_id *ohoi_res_id;
                 ohoi_res_id = oh_get_resource_data(table, rpt_entry->ResourceId);

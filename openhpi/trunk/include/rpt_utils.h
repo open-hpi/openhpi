@@ -19,10 +19,6 @@
 #include <SaHpi.h>
 #include <glib.h>
 
-/* Special Resource Id and Record Id values */
-#define RPT_ENTRY_BEGIN 0xffffffff
-#define RDR_BEGIN       0xffffffff
-
 /* oh_add_resource/rdr free-data flag */
 #define FREE_RPT_DATA SAHPI_FALSE
 #define KEEP_RPT_DATA SAHPI_TRUE
@@ -30,13 +26,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif 
-
-/* a simple typedef to store a state flag with a resource
-   as a bundle */
-typedef struct {
-        SaHpiResourceIdT rid;
-        guint32 state;
-} ResourceState;
 
 typedef struct {
         SaHpiRptInfoT rpt_info;

@@ -45,7 +45,7 @@ The negative tests:
     oh_add_resource
         - RPTable == NULL (020)
         - resource == NULL (021)
-        - rid == special value (like RPTBegin) (022)
+        - rid == special value (like SAHPI_FIRST_ENTRY = 0) (022)
         - rid == special value (like SAHPI_DOMAIN_CONTROLLER_ID) (066)
         - both == NULL (023)
         - epath not valid (need to sanity check epath) (036)

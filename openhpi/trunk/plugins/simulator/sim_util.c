@@ -167,7 +167,7 @@ int sim_util_get_res_id(RPTable *table, char *filename, SaHpiResourceIdT *rid)
         SaHpiRptEntryT *entry;
         SaHpiResourceIdT  id;
 
-        for (id = RPT_ENTRY_BEGIN, entry = oh_get_resource_next(table, id);
+        for (id = SAHPI_FIRST_ENTRY, entry = oh_get_resource_next(table, id);
              entry; entry = oh_get_resource_next(table, entry->ResourceId)) {
                 char* data;
                 data = (char*) oh_get_resource_data(table, entry->ResourceId);

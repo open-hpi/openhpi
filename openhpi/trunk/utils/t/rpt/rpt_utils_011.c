@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         }
 
         for (i = 0; i < 5; i++) {
-                if (oh_add_rdr(rptable, RPT_ENTRY_BEGIN, rdrs + i, NULL,0))
+                if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs + i, NULL,0))
                         return 1;
                 else
                         records = g_slist_append(records, rdrs + i);                
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
                         get_rdr_uid(randrdr->RdrType,
                                     randrdr->RdrTypeUnion.SensorRec.Num);
 
-                tmprdr = oh_get_rdr_by_id(rptable, RPT_ENTRY_BEGIN,
+                tmprdr = oh_get_rdr_by_id(rptable, SAHPI_FIRST_ENTRY,
                                           randrdr->RecordId);
 
                 if (!tmprdr ||

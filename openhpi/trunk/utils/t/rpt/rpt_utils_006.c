@@ -39,7 +39,7 @@ int main(int argc, char **argv)
                         return 1;                
         }
 
-        for (i = 0, tmpentry = oh_get_resource_by_id(rptable, RPT_ENTRY_BEGIN);
+        for (i = 0, tmpentry = oh_get_resource_by_id(rptable, SAHPI_FIRST_ENTRY);
              tmpentry;
              tmpentry = oh_get_resource_next(rptable, tmpentry->ResourceId)) {
                 if (rptentries[i++].ResourceId != tmpentry->ResourceId)

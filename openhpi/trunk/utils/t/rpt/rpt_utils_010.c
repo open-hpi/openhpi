@@ -40,7 +40,7 @@ int main(int argc, char **argv)
                         return 1;
         }
 
-        if (oh_add_rdr(rptable, RPT_ENTRY_BEGIN, rdrs, NULL,0))
+        if (oh_add_rdr(rptable, SAHPI_FIRST_ENTRY, rdrs, NULL,0))
                 return 1;
 
         record_id =
@@ -48,7 +48,7 @@ int main(int argc, char **argv)
         rdrs[0].RecordId = record_id;
 
         tmprdr =
-                oh_get_rdr_by_type(rptable, RPT_ENTRY_BEGIN,
+                oh_get_rdr_by_type(rptable, SAHPI_FIRST_ENTRY,
                                    rdrs[0].RdrType,
                                    rdrs[0].RdrTypeUnion.SensorRec.Num);
         if (!tmprdr ||

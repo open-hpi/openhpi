@@ -56,7 +56,7 @@ int eventq_event_add(struct oh_handler_state *oh_hnd)
 
 	/* get the first rpt entry */
 	
-	rpt_entry = oh_get_resource_next(oh_hnd->rptcache, RPT_ENTRY_BEGIN);
+	rpt_entry = oh_get_resource_next(oh_hnd->rptcache, SAHPI_FIRST_ENTRY);
 	
 	while (rpt_entry) {
 		memset(&event, 0, sizeof(event));
@@ -68,7 +68,7 @@ int eventq_event_add(struct oh_handler_state *oh_hnd)
 		/* get every resource rdr's */
 		rdr_entry = oh_get_rdr_next(oh_hnd->rptcache, 
 					    rpt_entry->ResourceId, 
-					    RDR_BEGIN);
+					    SAHPI_FIRST_ENTRY);
 		while (rdr_entry) {
 			memset(&event, 0, sizeof(event));
 			event.type = OH_ET_RDR;

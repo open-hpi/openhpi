@@ -22,7 +22,7 @@
 
 /**
  * main: Starting with an empty RPTable, adds 10 resources to it
- * and removes one by specifying RPT_ENTRY_BEGIN as the Resource Id.
+ * and removes one by specifying SAHPI_FIRST_ENTRY as the Resource Id.
  * Removes again to make sure it is not there anymore.
  * Passes the test if the interface returns 0 (success), else it fails.
  *
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
                         return 1;
         }
 
-        if (oh_remove_resource(rptable, RPT_ENTRY_BEGIN))
+        if (oh_remove_resource(rptable, SAHPI_FIRST_ENTRY))
                 return 1;
 
         if (!oh_remove_resource(rptable, rptentries[0].ResourceId))
