@@ -98,17 +98,13 @@ cIpmiFruInfoContainer::~cIpmiFruInfoContainer()
 cIpmiFruInfo *
 cIpmiFruInfoContainer::FindFruInfo( unsigned int addr, unsigned int fru_id ) const
 {
-  GList *list = m_fru_info;
-
-  while( list )
+  for( GList *list = m_fru_info; list; list = g_list_next( list ) )
      {
-       cIpmiFruInfo *fi = (cIpmiFruInfo *)m_fru_info->data;
+       cIpmiFruInfo *fi = (cIpmiFruInfo *)list->data;
 
        if ( fi->Address() == addr
 	    && fi->FruId() == fru_id )
 	    return fi;
-
-       list = g_list_next( list );
      }
 
   return 0;
@@ -133,11 +129,9 @@ cIpmiFruInfoContainer::AddFruInfo( cIpmiFruInfo *fru_info )
 bool
 cIpmiFruInfoContainer::RemFruInfo( cIpmiFruInfo *fru_info )
 {
-  GList *list = m_fru_info;
-
-  while( list )
+  for( GList *list = m_fru_info; list; list = g_list_next( list ) )
      {
-       cIpmiFruInfo *fi = (cIpmiFruInfo *)m_fru_info->data;
+       cIpmiFruInfo *fi = (cIpmiFruInfo *)list->data;
 
        if ( fi == fru_info )
 	  {
@@ -146,8 +140,6 @@ cIpmiFruInfoContainer::RemFruInfo( cIpmiFruInfo *fru_info )
 
 	    return true;
 	  }
-
-       list = g_list_next( list );
      }
 
   assert( 0 );
@@ -187,7 +179,7 @@ cIpmiFruInfoContainer::GetFreeSlotForOther( unsigned int addr )
 
   for( GList *list = m_fru_info; list; list = g_list_next( list ) )
      {
-       cIpmiFruInfo *fi = (cIpmiFruInfo *)m_fru_info->data;
+       cIpmiFruInfo *fi = (cIpmiFruInfo *)list->data;
 
        if ( fi->Address() != addr || fi->Entity() )
             continue;
