@@ -11,6 +11,8 @@
  *
  * Authors:
  *	   Hu Yin     <hu.yin@intel.com>
+ * Changes:
+ *	11.30.2004 - Kouzmich: porting to HPI-B
  *
  *
  */
