@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <epath_utils.h>
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
 
 /* debug macros */
 #define warn(str) fprintf(stderr,"%s: " str "\n", __FUNCTION__)
@@ -484,13 +482,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                                 	l_inventdata->DataRecords[0]->RecordData.ProductInfo.Manufacturer->Data);
                         	printf("\tProductName: \t%s\n",
                                 	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductName->Data);
-				if (l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->DataType == ASN_INTEGER) {
-                       	 		printf("\tProductVersion: \t%d\n",
-                                		l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data[0]);
-				} else {
-                        		printf("\tProductVersion: \t%s\n",
-                                		l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data);
-				}
+                        	printf("\tProductVersion: \t%s\n",
+                               		l_inventdata->DataRecords[0]->RecordData.ProductInfo.ProductVersion->Data);
                         	printf("\tModelNumber: \t%s\n",
                                 	l_inventdata->DataRecords[0]->RecordData.ProductInfo.ModelNumber->Data);
                         	printf("\tSerialNumber: \t%s\n",
