@@ -67,7 +67,7 @@ enum Msg_Types {
 
 typedef struct {
         int msg_length;
-        char msg_type;
+        int msg_type;
 } NETWORK_HDR_STR;
 
 typedef struct {
@@ -205,7 +205,6 @@ typedef struct {
 typedef struct {
         NETWORK_HDR_STR header;
 } UNKNOWN_MSG_TYPE_MSG_STR;
-
 
 #endif/*__NET_MSG_H*/
 
