@@ -326,11 +326,8 @@ rediscover:
                 rpt_entry = oh_get_resource_next(handler->rptcache, rpt_entry->ResourceId);
         }
 
-		/* check number of entries in rptcache and compare to discovered so far */
-		printf("Discovered %d and in rptcache: %d\n", discovered, g_slist_length(handler->rptcache->rptlist));
-		//if (discovered != g_slist_length(handler->rptcache->rptlist) && ipmi_handler->FRU_done == 0) {
 		if (ipmi_handler->FRU_done == 0) {
-				printf("We have new entries in the rptcache, re-discover!\n");
+				dbg("We have new entries in the rptcache, re-discover!\n");
 				sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
 				goto rediscover;
 		}

@@ -24,6 +24,7 @@ static void add_inventory_event_rdr(
                 SaHpiEntityPathT	parent_ep,
                 SaHpiResourceIdT	res_id)
 {
+		printf("Adding FRU RDR\n");
         static int inv_count = 0;
         char name[] = "FRU Inventory data";
         
@@ -86,7 +87,7 @@ void ohoi_inventory_event(enum ipmi_update_e    op,
        }
 
        if (op == IPMI_ADDED) {
-			   dbg("FRU added");
+			   printf("FRU added\n");
                rpt_entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
 
                add_inventory_event(entity, handler, 

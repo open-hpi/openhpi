@@ -241,6 +241,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        void                     *cb_data)
 {
 		struct oh_handler_state *handler = cb_data;
+		int rv;
 
 		if (op == IPMI_ADDED) {
 				add_entity_event(entity, handler);
@@ -265,7 +266,16 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 								ipmi_entity_get_entity_id(entity), 
 								ipmi_entity_get_entity_instance(entity));
 		} else {
-				dbg("Entity: Unknow change?!");
+				dbg("Entity: Unknown change?!");
 		}
+
+		/* inventory (a.k.a FRU) */
+
+		rv = ipmi_entity_set_fru_update_handler(entity, ohoi_inventory_event, handler);
+
+		if (rv) {
+                dbg("ipmi_entity_set_fru_update_handler: %#x", rv);
+                return;
+        }
 
 }
