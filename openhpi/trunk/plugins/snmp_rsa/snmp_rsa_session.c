@@ -26,8 +26,8 @@
 #include <rpt_utils.h>
 #include <sel_utils.h>
 #include <rsa_resources.h>
-#include <rsa_str2event.h>
-#include <snmp_rsa_event.h>
+// #include <rsa_str2event.h>
+// #include <snmp_rsa_event.h>
 
 /**
  * snmp_rsa_open: open RSA plugin
@@ -64,16 +64,16 @@ void *snmp_rsa_open(GHashTable *handler_config)
         handle->selcache =  oh_sel_create(OH_SEL_MAX_SIZE);
 
 	/* Initialize String-to-Event hash table */
-	if (str2event_hash_init()) {
-		dbg("Couldn't initialize str2event hash table.");
-		return NULL;
-	}
+//	if (str2event_hash_init()) {
+//		dbg("Couldn't initialize str2event hash table.");
+//		return NULL;
+//	}
 	
 	/* Initialize RSA_Event_Number-to-HPI_Event hash table */
-	if (event2hpi_hash_init()) {
-		dbg("Couldn't initialize event2hpi hash table.");
-		return NULL;
-	}
+//	if (event2hpi_hash_init()) {
+//		dbg("Couldn't initialize event2hpi hash table.");
+//		return NULL;
+//	}
         
         /* Initialize snmp library */
         init_snmp("oh_snmp_rsa");
@@ -124,9 +124,9 @@ void snmp_rsa_close(void *hnd)
         SOCK_CLEANUP;
 
 	/* Cleanup str2event hash table */
-	str2event_hash_free();
+//	str2event_hash_free();
 
 	/* Cleanup event2hpi hash table */
-	event2hpi_hash_free();
+//	event2hpi_hash_free();
 }
 

@@ -17,10 +17,7 @@
 #define SNMP_RSA_DISCOVER_H
 
 /* Resource discovery prototypes */
-struct oh_event * snmp_rsa_discover_chassis(char *blade_vector, SaHpiEntityPathT *ep);
-struct oh_event * snmp_rsa_discover_fan(char *fan_vector, SaHpiEntityPathT *ep, int fannum);
-struct oh_event * snmp_rsa_discover_mgmnt(char *mm_vector, SaHpiEntityPathT *ep, int mmnum);
-struct oh_event * snmp_rsa_discover_power(char *power_vector, SaHpiEntityPathT *ep, int powernum);
+struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep);
 
 /* RDR discovery prototypes */
 struct oh_event * snmp_rsa_discover_controls(struct snmp_session *ss,
