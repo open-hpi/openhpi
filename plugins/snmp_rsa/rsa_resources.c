@@ -702,7 +702,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.1.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.1",
@@ -765,7 +765,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 						.Interpreted = {
 							.Type = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
 							.Value = {
-								.SensorFloat32 = 16,
+								.SensorFloat32 = 3.5,
 							}	
 						},
 					},
@@ -796,7 +796,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.2.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.2",
@@ -806,12 +806,12 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 			},
 			.event_array = {
 				{
-                                        .event = "0002D400", /* EN_PFA_HI_FAULT_3_35V */
+                                        .event = "08033480", /* EN_PFA_HI_FAULT_3_35V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
 					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
-					.event = "0002C480", /* EN_CUTOFF_HI_FAULT_3_35V */
+					.event = "08032480", /* EN_CUTOFF_HI_FAULT_3_35V */
 					.event_state = SAHPI_ES_UPPER_CRIT,
 					.recovery_state = SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR,
 				},
@@ -821,7 +821,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 					.recovery_state = SAHPI_ES_UNSPECIFIED,
 				},
 				{
-					.event = "0002C880", /* EN_CUTOFF_LO_FAULT_3_35V */
+					.event = "08032880", /* EN_CUTOFF_LO_FAULT_3_35V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
 					.recovery_state = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR,
 				},
@@ -890,7 +890,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.3.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.3",
@@ -984,7 +984,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.4.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.4.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.4",
@@ -1078,7 +1078,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.5.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.5",
@@ -1172,7 +1172,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.6.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.6",
@@ -1266,7 +1266,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.7.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.7.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.7",
@@ -1360,7 +1360,7 @@ struct snmp_rsa_sensor snmp_rsa_chassis_sensors[] = {
 				.not_avail_indicator_num = 0,
 				.write_only = 0,
 				.convert_snmpstr = SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32,
-				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
+				.oid = ".1.3.6.1.4.1.2.3.51.1.2.2.1.8.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
 						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.1.2.20.2.1.1.10.8",
