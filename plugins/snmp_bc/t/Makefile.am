@@ -16,13 +16,13 @@ REMOTE_SIM_SOURCES   = 	bc_resources.c \
 			snmp_bc_discover_rsa.c \
 			snmp_bc_session.c \
 	 		snmp_bc_time.c \
+			snmp_bc_inventory.c \
 			stubs.c	
 
 #			  bc_str2event.c \
 #			  snmp_bc_control.c \
 #			  snmp_bc_event.c \
 #			  snmp_bc_hotswap.c \
-#			  snmp_bc_inventory.c \
 #	     		  snmp_bc_sel.c \
 #			  snmp_bc_sensor.c \
 #			  snmp_bc_watchdog.c
