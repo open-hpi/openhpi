@@ -19,15 +19,12 @@
 
 
 #include <SaHpi.h>
+#include "config.h"
 #include "simple_config.h"
 #include "connection.h"
 #include <sys/time.h>
 #include <pthread.h>
 
-
-#ifndef OH_CLIENT_DEFAULT_CONF
-#define OH_CLIENT_DEFAULT_CONF "/etc/openhpi/openhpiclient.conf"
-#endif
 
 // 30s timeout for messages
 #define dDefaultMessageTimeout 30000
