@@ -19,8 +19,6 @@
  * sensor and resource defintions in bc_resources.c.
  * These are real BladeCenter events and sensors, which hopefully 
  * won't change much.
- * 
- * We assume the Chassis resource ID = 1.
  ***********************************************************************/
 
 #include <glib.h>
