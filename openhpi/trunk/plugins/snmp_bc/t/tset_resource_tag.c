@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	 **************************/
 	testcase++;
 	oh_init_textbuffer(&tag);
-	expected_err = SA_ERR_HPI_NOT_PRESENT;
+	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
 	id = 5000; /* set it way out */
 
 	err = snmp_bc_set_resource_tag((void *)h->hnd, id, &tag);

@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	 **************************/
 	testcase++;
 	sev = SAHPI_INFORMATIONAL;
-	expected_err = SA_ERR_HPI_NOT_PRESENT;
+	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
 	id = 5000; /* set it way out */
 
 	err = snmp_bc_set_resource_severity((void *)h->hnd, id, sev);
