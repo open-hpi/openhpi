@@ -7,6 +7,7 @@
  *  
  *     01/13/2004 pdphan  module created
  *			  Change clock for event log on IBM Blade Center E.
+ *     03/10/2004 pdphan  Remove reference to IBM Blade Center.
  */
 /*M*
 
@@ -221,17 +222,18 @@ int main(int argc, char **argv)
                                            rptentry.ResourceCapabilities);
 			rv = saHpiEventLogTimeGet(sessionid, resourceid, &oldtime);
 			saftime2str(oldtime, timestr, sizeof(timestr));
-			printf ("\nCurrent time on Blade Center: %s\n", timestr);
-			printf ("Setting new time on Blade Center ...\n");
+			printf ("\nCurrent event log time on HPI target: %s\n", timestr);
+			printf ("Setting new event log time on HPI target ...\n");
 			rv = saHpiEventLogTimeSet(sessionid, resourceid, newtime);
 			if (rv != SA_OK) 
 			{
-                		printf("saHpiRptEntryGet %s\n",decode_error(rv));
+                		printf("saHpiEventLogTimeSet %s\n",decode_error(rv));
 			}
 			rv = saHpiEventLogTimeGet(sessionid, resourceid, &readbacktime);
 			saftime2str(readbacktime, timestr, sizeof(timestr));
-			printf ("Read-Back-Check time on Blade Center: %s\n", timestr);
+			printf ("Read-Back-Check event log time: %s\n", timestr);
 
+			/* Restrict the test to ony one clock, for now */
                        break; 
                 }
                 entryid = SAHPI_OLDEST_ENTRY;
