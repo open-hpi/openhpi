@@ -221,8 +221,13 @@ int test_watchdogtimer(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id,
  * @rdr: RDR for the watchdog timer
  * @wdt_num:  Watchdog timer number
  *
- * Test the Get function of the watchdog timer for a running and
- * not-running watchdog.
+ * Test the Get function of the watchdog timer with the following
+ * test cases:
+ * - all valid values sent; running = FALSE
+ *   ->values should be accepted; wdt should not start running
+ * - different valid values sent; running = TRUE
+ *   ->values should be accepted; since wdt isn't running, running should be
+ *     set to FALSE; wdt should not start running
  *
  * Return value: 0 for success | Error code
  **/
@@ -232,7 +237,7 @@ int test_wdtget(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiR
 	int ret = 0;
 	int err;
 
-	SaHpiWatchdogT wdt_notrunning = {
+	SaHpiWatchdogT wdt_allvalid = {
         	.Log                    = SAHPI_FALSE,
         	.Running                = SAHPI_FALSE,
         	.TimerUse               = SAHPI_WTU_SMS_OS,
@@ -243,10 +248,10 @@ int test_wdtget(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiR
         	.InitialCount           = 1000, /* 1 second */
         	.PresentCount           = 0
 	};
-	SaHpiWatchdogT wdt_running = {
+	SaHpiWatchdogT wdt_allvalidruntrue = {
         	.Log                    = SAHPI_FALSE,
         	.Running                = SAHPI_TRUE,
-        	.TimerUse               = SAHPI_WTU_OS_LOAD,
+        	.TimerUse               = SAHPI_WTU_SMS_OS,
         	.TimerAction            = SAHPI_WA_RESET,
         	.PretimerInterrupt      = SAHPI_WPI_NONE,
         	.PreTimeoutInterval     = 0,
@@ -254,34 +259,40 @@ int test_wdtget(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiR
         	.InitialCount           = 3000, /* 3 seconds */
         	.PresentCount           = 0
 	};
-	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_notrunning);
+	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_allvalid);
 	if (SA_OK != err) {
 		printf("Error during set of not running wdt\n");
 		ret = err;
 	}
 
-	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt_notrunning);
+	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt_allvalid);
 	if (SA_OK != err) {
 		printf("saHpiWatchdogTimerGet() failed\n");
 		return err;
 	}
-	printf("TEST:  Manually verify wdt not running (no expiry in 1 sec):\n");
-	print_wdt(wdt_notrunning);
-	sleep(1);
+	printf("TEST:  Manually verify:\n \
+			1. wdt not running (no expiry)\n \
+			2. timeout set to 1000msec\n \
+			3. .Running is FALSE\n");
+	print_wdt(wdt_allvalid);
+	sleep(2);
 
-	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_running);
+	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_allvalidruntrue);
 	if (SA_OK != err) {
 		printf("Error during set of not running wdt\n");
 		ret = err;
 	}
 
-	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt_running);
+	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt_allvalidruntrue);
 	if (SA_OK != err) {
 		printf("saHpiWatchdogTimerGet() failed\n");
 		return err;
 	}
-	printf("TEST  Manually verify wdt running (expiry in 3 sec):\n");
-	print_wdt(wdt_running);
+	printf("TEST:  Manually verify:\n \
+			1. wdt not running (no expiry)\n \
+			2. timeout set to 3000msec\n \
+			3. .Running is FALSE\n");
+	print_wdt(wdt_allvalidruntrue);
 	return ret;
 }
 
@@ -293,10 +304,14 @@ int test_wdtget(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiR
  * @wdt_num:  Watchdog timer number
  *
  * Test the Set function of the watchdog timer for the following watchdog
- * data:
+ * test cases:
  * - watchdog data with invalid (unsupported parameters)
- * - Running = FALSE - requires a reset to start (tested via get/reset)
- * - Running = TRUE - should start after set (tested via get)
+ *   -> error message should be returned, and parameters should be
+ *      overwritten with valid values
+ * - .Running = TRUE when watchdog already running
+ *   -> watchdog should be reset to the InitialCount
+ * - .Running = FALSE when watchdog already running
+ *   -> watchdog should be stopped
  *
  * Return value: 0 for success | Error code
  **/
@@ -316,8 +331,32 @@ int test_wdtset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiR
         	.InitialCount           = 10000, /* 10 seconds */
         	.PresentCount           = 0
 	};
+	SaHpiWatchdogT wdt_runtrue = {
+        	.Log                    = SAHPI_FALSE,
+        	.Running                = SAHPI_TRUE,
+        	.TimerUse               = SAHPI_WTU_SMS_OS,
+        	.TimerAction            = SAHPI_WA_RESET,
+        	.PretimerInterrupt      = SAHPI_WPI_NONE,
+        	.PreTimeoutInterval     = 0,
+        	.TimerUseExpFlags       = 0,
+        	.InitialCount           = 3000, /* 3 seconds */
+        	.PresentCount           = 0
+	};
+	SaHpiWatchdogT wdt_runfalse = {
+        	.Log                    = SAHPI_FALSE,
+        	.Running                = SAHPI_FALSE,
+        	.TimerUse               = SAHPI_WTU_SMS_OS,
+        	.TimerAction            = SAHPI_WA_RESET,
+        	.PretimerInterrupt      = SAHPI_WPI_NONE,
+        	.PreTimeoutInterval     = 0,
+        	.TimerUseExpFlags       = 0,
+        	.InitialCount           = 3000, /* 3 seconds */
+        	.PresentCount           = 0
+	};
 	int ret = 0;
 
+	/* test set with bogus params */
+	printf("************TEST 1************\n");
 	printf("Data sending:\nTEST:  Ensure error received for Log, Action, Interrupt, and Interval\n");
 	print_wdt(wdt_bogusparams);
 	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_bogusparams);
@@ -327,13 +366,37 @@ int test_wdtset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiR
 	}
 
 	printf("Data returned\nTEST:  Ensure invalid values have been changed to valid.:\n");
-	err = saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
-	if (SA_OK != err) {
-		printf("saHpiWatchdogTimerGet() failed\n");
-		return err;
-	}
+
+	saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
 	print_wdt(wdt);
 
+	/* test setting running = TRUE when watchdog already running */
+	printf("************TEST 2***********\n");
+	/* startup watchdog */
+	err = saHpiWatchdogTimerReset(session_id, resource_id, wdt_num);
+
+	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_runtrue);
+	if (SA_OK != err) {
+		printf("saHpiWatchdogTimerSet() failed\n");
+		return err;
+	}
+	printf("TEST:  Manually verify wdt expires in 3 (not 10) seconds.\n");
+	printf("TEST:  .Running should be SAHPI_TRUE now.\n");
+	saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
+	print_wdt(wdt);
+	sleep(4);
+
+	/* test setting running = FALSE when watchdog already running */
+	printf("************TEST 3************\n");
+	/* watchdog will restart after reboot triggered */
+	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_runfalse);
+	if (SA_OK != err) {
+		printf("saHpiWatchdogTimerSet() failed\n");
+		return err;
+	}
+	printf("TEST:  Ensure .Running is false and no expiry after 3 seconds.\n");
+	saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
+	print_wdt(wdt);
 	return ret;
 }
 
