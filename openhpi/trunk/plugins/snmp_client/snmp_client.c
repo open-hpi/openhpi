@@ -142,7 +142,7 @@ static void *snmp_client_open(GHashTable *handler_config)
 					&custom_handle->session.securityAuthKeyLen) != SNMPERR_SUCCESS) {
 				snmp_perror("ack");
 				snmp_log(LOG_ERR,
-					 "Error generating Ku from AUTHENTICATION pass phrase. \n");
+					 "Error generating Ku from AUTHENTICATION pass phrase. ");
 				dbg("Error generating Ku from AUTHENTICATION pass phrase.");
 			}
 		}
@@ -160,7 +160,7 @@ static void *snmp_client_open(GHashTable *handler_config)
 					&custom_handle->session.securityPrivKeyLen) != SNMPERR_SUCCESS) {
 				snmp_perror("ack");
 				snmp_log(LOG_ERR,
-					 "Error generating Ku from PRIVACY pass phrase. \n");
+					 "Error generating Ku from PRIVACY pass phrase. ");
 				dbg("Error generating Ku from PRIVACY pass phrase.");
 			}
 		}
@@ -188,7 +188,7 @@ static void *snmp_client_open(GHashTable *handler_config)
 
         if(!custom_handle->ss) {
                 snmp_perror("ack");
-                snmp_log(LOG_ERR, "something horrible happened!!!\n");
+                snmp_log(LOG_ERR, "something horrible happened!!!");
                 dbg("Unable to open snmp session.");
                 return NULL;
         }
@@ -323,13 +323,13 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 
         if(!(rdr = 
 		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
-		printf("ERROR finding rdr in snmp_client_get_sensor_data()\n");
+		dbg("ERROR finding rdr in snmp_client_get_sensor_data()");
 		return(SA_ERR_HPI_ERROR);
 	}
 
         if (!(remote_rdr_data =
                 (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
-		printf(" ERROR finding rdr_data in snmp_client_get_sensor_data()\n");
+		dbg(" ERROR finding rdr_data in snmp_client_get_sensor_data()");
 		return(SA_ERR_HPI_ERROR);
 	}
 
@@ -353,7 +353,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 		data->ValuesPresent = 
 			(SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(get_value.integer);
 	else
-		printf("snmp_client_get_sensor_data: error getting VALUES_PRESENT \n"); 
+		dbg("snmp_client_get_sensor_data: error getting VALUES_PRESENT "); 
 
 	/* RAW_READING */
 	if ((rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_SRF_RAW)
@@ -373,16 +373,15 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 		if( (status == SA_OK) && (get_value.type == ASN_UNSIGNED) ) {
 			data->Raw = (SaHpiUint32T)get_value.integer;
 		} else {
-			printf("snmp_client_get_sensor_data: error getting");
-			printf(" RAW_READING \n");
+			dbg("snmp_client_get_sensor_data: error getting RAW_READING");
 		}
 
 	} else {              
 		if ((rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_SRF_RAW)
 		    != (data->ValuesPresent & SAHPI_SRF_RAW)) {
-			printf("RAW_READING: rdr vs. current values");
-			printf("present RAW Flags DO NOT match\n"); 
-			printf("stored flags: %X, current flags: %X, status: %d\n",
+			dbg("RAW_READING: rdr vs. current values");
+			dbg(" present RAW Flags DO NOT match"); 
+			dbg("stored flags: %X, current flags: %X, status: %d",
 			       rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats,
 			       data->ValuesPresent,
 			       status);
@@ -410,19 +409,19 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 				       get_value.str_len);
 				data->Interpreted.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER;
 			} else
-				printf("ERROR: interpreted buff exceeds max allowed\n");
+				dbg("ERROR: interpreted buff exceeds max allowed");
 
 		} else {
-			printf("snmp_client_get_sensor_data: error getting");
-			printf(" INTERPRETED_READING \n");
+			dbg("snmp_client_get_sensor_data: error getting");
+			dbg(" INTERPRETED_READING ");
 		}
 
 	} else { 
 		if ((rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_SRF_INTERPRETED)
 		    != (data->ValuesPresent & SAHPI_SRF_INTERPRETED)) {
-			printf("INTERPRETED_READING: rdr vs. current values");
-			printf("present RAW Flags DO NOT match\n");
-			printf("stored flags: %X, current flags: %X, status: %d\n",
+			dbg("INTERPRETED_READING: rdr vs. current values");
+			dbg("present RAW Flags DO NOT match");
+			dbg("stored flags: %X, current flags: %X, status: %d",
 			       rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats,
 			       data->ValuesPresent,
 			       status);
@@ -446,7 +445,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 			data->EventStatus.SensorStatus = 
 				(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(get_value.integer);
 			else
-				printf("snmp_client_get_sensor_data: error getting SENSOR_STATUS \n");
+				dbg("snmp_client_get_sensor_data: error getting SENSOR_STATUS ");
 	}
 
 	/* SENSOR_EVENT_STATUS */
@@ -467,7 +466,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 					  get_value.str_len,
 					  &data->EventStatus.EventStatus);
 		else
-			printf("snmp_client_get_sensor_data: error getting SENSOR_EVENT_STATUS \n");
+			dbg("snmp_client_get_sensor_data: error getting SENSOR_EVENT_STATUS ");
 	}
 
 	return(status);
@@ -501,13 +500,13 @@ static int snmp_client_get_sensor_thresholds(void *hnd,
 
         if(!(rdr = 
 		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
-		printf("ERROR finding rdr in snmp_client_get_sensor_data()\n");
+		dbg("ERROR finding rdr in snmp_client_get_sensor_data()");
 		return(SA_ERR_HPI_ERROR);
 	}
 
         if (!(remote_rdr_data =
                 (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
-		printf(" ERROR finding rdr_data in snmp_client_get_sensor_data()\n");
+		dbg(" ERROR finding rdr_data in snmp_client_get_sensor_data()");
 		return(SA_ERR_HPI_ERROR);
 	}
 
@@ -612,13 +611,13 @@ static int snmp_client_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 
         if(!(rdr = 
 		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
-		printf("ERROR finding rdr in sreadingsnmp_client_get_sensor_data()\n");
+		dbg("ERROR finding rdr in sreadingsnmp_client_get_sensor_data()");
 		return(SA_ERR_HPI_ERROR);
 	}
 
         if (!(remote_rdr_data =
                 (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
-		printf(" ERROR finding rdr_data in snmp_client_get_sensor_data()\n");
+		dbg(" ERROR finding rdr_data in snmp_client_get_sensor_data()");
 		return(SA_ERR_HPI_ERROR);
 	}
 
@@ -923,7 +922,7 @@ dbg("TODO: ******************* snmp_client_set_control_state() *****************
                 (struct BC_ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
 
 	if(state->Type != rdr->RdrTypeUnion.CtrlRec.Type) {
-		dbg("Control %s type %d cannot be changed\n",s->mib.oid,state->Type);
+		dbg("Control %s type %d cannot be changed",s->mib.oid,state->Type);
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
@@ -943,18 +942,18 @@ dbg("TODO: ******************* snmp_client_set_control_state() *****************
 		case SAHPI_CTRL_STATE_AUTO:
 			value = s->mib.digitalmap[ELEMENTS_IN_SaHpiStateDigitalT - 1];
 		default:
-			dbg("Spec Change: MAX_SaHpiStateDigitalT incorrect?\n");
+			dbg("Spec Change: MAX_SaHpiStateDigitalT incorrect?");
 			return -1;
 		}
 
 		if(value < 0) {
-			dbg("Control state %d not allowed to be set\n",state->StateUnion.Digital);
+			dbg("Control state %d not allowed to be set",state->StateUnion.Digital);
 			return SA_ERR_HPI_INVALID_CMD;
 		}
 
 		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
 		if(oid == NULL) {
-			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
+			dbg("NULL SNMP OID returned for %s",s->mib.oid);
 			return -1;
 		}
 
@@ -962,29 +961,29 @@ dbg("TODO: ******************* snmp_client_set_control_state() *****************
 		set_value.integer = value;
 
 		if((snmp_client_set(custom_handle->ss, oid, set_value) != 0)) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.oid,set_value.type);
+			dbg("SNMP could not set %s; Type=%d.",s->mib.oid,set_value.type);
 			g_free(oid);
 			return SA_ERR_HPI_NO_RESPONSE;
 		}
 		g_free(oid);
 
 	case SAHPI_CTRL_TYPE_DISCRETE:
-		dbg("Discrete controls not supported\n");
+		dbg("Discrete controls not supported");
 		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_CTRL_TYPE_ANALOG:
-		dbg("Analog controls not supported\n");
+		dbg("Analog controls not supported");
 		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_CTRL_TYPE_STREAM:
-		dbg("Stream controls not supported\n");
+		dbg("Stream controls not supported");
 		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_CTRL_TYPE_TEXT:
-		dbg("Text controls not supported\n");
+		dbg("Text controls not supported");
 		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_CTRL_TYPE_OEM:	
-		dbg("Oem controls not supported\n");
+		dbg("Oem controls not supported");
 		return SA_ERR_HPI_INVALID_CMD;
         default:
-		dbg("Request has invalid control state=%d\n", state->Type);
+		dbg("Request has invalid control state=%d", state->Type);
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 	

@@ -173,7 +173,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 
 
 			} else
-				printf("SA_HPI_DOMAIN_ID:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_ID:something terrible has happened");
 
 			vars = vars->next_variable;
 		} 
@@ -199,7 +199,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].EntryId = *vars->val.integer; 
 			else
-				printf("SA_HPI_ENTRY_ID:something terrible has happened\n");				
+				dbg("SA_HPI_ENTRY_ID:something terrible has happened");				
 			vars = vars->next_variable;
 		}
 
@@ -224,7 +224,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceId = *vars->val.integer; 
 			else
-				printf("SA_HPI_RESOURCE_ID:something terrible has happened\n");
+				dbg("SA_HPI_RESOURCE_ID:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -254,7 +254,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 				free(ep);				
 			}
 			else
-				printf("SA_HPI_RESOURCE_ENTITY_PATH:something terrible has happened\n");			
+				dbg("SA_HPI_RESOURCE_ENTITY_PATH:something terrible has happened");			
 			vars = vars->next_variable;
 		} 
 		display_vars(response);
@@ -278,7 +278,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceCapabilities = *vars->val.integer; 
 			else
-				printf("SA_HPI_RESOURCE_CAPABILITIES:something terrible has happened\n");
+				dbg("SA_HPI_RESOURCE_CAPABILITIES:something terrible has happened");
 			vars = vars->next_variable;
 		
 		}
@@ -303,7 +303,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_INTEGER)
 				rpt_cache[i].ResourceSeverity = *vars->val.integer; 
 			else
-				printf("SA_HPI_RESOURCE_SEVERITY:something terrible has happened\n");
+				dbg("SA_HPI_RESOURCE_SEVERITY:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -328,7 +328,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.ResourceRev = *vars->val.integer; 
 			else
-				printf("SA_HPI_RESOURCE_INFO_RESOURCE_REV:something terrible has happened\n");
+				dbg("SA_HPI_RESOURCE_INFO_RESOURCE_REV:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -353,7 +353,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.SpecificVer = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_INFO_SPECIFIC_VER:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_INFO_SPECIFIC_VER:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -378,7 +378,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.DeviceSupport = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_INFO_DEVICE_SUPPORT:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_INFO_DEVICE_SUPPORT:something terrible has happened");
 			vars = vars->next_variable;	
 		}
 
@@ -403,7 +403,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.ManufacturerId = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_INFO_MANUFACTUER_ID:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_INFO_MANUFACTUER_ID:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -428,7 +428,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.ProductId = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_INFO_PRODUCT_ID:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_INFO_PRODUCT_ID:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -453,7 +453,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.FirmwareMajorRev = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MAJOR_REV:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MAJOR_REV:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -478,7 +478,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.FirmwareMinorRev = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MINOR_REV:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MINOR_REV:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -503,7 +503,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_UNSIGNED)
 				rpt_cache[i].ResourceInfo.AuxFirmwareRev = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_INFO_AUX_FIRMWARE_REV:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_INFO_AUX_FIRMWARE_REV:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -528,7 +528,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_INTEGER)
 				rpt_cache[i].ResourceTag.DataType = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_TYPE:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_TYPE:something terrible has happened");
 			vars = vars->next_variable;  
 		}
 
@@ -553,7 +553,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 			if (vars->type == ASN_INTEGER)
 				rpt_cache[i].ResourceTag.Language = *vars->val.integer; 
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_LANGUAGE:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_LANGUAGE:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -580,7 +580,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 				rpt_cache[i].ResourceTag.DataLength = vars->val_len;
 			}
 			else
-				printf("SA_HPI_DOMAIN_RESOURCE_TAG:something terrible has happened\n");
+				dbg("SA_HPI_DOMAIN_RESOURCE_TAG:something terrible has happened");
 			vars = vars->next_variable;
 		}
 
@@ -592,9 +592,9 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 	if(status == SA_OK) {
 		/* add the resources to the plugin's primary rptcache, */
 		/* the one maintained in oh_handler_state pointer */
-		printf("********************************************************\n");
-		printf("** Adding rpt_cache and remote_res_data to temp_table **\n");
-		printf("********************************************************\n");
+		dbg("********************************************************");
+		dbg("** Adding rpt_cache and remote_res_data to temp_table **");
+		dbg("********************************************************");
 		status = rpt_cache_resources_add(temp_rptable, rpt_cache, remote_res_data, num_entries);
 	} else {
 		/*free the temporary rptcahce buffer used to capture the */

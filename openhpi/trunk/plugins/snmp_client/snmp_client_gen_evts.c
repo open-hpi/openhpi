@@ -186,7 +186,7 @@ void process_diff_table(struct oh_handler_state *handle, RPTable *diff_table)
 static SaErrorT remote_rdr_data_free(SaHpiRdrT *rdr, gpointer data)
 {
 
-	printf("TODO: big bad memory leak");
+	dbg("TODO: big bad memory leak");
 
 	return(SA_OK);
 }
@@ -194,7 +194,7 @@ static SaErrorT remote_rdr_data_free(SaHpiRdrT *rdr, gpointer data)
 static SaErrorT remote_res_data_free(SaHpiRptEntryT *rdr, gpointer data)
 {
 
-	printf("TODO: big bad memory leak");
+	dbg("TODO: big bad memory leak");
 
 	return(SA_OK);
 }
