@@ -1219,7 +1219,8 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-                dbg("Resource %d doesn't have controls",ResourceId);
+                dbg("Resource %d doesn't have .ResourceCapabilities flag:" 
+		    " SAHPI_CAPABILITY_CONTROL set ",ResourceId);
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
         
