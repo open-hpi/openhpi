@@ -16,20 +16,27 @@
 #include "ipmi.h"
 #include <oh_utils.h>
 #include <string.h>
-#if 0
 /* need to update some information here */
 static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 {
-	SaHpiRdrT  *rdr;
+  	struct ohoi_resource_info	*res_info;
+       
+	res_info = oh_get_resource_data(table, rid);
 
-	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
-	while (rdr) {
-		if(rdr->RdrType == SAHPI_SENSOR_RDR) {
-		}
-		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
-	}
+	if (present)
+		res_info->presence = 1;
+	else
+		res_info->presence = 0;
+
+	//SaHpiRdrT  *rdr;
+
+	//rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
+	//while (rdr) {
+		//if(rdr->RdrType == SAHPI_SENSOR_RDR) {
+		//}
+		//rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
+	//}
 }
-#endif
 
 static void entity_presence(ipmi_entity_t	*entity,
 			    int			present,
@@ -51,9 +58,8 @@ static void entity_presence(ipmi_entity_t	*entity,
 	}
 	rid = rpt->ResourceId;
 	dbg("%s %s",ipmi_entity_get_entity_id_string(entity), present?"present":"not present");
-#if 0
+
 	entity_update_rpt(handler->rptcache, rid, present);
-#endif
 }
 
 static void get_entity_event(ipmi_entity_t	*entity,
@@ -194,6 +200,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 
 		ohoi_res_info->type       = OHOI_RESOURCE_ENTITY; 
 		ohoi_res_info->u.entity_id= ipmi_entity_convert_to_id(entity);
+		ohoi_res_info->presence = 0;
 
 		get_entity_event(entity, &entry, ipmi_handler);	
 
