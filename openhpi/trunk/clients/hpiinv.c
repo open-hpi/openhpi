@@ -68,6 +68,7 @@ main(int argc, char **argv)
 		 rvRdrGet = SA_OK,
 		 rvRptGet = SA_OK, 
 		 rvInvent = SA_OK;
+	SaHpiTextBufferT working;	
 	SaHpiSessionIdT sessionid;
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
@@ -154,7 +155,9 @@ main(int argc, char **argv)
 							if (rvInvent !=SA_OK) {
 								printf("saHpiIdrInfoGet IdrId %d,  error %s\n", idrid, oh_lookup_error(rvInvent));
 							} else {
-								printf("\nIdr for %s, ResourceId: %d\n",
+								entitypath2string(&rptentry.ResourceEntity, working.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+								printf("\n+%s\n",working.Data);
+								printf(" Tag: %s, ResourceId: %d\n",
 									 rptentry.ResourceTag.Data,resourceid);
 								oh_print_idrinfo(&idrInfo, 4);
 								walkInventory(sessionid, resourceid, &idrInfo);
