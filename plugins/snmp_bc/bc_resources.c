@@ -2914,7 +2914,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                                 .digitalwmap[3] = -1, /* Not applicable */
                         },
                 },
-                .comment = "Front Panel LED - Information."
+                .comment = "Front Panel LED - Information"
         },
 
         /* FIXME:: No blinking anymore in B.1.1 */
@@ -2949,7 +2949,7 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                                 .digitalwmap[3] =  2, /* Blinking */
                         },
                 },
-                .comment = "Front Panel LED - Identify."
+                .comment = "Front Panel LED - Identify"
         },
         {} /* Terminate array with a null element */
 };
@@ -2993,7 +2993,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
                                 .digitalwmap[3] = -1, /* Not applicable */
                         },
                 },
-                .comment = "Blade LED - Information."
+                .comment = "Blade LED - Information"
         },
 
         {} /* Terminate array with a null element */
@@ -3038,7 +3038,7 @@ struct snmp_bc_control snmp_bci_blade_controls[] = {
                                 .digitalwmap[3] = -1, /* Cannot write this value */
                         },
                 },
-                .comment = "Blade LED - Identify."
+                .comment = "Blade LED - Identify"
         },
 
         {} /* Terminate array with a null element */
@@ -3076,7 +3076,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                                 .digitalwmap[3] =  2, /* Blinking */
                         },
                 },
-                .comment = "Blade LED - Identify."
+                .comment = "Blade LED - Identify"
         },
         /* Blade's number of restarts counter */
         {
