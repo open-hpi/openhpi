@@ -10,8 +10,8 @@ bin_PROGRAMS		= hpialarmpanel \
                           hpievent \
 	                  hpifru \
                           hpireset \
-#                          hpisel \
                           hpisensor \
+                          hpisel \
                           hpiwdt
 
 include_HEADERS		= 
