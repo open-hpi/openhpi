@@ -29,7 +29,8 @@ int main(int argc, char **argv)
 /*
 	Fix Me: parse option here
 */
-	open_session();
+	if (open_session() == -1)
+		return(1);
 	cmd_shell();
 	close_session();
 	return 0;

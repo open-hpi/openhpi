@@ -136,8 +136,11 @@ int open_session()
 		return -1;
 	}
 	rv = saHpiDiscover(sessionid);
-	if (rv != SA_OK) 
+	if (rv != SA_OK) {
+		delete_progress();
 		printf("saHpiDiscover rv = %s\n", oh_lookup_error(rv));
+		return -1;
+	};
 	delete_progress();
 
 	printf("Initial discovery done\n");
