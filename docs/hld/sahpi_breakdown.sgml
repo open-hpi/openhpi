@@ -109,7 +109,9 @@
         provide the real world physical topology of the resources.  So
         it could be well understood that the resource with
         ResourceId=37 was a CPU contained in the chassis which is
-        ResourceId=21.
+        ResourceId=21.  Entity paths <emphasis>must be
+          unique</emphasis> within the context of a single Resource
+        Presence Table.
       </para>
       <para>
         HPI entity paths go from least significant to most
@@ -138,7 +140,27 @@
     <sect2>
       <title>Resource Data Records</title>
       <para>
-        
+        Associated with every Resource are Resource Data Records
+        (RDRs).  <literal>SAHPI_CAPABILITY_RDR</literal> is required
+        to be on for all resources in HPI 1.0 (this appears to be
+        changing based on early errata released).  There is a many to
+        one relationship between RDRs and Resources, and it is
+        expected that all resources will have many RDRs.
+      </para>
+      <para>
+        RDRs come in 4 types: Sensor, Control, Inventory, or
+        Watchdog.  Where the Resources represent a physical object,
+        the RDRs represent a quality of that object.  For instance a
+        Motherboard (a Resource) may have many thermal sensors (Sendor
+        RDRs), voltage sensors (Sensor RDRs), remote power control
+        (Control RDR), programable leds (Control RDRs), and inventory
+        function (Inventory RDR).
+      </para>
+      <para>
+        The connecting element in the relationship between RDRs and
+        Resources is the entity path.  Although entity path will
+        uniquely identify a Resource, it will identify one or more
+        RDRs that are associated with that Resource.
       </para>
     </sect2>
   </sect1>
