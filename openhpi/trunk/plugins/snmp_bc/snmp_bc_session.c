@@ -38,6 +38,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 {
         struct oh_handler_state *handle;
         struct snmp_bc_hnd *custom_handle;
+        char *hostname, *version, *sec_level, *authtype, *user, *pass, *community;
         char *root_tuple;
 
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
@@ -45,7 +46,13 @@ void *snmp_bc_open(GHashTable *handler_config)
                 dbg("ERROR: Cannot open snmp_bc plugin. No entity root found in configuration.");
                 return NULL;
         }
-        
+
+        hostname = (char *)g_hash_table_lookup(handler_config, "host");
+        if (!hostname) {
+                dbg("ERROR: Cannot open snmp_bc plugin. No hostname found in configuration.");
+                return NULL;
+        }
+
         handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
         custom_handle =
                 (struct snmp_bc_hnd *)g_malloc0(sizeof(struct snmp_bc_hnd));
@@ -77,18 +84,94 @@ void *snmp_bc_open(GHashTable *handler_config)
 	}
         
         /* Initialize snmp library */
-        init_snmp("oh_snmp_bc");
-        
+        init_snmp("oh_snmp_bc");        
         snmp_sess_init(&(custom_handle->session)); /* Setting up all defaults for now. */
-        custom_handle->session.peername = (char *)g_hash_table_lookup(handle->config, "host");
+        /* Set snmp agent's hostname */
+        custom_handle->session.peername = hostname;
 
-        /* set the SNMP version number */
-        custom_handle->session.version = SNMP_VERSION_1;
+        /* Get config parameters */
+        version = (char *)g_hash_table_lookup(handle->config, "version");
+        if (!version) {
+                dbg("Cannot open snmp_bc. Need version configuration parameter.");
+                return NULL;
+        }
+        sec_level = (char *)g_hash_table_lookup(handle->config, "security_level");
+        authtype = (char *)g_hash_table_lookup(handle->config, "auth_type");
+        user = (char *)g_hash_table_lookup(handle->config, "security_name");
+        pass = (char *)g_hash_table_lookup(handle->config, "passphrase");
+        community = (char *)g_hash_table_lookup(handle->config, "community");
+                                  
+        /* Configure snmp session */
+        if (!strcmp(version,"3")) { /* if snmp version 3*/
+                if (!user) {
+                        dbg("Cannot open snmp_bc. Need security_name configuration parameter.");
+                        return NULL;
+                }
+                custom_handle->session.version = SNMP_VERSION_3;
+                custom_handle->session.securityName = user;
+                custom_handle->session.securityNameLen = strlen(user);
+                custom_handle->session.securityLevel = SNMP_SEC_LEVEL_NOAUTH;
 
-        /* set the SNMPv1 community name used for authentication */
-        custom_handle->session.community = (char *)g_hash_table_lookup(handle->config, "community");
-        custom_handle->session.community_len = strlen(custom_handle->session.community);
+                if (!strncmp(sec_level,"auth",4)) { /* if using password */
+                        if (!pass) {
+                                dbg("Cannot open snmp_bc. Need passphrase configuration parameter.");
+                                return NULL;
+                        }
 
+                        custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
+                        if (!authtype || !strcmp(authtype,"MD5")) {
+                                custom_handle->session.securityAuthProto = usmHMACMD5AuthProtocol;
+                                custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_MD5_LEN;
+                        } else if (!strcmp(authtype,"SHA")) {
+                                custom_handle->session.securityAuthProto = usmHMACSHA1AuthProtocol;
+                                custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_SHA_LEN;
+                        } else {dbg("Cannot open snmp_bc. Wrong auth_type."); return NULL;}
+                        
+                        custom_handle->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
+                        if (generate_Ku(custom_handle->session.securityAuthProto,
+                                        custom_handle->session.securityAuthProtoLen,
+                                        (u_char *) pass, strlen(pass),
+                                        custom_handle->session.securityAuthKey,
+                                        &(custom_handle->session.securityAuthKeyLen)) != SNMPERR_SUCCESS) {
+                                snmp_perror("snmp_bc");
+                                snmp_log(LOG_ERR,
+                                         "Error generating Ku from authentication passphrase.\n");
+                                dbg("Unable to establish snmp authnopriv session.");
+                                return NULL;
+                        }
+
+                        if (!strcmp(sec_level,"authPriv")) { /* if using encryption */
+                                custom_handle->session.securityLevel = SNMP_SEC_LEVEL_AUTHPRIV;
+                                custom_handle->session.securityPrivProto = usmDESPrivProtocol;
+                                custom_handle->session.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
+                                custom_handle->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
+                                if (generate_Ku(custom_handle->session.securityAuthProto,
+                                                custom_handle->session.securityAuthProtoLen,
+                                                (u_char *) pass, strlen(pass),
+                                                custom_handle->session.securityPrivKey,
+                                                &(custom_handle->session.securityPrivKeyLen)) != SNMPERR_SUCCESS) {
+                                        snmp_perror("snmp_bc");
+                                        snmp_log(LOG_ERR,
+                                                 "Error generating Ku from private passphrase.\n");
+                                        dbg("Unable to establish snmp authpriv session.");
+                                        return NULL;
+                                }
+                                
+                        }
+                }                                
+        } else if (!strcmp(version,"1")) { /* if using snmp version 1 */
+                if (!community) {
+                        dbg("Cannot open snmp_bc. Need community configuration parameter.");
+                        return NULL;
+                }
+                custom_handle->session.version = SNMP_VERSION_1;
+                custom_handle->session.community = community;
+                custom_handle->session.community_len = strlen(community);
+        } else {
+                dbg("Cannot open snmp_bc. Unrecognized version parameter %s",version);
+                return NULL;
+        }
+                
         /* windows32 specific net-snmp initialization (is a noop on unix) */
         SOCK_STARTUP;
 
@@ -103,7 +186,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 
 	/* Set BladeCenter Type */
 	{
-		struct snmp_value  get_value;
+		struct snmp_value get_value;
 
 		if ((snmp_get(custom_handle->ss, SNMP_BC_BLADECENTER_TYPE, &get_value) != 0) ||
 		    (get_value.type != ASN_OCTET_STR)) {
