@@ -31,14 +31,16 @@ typedef struct {
         SaHpiRptInfoT rpt_info;
         /* The structure to hold this is subject to change. */
         /* No one should touch this. */
-        GSList *rptable; /* Contains RPTEntrys */
+        GSList *rptlist; /* Contains RPTEntrys for sequence lookups */
+        GHashTable *rptable; /* Contains RPTEntrys for fast EntryId lookups */
 } RPTable;
 
 typedef struct {
         SaHpiRptEntryT rpt_entry;
         int owndata;
         void *data; /* private data for the owner of the RPTable */
-        GSList *rdrtable;  /* Contains RDRecords */
+        GSList *rdrlist; /* Contains RDRecords for sequence lookups */
+        GHashTable *rdrtable; /* Contains RDRecords for fast RecordId lookups */
 } RPTEntry;
 
 typedef struct {
