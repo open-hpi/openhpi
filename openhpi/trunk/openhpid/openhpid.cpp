@@ -93,7 +93,7 @@ cConnection::RemSession( SaHpiSessionIdT sid )
        return false;
 
   m_sessions = g_list_remove( m_sessions, s );
-  
+
   delete s;
 
   return true;
@@ -102,7 +102,7 @@ cConnection::RemSession( SaHpiSessionIdT sid )
 
 cOpenHpiDaemon::cOpenHpiDaemon()
   : m_progname( 0 ), m_daemon( false ), m_debug( 0 ),
-    m_config( 0 ), m_daemon_port( dDefaultDaemonPort ),
+    m_config( 0 ), m_interactive( true ), m_daemon_port( dDefaultDaemonPort ),
     m_main_socket( 0 ), m_connections( 0 ),
     m_num_connections( 0 ), m_pollfd( 0 ),
     m_version( 0 ), m_session( 0 )
@@ -189,6 +189,7 @@ cOpenHpiDaemon::Usage()
   fprintf( stderr, "\t-n --nodaemon     do not became a daemon\n" );
   fprintf( stderr, "\t-p --port=port    daemon port\n" );
   fprintf( stderr, "\t-c --config=file  use configuration file\n" );
+  fprintf( stderr, "\t-i --interactive  simple user interface\n" );
 }
 
 
@@ -200,12 +201,13 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
   if ( argc > 0 )
        m_progname = argv[0];
 
-  static struct option long_options[] = 
+  static struct option long_options[] =
   {
-    { "help"    , 0, 0, 'h' },
-    { "debug"   , 1, 0, 'd' },
-    { "config"  , 1, 0, 'c' },
-    { "nodaemon", 0, 0, 'n' },
+    { "help"       , 0, 0, 'h' },
+    { "debug"      , 1, 0, 'd' },
+    { "config"     , 1, 0, 'c' },
+    { "nodaemon"   , 0, 0, 'n' },
+    { "interactive", 0, 0, 'i' },
     { 0, 0, 0, 0 }
   };
 
@@ -242,6 +244,10 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
 
 	    case 'h':
 		 help = true;
+		 break;
+
+	    case 'i':
+		 m_interactive = true;
 		 break;
 
 	    default:
@@ -370,6 +376,9 @@ cOpenHpiDaemon::Initialize()
        return false;
      }
 
+  if ( m_interactive )
+       DbgInit( "interactive\n" );
+
   DbgInit( "daemon is up.\n" );
 
   return true;
@@ -378,12 +387,9 @@ cOpenHpiDaemon::Initialize()
 
 void
 cOpenHpiDaemon::Finalize()
-{
-  for( int i = 0; i < m_num_connections; i++ )
-       delete m_connections[i];
-
-  if ( m_connections )
-       delete [] m_connections;
+{  
+  while( m_num_connections )
+       CloseConnection( 0 );
 
   if ( m_pollfd )
        delete [] m_pollfd;
@@ -405,14 +411,28 @@ cOpenHpiDaemon::MainLoop()
 {
   DbgCon( "ready for incomming connections.\n" );
 
-  m_pollfd = new pollfd[1];
+  int num_add = 1;
+
+  if ( m_interactive )
+     {
+       m_pollfd = new pollfd[2];
+
+       num_add++;
+
+       m_pollfd[1].fd     = 0; // stdin
+       m_pollfd[1].events = POLLIN;
+       m_pollfd[1].revents = 0;
+     }
+  else
+       m_pollfd = new pollfd[1];
+
   m_pollfd[0].fd     = m_main_socket->m_fd;
   m_pollfd[0].events = POLLIN;
   m_pollfd[0].revents = 0;
 
   while( true )
      {
-       int rv = poll( m_pollfd, m_num_connections + 1, 250 );
+       int rv = poll( m_pollfd, m_num_connections + num_add, 250 );
 
        if ( rv < 0 )
 	  {
@@ -436,7 +456,12 @@ cOpenHpiDaemon::MainLoop()
        for( int i = m_num_connections - 1; i >= 0; i-- )
 	    if ( m_pollfd[i].revents )
 		 if ( !HandleData( m_connections[i] ) )
+		    {
 		      CloseConnection( i );
+
+		      // m_pollfd has changed
+		      continue;
+		    }
 
        if ( m_pollfd[m_num_connections].revents )
 	  {
@@ -444,20 +469,27 @@ cOpenHpiDaemon::MainLoop()
 	    cServerConnection *c = ServerConnectionMainAccept( m_main_socket );
 
 	    if ( c )
+	       {
 		 NewConnection( c );
+		 continue;
+	       }
 	  }
+
+       if ( m_interactive && m_pollfd[m_num_connections+1].revents )
+	    if ( HandleInteractive() == false )
+		 break;
      }
 
   return 0;
 }
 
 
-void 
+void
 cOpenHpiDaemon::NewConnection( cServerConnection *c )
 {
   DbgCon( "creating new connection.\n" );
 
-  pollfd *pfd = new pollfd[m_num_connections + 2];
+  pollfd *pfd = new pollfd[m_num_connections + 2 + (m_interactive ? 1 : 0)];
   cConnection **ca = new cConnection *[m_num_connections + 1];
 
   memcpy( pfd, m_pollfd, sizeof( pollfd ) * m_num_connections );
@@ -470,6 +502,12 @@ cOpenHpiDaemon::NewConnection( cServerConnection *c )
   pfd[m_num_connections].events   = POLLIN;
   pfd[m_num_connections+1].fd     = m_main_socket->m_fd;
   pfd[m_num_connections+1].events = POLLIN;
+
+  if ( m_interactive )
+     {
+       pfd[m_num_connections+2].fd     = 0;
+       pfd[m_num_connections+2].events = POLLIN;
+     }
 
   ca[m_num_connections] = new cConnection( c );
 
@@ -485,7 +523,10 @@ cOpenHpiDaemon::CloseConnection( int id )
 {
   DbgCon( "closing connection.\n" );
 
-  pollfd *pfd = new pollfd[m_num_connections];
+  // close connection
+  delete m_connections[id];
+
+  pollfd *pfd = new pollfd[m_num_connections + (m_interactive ? 1 : 0)];
   cConnection **ca = 0;
 
   if ( m_num_connections > 1 )
@@ -506,6 +547,9 @@ cOpenHpiDaemon::CloseConnection( int id )
      }
 
   pfd[m_num_connections-1] = m_pollfd[m_num_connections];
+
+  if ( m_interactive )
+       pfd[m_num_connections] = m_pollfd[m_num_connections+1];
 
   delete [] m_pollfd;
   m_pollfd = pfd;
@@ -1435,15 +1479,14 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiEirIdT      eir_id;
 	      SaHpiUint32T     buffer_size;
-	      unsigned char    buffer[10240];
+	      unsigned char   *buffer = 0;
 	      SaHpiUint32T     actual_size;
 
 	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
 				    &session_id, &resource_id, &eir_id, &buffer_size );
 
-	      // check size
-	      if ( buffer_size > 10240 )
-		   buffer_size = 10240;
+	      if ( buffer_size )
+		   buffer = new unsigned char [buffer_size];
 
 	      ret = saHpiEntityInventoryDataRead( session_id, resource_id, eir_id,
 						  buffer_size, (SaHpiInventoryDataT *)buffer,
@@ -1452,7 +1495,28 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      DbgFunc( "saHpintityInventoryDataRead( %x, %x, %x, %d ) = %d\n",
                        session_id, resource_id, eir_id, buffer_size, ret );
 
-	      rh.m_len = HpiMarshalReply2( hm, rd, &ret, buffer, &actual_size );
+	      const cMarshalType *reply[4];
+	      reply[0] = &SaErrorType; // SA_OK
+	      reply[1] = &SaHpiUint32Type;  // actual size
+
+	      const void *params[3];
+	      params[0] = &ret;
+	      params[1] = &actual_size;
+
+	      if ( ret != SA_OK || buffer == 0 )
+		   reply[2] = 0;		   
+	      else
+		 {
+  		   reply[2] = &SaHpiInventoryDataType, // inventory data
+		   reply[3] = 0;		   
+
+		   params[2] = buffer;		   
+		 }
+
+	      rh.m_len = MarshalArray( reply, params, rd );
+
+	      if ( buffer )
+		   delete [] buffer;
 	    }
 
 	    break;
@@ -1868,4 +1932,28 @@ main( int argc, char *argv[] )
   delete s;
 
   return rv;
+}
+
+
+bool
+cOpenHpiDaemon::HandleInteractive()
+{
+  unsigned char ch;
+  
+  int rv = read( 0, &ch, 1 );
+  
+  if ( rv != 1 )
+       return true;
+  
+  switch( ch )
+     {
+       case 'p': // ping
+	    printf( "pong\n" );
+	    break;
+
+       case 'x': // exit
+	    return false;	    
+     }
+
+  return true;
 }
