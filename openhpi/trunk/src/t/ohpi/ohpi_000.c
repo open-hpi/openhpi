@@ -13,6 +13,7 @@
  *     Renier Morales <renierm@users.sf.net>
  */
  
+#include <stdlib.h>
 #include <SaHpi.h>
 #include <oHpi.h>
 
@@ -23,6 +24,8 @@
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
+        
+        setenv("OPENHPI_CONF","./noconfig", 1);
         
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
