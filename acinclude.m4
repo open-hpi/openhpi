@@ -16,7 +16,7 @@
 ##################################################
 
 
-AC_DEFUN(OH_SET_SIZES,
+AC_DEFUN([OH_SET_SIZES],
     [
     OH_SSFILE=testsize
     OH_SSSOURCE="$OH_SSFILE.c"
@@ -58,7 +58,7 @@ AC_DEFUN(OH_SET_SIZES,
 # OH_CHECK_FAIL($LIBNAME,$PACKAGE_SUGGEST,$URL,$EXTRA)
 #
 
-AC_DEFUN(OH_CHECK_FAIL,
+AC_DEFUN([OH_CHECK_FAIL],
     [
     OH_MSG=`echo -e "- $1 not found!\n"`
     if test "x" != "x$4"; then
@@ -84,7 +84,7 @@ $OH_MSG
 #  gcc version check.
 #
 
-AC_DEFUN(OH_CHECK_GCC,
+AC_DEFUN([OH_CHECK_GCC],
     [
     GCCVERSIONOK=`gcc --version | grep "(GCC)" | \
     sed 's/.*GCC.//' | sed 's/\./ /g' | \
@@ -116,7 +116,7 @@ AC_DEFUN(OH_CHECK_GCC,
 # optimization from the cflags for net-snmp
 # hopefully they'll fix that bug in the future
 
-AC_DEFUN(OH_CHECK_NETSNMP,
+AC_DEFUN([OH_CHECK_NETSNMP],
     [
     AC_MSG_CHECKING(for net-snmp)
     AC_TRY_LINK(
@@ -137,7 +137,7 @@ AC_DEFUN(OH_CHECK_NETSNMP,
     [AC_MSG_RESULT(no.  No SNMP based plugins can be built!)])
 ])
 
-AC_DEFUN(OH_CHECK_OPENIPMI,
+AC_DEFUN([OH_CHECK_OPENIPMI],
 	[
 	AC_MSG_CHECKING(for OpenIPMI)
 
@@ -178,7 +178,7 @@ AC_DEFUN(OH_CHECK_OPENIPMI,
 	rm -rf $OH_OI_FILE $OH_OI_SRC
 ])
 
-AC_DEFUN(OH_CHECK_FAM,
+AC_DEFUN([OH_CHECK_FAM],
 	[
 	AC_MSG_CHECKING(for FAM)
 	if test -f "/usr/include/fam.h"; then
