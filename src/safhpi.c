@@ -238,6 +238,9 @@ SaErrorT SAHPI_API saHpiFinalize(void)
         /* free global_handler_configs and uninit_plugin */
         oh_unload_config();
 
+        /* free domain list */
+        cleanup_domain();
+
         oh_hpi_state = OH_STAT_UNINIT;
 
         /* free mutex */
@@ -1128,7 +1131,7 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
         /* only float is supported */
         if (   ReadingInput->Interpreted.Type
             != SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32)
-                return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_DATA;
 
         ConvertedReading->ValuesPresent = SAHPI_SRF_RAW;
 

@@ -105,3 +105,22 @@ int add_domain(SaHpiDomainIdT did)
         
         return 0;
 }
+
+
+void cleanup_domain(void)
+{
+        data_access_lock();
+
+        while(global_domain_list) {
+                struct oh_domain *d = (struct oh_domain *)global_domain_list->data;
+                global_domain_list = g_slist_remove(global_domain_list, d);
+
+                if (d->sel)
+                        oh_sel_close(d->sel);
+
+                free(d);
+        }
+
+        data_access_unlock();
+}
+
