@@ -1,0 +1,43 @@
+This directory contains the openhpi daemon and client library.
+openhpiclient.c     - open HPI client code
+openhpiclient.conf  - sample configuration for the client library
+openhpid.cpp        - the daemon
+simple_config.c     - general config file reading code
+
+To run type:
+openhpid -d 31
+This enables debug messages of the daemon.
+To run more than one daemon on the same machine, use
+the option -c config_file for different configurations.
+
+To use the daemon, link you HPI application to -lopenhpiclient -lpthread
+not -lopenhpi. To run hpitest with the daemon/client library just
+change hpitest/v1/1.0/LDFLAGS.
+Be aware, hpitest will run in unexpected high speed.
+
+It is possible to build a static version of the daemon:
+        ./configure --enable-daemon=static
+
+This version links all the shared libraries of openhpi static to the 
+daemon. This does not work with dynamic loaded plugins. Do
+        ./configure --enable-daemon=static --enable-dummy=static
+
+instead, when you want to use the static plugin.
+Remember to change the openhpi.conf, when you want to use
+the static version of the daemon. Replace libdummy with dummy:
+
+plugin  dummy
+handler dummy {
+        entity_root = "{SYSTEM_CHASSIS,1}"
+        name = "test"
+        addr =  0
+}
+
+instead of
+
+plugin  libdummy
+handler libdummy {
+        entity_root = "{SYSTEM_CHASSIS,1}"
+        name = "test"
+        addr =  0
+}
