@@ -364,7 +364,30 @@ AC_SUBST(TEST_CLEAN)
 
 AC_C_STRINGIZE
 
-CXXFLAGS=$CFLAGS
+# getting CFLAGS right takes some effort
+# we start with a good base set that has been built up
+CFLAGS="$CFLAGS $GLIB_CFLAGS" 
+
+# next we have to do transformations to either turn on
+# test coverage or debug.
+
+AC_ARG_ENABLE([testcover],
+    [  --enable-testcover     build with test coverage support [default=no]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+            CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+    fi]
+    )
+
+AC_ARG_ENABLE([debug],
+    [  --enable-debug        turn on debug messages [default=no]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS="$CFLAGS -DDEBUG"
+    fi]
+    )
+
+# Now we throw in a bunch of warnings.  C and C++ need
+# different sets here
 
 CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wmissing-declarations \
@@ -384,31 +407,28 @@ CXX_WARNINGS="-Wall -Wmissing-prototypes \
         -Wwrite-strings \
         -Wredundant-decls"
 
-CFLAGS="$CFLAGS $GLIB_CFLAGS $CC_WARNINGS"
-CXXFLAGS="$CXXFLAGS $GLIB_CFLAGS $CXX_WARNINGS"
+# remerge the warnings into the FLAGS
 
-# we have to do this late, becase this changes CFLAGS
-AC_ARG_ENABLE([testcover],
-    [  --enable-testcover     build with test coverage support [default=no]],
-    [if test "x$enableval" = "xyes"; then
-            CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
-            CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
-    fi]
-    )
+CFLAGS="$CFLAGS $CC_WARNINGS"
+CXXFLAGS="$CFLAGS $CXX_WARNINGS"
 
-NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
-AC_SUBST(NOCFLAGS)
-
+# lastly, we add things if we are thread safe
+# (this could probably happen earlier in this file)
 if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
         CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 fi
 
+# there are certain places we always want to turn off optimization
+# this has to come last
+NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+AC_SUBST(NOCFLAGS)
+
+# Set up libs that will be linked to
 LIBS="$LIBS $GLIB_LIBS -lm"
 if test "x$THREAD_SAFE" = "xyes" ; then
         LIBS="$LIBS -lpthread"
 fi
-
 
 AC_CONFIG_FILES([openhpi.spec
         openhpi.pc

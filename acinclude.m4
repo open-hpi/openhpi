@@ -41,6 +41,10 @@ $OH_MSG
     ]
 )
 
+# it is worth noting that we have to strip 
+# optimization from the cflags for net-snmp
+# hopefully they'll fix that bug in the future
+
 AC_DEFUN(OH_CHECK_NETSNMP,
     [
     AC_MSG_CHECKING(for net-snmp)
@@ -54,7 +58,7 @@ AC_DEFUN(OH_CHECK_NETSNMP,
     ],
     [
         have_netsnmp=yes
-        SNMPFLAGS=`net-snmp-config --cflags`
+        SNMPFLAGS=`net-snmp-config --cflags | perl -p -e 's/-O\S*//g'`
         SNMPLIBS=`net-snmp-config --libs`
         SNMPDIR=snmp
         AC_MSG_RESULT(yes)
