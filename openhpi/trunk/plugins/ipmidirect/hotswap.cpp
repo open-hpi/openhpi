@@ -58,6 +58,12 @@ cIpmi::IfGetHotswapState( cIpmiEntity *ent, SaHpiHsStateT &state )
 }
 
 
+// state == SAHPI_HS_STATE_ACTIVE_HEALTHY
+//    => M2 -> M3
+//    => M5 -> M4
+// state == SAHPI_HS_STATE_INACTIVE
+//    => M5 -> M6
+
 SaErrorT
 cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
 {
@@ -67,42 +73,67 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
        return SA_ERR_HPI_INVALID;
      }
 
-  unsigned char fru_state;
+  // get hotswap sensor
+  cIpmiSensorHotswap *hs = ent->GetHotswapSensor();
 
-  switch( state )
-     {
-       case SAHPI_HS_STATE_ACTIVE_HEALTHY:
-            fru_state = dIpmiActivateFru;
-            break;
+  if ( !hs )
+       return SA_ERR_HPI_INVALID_PARAMS;
 
-       case SAHPI_HS_STATE_INACTIVE:
-            fru_state = dIpmiDeactivateFru;
-            break;
+  // read current state
+  SaHpiHsStateT current;
+  SaErrorT rv = hs->GetState( current );
 
-       default:
-            stdlog << "IfSetHotSwapState: illegal state " << state << " !\n";
-            return SA_ERR_HPI_INVALID;
-     }
+  if ( rv != SA_OK )
+       return rv;
 
-  cIpmiMsg  cmd_msg;
-  cIpmiMsg  rsp;
   cIpmiAddr addr;
-
   addr.m_type       = eIpmiAddrTypeIpmb;
   addr.m_channel    = ent->Channel();
   addr.m_slave_addr = ent->AccessAddress();
   addr.m_lun        = 0; //ent->lun;
 
-  cmd_msg.m_netfn    = eIpmiNetfnPicmg;
-  cmd_msg.m_cmd      = eIpmiCmdSetFruActivation;
-  cmd_msg.m_data_len = 3;
-  cmd_msg.m_data[0]  = dIpmiPigMgId;
-  cmd_msg.m_data[1]  = ent->FruId();
-  cmd_msg.m_data[2]  = fru_state;
+  cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
+  msg.m_data_len = 3;
+  msg.m_data[0]  = dIpmiPigMgId;
+  msg.m_data[1]  = ent->FruId();
 
-  int rv = SendCommand( addr, cmd_msg, rsp );
+  switch( state )
+     {
+       case SAHPI_HS_STATE_ACTIVE_HEALTHY:
+            if (    current == SAHPI_HS_STATE_INSERTION_PENDING 
+                 || current == SAHPI_HS_STATE_EXTRACTION_PENDING )
+                 msg.m_data[2] = dIpmiDeactivateFru;
+            else
+               {
+                 stdlog << "FRU state is not SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_EXTRACTION_PENDING: "
+                        << HotswapStateToString( current ) << " !\n";
+                 return SA_ERR_HPI_INVALID;
+               }
 
-  if ( rv )
+            break;
+
+       case SAHPI_HS_STATE_INACTIVE:
+            if ( current == SAHPI_HS_STATE_ACTIVE_HEALTHY )
+                 msg.m_data[2] = dIpmiActivateFru;
+            else
+              {
+                 stdlog << "FRU state is not SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_EXTRACTION_PENDING: "
+                        << HotswapStateToString( current ) << " !\n";
+                 return SA_ERR_HPI_INVALID;
+               }
+
+            break;
+
+       default:
+            stdlog << "IfSetHotSwapState: illegal state " << HotswapStateToString( state ) << " !\n";
+            return SA_ERR_HPI_INVALID;
+     }
+
+  cIpmiMsg rsp;
+
+  int r = SendCommand( addr, msg, rsp );
+
+  if ( r )
      {
        stdlog << "IfSetHotSwapState: could not send set FRU activation: " << rv << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
@@ -122,6 +153,9 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
 }
 
 
+// act == SAHPI_HS_ACTION_INSERTION     => M1->M2
+// act == SAHPI_HS_STATE_ACTIVE_HEALTHY => M4->M5
+
 SaErrorT
 cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
                                SaHpiHsActionT act )
@@ -140,7 +174,7 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
 
   SaHpiHsStateT current;
   SaErrorT rv = hs->GetState( current );
-  
+
   if ( rv != SA_OK )
        return rv;
 
@@ -151,23 +185,23 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
   addr.m_slave_addr = ent->AccessAddress();
   addr.m_lun        = 0; //ent->lun;
 
-  cIpmiMsg msg;
-  msg.m_netfn = eIpmiNetfnPicmg;
+  cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivationPolicy );
+  msg.m_data_len = 4;
+  msg.m_data[0]  = dIpmiPigMgId;
+  msg.m_data[1]  = ent->FruId();
 
   if ( act == SAHPI_HS_ACTION_INSERTION )
      {
        if ( current != SAHPI_HS_STATE_INACTIVE )
           {
-            stdlog << "FRU not SAHPI_HS_STATE_INACTIVE: " << current << " !\n";
+            stdlog << "FRU not SAHPI_HS_STATE_INACTIVE: "
+		   << HotswapStateToString( current ) << " !\n";
             return SA_ERR_HPI_INVALID;
           }
 
-       msg.m_cmd      = eIpmiCmdSetFruActivationPolicy;
-       msg.m_data_len = 4;
-       msg.m_data[0]  = dIpmiPigMgId;
-       msg.m_data[1]  = ent->FruId();
-       msg.m_data[2]  = 1;
-       msg.m_data[3]  = 0; // clear the activation/deactivation locked
+       // m1 -> m2
+       msg.m_data[2] = 1; // M1->M2 lock bit
+       msg.m_data[3] = 0; // clear locked bit M1->M2
      }
   else
      {
@@ -178,11 +212,8 @@ cIpmi::IfRequestHotswapAction( cIpmiEntity *ent,
             return SA_ERR_HPI_INVALID;
           }
 
-       msg.m_cmd      = eIpmiCmdSetFruActivation;
-       msg.m_data_len = 3;
-       msg.m_data[0]  = dIpmiPigMgId;
-       msg.m_data[1]  = ent->FruId();
-       msg.m_data[2]  = 0; // deactivate
+       msg.m_data[2]  = 2; // M4->M5 lock bit
+       msg.m_data[3]  = 0; // clear lock bit M4->M5
      }
 
   cIpmiMsg  rsp;
