@@ -57,35 +57,35 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {	
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exists and is enabled */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	
 	if (sinfo->sensor_enabled == SAHPI_FALSE) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_REQUEST);
 	}
 
@@ -104,7 +104,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, sinfo->mib.oid, &working_reading);
 		if (err) {
 			dbg("Cannot determine sensor's reading. Error=%s", oh_lookup_error(err));
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(err);
 		}
 	}
@@ -120,7 +120,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	err = snmp_bc_get_sensor_eventstate(hnd, rid, sid, &working_reading, &working_state);
 	if (err) {
 		dbg("Cannot determine sensor's event state. Error=%s", oh_lookup_error(err));
-		g_static_rec_mutex_unlock(&handle->handler_lock);		
+		snmp_bc_unlock_handler(custom_handle);
 		return(err);
 	}
 
@@ -141,7 +141,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	if (reading) memcpy(reading, &working_reading, sizeof(SaHpiSensorReadingT));
 	if (state) memcpy(state, &working_state, sizeof(SaHpiEventStateT));
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
 
@@ -314,20 +314,20 @@ do { \
 		if (sinfo->mib.threshold_oids.thdname == NULL || \
 		    sinfo->mib.threshold_oids.thdname[0] == '\0') { \
 			dbg("No OID defined for readable threshold. Sensor=%s", rdr->IdString.Data); \
-			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			snmp_bc_unlock_handler(custom_handle); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
 		SaErrorT err = snmp_bc_get_sensor_oid_reading(hnd, rid, sid, \
 							      sinfo->mib.threshold_oids.thdname, \
 							      &(working.thdname)); \
 		if (err) { \
-			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			snmp_bc_unlock_handler(custom_handle); \
 			return(err); \
 		} \
 		if (working.thdname.Type == SAHPI_SENSOR_READING_TYPE_BUFFER) { \
 			dbg("Sensor type SAHPI_SENSOR_READING_TYPE_BUFFER cannot have thresholds. Sensor=%s", \
 			    rdr->IdString.Data); \
-			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			snmp_bc_unlock_handler(custom_handle); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
 		found_thresholds = found_thresholds | thdmask; \
@@ -363,41 +363,45 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 	SaHpiSensorThresholdsT working;
         struct SensorInfo *sinfo;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	
 	if (!hnd || !thres) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {	
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exits and has readable thresholds */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL){
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
         sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);		
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold == 0) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_CMD);
 	}
 
@@ -454,13 +458,13 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		if (found_thresholds & SAHPI_STM_LOW_HYSTERESIS) {
 			dbg("Cannot define both delta and total negative hysteresis. Sensor=%s",
 			    rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);			    
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 		if (lower_thresholds == 0) {
 			dbg("No lower thresholds are defined for total negative hysteresis. Sensor=%s",
 			    rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);			    
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
@@ -469,7 +473,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 							      sinfo->mib.threshold_oids.TotalNegThdHysteresis,
 							      &reading);
 		if (err) {
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(err);
 		}
 		
@@ -530,7 +534,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
 		default:
 			dbg("Invalid reading type for threshold. Sensor=%s", rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);			
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
@@ -542,13 +546,13 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		if (found_thresholds & SAHPI_STM_UP_HYSTERESIS) {
 			dbg("Cannot define both delta and total positive hysteresis. Sensor=%s",
 			    rdr->IdString.Data);			    
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 		if (upper_thresholds == 0) {
 			dbg("No upper thresholds are defined for total positive hysteresis. Sensor=%s",
 			    rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
@@ -557,7 +561,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 							      sinfo->mib.threshold_oids.TotalPosThdHysteresis,
 							      &reading);
 		if (err) {
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(err);
 		}
 		
@@ -619,19 +623,19 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		case SAHPI_SENSOR_READING_TYPE_BUFFER:
 		default:
 			dbg("Invalid reading type for threshold. Sensor=%s", rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
 
 	if (found_thresholds == 0) {
 		dbg("No readable thresholds found. Sensor=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 	memcpy(thres, &working, sizeof(SaHpiSensorThresholdsT));
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -653,7 +657,7 @@ do { \
         	case SAHPI_SENSOR_READING_TYPE_BUFFER: \
         	default: \
         		dbg("Invalid threshold reading type."); \
-			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			snmp_bc_unlock_handler(custom_handle); \
         		return(SA_ERR_HPI_INVALID_CMD); \
         	} \
         } \
@@ -665,14 +669,14 @@ do { \
 		if (sinfo->mib.threshold_write_oids.thdname == NULL || \
 		    sinfo->mib.threshold_oids.thdname[0] == '\0') { \
 			dbg("No writable threshold OID defined for thdname."); \
-			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			snmp_bc_unlock_handler(custom_handle); \
 			return(SA_ERR_HPI_INTERNAL_ERROR); \
 		} \
 		err = snmp_bc_set_threshold_reading(hnd, rid, sid, \
 					            sinfo->mib.threshold_write_oids.thdname, \
 						    &(working.thdname)); \
 		if (err) { \
-			g_static_rec_mutex_unlock(&handle->handler_lock); \
+			snmp_bc_unlock_handler(custom_handle); \
 			return(err); \
 		} \
 	} \
@@ -709,43 +713,45 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exists and has writable thresholds */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	if (rdr->RdrTypeUnion.SensorRec.Category != SAHPI_EC_THRESHOLD ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible == SAHPI_FALSE ||
 	    rdr->RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold == 0) {
-	    	g_static_rec_mutex_unlock(&handle->handler_lock);
+	    	snmp_bc_unlock_handler(custom_handle);
 	    	return(SA_ERR_HPI_INVALID_CMD);
 	}
   
 	/* Overlay proposed thresholds on top of existing ones and validate */
 	err = snmp_bc_get_sensor_thresholds(hnd, rid, sid, &working);
 	if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(err);
 	}
 	
@@ -760,7 +766,7 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 	
 	err = oh_valid_thresholds(&working, rdr);
 	if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(err);
 	}
 	
@@ -778,7 +784,7 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 	write_valid_threshold(NegThdHysteresis);
 	write_valid_threshold(PosThdHysteresis);
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -930,37 +936,38 @@ SaErrorT snmp_bc_get_sensor_enable(void *hnd,
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exists and return enablement status */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	
 	*enable = sinfo->sensor_enabled;
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -990,24 +997,25 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 	}
 
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exists and if it supports setting of sensor enablement */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
@@ -1017,7 +1025,7 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
@@ -1028,11 +1036,11 @@ SaErrorT snmp_bc_set_sensor_enable(void *hnd,
 		}
 	}
 	else {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_READ_ONLY);
 	}
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -1062,37 +1070,38 @@ SaErrorT snmp_bc_get_sensor_event_enable(void *hnd,
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exists and return enablement status */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	
 	*enable = sinfo->events_enabled;
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
 
@@ -1121,25 +1130,26 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exists and if it supports setting of sensor event enablement */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
@@ -1150,7 +1160,7 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 		
@@ -1161,11 +1171,11 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 		}
 	}
 	else {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_READ_ONLY);
 	}
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -1203,30 +1213,31 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 	
 	/* Check if sensor exists and return enablement status */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	} 
 	
 	sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
  	if (sinfo == NULL) {
 		dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 
@@ -1238,7 +1249,7 @@ SaErrorT snmp_bc_get_sensor_event_masks(void *hnd,
 		*DeassertEventMask = sinfo->deassert_mask;	
 	}
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
 
@@ -1277,24 +1288,26 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 	if (oh_lookup_sensoreventmaskaction(act) == NULL) {
 		return(SA_ERR_HPI_INVALID_DATA);
 	}
+	
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Check if sensor exists and if it supports setting of sensor event masks */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_SENSOR_RDR, sid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
@@ -1305,7 +1318,7 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
 			dbg("No sensor data. Sensor=%s", rdr->IdString.Data);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
@@ -1315,13 +1328,13 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 		/* Check for invalid data in user masks */
 		if ( (AssertEventMask != SAHPI_ALL_EVENT_STATES) &&
 		     (AssertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) { 
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INVALID_DATA);
 		}
 		if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)) {
 			if  ( (DeassertEventMask != SAHPI_ALL_EVENT_STATES) &&
 				(DeassertEventMask & ~(rdr->RdrTypeUnion.SensorRec.Events)) ) {
-				g_static_rec_mutex_unlock(&handle->handler_lock);
+				snmp_bc_unlock_handler(custom_handle);
 				return(SA_ERR_HPI_INVALID_DATA);
 			}
 		}
@@ -1372,10 +1385,10 @@ SaErrorT snmp_bc_set_sensor_event_masks(void *hnd,
 		}
 	}
 	else {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_READ_ONLY);
 	}
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }

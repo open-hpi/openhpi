@@ -61,6 +61,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 
 	if (!hnd || !IdrInfo)
 		return(SA_ERR_HPI_INVALID_PARAMS);
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 		
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
@@ -68,7 +69,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
@@ -79,7 +80,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 	}
 
 	g_free(i_record);
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return rv;
 }
 
@@ -125,14 +126,14 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 	if (!hnd || !NextAreaId || !Header)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	
-	
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
@@ -152,7 +153,7 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 		}
 	}
 	g_free(i_record);
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return (rv);
 
 }
@@ -237,7 +238,8 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 
 	if (!hnd || !NextFieldId || !Field)
 		return(SA_ERR_HPI_INVALID_PARAMS);
-	
+		
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
 	
  	if (!i_record) {
@@ -245,7 +247,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
@@ -285,7 +287,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 	}
 
 	g_free(i_record);
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return rv;
 }
 

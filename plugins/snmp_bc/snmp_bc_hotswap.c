@@ -46,21 +46,21 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	dbg("Managed Hotswap is not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
@@ -101,21 +101,21 @@ SaErrorT snmp_bc_set_hotswap_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	dbg("Managed Hotswap is not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
@@ -156,21 +156,21 @@ SaErrorT snmp_bc_request_hotswap_action(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	dbg("Managed Hotswap is not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
@@ -205,21 +205,21 @@ SaErrorT snmp_bc_get_indicator_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	dbg("Managed Hotswap is not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
@@ -260,20 +260,20 @@ SaErrorT snmp_bc_set_indicator_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	dbg("Managed Hotswap is not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }

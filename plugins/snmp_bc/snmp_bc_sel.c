@@ -112,10 +112,10 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-    
-        g_static_rec_mutex_lock(&handle->handler_lock);
-
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+    	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+        snmp_bc_lock_handler(custom_handle);
+        
         /* Build local copy of EventLogInfo  */
         SaHpiEventLogInfoT sel = {
 			     /* Max number of entries that can be stored  */
@@ -146,7 +146,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
                         err = snmp_bc_parse_sel_entry(handle, first_value.string, &sel_entry);
                         if (err) {
                                 dbg("Cannot get first date");
-                                g_static_rec_mutex_unlock(&handle->handler_lock);
+                                snmp_bc_unlock_handler(custom_handle);
 
 				return(err);
                 	} else {
@@ -154,7 +154,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
                 	}
         	}
         } else {
-                g_static_rec_mutex_unlock(&handle->handler_lock);
+                snmp_bc_unlock_handler(custom_handle);
                 return(err);
         }
 	
@@ -163,7 +163,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         if ( err == SA_OK) {
                 sel.CurrentTime = (SaHpiTimeT) mktime(&curtime) * 1000000000;
         } else {
-                g_static_rec_mutex_unlock(&handle->handler_lock);
+                snmp_bc_unlock_handler(custom_handle);
                 return(err);
         }
 
@@ -171,7 +171,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         sel.Entries = snmp_bc_get_sel_size(handle, id);
 	sel.OverflowFlag = handle->elcache->overflow;
         *info = sel;
-        g_static_rec_mutex_unlock(&handle->handler_lock);
+        snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
 
@@ -210,8 +210,9 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
                 dbg("Invalid parameter.");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
         
-        g_static_rec_mutex_lock(&handle->handler_lock);
+        snmp_bc_lock_handler(custom_handle);
         
         if (handle->elcache != NULL) {
                 /* Force a cache sync before servicing the request */
@@ -229,7 +230,7 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
                 if (err) {
                         dbg("Getting Event Log entry=%d from cache failed. Error=%s.", 
                             current, oh_lookup_error(err));
-                        g_static_rec_mutex_unlock(&handle->handler_lock);
+                        snmp_bc_unlock_handler(custom_handle);
                         
                         return(err);
                 } else {
@@ -246,11 +247,10 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
                 }
         } else {
                 dbg("Missing handle->elcache");
-                g_static_rec_mutex_unlock(&handle->handler_lock);
-                        
+                snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
-        g_static_rec_mutex_unlock(&handle->handler_lock);
+        snmp_bc_unlock_handler(custom_handle);
 		
         return(SA_OK);
 }
@@ -497,18 +497,18 @@ SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	}
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
         tt = time / 1000000000;
         localtime_r(&tt, &tv);
 	
 	err = snmp_bc_set_sp_time(custom_handle, &tv);
         if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("Cannot set time. Error=%s.", oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
 
@@ -783,10 +783,10 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	}
         struct snmp_bc_hnd *custom_handle = handle->data;
 		
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	err = oh_el_clear(handle->elcache);
 	if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("Cannot clear system Event Log. Error=%s.", oh_lookup_error(err));
 		return(err);
 	}
@@ -802,7 +802,7 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	}
 
 	if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("SNMP set failed. Error=%s.", oh_lookup_error(err));
 		return(err);
 	} else if (!is_simulator()) { 
@@ -810,7 +810,7 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 		err = snmp_bc_build_selcache(handle, 1);
 	}
 		
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 

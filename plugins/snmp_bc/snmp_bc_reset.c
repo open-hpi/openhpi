@@ -47,22 +47,22 @@ SaErrorT snmp_bc_get_reset_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has reset capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_RESET)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	*act = SAHPI_RESET_DEASSERT;
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -103,29 +103,29 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has reset capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_RESET)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, rid);
  	if (resinfo == NULL) {
 		dbg("No resource data. Resource=%s", rpt->ResourceTag.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 
 	if (resinfo->mib.OidReset == NULL) {
 		dbg("No Reset OID.");
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -141,21 +141,21 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 						 resinfo->mib.OidReset, set_value);
 		if (err) {
 			dbg("Cannot set SNMP OID=%s; Type=%d.", resinfo->mib.OidReset, set_value.type);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(err);
 		}
 		break;
 	case SAHPI_RESET_ASSERT: /* RESET_ASSERT = RESET_DEASSERT Action */
 	case SAHPI_RESET_DEASSERT:
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_CMD);
 	default:
 		dbg("Invalid Reset Action Type=%d.", act);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
 
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }

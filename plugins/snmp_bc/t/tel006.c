@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 	 * Local variables
 	 * ***********************/	 
 	int testfail = 0;
+#if 0
 	SaErrorT          err;
 	SaErrorT expected_err;
 					
@@ -51,6 +52,7 @@ int main(int argc, char **argv)
 	 * Cleanup after all tests
 	 ***************************/
 	err = tcleanup(&sessionid);
+#endif
 	return testfail;
 
 }

@@ -19,6 +19,14 @@
 
 #define SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED  5
 
+#include <stdlib.h>
+#include <glib.h>
+
+typedef struct {
+        GStaticRecMutex lock;
+        guint32 count;
+} ohpi_bc_lock;
+
 /* This handle is unique per instance of this plugin. 
  * SNMP session data is stored in the handle along with config file data. */
 struct snmp_bc_hnd {
@@ -30,6 +38,7 @@ struct snmp_bc_hnd {
         int   handler_retries;          /* Number of retries attempted on SNMP target (client) */
 	RPTable *tmpcache;
 	GSList *tmpqueue;
+	ohpi_bc_lock snmp_bc_hlock;
 };
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,

@@ -57,41 +57,41 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	memset(&working_state, 0, sizeof(SaHpiCtrlStateT));
 
 	/* Check if resource exists and has control capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Find control and its mapping data - see if it accessable */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_CTRL_RDR, cid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
 	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
  	if (cinfo == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 
 	if (rdr->RdrTypeUnion.CtrlRec.WriteOnly) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_CMD);
 	}
 	if (!mode && !state) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_OK);
 	}
 	
@@ -99,7 +99,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		if (state->Type == SAHPI_CTRL_TYPE_TEXT) {
 			if (state->StateUnion.Text.Line != SAHPI_TLN_ALL_LINES ||
 			    state->StateUnion.Text.Line > rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.MaxLines) {
-			    	g_static_rec_mutex_unlock(&handle->handler_lock);
+			    	snmp_bc_unlock_handler(custom_handle);
 				return(SA_ERR_HPI_INVALID_DATA);
 			}
 		}
@@ -110,37 +110,37 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 		err = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), cinfo->mib.oid, &get_value, SAHPI_TRUE);
 		if (err  || get_value.type != ASN_INTEGER) {
 			dbg("Cannot read SNMP OID=%s; Type=%d.", cinfo->mib.oid, get_value.type);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(err);
 		}
 		
 		switch (rdr->RdrTypeUnion.CtrlRec.Type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			dbg("Digital controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_DISCRETE:
 			working_state.StateUnion.Discrete = get_value.integer;
 			break;
 		case SAHPI_CTRL_TYPE_ANALOG:
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			dbg("Analog controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_STREAM:
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			dbg("Stream controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_TEXT:
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			dbg("Text controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_OEM:
-			g_static_rec_mutex_unlock(&handle->handler_lock);	
+			snmp_bc_unlock_handler(custom_handle);
 			dbg("Oem controls not supported.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		default:
 			dbg("%s has invalid control state=%d.", cinfo->mib.oid, working_state.Type);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
@@ -148,7 +148,7 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 	if (state) memcpy(state, &working_state, sizeof(SaHpiCtrlStateT));
 	if (mode) *mode = cinfo->cur_mode;
 	
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -192,37 +192,37 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has control capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	/* Find control and its mapping data - see if it accessable */
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_CTRL_RDR, cid);
 	if (rdr == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_NOT_PRESENT);
 	}
 	
 	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
  	if (cinfo == NULL) {
 		dbg("No control data. Control=%s", rdr->IdString.Data);
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 
 	/* Validate static control state and mode data */
 	err = oh_valid_ctrl_state_mode(&(rdr->RdrTypeUnion.CtrlRec), mode, state);
 	if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(err);
 	}
 
@@ -231,7 +231,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		switch (state->Type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
 			dbg("Digital controls not supported.");
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_DISCRETE:
 			set_value.type = ASN_INTEGER;
@@ -242,29 +242,29 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 			if (err) {
 				dbg("Cannot set SNMP OID=%s; Value=%d.", 
 				    cinfo->mib.oid, (int)set_value.integer);
-				g_static_rec_mutex_unlock(&handle->handler_lock);
+				snmp_bc_unlock_handler(custom_handle);
 				return(err);
 			}
 			break;
 		case SAHPI_CTRL_TYPE_ANALOG:
 			dbg("Analog controls not supported.");
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_STREAM:
 			dbg("Stream controls not supported.");
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_TEXT:
 			dbg("Text controls not supported.");
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		case SAHPI_CTRL_TYPE_OEM:	
 			dbg("OEM controls not supported.");
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		default:
 			dbg("Invalid control state=%d", state->Type);
-			g_static_rec_mutex_unlock(&handle->handler_lock);
+			snmp_bc_unlock_handler(custom_handle);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 	}
@@ -274,6 +274,6 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 		cinfo->cur_mode = mode;
 	}
 	
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
