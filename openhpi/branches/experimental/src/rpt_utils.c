@@ -25,7 +25,7 @@ RPTable *default_rpt = NULL;
 /* declare hotswap state list */
 GSList *managed_hs_resources = NULL;
 
-static inline RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
+static RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry = NULL;
         GSList *node;
@@ -43,7 +43,7 @@ static inline RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid
         return rptentry;
 }
 
-static inline RDRecord *get_rdrecord_by_id(GSList *records, SaHpiEntryIdT id)
+static RDRecord *get_rdrecord_by_id(GSList *records, SaHpiEntryIdT id)
 {
         RDRecord *rdrecord = NULL;
         GSList *node;
@@ -61,7 +61,7 @@ static inline RDRecord *get_rdrecord_by_id(GSList *records, SaHpiEntryIdT id)
         return rdrecord;
 }
 
-static inline SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
+static SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
 {
         SaHpiUint32T uid;
 
@@ -71,27 +71,45 @@ static inline SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
         return uid;
 }
 
-static inline SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
+static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
 {
-        SaHpiUint8T num;
+        SaHpiUint8T num = 0;
         
         switch (rdr->RdrType) {
                 case SAHPI_CTRL_RDR:
                         num = rdr->RdrTypeUnion.CtrlRec.Num;
+			dbg("num = rdr->RdrTypeUnion.CtrlRec.Num;");
+			dbg("num%d",num);
+			break;
                 case SAHPI_SENSOR_RDR:
                         num = rdr->RdrTypeUnion.SensorRec.Num;
+			dbg("num = rdr->RdrTypeUnion.SensorRec.Num;");
+			dbg("num%d",num);
+
+			break;
                 case SAHPI_INVENTORY_RDR:
                         num = rdr->RdrTypeUnion.InventoryRec.EirId;
+			dbg("num = rdr->RdrTypeUnion.InventoryRec.EirId;");
+			dbg("num%d",num);
+
+			break;
                 case SAHPI_WATCHDOG_RDR:
                         num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;
-                default:
+			dbg("num = rdr->RdrTypeUnion.WatchdogRec.WatchdogNum;");
+			dbg("num%d",num);
+
+			break;
+		default:
+		dbg("default");
+		dbg("num%d",num);
+
                         num = 0;
         }
 
         return num;
 }
 
-static inline int check_ep(SaHpiEntityPathT ep)
+static int check_ep(SaHpiEntityPathT ep)
 {
         int check = -1; 
 	int i;
@@ -106,7 +124,7 @@ static inline int check_ep(SaHpiEntityPathT ep)
         return check;
 }
 
-static inline void update_rptable(RPTable *table, guint modifier) {
+static void update_rptable(RPTable *table, guint modifier) {
         struct timeval tv;
         SaHpiTimeT time;
 
