@@ -107,7 +107,7 @@ typedef enum {
  *                   Resource Definitions
  *************************************************************************/
 
-struct BC_ResourceMibInfo {
+struct ResourceMibInfo {
         const char *OidHealth;
         int   HealthyValue;
         const char *OidReset;
@@ -125,15 +125,15 @@ struct res_event_map {
         SaHpiHsStateT recovery_state;
 };
 
-struct BC_ResourceInfo {
-        struct BC_ResourceMibInfo mib;
+struct ResourceInfo {
+        struct ResourceMibInfo mib;
         SaHpiHsStateT cur_state;
         struct res_event_map event_array[SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE];
 };
 
 struct snmp_rpt {
         SaHpiRptEntryT rpt;
-        struct BC_ResourceInfo bc_res_info;
+        struct ResourceInfo res_info;
         const  char *comment;
 };
 
@@ -142,17 +142,6 @@ extern struct snmp_rpt snmp_rpt_array[];
 /******************************************************************************
  *                      Sensor Definitions
  ******************************************************************************/
-
-struct SNMPRawThresholdsOIDs {
-        const char *OidLowMinor;
-        const char *OidLowMajor;
-        const char *OidLowCrit;
-        const char *OidUpMinor;
-        const char *OidUpMajor;
-        const char *OidUpCrit;
-        const char *OidLowHysteresis;
-        const char *OidUpHysteresis;
-};
 
 struct SNMPInterpretedThresholdsOIDs {
         const char *OidLowMinor;
@@ -166,11 +155,10 @@ struct SNMPInterpretedThresholdsOIDs {
 };
 
 struct SnmpSensorThresholdOids {
-        struct SNMPRawThresholdsOIDs RawThresholds;
         struct SNMPInterpretedThresholdsOIDs InterpretedThresholds;
 };
 
-struct BC_SensorMibInfo {
+struct SensorMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorInterpretedTypeT values */
@@ -180,7 +168,7 @@ struct BC_SensorMibInfo {
 
 #define SNMP_BC_MAX_EVENTS_PER_SENSOR 15
 #define SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE  (SNMP_BC_MAX_EVENTS_PER_SENSOR + 1)
-                                     /* Includes an ending NULL entry */
+                                             /* Includes an ending NULL entry */
 
 struct sensor_event_map {
         char *event;
@@ -189,9 +177,11 @@ struct sensor_event_map {
         SaHpiEventStateT recovery_state;
 };
 
-struct BC_SensorInfo {
-        struct BC_SensorMibInfo mib;
+struct SensorInfo {
+        struct SensorMibInfo mib;
+	SaHpiBoolT sensor_enabled;
         SaHpiEventStateT cur_state;
+	SaHpiBoolT events_enabled;
         SaHpiEventStateT assert_mask;
 	SaHpiEventStateT deassert_mask;
         struct sensor_event_map event_array[SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE];
@@ -199,7 +189,7 @@ struct BC_SensorInfo {
 
 struct snmp_bc_sensor {
         SaHpiSensorRecT sensor;
-        struct BC_SensorInfo bc_sensor_info;
+        struct SensorInfo sensor_info;
         const char *comment;
 };
 
@@ -215,7 +205,7 @@ extern struct snmp_bc_sensor snmp_bc_switch_sensors[];
 /*************************************************************************
  *                   Control Definitions
  *************************************************************************/
-struct BC_ControlMibInfo {
+struct ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         const char *oid;
@@ -223,13 +213,13 @@ struct BC_ControlMibInfo {
 	int digitalwmap[OH_MAX_CTRLSTATEDIGITAL]; /* Writable controls */
 };
 
-struct BC_ControlInfo {
-        struct BC_ControlMibInfo mib;
+struct ControlInfo {
+        struct ControlMibInfo mib;
 };
 
 struct snmp_bc_control {
         SaHpiCtrlRecT control;
-        struct BC_ControlInfo bc_control_info;
+        struct ControlInfo control_info;
         const char *comment;
 };
 
@@ -259,20 +249,20 @@ struct SnmpInventoryOids {
         const char *OidAssetTag;
 };
 
-struct BC_InventoryMibInfo {
+struct InventoryMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         SaHpiIdrAreaTypeT  area_type;
         struct SnmpInventoryOids oid;
 };
 
-struct BC_InventoryInfo {
-        struct BC_InventoryMibInfo mib;
+struct InventoryInfo {
+        struct InventoryMibInfo mib;
 };
 
 struct snmp_bc_inventory {
         SaHpiInventoryRecT  inventory;
-        struct BC_InventoryInfo bc_inventory_info;
+        struct InventoryInfo inventory_info;
         const char *comment;
 };
 

@@ -158,11 +158,11 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 }
                 gpointer data = oh_get_rdr_data(custom_handle->tmpcache, res->ResourceId, rdr->RecordId);
                 /* Need to figure out the size of the data associated with the rdr */
-                if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct BC_SensorInfo);
+                if (rdr->RdrType == SAHPI_SENSOR_RDR) rdr_data_size = sizeof(struct SensorInfo);
                 else if (rdr->RdrType == SAHPI_CTRL_RDR)
-                        rdr_data_size = sizeof(struct BC_ControlInfo);
+                        rdr_data_size = sizeof(struct ControlInfo);
                 else if (rdr->RdrType == SAHPI_INVENTORY_RDR)
-                        rdr_data_size = sizeof(struct BC_InventoryInfo);
+                        rdr_data_size = sizeof(struct InventoryInfo);
                 oh_add_rdr(handle->rptcache, res->ResourceId, rdr, g_memdup(data, rdr_data_size),0);
                 /* Add new/changed rdrs to the event queue */
                 for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
@@ -213,7 +213,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
-	struct BC_SensorInfo *sensor_info_ptr;
+	struct SensorInfo *sensor_info_ptr;
 	
 	for (i=0; sensor_array[i].sensor.Num != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -228,19 +228,19 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			valid_sensor = SAHPI_TRUE;
 		}
 		else {
-			if (sensor_array[i].bc_sensor_info.mib.oid != NULL) {
+			if (sensor_array[i].sensor_info.mib.oid != NULL) {
 				gchar *oid;
 
 				oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
-							sensor_array[i].bc_sensor_info.mib.oid);
+							sensor_array[i].sensor_info.mib.oid);
 				if (oid == NULL) {
-					dbg("Cannot derive %s.", sensor_array[i].bc_sensor_info.mib.oid);
+					dbg("Cannot derive %s.", sensor_array[i].sensor_info.mib.oid);
 					g_free(e);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
 				valid_sensor = rdr_exists(ss, oid, 
-							  sensor_array[i].bc_sensor_info.mib.not_avail_indicator_num,
-							  sensor_array[i].bc_sensor_info.mib.write_only);
+							  sensor_array[i].sensor_info.mib.not_avail_indicator_num,
+							  sensor_array[i].sensor_info.mib.write_only);
 				g_free(oid);
 			}
 			else {
@@ -264,7 +264,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 #if 0
 			trace("Discovered sensor: %s.", e->u.rdr_event.rdr.IdString.Data);
 #endif
-			sensor_info_ptr = g_memdup(&(sensor_array[i].bc_sensor_info), sizeof(struct BC_SensorInfo));
+			sensor_info_ptr = g_memdup(&(sensor_array[i].sensor_info), sizeof(struct SensorInfo));
 
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
@@ -313,7 +313,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
-	struct BC_ControlInfo *control_info_ptr;
+	struct ControlInfo *control_info_ptr;
 	
 	for (i=0; control_array[i].control.Num != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
@@ -323,16 +323,16 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 		}
 
 		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity,
-					control_array[i].bc_control_info.mib.oid);
+					control_array[i].control_info.mib.oid);
 		if (oid == NULL) {
-			dbg("Cannot derive %s.", control_array[i].bc_control_info.mib.oid);
+			dbg("Cannot derive %s.", control_array[i].control_info.mib.oid);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
 
 		valid_control = rdr_exists(ss, oid, 
-					   control_array[i].bc_control_info.mib.not_avail_indicator_num,
-					   control_array[i].bc_control_info.mib.write_only);
+					   control_array[i].control_info.mib.not_avail_indicator_num,
+					   control_array[i].control_info.mib.write_only);
 		g_free(oid);
 
 		/* Add control RDR, if control can be read */
@@ -348,7 +348,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 #if 0
 			trace("Discovered control: %s.", e->u.rdr_event.rdr.IdString.Data);
 #endif
-			control_info_ptr = g_memdup(&(control_array[i].bc_control_info), sizeof(struct BC_ControlInfo));
+			control_info_ptr = g_memdup(&(control_array[i].control_info), sizeof(struct ControlInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
@@ -392,10 +392,10 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 	struct oh_event *e;
 	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_session *ss = custom_handle->ss;
-	struct BC_InventoryInfo *inventory_info_ptr;
+	struct InventoryInfo *inventory_info_ptr;
 
 	/* Assumming OidManufacturer is defined and determines readable of other VPD */
-	for (i=0; inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer != NULL; i++) {
+	for (i=0; inventory_array[i].inventory_info.mib.oid.OidManufacturer != NULL; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
 			dbg("Out of memory.");
@@ -403,10 +403,10 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 		}
 
 		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
-					inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
+					inventory_array[i].inventory_info.mib.oid.OidManufacturer);
 		if (oid == NULL) {
 			dbg("Cannot derive %s.", 
-			      inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
+			      inventory_array[i].inventory_info.mib.oid.OidManufacturer);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
@@ -428,7 +428,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 #if 0
 			trace("Discovered inventory: %s.", e->u.rdr_event.rdr.IdString.Data);
 #endif
-			inventory_info_ptr = g_memdup(&(inventory_array[i].bc_inventory_info), sizeof(struct BC_InventoryInfo));
+			inventory_info_ptr = g_memdup(&(inventory_array[i].inventory_info), sizeof(struct InventoryInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),

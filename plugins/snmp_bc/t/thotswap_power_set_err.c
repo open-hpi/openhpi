@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	 *  No Hot Swap PowerOnOffOID TestCase
 	 *************************************/
 	state = SAHPI_HS_POWER_OFF;
-	test_rpt.bc_res_info.mib.OidPowerOnOff = '\0';
+	test_rpt.res_info.mib.OidPowerOnOff = '\0';
 
 	err = snmp_bc_set_power_state((void *)&hnd, id, state);
 	if (err != SA_ERR_HPI_INVALID_CMD) {
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	
-	test_rpt.bc_res_info.mib.OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x";
+	test_rpt.res_info.mib.OidPowerOnOff = ".1.3.6.1.4.1.2.3.51.2.22.3.1.1.1.7.x";
 
 	/**************************************** 
 	 * SNMP Error SAHPI_HS_POWER_OFF TestCase

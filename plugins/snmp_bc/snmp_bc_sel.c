@@ -98,7 +98,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         bc_sel_entry sel_entry;
 
 	if (!hnd || !info) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 		
@@ -183,7 +183,7 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
 	if (!hnd || !prev || !next || !entry) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -238,7 +238,7 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 	struct snmp_bc_hnd *custom_handle = handle->data;
 	
 	if (!handle) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -274,7 +274,7 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
 	SaErrorT err;
 
 	if (!handle) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -321,7 +321,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 	int cacheupdate = 0;
 
 	if (!handle) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -411,7 +411,7 @@ SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
         SaErrorT err;
 
 	if (!hnd) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);    
 	}
 
@@ -474,7 +474,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
         struct snmp_bc_hnd *custom_handle = handle->data;
 
 	if (!handle) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
@@ -658,7 +658,7 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	SaErrorT err;
 
 	if (!hnd) {
-		dbg("Invalid parameters.");
+		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 		

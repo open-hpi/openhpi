@@ -22,7 +22,7 @@ SaErrorT event2hpi_hash_free(struct oh_handler_state *handle);
 
 SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 				     SaHpiEntityPathT *ep,
-				     const struct BC_ResourceInfo *res_info_ptr);
+				     const struct ResourceInfo *res_info_ptr);
 
 SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 					SaHpiEntityPathT *ep,

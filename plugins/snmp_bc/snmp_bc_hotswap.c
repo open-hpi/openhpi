@@ -28,8 +28,8 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 	if(res == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-        struct BC_ResourceInfo *s =
-                (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
+        struct ResourceInfo *s =
+                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}
@@ -77,8 +77,8 @@ SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiResetActionT *act)
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct BC_ResourceInfo *s =
-                (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
+        struct ResourceInfo *s =
+                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}
@@ -104,8 +104,8 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 	if(res == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-        struct BC_ResourceInfo *s =
-                (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
+        struct ResourceInfo *s =
+                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}
@@ -160,8 +160,8 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 	if(res == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-         struct BC_ResourceInfo *s =
-                (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
+         struct ResourceInfo *s =
+                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}
@@ -213,8 +213,8 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 	if(res == NULL) {
 		return SA_ERR_HPI_NOT_PRESENT;
 	}
-        struct BC_ResourceInfo *s =
-                (struct BC_ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
+        struct ResourceInfo *s =
+                (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if(s == NULL) {
 		return SA_ERR_HPI_INVALID_CMD;
 	}

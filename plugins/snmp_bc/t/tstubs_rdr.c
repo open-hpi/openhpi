@@ -21,7 +21,7 @@
 void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid)
 {
 	if (ifobj_data_force_error || table == NULL) { return NULL; }
-	else { return((void *)(&(((struct rdr_stub *)table)->Test.bc_sensor_info.mib))); }
+	else { return((void *)(&(((struct rdr_stub *)table)->Test.sensor_info.mib))); }
 }
 
 SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
