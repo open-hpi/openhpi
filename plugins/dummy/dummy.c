@@ -36,7 +36,7 @@
 
 #define VIRTUAL_NODES 2
 
-//static int remove_resource(struct oh_handler_state *inst);
+/* static int remove_resource(struct oh_handler_state *inst); */
 
 
 /* dummy resource status */
@@ -715,7 +715,7 @@ static struct dummy_sensor {
                     .Type = SAHPI_SENSOR_READING_TYPE_INT64, 
                     .Value = {
                              .SensorInt64 = 180,
-//                             .SensorBuffer = "8-e1.23 tics",
+                             /*.SensorBuffer = "8-e1.23 tics",*/
                      },
             },
             .thresholds = {
@@ -1147,10 +1147,10 @@ static struct oh_event *remove_resource(struct oh_handler_state *inst)
 
 		e.type = OH_ET_RESOURCE_DEL;
 		e.u.res_event.entry.ResourceId = rpt_e_pre->ResourceId;
-//		memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));       	
+		/*memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));*/
 	}
 
-dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
+        dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
 
 	return(&e);
 	
@@ -1180,7 +1180,7 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 		memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));  
 	}
 
-dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
+        dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
 
 	return(&e);
 	
@@ -1272,7 +1272,7 @@ static int dummy_discover_resources(void *hnd)
                 rpt_entry = oh_get_resource_next(inst->rptcache, SAHPI_FIRST_ENTRY);
                 
                 while (rpt_entry) {
-//dbg("here resource event id %d", rpt_entry->ResourceId);
+                        /*dbg("here resource event id %d", rpt_entry->ResourceId);*/
                         memset(&event, 0, sizeof(event));
                         event.type = OH_ET_RESOURCE;
                         memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
@@ -1283,7 +1283,7 @@ static int dummy_discover_resources(void *hnd)
                         rdr_entry = oh_get_rdr_next(inst->rptcache, 
                                                     rpt_entry->ResourceId, SAHPI_FIRST_ENTRY);
                         while (rdr_entry) {
-//dbg("here rdr event id %d", rdr_entry->RecordId);
+                                /*dbg("here rdr event id %d", rdr_entry->RecordId);*/
                                 memset(&event, 0, sizeof(event));
                                 event.type = OH_ET_RDR;
                                 event.u.rdr_event.parent = rpt_entry->ResourceId;
@@ -1330,9 +1330,9 @@ static int dummy_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	return 0;
 }
 
-static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
+static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
 {
-dbg("TODO: dummy_add_sel_entry(), need to set res based on id");
+        dbg("TODO: dummy_add_sel_entry(), need to set res based on id");
 
 #if 0
 	struct dummy_instance *inst = hnd;
@@ -1354,21 +1354,13 @@ dbg("TODO: dummy_add_sel_entry(), need to set res based on id");
 	memcpy(&rsel->entry, Event, sizeof(*Event));
 	memset(e, 0, sizeof(*e));
 	e->type = OH_ET_RSEL;
-dbg("TODO: need to set res based on id");
-//	e->u.rsel_event.rsel.parent = id;
+        dbg("TODO: need to set res based on id");
+	/*e->u.rsel_event.rsel.parent = id;*/
 
 	e->u.rsel_event.rsel.oid.ptr = rsel;
 	
 	inst->eventq = g_slist_append(inst->eventq, e);
 #endif
-	return 0;
-}
-
-static int dummy_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
-{
-dbg("TODO: dummy_del_sel_entry() need to set rsel based on id");
-//	struct dummy_rsel *rsel = id.ptr;
-//	free(rsel);
 	return 0;
 }
 
@@ -1379,7 +1371,7 @@ static int dummy_get_sel_entry(void *hnd,
 			       SaHpiEventLogEntryIdT *next, 
 			       SaHpiEventLogEntryT *entry)
 {       
-dbg("dummy_get_sel_entry(): This is a very bad implementation");
+        dbg("dummy_get_sel_entry(): This is a very bad implementation");
 	*prev = SAHPI_NO_MORE_ENTRIES;
 	*next = SAHPI_NO_MORE_ENTRIES;
 	memcpy(entry, &rsel_entries.entry, sizeof(SaHpiEventLogEntryT));
@@ -1519,9 +1511,9 @@ static int dummy_set_control_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiCtrlNumT num,
 				   SaHpiCtrlStateT *state)
 {
-dbg("TODO: dummy_set_control_state(), need to set control based on id");
-//	struct dummy_control *control = id.ptr;
-//	memcpy(&control->state,state,sizeof(SaHpiCtrlStateT));
+        dbg("TODO: dummy_set_control_state(), need to set control based on id");
+	/*struct dummy_control *control = id.ptr;*/
+	/*memcpy(&control->state,state,sizeof(SaHpiCtrlStateT));*/
 			
 	return 0;
 }
@@ -1733,7 +1725,7 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
                                         SaHpiHsActionT act)
 {
         struct oh_handler_state *inst = hnd;
-//	SaHpiRptEntryT *e = NULL;
+	/*SaHpiRptEntryT *e = NULL;*/
         
         int rval = -1;
         int i = 0;
@@ -1980,8 +1972,7 @@ static struct oh_abi_v2 oh_dummy_plugin = {
 	.get_self_id			= dummy_get_self_id,
 	.get_sel_info			= dummy_get_sel_info,
 	.set_sel_time			= dummy_set_sel_time,
-	.add_sel_entry			= dummy_add_sel_entry,
-	.del_sel_entry			= dummy_del_sel_entry,
+	.add_sel_entry			= dummy_add_sel_entry,	
 	.get_sel_entry			= dummy_get_sel_entry,
 	.get_sensor_data		= dummy_get_sensor_data,
 	.get_sensor_thresholds		= dummy_get_sensor_thresholds,
@@ -1990,9 +1981,9 @@ static struct oh_abi_v2 oh_dummy_plugin = {
 	.set_sensor_event_enables	= dummy_set_sensor_event_enabled,
 	.get_control_state		= dummy_get_control_state,
 	.set_control_state		= dummy_set_control_state,
-//	.get_inventory_size	= dummy_get_inventory_size,
-//	.get_inventory_info	= dummy_get_inventory_info,
-//	.set_inventory_info	= dummy_set_inventory_info,
+	/*.get_inventory_size	= dummy_get_inventory_size,
+	.get_inventory_info	= dummy_get_inventory_info,
+	.set_inventory_info	= dummy_set_inventory_info,*/
 	.get_watchdog_info	= dummy_get_watchdog_info,
 	.set_watchdog_info	= dummy_set_watchdog_info,
 	.reset_watchdog		= dummy_reset_watchdog,
