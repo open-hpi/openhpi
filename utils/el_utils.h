@@ -12,11 +12,15 @@
  * Authors:
  *      David Ashley <dashley@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
- *
  */
 
 #ifndef EL_UTILS_H
 #define EL_UTILS_H
+
+#ifndef OH_UTILS_H
+#warning *** Include oh_utils.h instead of individual utility header files ***
+#endif
+
 #include <SaHpi.h>
 #include <glib.h>
 
@@ -60,5 +64,4 @@ SaErrorT oh_el_setgentimestampflag(oh_el *el, SaHpiBoolT flag);
 }
 #endif
 
-#endif /* EL_UTILS_H */
-
+#endif

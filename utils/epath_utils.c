@@ -47,8 +47,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include <oh_error.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 static unsigned int index2entitytype(unsigned int i);
 static int entitytype2index(unsigned int i);

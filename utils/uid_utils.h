@@ -1,8 +1,6 @@
-#ifndef _UID_UTILS_
-#define _UID_UTILS_
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003,2004
+ * (C) Copyright IBM Corp. 2003, 2004
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -16,6 +14,13 @@
  *      David Judkovics <djudkovi@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
  */
+
+#ifndef UID_UTILS_H
+#define UID_UTILS_H
+
+#ifndef OH_UTILS_H
+#warning *** Include oh_utils.h instead of individual utility header files ***
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,4 +43,4 @@ typedef struct {
         SaHpiEntityPathT entity_path;
 } EP_XREF;
 
-#endif /*_UID_UTILS_ */
+#endif
