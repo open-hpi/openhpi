@@ -120,7 +120,7 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 	struct ohoi_sensor_reading *p = cb_data;
  
 	p->done = 1;
-
+printf("sensor_reading: raw_val = %i; val = %f\n", raw_val, val);
 	if (err) {
 		dbg("sensor reading error");
 		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
@@ -133,7 +133,7 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 		p->reading.IsSupported = SAHPI_TRUE;
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		p->reading.Value.SensorFloat64 = val;
-	}else if(value_present == IPMI_RAW_VALUE_PRESENT) {
+	} else if(value_present == IPMI_RAW_VALUE_PRESENT) {
 		p->reading.IsSupported = SAHPI_TRUE;
 		p->reading.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		p->reading.Value.SensorFloat64 = raw_val;
@@ -1045,7 +1045,7 @@ static int insert_events_to_ipmi_event_state(
 		}
 	}
 
-	if (a_mask & SAHPI_ES_LOWER_CRIT) {
+	if (d_mask & SAHPI_ES_LOWER_CRIT) {
 		if (d_sup & OHOI_THS_LCRTL) {
 			ipmi_threshold_event_set(state,
 				IPMI_LOWER_NON_RECOVERABLE, IPMI_GOING_LOW,
@@ -1060,7 +1060,7 @@ static int insert_events_to_ipmi_event_state(
 	}
 
 
-	if (a_mask & SAHPI_ES_UPPER_MINOR) {
+	if (d_mask & SAHPI_ES_UPPER_MINOR) {
 		if (d_sup & OHOI_THS_UMINH) {
 			ipmi_threshold_event_set(state,
 				IPMI_UPPER_NON_CRITICAL, IPMI_GOING_HIGH,
@@ -1074,7 +1074,7 @@ static int insert_events_to_ipmi_event_state(
 		}
 	}
 
-	if (a_mask & SAHPI_ES_UPPER_MAJOR) {
+	if (d_mask & SAHPI_ES_UPPER_MAJOR) {
 		if (d_sup & OHOI_THS_UMAJH) {
 			ipmi_threshold_event_set(state,
 				IPMI_UPPER_CRITICAL, IPMI_GOING_HIGH,
@@ -1087,7 +1087,7 @@ static int insert_events_to_ipmi_event_state(
 		}
 	}
 
-	if (a_mask & SAHPI_ES_UPPER_CRIT) {
+	if (d_mask & SAHPI_ES_UPPER_CRIT) {
 		if (d_sup & OHOI_THS_UCRTH) {
 			ipmi_threshold_event_set(state,
 				IPMI_UPPER_NON_RECOVERABLE, IPMI_GOING_HIGH,
