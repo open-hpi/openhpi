@@ -271,15 +271,9 @@ int session_push_event(struct oh_session*, struct oh_event*);
 int session_pop_event(struct oh_session*, struct oh_event*);
 
 /* global_domain_list is just a list right now */
-
 int domain_exists(SaHpiDomainIdT);
 int domain_add(SaHpiDomainIdT);
 int domain_del(SaHpiDomainIdT);
-//struct oh_domain *domain_add(void);
-//struct oh_zone *domain_add_zone(struct oh_domain *domain,
-//                                struct oh_abi_v1 *abi, void *hnd);
-//void domain_process_event(struct oh_zone *d, struct oh_event *e);
-
 
 struct oh_resource *get_res_by_oid(struct oh_resource_id oid);
 struct oh_resource *get_resource(SaHpiResourceIdT rid);

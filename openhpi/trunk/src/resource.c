@@ -15,16 +15,6 @@ unsigned int global_rpt_counter = 0; /*FIXME: I use the couter for two purposes.
 				   1) RptInfo counter 2) ResourceId allocation */
 struct timeval global_rpt_timestamp = {0, 0};
 
-#if 0
-static void init_res(struct oh_resource *res)
-{
-	memset(res, 0, sizeof(res));
-	list_init(&res->node);
-	list_init(&res->rdr_list);
-	return;
-}
-#endif
-
 static struct oh_resource *add_res(struct oh_handler *h, struct oh_resource_id oid)
 {
 	struct oh_resource *res;
@@ -48,21 +38,6 @@ static struct oh_resource *add_res(struct oh_handler *h, struct oh_resource_id o
 	global_rpt = g_slist_append(global_rpt, res);
 	return res;
 }
-
-#if 0
-static struct oh_resource *get_zone_res(struct oh_zone *z, struct oh_resource_id oid)
-{
-	struct list_head *i;
-	
-	list_for_each(i, &z->res_list) {
-		struct oh_resource *r;
-		r = list_container(i, struct oh_resource, node);
-		if (memcmp(&r->oid, &oid, sizeof(oid))==0)
-			return r;
-	}
-	return NULL;
-}
-#endif
 
 struct oh_resource *get_res_by_oid(struct oh_resource_id oid)
 {
@@ -117,15 +92,6 @@ int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT did)
 	}
 	return 0;
 }
-
-#if 0
-static void init_rdr(struct oh_rdr *rdr)
-{
-	memset(rdr, 0, sizeof(*rdr));
-	list_init(&rdr->node);
-	return;
-}
-#endif
 
 static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_rdr_id oid)
 {
