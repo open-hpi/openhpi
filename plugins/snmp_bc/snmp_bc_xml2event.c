@@ -67,7 +67,7 @@ SaErrorT errlog2event_hash_init(struct snmp_bc_hnd *custom_handle) {
         /* Initialize XML parser */
         memset(&parser, 0, sizeof(parser));
         parser.start_element = event_start_element;
-        pcontext = g_markup_parse_context_new(&parser, 0, (gpointer *)&user_data, NULL);
+        pcontext = g_markup_parse_context_new(&parser, 0, &user_data, NULL);
         if (pcontext == NULL) {
 		dbg("No memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
