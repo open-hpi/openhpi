@@ -65,22 +65,6 @@ void *snmp_bc_open(GHashTable *handler_config)
         handle->elcache = oh_el_create(OH_EL_MAX_SIZE);
 	handle->elcache->gentimestamp = FALSE;
 
-	/* Initialize "String to Event" mapping hash table */
-	/* FIXME:: Add RSA initialization here */
-	if (errlog2event_hash_use_count == 0) {
-		if (errlog2event_hash_init(custom_handle)) {
-			dbg("Out of memory.");
-			return NULL;
-		}
-	}
-	errlog2event_hash_use_count++;
-	
-	/* Initialize "Event Number to HPI Event" mapping hash table */
-	if (event2hpi_hash_init(handle)) {
-		dbg("Out of memory.");
-		return NULL;
-	}
-  
 	/* Initialize simulator tables */
 	if (is_simulator()) {
 		custom_handle->ss = NULL;
@@ -133,7 +117,6 @@ void *snmp_bc_open(GHashTable *handler_config)
 					return NULL;
 				}
 				
-				/* FIXME:: What do snmp_perror and snmp_log buy us? Below as well */
 				custom_handle->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
 				if (generate_Ku(custom_handle->session.securityAuthProto,
 						custom_handle->session.securityAuthProtoLen,
@@ -201,17 +184,18 @@ void *snmp_bc_open(GHashTable *handler_config)
 
 		err = snmp_get(custom_handle->ss, SNMP_BC_PLATFORM_OID_RSA, &get_value);
 		if (err == SA_OK) {
+			trace("Found RSA");
 			custom_handle->platform = SNMP_BC_PLATFORM_RSA;
 		}
 		else {
 			err = snmp_get(custom_handle->ss, SNMP_BC_PLATFORM_OID_BCT, &get_value);
 			if (err == SA_OK) {
-				trace("Found BC-T\n");
+				trace("Found BCT");
 				custom_handle->platform = SNMP_BC_PLATFORM_BCT;
 			}
 			else {
 				if (err ==  SA_ERR_HPI_NOT_PRESENT) {
-					trace("Found BC-E\n");
+					trace("Found BC");
 					custom_handle->platform = SNMP_BC_PLATFORM_BC;
 				}
 				else {
@@ -236,6 +220,21 @@ void *snmp_bc_open(GHashTable *handler_config)
 		}
 	}
 
+	/* Initialize "String to Event" mapping hash table */
+	if (errlog2event_hash_use_count == 0) {
+		if (errlog2event_hash_init(custom_handle)) {
+			dbg("Out of memory.");
+			return NULL;
+		}
+	}
+	errlog2event_hash_use_count++;
+	
+	/* Initialize "Event Number to HPI Event" mapping hash table */
+	if (event2hpi_hash_init(handle)) {
+		dbg("Out of memory.");
+		return NULL;
+	}
+  
 	if (is_simulator()) {
 		sim_banner(custom_handle);
 	}
@@ -263,7 +262,6 @@ void snmp_bc_close(void *hnd)
 	else {
 		struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-		/* FIXME:: Should we free handle->config - same question on A.1.1 code? */
 		snmp_close(custom_handle->ss);
 		/* Windows32 specific net-snmp cleanup (noop on unix) */
 		SOCK_CLEANUP;
