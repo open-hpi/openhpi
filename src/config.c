@@ -297,7 +297,7 @@ struct oh_plugin_config * plugin_config (char *name)
 int process_handler_token (GScanner* oh_scanner) 
 {
         GHashTable *handler_stanza = NULL;
-        char *tablekey;
+        char *tablekey, *tablevalue;
         int found_right_curly = 0;
 
         
@@ -312,10 +312,19 @@ int process_handler_token (GScanner* oh_scanner)
                 return -1;
         } else {
                 handler_stanza = g_hash_table_new(g_str_hash, g_str_equal);
-                tablekey = "plugin";
+                tablekey = g_strdup("plugin");
+		if (!tablekey) {
+		        dbg("Processing handler: Unable to allocate memory");
+		        goto free_table;
+		}
+		tablevalue = g_strdup(oh_scanner->value.v_string);
+		if (!tablevalue) {
+		        dbg("Processing handler: Unable to allocate memory");
+		        goto free_table_and_key;
+		}
                 g_hash_table_insert(handler_stanza,
-                                    (gpointer) g_strdup(tablekey),
-                                    (gpointer) g_strdup(oh_scanner->value.v_string));
+                                    (gpointer) tablekey,
+                                    (gpointer) tablevalue);
         }        
 
         /* Check for Left Brace token type. If we have it, then continue parsing. */
@@ -330,7 +339,11 @@ int process_handler_token (GScanner* oh_scanner)
                         dbg("Processing handler: Expected string token.");
                         goto free_table;
                 } else {
-                        tablekey = g_strdup(oh_scanner->value.v_string);                        
+                        tablekey = g_strdup(oh_scanner->value.v_string);
+			if (!tablekey) {
+			        dbg("Processing handler: Unable to allocate memory");
+		                goto free_table;
+			}                        
                 }
 
                 /* Check for the equal sign next. If we have it, continue parsing */
@@ -374,9 +387,8 @@ int process_handler_token (GScanner* oh_scanner)
                                 goto free_table_and_key;
                         }
                         g_hash_table_insert(handler_stanza,
-                                    (gpointer) g_strdup(tablekey),
-                                    value);
-                        free(tablekey);
+                                    (gpointer) tablekey,
+                                    value);                        
                 }
 
                 if (g_scanner_peek_next_token(oh_scanner) == G_TOKEN_RIGHT_CURLY) {
