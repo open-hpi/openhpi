@@ -11,7 +11,7 @@ AM_CFLAGS 		= @CFLAGS@ -D_REENTRANT
 
 bin_PROGRAMS		= hpi_cmd
 
-include_HEADERS		= 
+include_HEADERS		= hpi_cmd.h resource.h
 
 HS_SOURCES		= \
 			hpi_cmd.c \

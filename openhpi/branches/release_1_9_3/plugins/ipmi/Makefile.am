@@ -29,9 +29,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
  
-MAINTAINERCLEANFILES 	= Makefile.in
+MAINTAINERCLEANFILES 	= Makefile.in 
 
 EXTRA_DIST 		= ipmi.sym
+
+AC_LIBOBJ		= ipmi.sym
 
 SUBDIRS			= t
 
@@ -58,7 +60,7 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  hotswap.c		\
 			  sync.c 		\
 			  posix_vlog.c		\
-			  ipmi.h
+			  ipmi.h		
 			  
 libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix
 libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-symbols ipmi.sym
