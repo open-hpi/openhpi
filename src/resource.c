@@ -10,63 +10,66 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static int init_res(struct oh_resource *res)
+static void init_res(struct oh_resource *res)
 {
 	memset(res, 0, sizeof(res));
 	list_init(&res->node);
 	list_init(&res->rdr_list);
-	return 0;
+	return;
 }
 
-static int add_res(struct oh_domain *d, struct oh_resource **res, struct oh_id *oid)
+static struct oh_resource *add_res(struct oh_domain *d, struct oh_id *oid)
 {
 	struct oh_resource *r;
 	
 	r = malloc(sizeof(*r));
 	if (!r) {
 		dbg("Cannot get memory!");
-		return -1;
+		return NULL;
 	}
-	memset(r, 0, sizeof(*r));
 	init_res(r);
 	
-	r->entry.ResourceId = d->res_counter++;
 	memcpy(&r->oid, oid, sizeof(*oid));
 
 	d->update_counter++;
 	gettimeofday(&d->update_time, NULL);
 	list_add(&r->node, &d->res_list);
 	
-	*res = r;
-	return 0;
+	return r;
 }
 
-#if 0
-static int del_res(struct oh_resource *res)
+struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_id *oid)
 {
-	list_del(&res->node);
-	free(res);
-	return 0;
-}
-#endif
-
-static struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_id *oid)
-{
-	struct list_head *tmp;
+	struct list_head *i;
 	
-	list_for_each(tmp, &d->res_list) {
+	list_for_each(i, &d->res_list) {
 		struct oh_resource *r;
-		r = list_container(tmp, struct oh_resource, node);
+		r = list_container(i, struct oh_resource, node);
 		if (memcmp(&r->oid, oid, sizeof(*oid))==0)
 			return r;
 	}
 	return NULL;
 }
 
-struct oh_resource *get_resource(struct oh_domain *domain, SaHpiResourceIdT rid)
+struct oh_resource *insert_resource(struct oh_domain *d, struct oh_id *oid)
+{
+	struct oh_resource *res;
+
+	res = get_res_by_oid(d, oid);
+	if (!res) {
+		dbg("New entity, add it");
+		res = add_res(d, oid);
+	}
+	if (!res) {
+		dbg("Cannot add new entity");
+	}
+	return res;
+}
+
+struct oh_resource *get_resource(struct oh_domain *d, SaHpiResourceIdT rid)
 {
 	struct list_head *i;
-	list_for_each(i, &domain->res_list) {
+	list_for_each(i, &d->res_list) {
 		struct oh_resource *res;
 		res = list_container(i, struct oh_resource, node);
 		if (res->entry.ResourceId == rid) return res;
@@ -75,76 +78,50 @@ struct oh_resource *get_resource(struct oh_domain *domain, SaHpiResourceIdT rid)
 	return NULL;
 }
 
-
-struct oh_resource *insert_resource(struct oh_domain *d, struct oh_id *oid)
+static void init_rdr(struct oh_rdr *rdr)
 {
-	struct oh_resource *r;
-
-	r = get_res_by_oid(d, oid);
-	if (!r) {
-		int rv;
-		dbg("New entity, add it");
-		rv = add_res(d, &r, oid);
-		if (rv<0) {
-			r = NULL;
-		}
-	}
-	if (!r) {
-		dbg("Cannot add new entity");
-	}
-	return r;
-}
-
-
-#if 0
-static int init_rdr(struct oh_rdr *rdr, enum oh_item type)
-{
+	memset(rdr, 0, sizeof(*rdr));
 	list_init(&rdr->node);
-	rdr->type =type;
-
-	switch (type) {
-		case OH_SENSOR:
-			rdr->sensor = NULL;
-			break;
-		case OH_CONTROL:
-			rdr->control = NULL;
-			break;
-		case OH_INVENTORY:
-			rdr->inventory = NULL;
-			break;
-		case OH_WATCHDOG:
-			rdr->watchdog = NULL;
-			break;
-		default:
-			dbg("Error RDR type");
-			return -1;
-	}
-
-	return 0;
+	return;
 }
 
-static int add_rdr(struct oh_resource *res, struct oh_rdr **rdr, enum oh_item type)
+static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_id *oid)
 {
-	struct oh_rdr *r;
+	struct oh_rdr *rdr;
 	
-	r = malloc(sizeof(*r));
-	if (!r) {
+	rdr = malloc(sizeof(*rdr));
+	if (!rdr) {
 		dbg("Cannot get memory!");
-		return -1;
+		return NULL;
 	}
-	memset(r, 0, sizeof(*r));
-	init_rdr(r, type);
-	
-	list_add(&r->node, &res->rdr_list);
-
-	*rdr = r;
-	return 0;
+	init_rdr(rdr);
+	list_add(&rdr->node, &res->rdr_list);
+	return rdr;
 }
 
-static int del_rdr(struct oh_rdr *rdr)
+static struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_id *oid)
 {
-	list_del(&rdr->node);
-	free(rdr);
-	return 0;
+	struct list_head *i;
+	list_for_each(i, &res->rdr_list) {
+		struct oh_rdr *rdr;
+		rdr = list_container(i, struct oh_rdr, node);
+		if (memcmp(&rdr->oid, oid, sizeof(*oid))==0)
+			return rdr;
+	}
+	return NULL;
 }
-#endif
+
+struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_id *oid)
+{
+	struct oh_rdr *rdr;
+	
+	rdr = get_rdr_by_oid(res, oid);
+	if (!rdr) {
+		dbg("New rdr, add it!");
+		rdr = add_rdr(res, oid);
+	}
+	if (!rdr) {
+		dbg("Cannot add new RDR");
+	}
+	return rdr;
+}

@@ -59,24 +59,20 @@ struct oh_resource {
 	struct oh_sel *sel;
 	/* valid when entry.ResourceCapabilities | SAHPI_CAPABILITY_RDR */
 	struct list_head rdr_list;
+	
+	/* These counters are used to assign corresponding Num to rdr */
+	SaHpiSensorNumT  sensor_counter;
+	/* following counter will be added when such RDR type is supported
+	SaHpiCtrlNumT	 ctrl_counter;
+	SaHpiWatchdogNumT wd_counter;
+	SaHpiEirIdT	inv_counter;
+	*/
 };
 
 struct oh_rdr {
 	struct list_head node;
 	struct oh_id	 oid;
-	union {
-		/* valid when OH_SENSOR */
-		struct oh_sensor	*sensor;
-		/* valid when OH_CONTROL */
-		struct oh_control	*control;
-		/* valid when OH_INVENTORY */
-		struct oh_inventory	*inventory;
-		/* valid when OH_WATCHDOG */
-		struct oh_watchdog	*watchdog;
-	} u;
-};
-
-struct oh_sensor {
+	SaHpiRdrT	 rdr;
 };
 
 
@@ -99,17 +95,18 @@ int domain_add(struct oh_domain **d);
 int domain_del(struct oh_domain *d);
 int domain_process_event(struct oh_domain *d, struct oh_event *e);
 
-
+struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_id *oid);
 struct oh_resource *get_resource(struct oh_domain *d, SaHpiResourceIdT rid);
 struct oh_resource *insert_resource(struct oh_domain *d, struct oh_id *oid);
 
+struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_id *oid);
 
 int init_plugin(void);
 int uninit_plugin(void);
 
 #define dbg(format, ...)                                      \
         do {							                      \
-		fprintf(stderr, "%s:%d: ", __FUNCTION__, __LINE__);   \
+		fprintf(stderr, "%s:%d: ", __FILE__, __LINE__);   \
                 fprintf(stderr, format "\n", ## __VA_ARGS__); \
         } while(0)
 

@@ -37,8 +37,8 @@ struct oh_resource_event {
  * The event is used for plugin to report its RDR against resource.
  */
 struct oh_rdr_event {
-	struct oh_id parent; /*This is resource oid the RDR relate*/
-	/* FIXME: should add more information*/
+	struct oh_id	parent; /*This is resource oid the RDR relate*/
+	SaHpiRdrT	rdr;
 };
 
 /* 
