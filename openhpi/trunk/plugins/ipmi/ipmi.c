@@ -184,12 +184,17 @@ static void *ipmi_open(GHashTable *handler_config)
 			return NULL;
 	}
 	
-	rv = ipmi_init_domain(&ipmi_handler->con, 1, ohoi_setup_done, handler, NULL, &ipmi_handler->domain_id);
-
+	rv = ipmi_init_domain(&ipmi_handler->con, 1, NULL, NULL, NULL, &ipmi_handler->domain_id);
 	if (rv) {
 			fprintf(stderr, "ipmi_init_domain: %s\n", strerror(rv));
 			return NULL;
 	}
+
+        rv = ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_setup_done, handler);
+        if (rv) {
+                        fprintf(stderr, "ipmi_domain_pointer_cb: %s\n", strerror(rv));
+                        return NULL;
+        }
 
 	if (ipmi_refcount) {
 			ipmi_refcount++;

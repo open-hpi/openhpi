@@ -151,9 +151,9 @@ void ohoi_control_event(enum ipmi_update_e op,
 			return;
 	}
 
-	ohoi_res_info = oh_get_resource_data(handler->rptcache, 
-											rpt_entry->ResourceId);
-	
+	ohoi_res_info = oh_get_resource_data(handler->rptcache,
+                                             rpt_entry->ResourceId);
+        
 	if (op == IPMI_ADDED) {
                 int ctrl_type;
                 

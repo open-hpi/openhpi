@@ -56,11 +56,7 @@ static void bus_scan_done(ipmi_domain_t *domain, int err, void *cb_data)
 }
 
 void ohoi_setup_done(ipmi_domain_t	*domain,
-			int 		err, 
-			unsigned int	conn_num,
-			unsigned int	port_num,
-			int		still_connected,
-			void 		*user_data)
+                     void 		*user_data)
 {
 
     static ipmi_domain_mc_upd_t *mc_update_handler_id;

@@ -152,8 +152,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 	}
 	
 	/* controls */
-//	rv = ipmi_entity_set_control_update_handler(entity, ohoi_control_event,
-//							handler);
+	rv = ipmi_entity_set_control_update_handler(entity, ohoi_control_event,	handler);
 	if (rv) {
 		dbg("ipmi_entity_set_control_update_handler: %#x", rv);
 		return;
