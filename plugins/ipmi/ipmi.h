@@ -183,8 +183,12 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
 				  SaHpiHsIndicatorStateT state);
 
+SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
+                              SaHpiHsPowerStateT state);
+	
 SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
 		              SaHpiResetActionT act);
+
 /* misc macros for debug */
 #define dump_entity_id(s, x) \
         do { \

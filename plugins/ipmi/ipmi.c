@@ -696,6 +696,10 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
         .request_hotswap_action         = ohoi_request_hotswap_action,
         .get_indicator_state            = ohoi_get_indicator_state,
         .set_indicator_state            = ohoi_set_indicator_state,
+        
+        /* power support */
+	.get_power_state                = NULL,
+	.set_power_state                = ohoi_set_power_state,
 	
         /* reset support */
 	.get_reset_state                = NULL,
