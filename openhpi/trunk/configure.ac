@@ -281,7 +281,7 @@ AC_ARG_ENABLE([snmp_rsa],
     [  --enable-snmp_rsa       build IBM RSA plugin [default=yes if net-snmp is installed]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
-            AC_SUBST(SNMP_RSA,snmp_RSA)
+            AC_SUBST(SNMP_RSA,snmp_rsa)
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM RSA support without net-snmp)
