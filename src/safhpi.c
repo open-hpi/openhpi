@@ -389,15 +389,11 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         struct oh_domain *d = NULL;
         SaHpiRptEntryT *rptentry;
 
-        if (ResourceTag == NULL)
-                return SA_ERR_HPI_INVALID_PARAMS;
-
         OH_CHECK_INIT_STATE(SessionId);
-        OH_GET_DID(SessionId, did);
-
-        if (!ResourceTag || !oh_valid_textbuffer(ResourceTag))
+        if (ResourceTag == NULL || !oh_valid_textbuffer(ResourceTag))
                 return SA_ERR_HPI_INVALID_PARAMS;
-
+        
+        OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
