@@ -218,7 +218,7 @@ int main(int argc, char **argv)
                         printf("      -x = show eXtra debug messages\n");
                         exit(1);
                 }
-
+                
         rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
                 printf("saHpiSessionOpen: %s", oh_lookup_error(rv));

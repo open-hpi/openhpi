@@ -27,15 +27,16 @@
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
-        char buffer[128];
-        
+        oHpiGlobalParamT onep_param = { .Type = OHPI_ON_EP };
+                
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                 
-        if (oHpiGlobalParamGet("OPENHPI_ON_EP", buffer, 128))
+        if (oHpiGlobalParamGet(&onep_param))
                 return -1;
                 
-        if (strcmp("{SYSTEM_CHASSIS,1}", buffer))
+        if (onep_param.u.OnEP.Entry[0].EntityType != SAHPI_ENT_SYSTEM_CHASSIS ||
+            onep_param.u.OnEP.Entry[0].EntityLocation != 1)
                 return -1;
                 
         return 0;

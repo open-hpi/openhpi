@@ -71,7 +71,7 @@ static gpointer oh_event_thread_loop(gpointer data)
 int oh_event_init()
 {
         trace("Attempting to init event");
-        if(!g_thread_supported()) {
+        if (!g_thread_supported()) {
                 trace("Initializing thread support");
                 g_thread_init(NULL);
         } else {
@@ -79,14 +79,15 @@ int oh_event_init()
         }
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
-        if(getenv("OPENHPI_THREADED") &&
-           (strcmp(getenv("OPENHPI_THREADED"), "YES") ==0 )) {
+                
+        if (oh_get_global_bool(OPENHPI_THREADED)) {
                 oh_is_threaded = TRUE;
                 oh_thread_wait = g_cond_new();
                 oh_thread_mutex = g_mutex_new();
                 oh_event_thread = g_thread_create(oh_event_thread_loop,
                                                   NULL, FALSE, &oh_event_thread_error);
         }
+        
         return 1;
 }
 
@@ -151,18 +152,13 @@ SaErrorT oh_harvest_events()
 
 static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 {
-        SaHpiSeverityT log_severity = SAHPI_MINOR;
-        SaHpiTextBufferT buffer;
+        struct oh_global_param logsev_param = { .type = OPENHPI_LOG_ON_SEV };
         struct oh_domain *d;
         SaErrorT rv = SA_OK;
         
-        if (!oh_lookup_global_param("OPENHPI_LOG_SEV",
-                                    buffer.Data,
-                                    SAHPI_MAX_TEXT_BUFFER_LENGTH)) {
-                oh_encode_severity(&buffer, &log_severity);
-        }
+        oh_get_global_param(&logsev_param);
 
-        if (e->event.Severity <= log_severity) { /* less is more */
+        if (e->event.Severity <= logsev_param.u.log_on_sev) { /* less is more */
                 /* yes, we need to add real domain support later here */
                 d = oh_get_domain(did);
                 if(d) {

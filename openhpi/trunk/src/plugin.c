@@ -58,7 +58,7 @@ void oh_cond_signal(void)
  **/
 static int oh_init_ltdl(void)
 {
-        char * path = NULL;
+        struct oh_global_param path_param = { .type = OPENHPI_PATH };
         int err;
         static int init_done = 0;
         
@@ -74,13 +74,10 @@ static int oh_init_ltdl(void)
                 data_access_unlock();
                 return -1;
         }
+        
+        oh_get_global_param(&path_param);
 
-        path = getenv("OPENHPI_PATH");
-        if(path == NULL) {
-                path = OH_PLUGIN_PATH;
-        }
-
-        err = lt_dlsetsearchpath(path);
+        err = lt_dlsetsearchpath(path_param.u.path);
         if (err != 0) {
                 dbg("Can not set lt_dl search path");
                 oh_exit_ltdl();

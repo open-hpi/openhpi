@@ -22,20 +22,48 @@ extern "C" {
 #endif
 
 #include <glib.h>
+#include <SaHpi.h>
 
 struct oh_parsed_config {
         GSList *plugin_names;
         GSList *handler_configs;
 };
 
+typedef enum {
+        OPENHPI_ON_EP = 1,
+        OPENHPI_LOG_ON_SEV,
+        OPENHPI_DEBUG,
+        OPENHPI_DEBUG_TRACE,
+        OPENHPI_DEBUG_LOCK,
+        OPENHPI_THREADED,
+        OPENHPI_PATH,
+        OPENHPI_CONF
+} oh_global_param_type;
+
+typedef union {
+        SaHpiEntityPathT on_ep;
+        SaHpiSeverityT log_on_sev;
+        unsigned char dbg; /* 1 = YES, 0 = NO */
+        unsigned char dbg_trace; /* !0 = YES, 0 = NO */
+        unsigned char dbg_lock; /* !0 = YES, 0 = NO */
+        unsigned char threaded; /* !0 = YES, 0 = NO */
+        char path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+} oh_global_param_union;
+
+struct oh_global_param {
+        oh_global_param_type type;
+        oh_global_param_union u;
+};
+
 /* Plugin configuration information prototypes */
 int oh_load_config(char *filename, struct oh_parsed_config *config);
 void oh_clean_config(void);
-void oh_unload_config(void);
 
 /* For handling global parameters */
-int oh_lookup_global_param(char *param, char *value, int size);
-int oh_set_global_param(const char *param, char *value);
+int oh_get_global_param(struct oh_global_param *param);
+int oh_set_global_param(struct oh_global_param *param);
+unsigned char oh_get_global_bool(oh_global_param_type type);
 
 #ifdef __cplusplus
 }
