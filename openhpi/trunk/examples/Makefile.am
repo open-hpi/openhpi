@@ -39,6 +39,6 @@ uninstall-local:
 
 EXTRA_DIST = openhpi.conf.example
 
-clean:
+clean-local:
 	rm -f *~
 
