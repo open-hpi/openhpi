@@ -36,12 +36,12 @@ struct ohoi_sensor_thresholds {
 };
 
 /*
- * Use for enabling/disabling sensor
+ * Use for enabling/disabling sensor(sensor event)
  */
 
-struct ohoi_sensor_enables {
-	SaHpiBoolT  *enables;
-	int         done;	
+struct ohoi_sensor_enable {
+	SaHpiBoolT  *enable;
+	int         done;
 };
 
 static int ignore_sensor(ipmi_sensor_t *sensor)
@@ -627,45 +627,45 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
                                &thres_data, 5, ipmi_handler);
 }
 
-static void enables_read(ipmi_sensor_t		*sensor,
-			 int 			err,
-			 ipmi_event_state_t	*state,
-			 void			*cb_data)
+static void event_enable_read(ipmi_sensor_t		*sensor,
+			       int 			err,
+			       ipmi_event_state_t	*state,
+			       void			*cb_data)
 {
-	struct ohoi_sensor_enables 	*p = cb_data;
+	struct ohoi_sensor_enable	*p = cb_data;
 	int 				rv;
 
 	p->done = 1;
 
 	if (err) {
-		dbg("Sensor event enables reading error");
+		dbg("Sensor event enable reading error");
 		return;
 	}
 
-	*p->enables = SAHPI_FALSE;
+	*p->enable = SAHPI_FALSE;
 
 	rv = ipmi_event_state_get_events_enabled(state);
         if (rv)
-                *p->enables = SAHPI_TRUE;
+                *p->enable = SAHPI_TRUE;
 
 #if 0	
-	p->sensor_enables->SensorStatus = 0;
+	p->sensor_enable->SensorStatus = 0;
 
 	rv = ipmi_event_state_get_events_enabled(state);
 	if (rv)
-		p->sensor_enables->SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
+		p->sensor_enable->SensorStatus |= SAHPI_SENSTAT_EVENTS_ENABLED;
 
 	rv = ipmi_event_state_get_scanning_enabled(state);
 	if (rv)
-		p->sensor_enables->SensorStatus |= SAHPI_SENSTAT_SCAN_ENABLED;
+		p->sensor_enable->SensorStatus |= SAHPI_SENSTAT_SCAN_ENABLED;
 
 	rv = ipmi_event_state_get_busy(state);
 	if (rv)
-		p->sensor_enables->SensorStatus |= SAHPI_SENSTAT_BUSY;
+		p->sensor_enable->SensorStatus |= SAHPI_SENSTAT_BUSY;
 
-	p->sensor_enables->AssertEvents = (SaHpiEventStateT)
+	p->sensor_enable->AssertEvents = (SaHpiEventStateT)
 		state->__assertion_events;
-	p->sensor_enables->DeassertEvents = (SaHpiEventStateT)
+	p->sensor_enable->DeassertEvents = (SaHpiEventStateT)
 		state->__deassertion_events;
 	
 	p->done = 1;
@@ -673,157 +673,189 @@ static void enables_read(ipmi_sensor_t		*sensor,
 
 }
 
-static void get_sensor_event_enables(ipmi_sensor_t *sensor, 
-                                     void               *cb_data)
+static void get_sensor_event_enable(ipmi_sensor_t *sensor, 
+                                     void          *cb_data)
 {
-	struct ohoi_sensor_enables *enables_data;
+	struct ohoi_sensor_enable *enable_data;
 	int rv;
 	
-        enables_data = cb_data;
+        enable_data = cb_data;
         
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
-                enables_data->done = 1;
+                enable_data->done = 1;
 		return;
 	}	
 
 	if ((ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE)||
 	   (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_ENTIRE_SENSOR)){
-		rv = ipmi_sensor_events_enable_get(sensor, enables_read,
-					           enables_data);
+		rv = ipmi_sensor_events_enable_get(sensor, event_enable_read,
+					           enable_data);
 		if (rv) {
-			dbg("Unable to sensor event enables: 0x%x\n", rv);
-                	enables_data->done = 1;
+			dbg("Unable to sensor event enable: 0x%x\n", rv);
+                	enable_data->done = 1;
 			return;
 		}
 	} else {
                 dbg("Sensor do not support event");
-                enables_data->done = 1;
+                enable_data->done = 1;
         }
 }
 
-int ohoi_get_sensor_event_enables(ipmi_sensor_id_t  sensor_id,
-				  SaHpiBoolT   *enables,
+int ohoi_get_sensor_event_enable(ipmi_sensor_id_t  sensor_id,
+				  SaHpiBoolT   *enable,
 				  void *cb_data)
 {
 	struct ohoi_handler *ipmi_handler = cb_data;
 
-	struct ohoi_sensor_enables enables_data;
+	struct ohoi_sensor_enable enable_data;
         int rv;
         
-        enables_data.enables     = enables;
-        enables_data.done        = 0;
+        enable_data.enable     = enable;
+        enable_data.done       = 0;
         
         rv = ipmi_sensor_pointer_cb(sensor_id,
-				    get_sensor_event_enables,
-				    &enables_data);
+				    get_sensor_event_enable,
+				    &enable_data);
 		
         if (rv) {
 		dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID_CMD;
         }
         
-        return ohoi_loop(&enables_data.done, ipmi_handler);
+        return ohoi_loop(&enable_data.done, ipmi_handler);
 }
 
-static void set_sensor_event_enables(ipmi_sensor_t      *sensor,
-                                     void               *cb_data)
+static void set_sensor_event_enable(ipmi_sensor_t      *sensor,
+                                    void               *cb_data)
 {
-	struct ohoi_sensor_enables *enables_data;
+	struct ohoi_sensor_enable *enable_data;
 	int			rv;
 	ipmi_event_state_t	info;
 
-        enables_data = cb_data;
+        enable_data = cb_data;
 
 	if (ignore_sensor(sensor)) {
 		dbg("sensor is ignored");
-		enables_data->done = 1;
+		enable_data->done = 1;
 		return;
 	}
 
 	ipmi_event_state_init(&info);
-	if (*enables_data->enables == SAHPI_TRUE)
+	if (*enable_data->enable == SAHPI_TRUE)
 		ipmi_event_state_set_events_enabled(&info, 1);
 	else 
 		ipmi_event_state_set_events_enabled(&info, 0);
 	rv = ipmi_sensor_events_enable_set(sensor, &info, set_data,
-					   &enables_data->done);
+					   &enable_data->done);
 	if (rv) {
-		dbg("Unable to sensor event enables: 0x%x\n", rv);
-		enables_data->done = 1;
+		dbg("Unable to sensor event enable: 0x%x\n", rv);
+		enable_data->done = 1;
 	}
 
 #if 0 
 	if ((ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE)||
 	    (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_ENTIRE_SENSOR)) {
 		ipmi_event_state_init(&info);
-		if (enables_data->sensor_enables->SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED)
+		if (enable_data->sensor_enable->SensorStatus & SAHPI_SENSTAT_EVENTS_ENABLED)
 			ipmi_event_state_set_events_enabled(&info, 1);
-		if (enables_data->sensor_enables->SensorStatus & SAHPI_SENSTAT_SCAN_ENABLED)
+		if (enable_data->sensor_enable->SensorStatus & SAHPI_SENSTAT_SCAN_ENABLED)
 			ipmi_event_state_set_scanning_enabled(&info, 1);
-		if (enables_data->sensor_enables->SensorStatus & SAHPI_SENSTAT_BUSY)
+		if (enable_data->sensor_enable->SensorStatus & SAHPI_SENSTAT_BUSY)
 			ipmi_event_state_set_busy(&info, 1);
 
 		for (i = 0; i < 32; i++) {
-			if (enables_data->sensor_enables->AssertEvents & 1<<i ) 
+			if (enable_data->sensor_enable->AssertEvents & 1<<i ) 
 				ipmi_discrete_event_set(&info, i, IPMI_ASSERTION);
 			else 
 				ipmi_discrete_event_clear(&info, i, IPMI_ASSERTION);
-			if (enables_data->sensor_enables->DeassertEvents & 1<<i ) 
+			if (enable_data->sensor_enable->DeassertEvents & 1<<i ) 
 				ipmi_discrete_event_set(&info, i, IPMI_DEASSERTION);
 			else
 				ipmi_discrete_event_clear(&info, i, IPMI_DEASSERTION);
 		}
 
 		rv = ipmi_sensor_events_enable_set(sensor, &info, set_data,
-						   &enables_data->done);
+						   &enable_data->done);
 		if (rv) {
-                        dbg("Unable to sensor event enables: 0x%x\n", rv);
-                        enables_data->done = 1;
+                        dbg("Unable to sensor event enable: 0x%x\n", rv);
+                        enable_data->done = 1;
 		}
 	} else {
 		dbg("%#x", ipmi_sensor_get_event_support(sensor));	
-                enables_data->done = 1;
+                enable_data->done = 1;
         }
 #endif
 
 }
 
-int ohoi_set_sensor_event_enables(ipmi_sensor_id_t		sensor_id,
-                                  const SaHpiBoolT  enables,
+int ohoi_set_sensor_event_enable(ipmi_sensor_id_t  sensor_id,
+                                  const SaHpiBoolT  enable,
 				  void *cb_data)
 
 {
 	struct ohoi_handler *ipmi_handler = cb_data;
-	struct ohoi_sensor_enables enables_data;
+	struct ohoi_sensor_enable enable_data;
         int rv;
-	SaHpiBoolT  tmp_enables;
+	SaHpiBoolT  tmp_enable;
 
-	tmp_enables = enables;
-        enables_data.enables    = &tmp_enables;
-        enables_data.done       = 0;
+	tmp_enable = enable;
+        enable_data.enable    = &tmp_enable;
+        enable_data.done       = 0;
         
         rv = ipmi_sensor_pointer_cb(sensor_id,
-				    set_sensor_event_enables,
-		  		    &enables_data);
+				    set_sensor_event_enable,
+		  		    &enable_data);
 	if (rv) {
 		dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID_CMD;
         }
         
-        return ohoi_loop(&enables_data.done, ipmi_handler);
+        return ohoi_loop(&enable_data.done, ipmi_handler);
+}
+
+static void get_sensor_enable(ipmi_sensor_t *sensor,
+			      void          *cb_data)
+{
+	SaHpiBoolT   *enable  = cb_data;
+	*enable = ipmi_sensor_get_ignore_if_no_entity(sensor);
 }
 
 int ohoi_get_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   SaHpiBoolT   *enable,
 			   void *cb_data)
 {	
-	return -1;
+	SaErrorT rv;
+
+        rv = ipmi_sensor_pointer_cb(sensor_id,
+				    get_sensor_enable,
+		  		    enable);
+	if (rv) {
+		dbg("Unable to convert sensor_id to pointer");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+	return SA_OK;
 }
 
+static void set_sensor_enable(ipmi_sensor_t *sensor,
+			      void          *cb_data)
+{
+	SaHpiBoolT *enable = cb_data;
+	ipmi_sensor_set_ignore_if_no_entity(sensor, *enable);
+}
+					
 int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   SaHpiBoolT   enable,
 			   void *cb_data)
 {
-	return -1;
+	SaErrorT rv;
+
+        rv = ipmi_sensor_pointer_cb(sensor_id,
+				    set_sensor_enable,
+		  		    &enable);
+	if (rv) {
+		dbg("Unable to convert sensor_id to pointer");
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+	return SA_OK;
 }
