@@ -317,7 +317,7 @@ struct oh_abi_v2 {
 	 * get inventory size
 	 */
         SaErrorT (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiEirIdT num, /* yes, they don't call it a
+                                  SaHpiIdrIdT num, /* yes, they don't call it a
                                                     * num, but it still is one
                                                     */
                                   SaHpiUint32T *size);
@@ -326,14 +326,14 @@ struct oh_abi_v2 {
 	 * get inventory state
 	 */
         SaErrorT (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiEirIdT num,
+                                  SaHpiIdrIdT num,
                                   SaHpiInventoryDataT *data);
 
 	/**
 	 * set inventory state
 	 */
         SaErrorT (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiEirIdT num,
+                                  SaHpiIdrIdT num,
                                   const SaHpiInventoryDataT *data);
 
 	/**
