@@ -87,7 +87,7 @@ typedef enum {
 
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
-#define SNMP_BC_BLADE_ADDIN_VECTOR  ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.x"
+#define SNMP_BC_BLADE_ADDIN_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.14.x"
 #define SNMP_BC_FAN_VECTOR          ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0"
 #define SNMP_BC_MGMNT_VECTOR        ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
 #define SNMP_BC_MGMNT_ACTIVE        ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
