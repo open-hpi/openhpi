@@ -122,7 +122,7 @@ sub setdefault {
             }
         }
         close(DIR);
-        !system("ldconfig -n $INSTALLPREFIX") or 
+        !system("/sbin/ldconfig -n $INSTALLPREFIX") or 
           die "Couldn't run ldconfig on $INSTALLPREFIX";
         return 1;
     } else {
