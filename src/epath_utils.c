@@ -142,8 +142,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 	guint   i, j, match, instance, num_valid_entities = 0;
         GSList *epath_list = NULL, *lst = NULL;
 	SaHpiEntityT  *entityptr = NULL;
-        gint num;
-        int is_numeric;
+        gint num = 0;
+        int is_numeric = 0;
         
 	if (epathstr == NULL || epathstr[0] == '\0') {
 		dbg("Input entity path string is NULL"); 
