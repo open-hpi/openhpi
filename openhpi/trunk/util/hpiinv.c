@@ -55,6 +55,12 @@ SaHpiTextBufferT *strptr;
 static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
+        if ( strptr == 0 )
+        {
+                outbuff[0] = 0;
+                return;
+        }
+        
 	size_t datalen;
 	if ((datalen=strptr->DataLength) != 0)
 		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
