@@ -34,7 +34,7 @@
 
 
 libtoolize -c --force --ltdl --automake
-aclocal -I m4 $ACLOCAL_FLAGS
+aclocal
 autoheader
 automake -a -c --foreign
 autoconf
