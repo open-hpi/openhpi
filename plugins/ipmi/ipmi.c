@@ -256,6 +256,7 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 
 		if(g_slist_length(handler->eventq)>0) {
 				memcpy(event, handler->eventq->data, sizeof(*event));
+				event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
 				free(handler->eventq->data);
 				handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
 				return 1;
