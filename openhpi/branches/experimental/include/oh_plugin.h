@@ -40,9 +40,15 @@ struct oh_domain_id {
  * can store any data pointer in ptr member so that it can map 
  * id back to solid data
  */
+/* oh_resource_id is replaced with SaHpiResourceIdT type arg */
+/* TODO: when we are comfortable remove the above comment and */
+/* the #if'd out code below *
+#if 0
 struct oh_resource_id {
 	void *ptr;
 };
+#endif
+
 
 /*
  * struct oh_rdr_id is filled by plugin.
@@ -66,7 +72,7 @@ struct oh_sel_id {
  * (Domain, SEL and RDR etc.).
  */
 struct oh_resource_event {
-	struct oh_resource_id	id;
+	SaHpiResourceIdT id;
 	
 	/* Report domain which belongs to the resource
 	 * Valid if the resource is CAPABILITY_DOMAIN 
@@ -84,7 +90,7 @@ struct oh_resource_event {
  * is a member of a specific domain.
  */
 struct oh_domain_event {
-	struct oh_resource_id	res_id;
+	SaHpiResourceIdT	res_id;
 	struct oh_domain_id	domain_id;
 };
 
@@ -93,7 +99,7 @@ struct oh_domain_event {
  */
 struct oh_rdr_event {
 	/*This resource id which the rdr belongs to */
-	struct oh_resource_id	parent;
+	SaHpiResourceIdT	parent;
 	/*This is rdr id the RDR relate*/
 	struct oh_rdr_id	id;
 	
@@ -105,7 +111,7 @@ struct oh_rdr_event {
  */
 struct oh_hpi_event {
 	/*This is resource id which the event belongs to */
-	struct oh_resource_id	parent;
+	SaHpiResourceIdT	parent;
 	/*This is rdr id which the event relates*/
 	struct oh_rdr_id	id;
 	
@@ -117,13 +123,13 @@ struct oh_hpi_event {
 /* The structure is used to storage RSEL entry*/
 struct oh_rsel {
 	/* this is SEL's id */
-	struct oh_resource_id	parent;
+	SaHpiResourceIdT	parent;
 
 	/* this is the entry's id */
 	struct oh_sel_id	oid;
 	
 	/* This is resource id which the entry relates */
-	struct oh_resource_id	res_id;
+	SaHpiResourceIdT	res_id;
 	
 	/* This is rdr id which the entry relates */
 	struct oh_rdr_id	rdr_id;
@@ -202,27 +208,27 @@ struct oh_abi_v1 {
 	/**
 	 * get the id which the caller is running
 	 */
-	int (*get_self_id)(void *hnd, struct oh_resource_id id);
+	int (*get_self_id)(void *hnd, SaHpiResourceIdT id);
 
 	/**
 	 * get info from RSEL
 	 */
-	int (*get_sel_info)(void *hnd, struct oh_resource_id id, SaHpiSelInfoT *info);
+	int (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
 
 	/**
 	 * set time to RSEL
 	 */
-	int (*set_sel_time)(void *hnd, struct oh_resource_id id, const struct timeval *time);
+	int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, const struct timeval *time);
 
 	/**
 	 * set state to RSEL
 	 */
-	int (*set_sel_state)(void *hnd, struct oh_resource_id id, int enabled);
+	int (*set_sel_state)(void *hnd, SaHpiResourceIdT id, int enabled);
 
 	/**
 	 * add entry to RSEL
 	 */
-	int (*add_sel_entry)(void *hnd, struct oh_resource_id id, const SaHpiSelEntryT *Event);
+	int (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
 
 	/**
 	 * del entry in RSEL
@@ -319,60 +325,60 @@ struct oh_abi_v1 {
 	/**
 	 * get hotswap state
 	 */
-	int (*get_hotswap_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
 				 SaHpiHsStateT *state);
 
 	/**
 	 * set hotswap state
 	 */
-	int (*set_hotswap_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT id, 
 				 SaHpiHsStateT state);
 
 	/**
 	 * request hotswap state
 	 */
-	int (*request_hotswap_action)(void *hnd, struct oh_resource_id id, 
+	int (*request_hotswap_action)(void *hnd, SaHpiResourceIdT id, 
 				      SaHpiHsActionT act);
 
 	/**
 	 * get power state
 	 */
-	int (*get_power_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_power_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiHsPowerStateT *state);
 
 	/**
 	 * set power state
 	 */
-	int (*set_power_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_power_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiHsPowerStateT state);
 	
 	/**
 	 * get indicator state
 	 */
-	int (*get_indicator_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_indicator_state)(void *hnd, SaHpiResourceIdT id, 
 				   SaHpiHsIndicatorStateT *state);
 
 	/**
 	 * set indicator state
 	 */
-	int (*set_indicator_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_indicator_state)(void *hnd, SaHpiResourceIdT id, 
 				   SaHpiHsIndicatorStateT state);
 
 	/**
 	 * control parameter
 	 */
-	int (*control_parm)(void *hnd, struct oh_resource_id id, SaHpiParmActionT act);
+	int (*control_parm)(void *hnd, SaHpiResourceIdT id, SaHpiParmActionT act);
 
 	/**
 	 * get reset state
 	 */
-	int (*get_reset_state)(void *hnd, struct oh_resource_id id, 
+	int (*get_reset_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiResetActionT *act);
 
 	/**
 	 * set_reset state
 	 */
-	int (*set_reset_state)(void *hnd, struct oh_resource_id id, 
+	int (*set_reset_state)(void *hnd, SaHpiResourceIdT id, 
 			       SaHpiResetActionT act);
 
 };
