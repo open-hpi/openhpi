@@ -441,6 +441,127 @@ int main(int argc, char **argv)
 	expected_err = SA_OK;
 	err = snmp_bc_get_sensor_eventstate((void *)h->hnd, id, sid, &reading, &state);
 	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 31 snmp_bc_get_sensor_event_enable
+	 **************************/
+	SaHpiBoolT enable;
+	testcase++;	
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	err = snmp_bc_get_sensor_event_enable((void *)h->hnd, id, sid, NULL);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 32
+	 **************************/
+	testcase++;	
+	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
+	err = snmp_bc_get_sensor_event_enable((void *)h->hnd, 5000, sid, &enable);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 33
+	 **************************/
+	testcase++;	
+        OH_GET_DID(sessionid, did);
+	OH_GET_DOMAIN(did, d); /* Lock domain */
+	rptentry.ResourceCapabilities &= !SAHPI_CAPABILITY_SENSOR;  
+	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
+	oh_release_domain(d); /* Unlock domain */
+
+	expected_err = SA_ERR_HPI_CAPABILITY;
+	err = snmp_bc_get_sensor_event_enable((void *)h->hnd, id, dd_sid, &enable);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	OH_GET_DOMAIN(did, d); /* Lock domain */
+	rptentry.ResourceCapabilities |=  SAHPI_CAPABILITY_SENSOR;
+	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
+	oh_release_domain(d); /* Unlock domain */
+
+	/**************************
+	 * Test 34
+	 **************************/
+	testcase++;	
+	expected_err = SA_ERR_HPI_NOT_PRESENT;
+	err = snmp_bc_get_sensor_event_enable((void *)h->hnd, id, 5000, &enable);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 35
+	 **************************/
+	testcase++;	
+	expected_err = SA_OK;                 
+	err = snmp_bc_get_sensor_event_enable((void *)h->hnd, id, sid, &enable);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 36 snmp_bc_get_sensor_event_masks 
+	 **************************/
+	SaHpiEventStateT assertMask;
+	SaHpiEventStateT deassertMask;
+	testcase++;	
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	err = snmp_bc_get_sensor_event_masks((void *)h->hnd, id, sid, NULL, NULL);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 37
+	 **************************/
+	testcase++;	
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	err = snmp_bc_get_sensor_event_masks((void *)h->hnd, id, sid, &assertMask, NULL);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 38
+	 **************************/
+	testcase++;	
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
+	err = snmp_bc_get_sensor_event_masks((void *)h->hnd, id, sid, NULL, &deassertMask);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 39
+	 **************************/
+	testcase++;	
+	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
+	err = snmp_bc_get_sensor_event_masks((void *)h->hnd, 5000, sid, &assertMask, &deassertMask);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 40
+	 **************************/
+	testcase++;	
+        OH_GET_DID(sessionid, did);
+	OH_GET_DOMAIN(did, d); /* Lock domain */
+	rptentry.ResourceCapabilities &= !SAHPI_CAPABILITY_SENSOR;  
+	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
+	oh_release_domain(d); /* Unlock domain */
+
+	expected_err = SA_ERR_HPI_CAPABILITY;
+	err = snmp_bc_get_sensor_event_masks((void *)h->hnd, id, dd_sid, &assertMask, &deassertMask);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	OH_GET_DOMAIN(did, d); /* Lock domain */
+	rptentry.ResourceCapabilities |=  SAHPI_CAPABILITY_SENSOR;
+	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
+	oh_release_domain(d); /* Unlock domain */
+
+	/**************************
+	 * Test 41
+	 **************************/
+	testcase++;	
+	expected_err = SA_ERR_HPI_NOT_PRESENT;
+	err = snmp_bc_get_sensor_event_masks((void *)h->hnd, id, 5000, &assertMask, &deassertMask);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+
+	/**************************
+	 * Test 42
+	 **************************/
+	testcase++;	
+	expected_err = SA_OK;                 
+	err = snmp_bc_get_sensor_event_masks((void *)h->hnd, id, sid, &assertMask, &deassertMask);
+	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
 	
 	/***************************
 	 * Cleanup after all tests
