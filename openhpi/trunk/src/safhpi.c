@@ -1434,7 +1434,7 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
                 SAHPI_OUT SaHpiInventoryDataT *InventData,
                 SAHPI_OUT SaHpiUint32T *ActualSize)
 {
-        int (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, size_t *);
+        int (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiUint32T *);
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiInventoryDataT *);
         
         struct oh_session *s;

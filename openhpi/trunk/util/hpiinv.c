@@ -325,7 +325,7 @@ main(int argc, char **argv)
 								rdr.RdrType, eirid, rdr.IdString.Data);
 
 						buffersize = sizeof(inbuff);
-						if (fdebug) printf("BufferSize=%d InvenDataRecSize=%d\n",
+						if (fdebug) printf("BufferSize=%d InvenDataRecSize=%zd\n",
 										buffersize, sizeof(inbuff));
 						rv = saHpiEntityInventoryDataRead( sessionid, resourceid,
 									eirid, buffersize, inv, &actualsize);

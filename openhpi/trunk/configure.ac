@@ -370,8 +370,9 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wmissing-declarations \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
-	-Wcast-qual -Wcast-align \
-	-Werror"
+	-Werror \
+	-Wcast-qual"
+#	-Wcast-qual -Wcast-align \
 
 CXX_WARNINGS="$CC_WARNINGS \
         -Wshadow \
