@@ -1458,17 +1458,50 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/******************************
+	/*******************************
 	 * oh_valid_thresholds testcases
-         ******************************/
+         *******************************/
 	{
+		SaHpiRdrT default_rdr, test_rdr;
 		SaHpiSensorThresholdsT default_thresholds_int64, test_thresholds_int64;
 		SaHpiSensorThresholdsT default_thresholds_float64, test_thresholds_float64;
 		SaHpiSensorThresholdsT default_thresholds_uint64, test_thresholds_uint64;
-		SaHpiSensorDataFormatT default_format_int64, test_format_int64;
-		SaHpiSensorDataFormatT default_format_float64, test_format_float64;
-		SaHpiSensorDataFormatT default_format_uint64, test_format_uint64;
-		SaHpiSensorThdMaskT default_writable_thresholds, test_writable_thresholds;
+
+		SaHpiSensorDataFormatT default_format_int64;
+		SaHpiSensorDataFormatT default_format_float64;
+		SaHpiSensorDataFormatT default_format_uint64;
+
+		default_rdr.RecordId = 1;
+		default_rdr.RdrType = SAHPI_SENSOR_RDR;
+                default_rdr.Entity.Entry[0].EntityType = SAHPI_ENT_ROOT;
+		default_rdr.Entity.Entry[0].EntityLocation = 0;
+		default_rdr.IsFru = SAHPI_TRUE;
+		default_rdr.RdrTypeUnion.SensorRec.Num = 1;
+		default_rdr.RdrTypeUnion.SensorRec.Type = SAHPI_TEMPERATURE;
+		default_rdr.RdrTypeUnion.SensorRec.Category = SAHPI_EC_THRESHOLD;
+		default_rdr.RdrTypeUnion.SensorRec.EnableCtrl = SAHPI_FALSE;
+		default_rdr.RdrTypeUnion.SensorRec.EventCtrl= SAHPI_SEC_READ_ONLY;
+		default_rdr.RdrTypeUnion.SensorRec.Events = 
+			SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported = SAHPI_TRUE;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.BaseUnits = SAHPI_SU_DEGREES_C;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.ModifierUnits = SAHPI_SU_UNSPECIFIED;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.ModifierUse = SAHPI_SMUU_NONE;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Percentage = SAHPI_FALSE;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Flags = SAHPI_SRF_MAX | SAHPI_SRF_MIN;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Max.IsSupported = SAHPI_TRUE;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorFloat64 = 125;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Min.IsSupported = SAHPI_TRUE;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		default_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Min.Value.SensorFloat64 = 0;
+		default_rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsAccessible = SAHPI_TRUE;
+		default_rdr.RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold = 0;
+		default_rdr.RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold = 
+			SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT |
+			SAHPI_STM_UP_MINOR | SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT |
+			SAHPI_STM_UP_HYSTERESIS | SAHPI_STM_LOW_HYSTERESIS;
 		
 		default_thresholds_int64.UpCritical.IsSupported = SAHPI_TRUE;
 		default_thresholds_int64.UpCritical.Type = SAHPI_SENSOR_READING_TYPE_INT64;
@@ -1501,29 +1534,37 @@ int main(int argc, char **argv)
 		default_format_int64.Range.Max.Value.SensorInt64 = 60;
 		default_format_int64.Range.Min.Value.SensorInt64 = 0;
 
-		default_writable_thresholds = 
-			SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT |
-			SAHPI_STM_UP_MINOR | SAHPI_STM_UP_MAJOR |  SAHPI_STM_UP_CRIT |
-			SAHPI_STM_UP_HYSTERESIS | SAHPI_STM_LOW_HYSTERESIS;
-
 		/* oh_valid_thresholds: Bad parameters testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
-		err = oh_valid_thresholds(0, 0, default_writable_thresholds);
+		err = oh_valid_thresholds(0, &default_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 		
+		/* oh_valid_thresholds: Bad RDR testcase */
+		test_rdr = default_rdr;
+		test_thresholds_int64 = default_thresholds_int64;	
+		test_rdr.RdrType = SAHPI_WATCHDOG_RDR;
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
 		/* oh_valid_thresholds: Bad threshold type testcase */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;
 		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
 		
 		expected_err = SA_ERR_HPI_INVALID_CMD;
 		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1531,14 +1572,14 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_valid_thresholds: Bad text buffer type threshold testcase */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
 		
 		expected_err = SA_ERR_HPI_INVALID_CMD;
 		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1546,14 +1587,14 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_valid_thresholds: Bad threshold hysteresis testcase */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
 		
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		test_thresholds_int64.PosThdHysteresis.Value.SensorInt64 = -1;
 		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1561,29 +1602,29 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_valid_thresholds: Bad range threshold testcase */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
-		
+
 		expected_err = SA_ERR_HPI_INVALID_CMD;
-		test_format_int64.Range.Max.Value.SensorInt64 = 0;
-		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat.Range.Max.Value.SensorInt64 = 0;
+
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
-		
-		/* oh_valid_thresholds: Bad order threshold testcase */
-		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
 
-		test_thresholds_int64.LowCritical.Value.SensorInt64 = 20;
+		/* oh_valid_thresholds: Bad order threshold testcase */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
+		test_thresholds_int64 = default_thresholds_int64;
+
 		expected_err = SA_ERR_HPI_INVALID_DATA;
+		test_thresholds_int64.LowCritical.Value.SensorInt64 = 20;
 		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1591,14 +1632,15 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_valid_thresholds: Bad writable threshold testcase */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
 
-		test_writable_thresholds = SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT;
 		expected_err = SA_ERR_HPI_INVALID_CMD;
+		test_rdr.RdrTypeUnion.SensorRec.ThresholdDefn.WriteThold = 
+			SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT;
 		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1606,13 +1648,13 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_valid_thresholds: Normal threshold testcase - int64 */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
 
 		expected_err = SA_OK;
 		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1620,18 +1662,18 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_valid_thresholds: Normal subset testcase */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_int64;		
 		test_thresholds_int64 = default_thresholds_int64;
-		test_format_int64 = default_format_int64;
-		test_writable_thresholds = default_writable_thresholds;
 
+
+		expected_err = SA_OK;
 		test_thresholds_int64.UpCritical.IsSupported = SAHPI_FALSE;
 		test_thresholds_int64.UpCritical.Type = BAD_TYPE; /* This should be ignored */
 		test_thresholds_int64.LowCritical.IsSupported = SAHPI_FALSE;
 		test_thresholds_int64.LowCritical.Type = BAD_TYPE; /* This should be ignored */
 
-		expected_err = SA_OK;
-		
-		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1670,13 +1712,13 @@ int main(int argc, char **argv)
 		default_format_float64.Range.Min.Value.SensorFloat64 = 0;
 
                 /* oh_valid_thresholds: Normal threshold testcase - float64 */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_float64;
 		test_thresholds_float64 = default_thresholds_float64;
-		test_format_float64 = default_format_float64;
-		test_writable_thresholds = default_writable_thresholds;
 
 		expected_err = SA_OK;
 		
-		err = oh_valid_thresholds(&test_thresholds_float64, &test_format_float64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_float64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1714,14 +1756,16 @@ int main(int argc, char **argv)
 		default_format_uint64.Range.Max.Value.SensorUint64 = 60;
 		default_format_uint64.Range.Min.Value.SensorUint64 = 0;
 
-		/* oh_valid_thresholds: Normal threshold testcase - uint64*/
+
+
+		/* oh_valid_thresholds: Normal threshold testcase - uint64 */
+		test_rdr = default_rdr;
+		test_rdr.RdrTypeUnion.SensorRec.DataFormat = default_format_uint64;
 		test_thresholds_uint64 = default_thresholds_uint64;
-		test_format_uint64 = default_format_uint64;
-		test_writable_thresholds = default_writable_thresholds;
 
 		expected_err = SA_OK;
 		
-		err = oh_valid_thresholds(&test_thresholds_uint64, &test_format_uint64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_uint64, &test_rdr);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
