@@ -27,14 +27,7 @@
  *  more readable.
  *
  ***********************************************************/
-#define OH_STATE_READY_CHECK                                      \
-        do {                                                      \
-                if (oh_get_ready_state() != OH_ALL_READY) {         \
-                        dbg("Uninitialized HPI");                 \
-                        data_access_unlock();                     \
-                        return SA_ERR_HPI_ERROR;                  \
-                }                                                 \
-        } while(0)
+#define OH_STATE_READY_CHECK
 
 /*
  * OH_SESSION_SETUP gets the session pointer for the session

@@ -26,40 +26,21 @@
 #include <uid_utils.h>
 #include <oh_event.h>
 
-/**
- * oh_get_ready_state
- *
- *
- * Returns:
- **/
-SaHpiUint8T oh_get_ready_state()
+static enum {
+        UNINIT,
+        INIT
+} oh_init_state;
+
+SaErrorT oh_initialized()
 {
-        SaHpiUint8T ready_state = 0xFF;
-
-        if (!global_plugin_list)
-                ready_state = ready_state & ~OH_PLUGINS_READY;
-
-        if (!global_handler_list)
-                ready_state = ready_state & ~OH_HANDLERS_READY;
-
-        if (!global_handler_configs)
-                ready_state = ready_state & ~OH_CONFIGS_READY;
-
-        if (!oh_process_q)
-                ready_state = ready_state & ~OH_PROCESS_Q_READY;
-
-        if (!oh_domains.lock || !oh_domains.table)
-                ready_state = ready_state & ~OH_DOMAINS_READY;
-
-        if (!oh_sessions.lock || !oh_sessions.table)
-                ready_state = ready_state & ~OH_SESSIONS_READY;
-
-        /* FIXME: No real way of checking for a UID ready state. */        
-
-        if (ready_state != OH_ALL_READY)
-                ready_state = ready_state & 0x7F;
-
-        return ready_state;        
+        data_access_lock();
+        if(oh_init_state == UNINIT) {
+                data_access_unlock();
+                return SA_ERR_HPI_ERROR;
+        } else {
+                data_access_unlock();
+                return SA_OK;
+        }
 }
 
 /**
@@ -80,10 +61,14 @@ SaErrorT oh_initialize()
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
         SaHpiTextBufferT tag;
 
+        /* Initialize event process queue */
+        oh_event_init();
+
         data_access_lock();
 
+
         /* Check ready state */
-        if (oh_get_ready_state() != OH_NOT_READY) {
+        if (oh_initialized() == SA_OK) {
                 dbg("Cannot initialize twice");
                 data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
@@ -102,6 +87,15 @@ SaErrorT oh_initialize()
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+
+        /* Initialize uid_utils */
+        rval = oh_uid_initialize();
+        if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
+                dbg("uid_intialization failed");
+                data_access_unlock();
+                return(rval);
+        }        
+        dbg("Initialized UID");
 
         /* Initialize plugins */
         for(i = 0; i < g_slist_length(global_plugin_list); i++) {
@@ -143,12 +137,9 @@ SaErrorT oh_initialize()
                 return SA_ERR_HPI_NOT_PRESENT;
         }        
 
-        /* Initialize event process queue */
-        oh_event_init();
-
         /* Initialize domain table */
-        oh_domains.lock = g_mutex_new();
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
+        dbg("Initialized domain table");
 
         /* Create first domain */
         tag.DataType = SAHPI_TL_TYPE_TEXT;
@@ -158,18 +149,15 @@ SaErrorT oh_initialize()
                 dbg("Could not create first domain!");
                 return SA_ERR_HPI_ERROR;
         }        
+        dbg("Created first domain");
 
         /* Initialize session table */
         oh_sessions.lock = g_mutex_new();
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
+        dbg("Initialized session table");
         
-        /* Initialize uid_utils */
-        rval = oh_uid_initialize();
-        if( (rval != SA_OK) && (rval != SA_ERR_HPI_ERROR) ) {
-                dbg("uid_intialization failed");
-                data_access_unlock();
-                return(rval);
-        }        
+        oh_init_state = INIT;
+        dbg("Set init state");
 
         data_access_unlock();
 
