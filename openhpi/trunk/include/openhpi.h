@@ -29,6 +29,7 @@
 #include <oh_error.h>
 #include <oh_domain.h>
 #include <oh_session.h>
+#include <oh_hotswap.h>
 #include <oh_utils.h>
 
 #ifdef __cplusplus
@@ -71,18 +72,6 @@ struct oh_resource_data
 };
 
 #define oh_session_event oh_hpi_event
-
-/* hotswap - ***This all needs to be cleaned up,
- * all the way down to src/hotswap.c*** -- RM 7/16
- */
-void process_hotswap_policy(void);
-int hotswap_push_event(struct oh_event *e);
-int hotswap_pop_event(struct oh_event *e);
-int hotswap_has_event(void);
-SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
-void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
-SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
-void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
 
 #define g_slist_for_each(pos, head) \
         for (pos = head; pos != NULL; pos = g_slist_next(pos))
