@@ -62,7 +62,7 @@ static SaErrorT snmp_bc_set_event_severity(struct oh_handler_state *handle,
 					   SaHpiSeverityT *event_severity);
 
 static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
-				bc_sel_entry *sel_entry,
+				sel_entry *sel_entry,
 				OEMReasonCodeT reason);
 
 static ErrLog2EventInfoT *snmp_bc_findevent4dupstr(gchar *search_str,
@@ -345,7 +345,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			   SaHpiEventT *event,
 			   int isdst)
 {
-	bc_sel_entry        log_entry;
+	sel_entry        log_entry;
 	gchar               *recovery_str, *login_str;
 	gchar               root_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
 	gchar               search_str[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
@@ -1005,7 +1005,7 @@ static SaErrorT snmp_bc_set_cur_prev_event_states(struct oh_handler_state *handl
  * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
  **/
 static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
-				bc_sel_entry *sel_entry,
+				sel_entry *sel_entry,
 				OEMReasonCodeT reason)
 {
 	if (!event || !sel_entry) {

@@ -27,13 +27,13 @@ typedef struct {
         char source[SNMP_BC_MAX_SEL_ID_LENGTH];
         char sname[SNMP_BC_MAX_SEL_ID_LENGTH];
         char text[SNMP_BC_MAX_SEL_ENTRY_LENGTH];
-} bc_sel_entry;
+} sel_entry;
 
 
 /* Function Prototyping */
 SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle,
 				 char *logstr,
-				 bc_sel_entry *sel);
+				 sel_entry *sel);
 
 SaErrorT snmp_bc_get_sel_entry(void *hnd,
 			       SaHpiResourceIdT id,

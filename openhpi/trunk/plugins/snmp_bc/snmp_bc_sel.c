@@ -94,7 +94,7 @@ SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         struct snmp_value first_value;
         struct oh_handler_state *handle = hnd;
         struct tm curtime;
-        bc_sel_entry sel_entry;
+        sel_entry sel_entry;
 
 	if (!hnd || !info) {
 		dbg("Invalid parameter.");
@@ -309,7 +309,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 	SaHpiEventLogEntryIdT prev;
 	SaHpiEventLogEntryIdT next;
         struct snmp_value get_value;
-        bc_sel_entry sel_entry;
+        sel_entry sel_entry;
         oh_el_entry *fetchentry;
         SaHpiTimeT new_timestamp;
 	char oid[SNMP_BC_MAX_OID_LENGTH];
@@ -459,7 +459,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 {
 	int isdst=0;
         char oid[SNMP_BC_MAX_OID_LENGTH];
-	bc_sel_entry sel_entry;
+	sel_entry sel_entry;
 
 	SaErrorT err;
         SaHpiEventT tmpevent;
@@ -549,9 +549,9 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
  * SA_OK - normal operation.
  * SA_ERR_HPI_INVALID_PARAMS - @handle, @logstr, @sel NULL.
  **/
-SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, bc_sel_entry *sel)
+SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, sel_entry *sel)
 {
-        bc_sel_entry ent;
+        sel_entry ent;
         char level[8];
         char *findit;
 	
