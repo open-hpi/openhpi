@@ -24,16 +24,20 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-/*
- * The global handler and plugin lists are kept here, where they are initialized
- */
+/*******************************************************************************
+ *  global_plugin_list - list of all the plugins that should be loaded
+ *
+ *  global_handler_list - list of handlers that have been loaded
+ ******************************************************************************/
 
 GSList *global_plugin_list = NULL;
 GSList *global_handler_list = NULL;
+GSList *global_handler_configs = NULL;
 
-/* 
- * the following stanzas are needed for glib's lexical parser 
- */
+/*******************************************************************************
+ *  In order to use the glib lexical parser we need to define token 
+ *  types which we want to switch on, and also 
+ ******************************************************************************/
 
 enum {
         HPI_CONF_TOKEN_HANDLER = G_TOKEN_LAST,
@@ -48,10 +52,17 @@ static struct {
         { "plugin", HPI_CONF_TOKEN_PLUGIN }
 };
 
-/*
- * note: many of the switches in the config aren't well explained
- * some trial and error was used to figure out the appropriate values
- */
+/*******************************************************************************
+ * In order to initialize the lexical scanner, you need the following config.
+ * This config was figured out by reading the glib sources, and lots of
+ * trial and error (documentation for this isn't very good).
+ *
+ * G_TOKEN_STRING will be created when anything starts with a-zA-z_/.
+ * due to cset_identifier_first and identifier2string values below.
+ * Therefor, if you want 0 to be scanned as a string, you need to quote 
+ * it (e.g. "0")
+ *
+ *******************************************************************************/
 
 static GScannerConfig oh_scanner_config =
         {
@@ -69,9 +80,7 @@ static GScannerConfig oh_scanner_config =
                         G_CSET_A_2_Z
                         )			/* cset_identifier_nth */,
                 ( "#\n" )		/* cpair_comment_single */,
-                
                 FALSE			/* case_sensitive */,
-                
                 TRUE			/* skip_comment_multi */,
                 TRUE			/* skip_comment_single */,
                 TRUE			/* scan_comment_multi */,
@@ -94,10 +103,32 @@ static GScannerConfig oh_scanner_config =
                 FALSE			/* scope_0_fallback */,
         };
 
-static struct oh_plugin_config *new_plugin_config(char *plugin) 
+/*******************************************************************************
+ *  prototypes for functions internal to this file
+ ******************************************************************************/
+GTokenType get_next_token_if (GScanner *, GTokenType);
+
+int process_plugin_token (GScanner *);
+
+int process_handler_token (GScanner *);
+
+struct oh_plugin_config * new_plugin_config (char *);
+struct oh_handler_config * new_handler_config (char *, char *, char *);
+
+
+/**
+ * new_plugin_config:
+ * @plugin: 
+ * 
+ * 
+ * 
+ * Return value: 
+ **/
+
+struct oh_plugin_config *new_plugin_config (char *plugin) 
 {
         struct oh_plugin_config *pc;
-
+        
         pc = calloc(1,sizeof(*pc));
         if(pc == NULL) {
                 dbg("Couldn't allocate memory for handler_config");
@@ -108,12 +139,54 @@ static struct oh_plugin_config *new_plugin_config(char *plugin)
                 pc->name = calloc(strlen(plugin)+1, sizeof(char));
                 strcpy(pc->name,plugin);
         }
-        
+        pc->refcount = 0;
+
         return pc;
 }
 
-GTokenType get_next_token_if (GScanner* oh_scanner, GTokenType expected) 
+/**
+ * new_plugin_config:
+ * @plugin: 
+ * 
+ * 
+ * 
+ * Return value: 
+ **/
+struct oh_handler_config *new_handler_config (char *plugin, char *name, char *addr) 
 {
+        struct oh_handler_config *hc;
+        
+        hc = calloc(1,sizeof(*hc));
+        if(hc == NULL) {
+                dbg("Couldn't allocate memory for handler_config");
+                return hc;
+        }
+        
+        if(plugin != NULL) {
+                hc->plugin = g_strdup(plugin);
+        }
+        if(name != NULL) {
+                hc->name = g_strdup(name);
+        }
+        if(addr != NULL) {
+                hc->addr = g_strdup(addr);
+        }
+        
+        return hc;
+}
+
+/**
+ * get_next_token_if:  returns the next token if it matches an expected type
+ * @oh_scanner:  a scanner object
+ * @expected:  the expected token type
+ * 
+ * 
+ * 
+ * Return value: expected on success, G_TOKEN_ERROR on fail
+ **/
+
+GTokenType get_next_token_if (GScanner* oh_scanner, GTokenType expected)
+{ 
         GTokenType my_token;
         
         my_token = g_scanner_peek_next_token (oh_scanner);
@@ -123,16 +196,100 @@ GTokenType get_next_token_if (GScanner* oh_scanner, GTokenType expected)
                         return my_token;
                 }
         }
-
+        
         return G_TOKEN_ERROR;
 }
 
+/**
+ * process_plugin_token:
+ * @oh_scanner: 
+ * 
+ * 
+ * 
+ * Return value: 
+ **/
+int process_plugin_token (GScanner *oh_scanner) 
+{
+        guint my_token;
+        int refcount;
 
-int process_handler_token(GScanner* oh_scanner) 
+        my_token = g_scanner_get_next_token(oh_scanner); 
+        if (my_token != HPI_CONF_TOKEN_PLUGIN) {
+                dbg("Token is not what I was promissed");
+                return -1;
+        }
+        my_token = g_scanner_get_next_token(oh_scanner);
+        if(my_token != G_TOKEN_STRING) {
+                dbg("Where the heck is my string!");
+                return -1;
+        }
+        
+        refcount = plugin_refcount(oh_scanner->value.v_string);
+        if(refcount < 0) {
+                global_plugin_list = g_slist_append(
+                        global_plugin_list,
+                        (gpointer *) new_plugin_config(oh_scanner->value.v_string)
+                        );
+        } else {
+                dbg("WARNING: Attempt to load a plugin more than once");
+                return -1;
+        }
+        return 0;
+}
+
+/**
+ * plugin_refcount:
+ * @name: 
+ * 
+ * 
+ * 
+ * Return value: 
+ **/
+int plugin_refcount (char *name) 
+{
+        struct oh_plugin_config *temp_config;
+        int refcount = -1;
+        
+        temp_config = plugin_config(name); 
+
+        if(temp_config != NULL) {
+                refcount = temp_config->refcount;
+        }
+        return refcount;
+}
+
+struct oh_plugin_config * plugin_config (char *name) 
+{
+        GSList *node;
+        struct oh_plugin_config *temp_config = NULL;
+        struct oh_plugin_config *return_config = NULL;
+        
+        node = global_plugin_list;
+        while(g_slist_next(node) != NULL) {
+                temp_config = (struct oh_plugin_config *) node->data;
+                if(strcmp(temp_config->name, name) == 0) {
+                        return_config = (struct oh_plugin_config *) node->data;
+                        break;
+                }
+        }
+        
+        return return_config;
+}
+
+/**
+ * process_handler_token:  handles parsing of handler tokens into 
+ * @oh_scanner: 
+ * 
+ * 
+ * 
+ * Return value: 0 on sucess, < 0 on fail
+ **/
+int process_handler_token (GScanner* oh_scanner) 
 {
         int i;
+        int numstanza = 3;
         GSList *templist = NULL;
-        struct oh_handler *temphandler;
+        struct oh_handler_config *temp_config;
         char *temps;
         guint my_token;
         
@@ -144,13 +301,12 @@ int process_handler_token(GScanner* oh_scanner)
                 return -1;
         }
         
-        for(i = 0; i < 3; i++) {
+        for(i = 0; i < numstanza; i++) {
                 my_token = get_next_token_if(oh_scanner, G_TOKEN_STRING);
                 if(my_token != G_TOKEN_STRING) {
                         dbg("String expected");
                         goto free_temp;
                 } else {
-                        dbg("Field %i, %s: ", i, oh_scanner->value.v_string);
                         templist = g_slist_append(
                                 templist, 
                                 (gpointer *) g_strdup(oh_scanner->value.v_string)
@@ -158,19 +314,18 @@ int process_handler_token(GScanner* oh_scanner)
                 }
         }
 
-        temphandler = new_handler(
-                g_strdup((char *) g_slist_nth_data(templist, 0)),
-                g_strdup((char *) g_slist_nth_data(templist, 1)),
-                g_strdup((char *) g_slist_nth_data(templist, 2))
+        temp_config = new_handler_config(
+                g_slist_nth_data(templist, 0),
+                g_slist_nth_data(templist, 1),
+                g_slist_nth_data(templist, 2)
                 );
         
-        if(temphandler != NULL) {
-                global_handler_list = g_slist_append(
-                        global_handler_list,
-                        (gpointer *) temphandler
+        if(temp_config != NULL) {
+                global_handler_configs = g_slist_append(
+                        global_handler_configs,
+                        (gpointer *) temp_config
                         );
         }
-        
         
  free_temp:
         for(i = 0; i < g_slist_length(templist); i++) {
@@ -182,12 +337,15 @@ int process_handler_token(GScanner* oh_scanner)
         return 0;
 }
 
-/*
-  load_config will actually get out to a config file soon enough based
-  on DomainId mapping.  For now this just defines the interface.
-*/
-
-int oh_load_config (struct oh_config *config) 
+/**
+ * oh_load_config:
+ * @filename: 
+ * 
+ * 
+ * 
+ * Return value: 
+ **/
+int oh_load_config (char *filename) 
 {
         int oh_conf_file, i;
         GScanner* oh_scanner;
@@ -201,7 +359,7 @@ int oh_load_config (struct oh_config *config)
         if(!oh_scanner)
                 return -1;
 
-        oh_conf_file = open(OH_DEFAULT_CONF, O_RDONLY);
+        oh_conf_file = open(filename, O_RDONLY);
         if(!oh_conf_file)
                 return -2;
 
@@ -223,26 +381,10 @@ int oh_load_config (struct oh_config *config)
                         break;
                 case HPI_CONF_TOKEN_HANDLER:
                         process_handler_token(oh_scanner);
-                        
                         break;
-                        
                 case HPI_CONF_TOKEN_PLUGIN:
-                        my_token = g_scanner_get_next_token(oh_scanner); 
-                        if (my_token != HPI_CONF_TOKEN_PLUGIN) {
-                                dbg("Token is not what I was promissed");
-                                break;
-                        }
-                        my_token = g_scanner_get_next_token(oh_scanner);
-                        if(my_token != G_TOKEN_STRING) {
-                                dbg("Where the heck is my string!");
-                                break;
-                        }
-                        global_plugin_list = g_slist_append(
-                                global_plugin_list,
-                                (gpointer *) new_plugin_config(oh_scanner->value.v_string)
-                                );
+                        process_plugin_token(oh_scanner);
                         break;
-
                 default:
                         /* need to advance it */
                         my_token = g_scanner_get_next_token(oh_scanner);
@@ -253,20 +395,6 @@ int oh_load_config (struct oh_config *config)
         close(oh_conf_file);
         g_scanner_destroy(oh_scanner);
         dbg("Done processing conf file");
-        
-#if 0        
-        /* This is just a quick hacking before real config functio
-         * Currently, it assume all handlers are in default domain */	
-        for (i=0; name[i]!=NULL; i++) {
-                struct oh_handler *h 
-                        = new_handler(name[i], NULL, NULL);
-                if (!h) {
-                        dbg("Error on new handler");
-                        return -1;
-                }
-                global_handler_list = g_slist_append(global_handler_list, h);
-        }
-#endif
         
         return 0;
 }

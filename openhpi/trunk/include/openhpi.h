@@ -23,6 +23,7 @@
 #include <glib.h>
 
 #include <oh_plugin.h>
+#include <oh_config.h>
 
 /*
  * Common OpenHPI implementation specific definitions 
@@ -113,6 +114,13 @@
  *  by the configuration subsystem, and used by the plugin loader.
  */
 extern GSList *global_plugin_list;
+
+/*
+ *  Global listing of handler configs (oh_handler_config).  This list is 
+ *  populated during config file parse, and used to build 
+ *  global_handler_list
+ */
+extern GSList *global_handler_configs;
 
 /*
  *  Global listing of handlers (oh_handler).  This list is populated
@@ -295,10 +303,11 @@ struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid);
 /* plugin load must be seperate from new_handler call*/
 int init_plugin(void);
 int uninit_plugin(void);
-int load_plugin(const char *plugin_name);
+int load_plugin(struct oh_plugin_config *);
+int load_handler(char *plugin_name, char *name, char *addr);
 
 /* here are the handler calls we need */
-struct oh_handler *new_handler(const char *plugin_name, const char *name, const char *addr);
+struct oh_handler *new_handler(char *plugin_name, char *name,char *addr);
 int free_handler(struct oh_handler*);
 
 /* event handler*/

@@ -16,9 +16,9 @@
 #ifndef __OH_CONFIG_H
 #define __OH_CONFIG_H
 
-#include <openhpi.h>
 #include <glib.h>
 #include <SaHpi.h>
+#include <oh_plugin.h>
 
 /*
  * Eventually this will contain the definitions for parsing the config file
@@ -38,29 +38,20 @@
    having explicit path to the plugin, but I'm not sure this is a good plan */
 struct oh_plugin_config {
         char *name;
+        int refcount;
+        struct oh_abi_v1 *abi;
 };
 
 struct oh_handler_config {
         char *plugin;
         char *name;
-        char *address;
+        char *addr;
 };
 
-struct oh_config {
-        /* 
-         *  list of plugin config structures
-         */
-        GSList *plugins;
-        /*
-         * list of handler config structures
-         */
-        GSList *handlers;
-};
+int oh_load_config(char *);
 
-int oh_load_config(struct oh_config*);
+int plugin_refcount (char *);
 
-GTokenType get_next_token_if (GScanner*, GTokenType);
-
-int process_handler_token(GScanner*);
+struct oh_plugin_config * plugin_config (char *);
 
 #endif/*__OH_CONFIG_H*/
