@@ -47,9 +47,6 @@ sysfs plugin
 snmp_bc plugin
   net-snmp >= 5.07
 
-snmp_rsa plugin
-  net-snmp >= 5.07
-
 snmp_client plugin
   net-snmp >= 5.07
 
@@ -110,8 +107,7 @@ Active Plug-ins
 dummy - dummy plugin for use in testing
 ipmi - OpenIPMI based plugin
 ipmidirect - IPMI plugin that talks to device driver directly
-snmp_bc - IBM Blade Center plugin (uses snmp)
-snmp_rsa - IBM RSA1 plugin (uses snmp)
+snmp_bc - IBM BladeCenter/RSA plugin (uses snmp)
 watchdog - Linux watchdog device interface
 sysfs - Linux sysfs plugin (LM sensors and I2C devices exported in 
         sysfs requires kernel 2.6 or >= 2.5.72)
