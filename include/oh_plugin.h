@@ -51,7 +51,7 @@ struct oh_event {
 		SaHpiUserEventT     user;
 		struct oh_entity_event entity;
 		struct oh_sel_event sel;
-	};
+	} u;
 			    
 	struct timeval			timestamp;
 	SaHpiSeverityT			severity;

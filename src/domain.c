@@ -72,14 +72,14 @@ int domain_process_event(struct oh_domain *d, struct oh_event *e)
 {
 	switch (e->type) {
 	case OH_ET_ENTITY:
-		if (e->entity.category!=SAHPI_EC_PRESENCE) {
+		if (e->u.entity.category!=SAHPI_EC_PRESENCE) {
 			dbg("Unexcepted event category");
 			return -1;
 		}
 		
-		if (e->entity.state == SAHPI_ES_ABSENT) {
+		if (e->u.entity.state == SAHPI_ES_ABSENT) {
 			absent_entity(d, &e->oid);
-		} else if (e->entity.state == SAHPI_ES_PRESENT) {
+		} else if (e->u.entity.state == SAHPI_ES_PRESENT) {
 			present_entity(d, &e->oid);
 		} else {
 			dbg("Unexcepted event state");
