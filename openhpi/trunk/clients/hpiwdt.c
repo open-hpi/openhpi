@@ -11,6 +11,8 @@
  *
  * Authors:
  *     Andy Cress <arcress@users.sourceforge.net>
+ * Changes:
+ * 03/15/04 Andy Cress - v1.0 added strings for use & actions in show_wdt
  */
 
 /* This tool reads and enables the watchdog timer via HPI.
@@ -25,20 +27,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
 #include "SaHpi.h"
 
 #define  uchar  unsigned char
-char *progver  = "0.8";
+char *progver  = "1.0";
 char fdebug = 0;
+#define NUSE  6
+char *usedesc[NUSE] = {"reserved", "BIOS FRB2", "BIOS/POST",
+                    "OS Load", "SMS/OS", "OEM" };
+#define NACT  5
+char *actions[NACT] = {"No action", "Hard Reset", "Power down",
+		    "Power cycle", "Reserved" };
 
-static void
+void
 show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
 {
   int icount, pcount;
+  char ustr[12]; 
+  char astr[16]; 
   icount = wdt->InitialCount /1000;        /*1000 msec = 1 sec*/
   pcount = wdt->PresentCount /1000;
-  printf("Watchdog: Num=%d, Log=%d, Running=%d, TimerUse=%d, TimerAction=%d\n",
-	wdnum,wdt->Log,wdt->Running,wdt->TimerUse,wdt->TimerAction);
+
+  if (wdt->TimerUse > NUSE) sprintf(ustr,"%d", wdt->TimerUse );
+  else strcpy(ustr, usedesc[wdt->TimerUse]);
+  if (wdt->TimerAction > NUSE) sprintf(astr,"%d", wdt->TimerAction );
+  else strcpy(astr, actions[wdt->TimerAction]);
+  printf("Watchdog: Num=%d, Log=%d, Running=%d, TimerUse=%s, TimerAction=%s\n",
+	wdnum,wdt->Log,wdt->Running,ustr, astr);
   printf("          TimerUseExpFlags=%x, Timeout=%d sec, Counter=%d sec\n",
 	wdt->TimerUseExpFlags, icount,pcount);
   printf("          PreTimerInterrupt=%d, PreTimeoutInterval=%d msec\n",
@@ -111,7 +127,7 @@ main(int argc, char **argv)
   if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
   rv = saHpiRptInfoGet(sessionid,&rptinfo);
   if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
          rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
   /* walk the RPT list */
@@ -126,11 +142,10 @@ main(int argc, char **argv)
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
 		rptentryid, resourceid, rptentry.ResourceTag.Data);
-
 	/*
 	 * The definition for SAHPI_DEFAULT_WATCHDOG_NUM is broken,
 	 * so we are assigning wdnum to 0x00 which is what SaHpi.h
-	 * attempted to set the default as
+	 * attempted to set the default as.
 	 */
 	wdnum = (SaHpiWatchdogNumT)0x00;
 
