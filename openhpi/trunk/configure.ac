@@ -564,7 +564,6 @@ AC_CONFIG_FILES([openhpi.spec
 	marshal/Makefile
 	marshal/t/Makefile
         plugins/Makefile
-	plugins/snmp_client/Makefile
         plugins/dummy/Makefile
         plugins/watchdog/Makefile
         plugins/ipmi/Makefile
