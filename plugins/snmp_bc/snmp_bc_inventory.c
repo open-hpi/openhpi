@@ -36,11 +36,18 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
 
 /**
  * snmp_bc_get_idr_info:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @IdrInfo: Pointer to the information describing the requested Inventory Data Repository
+ *
+ * Build the Inventory Data Record for the inputed resource id, idr id.
+ * Copy the IdrInfo found for the input resource id and idr id
  *
  * Return value:
+ * SA_OK - Normal 
+ * SA_ERR_HPI_INVALID_PARAMS - NULL input pointers, hnd or IdrInfo
+ * SA_ERR_HPI_NOT_PRESENT - If can not find idr with matched requested IdrId 
  **/
 SaErrorT snmp_bc_get_idr_info( void *hnd,  
 		SaHpiResourceIdT        ResourceId,
@@ -56,14 +63,16 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
-		rv = SA_ERR_HPI_OUT_OF_MEMORY;
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
-	if (rv == SA_OK)
-		rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
+	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
-		memcpy(IdrInfo, &(i_record->idrinfo), sizeof(SaHpiIdrInfoT));
+		if (IdrId == i_record->idrinfo.IdrId) 
+			memcpy(IdrInfo, &(i_record->idrinfo), sizeof(SaHpiIdrInfoT));
+		else 
+			rv = SA_ERR_HPI_NOT_PRESENT;
 	}
 
 	g_free(i_record);
@@ -72,11 +81,29 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 
 /**
  * snmp_bc_get_idr_area_header:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @AreaType: Type of Inventory Data Area
+ * @AreaId: Identifier of Area entry to retrieve from the IDR
+ * @NextAreaId: Pointer to location to store the AreaId of the next area
+ *              of the requested type within the IDR  
+ * @Header: Pointer to Inventory Data Area Header into which the header 
+ 	    information is placed
  *
+ * Build the Inventory Data Record for the inputed resource id, idr id.
+ * Copy the Inventory Data Area Header to the space provided by user.
+ *
+ * Internal code makes an assumption that there is only one (1) Idr per
+ * resource in snmp_bc plugin. For this to be expanded to more than one 
+ * Idr per resource, the base bc_resources.c/h has to be changed together
+ * with the rest of inventory code.
+ * 
  * Return value:
+ * SA_OK - Normal 
+ * SA_ERR_HPI_INVALID_PARAMS - NULL input pointers, hnd or NextAreaId or Header
+ * SA_ERR_HPI_OUT_OF_MEMORY - If can not allocate temp work space
+ * SA_ERR_HPI_NOT_PRESENT - If can not find idr area with matched requested AreaId 
  **/
 SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 		SaHpiResourceIdT         ResourceId,
@@ -97,35 +124,45 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 	i_record = (struct bc_inventory_record *)g_malloc0(sizeof(struct bc_inventory_record));
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
-		rv = SA_ERR_HPI_OUT_OF_MEMORY;
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
-	if (rv == SA_OK)
-		rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
+	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
-		
-		if (i_record->area[0].idrareas.AreaId == AreaId) {
-			memcpy(Header, &(i_record->area[0].idrareas), sizeof(SaHpiIdrAreaHeaderT));
-			*NextAreaId = SAHPI_LAST_ENTRY;
-		} else 
-			rv = SA_ERR_HPI_NOT_PRESENT;
-		
+		rv = SA_ERR_HPI_NOT_PRESENT;		
+		if (IdrId == i_record->idrinfo.IdrId) {
+			if ( (i_record->area[0].idrareas.Type == AreaType) ||
+					(SAHPI_IDR_AREATYPE_UNSPECIFIED == AreaType) )
+			{  
+				if ( (i_record->area[0].idrareas.AreaId == AreaId) || 
+					(SAHPI_FIRST_ENTRY == AreaId) )
+				{
+					memcpy(Header, &(i_record->area[0].idrareas), sizeof(SaHpiIdrAreaHeaderT));
+					*NextAreaId = SAHPI_LAST_ENTRY;
+					rv = SA_OK;
+				}				
+			}
+		}
 	}
-
 	g_free(i_record);
-	return rv;
+	return (rv);
 
 }
 
 
 /**
  * snmp_bc_add_idr_area:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @AreaType: Type of Inventory Data Area
+ * @AreaId: Pointer to store the identifier of the newly allocated Inventory Area
  *
+ * This function is not suported/implemented for snmp_bc plugin
+ * 
  * Return value:
+ * SA_ERR_HPI_READ_ONLY - Normal - snmp_bc does not allow Inventory Update 
  **/
 SaErrorT snmp_bc_add_idr_area( void *hnd,
 		SaHpiResourceIdT         ResourceId,
@@ -140,11 +177,15 @@ SaErrorT snmp_bc_add_idr_area( void *hnd,
 
 /**
  * snmp_bc_del_idr_area:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @AreaId: Identifier of Area entry to delete from the IDR
  *
+ * This function is not suported/implemented for snmp_bc plugin
+ * 
  * Return value:
+ * SA_ERR_HPI_READ_ONLY - Normal - snmp_bc does not allow Inventory Update 
  **/
 SaErrorT snmp_bc_del_idr_area( void *hnd,
 		SaHpiResourceIdT       ResourceId,
@@ -157,11 +198,20 @@ SaErrorT snmp_bc_del_idr_area( void *hnd,
 
 /**
  * snmp_bc_get_idr_field:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @AreaId: Identifier of Area for the IDA
+ * @FieldType: Type of Inventory Data Field
+ * @FieldId: Identier of Field to retrieve from the IDA
+ * @NextFieldId: Pointer to location to store the FieldId
+ *               of the next field of the requested type in IDA
+ * @Field: Pointer to Inventory Data Field into which the field information will be placed.
  *
  * Return value:
+ * SA_OK - Normal 
+ * SA_ERR_HPI_INVALID_PARAMS - NULL input pointers, hnd or IdrInfo
+ * SA_ERR_HPI_NOT_PRESENT - If can not find requested field 
  **/
 SaErrorT snmp_bc_get_idr_field( void *hnd,
 		SaHpiResourceIdT       ResourceId,
@@ -184,19 +234,20 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 	
  	if (!i_record) {
   		dbg("Cannot allocate working buffer memory");
-		rv = SA_ERR_HPI_OUT_OF_MEMORY;
+		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
-	if (rv == SA_OK)
-		rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
+	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
 		rv = SA_ERR_HPI_NOT_PRESENT;
 		if (i_record->area[0].idrareas.AreaId == AreaId) {
 			/* Search for fieldId here */
 			for (i=0; i < i_record->area[0].idrareas.NumFields; i++) {
-				if (((i_record->area[0].field[i].FieldId == FieldId) || (FieldId == SAHPI_FIRST_ENTRY)) 
-                                   && ((i_record->area[0].field[i].Type == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED)))
+				if ( ((i_record->area[0].field[i].FieldId == FieldId) ||
+								 (SAHPI_FIRST_ENTRY == FieldId)) 
+                                   && ((i_record->area[0].field[i].Type == FieldType) || 
+				   		(SAHPI_IDR_FIELDTYPE_UNSPECIFIED == FieldType)) )
 				{
 					memcpy(Field, &(i_record->area[0].field[i]), sizeof(SaHpiIdrFieldT));
 					foundit = SAHPI_TRUE;
@@ -211,8 +262,8 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
                                 if (i < i_record->area[0].idrareas.NumFields) {
                                         do { 
                                                 if ((i_record->area[0].field[i].Type == FieldType) || 
-								(FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
-                                                {       
+								(SAHPI_IDR_FIELDTYPE_UNSPECIFIED == FieldType))
+                                                {
                                                         *NextFieldId = i_record->area[0].field[i].FieldId;                                         
                                                         break;
                                                 }
@@ -231,11 +282,15 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 
 /**
  * snmp_bc_add_idr_field:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @Field: Pointer to Inventory Data Field which contains field information to be added.
  *
+ * This function is not suported/implemented for snmp_bc plugin
+ * 
  * Return value:
+ * SA_ERR_HPI_READ_ONLY - Normal - snmp_bc does not allow Inventory Update 
  **/
 SaErrorT snmp_bc_add_idr_field( void *hnd,
 		SaHpiResourceIdT         ResourceId,
@@ -248,11 +303,15 @@ SaErrorT snmp_bc_add_idr_field( void *hnd,
 
 /**
  * snmp_bc_set_idr_field:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @Field: Pointer to Inventory Data Field which contains updated field information.
  *
+ * This function is not suported/implemented for snmp_bc plugin
+ * 
  * Return value:
+ * SA_ERR_HPI_READ_ONLY - Normal - snmp_bc does not allow Inventory Update 
  **/
 SaErrorT snmp_bc_set_idr_field( void *hnd,
 		SaHpiResourceIdT         ResourceId,
@@ -265,11 +324,16 @@ SaErrorT snmp_bc_set_idr_field( void *hnd,
 
 /**
  * snmp_bc_del_idr_field:
- * @hnd:
- * @event:
- * @timeout:
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @AreaId: Identifier of Inventory Area whose field is to bo deleted
+ * @FieldId: Identifier of field to be deleted
  *
+ * This function is not suported/implemented for snmp_bc plugin
+ * 
  * Return value:
+ * SA_ERR_HPI_READ_ONLY - Normal - snmp_bc does not allow Inventory Update 
  **/
 SaErrorT snmp_bc_del_idr_field( void *hnd, 
 		SaHpiResourceIdT         ResourceId,
@@ -280,20 +344,20 @@ SaErrorT snmp_bc_del_idr_field( void *hnd,
 	return SA_ERR_HPI_READ_ONLY;
 }
 
-
 /**
  * snmp_bc_build_idr:
- * @hnd:
- * @ResourceId:
- * @i_record:
- * 	If inventory data are found, i_record has the following format
- * 
+ * @hnd: Pointer to handler's data
+ * @ResourceId: Resource identifier for this operation 
+ * @IdrId:  Identifier for the Inventory Data Repository
+ * @i_record: Pointer into which inventory data is stored
+ * 	
+ * Build the complete Inventory Record for the resource identifier 
  *
  * Return value:
- *		SA_OK
- *		SA_ERR_HPI_NOT_PRESENT
- *		SA_ERR_BUSY <--- pdp check
- *		SA_ERR_TIMEOUT <-- pdp check
+ * SA_OK - Normal
+ * SA_ERR_HPI_INVALID_PARAMS - If any in pointer is NULL
+ * SA_ERR_HPI_NOT_PRESENT - If Inventory RDR is not found in rptcache
+ * 
  **/
 static
 SaErrorT snmp_bc_build_idr( void *hnd, 
@@ -349,7 +413,6 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 			oid = snmp_derive_objid(rdr->Entity,s->mib.oid.OidChassisType);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for Chassis Type\n");
-
                 	} else {
 				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
@@ -535,6 +598,23 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	return rv;
 }
 
+/**
+ * snmp_bc_idr_build_field:
+ * @custom_handle: snmp_bc custom handler data
+ * @oid: SNMP Object Id of the BC Inventory object
+ * @thisField: Pointer to Inventory Field under construction
+ * @thisInventoryArea: Pointer to Inventory Record under contruction
+ * 
+ * Get data from target snmp agent for the corresponding oid.
+ * Construct IDR Field for the retrieved data and place in Inventory Record
+ *
+ * Return value:
+ * SA_OK - Normal
+ * SA_ERR_HPI_INVALID_PARAMS - If any in pointer is NULL
+ * SA_ERR_HPI_INTERNAL_ERROR - If can not process get_value.type from bc snmp agent
+ * 
+ **/
+
 static
 SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle, gchar *oid,
 		  SaHpiIdrFieldT  *thisField, struct bc_idr_area *thisInventoryArea)
@@ -558,7 +638,15 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle, gchar *oid,
 				
 		dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
                 g_free(oid);
-                return rv;
+		
+		/* FIXME:                                          */
+		/* Xlate whatever snmp return code to SA_ERR_HPI_* */
+		/* Xlation should be done at snmp_bc_get_snmp()    */
+		/* if snmp_get() return SA_OK,                     */
+		/* then get_value.type is not recognizable for inv */
+		if (rv == SA_OK) rv = SA_ERR_HPI_INTERNAL_ERROR;
+		
+                return(rv);
 	} else {
 		if( get_value.type == ASN_OCTET_STR ) {
 			thisField->Field.DataLength = get_value.str_len;

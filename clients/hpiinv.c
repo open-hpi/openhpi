@@ -213,8 +213,7 @@ void walkInventory(	SaHpiSessionIdT sessionid,
 
 	numAreas = idrInfo->NumAreas;
 	areaType = SAHPI_IDR_AREATYPE_UNSPECIFIED;
-	/* areaId = SAHPI_FIRST_ENTRY; */
-	areaId = 1;
+	areaId = SAHPI_FIRST_ENTRY; 
 
 	do {
 		rv = saHpiIdrAreaHeaderGet(sessionid,
@@ -236,7 +235,7 @@ void walkInventory(	SaHpiSessionIdT sessionid,
 							sessionid,	
 							resourceid,
 							idrInfo->IdrId,
-							areaId, 
+							areaHeader.AreaId, 
 							fieldType,
 							fieldId,
 							&nextFieldId,
