@@ -26,8 +26,9 @@
 #include <config.h>
 #include <oh_utils.h>
 
-static GHashTable *ep_hash_table;
-static GHashTable *resource_id_hash_table;
+static GStaticMutex oh_uid_lock = G_STATIC_MUTEX_INIT;
+static GHashTable *oh_ep_table;
+static GHashTable *oh_resource_id_table;
 static guint       resource_id;
 
 
@@ -36,7 +37,7 @@ static int uid_map_from_file(void);
 static int build_uid_map_data(int file);
 
 /* used by oh_uid_remove() */
-void write_ep_xref(gpointer key, gpointer value, gpointer file);
+static void write_ep_xref(gpointer key, gpointer value, gpointer file);
 
 /* for hash table usage */
 guint oh_entity_path_hash(gconstpointer key);
@@ -101,11 +102,12 @@ SaErrorT oh_uid_initialize(void)
 
         int rval;
         
+        g_static_mutex_lock(&oh_uid_lock);
         if(!initialized) {
 
                 /* initialize hash tables */
-                ep_hash_table = g_hash_table_new(oh_entity_path_hash, oh_entity_path_equal);
-                resource_id_hash_table = g_hash_table_new(g_int_hash, g_int_equal);
+                oh_ep_table = g_hash_table_new(oh_entity_path_hash, oh_entity_path_equal);
+                oh_resource_id_table = g_hash_table_new(g_int_hash, g_int_equal);
 
                 initialized = TRUE;
 
@@ -113,9 +115,10 @@ SaErrorT oh_uid_initialize(void)
 
                 /* initialize uid map */
                 rval = uid_map_from_file();
-        }
-	else
-		rval = SA_ERR_HPI_ERROR;
+                
+        } else { rval = SA_ERR_HPI_ERROR; }
+
+        g_static_mutex_unlock(&oh_uid_lock);
 
         return(rval);
 
@@ -137,6 +140,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 {
         gpointer key;
 	gpointer value;
+        SaHpiResourceIdT ruid;
 
         EP_XREF *ep_xref;
 
@@ -151,11 +155,13 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 	ep_concat(&entitypath,ep);
 	key = &entitypath;
 
+        g_static_mutex_lock(&oh_uid_lock);
         /* check for presence of EP and */
-        /* previously assigned uid      */
-        ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
+        /* previously assigned uid      */        
+        ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);        
         if (ep_xref) {
                 /*dbg("Entity Path already assigned uid. Use oh_uid_lookup().");*/
+                g_static_mutex_unlock(&oh_uid_lock);
                 return ep_xref->resource_id;
         }
 
@@ -163,7 +169,8 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) { 
                 dbg("malloc failed");
-                return 0;
+                g_static_mutex_unlock(&oh_uid_lock);
+                return 0;                
         }
 
         memset(ep_xref, 0, sizeof(EP_XREF));
@@ -171,33 +178,36 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         ep_xref->resource_id = resource_id;
         resource_id++;
+        ruid = ep_xref->resource_id;
 
         value = (gpointer)ep_xref;
 
         /* entity path based key */   
         key = (gpointer)&ep_xref->entity_path; 
-        g_hash_table_insert(ep_hash_table, key, value);
+        g_hash_table_insert(oh_ep_table, key, value);
 
         /* resource id based key */
         key = (gpointer)&ep_xref->resource_id;
-        g_hash_table_insert(resource_id_hash_table, key, value);
+        g_hash_table_insert(oh_resource_id_table, key, value);
 
-        /* save newly created ep xref (iud/resource_id) to map file */
+        /* save newly created ep xref (iud/resource_id) to map file */        
         uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
         if (uid_map_file == NULL) {
                 uid_map_file = OH_DEFAULT_UID_MAP;
         }
+
         file = open(uid_map_file, O_WRONLY);
-        if(file >= 0) {
+        if (file >= 0) {
                 lseek(file, 0, SEEK_END);
                 write(file,ep_xref, sizeof(EP_XREF));
                 lseek(file, 0, SEEK_SET);
                 write(file, &resource_id, sizeof(resource_id));
         }
-
         close(file);
 
-        return ep_xref->resource_id;
+        g_static_mutex_unlock(&oh_uid_lock);
+
+        return ruid;
 }               
 
 /**
@@ -219,26 +229,31 @@ gint oh_uid_remove(guint uid)
         gpointer key;
         int rval;
 
-        /* check netry exist in resource_id_hash_table */ 
+        /* check netry exist in oh_resource_id_table */ 
         key = (gpointer)&uid;
-        ep_xref = (EP_XREF *)g_hash_table_lookup (resource_id_hash_table, key);
+        g_static_mutex_lock(&oh_uid_lock);
+        ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
-                dbg("error freeing resource_id_hash_table");
+                dbg("error freeing oh_resource_id_table");
+                g_static_mutex_unlock(&oh_uid_lock);
                 return -1;
         }
 
-        /* check netry exist in resource_id_hash_table */ 
+        /* check netry exist in oh_resource_id_table */ 
         key = (gpointer)&ep_xref->entity_path;
-        ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
+        ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
-                dbg("error freeing resource_id_hash_table");
+                dbg("error freeing oh_resource_id_table");
+                g_static_mutex_unlock(&oh_uid_lock);
                 return -1;
         }
 
-        g_hash_table_remove(resource_id_hash_table, &ep_xref->resource_id);
-        g_hash_table_remove(ep_hash_table, &ep_xref->entity_path);      
+        g_hash_table_remove(oh_resource_id_table, &ep_xref->resource_id);
+        g_hash_table_remove(oh_ep_table, &ep_xref->entity_path);      
         
         free(ep_xref);
+
+        g_static_mutex_unlock(&oh_uid_lock);
 
         rval = oh_uid_map_to_file();
 
@@ -257,6 +272,7 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
 {
         EP_XREF *ep_xref;
 	SaHpiEntityPathT entitypath;
+        SaHpiResourceIdT ruid;
         gpointer key;
 
         if (!ep) return 0;
@@ -265,14 +281,19 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
 	ep_concat(&entitypath, ep);
 	key = &entitypath;
         
-        /* check hash table for entry in ep_hash_table */ 
-        ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
+        /* check hash table for entry in oh_ep_table */
+        g_static_mutex_lock(&oh_uid_lock);
+        ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");
+                g_static_mutex_unlock(&oh_uid_lock);
                 return 0;
         }
 
-        return(ep_xref->resource_id);
+        ruid = ep_xref->resource_id;
+        g_static_mutex_unlock(&oh_uid_lock);
+
+        return ruid;
 }
 
 /**
@@ -286,32 +307,34 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
  **/
 gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
 {
-
         EP_XREF *ep_xref;
         gpointer key = id;
         
         if (!id || !ep) return -1;
 
-        /* check hash table for entry in ep_hash_table */ 
-        ep_xref = (EP_XREF *)g_hash_table_lookup (resource_id_hash_table, key);
+        /* check hash table for entry in oh_ep_table */
+        g_static_mutex_lock(&oh_uid_lock);
+        ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");
+                g_static_mutex_unlock(&oh_uid_lock);
                 return -1 ;
         }
 
         memcpy(ep, &ep_xref->entity_path, sizeof(SaHpiEntityPathT));
 
-        return 0;
+        g_static_mutex_unlock(&oh_uid_lock);
 
+        return 0;
 } 
 
-/*
+/**
  * oh_uid_map_to_file: saves current uid and entity path mappings
  * to file, first element in file is 4 bytes for resource id,
  * then repeat EP_XREF structures holding uid and entity path pairings
  *
  * Return value: success 0, failed -1.
- */
+ **/
 gint oh_uid_map_to_file(void)
 {
         char *uid_map_file;
@@ -323,9 +346,12 @@ gint oh_uid_map_to_file(void)
                 uid_map_file = OH_DEFAULT_UID_MAP;
         }
 
+        g_static_mutex_lock(&oh_uid_lock);
+        
         file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC);
         if(file < 0) {
                 dbg("Configuration file '%s' could not be opened", uid_map_file);
+                g_static_mutex_unlock(&oh_uid_lock);
                 return -1;
         }
 
@@ -333,12 +359,15 @@ gint oh_uid_map_to_file(void)
         write(file, (void *)&resource_id, sizeof(resource_id));
 
         /* write all EP_XREF data records */
-        g_hash_table_foreach(resource_id_hash_table, write_ep_xref, &file);
+        g_hash_table_foreach(oh_resource_id_table, write_ep_xref, &file);
 
         if(close(file) != 0) {
                 dbg("Couldn't close file '%s'.", uid_map_file);
+                g_static_mutex_unlock(&oh_uid_lock);
                 return -1;
         }
+
+        g_static_mutex_unlock(&oh_uid_lock);
         
         return 0;
 }
@@ -350,7 +379,7 @@ gint oh_uid_map_to_file(void)
  * 
  * Return value: None (void).
  */
-void write_ep_xref(gpointer key, gpointer value, gpointer file)
+static void write_ep_xref(gpointer key, gpointer value, gpointer file)
 {
         write(*(int *)file, value, sizeof(EP_XREF));
 }
@@ -363,7 +392,7 @@ void write_ep_xref(gpointer key, gpointer value, gpointer file)
  * 
  * Return value: success 0, error -1.
  */
-static gint uid_map_from_file(void)
+static gint uid_map_from_file()
 {
         char *uid_map_file;
         int file;
@@ -446,11 +475,11 @@ static gint build_uid_map_data(int file)
 
                 /* entity path based key */   
                 key = (gpointer)&ep_xref->entity_path; 
-                g_hash_table_insert(ep_hash_table, key, value);
+                g_hash_table_insert(oh_ep_table, key, value);
 
                 /* resource id based key */
                 key = (gpointer)&ep_xref->resource_id;
-                g_hash_table_insert(resource_id_hash_table, key, value);
+                g_hash_table_insert(oh_resource_id_table, key, value);
                 
                 rval = read(file, &ep_xref1, sizeof(EP_XREF));
         }
