@@ -987,42 +987,48 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 
 	working.did = oh_get_default_domain_id();
 	working.type = OH_ET_HPI;
-
-	/*working.u.hpi_event.res = *(oh_get_resource_by_id(handle->rptcache, thisEvent->Source));*/
+	
 	thisRpt = oh_get_resource_by_id(handle->rptcache, thisEvent->Source);
         if (thisRpt) 
 		working.u.hpi_event.res = *thisRpt;
 	else 
 		dbg("NULL Rpt pointer for rid %d\n", thisEvent->Source);
-	/* memcpy(&working.u.hpi_event.res, thisRpt, sizeof(SaHpiRptEntryT)); */
+
         memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
 
 	/* FIXME:: Merged with same type of code in snmp_bc_sel.c 
            to create common function???? */
+	   
 	/* FIXME:: Add other B.1.1 event types */
-	/* Setting RDR ID to event struct */
+	/*   SAHPI_ET_RESOURCE                 */
+	/*   SAHPI_ET_DOMAIN                   */
+	/*   SAHPI_ET_SENSOR_ENABLE_CHANGE     */
+	/*   SAHPI_ET_HPI_SW                   */
+	/* ----------------------------------- */
+
+	/* Setting RDR ID to event struct */	
 	switch (thisEvent->EventType) {
-	case SAHPI_ET_OEM:
-	case SAHPI_ET_HOTSWAP:
-	case SAHPI_ET_USER:
-		/* FIXME:: this case a bit differ than snmp_bc_sel.c - have function 
-		   just return NULL. If need to set RecordId = 0, let caller do this */
-		working.u.hpi_event.rdr.RecordId = 0; /* There is no RDR associated to OEM event */
-		break;			              /* Set RDR ID to invalid value of 0        */
-	case SAHPI_ET_SENSOR:
-		rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
+		case SAHPI_ET_OEM:
+		case SAHPI_ET_HOTSWAP:
+		case SAHPI_ET_USER:
+			/* FIXME:: this case a bit differ than snmp_bc_sel.c - have function 
+		   	just return NULL. If need to set RecordId = 0, let caller do this */
+			working.u.hpi_event.rdr.RecordId = 0; /* There is no RDR associated to OEM event */
+			break;			              /* Set RDR ID to invalid value of 0        */
+		case SAHPI_ET_SENSOR:
+			rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
 				    thisEvent->EventDataUnion.SensorEvent.SensorNum); 
-		working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
-		break;
-	case SAHPI_ET_WATCHDOG:
-		rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
+			working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
+			break;
+		case SAHPI_ET_WATCHDOG:
+			rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
 				    thisEvent->EventDataUnion.WatchdogEvent.WatchdogNum);
-		working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
-		break;
-	default:
-		dbg("Unrecognized Event Type=%d.", thisEvent->EventType);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-		break;
+			working.u.hpi_event.rdr = *(oh_get_rdr_by_id(handle->rptcache, thisEvent->Source, rdrid));
+			break;
+		default:
+			dbg("Unrecognized Event Type=%d.", thisEvent->EventType);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+			break;
 	} 
 
         /* Insert entry to eventq for processing */
