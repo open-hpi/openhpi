@@ -7,17 +7,25 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #include <hpi_hash.h>
-#include <safhpi.h>
+
+int key_compare_func(const void *a, const void *b);
+void destroy_key_func(void *data);
+void destroy_value_func (void *data);
 
 typedef struct value {
    unsigned int data;
    char str[255];
 } Value;
 
-int key_compare_func(const void *a, const void *b)
+int key_compare_func(const void* a, const void* b)
 {
-   return (a==b) ? 1 : 0;
+   const int *key_a = a;
+   const int *key_b = b;
+ 
+   return (*key_a == *key_b) ? 1: 0; 
 }
 
 void destroy_key_func(void *data)
@@ -75,12 +83,12 @@ int main(int argc, char *argv[])
       sprintf(value->str, "entry %d was added", i);
 
       printf("adding entry %d\n",i);
-      hash_table_insert(htable, key, value);
+      hash_table_insert(htable, &key, value);
    } 
 
    for (i=0 ; i<20; i++)
    {
-      value = hash_table_lookup(htable, i);
+      value = hash_table_lookup(htable, &i);
       if (NULL != value)
       {
          printf("value->data = %d\n", value->data);
@@ -90,6 +98,8 @@ int main(int argc, char *argv[])
 
    printf("destroying hash table\n");
    hash_table_destroy(htable);
+
+   return 0;
 }
 
 

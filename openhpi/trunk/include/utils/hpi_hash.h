@@ -28,18 +28,8 @@ HashTable*		hash_table_new(HashFunc hash_func,
 					EqualFunc key_equal_func,
 					DestroyNotify key_destroy_func,
 					DestroyNotify value_destroy_func);
-static void 		hash_table_resize(HashTable *hash_table);
-static HashNode**	hash_table_lookup_node(HashTable *hash_table,
-					       const void * key);
 void *			hash_table_lookup(HashTable *hash_table, 
 		                          const void *key);
-static HashNode*	hash_node_new(void *key, void *value);
-static void		hash_node_destroy(HashNode *hash_node,
-					DestroyNotify key_destroy_func,
-					DestroyNotify value_destroy_func);
-static void             hash_nodes_destroy (HashNode *hash_node,
-                        		FreeFunc  key_destroy_func,
-                     			FreeFunc  value_destroy_func);
 unsigned int            direct_hash(const void *v);
 void 			hash_table_destroy(HashTable *hash_table);
 void 			hash_table_insert(HashTable *hash_table,

@@ -20,5 +20,5 @@ hpitestapp_LDFLAGS	= -export-dynamic -dlpreopen force -dlopen self
 
 
 hashtest_SOURCES	= hashtest.c
-hashtest_LDADD		= $(COMMONLIBS) $(top_srcdir)/lib/utils/libhpiutils.la
+hashtest_LDADD		= $(top_srcdir)/lib/utils/libhpiutils.la
 hashtest_LDFLAGS	= -export-dynamic -dlpreopen force -dlopen self
