@@ -24,6 +24,11 @@ struct get_sel_time_cb_data {
 	int		flag;
 };
 
+struct ohoi_set_sel_state_cb_data {
+	int enable;
+	int done;
+};
+
 /*
  * SEL num. of entries callback function
  **/
@@ -396,4 +401,47 @@ void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiEventLogEntryIdT entry_id, ip
 
         *event = data.event;
 }
+
+
+static void set_sel_state_done(ipmi_mc_t *mc, int err, void *cb_data)
+{
+	int *done = cb_data;
+	*done = (err == 0) ? 1 : -1;
+}
+
+
+static void set_sel_state(ipmi_mc_t *mc, void *cb_data)
+{
+	struct ohoi_set_sel_state_cb_data *data = cb_data;
+	int rv;
 	
+	rv = ipmi_mc_set_events_enable(mc, data->enable, set_sel_state_done , &data->done);;
+	if(rv) {
+		dbg("failed  set_sel_state = %d", rv);
+        }
+}
+
+
+SaErrorT ohoi_set_sel_state(struct ohoi_handler *ipmi_handler, ipmi_mcid_t mc_id, int enable)
+{
+	int rv;
+	struct ohoi_set_sel_state_cb_data data;
+	
+	data.done = 0;
+	data.enable = enable;
+		
+	rv = ipmi_mc_pointer_cb(mc_id, set_sel_state, &data);
+	if (rv) {
+		dbg("failed to convert mc_id to pointer = %d", rv);
+		return SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	rv = ohoi_loop(&data.done, ipmi_handler);
+	if (data.done < 0) {
+		rv = SA_ERR_HPI_INTERNAL_ERROR;
+	}
+	if(rv) {
+		dbg("failed to set sel state to %d = %d", enable, rv);
+        }
+	return rv;
+}
+
