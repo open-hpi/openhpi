@@ -40,9 +40,12 @@ static GSList *__get_alarm_node(struct oh_domain *d,
                 if (*aid == SAHPI_FIRST_ENTRY)
                         get_next = 1;
                 else if (*aid == SAHPI_LAST_ENTRY) {
-                        /* Just return the last node.
-                           Other search options don't apply. */                        
-                        return g_slist_last(d->dat.list);
+                        /* Just return the last node,
+                           if not getting next alarm. */
+                        if (get_next)
+                                return NULL;
+                        else
+                                return g_slist_last(d->dat.list);
                 }
         }
         
