@@ -38,9 +38,11 @@ static void process_session_event(struct oh_event *e)
 		domain_id = GPOINTER_TO_UINT(i->data);
 		g_slist_for_each(j, global_session_list) {
 			struct oh_session *s = j->data;
-			if (domain_id == s->domain_id 
-			&& s->event_state==OH_EVENT_SUBSCRIBE)
+			if (domain_id == s->domain_id
+			    && s->event_state==OH_EVENT_SUBSCRIBE) {
+				dbg("push a new event, type=%d", e->type);
 				session_push_event(s, e);
+			}
 		}
 	}
 }

@@ -413,7 +413,7 @@ SaErrorT SAHPI_API saHpiSubscribe (
                 dbg("Invalid session");
                 return SA_ERR_HPI_INVALID_SESSION;
 	}
-
+	
 	if (s->event_state == OH_EVENT_SUBSCRIBE) {
 		dbg("Duplicate subscribe");
 		return SA_ERR_HPI_DUPLICATE;
@@ -515,7 +515,7 @@ SaErrorT SAHPI_API saHpiEventGet (
 			return SA_ERR_HPI_UNKNOWN;
 		}
 		if (e.type != OH_ET_HPI) {
-			dbg("Non-HPI event?!");
+			dbg("Non-HPI event?! type=%d", e.type);
 			return SA_ERR_HPI_UNKNOWN;
 		}
 
