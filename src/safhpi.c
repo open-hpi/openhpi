@@ -764,7 +764,7 @@ SaErrorT SAHPI_API saHpiEventGet (
 	//dbg("now=%lld, end=%lld", now, end);
 	
 	if (value==SA_OK) {
-		struct oh_event e;
+		struct oh_hpi_event e;
 		struct oh_resource *res;
 		struct oh_rdr *rdr;
 		
@@ -772,18 +772,14 @@ SaErrorT SAHPI_API saHpiEventGet (
 			dbg("Empty event queue?!");
 			return SA_ERR_HPI_UNKNOWN;
 		}
-		if (e.type != OH_ET_HPI) {
-			dbg("Non-HPI event?! type=%d", e.type);
-			return SA_ERR_HPI_UNKNOWN;
-		}
 
-		memcpy(Event, &e.u.hpi_event.event, sizeof(*Event));
+		memcpy(Event, &e.event, sizeof(*Event));
 
-		res = get_res_by_oid(e.u.hpi_event.parent);
+		res = get_res_by_oid(e.parent);
 		if (res) {
 			memcpy(RptEntry, &res->entry, sizeof(*RptEntry));
 			
-			rdr = get_rdr_by_oid(res, e.u.hpi_event.id);
+			rdr = get_rdr_by_oid(res, e.id);
 			if (rdr) {
 				memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
 			} else {

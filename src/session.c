@@ -97,7 +97,7 @@ int session_push_event(struct oh_session *s, struct oh_hpi_event *e)
  * here doesn't jive with the rest of the exit codes
  */
 
-int session_pop_event(struct oh_session *s, struct oh_event *e) 
+int session_pop_event(struct oh_session *s, struct oh_hpi_event *e) 
 {
         GSList *head;
         
