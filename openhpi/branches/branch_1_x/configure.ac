@@ -504,12 +504,12 @@ AC_ARG_ENABLE([testcover],
     fi]
     )
 
-AC_ARG_ENABLE([debug],
-    [  --enable-debug        turn on debug messages [default=no]],
-    [if test "x$enableval" = "xyes"; then
-            CFLAGS="$CFLAGS -DDEBUG"
-    fi]
-    )
+#AC_ARG_ENABLE([debug],
+#    [  --enable-debug        turn on debug messages [default=no]],
+#    [if test "x$enableval" = "xyes"; then
+#            CFLAGS="$CFLAGS -DDEBUG"
+#    fi]
+#    )
 
 # Now we throw in a bunch of warnings.  C and C++ need
 # different sets here
