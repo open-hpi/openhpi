@@ -113,12 +113,12 @@ typedef struct
 
 cHpiMarshal *HpiMarshalFind( int id );
 
-void HpiMarshalRequest ( cHpiMarshal *m, void *buffer, const void **params );
-void HpiMarshalRequest1( cHpiMarshal *m, void *buffer, const void *p1 );
-void HpiMarshalRequest2( cHpiMarshal *m, void *buffer, const void *p1, const void *p2 );
-void HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3 );
-void HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3, const void *p4 );
-void HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3, const void *p4, const void *p5 );
+unsigned int HpiMarshalRequest ( cHpiMarshal *m, void *buffer, const void **params );
+unsigned int HpiMarshalRequest1( cHpiMarshal *m, void *buffer, const void *p1 );
+unsigned int HpiMarshalRequest2( cHpiMarshal *m, void *buffer, const void *p1, const void *p2 );
+unsigned int HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3 );
+unsigned int HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3, const void *p4 );
+unsigned int HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3, const void *p4, const void *p5 );
 
 void HpiDemarshalRequest ( int byte_order, cHpiMarshal *m, const void *buffer, void **params );
 void HpiDemarshalRequest1( int byte_order, cHpiMarshal *m, const void *buffer, void *p1 );

@@ -932,35 +932,35 @@ HpiMarshalFind( int id )
 }
 
 
-void
+unsigned int
 HpiMarshalRequest( cHpiMarshal *m, void *buffer, const void **param )
 {
-  MarshalArray( m->m_request, param, buffer );
+  return MarshalArray( m->m_request, param, buffer );
 }
 
 
-void
+unsigned int
 HpiMarshalRequest1( cHpiMarshal *m, void *buffer, const void *p1 )
 {
   const void *param[1];
   param[0] = p1;
 
-  HpiMarshalRequest( m, buffer, param );  
+  return HpiMarshalRequest( m, buffer, param );  
 }
 
 
-void
+unsigned int
 HpiMarshalRequest2( cHpiMarshal *m, void *buffer, const void *p1, const void *p2  )
 {
   const void *param[2];
   param[0] = p1;
   param[1] = p2;
 
-  HpiMarshalRequest( m, buffer, param );  
+  return HpiMarshalRequest( m, buffer, param );  
 }
 
 
-void
+unsigned int
 HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, const void *p3 )
 {
   const void *param[3];
@@ -968,11 +968,11 @@ HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
   param[1] = p2;
   param[2] = p3;
 
-  HpiMarshalRequest( m, buffer, param );
+  return HpiMarshalRequest( m, buffer, param );
 }
 
 
-void
+unsigned int
 HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, 
 		    const void *p3, const void *p4 )
 {
@@ -982,11 +982,11 @@ HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
   param[2] = p3;
   param[3] = p4;
 
-  HpiMarshalRequest( m, buffer, param );
+  return HpiMarshalRequest( m, buffer, param );
 }
 
 
-void
+unsigned int
 HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2,
 		    const void *p3, const void *p4, const void *p5 )
 {
@@ -997,7 +997,7 @@ HpiMarshalRequest5( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
   param[3] = p4;
   param[4] = p5;
 
-  HpiMarshalRequest( m, buffer, param );
+  return HpiMarshalRequest( m, buffer, param );
 }
 
 
