@@ -61,7 +61,7 @@ prtchassinfo(void)
 {
   chasstype = (SaHpiInventChassisTypeT)inv->DataRecords[i]->RecordData.ChassisInfo.Type;
   for (k=0; k<NCT; k++) {
-	  if (k == chasstype)
+	  if ((unsigned int)k == chasstype)
 		  printf( "Chassis Type        : %s\n", chasstypes[k]);
   }	  
 
