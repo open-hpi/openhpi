@@ -1,4 +1,3 @@
-
 #
 # Copyright (c) 2003, Intel Corporation
 # All rights reserved.
@@ -42,19 +41,21 @@ RPMDIR			=$(HOME)/rpms
 RPMSRC	=$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
 RPM386	=$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
-EXTRA_DIST		= openhpi.spec
+EXTRA_DIST		= openhpi.spec docs
 
 AUTOMAKE_OPTIONS	= foreign
 
 MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub depcomp $(distdir).tar.gz
 
-SUBDIRS			= include lib test docs
+SUBDIRS			= include lib test
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
 rpm: dist
 	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
 
+documentation:
+	$(MAKE) -C docs
 
 clean: am_config_clean
 am_config_clean:
