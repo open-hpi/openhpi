@@ -2,6 +2,7 @@
 
 #include <snmp_bc_plugin.h>
 
+#if 0
 SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiSensorNumT num,
@@ -10,6 +11,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 {
   return(SA_ERR_HPI_UNSUPPORTED_API);
 }
+
 
 SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT id,
@@ -26,6 +28,8 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 {
   return(SA_ERR_HPI_UNSUPPORTED_API);
 }
+
+#endif
 
 SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
