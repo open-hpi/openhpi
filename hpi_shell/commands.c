@@ -815,6 +815,237 @@ static ret_code_t show_rdr(void)
 	return HPI_SHELL_OK;
 }
 
+static ret_code_t wtd_get(void)
+{
+	SaHpiResourceIdT	rptid;
+	SaHpiWatchdogNumT	wtdnum;
+	SaHpiWatchdogT		watchdog;
+	SaHpiWatchdogExpFlagsT	flags;
+	SaErrorT		rv;
+	ret_code_t		ret;
+	char			*str;
+	char			tmp[256];
+
+	ret = ask_rpt(&rptid);
+	if (ret != HPI_SHELL_OK) return(ret);
+	ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+	if (ret != HPI_SHELL_OK) return(ret);
+
+	rv = saHpiWatchdogTimerGet(Domain->sessionId, rptid, wtdnum, &watchdog);
+	if (rv != SA_OK) {
+		printf("ERROR!!! Get Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
+			rptid, wtdnum, oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	if (watchdog.Log) str = "TRUE";
+	else str = "FALSE";
+	printf("  Watchdogtimer (%d/%d): Log=%s", rptid, wtdnum, str);
+	if (watchdog.Running) str = "Running";
+	else str = "Stopped";
+	printf("  %s\n", str);
+	switch (watchdog.TimerUse) {
+		case SAHPI_WTU_NONE:		str = "NONE"; break;
+		case SAHPI_WTU_BIOS_FRB2:	str = "BIOS_FRB2"; break;
+		case SAHPI_WTU_BIOS_POST:	str = "BIOS_POST"; break;
+		case SAHPI_WTU_OS_LOAD:		str = "OS_LOAD"; break;
+		case SAHPI_WTU_SMS_OS:		str = "SMS_OS"; break;
+		case SAHPI_WTU_OEM:		str = "OEM"; break;
+		case SAHPI_WTU_UNSPECIFIED:	str = "UNSPEC"; break;
+		default: str = "Unknown"; break;
+	};
+	printf("  Timer Use: %s", str);
+	switch (watchdog.TimerAction) {
+		case SAHPI_WAE_NO_ACTION:	str = "NO_ACTION"; break;
+		case SAHPI_WAE_RESET:		str = "RESET"; break;
+		case SAHPI_WAE_POWER_DOWN:	str = "POWER_DOWN"; break;
+		case SAHPI_WAE_POWER_CYCLE:	str = "POWER_CYCLE"; break;
+		case SAHPI_WAE_TIMER_INT:	str = "TIMER_INT"; break;
+		default: str = "Unknown"; break;
+	};
+	printf("  Action: %s", str);
+	switch (watchdog.PretimerInterrupt) {
+		case SAHPI_WPI_NONE:			str = "NONE"; break;
+		case SAHPI_WPI_SMI:			str = "SMI"; break;
+		case SAHPI_WPI_NMI:			str = "NMI"; break;
+		case SAHPI_WPI_MESSAGE_INTERRUPT:	str = "MESSAGE"; break;
+		case SAHPI_WPI_OEM:			str = "OEM"; break;
+		default: str = "Unknown"; break;
+	};
+	printf("  Interrupt: %s", str);
+	printf("  TimeOut: %d\n", watchdog.PreTimeoutInterval);
+	tmp[0] = 0;
+	flags = watchdog.TimerUseExpFlags;
+	if (flags & SAHPI_WATCHDOG_EXP_BIOS_FRB2) strcat(tmp, " BIOS_FRB2 |");
+	if (flags & SAHPI_WATCHDOG_EXP_BIOS_POST) strcat(tmp, " BIOS_POST |");
+	if (flags & SAHPI_WATCHDOG_EXP_OS_LOAD) strcat(tmp, " OS_LOAD |");
+	if (flags & SAHPI_WATCHDOG_EXP_SMS_OS) strcat(tmp, " SMS_OS |");
+	if (flags & SAHPI_WATCHDOG_EXP_OEM) strcat(tmp, " OEM |");
+	if (strlen(tmp) > 0) {
+		tmp[strlen(tmp) - 1] = 0;
+		printf("  Flags: {%s}\n", tmp);
+	} else
+		printf("  Flags: (null)\n");
+	printf("  InitialCount = %d  PresentCount = %d\n",
+		watchdog.InitialCount, watchdog.PresentCount);
+	return HPI_SHELL_OK;
+}
+
+static ret_code_t wtd_set(void)
+{
+	SaHpiResourceIdT	rptid;
+	SaHpiWatchdogNumT	wtdnum;
+	SaHpiWatchdogT		watchdog;
+	SaHpiWatchdogExpFlagsT	flags;
+	SaErrorT		rv;
+	ret_code_t		ret;
+	int			i, res;
+	char			*str, *str1;
+	char			tmp[256];
+
+	ret = ask_rpt(&rptid);
+	if (ret != HPI_SHELL_OK) return(ret);
+	ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+	if (ret != HPI_SHELL_OK) return(ret);
+
+	i = get_string_param("Log(0 | 1): ", tmp, 255);
+	if (i != 0) {
+		printf("Invalid Log value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (tmp[0] == '1') watchdog.Log = SAHPI_TRUE;
+	else watchdog.Log = SAHPI_FALSE;
+
+	i = get_string_param("Running(0 | 1): ", tmp, 255);
+	if (i != 0) {
+		printf("Invalid Running value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (tmp[0] == '1') watchdog.Running = SAHPI_TRUE;
+	else watchdog.Running = SAHPI_FALSE;
+
+	i = get_string_param("TimerUse(none|bios_frb2|bios_post|os_load|sms_os|oem): ",
+		tmp, 255);
+	if (i != 0) {
+		printf("Invalid TimerUse value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(tmp, "none") == 0) watchdog.TimerUse = SAHPI_WTU_NONE;
+	else if (strcmp(tmp, "bios_frb2") == 0) watchdog.TimerUse = SAHPI_WTU_BIOS_FRB2;
+	else if (strcmp(tmp, "bios_post") == 0) watchdog.TimerUse = SAHPI_WTU_BIOS_POST;
+	else if (strcmp(tmp, "os_load") == 0) watchdog.TimerUse = SAHPI_WTU_OS_LOAD;
+	else if (strcmp(tmp, "sms_os") == 0) watchdog.TimerUse = SAHPI_WTU_SMS_OS;
+	else if (strcmp(tmp, "oem") == 0) watchdog.TimerUse = SAHPI_WTU_OEM;
+	else {
+		printf("Invalid TimerUse value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+
+	i = get_string_param("TimerAction(no|reset|pwr_down|pwr_cycle|int): ",
+		tmp, 255);
+	if (i != 0) {
+		printf("Invalid TimerAction value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(tmp, "no") == 0) watchdog.TimerAction = SAHPI_WAE_NO_ACTION;
+	else if (strcmp(tmp, "reset") == 0) watchdog.TimerAction = SAHPI_WAE_RESET;
+	else if (strcmp(tmp, "pwr_down") == 0) watchdog.TimerAction = SAHPI_WAE_POWER_DOWN;
+	else if (strcmp(tmp, "pwr_cycle") == 0) watchdog.TimerAction = SAHPI_WAE_POWER_CYCLE;
+	else if (strcmp(tmp, "int") == 0) watchdog.TimerAction = SAHPI_WAE_TIMER_INT;
+	else {
+		printf("Invalid TimerAction value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+
+	i = get_string_param("PretimerInterrupt(no|smi|nmi|mess|oem): ",
+		tmp, 255);
+	if (i != 0) {
+		printf("Invalid PretimerInterrupt value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(tmp, "no") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_NONE;
+	else if (strcmp(tmp, "smi") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_SMI;
+	else if (strcmp(tmp, "nmi") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_NMI;
+	else if (strcmp(tmp, "mess") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_MESSAGE_INTERRUPT;
+	else if (strcmp(tmp, "oem") == 0) watchdog.PretimerInterrupt = SAHPI_WPI_OEM;
+	else {
+		printf("Invalid TimerAction value: %s\n", tmp);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+
+	i = get_int_param("TimeOut: ", &res);
+	if (i != 1) {
+		printf("Invalid TimeOut value\n");
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	watchdog.PreTimeoutInterval = res;
+
+	i = get_string_param("Flags(bios_frb2|bios_post|os_load|sms_os|oem): ",
+		tmp, 255);
+	*tmp = 0;
+	flags = 0;
+	str = tmp;
+	while (strlen(str) != 0) {
+		str1 = str;
+		while ((*str1 != ' ') && (*str1 != 0)) str1++;
+		if (*str1 != 0) *str1++ = 0;
+		else *str1 = 0;
+		if (strcmp(str, "bios_frb2") == 0)
+			flags |= SAHPI_WATCHDOG_EXP_BIOS_FRB2;
+		if (strcmp(str, "bios_post") == 0)
+			flags |= SAHPI_WATCHDOG_EXP_BIOS_POST;
+		if (strcmp(str, "os_load") == 0)
+			flags |= SAHPI_WATCHDOG_EXP_OS_LOAD;
+		if (strcmp(str, "sms_os") == 0)
+			flags |= SAHPI_WATCHDOG_EXP_SMS_OS;
+		if (strcmp(str, "oem") == 0)
+			flags |= SAHPI_WATCHDOG_EXP_OEM;
+		str = str1;
+	};
+
+	i = get_int_param("InitialCount: ", &res);
+	if (i != 1) {
+		printf("Invalid InitialCount value\n");
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	watchdog.InitialCount = res;
+
+	i = get_int_param("PresentCount: ", &res);
+	if (i != 1) {
+		printf("Invalid PresentCount value\n");
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	watchdog.PresentCount = res;
+
+	rv = saHpiWatchdogTimerSet(Domain->sessionId, rptid, wtdnum, &watchdog);
+	if (rv != SA_OK) {
+		printf("ERROR!!! Set Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
+			rptid, wtdnum, oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return HPI_SHELL_OK;
+}
+
+static ret_code_t wtd_reset(void)
+{
+	SaHpiResourceIdT	rptid;
+	SaHpiWatchdogNumT	wtdnum;
+	SaErrorT		rv;
+	ret_code_t		ret;
+
+	ret = ask_rpt(&rptid);
+	if (ret != HPI_SHELL_OK) return(ret);
+	ret = ask_rdr(rptid, SAHPI_WATCHDOG_RDR, &wtdnum);
+	if (ret != HPI_SHELL_OK) return(ret);
+
+	rv = saHpiWatchdogTimerReset(Domain->sessionId, rptid, wtdnum);
+	if (rv != SA_OK) {
+		printf("ERROR!!! Reset Watchdog: ResourceId=%d WatchdogNum=%d: %s\n",
+			rptid, wtdnum, oh_lookup_error(rv));
+		return(HPI_SHELL_CMD_ERROR);
+	};
+	return HPI_SHELL_OK;
+}
+
 static ret_code_t quit(void)
 {
 	if (block_type != MAIN_COM) {
@@ -1035,6 +1266,12 @@ const char showrdrhelp[] = "showrdr: show resource data record\n"
 const char showrpthelp[] = "showrpt: show resource information\n"
 			"Usage: showrpt [<resource id>]\n"
 			"   or  rpt [<resource id>]";
+const char wtdgethelp[] = "wtdget: show watchdog timer\n"
+			"Usage: wtdget <resource id> <watchdogNum>";
+const char wtdresethelp[] = "wtdreset: reset watchdog timer\n"
+			"Usage: wtdreset <resource id>";
+const char wtdsethelp[] = "wtdset: set watchdog timer\n"
+			"Usage: wtdset <resource id> <watchdogNum> <values>";
 //  sensor command block
 const char sen_dishelp[] = "disable: set sensor disable\n"
 			"Usage: disable";
@@ -1108,6 +1345,9 @@ command_def_t commands[] = {
     { "showinv",	show_inv,	showinvhelp,	MAIN_COM },
     { "showrdr",	show_rdr,	showrdrhelp,	MAIN_COM },
     { "showrpt",	show_rpt,	showrpthelp,	MAIN_COM },
+    { "wtdget",		wtd_get,	wtdgethelp,	MAIN_COM },
+    { "wtdreset",	wtd_reset,	wtdresethelp,	MAIN_COM },
+    { "wtdset",		wtd_set,	wtdsethelp,	MAIN_COM },
     { "?",		help_cmd,	helphelp,	UNDEF_COM },
 //  sensor command block
     { "enable",		unget_term,	sen_enbhelp,	SEN_COM },
