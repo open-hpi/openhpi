@@ -185,24 +185,22 @@ SaErrorT oh_el_clear(oh_el *el)
         if (el == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
-        if (el->enabled) {
-                /* free the list data elements */
-                temp = g_list_first(el->elentries);
-                while (temp != NULL) {
-                        g_free(temp->data);
-                        temp = g_list_next(temp);
-                }
-                /* free the list nodes */
-                g_list_free(el->elentries);
-                /* reset the control structure */
-                el->overflow = FALSE;
-                el->lastUpdate = SAHPI_TIME_UNSPECIFIED;
-                el->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
-                el->elentries = NULL;
-                return SA_OK;
+        
+        /* free the list data elements */
+        temp = g_list_first(el->elentries);
+        while (temp != NULL) {
+                g_free(temp->data);
+                temp = g_list_next(temp);
         }
-        return SA_ERR_HPI_INVALID_REQUEST;
+        /* free the list nodes */
+        g_list_free(el->elentries);
+        /* reset the control structure */
+        el->overflow = FALSE;
+        el->lastUpdate = SAHPI_TIME_UNSPECIFIED;
+        el->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
+        el->elentries = NULL;
+        
+        return SA_OK;
 }
 
 
