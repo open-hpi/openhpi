@@ -283,17 +283,17 @@ sub print_h_file_header {
 #define OVR_EXP 0x0100  /* Override Error Log's source for expansion cards */
 
 /* Global String to Event Hash Table */
-extern GHashTable *bc_xml2event_hash;
+extern GHashTable *errorlog2event_hash;
+extern unsigned int errorlog2event_hash_use_count;
 extern GHashTable *rsa_xml2event_hash;
-extern unsigned int bc_xml2event_hash_use_count;
 extern unsigned int rsa_xml2event_hash_use_count;
 
 /* xml code for rsa and bc events */
 extern char *bc_eventxml;
 extern char *rsa_eventxml;
 
-int xml2event_hash_init(GHashTable **hashtable, const char *xmlstr);
-int xml2event_hash_free(GHashTable ** hashtable);
+int errorlog2event_hash_init(GHashTable **hashtable, const char *xmlstr);
+int errorlog2event_hash_free(GHashTable ** hashtable);
 
 #endif // __COM_XML2EVENT_H
 EOF
