@@ -2,6 +2,7 @@
  * ipmi_sel.cpp
  *
  * Copyright (c) 2003 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <assert.h>
@@ -139,7 +141,7 @@ cIpmiSel::GetInfo()
   if ( rsp.m_data_len < 15 )
      {
        stdlog << "handle_sel_info: SEL info too short !\n";
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   unsigned int num = m_entries;
@@ -202,7 +204,7 @@ cIpmiSel::Reserve()
   if ( rsp.m_data_len < 3 )
      {
        stdlog << "sel_handle_reservation: got invalid reservation length !\n";
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   m_reservation = IpmiGetUint16( rsp.m_data + 1 );
@@ -552,7 +554,7 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
 
 
 SaErrorT
-cIpmiSel::DeleteSelEntry( SaHpiSelEntryIdT sid )
+cIpmiSel::DeleteSelEntry( SaHpiEventLogEntryIdT sid )
 {
   cThreadLockAuto al( m_sel_lock );
 
@@ -604,7 +606,7 @@ cIpmiSel::DeleteSelEntry( SaHpiSelEntryIdT sid )
             stdlog << "IPMI error from delete SEL entry: message to short "
                    << rsp.m_data_len << " !\n";
 
-            return SA_ERR_HPI_DATA_LEN_INVALID;
+            return SA_ERR_HPI_INVALID_DATA;
           }
 
        // deleted record id
@@ -669,7 +671,7 @@ cIpmiSel::GetSelTime( SaHpiTimeT &ht )
        stdlog << "IPMI error from get SEL time: message to short "
               << rsp.m_data_len << " !\n";
 
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   ht = IpmiGetUint32( rsp.m_data + 1 );
@@ -789,7 +791,7 @@ cIpmiSel::Dump( cIpmiLog &dump, const char *name )
 	    cIpmiEvent *e = (cIpmiEvent *)list->data;
 
 	    char str[80];
-	    sprintf( str, "Event%02x_%d", m_mc->GetAddress(), i++ );
+	    snprintf( str, sizeof(str), "Event%02x_%d", m_mc->GetAddress(), i++ );
 	    e->Dump( dump, str );
 	  }
 
@@ -817,7 +819,7 @@ cIpmiSel::Dump( cIpmiLog &dump, const char *name )
                  dump << ", ";
 
             char str[80];
-            sprintf( str, "Event%02x_%d", m_mc->GetAddress(), i++ );
+            snprintf( str, sizeof(str), "Event%02x_%d", m_mc->GetAddress(), i++ );
             dump << str;
           }
 
@@ -829,7 +831,7 @@ cIpmiSel::Dump( cIpmiLog &dump, const char *name )
 
 
 SaErrorT
-cIpmiSel::GetSelInfo( SaHpiSelInfoT &info )
+cIpmiSel::GetSelInfo( SaHpiEventLogInfoT &info )
 {
   cIpmiMc *mc = Mc();
   int lun = Lun();
@@ -846,6 +848,8 @@ cIpmiSel::GetSelInfo( SaHpiSelInfoT &info )
 
   info.Entries              = SelNum();
   info.Size                 = 0xffff;
+  // We don't support adding entries to SEL yet
+  info.UserEventMaxSize     = 0;
 
   if ( AdditionTimestamp() > EraseTimestamp() )
        info.UpdateTimestamp = AdditionTimestamp();
@@ -857,8 +861,8 @@ cIpmiSel::GetSelInfo( SaHpiSelInfoT &info )
   info.CurrentTime         *= 1000000000;
   info.Enabled              = SAHPI_TRUE; // ?????
   info.OverflowFlag         = Overflow() ? SAHPI_TRUE : SAHPI_FALSE;
-  info.OverflowAction       = SAHPI_SEL_OVERFLOW_DROP;
-  info.DeleteEntrySupported = SupportsDeleteSel() ? SAHPI_TRUE : SAHPI_FALSE;
+  info.OverflowResetable    = SAHPI_FALSE;
+  info.OverflowAction       = SAHPI_EL_OVERFLOW_DROP;
 
   Unlock();
 
@@ -867,16 +871,18 @@ cIpmiSel::GetSelInfo( SaHpiSelInfoT &info )
 
 
 SaErrorT
-cIpmiSel::AddSelEntry( const SaHpiSelEntryT & /*Event*/ )
+cIpmiSel::AddSelEntry( const SaHpiEventT & /*Event*/ )
 {
   return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
 
 SaErrorT
-cIpmiSel::GetSelEntry( SaHpiSelEntryIdT current,
-		       SaHpiSelEntryIdT &prev, SaHpiSelEntryIdT &next,
-		       SaHpiSelEntryT &entry )
+cIpmiSel::GetSelEntry( SaHpiEventLogEntryIdT current,
+		       SaHpiEventLogEntryIdT &prev, SaHpiEventLogEntryIdT &next,
+		       SaHpiEventLogEntryT &entry,
+               SaHpiRdrT &rdr,
+               SaHpiRptEntryT &rptentry )
 {
   unsigned short rid = (unsigned short)current;
 
@@ -933,6 +939,11 @@ cIpmiSel::GetSelEntry( SaHpiSelEntryIdT current,
 
   entry.Event.Timestamp = entry.Timestamp;
 
+  if ( &rptentry != NULL )
+    rptentry.ResourceCapabilities = 0;
+  if ( &rdr != NULL )
+    rdr.RdrType = SAHPI_NO_RECORD;
+
   if ( !sensor )
      {
        // this is possible an event of a resource
@@ -943,6 +954,24 @@ cIpmiSel::GetSelEntry( SaHpiSelEntryIdT current,
 
        return SA_OK;
      }
+
+  if ( &rptentry != NULL )
+  {
+      SaHpiRptEntryT *selrpt = oh_get_resource_by_id( sensor->Resource()->Domain()->GetHandler()->rptcache,
+                                                      sensor->Resource()->m_resource_id );
+
+      if ( selrpt != NULL )
+          rptentry = *selrpt;
+  }
+
+  if ( &rdr != NULL )
+  {
+      SaHpiRdrT *selrdr = oh_get_rdr_by_id( sensor->Resource()->Domain()->GetHandler()->rptcache,
+                                            sensor->Resource()->m_resource_id, sensor->RecordId() );
+
+      if ( selrdr != NULL )
+          rdr = *selrdr;
+  }
 
   return sensor->CreateEvent( &e, entry.Event );
 }

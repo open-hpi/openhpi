@@ -2,6 +2,7 @@
  * ipmi_sensor_factors.h
  *
  * Copyright (c) 2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,6 +19,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiSensorFactors_h
@@ -78,6 +80,7 @@ public:
 
   tIpmiAnalogeDataFormat m_analog_data_format;
   tIpmiLinearization     m_linearization;
+  bool                   m_is_non_linear;
   int                    m_m : 10;
   unsigned int           m_tolerance : 6;
   int                    m_b : 10;
@@ -85,6 +88,7 @@ public:
   unsigned int           m_accuracy_exp : 2;
   int                    m_accuracy : 10;
   int                    m_b_exp : 4;
+  double                 m_accuracy_factor;
 
 public:
   tIpmiAnalogeDataFormat AnalogDataFormat() const { return  m_analog_data_format; }
@@ -95,7 +99,9 @@ public:
   int           RExp()     const { return m_r_exp; }
   unsigned int  AccuracyExp() const { return m_accuracy_exp; }
   int           Accuracy() const { return m_accuracy; }
+  double        AccuracyFactor() const { return m_accuracy_factor; }
   int           BExp()     const { return m_b_exp; }
+  bool          IsNonLinear() const { return m_is_non_linear; }
 
   enum tIpmiRound
   {
@@ -104,10 +110,8 @@ public:
       eRoundUp
   };
 
-  bool ConvertFromRaw( unsigned int val, double &result ) const;
-  bool ConvertToRaw( tIpmiRound rounding, double val, unsigned int &result ) const;
-
-  bool CreateDataFormat( SaHpiSensorDataFormatT &df ) const;
+  bool ConvertFromRaw( unsigned int val, double &result, bool is_hysteresis ) const;
+  bool ConvertToRaw( tIpmiRound rounding, double val, unsigned int &result, bool is_hysteresis ) const;
 };
 
 

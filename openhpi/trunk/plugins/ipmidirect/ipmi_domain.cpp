@@ -1,6 +1,7 @@
 /*
  *
- * Copyright (c) 2003,3004 by FORCE Computers
+ * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -17,6 +18,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <errno.h>
@@ -33,7 +35,8 @@ cIpmiDomain::cIpmiDomain()
     m_si_mc( 0 ),
     m_initial_discover( 0 ),
     m_mc_poll_interval( dIpmiMcPollInterval ),
-    m_sel_rescan_interval( dIpmiSelQueryInterval )
+    m_sel_rescan_interval( dIpmiSelQueryInterval ),
+    m_bmc_discovered( false )
 {
   cIpmiMcVendorFactory::InitFactory();
 
@@ -45,8 +48,8 @@ cIpmiDomain::cIpmiDomain()
        m_atca_site_property[i].m_mc_type     = 0;
      }
 
-  // scan at least at 0x20 (ShMc entity is 0xf0)
-  NewFruInfo( 0x20, 0, (SaHpiEntityTypeT)0xf0, 0,
+  // scan at least at dIpmiBmcSlaveAddr
+  NewFruInfo( dIpmiBmcSlaveAddr, 0, SAHPI_ENT_SHELF_MANAGER, 0,
               eIpmiAtcaSiteTypeDedicatedShMc,
 	        dIpmiMcThreadInitialDiscover
 	      | dIpmiMcThreadPollDeadMc
@@ -54,7 +57,6 @@ cIpmiDomain::cIpmiDomain()
 
   // default site type properties
   unsigned int prop =   dIpmiMcThreadInitialDiscover
-                      | dIpmiMcThreadPollAliveMc
                       | dIpmiMcThreadCreateM0;
 
   // atca board
@@ -76,13 +78,16 @@ cIpmiDomain::cIpmiDomain()
   SetAtcaSiteProperty( eIpmiAtcaSiteTypeFanFilterTray, prop, 8 );
 
   // alarm
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeAtcaModule, prop, 32 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeAlarm, prop, 8 );
 
-  // atca module
+  // AdvancedMC Module
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeAdvancedMcModule, prop, 32 );
+
+  // PMC
   SetAtcaSiteProperty( eIpmiAtcaSiteTypePMC, prop, 32 );
 
   // rear transition module
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeRearTransitionModule, prop, 4 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeRearTransitionModule, prop, 32 );
 }
 
 
@@ -201,11 +206,28 @@ cIpmiDomain::Init( cIpmiCon *con )
           }
      }
 
+  if ( num == 0 )
+     {
+       num = 1;
+     }
+                                                                                                                    
   stdlog << "max number of outstanding = " << num << ".\n";
   m_con->SetMaxOutstanding( num );
 
   // check for ATCA an modify m_mc_to_check
   CheckAtca();
+
+  // Non ATCA system -> adjust BMC info
+  if ( !m_is_atca )
+  {
+    cIpmiFruInfo *fi = FindFruInfo( dIpmiBmcSlaveAddr, 0 );
+
+    assert ( fi );
+
+    fi->Entity() = SAHPI_ENT_SYS_MGMNT_MODULE;
+    fi->Site() = eIpmiAtcaSiteTypeUnknown;
+    fi->Slot() = GetFreeSlotForOther( dIpmiBmcSlaveAddr );
+  }
 
   if ( m_sdr_repository_support )
      {
@@ -234,7 +256,7 @@ cIpmiDomain::Init( cIpmiCon *con )
 
                  if ( fi == 0 )
                       NewFruInfo( addr, 0,
-                                  SAHPI_ENT_OTHER, GetFreeSlotForOther( addr ),
+                                  SAHPI_ENT_SYS_MGMNT_MODULE, GetFreeSlotForOther( addr ),
                                   eIpmiAtcaSiteTypeUnknown,
                                     dIpmiMcThreadInitialDiscover
                                   | dIpmiMcThreadPollDeadMc
@@ -408,7 +430,7 @@ cIpmiDomain::CheckAtca()
 {
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPicMgProperties );
   msg.m_data_len = 1;
-  msg.m_data[0]  = dIpmiPigMgId;
+  msg.m_data[0]  = dIpmiPicMgId;
 
   cIpmiMsg rsp;
   SaErrorT rv;
@@ -422,19 +444,19 @@ cIpmiDomain::CheckAtca()
 
   rv = m_si_mc->SendCommand( msg, rsp );
 
-  if ( rv != SA_OK || rsp.m_data[0] || rsp.m_data[1] != dIpmiPigMgId )
+  if ( rv != SA_OK || rsp.m_data[0] || rsp.m_data[1] != dIpmiPicMgId )
      {
        stdlog << "not an ATCA system.\n";
 
-       return (rv != SA_OK) ? rv : SA_ERR_HPI_DATA_LEN_INVALID;
+       return (rv != SA_OK) ? rv : SA_ERR_HPI_INVALID_DATA;
      }
 
   unsigned char minor = (rsp.m_data[2] >> 4) & 0x0f;
   unsigned char major = rsp.m_data[2] & 0x0f;
 
-  stdlog << "found a PigMg system version " << major << "." << minor << ".\n";
+  stdlog << "found a PicMg system version " << (unsigned int)major << "." << (unsigned int)minor << ".\n";
 
-  if ( major != 2 || minor != 0 )
+  if ( major != 2 || ( ( minor != 0 ) && ( minor != 1 ) ) )
        return SA_OK;
 
   stdlog << "found an ATCA system.\n";
@@ -448,7 +470,7 @@ cIpmiDomain::CheckAtca()
   // read all fru addr
   msg.m_netfn   = eIpmiNetfnPicmg;
   msg.m_cmd     = eIpmiCmdGetAddressInfo;
-  msg.m_data[0] = dIpmiPigMgId;
+  msg.m_data[0] = dIpmiPicMgId;
   msg.m_data[1] = 0; // fru id 0
   msg.m_data[2] = 0x03; // physical addr
   msg.m_data_len = 5;
@@ -462,7 +484,7 @@ cIpmiDomain::CheckAtca()
     "Fan Tray",
     "Fan Filter Tray",
     "Alarm",
-    "ATCA Module",
+    "AdvancedMC Module",
     "PMC",
     "Rear Transition Module"
   };
@@ -473,6 +495,9 @@ cIpmiDomain::CheckAtca()
      {
        if ( !m_atca_site_property[i].m_property )
             continue;
+
+       if ( m_atca_poll_alive_mcs == true )
+            m_atca_site_property[i].m_property |= dIpmiMcThreadPollAliveMc;
 
        if ( i < map_num )
             stdlog << "checking for " << map[i] << ".\n";
@@ -545,25 +570,6 @@ cIpmiDomain::SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg,
 }
 
 
-/*
-cIpmiMc *
-cIpmiDomain::FindOrCreateMcBySlaveAddr( unsigned int slave_addr )
-{
-  cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, slave_addr );
-
-  cIpmiMc *mc = FindMcByAddr( addr );
-
-  if ( mc )
-       return mc;
-
-  mc = NewMc( addr );
-  mc->SetActive( false );
-
-  return mc;
-}
-*/
-
-
 GList *
 cIpmiDomain::GetSdrSensors( cIpmiMc *mc )
 {
@@ -592,8 +598,16 @@ cIpmiDomain::GetEventRcvr()
      {
        cIpmiMc *mc = m_mcs[i];
 
-       if ( mc->SelDeviceSupport() )
+       // Event receiver on ATCA must be set to the active ShMc
+       if ( IsAtca() )
+       {
+           if ( mc->GetAddress() == dIpmiBmcSlaveAddr )
+               return mc;
+       }
+       else if ( mc->SelDeviceSupport() )
+       {
             return mc;
+       }
      }
 
   return 0;
@@ -652,7 +666,7 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
      {
        int slot = GetFreeSlotForOther( a );
 
-       cIpmiFruInfo *fi = NewFruInfo( a, 0, SAHPI_ENT_OTHER, slot,
+       cIpmiFruInfo *fi = NewFruInfo( a, 0, SAHPI_ENT_SYS_MGMNT_MODULE, slot,
                                       eIpmiAtcaSiteTypeUnknown, 
                                         dIpmiMcThreadInitialDiscover
                                       | hotswap ? (   dIpmiMcThreadPollAliveMc
@@ -755,7 +769,6 @@ cIpmiDomain::VerifyInventory( cIpmiInventory *inv )
   return 0;
 }
 
-
 void 
 cIpmiDomain::Dump( cIpmiLog &dump ) const
 {
@@ -783,7 +796,7 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
 
 	    cIpmiMc *mc = m_mc_thread[i]->Mc();
 	    char str[80];
-	    sprintf( str, "Mc%02x", i );
+	    snprintf( str, sizeof(str), "Mc%02x", i );
 	    mc->Dump( dump, str );
 	  }
      }
@@ -826,8 +839,8 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
                  site = "Alarm";
                  break;
 
-            case eIpmiAtcaSiteTypeAtcaModule:
-                 site = "AtcaModule";
+            case eIpmiAtcaSiteTypeAdvancedMcModule:
+                 site = "AdvancedMcModule";
                  break;
 
             case eIpmiAtcaSiteTypePMC:
@@ -883,7 +896,7 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
                }
 
 	    char str[30];
-	    sprintf( str, "Mc%02x", i );
+	    snprintf( str, sizeof(str), "Mc%02x", i );
             dump.Entry( "Mc" ) << str << ", " << type << ", " << fi->Slot() << ";\n";
 	  }
      }

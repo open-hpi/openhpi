@@ -1,6 +1,7 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -17,6 +18,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <stdio.h>
@@ -39,6 +41,7 @@ cIpmiMc::cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr )
     m_sel( 0 ),
     m_device_id( 0 ), m_device_revision( 0 ), 
     m_provides_device_sdrs( false ), m_device_available( false ),
+    m_device_support ( 0 ),
     m_chassis_support( false ), m_bridge_support( false ),
     m_ipmb_event_generator_support( false ), m_ipmb_event_receiver_support( false ),
     m_fru_inventory_support( false ), m_sel_device_support( false ),
@@ -99,6 +102,17 @@ cIpmiMc::FindResource( cIpmiResource *res )
      }
 
   return 0;
+}
+
+cIpmiResource *
+cIpmiMc::GetResource( int i )
+{
+  if ( i >= Num() )
+      return 0;
+
+  cIpmiResource *res = operator[]( i );
+
+  return res;
 }
 
 
@@ -201,7 +215,11 @@ cIpmiMc::SendSetEventRcvr( unsigned int addr )
        // Error setting the event receiver, report it.
        stdlog << "Could not set event receiver for MC at " << m_addr.m_slave_addr << " !\n";
 
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       // Intel ShMc does not like being told where to send events !
+       if ( rsp.m_data[0] == eIpmiCcInsufficientPrivilege )
+           return SA_OK;
+
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   return SA_OK;
@@ -232,12 +250,16 @@ cIpmiMc::HandleNew()
   // read the sel first
   if ( m_sel_device_support )
      {
-       // this is for testing
-       // clear sel
        rv = m_sel->GetInfo();
 
        if ( rv != SA_OK )
             return rv;
+
+       SaHpiTimeT sel_time;
+
+       oh_gettimeofday( &sel_time );
+
+       m_sel->SetSelTime( sel_time );
 
        m_sel->m_fetched = false;
 
@@ -365,6 +387,51 @@ cIpmiMc::DeviceDataCompares( const cIpmiMsg &rsp ) const
   return true;
 }
 
+bool
+cIpmiMc::IsAtcaBoard()
+{
+    cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPicMgProperties );
+    msg.m_data_len = 1;
+    msg.m_data[0]  = dIpmiPicMgId;
+
+    cIpmiMsg rsp;
+    SaErrorT rv;
+
+    m_is_not_ecn = true;
+    m_picmg_major = 0;
+    m_picmg_minor = 0;
+
+    rv = SendCommand( msg, rsp );
+
+    if ( rv != SA_OK || rsp.m_data[0] || rsp.m_data[1] != dIpmiPicMgId )
+    {
+        stdlog << "WARNING: MC " << m_addr.m_slave_addr << " is not an ATCA board !!!\n";
+        return false;
+    }
+
+    m_picmg_minor = (rsp.m_data[2] >> 4) & 0x0f;
+    m_picmg_major = rsp.m_data[2] & 0x0f;
+
+    if ( m_picmg_major == 2 )
+    {
+        stdlog << "MC " << m_addr.m_slave_addr << " is an ATCA board, PicMg version " << (int)m_picmg_major << "." << (int)m_picmg_minor << "\n";
+
+        if  ( m_picmg_minor == 0 )
+        {
+           stdlog << "ECN is NOT implemented\n";
+        }
+        else
+        {
+            m_is_not_ecn = false;
+            stdlog << "ECN is implemented\n";
+        }
+
+        return true;
+    }
+
+    stdlog << "WARNING: MC " << m_addr.m_slave_addr << " is not an ATCA board !!!\n";
+    return false;
+}
 
 int
 cIpmiMc::GetDeviceIdDataFromRsp( const cIpmiMsg &rsp )
@@ -385,6 +452,7 @@ cIpmiMc::GetDeviceIdDataFromRsp( const cIpmiMsg &rsp )
   m_minor_fw_revision            = rsp_data[4];
   m_major_version                = rsp_data[5] & 0xf;
   m_minor_version                = (rsp_data[5] >> 4) & 0xf;
+  m_device_support               = rsp_data[6];
   m_chassis_support              = (rsp_data[6] & 0x80) == 0x80;
   m_bridge_support               = (rsp_data[6] & 0x40) == 0x40;
   m_ipmb_event_generator_support = (rsp_data[6] & 0x20) == 0x20;
@@ -566,7 +634,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
   cIpmiMsg rsp;
 
-  msg.m_data[0] = dIpmiPigMgId;
+  msg.m_data[0] = dIpmiPicMgId;
   msg.m_data[1] = fru_id; // FRU id
   msg.m_data[2] = 0x01; // desired steady power
   msg.m_data_len = 3;
@@ -581,10 +649,10 @@ cIpmiMc::AtcaPowerFru( int fru_id )
 
   if (    rsp.m_data_len < 3
        || rsp.m_data[0] != eIpmiCcOk 
-       || rsp.m_data[1] != dIpmiPigMgId )
+       || rsp.m_data[1] != dIpmiPicMgId )
      {
        stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
-       return SA_ERR_HPI_DATA_LEN_INVALID;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   unsigned char power_level = rsp.m_data[2] & 0x1f;
@@ -592,7 +660,7 @@ cIpmiMc::AtcaPowerFru( int fru_id )
   // set power level
   msg.m_netfn = eIpmiNetfnPicmg;
   msg.m_cmd   = eIpmiCmdSetPowerLevel;
-  msg.m_data[0] = dIpmiPigMgId;
+  msg.m_data[0] = dIpmiPicMgId;
   msg.m_data[1] = 0; // FRU id
   msg.m_data[2] = power_level;
   msg.m_data[3] = 0x01; // copy desierd level to present level
@@ -608,75 +676,10 @@ cIpmiMc::AtcaPowerFru( int fru_id )
 
   if (    rsp.m_data_len != 2
        || rsp.m_data[0] != eIpmiCcOk
-       || rsp.m_data[1] != dIpmiPigMgId )
+       || rsp.m_data[1] != dIpmiPicMgId )
        stdlog << "cannot set power level: " << rsp.m_data[0] << " !\n";
 
   return SA_OK;
-}
-
-
-bool
-cIpmiMc::DumpFrus( cIpmiLog &dump, const char *name ) const
-{
-  int i;
-
-  // create a list of frus
-  cArray<cIpmiInventory> invs;
-
-  for( i = 0; i < Num(); i++ )
-     {
-       cIpmiResource *res = operator[]( i );
-
-       for( int j = 0; j < res->NumRdr(); j++ )
-	  {
-	    cIpmiRdr *rdr = res->GetRdr( j );
-
-	    cIpmiInventory *inv = dynamic_cast<cIpmiInventory *>( rdr );
-
-	    if ( inv )
-		 invs.Add( inv );
-	  }
-     }
-
-  if ( invs.Num() == 0 )
-       return false;
-
-  char fru_device_name[80];
-  sprintf( fru_device_name, "FruDevice%02x_", GetAddress() );
-
-  // dump frus
-  for( i = 0; i < invs.Num(); i++ )
-     {
-       cIpmiInventory *inv = invs[i];
-
-       char str[80];
-       sprintf( str, "%s%d", fru_device_name, inv->Num() );
-       inv->Dump( dump, str );
-     }
-
-  // dump fru device
-  dump.Begin( "Fru", name );
-  dump.Entry( "FruDevices" );
-
-  bool first = true;
-
-  while( invs.Num() )
-     {
-       cIpmiInventory *inv = invs.Rem( 0 );
-
-       if ( first )
-            first = false;
-       else
-            dump << ", ";
-
-       dump << fru_device_name << inv->Num();
-     }
-
-  dump << ";\n";
-
-  dump.End();
-
-  return true;
 }
 
 
@@ -707,7 +710,7 @@ cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
        return false;
 
   char control_device_name[80];
-  sprintf( control_device_name, "ControlDevice%02x_", GetAddress() );
+  snprintf( control_device_name, sizeof(control_device_name), "ControlDevice%02x_", GetAddress() );
 
   // dump controls
   for( i = 0; i < controls.Num(); i++ )
@@ -715,7 +718,7 @@ cIpmiMc::DumpControls( cIpmiLog &dump, const char *name ) const
        cIpmiControl *control = controls[i];
 
        char str[80];
-       sprintf( str, "%s%d", control_device_name, control->Num() );
+       snprintf( str, sizeof(str), "%s%d", control_device_name, control->Num() );
        control->Dump( dump, str );
      }
 
@@ -749,18 +752,18 @@ void
 cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
 {
   char sel_name[80];
-  sprintf( sel_name, "Sel%02x", GetAddress() );
+  snprintf( sel_name, sizeof(sel_name), "Sel%02x", GetAddress() );
 
   char fru_name[80];
-  sprintf( fru_name, "Fru%02x", GetAddress() );
+  snprintf( fru_name, sizeof(fru_name), "Fru%02x", GetAddress() );
   bool fru_inventory = false;
 
   char control_name[80];
-  sprintf( control_name, "Control%02x", GetAddress() );
+  snprintf( control_name, sizeof(control_name), "Control%02x", GetAddress() );
   bool control = false;
 
   char sdr_name[80];
-  sprintf( sdr_name, "Sdr%02x", GetAddress() );
+  snprintf( sdr_name, sizeof(sdr_name), "Sdr%02x", GetAddress() );
 
   if ( dump.IsRecursive() )
      {
@@ -770,7 +773,6 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name ) const
        if ( m_sel && m_sel_device_support )
 	    m_sel->Dump( dump, sel_name );
 
-       fru_inventory = DumpFrus( dump, fru_name );
        control = DumpControls( dump, control_name );
      }
 

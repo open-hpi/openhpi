@@ -2,6 +2,7 @@
  * ipmi_fru_info.h
  *
  * Copyright (c) 2004 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,6 +13,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiFruInfo_h
@@ -23,8 +25,6 @@
 #endif
 
 
-//#define dEntityLocationDummy 1
-
 enum tIpmiAtcaSiteType
 {
   eIpmiAtcaSiteTypeAtcaBoard = 0,
@@ -34,7 +34,7 @@ enum tIpmiAtcaSiteType
   eIpmiAtcaSiteTypeFanTray = 4,
   eIpmiAtcaSiteTypeFanFilterTray = 5,
   eIpmiAtcaSiteTypeAlarm = 6,
-  eIpmiAtcaSiteTypeAtcaModule = 7,
+  eIpmiAtcaSiteTypeAdvancedMcModule = 7,
   eIpmiAtcaSiteTypePMC = 8,
   eIpmiAtcaSiteTypeRearTransitionModule = 9,
   eIpmiAtcaSiteTypeUnknown
@@ -67,9 +67,9 @@ public:
 
   unsigned int Address() { return m_addr; }
   unsigned int FruId()   { return m_fru_id; }
-  SaHpiEntityTypeT Entity() { return m_entity; }
-  unsigned int Slot()    { return m_slot; }
-  tIpmiAtcaSiteType Site() { return m_site; }
+  SaHpiEntityTypeT &Entity() { return m_entity; }
+  unsigned int &Slot()    { return m_slot; }
+  tIpmiAtcaSiteType &Site() { return m_site; }
   unsigned int Properties()
   {
     assert( m_fru_id == 0 );
@@ -97,7 +97,7 @@ public:
   cIpmiFruInfo *NewFruInfo( unsigned int addr, unsigned int fru_id,
 			    SaHpiEntityTypeT entity, unsigned int slot,
                             tIpmiAtcaSiteType site, unsigned int properties );
-
+  cIpmiFruInfo *NewFruInfo( unsigned int addr, unsigned int fru_id );
   unsigned int GetFreeSlotForOther( unsigned int addr );
 
   GList *GetFruInfoList() const { return m_fru_info; }

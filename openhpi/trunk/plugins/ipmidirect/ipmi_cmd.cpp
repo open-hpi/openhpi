@@ -1,6 +1,7 @@
 /*
  *
  * Copyright (c) 2003 by FORCE Computers.
+ * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,6 +12,7 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
+ *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include "ipmi_cmd.h"
@@ -271,7 +273,7 @@ static cIpmiCmdToClass cmd_class_map[] =
   { "SetUserCallbackOptions"    , eIpmiNetfnTransport  , eIpmiCmdSetUserCallbackOptions     },
   { "GetUserCallbackOptions"    , eIpmiNetfnTransport  , eIpmiCmdGetUserCallbackOptions     },
 
-  // PIGMG netfn
+  // PICMG netfn
   { "GetPicMgProperties"        , eIpmiNetfnPicmg      , eIpmiCmdGetPicMgProperties         },
   { "GetAddressInfo"            , eIpmiNetfnPicmg      , eIpmiCmdGetAddressInfo             },
   { "GetShelfAddressInfo"       , eIpmiNetfnPicmg      , eIpmiCmdGetShelfAddressInfo        },
@@ -296,6 +298,7 @@ static cIpmiCmdToClass cmd_class_map[] =
   { "SetFanLevel"               , eIpmiNetfnPicmg      , eIpmiCmdSetFanLevel                },
   { "GetFanLevel"               , eIpmiNetfnPicmg      , eIpmiCmdGetFanLevel                },
   { "BusedResource"             , eIpmiNetfnPicmg      , eIpmiCmdBusedResource              },
+  { "GetIpmbLinkInfo"           , eIpmiNetfnPicmg      , eIpmiCmdGetIpmbLinkInfo            },
   { 0                           , eIpmiNetfnChassis    , eIpmiCmdGetChassisCapabilities     }
 };
 
