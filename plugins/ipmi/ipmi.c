@@ -311,6 +311,7 @@ static int ipmi_discover_resources(void *hnd)
                         event = g_malloc0(sizeof(*event));
                         memset(event, 0, sizeof(*event));
                         event->type = OH_ET_RDR;
+			event->u.rdr_event.parent = rpt_entry->ResourceId;
                         memcpy(&event->u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
                         handler->eventq = g_slist_append(handler->eventq, event);
                         
