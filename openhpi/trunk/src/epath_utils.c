@@ -12,6 +12,7 @@
  * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
+ *      Thomas Kanngieser <thomas.kanngieser@fci.com>
  */
 
 /******************************************************************************
@@ -43,13 +44,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include <SaHpi.h>
 #include <openhpi.h>
 #include <epath_utils.h>
 
 static unsigned int index2entitytype(unsigned int i);
-static unsigned int entitytype2index(unsigned int i);
+static int entitytype2index(unsigned int i);
 
 static gchar *eshort_names[] = {
 	"UNSPECIFIED",
@@ -116,6 +118,10 @@ static gchar *eshort_names[] = {
 	"SUBBOARD_CARRIER_BLADE",
 };
 
+
+static unsigned int eshort_num_names = sizeof( eshort_names ) / sizeof( gchar * );
+
+
 /***********************************************************************
  * string2entitypath
  * 
@@ -135,9 +141,10 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
         gint rtncode = 0;
 	guint   i, j, match, instance, num_valid_entities = 0;
         GSList *epath_list = NULL, *lst = NULL;
-
 	SaHpiEntityT  *entityptr = NULL;
-
+        gint num;
+        int is_numeric;
+        
 	if (epathstr == NULL || epathstr[0] == '\0') {
 		dbg("Input entity path string is NULL"); 
 		return -1;
@@ -191,10 +198,19 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 			}
 		}
                 
+                is_numeric = 0;
+
 		if (!match) { 
-			dbg("Invalid entity type string"); 
-			rtncode = -1; 
-			goto CLEANUP;
+                        // check for numeric type
+                        num = strtol(etype,&endptr, 0);
+
+                        if (num <= 0 || endptr[0] != '\0') {
+                                dbg("Invalid entity type string"); 
+                                rtncode = -1; 
+                                goto CLEANUP;
+                        }
+                        
+                        is_numeric = 1;
 		}
 
 		/* Save entity path definitions; reverse order */
@@ -206,7 +222,11 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 				goto CLEANUP;
 			}
 
-			entityptr->EntityType = index2entitytype(j);
+                        if (is_numeric)
+                                entityptr->EntityType = num;
+                        else
+                                entityptr->EntityType = index2entitytype(j);
+
 			entityptr->EntityInstance = instance;
 			epath_list = g_slist_prepend(epath_list, (gpointer)entityptr);
 		}
@@ -261,6 +281,9 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
      
 	gchar  *instance_str, *catstr, *tmpstr;
 	gint   err, i, strcount = 0, rtncode = 0;
+        int tidx;
+        gchar *type_str;
+        gchar type_str_buffer[20];
 
 	if (epathstr == NULL || strsize <= 0) { 
 		dbg("Null string or invalid string size"); 
@@ -302,9 +325,20 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
                                "%d", epathptr->Entry[i].EntityInstance);
 
+                // check if we can convert the entity type to a string
+                tidx = entitytype2index(epathptr->Entry[i].EntityType);
+
+                if ( tidx >= 0 )
+                        type_str = eshort_names[tidx];
+                else {
+                        err = snprintf(type_str_buffer, 20,
+                                       "%d", epathptr->Entry[i].EntityType);
+                        type_str = type_str_buffer;
+                }
+
 		strcount = strcount + 
 			strlen(EPATHSTRING_START_DELIMITER) + 
-			strlen(eshort_names[entitytype2index(epathptr->Entry[i].EntityType)]) + 
+			strlen(type_str) + 
 			strlen(EPATHSTRING_VALUE_DELIMITER) + 
 			strlen(instance_str) + 
 			strlen(EPATHSTRING_END_DELIMITER);
@@ -316,7 +350,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 		}
 
 		catstr = g_strconcat(EPATHSTRING_START_DELIMITER,
-				     eshort_names[entitytype2index(epathptr->Entry[i].EntityType)],
+				     type_str,
 				     EPATHSTRING_VALUE_DELIMITER,
 				     instance_str, 
 				     EPATHSTRING_END_DELIMITER, 
@@ -427,21 +461,24 @@ static unsigned int index2entitytype(unsigned int i)
         } else if(i == ESHORTNAMES_THIRD_JUMP) {
                 return (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC;
         } else {
+                assert(i >= ESHORTNAMES_LAST_JUMP);
                 return (i - ESHORTNAMES_LAST_JUMP + (unsigned int)SAHPI_ENT_ROOT);
         }
 }
 
-static unsigned int entitytype2index(unsigned int i)
+static int entitytype2index(unsigned int i)
 {
-        if(i <= ESHORTNAMES_BEFORE_JUMP) {
+        if(i <= ESHORTNAMES_BEFORE_JUMP)
                 return i;
-        } else if (i == (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC) {
+        else if (i == (unsigned int)SAHPI_ENT_CHASSIS_SPECIFIC)
                 return ESHORTNAMES_FIRST_JUMP;
-        } else if (i == (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC) {
+        else if (i == (unsigned int)SAHPI_ENT_BOARD_SET_SPECIFIC)
                 return ESHORTNAMES_SECOND_JUMP;
-        } else if (i == (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC) {
+        else if (i == (unsigned int)SAHPI_ENT_OEM_SYSINT_SPECIFIC)
                 return ESHORTNAMES_THIRD_JUMP;
-        } else {
-                return (i - (unsigned int)SAHPI_ENT_ROOT + ESHORTNAMES_LAST_JUMP);
-        }
+        else if (i >= (unsigned int)SAHPI_ENT_ROOT && i - (unsigned int)SAHPI_ENT_ROOT
+                   < eshort_num_names - ESHORTNAMES_LAST_JUMP )
+                return i - (unsigned int)SAHPI_ENT_ROOT + ESHORTNAMES_LAST_JUMP;
+
+        return -1;
 }
