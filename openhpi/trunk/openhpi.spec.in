@@ -3,7 +3,7 @@ Summary: @HPI_PKG@ - implementation of SAForum Hardware Platform Interface
 Version: @VERSION@
 Release: 1
 Copyright: BSD
-URL: http://openhpi.sf.net
+URL: http://openhpi.sourceforge.net
 Group: Utilities
 Vendor: Intel Corporation
 Packager: Andrea Brugger <andrea.l.brugger@intel.com>
@@ -11,7 +11,7 @@ Source: @HPI_PKG@-@VERSION@.tar.gz
 Buildroot: /var/tmp/@HPI_PKG@-root
 
 %package lib
-Summary: Library that provides the API for HPI
+Summary: Library that provides SAForum's HPI
 Group: Utilities
 
 #%package devel
@@ -19,22 +19,22 @@ Group: Utilities
 #Group: Utilities
 
 %package test
-Summary: Test applications for HPI
+Summary: Sample applications for OpenHPI
 Group: Utilities
 
 %description 
-This package contains an implementation of SAForum's HPI specification
+This package contains an implementation of Service Availability Forum's HPI specification
 and a sample application.
 
 %description lib
-This library is an implementation of SAForum's HPI specification.
+This library is an implementation of the Service Availability Forum's HPI specification.
 
 #%description devel
 #Contains the development files for HPI.
 
 %description test
-This package contains the test applications that demonstrate
-the use of SAForum's HPI specification.
+This package contains the sample applications that demonstrate
+the use of the Service Availability Forum's HPI specification.
 
 ###################################################
 %prep
@@ -75,8 +75,9 @@ make DESTDIR=$RPM_BUILD_ROOT install
 ###################################################
 #%files devel
 ###################################################
-#%defattr(-,root,root)
-
+%defattr(-,root,root)
+#%dir @includedir@/openhpi
+#@includedir@/openhpi
 
 ###################################################
 %files test

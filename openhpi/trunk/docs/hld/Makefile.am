@@ -35,14 +35,17 @@ MAINTAINERCLEANFILES 	= Makefile.in
 openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
 openhpi_docs_DATA	= \
-				OpenHPI_HLD/book1.html
+				OpenHPI_HLD/book1.html 
+
+
 
 SGML_FILES		= OpenHPI_HLD.sgml
 
 EXTRA_DIST		= implementation_view.png \
                           physical_view.png       \
                           domain_view.png	  \
-                          hld_diagram.gif
+                          hld_diagram.gif	  \
+			  OpenHPI_HLD.sgml
 
 all:
 
