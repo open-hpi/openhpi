@@ -37,7 +37,7 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
-openhpi_docs_DATA	= OpenHPI_HLD/book1.html 
+openhpi_docs_DATA	= openhpi-manual/book1.html 
 
 SGML_FILES              = $(shell ls *.dtd) $(shell ls *.sgml) 
 
@@ -47,25 +47,25 @@ all:
 
 pdf-am:
 	@echo we have to do this twice to get the latex refs right
-	db2pdf OpenHPI_HLD.sgml
-	db2pdf OpenHPI_HLD.sgml
+	db2pdf openhpi-manual.sgml
+	db2pdf openhpi-manual.sgml
 
 ps-am:
 	@echo we have to do this twice to get the latex refs right
-	db2ps OpenHPI_HLD.sgml
-	db2ps OpenHPI_HLD.sgml
+	db2ps openhpi-manual.sgml
+	db2ps openhpi-manual.sgml
 
 
-OpenHPI_HLD/book1.html: $(SGML_FILES)
-	-db2html OpenHPI_HLD.sgml
-	-mkdir -p OpenHPI_HLD/images
-	-cp $(DIAGRAMS) OpenHPI_HLD/images
+openhpi-manual/book1.html: $(SGML_FILES)
+	-db2html openhpi-manual.sgml
+	-mkdir -p openhpi-manual/images
+	-cp $(DIAGRAMS) openhpi-manual/images
 
-publish: OpenHPI_HLD/book1.html
-	-rsync -rP --delete OpenHPI_HLD/ $(SERVER):$(HLDDIR)
+publish: openhpi-manual/book1.html
+	-rsync -rP --delete openhpi-manual/ $(SERVER):$(HLDDIR)
 	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -exec chmod g+w {} \;"
 	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -type d -exec chmod g+s {} \;"
 
 clean:
-	rm -fR OpenHPI_HLD
+	rm -fR openhpi-manual
 	rm -f *~ *.tex *.aux *.log *.out

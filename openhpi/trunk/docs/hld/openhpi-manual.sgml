@@ -35,6 +35,7 @@
 <!ENTITY chapter3 SYSTEM "sahpi_breakdown.sgml">
 <!ENTITY chapter4 SYSTEM "openhpi_highlevel.sgml">
 <!ENTITY chapter5 SYSTEM "openhpi_structure.sgml">
+<!ENTITY chapter6 SYSTEM "plugin_usage.sgml">
 <!ENTITY appendix SYSTEM "appendix.sgml">
 ]>
 
@@ -49,7 +50,7 @@
         &chapter3;
         &chapter4;
         &chapter5;
-
+        &chapter6;
         &appendix;
 </book>
       

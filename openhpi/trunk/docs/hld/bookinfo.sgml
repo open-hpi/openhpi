@@ -13,9 +13,10 @@
 -->
 
 <bookinfo>
-  <date>March 18, 2003</date>
-  <title>OpenHPI High-Level Design</title>
-  <subtitle>An Implementation of SAForum's Hardware Platform Interface</subtitle>
+  <date>October 8, 2003</date>
+  <title>OpenHPI Manual</title>
+  <!-- <subtitle>An Open Source Implementation of the Service
+Availability Forum's Hardware Platform Interface</subtitle> -->
     &openhpi-authors;
     &openhpi-copyrights;
     &openhpi-legal-notice;
