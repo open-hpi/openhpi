@@ -142,13 +142,12 @@ static void add_control_event(ipmi_entity_t	*ent,
 /*
  * add_alarm_rdr
  */
-static void add_alarm_rdr(
-                char			*name,
-                int			num,
-		SaHpiResourceIdT   	rptid,
-                SaHpiEntityPathT        parent_ent,
-		ipmi_control_id_t   	*control_id,
-		struct oh_handler_state *handler)
+static void add_alarm_rdr(char 				*name,
+			  int 				num,
+			  SaHpiResourceIdT 		rptid,
+			  SaHpiEntityPathT 		parent_ent,
+			  ipmi_control_id_t 		*control_id,
+			  struct oh_handler_state 	*handler)
 {
 	SaHpiRdrT               rdr_temp;
 	SaHpiRdrT               *rdr;

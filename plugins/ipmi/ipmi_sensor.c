@@ -669,6 +669,7 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 		ipmi_event_state_set_events_enabled(&info, 1);
 	else 
 		ipmi_event_state_set_events_enabled(&info, 0);
+
 	if (ipmi_sensor_get_event_support(sensor) == IPMI_EVENT_SUPPORT_PER_STATE) {
 		int i;
 

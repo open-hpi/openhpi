@@ -337,6 +337,7 @@ static inline void  dump_rpttable(RPTable *table)
 #endif
 
 /* called when a resource is removed (swapped?) */
+int entity_presence(ipmi_entity_t *entity, int present, void *cb_data, ipmi_event_t *event);
 int ipmi_discover_resources(void *hnd);
 void entity_rpt_set_updated(struct ohoi_resource_info *res_info,
 		struct ohoi_handler *hnd);

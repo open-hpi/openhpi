@@ -61,7 +61,7 @@ static void entity_update_rpt(RPTable *table, struct ohoi_handler *ipmi_handler,
 }
 */
 
-static void entity_presence(ipmi_entity_t	*entity,
+int entity_presence(ipmi_entity_t		*entity,
 			    int			present,
 			    void		*cb_data,
 			    ipmi_event_t	*event)
@@ -78,12 +78,13 @@ static void entity_presence(ipmi_entity_t	*entity,
 	rpt = ohoi_get_resource_by_entityid(handler->rptcache, &ent_id);
 	if (!rpt) {
 		dbg("No rpt");
-		return;
+		return SA_ERR_HPI_NOT_PRESENT;
 	}
 	rid = rpt->ResourceId;
 	res_info = oh_get_resource_data(handler->rptcache, rid);;
 	dbg("%s(%d)  %s",ipmi_entity_get_entity_id_string(entity), rid, present ? "present" : "not present");
 	entity_rpt_set_presence(res_info, handler->data,  present);
+	return SA_OK;
 }
 
 static void get_entity_event(ipmi_entity_t	*entity,
@@ -176,7 +177,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	{	/* This is the BMC entry, so we need to add watchdog. */
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_WATCHDOG;
 	}
-	entry->ResourceSeverity = SAHPI_OK;
+	entry->ResourceSeverity = SAHPI_OK;	/* Default Value -- not related to IPMI */
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_TEXT;
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
@@ -273,19 +274,21 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 					ipmi_entity_get_entity_id_string(entity));
 
 			/* entity presence overall */
-			rv = ipmi_entity_set_presence_handler(entity,
+			rv = ipmi_entity_add_presence_handler(entity,
 							      entity_presence,
 							      handler);       		
 			if (rv) 
 				dbg("ipmi_entity_set_presence_handler: %#x", rv);
 
 			/* hotswap handler */
-			rv = ipmi_entity_add_hot_swap_handler(entity, ohoi_hot_swap_cb, cb_data);
+			rv = ipmi_entity_add_hot_swap_handler(entity,
+							      ohoi_hot_swap_cb,
+							      cb_data);
 			if(rv)
 			  	dbg("Failed to set entity hot swap handler");
 
 			/* sensors */
-			rv= ipmi_entity_set_sensor_update_handler(entity,
+			rv= ipmi_entity_add_sensor_update_handler(entity,
 								  ohoi_sensor_event,
 								  handler);
 			if (rv) {
@@ -294,7 +297,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 			}
                                                                                 
 			/* controls */
-			rv = ipmi_entity_set_control_update_handler(entity,
+			rv = ipmi_entity_add_control_update_handler(entity,
 								    ohoi_control_event,
 								    handler);
                                                                                 
@@ -304,7 +307,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 			}
                                                                                 
 			/* inventory (a.k.a FRU) */
-			rv = ipmi_entity_set_fru_update_handler(entity,
+			rv = ipmi_entity_add_fru_update_handler(entity,
 								ohoi_inventory_event,
 								handler);
 			if (rv) {
