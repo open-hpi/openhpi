@@ -33,7 +33,6 @@ int main(int argc, char **argv)
 	/************************************ 
 	 * oh_decode_manufacturerid testcases
          ************************************/
-
 	{
 		/* oh_decode_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase */
 		SaHpiManufacturerIdT mid;	
@@ -41,12 +40,12 @@ int main(int argc, char **argv)
 		expected_str = "UNSPECIFIED Manufacturer";
 		mid = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
 
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, &buffer); 
 		
                 if (strcmp(expected_str, buffer.Data) || err) {
-                        printf("Error! oh_decode_manufacturerid: SAHPI_MANUFACTURER_ID_UNSPECIFIED testcase failed\n");
-			printf("Received string=%s; Error=%d\n", buffer.Data, err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s; Error=%d\n", 
+			       buffer.Data, expected_str, err);
                         return -1;
                 }
 		
@@ -54,39 +53,38 @@ int main(int argc, char **argv)
 		expected_str = "IBM";
 		mid = 2;
 
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, &buffer); 
 		
                 if (strcmp(expected_str, buffer.Data) || err) {
-                        printf("Error! oh_decode_manufacturerid: IBM testcase failed\n");
-			printf("Received string=%s; Error=%d\n", buffer.Data, err);
-                        return -1;
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s; Error=%d\n", 
+			       buffer.Data, expected_str, err);
+                         return -1;
                 }
 		
 		/* oh_encode_manufacturerid: Undefined manufacturer testcase */
 		expected_str = "Unknown Manufacturer";
 		mid = UNDEFINED_MANUFACTURER;
 
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, &buffer);
 		
                 if (strcmp(expected_str, buffer.Data) || err) {
-                        printf("Error! oh_decode_manufacturerid: Undefined manufacturer testcase failed\n");
-			printf("Received string=%s; Error=%d\n", buffer.Data, err);
-                        return -1;
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s; Error=%d\n", 
+			       buffer.Data, expected_str, err);
+                         return -1;
                 }
 
 		/* oh_encode_manufacturerid: NULL buffer testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 		mid = UNDEFINED_MANUFACTURER;
 
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, 0);
 		
                 if (err != expected_err) {
-                        printf("Error! oh_decode_manufacturerid: NULL buffer testcase failed\n");
-			printf("Error received=%d\n", err);
-                        return -1;
+ 			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
+                         return -1;
                 }
 	}
 
@@ -111,12 +109,11 @@ int main(int argc, char **argv)
 		/* oh_sensorreading: NULL buffer testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_default, format_default, 0);
 		if (err != expected_err) {
-			printf("Error! oh_sensorreading: NULL buffer testcase failed\n");
-			printf("Received error=%d\n", err);
-			return -1;
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
+ 			return -1;
 		}
 		
 		/* oh_sensorreading: IsSupported == FALSE testcase */
@@ -125,12 +122,11 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.IsSupported = SAHPI_FALSE;
 	
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
-			printf("Error! oh_sensorreading: IsSupported == FALSE testcase failed\n");
-			printf("Received error=%d\n", err);
-			return -1;
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
+ 			return -1;
 		}
 
 		/* oh_sensorreading: Bad SaHpiSensorModifierUseT testcase */
@@ -140,11 +136,10 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = BAD_TYPE;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
-			printf("Error! oh_sensorreading: Bad SaHpiSensorModifierUseT testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
@@ -155,11 +150,10 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = BAD_TYPE;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
-			printf("Error! oh_sensorreading: Bad SaHpiSensorReadingT testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 		
@@ -169,73 +163,72 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = format_default.ReadingType + 1;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
-			printf("Error! oh_sensorreading: Reading Types not equal testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase */
-		expected_str = "20 VOLTS";
+		expected_str = "20 Volts";
 		reading_test = reading_default;
 		format_test = format_default;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_INT64 failed\n");
-			printf("Received string=%s\n", buffer.Data);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
                         return -1;             
                 }
 		
 		/* oh_sensorreading: SAHPI_SMUU_BASIC_OVER_MODIFIER testcase */
-		expected_str = "20 VOLTS / WEEK";
+		expected_str = "20 Volts / Week";
 		reading_test = reading_default;
 		format_test = format_default;
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_OVER_MODIFIER;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
-			printf("Received string=%s\n", buffer.Data);
-                        return -1;             
+ 			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
+                       return -1;             
                 }
 
 		/* oh_sensorreading: SAHPI_SMUU_BASIC_TIMES_MODIFIER testcase */
-		expected_str = "20 VOLTS * WEEK";
+		expected_str = "20 Volts * Week";
 		reading_test = reading_default;
 		format_test = format_default;
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
-			printf("Received string=%s\n", buffer.Data);
-                        return -1;             
+  			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
+                       return -1;             
                 }
 
 		/* oh_sensorreading: Percentage testcase */
@@ -246,83 +239,83 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_sensorreading: testcase Percentage failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase Percentage failed\n");
-			printf("Received string=%s\n", buffer.Data);
-                        return -1;             
+   			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
+                       return -1;             
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase */
-		expected_str = "20 VOLTS";
+		expected_str = "20 Volts";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
 		reading_test.Value.SensorUint64 = 20;
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_UINT64 failed\n");
-			printf("Received string=%s\n", buffer.Data);
-                        return -1;             
+    			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
+                       return -1;             
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase */
-		expected_str = "2.020000e+01 VOLTS";
+		expected_str = "2.020000e+01 Volts";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		reading_test.Value.SensorFloat64 = 20.2;
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_FLOAT64 failed\n");
-			printf("Received string=%s\n", buffer.Data);
-                        return -1;             
+    			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
+			return -1;             
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase */
-		expected_str = "22222222222222222222222222222222 VOLTS";
+		expected_str = "22222222222222222222222222222222 Volts";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		memset(reading_test.Value.SensorBuffer, 0x32, SAHPI_SENSOR_BUFFER_LENGTH);
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		
-		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase SAHPI_SENSOR_READING_TYPE_BUFFER failed\n");
-			printf("Received string=%s\n", buffer.Data);
+    			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
                         return -1;             
                 }
 	}
@@ -331,7 +324,6 @@ int main(int argc, char **argv)
 	 * oh_xxx_textbuffer testcases
          *****************************/
 	{
-
 		char str[4] = "1234";
 
 		/* oh_init_textbuffer: NULL buffer testcase */
@@ -339,8 +331,8 @@ int main(int argc, char **argv)
 		
 		err = oh_init_textbuffer(0);
 		if (err != expected_err) {
-			printf("Error! oh_init_buffer: NULL buffer testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 		
@@ -349,8 +341,8 @@ int main(int argc, char **argv)
 
 		err = oh_append_textbuffer(0, str, strlen(str));
 		if (err != expected_err) {
-			printf("Error! oh_append_buffer: NULL buffer testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
@@ -359,8 +351,8 @@ int main(int argc, char **argv)
 
 		err = oh_append_textbuffer(&buffer, 0, strlen(str));
 		if (err != expected_err) {
-			printf("Error! oh_append_buffer: NULL str testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
@@ -372,15 +364,16 @@ int main(int argc, char **argv)
 
 		err = oh_append_textbuffer(&buffer, str, 0);
 		if (err != SA_OK) {
-			printf("Error! oh_append_buffer: Zero size testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase oh_append_texbuffer: Zero size failed\n");
-			printf("Received string=%s\n", buffer.Data);
-                        return -1;             
+     			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received string=%s; Expected string=%s\n", 
+			       buffer.Data, expected_str);
+                         return -1;             
                 }
 
 
@@ -392,9 +385,9 @@ int main(int argc, char **argv)
 			memset(bigstr, 0x32, SAHPI_MAX_TEXT_BUFFER_LENGTH +1);
 			
 			err = oh_append_textbuffer(&buffer, bigstr, strlen(bigstr));
-			if (err != SA_ERR_HPI_OUT_OF_SPACE) {
-				printf("Error! oh_append_buffer:Out of space testcase failed\n");
-				printf("Received error=%d\n", err);
+			if (err != expected_err) {
+				printf("  Error! Testcase failed. Line=__LINE__\n");
+				printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 				return -1;
 			}
 		}
@@ -404,20 +397,20 @@ int main(int argc, char **argv)
 
 		err = oh_copy_textbuffer(0, 0);
 		if (err != expected_err) {
-			printf("Error! oh_copy_buffer: NULL buffer testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 	}
 
-	/*********************************************************** 
-	 * oh_fprint_textbuffer/oh_fprint_big_textbuffer testcases
-         ***********************************************************/
+	/******************************************** 
+	 * oh_fprint_text/oh_fprint_bigtext testcases
+         ********************************************/
 	{
 		str = "OK - Printing Line 1\nOK - Printing Line 2";
 		oh_big_textbuffer big_buffer, big_bad_buffer;
 
-		/* Don't need this if expose the oh_xxx_big_textbuffer routines */
+		/* Don't need this if expose the oh_xxx_bigtext routines */
 		big_buffer.DataType = SAHPI_TL_TYPE_TEXT;
 		big_buffer.Language = SAHPI_LANG_ENGLISH;
 		memset(big_buffer.Data, 0x32, SAHPI_MAX_TEXT_BUFFER_LENGTH + 2);
@@ -427,29 +420,29 @@ int main(int argc, char **argv)
 
 		err = oh_init_textbuffer(&buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_fprint_textbuffer: oh_init_textbuffer failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 		err = oh_append_textbuffer(&buffer, str, strlen(str));	
 		if (err != SA_OK) {
-			printf("Error! oh_fprint_textbuffer: oh_append_textbuffer failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 
-		/* oh_fprint_textbuffer: oh_printf_textbuffer MACRO testcase */
-		err = oh_print_textbuffer(&buffer);
+		/* oh_fprint_text: oh_print_text MACRO testcase */
+		err = oh_print_text(&buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_fprint_textbuffer: oh_print_textbuffer testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 
-		err = oh_print_big_textbuffer(&big_buffer);
+		err = oh_print_bigtext(&big_buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_fprint_textbuffer: oh_print_big_textbuffer testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 
@@ -457,24 +450,24 @@ int main(int argc, char **argv)
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		err = oh_copy_textbuffer(&bad_buffer, &buffer);
 		if (err != SA_OK) {
-			printf("Error! oh_fprint_textbuffer: oh_copy_textbuffer failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 
 		bad_buffer.DataType = BAD_TYPE;
-		err = oh_print_textbuffer(&bad_buffer);
+		err = oh_print_text(&bad_buffer);
 		if (err != expected_err) {
-			printf("Error! oh_fprint_textbuffer: Bad data type testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
 		big_bad_buffer.DataType = BAD_TYPE;
-		err = oh_print_big_textbuffer(&big_bad_buffer);
+		err = oh_print_bigtext(&big_bad_buffer);
 		if (err != expected_err) {
-			printf("Error! oh_fprint_textbuffer: Bad data type (big buffer) testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
@@ -483,17 +476,17 @@ int main(int argc, char **argv)
 		/* Bad file handler testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 
-		err = oh_fprint_textbuffer(0, &buffer);
+		err = oh_fprint_text(0, &buffer);
 		if (err != expected_err) {
-			printf("Error! oh_fprint_textbuffer: Bad file handler testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
-		err = oh_fprint_big_textbuffer(0, &big_buffer);
+		err = oh_fprint_bigtext(0, &big_buffer);
 		if (err != expected_err) {
-			printf("Error! oh_fprint_textbuffer: Bad file handler (big buffer) testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 #endif
@@ -507,25 +500,25 @@ int main(int argc, char **argv)
 
 			fp = fopen(name, mode);
 			if (fp == NULL) {
-				printf("Error! oh_fprint_textbuffer: fopen failed\n");
+				printf("  Error! Testcase failed. Line=__LINE__\n");
 				return -1;
 			}
-			err = oh_fprint_textbuffer(fp, &buffer);
+			err = oh_fprint_text(fp, &buffer);
 			if (err != SA_OK) {
-				printf("Error! oh_fprint_textbuffer: Normal write to file testcase failed\n");
-				printf("Received error=%d\n", err);
+				printf("  Error! Testcase failed. Line=__LINE__\n");
+				printf("  Received error=%d\n", err);
 				return -1;
 			}
 
 			big_fp = fopen(big_name, mode);
 			if (big_fp == NULL) {
-				printf("Error! oh_fprint_textbuffer: fopen (big buffer) failed\n");
+				printf("  Error! Testcase failed. Line=__LINE__\n");
 				return -1;
 			}
-			err = oh_fprint_big_textbuffer(big_fp, &big_buffer);
+			err = oh_fprint_bigtext(big_fp, &big_buffer);
 			if (err != SA_OK) {
-				printf("Error! oh_fprint_textbuffer:  Normal write to file (big buffer) testcase failed\n");
-				printf("Received error=%d\n", err);
+				printf("  Error! Testcase failed. Line=__LINE__\n");
+				printf("  Received error=%d\n", err);
 				return -1;
 			}
 
@@ -583,24 +576,24 @@ int main(int argc, char **argv)
 
 		err = oh_print_sensorrec(0);
 		if (err != expected_err) {
-			printf("Error! oh_print_sensorrec: Bad parameter testcase failed\n");
-			printf("Received error=%d; Expected error=%d\n", err, expected_err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d; Expected error=%d\n", err, expected_err);
 			return -1;
 		}
 
 		/* oh_print_sensorrec: Default sensor testcase */
 		err = oh_print_sensorrec(&default_sensor);
 		if (err != SA_OK) {
-			printf("Error!oh_print_sensorrec: Default sensor testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 
 		/* oh_print_sensorrec: Normal sensor testcase */
 		err = oh_print_sensorrec(&sensor);
 		if (err != SA_OK) {
-			printf("Error! oh_print_sensorrec: Normal sensor testcase failed\n");
-			printf("Received error=%d\n", err);
+			printf("  Error! Testcase failed. Line=__LINE__\n");
+			printf("  Received error=%d\n", err);
 			return -1;
 		}
 	}
