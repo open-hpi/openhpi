@@ -292,10 +292,20 @@ const char * rdrtype2str(SaHpiRdrTypeT type)
 
 void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 {
-        SaErrorT             err;
-        SaHpiEntryIdT        current_rdr;
-        SaHpiEntryIdT        next_rdr;
-        SaHpiRdrT            rdr;
+        SaErrorT             	err;
+        SaHpiEntryIdT        	current_rdr;
+        SaHpiEntryIdT        	next_rdr;
+        SaHpiRdrT            	rdr;
+
+	SaHpiSensorReadingT	reading;
+	SaHpiSensorTypeT	sensor_type;
+	SaHpiSensorNumT		sensor_num;
+	SaHpiEventCategoryT	category;
+	SaHpiSensorThresholdsT	thres; 
+
+	SaHpiCtrlNumT   	ctrl_num;
+	SaHpiCtrlStateT 	state;
+	SaHpiCtrlTypeT  	ctrl_type;
 
         printf("RDR Info:\n");
         next_rdr = SAHPI_FIRST_ENTRY;
@@ -316,26 +326,21 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 printf("\tRdrType: %s\n", rdrtype2str(rdr.RdrType));
 		
 		if (rdr.RdrType == SAHPI_SENSOR_RDR)
-		{
-			SaHpiSensorReadingT	reading;
-			SaHpiSensorTypeT	type;
-			SaHpiSensorNumT		num;
-			SaHpiEventCategoryT	category;
-			SaHpiSensorThresholdsT	thres;
-			//SaHpiSensorReadingT	converted;
-			
+		{			
 			SaErrorT val;
 			
-			num = rdr.RdrTypeUnion.SensorRec.Num;
+			sensor_num = rdr.RdrTypeUnion.SensorRec.Num;
 			
-			val = saHpiSensorTypeGet(session_id, resource_id, num, &type, &category);
+			val = saHpiSensorTypeGet(session_id, resource_id, 
+						 sensor_num, &sensor_type, 
+						 &category);
 			
-			printf("\tSensor num: %i\n\tType: %s\n", num, get_sensor_type(type)); 
+			printf("\tSensor num: %i\n\tType: %s\n", sensor_num, get_sensor_type(sensor_type)); 
 			printf("\tCategory: %s\n", get_sensor_category(category)); 
 
-			err = saHpiSensorReadingGet(session_id, resource_id, num, &reading);
+			err = saHpiSensorReadingGet(session_id, resource_id, sensor_num, &reading);
 			if (err != SA_OK) {
-				printf("Error=%d reading sensor data {sensor, %d}\n", err, num);
+				printf("Error=%d reading sensor data {sensor, %d}\n", err, sensor_num);
 				break;
 			}
 
@@ -354,9 +359,9 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			}
 
 			if (rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
-				err = saHpiSensorThresholdsGet(session_id, resource_id, num, &thres);
+				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num, &thres);
 				if (err != SA_OK) {
-					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, num);
+					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num);
 					break;
 				}
 				
@@ -398,50 +403,54 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 		if (rdr.RdrType == SAHPI_CTRL_RDR)
 		{    
 
-			SaHpiCtrlNumT   num;
-			SaHpiCtrlStateT state;
-			SaHpiCtrlTypeT  type;
-			SaErrorT        err;
 
-			num = rdr.RdrTypeUnion.CtrlRec.Num;
-			err = saHpiControlTypeGet(session_id, resource_id, num, &type);
+			ctrl_num = rdr.RdrTypeUnion.CtrlRec.Num;
+			err = saHpiControlTypeGet(session_id, resource_id, ctrl_num, &ctrl_type);
 			if (err != SA_OK) {
-				printf("Error=%d reading control type {control, %d}\n", err, num);
+				printf("Error=%d reading control type {control, %d}\n", err, ctrl_num);
 				break;
 			}
-			printf("\tControl num: %i\n\tType: %s\n", num, get_control_type(type)); 
+			printf("\tControl num: %i\n\tType: %s\n", ctrl_num, get_control_type(ctrl_type)); 
 		
-			err = saHpiControlStateGet(session_id, resource_id, num, &state);
+			err = saHpiControlStateGet(session_id, resource_id, ctrl_num, &state);
 			if (err != SA_OK) {
-				printf("Error=%d reading control state {control, %d}\n", err, num);
+				printf("Error=%d reading control state {control, %d}\n", err, ctrl_num);
 				break;
 			}
-			if (type != state.Type) {
+			if (ctrl_type != state.Type) {
 				printf("Control Type mismatch between saHpiControlTypeGet=%d and saHpiControlStateGet = %d\n", 
-				       type, state.Type);
+				       ctrl_type, state.Type);
 			}
 
 			switch (state.Type) {
-			case SAHPI_CTRL_TYPE_DIGITAL:
-				printf("Control Digital State=%s\n", ctrldigital2str(state.StateUnion.Digital));
-			case SAHPI_CTRL_TYPE_DISCRETE:
-				printf("Control Discrete State=%x\n", state.StateUnion.Discrete);
-			case SAHPI_CTRL_TYPE_ANALOG:
-				printf("Control Analog State=%x\n", state.StateUnion.Analog);
-			case SAHPI_CTRL_TYPE_STREAM:
-				printf("Control Stream Repeat=%d\n", state.StateUnion.Stream.Repeat);
-				printf("Control Stream Data=");
-				display_oembuffer(state.StateUnion.Stream.StreamLength, state.StateUnion.Stream.Stream);
-			case SAHPI_CTRL_TYPE_TEXT:
-				printf("Control Text Line Num=%c\n", state.StateUnion.Text.Line);
-				display_textbuffer(state.StateUnion.Text.Text);
-			case SAHPI_CTRL_TYPE_OEM:
-				printf("Control OEM Manufacturer=%d\n", state.StateUnion.Oem.MId);
-				printf("Control OEM Data=");
-				display_oembuffer((SaHpiUint32T)state.StateUnion.Oem.BodyLength, 
+				case SAHPI_CTRL_TYPE_DIGITAL:
+					printf("Control Digital State=%s\n", 
+					       ctrldigital2str(state.StateUnion.Digital));
+					break;
+				case SAHPI_CTRL_TYPE_DISCRETE:
+					printf("Control Discrete State=%x\n", state.StateUnion.Discrete);
+					break;
+				case SAHPI_CTRL_TYPE_ANALOG:
+					printf("Control Analog State=%x\n", state.StateUnion.Analog);
+					break;
+				case SAHPI_CTRL_TYPE_STREAM:
+					printf("Control Stream Repeat=%d\n", state.StateUnion.Stream.Repeat);
+					printf("Control Stream Data=");
+					display_oembuffer(state.StateUnion.Stream.StreamLength, state.StateUnion.Stream.Stream);
+					break;
+				case SAHPI_CTRL_TYPE_TEXT:
+					printf("Control Text Line Num=%c\n", state.StateUnion.Text.Line);
+					display_textbuffer(state.StateUnion.Text.Text);
+					break;
+				case SAHPI_CTRL_TYPE_OEM:
+					printf("Control OEM Manufacturer=%d\n", state.StateUnion.Oem.MId);
+					printf("Control OEM Data=");
+					display_oembuffer((SaHpiUint32T)state.StateUnion.Oem.BodyLength, 
 						  state.StateUnion.Oem.Body);
-			default:
-				printf("Invalid control type=%d from saHpiControlStateGet\n", state.Type);
+					break;
+				default:
+					printf("Invalid control type=%d from saHpiControlStateGet\n", 
+					       state.Type);
 			}
 		}
 
