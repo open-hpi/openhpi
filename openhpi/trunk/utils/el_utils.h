@@ -43,16 +43,23 @@ typedef struct {
         GList            *elentries; // list of SaHpiEventLogEntryT structs
 } oh_el;
 
+/* this structure encapsulates the actual log entry and its context */
+typedef struct {
+        SaHpiEventLogEntryT event;
+        SaHpiRdrT        rdr; // All 0's means no associated rdr
+        SaHpiRptEntryT   rpt; // All 0's means no associated rpt
+} oh_el_entry;
+
 /* General EL utility calls */
 oh_el *oh_el_create(SaHpiUint32T size);
 SaErrorT oh_el_close(oh_el *el);
-SaErrorT oh_el_add(oh_el *el, SaHpiEventT *event); /* to be removed in the future */
-SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event);
-SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event);
-SaErrorT oh_el_delete(oh_el *el, SaHpiEntryIdT *entryid);
+SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
+                      SaHpiRptEntryT *rpt);
+SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
+                      SaHpiRptEntryT *rpt);
 SaErrorT oh_el_clear(oh_el *el);
 SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
-                    SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT **entry);
+                    SaHpiEventLogEntryIdT *next, oh_el_entry **entry);
 SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info);
 SaErrorT oh_el_map_to_file(oh_el *el, char *filename);
 SaErrorT oh_el_map_from_file(oh_el *el, char *filename);

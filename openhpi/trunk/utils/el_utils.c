@@ -60,21 +60,11 @@ SaErrorT oh_el_close(oh_el *el)
 }
 
 
-/* add a new entry to the EL
- *
- * This API will be removed in a later version.
- * You should use oh_el_append instead.
- */
-SaErrorT oh_el_add(oh_el *el, SaHpiEventT *event)
-{
-        return oh_el_append(el, event);
-}
-
-
 /* append a new entry to the EL */
-SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event)
+SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
+                      SaHpiRptEntryT *rpt)
 {
-        SaHpiEventLogEntryT *entry;
+        oh_el_entry *entry;
         time_t tt1;
         GList *temp;
 
@@ -87,10 +77,16 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event)
         }
 
         /* alloc the new entry */
-        entry = (SaHpiEventLogEntryT *) g_malloc0(sizeof(SaHpiEventLogEntryT));
+        entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
         if (entry == NULL) {
                 el->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+        if (rdr != NULL) {
+                memcpy(&(entry->rdr), rdr, sizeof(SaHpiRdrT));
+        }
+        if (rpt != NULL) {
+                memcpy(&(entry->rpt), rdr, sizeof(SaHpiRptEntryT));
         }
 
         /* if necessary, wrap the el entries */
@@ -103,7 +99,7 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event)
         }
 
         /* append the new entry */
-        entry->EntryId = el->nextId;
+        entry->event.EntryId = el->nextId;
         el->nextId++;
         if (el->gentimestamp) {
                 time(&tt1);
@@ -111,17 +107,19 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event)
         } else {
                 el->lastUpdate = event->Timestamp;
         }
-        entry->Timestamp = el->lastUpdate;
-        memcpy(&(entry->Event), event, sizeof(SaHpiEventT));
+        entry->event.Timestamp = el->lastUpdate;
+        memcpy(&(entry->event.Event), event, sizeof(SaHpiEventT));
         el->elentries = g_list_append(el->elentries, entry);
         return SA_OK;
 }
 
 
 /* prepend a new entry to the EL */
-SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event)
+SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
+                       SaHpiRptEntryT *rpt)
 {
-        SaHpiEventLogEntryT *entry, *tmpentry;
+        oh_el_entry *entry, *tmpentry;
+        SaHpiEventLogEntryT *tmplog;
         time_t tt1;
         GList *ellist;
 
@@ -139,7 +137,7 @@ SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event)
         }
 
         /* alloc the new entry */
-        entry = (SaHpiEventLogEntryT *) g_malloc0(sizeof(SaHpiEventLogEntryT));
+        entry = (oh_el_entry *) g_malloc0(sizeof(oh_el_entry));
         if (entry == NULL) {
                 el->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -150,13 +148,14 @@ SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event)
          */
         ellist = g_list_first(el->elentries);
         while (ellist != NULL) {
-                tmpentry = (SaHpiEventLogEntryT *) ellist->data;
-                tmpentry->EntryId++;
+                tmpentry = (oh_el_entry *) ellist->data;
+                tmplog = (SaHpiEventLogEntryT *) &(tmpentry->event);
+                tmplog->EntryId++;
                 ellist = g_list_next(ellist);
         }
 
         /* prepend the new entry */
-        entry->EntryId = 1;
+        entry->event.EntryId = 1;
         el->nextId++;
         if (el->gentimestamp) {
                 time(&tt1);
@@ -164,17 +163,10 @@ SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event)
         } else {
                 el->lastUpdate = event->Timestamp;
         }
-        entry->Timestamp = el->lastUpdate;
-        memcpy(&(entry->Event), event, sizeof(SaHpiEventT));
+        entry->event.Timestamp = el->lastUpdate;
+        memcpy(&(entry->event.Event), event, sizeof(SaHpiEventT));
         el->elentries = g_list_prepend(el->elentries, entry);
         return SA_OK;
-}
-
-
-/* delete an entry in the EL (not supported, per errata) */
-SaErrorT oh_el_delete(oh_el *el, SaHpiEntryIdT *entryid)
-{
-        return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
 
@@ -209,9 +201,9 @@ SaErrorT oh_el_clear(oh_el *el)
 
 /* get an EL entry */
 SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
-                    SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT **entry)
+                    SaHpiEventLogEntryIdT *next, oh_el_entry **entry)
 {
-        SaHpiEventLogEntryT *myentry;
+        oh_el_entry *myentry;
         GList *ellist;
         SaHpiEventLogEntryIdT srchentryid, firstid, lastid;
 
@@ -224,11 +216,11 @@ SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryI
 
         /* get the first and last entry ids for possible translation */
         ellist = g_list_last(el->elentries);
-        myentry = (SaHpiEventLogEntryT *)ellist->data;
-        lastid = myentry->EntryId;
+        myentry = (oh_el_entry *)ellist->data;
+        lastid = myentry->event.EntryId;
         ellist = g_list_first(el->elentries);
-        myentry = (SaHpiEventLogEntryT *)ellist->data;
-        firstid = myentry->EntryId;
+        myentry = (oh_el_entry *)ellist->data;
+        firstid = myentry->event.EntryId;
         if (entryid == SAHPI_NEWEST_ENTRY) {
                 srchentryid = lastid;
         }
@@ -241,26 +233,26 @@ SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryI
 
         ellist = g_list_first(el->elentries);
         while (ellist != NULL) {
-                myentry = (SaHpiEventLogEntryT *) ellist->data;
-                if (srchentryid == myentry->EntryId) {
+                myentry = (oh_el_entry *) ellist->data;
+                if (srchentryid == myentry->event.EntryId) {
                         *entry = myentry;
                         /* is this the first entry? */
-                        if (myentry->EntryId == firstid) {
+                        if (myentry->event.EntryId == firstid) {
                                 *prev = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
-                                *prev = myentry->EntryId - 1;
+                                *prev = myentry->event.EntryId - 1;
                         }
                         /* is this the last entry? */
-                        if (myentry->EntryId == lastid) {
+                        if (myentry->event.EntryId == lastid) {
                                 *next = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
-                                *next = myentry->EntryId + 1;
+                                *next = myentry->event.EntryId + 1;
                         }
                         return SA_OK;
                 }
-                else if (entryid < myentry->EntryId) {
+                else if (entryid < myentry->event.EntryId) {
                         return SA_ERR_HPI_NOT_PRESENT;
                 }
                 ellist = g_list_next(ellist);
@@ -308,7 +300,7 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 
         ellist = g_list_first(el->elentries);
         while (ellist != NULL) {
-                write(file, (void *)ellist->data, sizeof(SaHpiEventLogEntryT));
+                write(file, (void *)ellist->data, sizeof(oh_el_entry));
                 ellist = g_list_next(ellist);
         }
 
@@ -325,7 +317,7 @@ SaErrorT oh_el_map_to_file(oh_el *el, char *filename)
 SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
 {
         int file;
-        SaHpiEventLogEntryT entry;
+        oh_el_entry entry;
         SaErrorT retc;
 
         /* check el params and state */
@@ -343,12 +335,13 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
         }
 
         oh_el_clear(el); // ensure list is empty
-        while (read(file, &entry, sizeof(SaHpiEventLogEntryT)) == sizeof(SaHpiEventLogEntryT)) {
-                el->nextId = entry.EntryId;
+        while (read(file, &entry, sizeof(oh_el_entry)) == sizeof(oh_el_entry)) {
+                el->nextId = entry.event.EntryId;
                 /* Need a way to preserve the original entry's timestamp
                  * if that is of use. -- RM
                  */
-                retc = oh_el_add(el, &(entry.Event));
+                retc = oh_el_append(el, &(entry.event.Event), &(entry.rdr),
+                                    &(entry.rpt));
                 if (retc) {
                         close(file);
                         return retc;
