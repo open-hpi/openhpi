@@ -116,11 +116,13 @@
  */
 GSList *global_domain_list = NULL;
 
+#if 0
 /*
  *  Global listing of plugins (oh_plugin).  This list is populated
  *  by the configuration subsystem, and used by the plugin loader.
  */
 GSList *global_plugin_list = NULL;
+#endif
 
 /*
  *  Global listing of handlers (oh_handler).  This list is populated
@@ -185,6 +187,7 @@ struct oh_handler {
           between different instances
         */
         void *hnd;
+	
 };
 
 /*
@@ -204,13 +207,30 @@ struct oh_resource {
           RPT entry visible by the HPI caller
         */
         SaHpiRptEntryT		entry;
-        
+      
+	/*
+	   The handler of the resource
+	*/
+	struct oh_handler *handler;
+	
+	/*
+	  This is the list of domain ids which contain the handler
+	 */
+	GSList *domain_list;
+
         /*
           When the SAHPI_CAPABILITY_RDR flag is set in the
           ResourceCapabilities member of the RPT entry, this 
           contains the list of associated RDR entries
         */
         GSList *rdr_list;
+
+	/*
+	  When the SAHPI_CAPABILITY_DOMAIN flag is set in the
+	  ResourceCapabilities member of the RPT entry, this
+	  is domain id which is conatined by this
+	 */
+	SaHpiDomainIdT domain_id;
 };
 
 struct oh_rdr {
