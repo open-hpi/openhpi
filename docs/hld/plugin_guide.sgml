@@ -39,5 +39,109 @@
 	hardware, the infrastructure library uses the 'abi' interface functions
 	to communicate with a plug-in and send commands and/or data to the hardware.
     </para>
-  </sect1>
+    <para>
+	Every plug-in in openhpi requires the following:
+	<literal>struct oh_abi_v1</literal> declaration such as:
+    </para>
+    <para>
+    <programlisting role="C">
+
+static struct oh_abi_v1 my_plugin = {
+	.open				= my_open,
+	.close				= my_close,
+	.get_event			= my_get_event,
+	.discover_resources     	= my_discover_resources,
+	.get_self_id			= my_get_self_id,
+	.get_sel_info			= my_get_sel_info,
+	.set_sel_time			= my_set_sel_time,
+	.add_sel_entry			= my_add_sel_entry,
+	.del_sel_entry			= my_del_sel_entry,
+	.get_sel_entry			= my_get_sel_entry,
+	.get_sensor_data		= my_get_sensor_data,
+	.get_sensor_thresholds		= my_get_sensor_thresholds,
+	.set_sensor_thresholds		= my_set_sensor_thresholds,
+	.get_sensor_event_enables	= my_get_sensor_event_enables,
+	.set_sensor_event_enables	= my_set_sensor_event_enables,
+	.get_control_state		= my_get_control_state,
+	.set_control_state		= my_set_control_state,
+};
+    </programlisting>
+    </para>
+    <para>
+	This C99 style structure relates to the function pointers defined
+	in <literal>plugin.h</literal> and is the entry point into plug-in functions.
+
+	The sesond requirement is the get_interface function which is called
+	when a plug-in is initialized by the infrastructure.
+	It exposes the internal (above) functions a plug-in supports/implements.
+
+	The functions looks like:
+    </para>
+    <para>
+    <programlisting role="C">
+int get_interface(void **pp, uuid_t uuid)
+{
+	if (uuid_compare(uuid, UUID_OH_ABI_V1)==0) {
+		*(struct oh_abi_v1 **)pp = &<literal>oh_my_plugin</literal>;
+		return 0;
+	}
+
+	*pp = NULL;
+	return -1;
+}
+    </programlisting>
+    </para>
+    </sect1>
+
+    <sect1>
+    <title>Naming convention and return codes</title>
+    <para>
+
+	You'll notice through out the code that functions, variables and structures
+	start with <literal>oh_</literal>.
+	This stands for OpenHpi :)
+    </para>
+
+    <para>
+	Return codes:
+    </para>
+    <para>
+	Plug-ins in OpenHpi shall return 0 for success and negative numbers for errors.
+    </para>
+    <note>
+    <para>
+	 The use of HPI defined return codes such as SA_OK and SA_ERR_HPI_ERROR
+	 is allowed as well; given that it will not present a problem
+	 on different architectures.
+    </para>
+    </note>
+    
+	
+    </sect1>
+
+    <sect1>
+    <title>The <literal>Open</literal> function</title>
+    <para>
+	The open function is the first function called when a plug-in is initialized.
+    </para>
+
+   </sect1>
+
+    <sect1>
+    <title>The <literal>close</literal> function</title>
+    <para>
+	The close function is called when a plug-in is finalized.
+    </para>
+
+   </sect1>
+
+    <sect1>
+    <title>The <literal>discover_resources</literal> function</title>
+    <para>
+	The discover_resources function is the function which reports the plug-in's
+	findings of resources, sensors, controls, etc. to the infrastructure.
+    </para>
+
+   </sect1>
+
 </chapter>
