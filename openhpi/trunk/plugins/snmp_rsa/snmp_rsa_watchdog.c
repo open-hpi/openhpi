@@ -23,7 +23,7 @@ SaErrorT snmp_rsa_get_watchdog_info(void *hnd,
 				    SaHpiWatchdogT *wdt)
 {
 	/* Watchdog not supported */
-        return SA_ERR_HPI_NOT_PRESENT;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 SaErrorT snmp_rsa_set_watchdog_info(void *hnd,
@@ -32,7 +32,7 @@ SaErrorT snmp_rsa_set_watchdog_info(void *hnd,
 				    SaHpiWatchdogT *wdt)
 {
 	/* Watchdog not supported */
-        return SA_ERR_HPI_NOT_PRESENT;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 SaErrorT snmp_rsa_reset_watchdog(void *hnd,
@@ -40,5 +40,5 @@ SaErrorT snmp_rsa_reset_watchdog(void *hnd,
 				 SaHpiWatchdogNumT num)
 {
  	/* Watchdog not supported */
-        return SA_ERR_HPI_NOT_PRESENT;
+        return SA_ERR_HPI_INVALID_CMD;
 }
