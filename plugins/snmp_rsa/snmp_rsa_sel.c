@@ -127,17 +127,16 @@ SaErrorT snmp_rsa_build_selcache(void *hnd, SaHpiResourceIdT id)
 {
         struct oh_handler_state *handle = hnd;
         struct snmp_rsa_hnd *custom_handle = handle->data;
-	int current;
+	int current, i;
 	SaErrorT rv;
 	
 	current = get_rsa_sel_size_from_hardware(custom_handle->ss);
 	
-	if (current != 0) {
-        	do {
-        		rv = snmp_rsa_sel_read_add (hnd, id, current); 
-        		current--;
-		} while(current > 0);
-	}
+        /* Work around RSA SEL read problem - bug 940051 */
+        /* Always load Newest -> Oldest entry order */
+        for (i = 1; i <= current; i++) {
+                rv = snmp_rsa_sel_read_add (hnd, id, i); 
+        }
 	
 	return SA_OK;
 }
