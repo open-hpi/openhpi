@@ -150,10 +150,10 @@ struct oh_rsel_event {
 struct oh_event {
 	enum {
 		OH_ET_RESOURCE,
-		OH_ET_DOMAIN,
+		OH_ET_RESOURCE_DEL,
 		OH_ET_RDR,
-		OH_ET_HPI,
-		OH_ET_RSEL,
+                OH_ET_RDR_DEL,
+		OH_ET_HPI
 	}type;
 	union {
 		struct oh_resource_event res_event;
