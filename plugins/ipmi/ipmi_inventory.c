@@ -145,7 +145,7 @@ static struct ohoi_area_data {
 	},
 	{
 		sizeof(product_fields)/sizeof(product_fields[0]),
-		SAHPI_IDR_AREATYPE_BOARD_INFO,
+		SAHPI_IDR_AREATYPE_PRODUCT_INFO,
 		product_fields
 	},
 	{
