@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#       $Id$
+#  $Id$
  
 #  (C) Copyright IBM Corp. 2004
  
