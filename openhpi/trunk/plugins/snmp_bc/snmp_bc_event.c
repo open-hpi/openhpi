@@ -155,9 +155,9 @@ SaErrorT snmp_bc_discover_res_events(struct oh_handler_state *handle,
 			   dynamic data so the hash can use this field for recovery data */
 			hpievent->EventDataUnion.HotSwapEvent.PreviousHotSwapState = 
 				res_info_ptr->event_array[i].recovery_state;
-#if 0
+
 			trace("Discovered resource event=%s.", normalized_str);
-#endif
+
 			g_hash_table_insert(custom_handle->event2hpi_hash_ptr, normalized_str, hpievent);
 			/* normalized_str space is recovered when hash is freed */
 		}
@@ -262,9 +262,9 @@ SaErrorT snmp_bc_discover_sensor_events(struct oh_handler_state *handle,
 				hpievent->EventDataUnion.SensorEvent.TriggerReading.IsSupported = SAHPI_FALSE;	
 				hpievent->EventDataUnion.SensorEvent.TriggerThreshold.IsSupported = SAHPI_FALSE;
 			}
-#if 0
+
 			trace("Discovered sensor event=%s.", normalized_str);
-#endif
+
 			g_hash_table_insert(custom_handle->event2hpi_hash_ptr, normalized_str, hpievent);
 			/* normalized_str space is recovered when hash is freed */
 		}
@@ -392,9 +392,9 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 			strcpy(search_str, root_str);
 		}
 	}
-#if 1
+
 	trace("Search string=%s.", search_str);
-#endif
+
 	/* See if adjusted root string is in the XML to event hash table */
 	strhash_data = (Xml2EventInfoT *)g_hash_table_lookup(bc_xml2event_hash, search_str);
 	if (strhash_data) {
@@ -812,6 +812,8 @@ static SaErrorT snmp_bc_map2oem(SaHpiEventT *event,
 		dbg("Invalid parameters.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+
+	trace("OEM Event Reason Code=%s\n", reason ? "NOT_ALERTABLE" : "NOT MAPPED");
 
 	event->EventType = SAHPI_ET_OEM;
 	event->EventDataUnion.OemEvent.MId = IBM_MANUFACTURING_ID;

@@ -323,7 +323,6 @@ int main(int argc, char **argv)
 		return -1;
         }
 
-#if 0
 	/*************************************************************
 	 * TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)
 	 *************************************************************/
@@ -364,7 +363,6 @@ int main(int argc, char **argv)
 		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
-#endif
 
 	/* Better to test a mapped login event - BC doesn't seem to have one defined yet */
 	/*************************************************************
