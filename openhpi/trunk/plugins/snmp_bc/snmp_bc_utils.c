@@ -74,8 +74,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         /* separate substrings */
         tmpstr = g_strsplit(BC_UUID, UUID_delimiter1, -1);
         for ( UUID_cnt=0; tmpstr[UUID_cnt] != NULL; UUID_cnt++ );
-        trace("number of UUID substrings = %d, strings =", UUID_cnt);
-        for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n");
+        /* trace("number of UUID substrings = %d, strings =", UUID_cnt); */
+        /* for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n"); */
         if ( UUID_cnt == 0 ) {
                 dbg("Zero length UUID string.");
                 status = SA_ERR_HPI_ERROR;
@@ -86,8 +86,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                 for ( UUID_cnt=0; ; UUID_cnt++ ) {
                         if ( tmpstr[UUID_cnt] == NULL ) break;
                 }
-                trace("Number of UUID substrings = %d, strings =", UUID_cnt);
-                for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n");
+                /* trace("Number of UUID substrings = %d, strings =", UUID_cnt); */
+                /* for (i=0; i<UUID_cnt; i++) trace(" %s", tmpstr[i]); trace("\n"); */
                 if ( UUID_cnt == 0 ) {
                         dbg("Zero length UUID string.");
                         status = SA_ERR_HPI_ERROR;
@@ -107,15 +107,15 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }
-                trace("UUID string %s\n", UUID);
+                trace("UUID string %s", UUID);
                 /* convert UUID string to numberic UUID value */
                 if ( (status = uuid_parse(UUID, UUID_val)) ) {
                         dbg("Cannot parse UUID string err=%d.", status);
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }       
-                trace("GUID value  ");
-                for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n");
+                /* trace("GUID value  "); */
+                /* for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n"); */
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
         }
@@ -138,8 +138,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
                         status = SA_ERR_HPI_ERROR;
                         goto CLEANUP;
                 }       
-                trace("GUID value  ");
-                for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n");
+                /* trace("GUID value  "); */
+                /* for (i=0; i<16; i++) { trace("%02x", UUID_val[i]);} trace("\n"); */
                 memmove ( guid, &UUID_val, sizeof(uuid_t));
                 status = SA_OK;
         }
