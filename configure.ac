@@ -38,10 +38,6 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
-AC_MSG_ERROR([
-*** You don't want this CVS Tree, this is for OpenHPI 2.0 ***
-])
-
 # die on int != 32bits.  This is too instrumental to our code right now.
 # AC_MSG_CHECKING(int is 4 bytes)
 OH_SET_SIZES
@@ -481,13 +477,6 @@ AC_ARG_ENABLE([testcover],
     [if test "x$enableval" = "xyes"; then
             CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
             CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
-    fi]
-    )
-
-AC_ARG_ENABLE([debug],
-    [  --enable-debug        turn on debug messages [default=no]],
-    [if test "x$enableval" = "xyes"; then
-            CFLAGS="$CFLAGS -DDEBUG"
     fi]
     )
 
