@@ -17,6 +17,8 @@
 #include <oh_session.h>
 #include <string.h>
 
+session_table = NULL;
+
 struct session_net {
         SaHpiDomainIdT did;
         GSList **sessions_ptr;
@@ -25,12 +27,12 @@ struct session_net {
 static void fetch_domain_sessions(gpointer key, gpointer value, gpointer data)
 {
         struct oh_session *session = value;
-        struct session_net *net = data;        
+        struct session_net *net = data;
 
         if (session->domain_id == net->did) {
                 *(net->sessions_ptr) =
                         g_slist_append(*(net->sessions_ptr), session);
-        }        
+        }
 }
 
 /**
@@ -46,17 +48,17 @@ SaErrorT oh_create_session(SaHpiDomainIdT did, SaHpiSessionIdT *sid)
 {
         static guint session_id = 0; /* Session ids will be > 0 */
         struct oh_session *session = NULL;
-        
+
         if (did < 1 || !sid) return SA_ERR_HPI_INVALID_PARAMS;
-                
+
         session = g_new0(struct oh_session, 1);
         if (!session) return SA_ERR_HPI_OUT_OF_MEMORY;
 
         /* Need to lock these lines -- RM */
         session->session_id = ++session_id;
         session->domain_id = did;
-        g_hash_table_insert(session_table, &(session->session_id), session);        
-                        
+        g_hash_table_insert(session_table, &(session->session_id), session);
+
         *sid = session_id;
 
         return SA_OK;
@@ -120,7 +122,7 @@ SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session **session)
 SaErrorT oh_list_sessions(SaHpiDomainIdT did, GSList **session_ids)
 {
         struct session_net net;
-        
+
         if (did < 1 || !session_ids) return SA_ERR_HPI_INVALID_PARAMS;
 
         net.did = did;
@@ -158,7 +160,7 @@ SaHpiBoolT oh_is_session_subscribed(SaHpiDomainIdT sid)
         if (session->event_state == OH_EVENT_SUBSCRIBE)
                 return SAHPI_TRUE;
         else
-                return SAHPI_FALSE;        
+                return SAHPI_FALSE;
 }
 
 /**
@@ -179,7 +181,7 @@ SaErrorT oh_destroy_session(SaHpiDomainIdT sid)
 
         session = g_hash_table_lookup(session_table, &sid);
         if (!session) return SA_ERR_HPI_NOT_PRESENT;
-        
+
         /* Need locking starting here -- RM */
         for (node = session->eventq; node != NULL; node = node->next) {
                 g_free(node->data);

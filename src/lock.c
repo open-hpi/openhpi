@@ -15,7 +15,7 @@
  */
 #include <oh_lock.h>
 
-/*oh_will_block = 0;*/
+oh_will_block = 0;
 		 
 #ifdef HAVE_THREAD_SAFE
 /* multi-threading support, use Posix mutex for data access */
