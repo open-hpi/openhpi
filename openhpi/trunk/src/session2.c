@@ -167,7 +167,7 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
  *
  * Returns:
  **/
-SaErrorT oh_get_session_state(SaHpiDomainIdT sid, SaHpiBoolT *state)
+SaErrorT oh_get_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT *state)
 {
         struct oh_session *session = NULL;
 
@@ -194,7 +194,7 @@ SaErrorT oh_get_session_state(SaHpiDomainIdT sid, SaHpiBoolT *state)
  *
  * Returns:
  **/
-SaErrorT oh_set_session_state(SaHpiDomainIdT sid, SaHpiBoolT state)
+SaErrorT oh_set_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT state)
 {
        struct oh_session *session = NULL;
 

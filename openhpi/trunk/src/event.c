@@ -153,7 +153,7 @@ static int process_hpi_event(struct oh_event *full_event)
                 SaHpiBoolT is_subscribed = SAHPI_FALSE;
                 sid = g_array_index(sessions, SaHpiSessionIdT, i);
                 
-                oh_get_session_state(sid, &is_subscribed);
+                oh_get_session_subscription(sid, &is_subscribed);
                 if(is_subscribed) {
                         oh_queue_session_event(sid, full_event);
                 }
