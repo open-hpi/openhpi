@@ -68,10 +68,25 @@ dnl Checks for other helper programs
 
 AC_PATH_PROGS(RPM, rpmbuild)
 
-dnl plugin replacement stuff
+dnl plugin enablement stanzas
 
 PLUGINS=dummy
-PLUGIN_DIRS=src/plugins/dummy/Makefile
+
+AC_ARG_ENABLE([dummy],
+    [  --enable-dummy          build dummy plugin [default=yes]],)
+dnl    [PLUGINS="$PLUGINS dummy"],[PLUGINS=`echo $PLUGINS | sed 's/dummy//'`])
+
+AC_ARG_ENABLE([watchdog],
+    [  --enable-watchdog       build watchdog plugin [default=no]],
+    [PLUGINS="$PLUGINS watchdog"])
+
+AC_ARG_ENABLE([ipmi],
+    [  --enable-ipmi           build openipmi plugin [default=no]],
+    [PLUGINS="$PLUGINS ipmi"])
+
+
+dnl plugin replacement stuff
+
 AC_SUBST(PLUGINS)
 
 dnl 
