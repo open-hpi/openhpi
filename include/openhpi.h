@@ -134,6 +134,12 @@ struct oh_domain {
         /* Domain's Resource Presence Table */
         RPTable rptable;
 
+        /* Domain Alarm Table */
+        void alarm_table;
+
+        /* Domain Reference Table */
+        void reference_table
+
         /* Domain Information */
         SaHpiDomainInfoT domain_info;
         
