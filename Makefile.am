@@ -30,7 +30,6 @@
 #  
  
 
-
 RPMREL			= @RPMREL@
 RPM			= @RPM@
 RPMFLAGS		= -ta
@@ -41,13 +40,13 @@ RPMDIR			=$(HOME)/rpms
 RPMSRC	=$(DESTDIR)$(RPMDIR)/SRPMS/$(PACKAGE)-$(VERSION)-$(RPMREL).src.rpm
 RPM386	=$(DESTDIR)$(RPMDIR)/RPMS/i386/$(PACKAGE)-$(VERSION)-$(RPMREL).i386.rpm
 
-EXTRA_DIST		= openhpi.spec docs examples include
+EXTRA_DIST		= openhpi.spec docs include
 
 AUTOMAKE_OPTIONS	= foreign
 
 MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub depcomp $(distdir).tar.gz
 
-SUBDIRS			= src
+SUBDIRS			= src examples
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
@@ -61,10 +60,10 @@ rpm: dist
 documentation:
 	$(MAKE) -C docs
 
-hpi_examples:
+hpi_examples: all
 	$(MAKE) -C examples
 
 clean: am_config_clean
+	$(MAKE) -C examples clean
 am_config_clean:
 	rm -fr $(PACKAGE)-*.tar.gz
-
