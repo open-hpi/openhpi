@@ -596,10 +596,10 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
         } else if (!rdr) {
                 dbg("Failed to add. RDR is NULL.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        } else if (check_instrument_id(rdr)) {
+        }/* else if (check_instrument_id(rdr)) {
                 dbg("Invalid instrument id found in RDR.");
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        }*/
 
         rptentry = get_rptentry_by_rid(table, rid);
         if (!rptentry){
