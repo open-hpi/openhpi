@@ -27,75 +27,78 @@
 
 #include <pthread.h>
 
-
-
+/******************************************************************************
+ * 
+ *  Macros needed for clarity
+ *
+ *****************************************************************************/
 static enum {
         OH_STAT_UNINIT,
         OH_STAT_READY,
 } oh_hpi_state = OH_STAT_UNINIT;
-static const int entry_id_offset = 1000;
 
 #define OH_STATE_READY_CHECK                                    \
         do {                                                    \
-                    if (OH_STAT_READY!=oh_hpi_state) {          \
+                if (OH_STAT_READY!=oh_hpi_state) {              \
                         dbg("Uninitialized HPI");               \
                         return SA_ERR_HPI_UNINITIALIZED;        \
                 }                                               \
-        }while(0)                                               
+        } while(0)                                               
 
 /*
-static inline struct oh_rdr * get_rdr(
-        struct oh_resource *res, 
-        SaHpiRdrTypeT type, 
-        SaHpiUint8T num)
-{
-        GSList *i;
+ * OH_SESSION_SETUP gets the session pointer for the session
+ * id.  It returns badly if required.  This is only to be used for sahpi 
+ * function.
+ */
 
-        data_access_lock();
-        
-        g_slist_for_each(i, res->rdr_list) {
-                struct oh_rdr *rdr;
-                rdr = i->data;
-                
-                if (rdr->rdr.RdrType != type)
-                        continue;
-                
-                switch (type) {
-                case SAHPI_CTRL_RDR:
-                        if (rdr->rdr.RdrTypeUnion.CtrlRec.Num == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_SENSOR_RDR:
-                        if (rdr->rdr.RdrTypeUnion.SensorRec.Num == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_INVENTORY_RDR:
-                        if (rdr->rdr.RdrTypeUnion.InventoryRec.EirId == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_WATCHDOG_RDR:
-                        if (rdr->rdr.RdrTypeUnion.WatchdogRec.WatchdogNum == num) {
-                                data_access_unlock();
-                                return rdr;
-                        }
-                        break;
-                case SAHPI_NO_RECORD:
-                default:
-                        break;                  
-                }
-        }
+#define OH_SESSION_SETUP(sid, ses)      \
+        do {                                              \
+                ses = session_get(sid);                    \
+                if (!s) {                                  \
+                        dbg("Invalid SessionId %d", sid);  \
+                        return SA_ERR_HPI_INVALID_SESSION; \
+                }                                          \
+        } while (0)
 
-        data_access_unlock();
-        
-        return NULL;
-}
-*/
+/*
+ * OH_RPT_GET gets the rpt table for the session.  We currently only have
+ * one rpt, so it is nearly a noop at this point
+ */
+#define OH_RPT_GET(s,rpt)                       \
+        do {                                    \
+                rpt = default_rpt;              \
+        } while(0)
+
+/*
+ * OH_HANDLER_GET gets the hander for the rpt and resource id.  It
+ * returns INVALID PARAMS if the handler isn't there
+ */
+#define OH_HANDLER_GET(rpt,rid,h)               \
+        do {                                    \
+                h = oh_get_resource_data(rpt, rid); \
+                if(!h) {                            \
+                        dbg("Can't find handler for Resource %d", rid); \
+                        return SA_ERR_HPI_INVALID_PARAMS; \
+                }                                         \
+        } while(0)
+
+/*
+ * OH_RESOURCE_GET gets the resource for an resource id and rpt
+ * it returns invalid resource if no resource id is found
+ */
+#define OH_RESOURCE_GET(rpt, rid, r)                            \
+        do {                                                    \
+                r = oh_get_resource_by_id(rpt, rid);            \
+                if(!r) {                                        \
+                        dbg("Resource %d doesn't exist", rid);  \
+                        return SA_ERR_HPI_INVALID_RESOURCE;     \
+                }                                               \
+        } while(0)
+
+/***********************************************************************
+ * Begin SAHPI functions.  For full documentation please see 
+ * the specification
+ **********************************************************************/
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
@@ -498,12 +501,14 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_INOUT SaHpiRdrT *Rdr,
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
+        int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                             SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
 
         OH_STATE_READY_CHECK;
-        
+
         s = session_get(SessionId);
         if (!s) {
                 dbg("Invalid session");
@@ -759,12 +764,8 @@ SaErrorT SAHPI_API saHpiSubscribe (
         struct oh_session *s;
         
         OH_STATE_READY_CHECK;
-        
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+
+        OH_SESSION_SETUP(SessionId,s);
         
         if (s->event_state == OH_EVENT_SUBSCRIBE) {
                 dbg("Duplicate subscribe");
@@ -787,11 +788,7 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         
         OH_STATE_READY_CHECK;
         
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+        OH_SESSION_SETUP(SessionId,s);
 
         if (s->event_state == OH_EVENT_UNSUBSCRIBE) {
                 dbg("Duplicate subscribe");
@@ -809,17 +806,16 @@ SaErrorT SAHPI_API saHpiEventGet (
                 SAHPI_INOUT SaHpiRdrT *Rdr,
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
-        RPTable *rpt = default_rpt;
         struct oh_session *s;
+        RPTable *rpt;
+        
         SaHpiTimeT now, end;
-        OH_STATE_READY_CHECK;
         int value;
-
-        s = session_get(SessionId);
-        if (!s) {
-                dbg("Invalid session");
-                return SA_ERR_HPI_INVALID_SESSION;
-        }
+        
+        OH_STATE_READY_CHECK;
+        
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(s, rpt);
         
         gettimeofday1(&now);
         if (Timeout== SAHPI_TIMEOUT_BLOCK) {
@@ -901,9 +897,14 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 SAHPI_OUT SaHpiEntryIdT *NextEntryId,
                 SAHPI_OUT SaHpiRdrT *Rdr)
 {
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRdrT *rdr_cur;
         SaHpiRdrT *rdr_next;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(s, rpt);
 
         data_access_lock();
         
@@ -943,16 +944,21 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
         
-        RPTable *rpt = default_rpt;
+        stuct oh_session *s;
+        RPTable *rpt;
         struct oh_handler *h;
-
-        h = oh_get_resource_data(rpt, ResourceId);
+        SaHpiRptEntryT *res;
         
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(s, rpt);
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        OH_RESOURCE_GET(rpt, ReourceId, res);
 
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
+                dbg("Resource %d doesn't have sensors",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
         get_func = h->abi->get_sensor_data;
 
         if (!get_func)
