@@ -407,8 +407,12 @@ int test_wdtset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHpiR
  * @rdr: RDR for the watchdog timer
  * @wdt_num:  Watchdog timer number
  *
- * Test the reset function of the watchdog timer for a watchdog timer that
- * is currently running and one that is currently stopped.
+ * Test the reset function of the watchdog timer for the following
+ * test cases:
+ * - wdt is not running
+ *   -> wdt is started; .Running = TRUE
+ * - wdt is running
+ *   -> wdt is restarted to .InitialCount
  *
  * Return value: 0 for success | Error code
  **/
@@ -417,6 +421,7 @@ int test_wdtreset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHp
 {
 	int ret = 0;
 	int err;
+	SaHpiWatchdogT wdt;
 
 	SaHpiWatchdogT wdt_notrunning = {
         	.Log                    = SAHPI_FALSE,
@@ -441,10 +446,6 @@ int test_wdtreset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHp
         	.PresentCount           = 0
 	};
 	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_notrunning);
-	if (SA_OK != err) {
-		printf("Error during set of not running wdt\n");
-		ret = err;
-	}
 	sleep(1);
 
 	err = saHpiWatchdogTimerReset(session_id, resource_id, wdt_num);
@@ -452,21 +453,25 @@ int test_wdtreset(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id, SaHp
 		printf("saHpiWatchdogTimerReset() failed\n");
 		return err;
 	}
-	printf("TEST:  Manually verify wdt running (expiry in 1 sec)\n");
+	printf("TEST:  Manually verify: \n \
+			1)wdt running (expiry in 1 sec)\n \
+			2).Running = TRUE\n");
+	saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
+	print_wdt(wdt);
 	sleep(2);
 
 	err = saHpiWatchdogTimerSet(session_id, resource_id, wdt_num, &wdt_running);
-	if (SA_OK != err) {
-		printf("Error during set of not running wdt\n");
-		ret = err;
-	}
-
 	sleep(1);
 	err = saHpiWatchdogTimerReset(session_id, resource_id, wdt_num);
 	if (SA_OK != err) {
 		printf("saHpiWatchdogTimerReset() failed\n");
 		return err;
 	}
-	printf("TEST  Manually verify wdt restarted (expiry in 3 sec)\n");
+	printf("TEST:  Manually verify: \n \
+			1)wdt restarted (expiry in 3 sec from now)\n \
+			2).Running = TRUE\n");
+	saHpiWatchdogTimerGet(session_id, resource_id, wdt_num, &wdt);
+	print_wdt(wdt);
+
 	return ret;
 }
