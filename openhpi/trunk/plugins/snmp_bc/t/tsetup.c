@@ -126,4 +126,19 @@ SaErrorT tcleanup(SaHpiSessionIdT *sessionid_ptr)
 
 }
 
+/*
+ *
+ *
+ *
+ */
+void 
+checkstatus(SaErrorT *err, SaErrorT *expected_err, int *testfail)
+{
+	if (*err != *expected_err) {
+		printf("Error! Test fails: returned err=%s, expected=%s\n",
+		oh_lookup_error(*err), oh_lookup_error(*expected_err));
+		*testfail = -1;
+	}
+
+}
 
