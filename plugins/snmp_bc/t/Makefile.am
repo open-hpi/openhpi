@@ -26,6 +26,7 @@ REMOTE_SIM_SOURCES   = \
 			snmp_bc_sensor.c \
 			snmp_bc_control.c \
 			snmp_bc_xml2event.c \
+			snmp_bc_watchdog.c \
 			stubs.c
 
 #			  snmp_bc_hotswap.c \
