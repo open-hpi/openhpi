@@ -23,7 +23,7 @@
  * The BladeCenter Integrated model has the following entity hierarchy:
  *
  *  {CHASSIS,X}
- *      |  
+ *      |
  *      +-- {SYS_MGMNT_MODULE,[1-2]} (Management Module)
  *      |
  *      +-- {INTERCONNECT,[1-4]}     (Switch Module)
@@ -45,7 +45,7 @@
  *   - Telco supports 4 blower modules (instead of 2)
  *   - Telco supports 8 blades (instead of 14)
  *
- * Differences between the BladeCenter models are discovered dynamically 
+ * Differences between the BladeCenter models are discovered dynamically
  * by this plugin at run-time during resource discovery.
  *************************************************************************/
 
@@ -68,13 +68,13 @@
 
 /* Resource indexes to snmp_rpt array below */
 typedef enum {
-	BC_RPT_ENTRY_CHASSIS = 0,
-	BC_RPT_ENTRY_MGMNT_MODULE,
-	BC_RPT_ENTRY_SWITCH_MODULE,
-	BC_RPT_ENTRY_BLADE,
-	BC_RPT_ENTRY_BLADE_ADDIN_CARD,
-	BC_RPT_ENTRY_MEDIA_TRAY,
-	BC_RPT_ENTRY_BLOWER_MODULE,
+        BC_RPT_ENTRY_CHASSIS = 0,
+        BC_RPT_ENTRY_MGMNT_MODULE,
+        BC_RPT_ENTRY_SWITCH_MODULE,
+        BC_RPT_ENTRY_BLADE,
+        BC_RPT_ENTRY_BLADE_ADDIN_CARD,
+        BC_RPT_ENTRY_MEDIA_TRAY,
+        BC_RPT_ENTRY_BLOWER_MODULE,
         BC_RPT_ENTRY_POWER_MODULE
 } BCRptEntryT;
 
@@ -88,7 +88,8 @@ typedef enum {
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
 /* Uses temp DASD1 MIB reading */
-#define SNMP_BC_BLADE_ADDIN_VECTOR  ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x" 
+/*#define SNMP_BC_BLADE_ADDIN_VECTOR ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x" */
+#define SNMP_BC_BLADE_ADDIN_VECTOR ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.x"
 #define SNMP_BC_FAN_VECTOR          ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0"
 #define SNMP_BC_MGMNT_VECTOR        ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
 #define SNMP_BC_MGMNT_ACTIVE        ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
@@ -112,31 +113,31 @@ typedef enum {
  *************************************************************************/
 
 struct BC_ResourceMibInfo {
-	const char *OidHealth;
-	int   HealthyValue;
-	const char *OidReset;
-	const char *OidPowerState;
-	const char *OidPowerOnOff;
+        const char *OidHealth;
+        int   HealthyValue;
+        const char *OidReset;
+        const char *OidPowerState;
+        const char *OidPowerOnOff;
 };
 
 #define MAX_EVENTS_PER_RESOURCE 10
-#define MAX_RESOURCE_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_RESOURCE + 1) 
+#define MAX_RESOURCE_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_RESOURCE + 1)
                                        /* Includes an ending NULL entry */
 struct res_event_map {
         char *event;
-	SaHpiHsStateT event_state;
-	SaHpiHsStateT recovery_state;
+        SaHpiHsStateT event_state;
+        SaHpiHsStateT recovery_state;
 };
 
 struct BC_ResourceInfo {
-	struct BC_ResourceMibInfo mib;
+        struct BC_ResourceMibInfo mib;
         SaHpiHsStateT cur_state;
         struct res_event_map event_array[MAX_RESOURCE_EVENT_ARRAY_SIZE];
 };
 
 struct snmp_rpt {
         SaHpiRptEntryT rpt;
-	struct BC_ResourceInfo bc_res_info;
+        struct BC_ResourceInfo bc_res_info;
         const  char *comment;
 };
 
@@ -147,60 +148,60 @@ extern struct snmp_rpt snmp_rpt_array[];
  ******************************************************************************/
 
 struct SNMPRawThresholdsOIDs {
-	const char *OidLowMinor;
-	const char *OidLowMajor;
-	const char *OidLowCrit;
-	const char *OidUpMinor;
-	const char *OidUpMajor;
-	const char *OidUpCrit;
-	const char *OidLowHysteresis;
-	const char *OidUpHysteresis;
+        const char *OidLowMinor;
+        const char *OidLowMajor;
+        const char *OidLowCrit;
+        const char *OidUpMinor;
+        const char *OidUpMajor;
+        const char *OidUpCrit;
+        const char *OidLowHysteresis;
+        const char *OidUpHysteresis;
 };
 
 struct SNMPInterpretedThresholdsOIDs {
-	const char *OidLowMinor;
-	const char *OidLowMajor;
-	const char *OidLowCrit;
-	const char *OidUpMinor;
-	const char *OidUpMajor;
-	const char *OidUpCrit;
-	const char *OidLowHysteresis;
-	const char *OidUpHysteresis;
+        const char *OidLowMinor;
+        const char *OidLowMajor;
+        const char *OidLowCrit;
+        const char *OidUpMinor;
+        const char *OidUpMajor;
+        const char *OidUpCrit;
+        const char *OidLowHysteresis;
+        const char *OidUpHysteresis;
 };
 
 struct SnmpSensorThresholdOids {
-	struct SNMPRawThresholdsOIDs RawThresholds;
-	struct SNMPInterpretedThresholdsOIDs InterpretedThresholds;
+        struct SNMPRawThresholdsOIDs RawThresholds;
+        struct SNMPInterpretedThresholdsOIDs InterpretedThresholds;
 };
 
 struct BC_SensorMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
-	int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
-	int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorInterpretedTypeT values */
-	const char *oid;
+        int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
+        int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorInterpretedTypeT values */
+        const char *oid;
         struct SnmpSensorThresholdOids threshold_oids;
 };
 
 #define MAX_EVENTS_PER_SENSOR 30
-#define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1) 
+#define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1)
                                      /* Includes an ending NULL entry */
 
 struct sensor_event_map {
         char *event;
-	SaHpiEventStateT event_state;
-	SaHpiEventStateT recovery_state;
+        SaHpiEventStateT event_state;
+        SaHpiEventStateT recovery_state;
 };
 
 struct BC_SensorInfo {
-	struct BC_SensorMibInfo mib;
+        struct BC_SensorMibInfo mib;
         SaHpiEventStateT cur_state;
-	SaHpiSensorEvtEnablesT sensor_evt_enablement;
+        SaHpiSensorEvtEnablesT sensor_evt_enablement;
         struct sensor_event_map event_array[MAX_SENSOR_EVENT_ARRAY_SIZE];
 };
 
 struct snmp_bc_sensor {
         SaHpiSensorRecT sensor;
-	struct BC_SensorInfo bc_sensor_info;
+        struct BC_SensorInfo bc_sensor_info;
         const char *comment;
 };
 
@@ -219,12 +220,12 @@ extern struct snmp_bc_sensor snmp_bc_switch_sensors[];
 struct BC_ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
-	const char *oid;
-	int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];
+        const char *oid;
+        int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];
 };
 
 struct BC_ControlInfo {
-	struct BC_ControlMibInfo mib;
+        struct BC_ControlMibInfo mib;
 };
 
 struct snmp_bc_control {
@@ -242,7 +243,7 @@ extern struct snmp_bc_control snmp_bc_mediatray_controls[];
 extern struct snmp_bc_control snmp_bc_fan_controls[];
 extern struct snmp_bc_control snmp_bc_power_controls[];
 extern struct snmp_bc_control snmp_bc_switch_controls[];
- 
+
 /*************************************************************************
  *                   Inventory Definitions
  *************************************************************************/
@@ -262,16 +263,16 @@ struct BC_InventoryMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         SaHpiInventDataRecordTypeT  inventory_type;
-	SaHpiInventChassisTypeT chassis_type; /* Ignore if inventory_type not CHASSIS */
-	struct SnmpInventoryOids oid;
+        SaHpiInventChassisTypeT chassis_type; /* Ignore if inventory_type not CHASSIS */
+        struct SnmpInventoryOids oid;
 };
 
 struct BC_InventoryInfo {
-	struct BC_InventoryMibInfo mib;
+        struct BC_InventoryMibInfo mib;
 };
 
 struct snmp_bc_inventory {
-	SaHpiInventoryRecT  inventory;
+        SaHpiInventoryRecT  inventory;
         struct BC_InventoryInfo bc_inventory_info;
         const char *comment;
 };
