@@ -39,7 +39,7 @@ openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
 #openhpi_docs_DATA	= openhpi-manual/book1.html 
 
-SGML_FILES              = $(shell ls *.dtd) $(shell ls *.sgml) function_docs.sgml
+SGML_FILES              = $(shell ls *.dtd) $(shell ls *.sgml)
 
 EXTRA_DIST		= $(DIAGRAMS) $(SGML_FILES)
 
@@ -55,8 +55,8 @@ ps-am:
 	db2ps openhpi-manual.sgml
 	db2ps openhpi-manual.sgml
 
-function_docs.sgml:
-	find $(top_srcdir) -name \*\.c | xargs gnome-doc -docbook > function_docs.sgml
+#function_docs.sgml:
+#	find $(top_srcdir) -name \*\.c | xargs gnome-doc -docbook > function_docs.sgml
 
 openhpi-manual/book1.html: $(SGML_FILES)
 	-db2html openhpi-manual.sgml
