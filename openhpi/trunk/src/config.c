@@ -14,7 +14,7 @@
  *     Sean Dague <sean@dague.net>
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  * Contributors:
- *     Thomas Kangieser <Thomas.Kanngieser@ex-deu-munich02.force.de>
+ *     Thomas Kangieser <Thomas.Kanngieser@fci.com>
  *     Renier Morales <renierm@users.sf.net>
  */
 
@@ -372,9 +372,10 @@ int process_handler_token (GScanner* oh_scanner)
                 }
 
                 if (g_scanner_peek_next_token(oh_scanner) == G_TOKEN_RIGHT_CURLY) {
+                        g_scanner_get_next_token(oh_scanner);
                         found_right_curly = 1;
                 }
-        }
+        } /* end of while(!found_right_curly) */
 
         /* Attach table describing handler stanza to the global linked list of handlers */
         if(handler_stanza != NULL) {
