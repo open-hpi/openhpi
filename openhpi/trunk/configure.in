@@ -37,15 +37,15 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
     exit 1
     ])
 
-AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes],[
-    echo "************************************************************"
-    echo "* OpenIPMI not found!"
-    echo "* currently OpenIPMI is required for build of openhpi"
-    echo "* please download and install the latest version of the software"
-    echo "* from http://openipmi.sf.net"
-    echo "************************************************************"
-    exit 1
-    ])
+dnl AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes],[
+dnl    echo "************************************************************"
+dnl    echo "* OpenIPMI not found!"
+dnl    echo "* currently OpenIPMI is required for build of openhpi"
+dnl    echo "* please download and install the latest version of the software"
+dnl    echo "* from http://openipmi.sf.net"
+dnl    echo "************************************************************"
+dnl    exit 1
+dnl    ])
     
 AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     echo "************************************************************"
