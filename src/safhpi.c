@@ -1525,12 +1525,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
 
         rv = get_sensor_event_masks(h->hnd, ResourceId, SensorNum,
                                     AssertEventMask, DeassertEventMask);
-
         return rv;
-
-
-
-        return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
 SaErrorT SAHPI_API saHpiSensorEventMasksSet (
