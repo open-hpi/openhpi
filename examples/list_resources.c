@@ -46,7 +46,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 	SaHpiRptInfoT	rpt_info_before;
 	SaHpiRptInfoT	rpt_info_after;
 	SaHpiEntryIdT	current;
-	SaHpiEntryIdT	next = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT	next;
 	SaHpiRptEntryT	entry;
 	
 	/* every domain requires a new session */
@@ -55,7 +55,13 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 		error("saHpiSessionOpen", err);
 		return err;
 	}
-
+	
+	err = saHpiResourcesDiscover(session_id);
+	if (SA_OK != err) {
+		error("saHpiResourcesDiscover", err);
+		return err;
+	}
+	
 	/* grab copy of the update counter before traversing RPT */
 	err = saHpiRptInfoGet(session_id, &rpt_info_before);
 	if (SA_OK != err) {
@@ -63,25 +69,10 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 		return err;
 	}
 	rpt_info_after.UpdateCount = rpt_info_before.UpdateCount;
-
-	while (rpt_info_before.UpdateCount == rpt_info_after.UpdateCount) {
-
-		/* force regeneration of the RPT */
-		err = saHpiResourcesDiscover(session_id);
-		if (SA_OK != err) {
-			error("saHpiResourcesDiscover", err);
-			return err;
-		}
-
-		err = saHpiRptInfoGet(session_id, &rpt_info_after);
-		if (SA_OK != err) {
-			error("saHpiRptInfoGet", err);
-			return err;
-		}
-
-	}
-	rpt_info_before.UpdateCount = rpt_info_after.UpdateCount;
-
+	
+rescan:
+	warn("Scanning RPT...");
+	next = SAHPI_FIRST_ENTRY;
 	do {
 		int i;
 		current = next;
@@ -92,7 +83,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 				return err;
 			} else {
 				warn("Empty RPT\n");
-				return SA_OK;
+				break;
 			}
 		}
 
@@ -131,18 +122,18 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id)
 		}
 	} while (next != SAHPI_LAST_ENTRY);
 
-	/* get a copy of update counter to see if we missed anything */
-	err = saHpiRptInfoGet(session_id, &rpt_info_after);
-	if (SA_OK != err) {
-		error("saHpiRptInfoGet", err);
-		return err;
-	}
-
-	if (rpt_info_after.UpdateCount != rpt_info_before.UpdateCount) {
-		err = SA_ERR_HPI_ERROR;
-		error("RPT table changed while obtaining resource info", err);
-		return err;
-	}
+	/* wait for update in RPT */
+	while (1) {
+		err = saHpiRptInfoGet(session_id, &rpt_info_after);
+		if (SA_OK != err) {
+			error("saHpiRptInfoGet", err);
+			return err;
+		}
+		if (rpt_info_before.UpdateCount != rpt_info_after.UpdateCount) {
+			rpt_info_before = rpt_info_after;
+			goto rescan;
+		}
+	};
 
 	return SA_OK;
 }
