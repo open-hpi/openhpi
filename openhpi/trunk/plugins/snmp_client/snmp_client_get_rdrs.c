@@ -822,7 +822,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
 				SaHpiEventCategoryT cat;
 				
 				oh_init_textbuffer(&buffer);
-				oh_append_textbuffer(&buffer, vars->val.string, vars->val_len);
+				oh_append_textbuffer(&buffer, vars->val.string);
 				oh_encode_eventstate(&buffer,
 						     &sahpi_sensor_cap[i].SensorRec.Events,
 						     &cat);

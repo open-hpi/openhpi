@@ -461,7 +461,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 			SaHpiEventCategoryT cat;
 			
 			oh_init_textbuffer(&buffer);
-			oh_append_textbuffer(&buffer, get_value.string, get_value.str_len);
+			oh_append_textbuffer(&buffer, get_value.string);
 			oh_encode_eventstate(&buffer,
 					     &data->EventStatus.EventStatus,
 					     &cat);
@@ -780,7 +780,7 @@ static int snmp_client_get_sensor_event_enables(void *hnd,
 		SaHpiEventCategoryT cat;
 		
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, get_value.string, get_value.str_len);
+		oh_append_textbuffer(&buffer, get_value.string);
 		oh_encode_eventstate(&buffer,
 				     &enables->AssertEvents,
 				     &cat);
@@ -809,7 +809,7 @@ static int snmp_client_get_sensor_event_enables(void *hnd,
 		SaHpiEventCategoryT cat;
 		
 		oh_init_textbuffer(&buffer);
-		oh_append_textbuffer(&buffer, get_value.string, get_value.str_len);
+		oh_append_textbuffer(&buffer, get_value.string);
 		oh_encode_eventstate(&buffer,
 				     &enables->DeassertEvents,
 				     &cat);
