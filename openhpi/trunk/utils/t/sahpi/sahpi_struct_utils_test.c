@@ -984,7 +984,7 @@ int main(int argc, char **argv)
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			return -1;
 		}
-                
+
                 /* oh_valid_textbuffer: Bad Data text cases */
                 expected_result = SAHPI_FALSE;
 		oh_init_textbuffer(&buffer);
@@ -998,7 +998,7 @@ int main(int argc, char **argv)
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			return -1;
 		}
-                
+           
                 buffer.DataType = SAHPI_TL_TYPE_ASCII6;
                 buffer.Data[1] = 0xff;
                 result = oh_valid_textbuffer(&buffer);
@@ -1019,7 +1019,7 @@ int main(int argc, char **argv)
 	}
 
 	/******************************
-	 * oh_valid_threshold testcases
+	 * oh_valid_thresholds testcases
          ******************************/
 	{
 		SaHpiSensorThresholdsT default_thresholds_int64, test_thresholds_int64;
@@ -1066,16 +1066,16 @@ int main(int argc, char **argv)
 			SAHPI_STM_UP_MINOR | SAHPI_STM_UP_MAJOR |  SAHPI_STM_UP_CRIT |
 			SAHPI_STM_UP_HYSTERESIS | SAHPI_STM_LOW_HYSTERESIS;
 
-		/* oh_valid_threshold: Bad parameters testcase */
+		/* oh_valid_thresholds: Bad parameters testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
-		err = oh_valid_threshold(0, 0, default_writable_thresholds);
+		err = oh_valid_thresholds(0, 0, default_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 		
-		/* oh_valid_threshold: Bad threshold type testcase */
+		/* oh_valid_thresholds: Bad threshold type testcase */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
@@ -1083,14 +1083,14 @@ int main(int argc, char **argv)
 		expected_err = SA_ERR_HPI_INVALID_CMD;
 		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 
-		/* oh_valid_threshold: Bad text buffer type threshold testcase */
+		/* oh_valid_thresholds: Bad text buffer type threshold testcase */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
@@ -1098,14 +1098,14 @@ int main(int argc, char **argv)
 		expected_err = SA_ERR_HPI_INVALID_CMD;
 		test_thresholds_int64.LowCritical.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 
-		/* oh_valid_threshold: Bad threshold hysteresis testcase */
+		/* oh_valid_thresholds: Bad threshold hysteresis testcase */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
@@ -1113,14 +1113,14 @@ int main(int argc, char **argv)
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		test_thresholds_int64.PosThdHysteresis.Value.SensorInt64 = -1;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 
-		/* oh_valid_threshold: Bad range threshold testcase */
+		/* oh_valid_thresholds: Bad range threshold testcase */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
@@ -1128,14 +1128,14 @@ int main(int argc, char **argv)
 		expected_err = SA_ERR_HPI_INVALID_CMD;
 		test_format_int64.Range.Max.Value.SensorInt64 = 0;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 		
-		/* oh_valid_threshold: Bad order threshold testcase */
+		/* oh_valid_thresholds: Bad order threshold testcase */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
@@ -1143,14 +1143,14 @@ int main(int argc, char **argv)
 		test_thresholds_int64.LowCritical.Value.SensorInt64 = 20;
 		expected_err = SA_ERR_HPI_INVALID_DATA;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 
-		/* oh_valid_threshold: Bad writable threshold testcase */
+		/* oh_valid_thresholds: Bad writable threshold testcase */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
@@ -1158,28 +1158,28 @@ int main(int argc, char **argv)
 		test_writable_thresholds = SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT;
 		expected_err = SA_ERR_HPI_INVALID_CMD;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 
-		/* oh_valid_threshold: Normal threshold testcase - int64 */
+		/* oh_valid_thresholds: Normal threshold testcase - int64 */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
 
 		expected_err = SA_OK;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 
-		/* oh_valid_threshold: Normal subset testcase */
+		/* oh_valid_thresholds: Normal subset testcase */
 		test_thresholds_int64 = default_thresholds_int64;
 		test_format_int64 = default_format_int64;
 		test_writable_thresholds = default_writable_thresholds;
@@ -1191,7 +1191,7 @@ int main(int argc, char **argv)
 
 		expected_err = SA_OK;
 		
-		err = oh_valid_threshold(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_int64, &test_format_int64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1229,14 +1229,14 @@ int main(int argc, char **argv)
 		default_format_float64.Range.Max.Value.SensorFloat64 = 60;
 		default_format_float64.Range.Min.Value.SensorFloat64 = 0;
 
-                /* oh_valid_threshold: Normal threshold testcase - float64 */
+                /* oh_valid_thresholds: Normal threshold testcase - float64 */
 		test_thresholds_float64 = default_thresholds_float64;
 		test_format_float64 = default_format_float64;
 		test_writable_thresholds = default_writable_thresholds;
 
 		expected_err = SA_OK;
 		
-		err = oh_valid_threshold(&test_thresholds_float64, &test_format_float64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_float64, &test_format_float64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
@@ -1274,14 +1274,14 @@ int main(int argc, char **argv)
 		default_format_uint64.Range.Max.Value.SensorUint64 = 60;
 		default_format_uint64.Range.Min.Value.SensorUint64 = 0;
 
-		/* oh_valid_threshold: Normal threshold testcase - uint64*/
+		/* oh_valid_thresholds: Normal threshold testcase - uint64*/
 		test_thresholds_uint64 = default_thresholds_uint64;
 		test_format_uint64 = default_format_uint64;
 		test_writable_thresholds = default_writable_thresholds;
 
 		expected_err = SA_OK;
 		
-		err = oh_valid_threshold(&test_thresholds_uint64, &test_format_uint64, test_writable_thresholds);
+		err = oh_valid_thresholds(&test_thresholds_uint64, &test_format_uint64, test_writable_thresholds);
 		if (err != expected_err) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%s\n", oh_lookup_error(err));
