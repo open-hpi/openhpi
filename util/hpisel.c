@@ -484,6 +484,7 @@ int main(int argc, char **argv)
                                 printf("UpdateTime = %s,", date);
                                 saftime2str(info.CurrentTime,date,30);
                                 printf("CurrentTime = %s\n", date);
+				printf("Overflow = %d\n", info.OverflowFlag);
                         }
                         
                         entryid = SAHPI_OLDEST_ENTRY;
