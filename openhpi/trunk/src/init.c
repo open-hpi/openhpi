@@ -20,9 +20,9 @@
 #include <openhpi.h>
 
 static enum {
-        UNINIT,
+        UNINIT = 0,
         INIT
-} oh_init_state;
+} oh_init_state = UNINIT;
 
 SaErrorT oh_initialized()
 {
