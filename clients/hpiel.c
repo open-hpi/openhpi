@@ -186,6 +186,8 @@ int main(int argc, char **argv)
 					if (frpt) rptptr = &rpt_2nd;
 						else rptptr = NULL;
 						
+						
+					printf("rdrptr %p, rptptr %p\n", rdrptr, rptptr);
 					rv = saHpiEventLogEntryGet(sessionid,resourceid,
 								entryid,&preventryid,
 								&nextentryid, &el,rdrptr,rptptr);
@@ -197,13 +199,19 @@ int main(int argc, char **argv)
 						oh_print_eventlogentry(&el, 6);
 						if (frdr) {
 							if (rdrptr->RdrType == SAHPI_NO_RECORD)
-								printf("            No RDR associated with EventType =  %s\n", 
+								printf("            No RDR associated with EventType =  %s\n\n", 
 									 oh_lookup_eventtype(el.Event.EventType));
 							else	
 								oh_print_rdr(rdrptr, 12);
 						}
-						if (frpt) 
-							oh_print_rptentry(rptptr, 10);
+						if (frpt) {
+							if (rptptr->ResourceCapabilities == 0)
+								printf("            No RPT associated with EventType =  %s\n\n", 
+									 oh_lookup_eventtype(el.Event.EventType));							
+							else 
+								oh_print_rptentry(rptptr, 10);
+						}
+
 						preventryid = entryid;
 						entryid = nextentryid;
 					}
