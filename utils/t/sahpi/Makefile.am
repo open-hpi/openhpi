@@ -30,7 +30,8 @@ TESTS = sahpi_enum_utils_test \
 	sahpi_time_utils_test \
 	sahpi_struct_idrinfo_test \
 	sahpi_struct_idrarea_test \
-	sahpi_struct_idrfield_test
+	sahpi_struct_idrfield_test \
+	sahpi_struct_utils_test
 
 check_PROGRAMS = $(TESTS)
 
