@@ -16,7 +16,7 @@
 #include <oh_lock.h>
 
 int oh_will_block = 0;
-		 
+
 #ifdef HAVE_THREAD_SAFE
 /* multi-threading support, use Posix mutex for data access */
 /* initialize mutex used for data locking */
@@ -24,12 +24,12 @@ int oh_will_block = 0;
 
 GStaticRecMutex oh_main_lock = G_STATIC_REC_MUTEX_INIT;
 
-int data_access_block_times(void) 
+int data_access_block_times(void)
 {
         return(oh_will_block);
 }
 
-#else 
+#else
 
 GStaticRecMutex oh_main_lock = NULL;
 
