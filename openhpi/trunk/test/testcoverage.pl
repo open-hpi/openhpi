@@ -42,10 +42,23 @@ my %files = (
 	     "plugins/snmp_bc/snmp_bc_time.c" => "t",
              "plugins/snmp_bc/snmp_bc_utils.c" => "t",
              "plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
+
+             "plugins/snmp_bc/t/snmp_bc.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_control.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_discover.c" => ".libs",
+	     "plugins/snmp_bc/t/snmp_bc_event.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_hotswap.c" => ".libs",
+	     "plugins/snmp_bc/t/snmp_bc_inventory.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_sel.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_sensor.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_session.c" => ".libs",
+	     "plugins/snmp_bc/t/snmp_bc_time.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_utils.c" => ".libs",
+             "plugins/snmp_bc/t/snmp_bc_watchdog.c" => ".libs",
             );
 
 # we must ensure that we have coverage created
-system("./bootstrap && ./configure --enable-testcover @ARGV && make clean && make && make check");
+system("./bootstrap && ./configure --enable-testcover @ARGV && make clean && make && make -sk check");
 #system("make -ks clean check");
 
 foreach my $fullfile (sort keys %files) {
