@@ -29,11 +29,40 @@ cIpmiResource::cIpmiResource( cIpmiMc *mc, unsigned int fru_id )
   : m_mc( mc ), m_fru_id( fru_id ),
     m_hotswap_sensor( 0 ), m_oem( 0 )
 {
+  for( int i = 0; i < 256; i++ )
+       m_sensor_num[i] = -1;
 }
 
 
 cIpmiResource::~cIpmiResource()
 {
+}
+
+
+int
+cIpmiResource::CreateSensorNum( SaHpiSensorNumT num )
+{
+  int v = num;
+
+  if ( m_sensor_num[v] != -1 )
+     {
+       for( int i = 255; i >= 0; i-- )
+            if ( m_sensor_num[i] == -1 )
+               {
+                 v = i;
+                 break;
+               }
+
+       if ( m_sensor_num[v] != -1 )
+          {
+            assert( 0 );
+            return -1;
+          }
+     }
+
+  m_sensor_num[v] = num;
+
+  return v;
 }
 
 

@@ -163,11 +163,7 @@ protected:
   unsigned char m_channel;
   unsigned char m_num;
 
-  /*
-  tIpmiEntityId m_entity_id;
-  unsigned int  m_entity_instance;
-  bool          m_entity_instance_logical;
-  */
+  unsigned int  m_virtual_num; // virtual sensor number
 
   bool          m_sensor_init_scanning;
   bool          m_sensor_init_events;

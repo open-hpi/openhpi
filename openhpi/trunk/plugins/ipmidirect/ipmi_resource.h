@@ -46,6 +46,12 @@ protected:
 
   unsigned int        m_oem;
 
+  // mapping of sensor numbers
+  int m_sensor_num[256];
+
+public:
+  int CreateSensorNum( SaHpiSensorNumT num );
+
 public:
   cIpmiMc *Mc() const { return m_mc; }
   unsigned int FruId() const { return m_fru_id; }

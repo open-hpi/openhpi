@@ -316,13 +316,25 @@ cIpmiSensor::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
        e->type              = oh_event::OH_ET_RESOURCE;
        e->u.res_event.entry = resource;
 
-       m_mc->Domain()->AddHpiEvent( e );       
+       m_mc->Domain()->AddHpiEvent( e );
      }
 
   // sensor record
   SaHpiSensorRecT &rec = rdr.RdrTypeUnion.SensorRec;
 
-  rec.Num       = Num();
+  int v = Resource()->CreateSensorNum( Num() );
+
+  if ( v == -1 )
+     {
+       stdlog << "too many sensors (> 255) for a resource !\n";
+
+       assert( v != -1 );
+       return false;
+     }
+
+  m_virtual_num = v;
+
+  rec.Num       = v;
   rec.Type      = (SaHpiSensorTypeT)SensorType();
   rec.Category  = (SaHpiEventCategoryT)EventReadingType();
   rec.EventCtrl = (SaHpiSensorEventCtrlT)EventSupport();
