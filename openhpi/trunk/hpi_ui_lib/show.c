@@ -47,13 +47,28 @@ SaErrorT sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc)
 	return(rv);
 }
 
-int print_thres_value(SaHpiSensorReadingT *item, char *mes, hpi_ui_print_cb_t proc)
+int print_thres_value(SaHpiSensorReadingT *item, char *info,
+	SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc)
 {
 	char	*val;
+	char	mes[256];
 	char	buf[SHOW_BUF_SZ];
 
-	if (item->IsSupported != SAHPI_TRUE)
+	if (item->IsSupported != SAHPI_TRUE) {
+		snprintf(buf, SHOW_BUF_SZ, "%s     not supported.\n", info);
+		proc(buf);
 		return(0);
+	};
+	strcpy(mes, info);
+	if (def != (SaHpiSensorThdDefnT *)NULL) {
+		if (def->ReadThold & num) {
+			if (def->WriteThold & num) strcat(mes, "(RW)");
+			else strcat(mes, "(RO)");
+		} else {
+			if (def->WriteThold & num) strcat(mes, "(WO)");
+			else strcat(mes, "(NA)");
+		}
+	};
 	switch (item->Type) {
 		case SAHPI_SENSOR_READING_TYPE_INT64:
 			snprintf(buf, SHOW_BUF_SZ, "%s %lld\n", mes,
@@ -79,15 +94,17 @@ int print_thres_value(SaHpiSensorReadingT *item, char *mes, hpi_ui_print_cb_t pr
 }
 
 int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
-	SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc)
+	SaHpiSensorNumT sensornum, SaHpiSensorRecT *sen, hpi_ui_print_cb_t proc)
 {
 	SaErrorT		rv;
 	SaHpiSensorThresholdsT	senstbuff;
+	SaHpiSensorThdDefnT	*sendef;
 	SaHpiSensorTypeT	type;
 	SaHpiEventCategoryT	categ;
 	char			buf[SHOW_BUF_SZ];
 	int			res;
 
+	sendef = &(sen->ThresholdDefn);
 	rv = saHpiSensorTypeGet(sessionid, resourceid, sensornum, &type, &categ);
 	if (rv != SA_OK) {
 		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorTypeGet error = %s\n",
@@ -104,25 +121,33 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		proc(buf);
 		return -1; 
 	};
-	res = print_thres_value(&(senstbuff.LowCritical), "Lower Critical Threshold(lc):",
-		proc);
+	if (sendef->IsAccessible == 0) {
+		proc("Thresholds are not accessible.\n");
+		return -1; 
+	};
+	res = print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold",
+		sendef, SAHPI_ES_LOWER_MINOR, proc);
 	if (res != 0) return(0);
-	res = print_thres_value(&(senstbuff.LowMajor), "Lower Major Threshold(la):", proc);
+	res = print_thres_value(&(senstbuff.LowMajor), "Lower Major Threshold",
+		sendef, SAHPI_ES_LOWER_MAJOR, proc);
 	if (res != 0) return(0);
-	res = print_thres_value(&(senstbuff.LowMinor), "Lower Minor Threshold(li):", proc);
+	res = print_thres_value(&(senstbuff.LowCritical), "Lower Critical Threshold",
+		sendef, SAHPI_ES_LOWER_CRIT, proc);
 	if (res != 0) return(0);
-	res = print_thres_value(&(senstbuff.UpCritical), "Upper Critical Threshold(uc):",
-		proc);
+	res = print_thres_value(&(senstbuff.UpMinor), "Upper Minor Threshold",
+		sendef, SAHPI_ES_UPPER_MINOR, proc);
 	if (res != 0) return(0);
-	res = print_thres_value(&(senstbuff.UpMajor), "Upper Major Threshold(ua):", proc);
+	res = print_thres_value(&(senstbuff.UpMajor), "Upper Major Threshold",
+		sendef, SAHPI_ES_UPPER_MAJOR, proc);
 	if (res != 0) return(0);
-	res = print_thres_value(&(senstbuff.UpMinor), "Upper Minor Threshold(ui):", proc);
+	res = print_thres_value(&(senstbuff.UpCritical), "Upper Critical Threshold",
+		sendef, SAHPI_ES_UPPER_CRIT, proc);
 	if (res != 0) return(0);
 	res = print_thres_value(&(senstbuff.PosThdHysteresis),
-		"Positive Threshold Hysteresis(ph):", proc);
+		"Positive Threshold Hysteresis", NULL, 0, proc);
 	if (res != 0) return(0);
 	res = print_thres_value(&(senstbuff.NegThdHysteresis),
-		"Negative Threshold Hysteresis(nh):", proc);
+		"Negative Threshold Hysteresis", NULL, 0, proc);
 	return SA_OK;
 }
 
@@ -131,11 +156,21 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 {
         SaHpiSensorReadingT	reading;
 	SaHpiEventStateT	status, assert, deassert;
+	SaHpiRdrT		rdr;
         SaErrorT		rv;
 	SaHpiBoolT		val;
 	char			buf[SHOW_BUF_SZ];
 	char			errbuf[SHOW_BUF_SZ];
 
+	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_SENSOR_RDR,
+		sensornum, &rdr);
+	if (rv != SA_OK) {
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"\nERROR: saHpiRdrGetByInstrumentId: error: %s\n",
+			oh_lookup_error(rv));
+		proc(errbuf);
+		return(rv);
+	};
 	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) ", resourceid, sensornum);
 	rv = saHpiSensorEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
@@ -167,8 +202,9 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			oh_lookup_error(rv));
 	else
 		snprintf(buf, SHOW_BUF_SZ,
-			"   masks: assert = 0x%4.4x   deassert = 0x%4.4x\n",
-			assert, deassert);
+			"   supported: 0x%4.4x  masks: assert = 0x%4.4x"
+			"   deassert = 0x%4.4x\n",
+			rdr.RdrTypeUnion.SensorRec.Events, assert, deassert);
 	if (proc(buf) != 0) return(rv);
 	rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
@@ -182,10 +218,11 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
         if (reading.IsSupported) {
 		snprintf(buf, SHOW_BUF_SZ, "     Sensor status = %x", status);
 		proc(buf);
-		print_thres_value(&reading, "     Reading Value =", proc);
+		print_thres_value(&reading, "     Reading Value =", NULL, 0, proc);
 	};
 
-	show_threshold(sessionid, resourceid, sensornum, proc);
+	show_threshold(sessionid, resourceid, sensornum,
+		&(rdr.RdrTypeUnion.SensorRec), proc);
 
 	return SA_OK;
 }
