@@ -21,6 +21,8 @@ AM_PROG_LIBTOOL
 HPI_LIB_VERSION=3:0:3
 HPI_PKG=openhpi
 HPI_UTIL_PKG=openhpiutils
+HPI_CLIENT_PKG=openhpiclient
+AC_SUBST(HPI_CLIENT_PKG)
 AC_SUBST(HPI_UTIL_PKG)
 AC_SUBST(HPI_PKG)
 AC_SUBST(HPI_LIB_VERSION)
@@ -586,6 +588,7 @@ AC_CONFIG_FILES([openhpi.spec
         docs/hld/Makefile
 	openhpid/Makefile
 	openhpid/t/Makefile
+        openhpid/openhpiclient.pc
         examples/Makefile
 	clients/Makefile])
 
