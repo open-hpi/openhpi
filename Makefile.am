@@ -46,7 +46,7 @@ AUTOMAKE_OPTIONS	= foreign
 
 MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub \
 			depcomp install-sh ltmain.sh missing mkinstalldirs config.h.in \
-			stamp-h.in $(distdir).tar.gz
+			stamp-h.in cscope.files cscope.out $(distdir).tar.gz 
 MOSTLYCLEANFILES	= tags
 
 SUBDIRS			= src @ENABLED_DIRS@
@@ -66,7 +66,7 @@ documentation:
 hpi_examples: all
 	$(MAKE) -C examples
 hpi_utils: all
-	$(MAKE) -c utils
+	$(MAKE) -C util
 
 clean: am_config_clean
 	$(MAKE) -C examples clean
