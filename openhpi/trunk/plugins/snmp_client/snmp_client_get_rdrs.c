@@ -159,7 +159,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                 display_vars(response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, response);
-        if (response) snmp_free_pdu(response);
+        sc_free_pdu(&response);
 
 
         /* SA_HPI_RDR_TYPE */
@@ -192,7 +192,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                 display_vars(response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, response);
-        if (response) snmp_free_pdu(response);
+        sc_free_pdu(&response);
 
         /* SA_HPI_RDR_ENTITY_PATH */
         build_res_oid(anOID, 
@@ -229,7 +229,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                 display_vars(response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, response);
-        if (response) snmp_free_pdu(response);
+        sc_free_pdu(&response);
 
        /* count the number of different type rdrs, see SaHpiRdrTypeT */
        memset(rdr_type_count, 0, NUM_RDR_TYPES * sizeof(int));
@@ -367,9 +367,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
-
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_CTRL_OUTPUT_TYPE */
         build_res_oid(anOID, 
@@ -398,8 +396,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_CTRL_IGNORE */
         build_res_oid(anOID, 
@@ -428,7 +425,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_CTRL_TYPE */
         build_res_oid(anOID, 
@@ -457,7 +454,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_CTRL_STATE */
         
@@ -608,7 +605,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_CTRL_OEM */
         build_res_oid(anOID, 
@@ -636,7 +633,7 @@ static SaErrorT get_ctrl_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_CTRL_TEXT_TYPE */
         /* SA_HPI_CTRL_TEXT_LANGUAGE */
@@ -689,11 +686,13 @@ do{ \
 					get_value.integer); \
 } while(0)
 
+
 static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle, 
                                         SaHpiRdrT *rdr_cache, 
                                         int *rdr_type_count, 
                                         int num_rdrs)
 {
+
         struct snmp_pdu *get_cap_pdu = NULL;
         struct snmp_pdu *get_cap_response = NULL;
         int status = SA_OK;
@@ -759,8 +758,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_TYPE */
 	sen_row_get(sa_hpi_sen_index);
@@ -779,7 +777,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_CATEGORY */
 	sen_row_get(sa_hpi_sen_type);
@@ -798,7 +796,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_EVENTS_CATEGORY_CONTROL */
 	sen_row_get(sa_hpi_sen_category);
@@ -817,7 +815,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_EVENT_STATE */
 	sen_row_get(sa_hpi_sen_evts_cat_ctrl);
@@ -839,7 +837,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_STATUS */
         /* SA_HPI_SENSOR_ASSERT_EVENTS*/
@@ -863,7 +861,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_FORMATS */
 	sen_row_get(sa_hpi_sen_ignore);
@@ -883,7 +881,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_IS_NUMERIC */
 	sen_row_get(sa_hpi_sen_reading_formats);
@@ -903,7 +901,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_SIGN_FORMAT */
 	sen_row_get(sa_hpi_sen_is_numeric);
@@ -923,7 +921,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_BASE_UNITS */
 	sen_row_get(sa_hpi_sen_sign_foramt);
@@ -943,7 +941,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_MODIFIER_UNITS */
 	sen_row_get(sa_hpi_sen_base_units);
@@ -962,7 +960,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_MODIFIER_USE */
 	sen_row_get(sa_hpi_sen_modifier_units);
@@ -981,7 +979,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
          /* SA_HPI_SENSOR_FACTORS_STATIC */
 	sen_row_get(sa_hpi_sen_modifier_use);
@@ -1000,7 +998,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_FACTORS */
 	sen_row_get(sa_hpi_sen_factors_static);
@@ -1058,7 +1056,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_FACTORS_LINEARIZATION */
 	sen_row_get(sa_hpi_sen_factors);
@@ -1078,7 +1076,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_PERCENTAGE */
 	sen_row_get(sa_hpi_sen_factors_linearization);
@@ -1097,7 +1095,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_RANGE_FLAGS */
 	sen_row_get(sa_hpi_sen_percentage);
@@ -1120,7 +1118,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_HAS_THRESHOLD */
 	num_sen_rdrs_has_thold = 0;
@@ -1142,7 +1140,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_THOLD_CAPABILITIES */
 	sen_row_get(sa_hpi_sen_has_thresholds);
@@ -1161,7 +1159,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 	
 	/* SA_HPI_SENSOR_OEM */  
 	sen_row_get(sa_hpi_sen_thd_cap);
@@ -1181,7 +1179,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_RANGE_MAX_TABLE */
 	if(range_flags_count.max)
@@ -1295,9 +1293,7 @@ static SaErrorT get_sensor_capabilities(struct snmp_client_hnd *custom_handle,
         if (sahpi_sensor_cap) 
                 g_free(sahpi_sensor_cap);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
                 
         return(status);
 
@@ -1441,7 +1437,7 @@ printf("***** get_inventory_capabilities:snmp_getn_bulk *****\n");
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
 
         /* SA_HPI_INVENTORY_OEM */ 
@@ -1461,7 +1457,7 @@ printf("***** get_inventory_capabilities:snmp_getn_bulk *****\n");
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
                 
 
         /* INVENTORY CAPABILITIES ADD TO rdr_cache */
@@ -1542,8 +1538,7 @@ static SaErrorT get_watchdog_capabilities(struct snmp_client_hnd *custom_handle,
         if (sahpi_watchdog_cap) 
                 g_free(sahpi_watchdog_cap);
 
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+        sc_free_pdu(&get_cap_response);
 
         return(status);
 

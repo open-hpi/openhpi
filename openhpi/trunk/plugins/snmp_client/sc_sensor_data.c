@@ -95,7 +95,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MAX_RAW */
 	build_res_oid(anOID, 
@@ -125,7 +125,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MAX_INTERPRETED */
 	build_res_oid(anOID, 
@@ -157,7 +157,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MAX_STATUS */
 	build_res_oid(anOID, 
@@ -187,7 +187,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MAX_EVENT_STATUS */
 	build_res_oid(anOID, 
@@ -218,8 +218,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SENSOR READINGS MAX  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -249,9 +248,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
         if (sen_max_reading) 
                 g_free(sen_max_reading);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -316,7 +313,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MIN_RAW */
 	build_res_oid(anOID, 
@@ -346,7 +343,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MIN_INTERPRETED */
 	build_res_oid(anOID, 
@@ -378,7 +375,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MIN_STATUS */
 	build_res_oid(anOID, 
@@ -408,7 +405,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_MIN_EVENT_STATUS */
 	build_res_oid(anOID, 
@@ -439,8 +436,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SENSOR READINGS MIN  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -469,9 +465,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
         if (sen_min_reading) 
                 g_free(sen_min_reading);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -536,7 +530,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+  	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NOMINAL_RAW */
 	build_res_oid(anOID, 
@@ -566,7 +560,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NOMINAL_INTERPRETED */
 	build_res_oid(anOID, 
@@ -598,7 +592,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NOMINAL_STATUS */
 	build_res_oid(anOID, 
@@ -628,7 +622,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NOMINAL_EVENT_STATUS */
 	build_res_oid(anOID, 
@@ -659,8 +653,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SENSOR READINGS NOMINAL  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -689,9 +682,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
         if (sen_nominal_reading) 
                 g_free(sen_nominal_reading);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -756,7 +747,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MAX_RAW */
 	build_res_oid(anOID, 
@@ -786,7 +777,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MAX_INTERPRETED */
 	build_res_oid(anOID, 
@@ -818,7 +809,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MAX_STATUS */
 	build_res_oid(anOID, 
@@ -848,7 +839,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MAX_EVENT_STATUS */
 	build_res_oid(anOID, 
@@ -879,8 +870,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SENSOR READINGS NORMAL_MAX  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -909,9 +899,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
         if (sen_normal_max_reading) 
                 g_free(sen_normal_max_reading);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -976,7 +964,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MIN_RAW */
 	build_res_oid(anOID, 
@@ -1006,7 +994,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MIN_INTERPRETED */
 	build_res_oid(anOID, 
@@ -1038,7 +1026,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MIN_STATUS */
 	build_res_oid(anOID, 
@@ -1068,7 +1056,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_NORMAL_MIN_EVENT_STATUS */
 	build_res_oid(anOID, 
@@ -1099,8 +1087,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SENSOR READINGS NORMAL_MIN  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -1129,9 +1116,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
         if (sen_normal_min_reading) 
                 g_free(sen_normal_min_reading);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -1196,7 +1181,7 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -1225,7 +1210,7 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_CRITICAL_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -1254,8 +1239,7 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_LOW_CRITICAL  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -1289,9 +1273,7 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
         if (sen_defn) 
                 g_free(sen_defn);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -1356,7 +1338,7 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -1385,7 +1367,7 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MAJOR_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -1414,8 +1396,7 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_LOW_MAJOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -1449,9 +1430,7 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
         if (sen_defn) 
                 g_free(sen_defn);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -1516,7 +1495,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -1545,7 +1524,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -1574,8 +1553,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_LOW_MINOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -1609,9 +1587,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
         if (sen_defn) 
                 g_free(sen_defn);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -1677,7 +1653,7 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -1706,7 +1682,7 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+		sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_UP_CRITICAL_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -1735,8 +1711,7 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_UP_CRITICAL  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -1770,9 +1745,7 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
         if (sen_defn) 
                 g_free(sen_defn);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -1837,7 +1810,7 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -1866,7 +1839,7 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MAJOR_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -1895,8 +1868,7 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_UP_MAJOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -1930,9 +1902,7 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
         if (sen_defn) 
                 g_free(sen_defn);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -1998,7 +1968,7 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -2027,7 +1997,7 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_UP_MINOR_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -2056,8 +2026,7 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_UP_MINOR  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -2091,9 +2060,7 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
         if (sen_defn) 
                 g_free(sen_defn);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -2158,7 +2125,7 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -2187,7 +2154,7 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -2216,8 +2183,7 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_POS_HYSTERESIS  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -2250,10 +2216,8 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
         /* free the temporary sen_normal_min_reading cache */
         if (sen_defn) 
                 g_free(sen_defn);
-
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }
@@ -2319,7 +2283,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_WRITEABLE */
 	build_res_oid(anOID, 
@@ -2348,7 +2312,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
         /* SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_FIXED */
 	build_res_oid(anOID, 
@@ -2377,8 +2341,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                 display_vars(get_cap_response);
         } else
                 status = net_snmp_failure(custom_handle, snmp_status, get_cap_response);
-        if (get_cap_response) snmp_free_pdu(get_cap_response);
-
+	sc_free_pdu(&get_cap_response);
 
 	/* SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS  add to SaHpiRdrTypeUnionT *cap*/
 	if(status == SA_OK) {
@@ -2412,9 +2375,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
         if (sen_defn) 
                 g_free(sen_defn);
 
-
-        if (get_cap_response) 
-                snmp_free_pdu(get_cap_response);
+	sc_free_pdu(&get_cap_response);
 
 	return(status);
 }

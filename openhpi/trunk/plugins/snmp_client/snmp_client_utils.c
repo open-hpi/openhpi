@@ -127,8 +127,6 @@ static sensor_range_flags range_flags[] = {
 #define FLAGSTRING_VALUE_DELIMITER_LENGTH 2
 #define RANGE_FLAGS_LEN 5
 
-
-
 /**
  * snmp_get2: Gets a single value indicated by the objectid
  * using snmp.
@@ -211,7 +209,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
         }
 
         /* Clean up: free the response */
-        if (response) snmp_free_pdu(response);
+	sc_free_pdu(&response); 
 
         return value->type? SA_OK : SA_ERR_HPI_ERROR;
 }
@@ -385,7 +383,7 @@ int snmp_set(
         }
 
         /* Clean up: free the response */
-        if (response) snmp_free_pdu(response);
+	sc_free_pdu(&response); 
 
         return value->type? SA_OK : SA_ERR_HPI_ERROR;
 
@@ -435,10 +433,13 @@ void build_res_oid(oid *d, oid *s, int s_len, oid *indices, int num_indices)
 SaErrorT net_snmp_failure(struct snmp_client_hnd *custom_handle, int snmp_status, 
 				 struct snmp_pdu *response)
 {
-	if (snmp_status == STAT_SUCCESS)
+	if (snmp_status == STAT_SUCCESS) {
 		fprintf(stderr, "Error in packet, Whilst getting Resources\nReason: %s\n", snmp_errstring(response->errstat));
-	else
+		dbg("ERROR: net_snmp_failure %s", snmp_errstring(response->errstat));
+	} else	{
 		snmp_sess_perror("snmpget", custom_handle->ss);
+		dbg("ERROR: net_snmp_failure");
+	}
 
 	return(SA_ERR_HPI_ERROR);
 }
@@ -471,11 +472,11 @@ int build_state_value (char *str,
   char *tok = NULL;
   int i = 0;
 
-  s = (char *)malloc (len);
+  s = (char *)g_malloc0 (len);
   if (s == NULL)
     return SA_ERR_HPI_ERROR;
 
-  delim = (char *) malloc ( STATESTRING_VALUE_DELIMITER_LENGTH );
+  delim = (char *) g_malloc0 ( STATESTRING_VALUE_DELIMITER_LENGTH );
   if (delim == NULL) {
     free (s);
     return SA_ERR_HPI_ERROR;
@@ -501,8 +502,8 @@ int build_state_value (char *str,
     tok = strtok(NULL, delim);
   }
   
-  free (s);
-  free (delim);
+  g_free (s);
+  g_free (delim);
   return rc;
 }
 
@@ -552,3 +553,12 @@ int build_flag_value (char *str,
 
   return rc;
 }
+
+void sc_free_pdu(struct snmp_pdu **p) 
+{
+	if (*p) {
+		snmp_free_pdu(*p);
+		*p = NULL;
+	}
+}
+
