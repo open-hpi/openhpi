@@ -80,7 +80,7 @@ static cMarshalType SaHpiSensorReadingUnionType = dUnion( 0,
 static cMarshalType SaHpiSensorReadingTElements[] =
 {
   dStructElement( SaHpiSensorReadingT, IsSupported, SaHpiBoolType ),
-  dStructElement( SaHpiSensorReadingT, Type, SaHpiSensorReadingUnionType ),
+  dStructElement( SaHpiSensorReadingT, Type, SaHpiSensorReadingType ),
   dStructElement( SaHpiSensorReadingT, Value, SaHpiSensorReadingUnionType ),
   dStructElementEnd()
 };
@@ -475,16 +475,6 @@ static cMarshalType SaHpiNameElements[] =
 cMarshalType SaHpiNameType = dStruct( SaHpiNameT, SaHpiNameElements );
 
 
-static cMarshalType SaHpiStatusCondTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_STATUS_COND_TYPE_SENSOR, SaHpiUint32Type ),
-  dUnionElement( SAHPI_STATUS_COND_TYPE_RESOURCE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_STATUS_COND_TYPE_OEM, SaHpiUint32Type ),
-  dUnionElement( SAHPI_STATUS_COND_TYPE_USER, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiStatusCondTypeType = dUnion( 0, SaHpiConditionT, SaHpiStatusCondTypeUnionElements );
 
 static cMarshalType SaHpiConditionTypeElements[] =
 {
@@ -519,20 +509,6 @@ cMarshalType SaHpiAnnouncementType = dStruct( SaHpiAnnouncementT, SaHpiAnnouncem
 
 // annunciators rdr
 
-static cMarshalType SaHpiAnnunciatorTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_LED, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_DRY_CONTACT_CLOSURE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_AUDIBLE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_LCD_DISPLAY, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_MESSAGE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_COMPOSITE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_ANNUNCIATOR_TYPE_OEM, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiAnnunciatorTypeType = dUnion( 0, SaHpiAnnunciatorTypeT, SaHpiAnnunciatorTypeUnionElements );
-
 static cMarshalType SaHpiAnnunciatorRecElements[] =
 {
 	dStructElement( SaHpiAnnunciatorRecT, AnnunciatorNum, SaHpiAnnunciatorNumType ),
@@ -548,18 +524,6 @@ cMarshalType SaHpiAnnunciatorRecType = dStruct( SaHpiAnnunciatorRecT, SaHpiAnnun
 
 // rdr
 
-static cMarshalType SaHpiRdrTypeUnionElements[] =
-{
-	dUnionElement( SAHPI_NO_RECORD, Marshal_VoidType ),
-	dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
-	dUnionElement( SAHPI_SENSOR_RDR, SaHpiSensorRecType ),
-	dUnionElement( SAHPI_INVENTORY_RDR, Marshal_VoidType ),/* TODO this void type is just a place holder */
-	dUnionElement( SAHPI_WATCHDOG_RDR, SaHpiWatchdogRecType ),
-	dUnionElement( SAHPI_ANNUNCIATOR_RDR, SaHpiAnnunciatorRecType ),
-	dUnionElementEnd()
-};
-
-static cMarshalType SaHpiRdrTypeUnionType = dUnion( 1, SaHpiRdrTypeUnionT, SaHpiRdrTypeUnionElements );
 
 
 static cMarshalType SaHpiRdrElements[] =
@@ -578,37 +542,18 @@ cMarshalType SaHpiRdrType = dStruct( SaHpiRdrT, SaHpiRdrElements );
 
 // events part 2
 
-static cMarshalType SaHpiResourceEventTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_RESE_RESOURCE_FAILURE, SaHpiUint32Type ),
-  dUnionElement( SAHPI_RESE_RESOURCE_RESTORED, SaHpiUint32Type ),
-  dUnionElement( SAHPI_RESE_RESOURCE_ADDED, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiResourceEventTypeUnion = dUnion( 0, SaHpiResourceEventT, SaHpiResourceEventTypeUnionElements );
-
 static cMarshalType SaHpiResourceEventTypeElements[] =
 {
-  dStructElement( SaHpiResourceEventT, ResourceEventType, SaHpiResourceEventTypeUnion ),
+  dStructElement( SaHpiResourceEventT, ResourceEventType, SaHpiResourceEventTypeType ),
   dStructElementEnd()
 };
 
 cMarshalType SaHpiResourceEventType = dStruct( SaHpiResourceEventTypeT, SaHpiResourceEventTypeElements );
 
 
-static cMarshalType SaHpiDomainEventTypeUnionElements[] = 
-{
-  dUnionElement( SAHPI_DOMAIN_REF_ADDED, SaHpiUint32Type ),
-  dUnionElement( SAHPI_DOMAIN_REF_REMOVED, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiDomainEventTypeUnion = dUnion( 0, SaHpiDomainEventTypeT, SaHpiDomainEventTypeUnionElements );
-
 static cMarshalType SaHpiDomainEventTypeElements[] =
 {
-  dStructElement( SaHpiDomainEventT, Type, SaHpiDomainEventTypeUnion ),
+  dStructElement( SaHpiDomainEventT, Type, SaHpiDomainEventTypeType ),
   dStructElement( SaHpiDomainEventT, DomainId, SaHpiDomainIdType ),
   dStructElementEnd()
 };
@@ -674,20 +619,10 @@ static cMarshalType SaHpiWatchdogEventElements[] =
 
 cMarshalType SaHpiWatchdogEventType = dStruct( SaHpiWatchdogEventT, SaHpiWatchdogEventElements );
 
-static cMarshalType SaHpiSwEventTypeUnionElements[] = 
-{                
-  dUnionElement( SAHPI_HPIE_AUDIT, SaHpiUint32Type ),
-  dUnionElement( SAHPI_HPIE_STARTUP, SaHpiUint32Type ),
-  dUnionElement( SAHPI_HPIE_OTHER, SaHpiUint32Type ),
-  dUnionElementEnd()
-};
-
-static cMarshalType SaHpiSwEventTypeUnion = dUnion( 0, SaHpiHpiSwEventT, SaHpiSwEventTypeUnionElements );
-
 static cMarshalType SaHpiHpiSwEventTypeElements[] =
 {
   dStructElement( SaHpiHpiSwEventT, MId, SaHpiManufacturerIdType ),
-  dStructElement( SaHpiHpiSwEventT, Type, SaHpiSwEventTypeUnion ),
+  dStructElement( SaHpiHpiSwEventT, Type, SaHpiSwEventTypeType ),
   dStructElement( SaHpiHpiSwEventT, EventData, SaHpiTextBufferType ),
   dStructElementEnd()
 };
