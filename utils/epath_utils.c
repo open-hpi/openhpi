@@ -418,20 +418,14 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
  * Returns: void.
  **/
  void ep_init(SaHpiEntityPathT *ep) {
-	 /*   int i; */
+	 int i;
 
          if (!ep) return;
          
-	 memset(ep, 0 , sizeof(SaHpiEntityPathT));
-	 ep->Entry[0].EntityType = SAHPI_ENT_ROOT;
-	 ep->Entry[0].EntityInstance = 0;
-
-#if 0
          for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                  ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
                  ep->Entry[i].EntityInstance = 0;
          }
-#endif
  }
 
 /**
