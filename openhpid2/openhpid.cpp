@@ -29,7 +29,7 @@
 #include "strmsock.h"
 #include "openhpi.h"
 #include "marshal_hpi.h"
-#include "SaHpi.h"
+
 
 
 /*--------------------------------------------------------------------*/
