@@ -26,6 +26,7 @@
 #include <rpt_utils.h>
 #include <sel_utils.h>
 #include <rsa_resources.h>
+#include <string.h>
 // #include <rsa_str2event.h>
 // #include <snmp_rsa_event.h>
 
