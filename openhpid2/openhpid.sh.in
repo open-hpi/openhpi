@@ -19,7 +19,7 @@ prog="openhpid"
 start() {
         export `@prefix@/bin/openhpi-switcher --env=standard` || return 1
 	echo -n $"Starting $prog: "
-	daemon @prefix@/bin/openhpid -c @CONFPATH@/@HPI_CLIENT_PKG@.conf
+	daemon @prefix@/bin/openhpid -c @CONFPATH@/@HPI_PKG@.conf
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/openhpid
