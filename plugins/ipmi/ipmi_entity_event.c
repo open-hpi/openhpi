@@ -56,19 +56,11 @@ static void entity_presence(ipmi_entity_t	*entity,
 #endif
 }
 
-static void get_indicator(ipmi_entity_t *ent, int err, int val, void *data)
-{
-	int *d = (int *)data;
-	*d = 1;
-	return;
-}
-
 static void get_entity_event(ipmi_entity_t	*entity,
 			     SaHpiRptEntryT	*entry, void *cb_data)
 {
 	SaHpiEntityPathT entity_ep;
 	int er;
-	int data = 0;
 
 	struct ohoi_handler *ipmi_handler = cb_data;
 
@@ -121,21 +113,35 @@ static void get_entity_event(ipmi_entity_t	*entity,
 
 	entry->ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE;
 	
-	if (ipmi_entity_hot_swappable(entity)) {
-			entry->ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP
-					| SAHPI_CAPABILITY_FRU;
-	}
-
-	if(ipmi_entity_get_is_fru(entity)) {
-			entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU | SAHPI_CAPABILITY_INVENTORY_DATA;
-	}
-
 	entry->HotSwapCapabilities = 0;
-	er = ipmi_entity_get_hot_swap_indicator(entity, get_indicator, &data);
-	if (data == 1) {
-		entry->HotSwapCapabilities |= SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
+	if (ipmi_entity_supports_managed_hot_swap(entity)) {
+			entry->ResourceCapabilities |= SAHPI_CAPABILITY_MANAGED_HOTSWAP;
+			/* if entity supports managed hot swap
+			 * check if it has indicator */
+			dbg("Entity %d supports managed hotswap\n", entry->ResourceId);
+
+			/* we need only return value from function */
+			er = ipmi_entity_get_hot_swap_indicator(entity, NULL, NULL);
+			if (!er) {
+				dbg("resource %d has HS Indicator\n", entry->ResourceId);
+				entry->HotSwapCapabilities |= SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
+			}
 	}
-       
+
+	/* OpenIPMI used ipmi_entity_hot_swappable to indicate it's FRU
+	 * do not use ipmi_entity_get_is_fru()
+	 * it's used only for checking if entity has FRU data
+	 */
+	if(ipmi_entity_hot_swappable(entity)) {
+		dbg("Entity supports simplified hotswap");
+		entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU;
+	}
+
+	if (ipmi_entity_get_is_fru(entity)) {
+		dbg("Entity supports FRU Inventory Data");
+		entry->ResourceCapabilities |= SAHPI_CAPABILITY_INVENTORY_DATA;
+	}
+			
 	if (entry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BOARD)
 	{	/* This is the BMC entry, so we need to add watchdog. */
 		entry->ResourceCapabilities |= SAHPI_CAPABILITY_WATCHDOG;
