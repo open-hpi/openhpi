@@ -86,6 +86,7 @@ $OH_MSG
 
 AC_DEFUN(OH_CHECK_GCC,
     [
+	AC_MSG_CHECKING(for GCC 3.2.0)
     GCCVERSIONOK=`gcc --version | grep "(GCC)" | \
     sed 's/.*GCC.//' | sed 's/\./ /g' | \
     awk '{ \
@@ -136,3 +137,38 @@ AC_DEFUN(OH_CHECK_NETSNMP,
     ],
     [AC_MSG_RESULT(no.  No SNMP based plugins can be built!)])
 ])
+
+AC_DEFUN(OH_CHECK_OPENIPMI,
+	[
+	AC_MSG_CHECKING(for OpenIPMI)
+		OPENIPMI_VERSION=`cat /usr/local/include/OpenIPMI/ipmiif.h | \
+			grep VERSION | \
+			awk {'print $3'} | \
+
+			awk '{
+
+				if ( $[1] > $1) { \
+        			    print "OK"; \
+        		} \
+		        if ( $[1] == $1 ) { \
+        	
+				    if( $[2] > $2 ) { \
+    	        	    print "OK"; \
+        	   		} \
+	            if( $[2] == $2 ) { \
+    
+	        	    if( $[3] >= $3 ) { \
+    	                print "OK"; \
+        	        } \
+            	} \
+        	} \
+    	}'` \
+
+	  if test "$OPENIPMI_VERSION" == "OK"; then
+        AC_MSG_RESULT(yes)
+		have_openipmi=yes
+    else
+        AC_MSG_RESULT(openipmi >= $1.$2.$3 is required to build OpenHPI)
+    fi
+])
+
