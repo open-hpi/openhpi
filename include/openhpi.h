@@ -109,45 +109,19 @@
  */
 
 
-/*
- *  Global listing of plugins (oh_plugin).  This list is populated
- *  by the configuration subsystem, and used by the plugin loader.
- */
-extern GSList *global_plugin_list;
+enum oh_sel_state {
+	OH_SEL_ENABLED=0,
+	OH_SEL_DISABLED,
+};
 
 /*
- *  Global listing of handler configs (oh_handler_config).  This list is 
- *  populated during config file parse, and used to build 
- *  global_handler_list
+ * Representation of an domain
  */
-extern GSList *global_handler_configs;
-
-/*
- *  Global listing of handlers (oh_handler).  This list is populated
- *  by the first call the saHpiSessionOpen().
- */
-extern GSList *global_handler_list;
-
-/*
- *  Global listing of all active sessions (oh_session).  This list is 
- *  populated and depopulated by calls to saHpiSessionOpen() and
- *  saHpiSessionClose()
- */
-extern GSList *global_session_list;
-
-/*
- *  Global RPT Table (implemented as a linked list).
- *
- *  This list contains all resources (wrapped as oh_resource structures),
- *  regardless of whether an HPI caller can see the resources for the given
- *  permission level or domain view used.
- * 
- *  This list is populated by calls to saHpiDiscoverResources()
- */
-extern GSList *global_rpt;
-extern unsigned int global_rpt_counter; /*FIXME: I use the couter for two purposes. 
-				   1) RptInfo counter 2) ResourceId allocation */
-extern struct timeval global_rpt_timestamp;
+struct oh_domain {
+	SaHpiDomainIdT domain_id;
+	enum oh_sel_state sel_state;
+	GSList *sel;
+};
 
 /*
  * Representation of an HPI session
@@ -225,7 +199,11 @@ struct oh_resource {
 	int controlled;
 	SaHpiTimeoutT auto_extract_timeout;
 	
-	
+	/*
+	 * the sel state when resource is CAPABILITY_SYSTEM_EVENT_LOG
+	 */
+	enum oh_sel_state sel_state;
+
 	/*
 	   The handler of the resource
 	*/
@@ -276,6 +254,48 @@ struct oh_rdr {
         SaHpiRdrT	 rdr;
 };
 
+
+/*
+ *  Global listing of plugins (oh_plugin).  This list is populated
+ *  by the configuration subsystem, and used by the plugin loader.
+ */
+extern GSList *global_plugin_list;
+
+/*
+ *  Global listing of handler configs (oh_handler_config).  This list is 
+ *  populated during config file parse, and used to build 
+ *  global_handler_list
+ */
+extern GSList *global_handler_configs;
+
+/*
+ *  Global listing of handlers (oh_handler).  This list is populated
+ *  by the first call the saHpiSessionOpen().
+ */
+extern GSList *global_handler_list;
+
+/*
+ *  Global listing of all active sessions (oh_session).  This list is 
+ *  populated and depopulated by calls to saHpiSessionOpen() and
+ *  saHpiSessionClose()
+ */
+extern GSList *global_session_list;
+
+/*
+ *  Global RPT Table (implemented as a linked list).
+ *
+ *  This list contains all resources (wrapped as oh_resource structures),
+ *  regardless of whether an HPI caller can see the resources for the given
+ *  permission level or domain view used.
+ * 
+ *  This list is populated by calls to saHpiDiscoverResources()
+ */
+extern GSList *global_rpt;
+extern unsigned int global_rpt_counter; /*FIXME: I use the couter for two purposes. 
+				   1) RptInfo counter 2) ResourceId allocation */
+extern struct timeval global_rpt_timestamp;
+
+
 struct oh_session *session_get(SaHpiSessionIdT);
 int session_add(SaHpiDomainIdT, struct oh_session**);
 int session_del(struct oh_session*);
@@ -310,7 +330,9 @@ int load_handler(char *plugin_name, char *name, char *addr);
 struct oh_handler *new_handler(char *plugin_name, char *name,char *addr);
 int free_handler(struct oh_handler*);
 
-/* event handler*/
+/* system event log */
+int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info);
+/* event handler */
 int get_events(void);
 
 /* howswap */
