@@ -14,7 +14,7 @@ MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
-EXTRA_DIST        = rpt_resources.h
+EXTRA_DIST              = rpt_resources.h
 
 AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
@@ -90,77 +90,10 @@ TESTS = rpt_utils_000 \
         rpt_utils_064 \
         rpt_utils_065 \
         rpt_utils_066 \
+        rpt_utils_067 \
         rpt_utils_1000
 
-
-check_PROGRAMS = rpt_utils_000 \
-		 rpt_utils_001 \
-		 rpt_utils_002 \
-                 rpt_utils_003 \
-                 rpt_utils_004 \
-                 rpt_utils_005 \
-                 rpt_utils_006 \
-                 rpt_utils_007 \
-                 rpt_utils_008 \
-                 rpt_utils_009 \
-                 rpt_utils_010 \
-                 rpt_utils_011 \
-                 rpt_utils_012 \
-                 rpt_utils_013 \
-                 rpt_utils_014 \
-                 rpt_utils_015 \
-                 rpt_utils_016 \
-                 rpt_utils_017 \
-                 rpt_utils_018 \
-                 rpt_utils_019 \
-                 rpt_utils_020 \
-                 rpt_utils_021 \
-                 rpt_utils_022 \
-                 rpt_utils_023 \
-                 rpt_utils_024 \
-                 rpt_utils_025 \
-                 rpt_utils_026 \
-                 rpt_utils_027 \
-                 rpt_utils_028 \
-                 rpt_utils_029 \
-                 rpt_utils_030 \
-                 rpt_utils_031 \
-                 rpt_utils_032 \
-                 rpt_utils_033 \
-                 rpt_utils_034 \
-                 rpt_utils_035 \
-                 rpt_utils_036 \
-                 rpt_utils_037 \
-                 rpt_utils_038 \
-                 rpt_utils_039 \
-                 rpt_utils_040 \
-                 rpt_utils_041 \
-                 rpt_utils_042 \
-                 rpt_utils_043 \
-                 rpt_utils_044 \
-                 rpt_utils_045 \
-                 rpt_utils_046 \
-                 rpt_utils_047 \
-                 rpt_utils_048 \
-                 rpt_utils_049 \
-                 rpt_utils_050 \
-                 rpt_utils_051 \
-                 rpt_utils_052 \
-                 rpt_utils_053 \
-                 rpt_utils_054 \
-                 rpt_utils_055 \
-                 rpt_utils_056 \
-                 rpt_utils_057 \
-                 rpt_utils_058 \
-                 rpt_utils_059 \
-                 rpt_utils_060 \
-                 rpt_utils_061 \
-		 rpt_utils_062 \
-	    	 rpt_utils_063 \
-		 rpt_utils_064 \
-		 rpt_utils_065 \
-                 rpt_utils_066 \
-                 rpt_utils_1000
+check_PROGRAMS = $(TESTS)
 
 rpt_utils_000_SOURCES = rpt_utils_000.c $(REMOTE_SOURCES)
 rpt_utils_001_SOURCES = rpt_utils_001.c $(REMOTE_SOURCES)
@@ -229,4 +162,5 @@ rpt_utils_063_SOURCES = rpt_utils_063.c $(REMOTE_SOURCES)
 rpt_utils_064_SOURCES = rpt_utils_064.c $(REMOTE_SOURCES)
 rpt_utils_065_SOURCES = rpt_utils_065.c $(REMOTE_SOURCES)
 rpt_utils_066_SOURCES = rpt_utils_066.c $(REMOTE_SOURCES)
+rpt_utils_067_SOURCES = rpt_utils_067.c $(REMOTE_SOURCES)
 rpt_utils_1000_SOURCES = rpt_utils_1000.c $(REMOTE_SOURCES)

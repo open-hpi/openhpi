@@ -75,6 +75,7 @@ The negative tests:
         - rid not there (042)
         - rdr == NULL (043)
         - RPTable == rdr == NULL (044)
+        - rdr with an out of range instrument id (067)
     oh_remove_rdr 
         - RPTable == NULL (045)
         - rid not there (046)

@@ -64,9 +64,23 @@ static RDRecord *get_rdrecord_by_id(RPTEntry *rptentry, SaHpiEntryIdT id)
         return rdrecord;
 }
 
-static SaHpiUint8T get_rdr_type_num(SaHpiRdrT *rdr)
+static int check_instrument_id(SaHpiRdrT *rdr)
 {
-        SaHpiUint8T num = 0;
+        switch (rdr->RdrType) {
+                case SAHPI_SENSOR_RDR:
+                        if (rdr->RdrTypeUnion.SensorRec.Num < SAHPI_STANDARD_SENSOR_MIN ||
+                            rdr->RdrTypeUnion.SensorRec.Num > SAHPI_STANDARD_SENSOR_MAX) {
+                                return -1;
+                        } else return 0;
+                        break;
+                default:
+                        return 0;
+        }
+}
+
+static SaHpiInstrumentIdT get_rdr_type_num(SaHpiRdrT *rdr)
+{
+        SaHpiInstrumentIdT num = 0;
 
         switch (rdr->RdrType) {
                 case SAHPI_CTRL_RDR:
@@ -116,12 +130,12 @@ static void update_rptable(RPTable *table) {
  *
  * Returns: a derived Record Id used to identify RDRs within Resources
  */
-SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num)
+SaHpiEntryIdT get_rdr_uid(SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
 {
-        SaHpiUint32T uid;
+        SaHpiEntryIdT uid;
 
-        uid = ((SaHpiUint32T)type) << 16;
-        uid = uid + (SaHpiUint32T)num;
+        uid = ((SaHpiEntryIdT)type) << 16;
+        uid = uid + (SaHpiEntryIdT)num;
 
         return uid;
 }
@@ -574,13 +588,16 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
-        SaHpiUint8T type_num;
+        SaHpiInstrumentIdT type_num;
 
         if (!table) {
                 dbg("Error: Cannot work on a null table pointer.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         } else if (!rdr) {
                 dbg("Failed to add. RDR is NULL.");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        } else if (check_instrument_id(rdr)) {
+                dbg("Invalid instrument id found in RDR.");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -619,7 +636,7 @@ SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *
                 g_free(rdrecord->data);
         rdrecord->data = data;
         rdrecord->owndata = owndata;
-        rdrecord->rdr = *rdr;        
+        rdrecord->rdr = *rdr;
 
         return SA_OK;
 }
@@ -773,11 +790,11 @@ SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT 
  * Reference to the RDR looked up or NULL if no RDR was found.
  **/
 SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
-                              SaHpiRdrTypeT type, SaHpiUint8T num)
+                              SaHpiRdrTypeT type, SaHpiInstrumentIdT num)
 {
         RPTEntry *rptentry;
         RDRecord *rdrecord;
-        SaHpiUint32T rdr_uid;
+        SaHpiEntryIdT rdr_uid;
 
         if (!table) {
                 dbg("Error: Cannot work on a null table pointer.");
@@ -792,7 +809,7 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
 
         /* Get rdr_uid from type/num combination */
         rdr_uid = get_rdr_uid(type, num);
-        rdrecord = get_rdrecord_by_id(rptentry, (SaHpiEntryIdT)rdr_uid);
+        rdrecord = get_rdrecord_by_id(rptentry, rdr_uid);
         if (!rdrecord) {
                 /*dbg("Warning: RDR not found. Returning NULL.");*/
                 return NULL;

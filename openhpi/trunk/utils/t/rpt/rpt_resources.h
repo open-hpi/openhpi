@@ -485,7 +485,7 @@ SaHpiRdrT rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .SensorRec = {
-                                .Num = 1,
+                                .Num = 256,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
@@ -542,7 +542,7 @@ SaHpiRdrT rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .SensorRec = {
-                                .Num = 2,
+                                .Num = 257,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
@@ -599,7 +599,7 @@ SaHpiRdrT rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .SensorRec = {
-                                .Num = 3,
+                                .Num = 258,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
@@ -656,7 +656,7 @@ SaHpiRdrT rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .SensorRec = {
-                                .Num = 4,
+                                .Num = 259,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
@@ -713,7 +713,7 @@ SaHpiRdrT rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .SensorRec = {
-                                .Num = 5,
+                                .Num = 260,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
@@ -762,7 +762,7 @@ SaHpiRdrT rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .SensorRec = {
-                                .Num = 1,
+                                .Num = 256,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
@@ -811,7 +811,7 @@ SaHpiRdrT rdrs[] = {
                 },
                 .RdrTypeUnion = {
                         .SensorRec = {
-                                .Num = 2,
+                                .Num = 257,
                                 .Type = SAHPI_PLATFORM_VIOLATION,
                                 .Category = SAHPI_EC_SEVERITY,
                                 .EventCtrl = SAHPI_SEC_PER_EVENT,
