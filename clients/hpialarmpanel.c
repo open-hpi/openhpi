@@ -46,9 +46,7 @@ main(int argc, char **argv)
 {
   int c;
   SaErrorT rv;
-  SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
-  SaHpiRptInfoT rptinfo;
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -125,12 +123,7 @@ main(int argc, char **argv)
 		exit(1);
      }
 
-  rv = saHpiInitialize(&hpiVer);
-  if (rv != SA_OK) {
-	printf("saHpiInitialize error %d\n",rv);
-	exit(-1);
-	}
-  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid,NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
            printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -139,12 +132,8 @@ main(int argc, char **argv)
 	exit(-1);
 	}
  
-  rv = saHpiResourcesDiscover(sessionid);
+  rv = saHpiDiscover(sessionid);
   if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
-  rv = saHpiRptInfoGet(sessionid,&rptinfo);
-  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
-         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
  
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -176,10 +165,9 @@ main(int argc, char **argv)
 			rv = saHpiControlTypeGet(sessionid,resourceid,
 					ctlnum,&ctltype);
   			if (fdebug) printf("saHpiControlTypeGet[%d] rv = %d, type = %d\n",ctlnum,rv,ctltype);
-			rv = saHpiControlStateGet(sessionid,resourceid,
-					ctlnum,&ctlstate);
+			rv = saHpiControlGet(sessionid,resourceid,ctlnum,NULL,&ctlstate);
   			if (fdebug) 
-			   printf("saHpiControlStateGet[%d] rv = %d v = %x\n",
+			   printf("saHpiControlGet[%d] rv = %d v = %x\n",
 				ctlnum,rv,ctlstate.StateUnion.Digital);
 			printf("RDR[%d]: ctltype=%d:%d oem=%02x %s  \t",
 				rdr.RecordId, 
@@ -203,9 +191,9 @@ main(int argc, char **argv)
 				printf("Setting ID led to %d sec\n", fid);
 				ctlstate.Type = SAHPI_CTRL_TYPE_ANALOG;
 				ctlstate.StateUnion.Analog = fid;
-				rv = saHpiControlStateSet(sessionid,
-					   resourceid, ctlnum,&ctlstate);
-				printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+				rv = saHpiControlSet(sessionid,resourceid, 
+					ctlnum, SAHPI_CTRL_MODE_MANUAL, &ctlstate);
+				printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
 			    }
 			} else 
 			if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -219,10 +207,10 @@ main(int argc, char **argv)
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
-				   rv = saHpiControlStateSet(sessionid,
-						resourceid, ctlnum,&ctlstate);
+				   rv = saHpiControlSet(sessionid, resourceid, ctlnum,
+							SAHPI_CTRL_MODE_MANUAL, &ctlstate);
   				   /* if (fdebug)  */
-					printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+					printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
 				}
 			}
 			else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_DIGITAL &&
@@ -236,9 +224,9 @@ main(int argc, char **argv)
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
 				   else 
 					ctlstate.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
-				   rv = saHpiControlStateSet(sessionid,
-						resourceid, ctlnum,&ctlstate);
-				   printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
+				   rv = saHpiControlSet(sessionid, resourceid, ctlnum,
+							SAHPI_CTRL_MODE_MANUAL,&ctlstate);
+				   printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
 				}
 			}
                         else if (rdr.RdrTypeUnion.CtrlRec.Type == SAHPI_CTRL_TYPE_OEM
@@ -248,11 +236,9 @@ main(int argc, char **argv)
                                 ctlstate.StateUnion.Oem.BodyLength = 1;
                                 ctlstate.StateUnion.Oem.Body[0]    = raw_val;
                                 printf("Set raw value to alarm control...\n");
-                                rv = saHpiControlStateSet(sessionid,
-                                                          resourceid, ctlnum,&ctlstate);
-                                printf("saHpiControlStateSet[%d] rv = %d\n",ctlnum,rv);
-                                   
-                                
+                                rv = saHpiControlSet(sessionid, resourceid, ctlnum,
+						     SAHPI_CTRL_MODE_MANUAL, &ctlstate);
+                                printf("saHpiControlSet[%d] rv = %d\n",ctlnum,rv);
                         }
                         
 			rv = SA_OK;  /* ignore errors & continue */
@@ -266,9 +252,7 @@ main(int argc, char **argv)
   }
  
   rv = saHpiSessionClose(sessionid);
-  rv = saHpiFinalize();
 
-  exit(0);
   return(0);
 }
  

@@ -13,7 +13,8 @@ bin_PROGRAMS = \
 	hpiel \
 	hpisensor \
         hpipower \
-	hpitree
+	hpitree \
+	hpialarmpanel
 
 #bin_PROGRAMS           = hpialarmpanel \
 #                          hpithres \
@@ -28,9 +29,9 @@ bin_PROGRAMS = \
 
 include_HEADERS         =
 
-#hpialarmpanel_SOURCES   = hpialarmpanel.c
-#hpialarmpanel_LDADD     = $(COMMONLIBS)
-#hpialarmpanel_LDFLAGS   =
+hpialarmpanel_SOURCES   = hpialarmpanel.c
+hpialarmpanel_LDADD     = $(COMMONLIBS)
+hpialarmpanel_LDFLAGS   =
 
 #hpithres_SOURCES        = hpithres.c
 #hpithres_LDADD          = $(COMMONLIBS)
