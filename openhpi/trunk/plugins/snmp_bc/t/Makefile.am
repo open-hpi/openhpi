@@ -57,9 +57,14 @@ libsnmp_bc_la_LDFLAGS	= -module -avoid-version
 libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
-# Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
+# Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
-TESTS = thotswap_state \
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
+#TESTS_ENVIRONMENT += PLUGIN_ROOT=$(shell pwd)/../../../plugins
+TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
+
+TESTS = tevent \
+	thotswap_state \
 	thotswap_state_err \
 	thotswap_reset \
 	thotswap_reset_err \
@@ -74,15 +79,18 @@ TESTS = thotswap_state \
 	tutils_conv \
 	tutils_oid
 
+# Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
 # XFAIL_TESTS = thotswap_reset
 
 check_PROGRAMS = $(TESTS)
 
-# Prototype for unit test using normal IF calls and static BC simulator
-# Remove this code when get a real example. Add xxx to TESTS above
-#xxx_SOURCES = xxx.c
-#xxx_LDADD   = $(top_builddir)/src/libopenhpi.la $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+# Unit test using normal IF calls and simulation library
+tevent_SOURCES = tevent.c
+tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
+# Unit tests with IF and snmp calls stubbed out
 tutils_oid_SOURCES = tutils_oid.c
 tutils_oid_LDADD   = snmp_bc_utils.o
 
