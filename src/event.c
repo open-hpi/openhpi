@@ -37,9 +37,10 @@ static void process_session_event(struct oh_event *e)
 
 		domain_id = GPOINTER_TO_UINT(i->data);
 		g_slist_for_each(j, global_session_list) {
-			struct oh_session *session = j->data;
-			if (domain_id == session->domain_id)
-				session_push_event(session, e);
+			struct oh_session *s = j->data;
+			if (domain_id == s->domain_id 
+			&& s->event_state==OH_EVENT_SUBSCRIBE)
+				session_push_event(s, e);
 		}
 	}
 }
@@ -89,32 +90,42 @@ static void process_internal_event(struct oh_handler *h, struct oh_event *e)
 	}
 }
 
-int get_events(struct oh_session *s)
+static int get_event(void)
+{
+	int has_event;
+	struct oh_event	event;
+	GSList *i;
+
+	has_event = 0;
+	g_slist_for_each(i, global_handler_list) {
+		struct timeval to = {0, 0};
+		struct oh_handler *h = i->data; 
+		int rv;
+		
+		rv = h->abi->get_event(h->hnd, &event, &to);
+		if (rv>0) {
+			if (event.type == OH_ET_HPI) {
+				/* add the event to session event list */
+				process_session_event(&event);
+			} else {
+				process_internal_event(h, &event);
+			}
+			has_event = 1;
+		} else if (rv <0) {
+			has_event = -1;
+			break;
+		}
+	}
+
+	return has_event;
+}
+
+int get_events(void)
 {
 	int has_event;
 	do {
-		struct oh_event	event;
-		int rv;
-		GSList *i;
-
-		has_event = 0;
-		g_slist_for_each(i, global_handler_list) {
-			struct timeval to = {0, 0};
-			struct oh_handler *h = i->data; 
-			
-			rv = h->abi->get_event(h->hnd, &event, &to);
-			if (rv>0) {
-				if (event.type == OH_ET_HPI) {
-					/* add the event to session event list */
-					process_session_event(&event);
-				} else {
-					process_internal_event(h, &event);
-				}
-				has_event = 1;
-			} else if (rv <0)
-				return -1;
-		}
-	} while (has_event);
+		has_event = get_event();
+	} while (has_event>0);
 
 	return 0;
 }

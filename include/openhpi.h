@@ -20,7 +20,7 @@
 #define __OPENHPI_H
 
 #include <stdio.h>
-#include <glib-1.2/glib.h>
+#include <glib.h>
 
 #include <oh_plugin.h>
 
@@ -156,7 +156,12 @@ struct oh_session {
 	  A session is always associated with exactly one domain
 	*/
         SaHpiDomainIdT domain_id;
-        
+       	 
+	enum {
+		OH_EVENT_UNSUBSCRIBE=0,
+		OH_EVENT_SUBSCRIBE,
+	} event_state;
+
         /*
           Even if multiple sessions are opened for the same domain,
           each session could receive different events depending on what
@@ -261,6 +266,8 @@ int session_del(struct oh_session*);
 int session_push_event(struct oh_session*, struct oh_event*);
 /* del/copy/free event from the head of event_list */
 int session_pop_event(struct oh_session*, struct oh_event*);
+/*query if the session has events*/
+int session_has_event(struct oh_session *s);
 
 int is_in_domain_list(SaHpiDomainIdT domain_id);
 /* this is used to pre-alllocated domainal id in config */
@@ -274,6 +281,7 @@ struct oh_resource *insert_resource(struct oh_handler *h, struct oh_resource_id 
 int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT sid);
 
 struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_rdr_id oid);
+struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid);
 
 /* plugin load must be seperate from new_handler call*/
 int init_plugin(void);
@@ -285,7 +293,7 @@ struct oh_handler *new_handler(const char *plugin_name, const char *name, const 
 int free_handler(struct oh_handler*);
 
 /* event handler*/
-int get_events(struct oh_session*);
+int get_events(void);
 
 #define dbg(format, ...)                                      \
         do {							                      \
