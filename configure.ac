@@ -273,7 +273,7 @@ AC_ARG_ENABLE([watchdog],
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
-OH_CHECK_OPENIPMI(1,3,8)
+OH_CHECK_OPENIPMI(1,3,9)
 
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
@@ -282,7 +282,7 @@ AC_ARG_ENABLE([ipmi],
             AC_SUBST(IPMI,ipmi)
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
-                         Can not build IPMI support without OpenIPMI >= 1.3.6)
+                         Can not build IPMI support without OpenIPMI >= 1.3.9)
         fi
     elif test "x$enableval" = "xstatic"; then
         if test "x$have_openipmi" = "xyes"; then
@@ -291,7 +291,7 @@ AC_ARG_ENABLE([ipmi],
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS"
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
-                         Can not build IPMI support without OpenIPMI >= 1.3.6)
+                         Can not build IPMI support without OpenIPMI >= 1.3.9)
         fi        
     fi],
     [if test "x$have_openipmi" = "xyes"; then
