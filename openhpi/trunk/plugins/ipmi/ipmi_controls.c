@@ -269,9 +269,11 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
         
 	info.done = 0;
 	info.err = 0;
-	info.state = &act;
-	if ((act != SAHPI_COLD_RESET) && (act == SAHPI_WARM_RESET)) {
-		dbg("Only support cold and warm reset");
+	if ((act == SAHPI_COLD_RESET) || (act == SAHPI_WARM_RESET)) {
+	      	dbg("ResetAction requested: %d", act);
+	      	info.state = &act;
+	} else {
+	      	dbg("Currently we only support cold and warm reset");
 		return SA_ERR_HPI_INVALID_CMD;
 	}
 
@@ -280,7 +282,6 @@ SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id,
                 rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl, 
                                      set_resource_reset_state, &info);
 	} else {
-		//return SA_ERR_HPI_CAPABILITY;
 		rv = ipmi_mc_pointer_cb(ohoi_res_info->u.mc_id, 
 			set_mc_reset_state, &info);
 	}
