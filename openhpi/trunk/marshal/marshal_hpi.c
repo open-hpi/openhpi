@@ -1267,8 +1267,62 @@ static const cMarshalType *saHpiResourcePowerStateSetOut[] =
   0
 };
 
+static const cMarshalType *oHpiPluginLoadIn[] =
+{
+  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  0
+};
 
-static cHpiMarshal hpi_marshal[] = 
+
+static const cMarshalType *oHpiPluginLoadOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+static const cMarshalType *oHpiPluginUnloadIn[] =
+{
+  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  0
+};
+
+
+static const cMarshalType *oHpiPluginUnloadOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  0
+};
+
+static const cMarshalType *oHpiPluginInfoIn[] =
+{
+  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  0
+};
+
+
+static const cMarshalType *oHpiPluginInfoOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &oHpiPluginInfoType,
+  0
+};
+
+static const cMarshalType *oHpiPluginGetNextIn[] =
+{
+  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  0
+};
+
+
+static const cMarshalType *oHpiPluginGetNextOut[] =
+{
+  &SaErrorType, // result (SaErrorT)
+  &SaHpiTextBufferType, // next plugin name (SaHpiTextBufferT)
+  0
+};
+
+
+static cHpiMarshal hpi_marshal[] =
 {
   dHpiMarshalEntry( saHpiVersionGet ),
   dHpiMarshalEntry( saHpiSessionOpen ),
@@ -1349,6 +1403,10 @@ static cHpiMarshal hpi_marshal[] =
   dHpiMarshalEntry( saHpiResourceResetStateSet ),
   dHpiMarshalEntry( saHpiResourcePowerStateGet ),
   dHpiMarshalEntry( saHpiResourcePowerStateSet ),
+  dHpiMarshalEntry( oHpiPluginLoad ),
+  dHpiMarshalEntry( oHpiPluginUnload ),
+  dHpiMarshalEntry( oHpiPluginInfo ),
+  dHpiMarshalEntry( oHpiPluginGetNext ),
 };
 
 
@@ -1396,7 +1454,7 @@ HpiMarshalRequest1( cHpiMarshal *m, void *buffer, const void *p1 )
   const void *param[1];
   param[0] = p1;
 
-  return HpiMarshalRequest( m, buffer, param );  
+  return HpiMarshalRequest( m, buffer, param );
 }
 
 
@@ -1407,7 +1465,7 @@ HpiMarshalRequest2( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
   param[0] = p1;
   param[1] = p2;
 
-  return HpiMarshalRequest( m, buffer, param );  
+  return HpiMarshalRequest( m, buffer, param );
 }
 
 
@@ -1424,7 +1482,7 @@ HpiMarshalRequest3( cHpiMarshal *m, void *buffer, const void *p1, const void *p2
 
 
 int
-HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2, 
+HpiMarshalRequest4( cHpiMarshal *m, void *buffer, const void *p1, const void *p2,
 		    const void *p3, const void *p4 )
 {
   const void *param[4];
@@ -1480,7 +1538,7 @@ HpiDemarshalRequest1( int byte_order, cHpiMarshal *m, const void *buffer, void *
 {
   void *param[1];
   param[0] = p1;
-  
+
   return HpiDemarshalRequest( byte_order, m, buffer, param );
 }
 
@@ -1702,7 +1760,7 @@ HpiDemarshalReply3( int byte_order, cHpiMarshal *m, const void *buffer, void *re
   param[2] = p2;
   param[3] = p3;
 
-  return HpiDemarshalReply( byte_order, m, buffer, param );  
+  return HpiDemarshalReply( byte_order, m, buffer, param );
 }
 
 
@@ -1716,7 +1774,7 @@ HpiDemarshalReply4( int byte_order, cHpiMarshal *m, const void *buffer, void *re
   param[3] = p3;
   param[4] = p4;
 
-  return HpiDemarshalReply( byte_order, m, buffer, param );  
+  return HpiDemarshalReply( byte_order, m, buffer, param );
 }
 
 
@@ -1731,5 +1789,5 @@ HpiDemarshalReply5( int byte_order, cHpiMarshal *m, const void *buffer, void *re
   param[4] = p4;
   param[5] = p5;
 
-  return HpiDemarshalReply( byte_order, m, buffer, param );  
+  return HpiDemarshalReply( byte_order, m, buffer, param );
 }

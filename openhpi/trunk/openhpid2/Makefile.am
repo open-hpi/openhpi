@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 AM_CFLAGS		= @CFLAGS@
 INCLUDES 		= @OPENHPI_INCLUDES@  -I $(top_srcdir)/marshal
 
-#EXTRA_DIST              = README openhpid.conf
+#EXTRA_DIST              = README openhpid.conf openhpid.sh
 
 #pkgconfigdir            = $(libdir)/pkgconfig
 #pkgconfig_DATA          =

@@ -72,8 +72,8 @@ static cMarshalType SaHpiSensorReadingUnionElements[] =
   dUnionElementEnd()
 };
 
-static cMarshalType SaHpiSensorReadingUnionType = dUnion( 1, 
-							  SaHpiSensorReadingUnionT, 
+static cMarshalType SaHpiSensorReadingUnionType = dUnion( 1,
+							  SaHpiSensorReadingUnionT,
                                                           SaHpiSensorReadingUnionElements );
 
 // sensor reading
@@ -192,7 +192,7 @@ cMarshalType SaHpiCtrlStateStreamType = dStruct( SaHpiCtrlStateStreamT, SaHpiCtr
 
 // text control state
 
-static cMarshalType SaHpiCtrlStateTextElements[] = 
+static cMarshalType SaHpiCtrlStateTextElements[] =
 {
   dStructElement( SaHpiCtrlStateTextT, Line, SaHpiTxtLineNumType ),
   dStructElement( SaHpiCtrlStateTextT, Text, SaHpiTextBufferType ),
@@ -217,7 +217,7 @@ static cMarshalType SaHpiCtrlStateOemElements[] =
 cMarshalType SaHpiCtrlStateOemType = dStruct( SaHpiCtrlStateOemT, SaHpiCtrlStateOemElements );
 
 
-static cMarshalType SaHpiCtrlStateUnionElements[] = 
+static cMarshalType SaHpiCtrlStateUnionElements[] =
 {
   dUnionElement( SAHPI_CTRL_TYPE_DIGITAL, SaHpiCtrlStateDigitalType ),
   dUnionElement( SAHPI_CTRL_TYPE_DISCRETE, SaHpiCtrlStateDiscreteType ),
@@ -493,7 +493,7 @@ cMarshalType SaHpiAnnunciatorRecType = dStruct( SaHpiAnnunciatorRecT, SaHpiAnnun
 
 // rdr
 
-static cMarshalType SaHpiRdrTypeUnionTypeElements[] = 
+static cMarshalType SaHpiRdrTypeUnionTypeElements[] =
 {
         dUnionElement( SAHPI_NO_RECORD, SaHpiVoidType ),
         dUnionElement( SAHPI_CTRL_RDR, SaHpiCtrlRecType ),
@@ -686,7 +686,7 @@ static cMarshalType SaHpiRptEntryElements[] =
 	dStructElement( SaHpiRptEntryT, ResourceEntity, SaHpiEntityPathType ),
 	dStructElement( SaHpiRptEntryT, ResourceCapabilities,SaHpiCapabilitiesType ),
 	dStructElement( SaHpiRptEntryT, HotSwapCapabilities, SaHpiHsCapabilitiesType ),
-	dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ), 
+	dStructElement( SaHpiRptEntryT, ResourceSeverity, SaHpiSeverityType ),
 	dStructElement( SaHpiRptEntryT, ResourceFailed, SaHpiBoolType ),
 	dStructElement( SaHpiRptEntryT, ResourceTag, SaHpiTextBufferType ),	
 	dStructElementEnd()
@@ -772,4 +772,13 @@ static cMarshalType SaHpiEventLogEntryElements[] =
 };
 
 cMarshalType SaHpiEventLogEntryType = dStruct( SaHpiEventLogEntryT, SaHpiEventLogEntryElements );
+
+
+static cMarshalType oHpiPluginInfoElements[] =
+{
+  dStructElement( oHpiPluginInfoT, refcount, refcountType ),
+  dStructElementEnd()
+};
+
+cMarshalType oHpiPluginInfoType = dStruct( oHpiPluginInfoT, oHpiPluginInfoElements );
 
