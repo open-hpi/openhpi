@@ -20,30 +20,49 @@
 extern "C" {
 #endif 
 
-#define OPENHPI_MAX_STRING_BUFFER 512
+/*********************** 
+ * Text buffer utilities
+ ***********************/
+#define OH_MAX_TEXT_BUFFER_LENGTH 1024
 
-/* Structures to string conversion routines */
-const char *SaHpiManufacturerIdT2str(SaHpiManufacturerIdT  value);
-SaErrorT SaHpiTimeT2str(SaHpiTimeT time, 
-			char *buffer, 
-			size_t buffer_size);
-SaErrorT SaHpiEventStateT2str(SaHpiEventStateT event_state, 
-			      SaHpiEventCategoryT event_cat,
-			      char *buffer,
-			      int buffer_size);
- 
-/* Validate structure routines */
-SaHpiBoolT valid_SaHpiEventStateT4Cat(SaHpiEventStateT event_state, 
-		                      SaHpiEventCategoryT event_cat);
+/* Same as SaHpiTextBufferT, only more Data */
+typedef struct {   
+	SaHpiTextTypeT  DataType;
+	SaHpiLanguageT  Language;
+	SaHpiUint16T    DataLength;
+	SaHpiUint8T     Data[OH_MAX_TEXT_BUFFER_LENGTH];
+} oh_big_textbuffer;
 
+SaErrorT oh_init_textbuffer(SaHpiTextBufferT *buffer);
+SaErrorT oh_append_textbuffer(SaHpiTextBufferT *buffer, const char *from, size_t size);
+SaErrorT oh_copy_textbuffer(SaHpiTextBufferT *dest, const SaHpiTextBufferT *from);
 
-/* Print structure routines */
+/************************************************* 
+ * Structures to string/buffer conversion routines
+ *************************************************/
+const char * oh_lookup_manufacturerid(SaHpiManufacturerIdT value);
+
+SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT *reading,
+                                 SaHpiSensorDataFormatT *format,
+				 SaHpiTextBufferT *buffer);
+
+/***************************** 
+ * Validate structure routines
+ *****************************/
+
+/************************** 
+ * Print structure routines
+ **************************/
+#define oh_print_textbuffer(buffer)  oh_fprint_textbuffer(stdout, buffer)
+SaErrorT oh_fprint_textbuffer(FILE *stream, const SaHpiTextBufferT *buffer);
+#define oh_print_big_textbuffer(big_buffer)  oh_fprint_big_textbuffer(stdout, big_buffer)
+SaErrorT oh_fprint_big_textbuffer(FILE *stream, const oh_big_textbuffer *big_buffer);
+
 #if 0
-SaHpiBoolT valid_SaHpiTextBufferT(SaHpiTextBufferT value);
-SaHpiBoolT valid_SaHpiTimeT(SaHpiTimeT value);
+SaHpiBoolT valid_SaHpiTextBufferT(SaHpiTextBufferT *buffer);
+SaHpiBoolT valid_SaHpiTimeT(SaHpiTimeT time);
 /* EventAdd and EventLogAdd ??? */
-SaHpiBoolT valid_SaHpiEventT(SaHpiEventT value);
-SaErrorT print_SaHpiTextBufferT(SaHpiTextBufferT text_buffer); 
+SaHpiBoolT valid_SaHpiEventT(SaHpiEventT event);
 #endif
 
 #ifdef __cplusplus
