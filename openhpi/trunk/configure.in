@@ -228,7 +228,7 @@ if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 fi
 
-LIBS="$LIBS $GLIBLIBS"
+LIBS="$LIBS $GLIBLIBS -lm"
 if test "x$THREAD_SAFE" = "xyes" ; then
         LIBS="$LIBS -lpthread"
 fi
