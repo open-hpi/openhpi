@@ -30,7 +30,8 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_append when el == NULL
+ * This test verifies the failure of oh_el_map_from_file when
+ * filename does not exist.
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -40,32 +41,29 @@ int main(int argc, char **argv)
 {
         oh_el *el;
         SaErrorT retc;
-	SaHpiEventT event;
-	static char *data[1] = {
-        	"Test data one"
-
-	};
 
 
-	/* test oh_el_append with el==NULL*/
-	el = NULL;
+	/* test failure of oh_el_map_from_file with nonexistant filename */
+	
+	el = oh_el_create(20);
 
-
-        event.Source = 1;
-        event.EventType = SAHPI_ET_USER;
-        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
-        event.Severity = SAHPI_DEBUG;
-
-        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
-
-        retc = oh_el_append(el, &event, NULL, NULL);
+        retc = oh_el_map_from_file(el, "./notthere.data");
         if (retc == SA_OK) {
-                dbg("ERROR: oh_el_append failed.");
+                dbg("ERROR: oh_el_map_from_file failed.");
                 return 1;
-        }       
+	}
+
+        /* close el */
+        retc = oh_el_close(el);
+        if (retc != SA_OK) {
+                dbg("ERROR: oh_el_close on el failed.");
+                return 1;
+        }
 
         return 0;
 }
+
+
 
 
 

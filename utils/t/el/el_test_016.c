@@ -30,8 +30,7 @@
 /**
  * main: EL test
  *
- * This test verifies the failure of oh_el_map_to_file
- * when el == NULL and filename == NULL.
+ * This test verifies failure of oh_el_append when el-> gentimestamp == FALSE
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -39,37 +38,43 @@
 
 int main(int argc, char **argv)
 {
-        oh_el *el, *el2;
+        oh_el *el;
         SaErrorT retc;
+	SaHpiEventT event;
+	static char *data[1] = {
+        	"Test data one"
+	};
 
-	/* create a null EL and attempt to save it to file */
-	el = NULL;
 
-        /* save the EL to file */
-        retc = oh_el_map_to_file(el, "./elTest.data");
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_map_to_file failed.");
-                return 1;
-        }
+
+	/*test oh_el_append with el->gentimestamp == FALSE*/
 	
-	el2 = oh_el_create(20);
-	
-        retc = oh_el_map_to_file(el2, NULL);
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_map_to_file failed.");
-                return 1;
-	}	
+	el = oh_el_create(20);
 
-        /* close el */
-        retc = oh_el_close(el2);
+        event.Source = 1;
+        event.EventType = SAHPI_ET_USER;
+        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event.Severity = SAHPI_DEBUG;
+	  
+	el->gentimestamp = SAHPI_FALSE;
+
+        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
+
+        retc = oh_el_append(el, &event, NULL, NULL);
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el2 failed.");
+                dbg("ERROR: oh_el_append failed.");
+                return 1;
+        }  
+        
+	/* close el */
+        retc = oh_el_close(el);
+        if (retc != SA_OK) {
+                dbg("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 
         return 0;
 }
-
 
 
 

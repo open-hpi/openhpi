@@ -30,53 +30,32 @@
 /**
  * main: EL test
  *
- * This test verifies the failure of oh_el_timeset when
- * (1) el == NULL and (2) timestamp == SAHPI_TIME_UNSPECIFIED
+ * This test verifies failure of oh_el_prepend when event == NULL
  *
  * Return value: 0 on success, 1 on failure
  **/
 
-
 int main(int argc, char **argv)
 {
-        oh_el *el, *el2;
-	SaHpiTimeT timestamp = 0;
-	SaErrorT retc;
+        oh_el *el;
+        SaErrorT retc;    
 
-	/* tests oh_el_timeset when el == NULL */
+	/*test oh_el_prepend with event==NULL*/
+	el = oh_el_create(20);
 
-	el = NULL;
+        retc = oh_el_prepend(el, NULL, NULL, NULL);
+        if (retc == SA_OK) {
+                dbg("ERROR: oh_el_prepend failed.");
+                return 1;
+        } 
 
-	retc = oh_el_timeset(el, timestamp + 20);
-	if (retc == SA_OK){
-		dbg("ERROR: oh_el_timeset failed");
-		return 1;
-	}
-
-	/* tests oh_el_timeset when timestamp = SAHPI_TIME_UNSPECIFIED */
-	
-	/* create a new EL of size 5*/
-	el2 = oh_el_create(20);     
-
-	retc = oh_el_timeset(el2, SAHPI_TIME_UNSPECIFIED);
-	if (retc == SA_OK){
-		dbg("ERROR: oh_el_timeset on el2 failed");
-		return 1;
-	}
-
-        /* close el2 without saving to file*/
-        retc = oh_el_close(el2);
+        /* close el */
+        retc = oh_el_close(el);
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el2 failed.");
+                dbg("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 
-
         return 0;
 }
-
-
-
-
-
 

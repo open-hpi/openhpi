@@ -27,12 +27,11 @@
 
 #include "el_test.h"
 
-
 /**
  * main: EL test
  *
- * This test verifies the failure of oh_el_info
- * when (1)el == NULL and (2) info == NULL
+ * This test verifies failure of oh_el_append when el->enabled == SAHPI_FALSE &&
+ * event->EventType != SAHPI_ET_USER
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -40,40 +39,42 @@
 
 int main(int argc, char **argv)
 {
-        oh_el *el, *el2;
+        oh_el *el;
         SaErrorT retc;
-	SaHpiEventLogInfoT info;
+	SaHpiEventT event;
+	static char *data[10] = {
+        	"Test data one"
+	};
 
+	/*test oh_el_append with el->enabled == SAHPI_FALSE &&
+        event->EventType != SAHPI_ET_USER */
+	
+	el = oh_el_create(20);
 
-	/* test oh_el_info with el == NULL */
-	el = NULL;     
+	el->enabled = FALSE;
+        event.Source = 1;
+        event.EventType = SAHPI_ET_DOMAIN;
+        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event.Severity = SAHPI_DEBUG;
 
-        retc = oh_el_info(el, &info);
+        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
+
+        retc = oh_el_append(el, &event, NULL, NULL);
         if (retc == SA_OK) {
-                dbg("ERROR: oh_el_info failed.");
+                dbg("ERROR: oh_el_append failed.");
                 return 1;
-        }
-
-	/* test oh_el_info with info == NULL */
-
-	el2 = oh_el_create(20);
-
-        retc = oh_el_info(el2, NULL);
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_info failed.");
-                return 1;
-        }
-
-        /* close el without saving to file*/
-        retc = oh_el_close(el2);
+        }  
+	
+        
+	/* close el */
+        retc = oh_el_close(el);
         if (retc != SA_OK) {
-                dbg("ERROR: oh_el_close on el2 failed.");
+                dbg("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 
         return 0;
 }
-
 
 
 

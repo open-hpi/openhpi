@@ -30,8 +30,9 @@
 /**
  * main: EL test
  *
- * This test verifies failure of oh_el_overflowreset when
- * el == NULL 
+ * This test verifies failure of oh_el_append when el->maxsize !=
+ * OH_EL_MAX_SIZE && g_list_length(el->elentries) == el->maxsize
+ *
  * Return value: 0 on success, 1 on failure
  **/
 
@@ -40,15 +41,42 @@ int main(int argc, char **argv)
 {
         oh_el *el;
         SaErrorT retc;
+	SaHpiEventT event;
+	static char *data[1] = {
+        	"Test data one"
+	};
+		
+			
 	
-	/* attempt to clear a null EL*/
-	el = NULL;
+	/*test oh_el_append with el->maxsize != OH_EL_MAX_SIZE && g_list_length(el->elentries) == el->maxsize */
+	
+	el = oh_el_create(20);
+	el->maxsize = g_list_length(el->elentries);
+        event.Source = 1;
+        event.EventType = SAHPI_ET_USER;
+        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event.Severity = SAHPI_DEBUG;
 
-	retc = oh_el_overflowreset(el);
-        if (retc == SA_OK) {
-                dbg("ERROR: el overflowreset failed.");
+        strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
+
+        retc = oh_el_append(el, &event, NULL, NULL);
+        if (retc != SA_OK) {
+                dbg("ERROR: oh_el_append failed.");
+                return 1;
+        } 
+	  
+	/* close el */
+        retc = oh_el_close(el);
+        if (retc != SA_OK) {
+                dbg("ERROR: oh_el_close on el failed.");
                 return 1;
         }
 
+
         return 0;
 }
+
+
+
+
+
