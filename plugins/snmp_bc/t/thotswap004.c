@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test :
 	 **************************/
-	expected_err = SA_ERR_HPI_INVALID_REQUEST;
+	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	act = 0xFF;
 	err = snmp_bc_set_reset_state((void *)h->hnd, id, act);   
 	checkstatus(&err, &expected_err, &testfail);
