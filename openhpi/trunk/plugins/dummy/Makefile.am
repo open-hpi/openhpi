@@ -35,7 +35,7 @@ INCLUDES		= -I$(top_srcdir)/include
 
 AM_CFLAGS		= -g @CFLAGS@
 
-pkglib_LTLIBRARIES		= libdummy.la
+pkglib_LTLIBRARIES	= libdummy.la
 
 libdummy_la_SOURCES	= dummy.c
 libdummy_la_LIBADD	= -luuid

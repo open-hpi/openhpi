@@ -331,7 +331,7 @@ STATIC_PLUGIN_LIBS=
 for name in $STATIC_PLUGIN_LIST; do
         STATIC_PLUGIN="$STATIC_PLUGIN { \"$name\", ${name}_get_interface },";
         STATIC_PLUGIN_EXTERN="${STATIC_PLUGIN_EXTERN} extern int ${name}_get_interface(void **pp, const uuid_t uuid);";
-        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/plugins/$name/.libs/lib${name}.a";
+        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/plugins/$name/lib${name}.la";
 done
 
 dnl use src/plugin_static.c.in
@@ -476,13 +476,11 @@ AC_CONFIG_FILES([openhpi.spec
         openhpi.pc
         rt-env.sh
         Makefile
-        src/Makefile
-        src/snmp/Makefile
-        src/t/Makefile
-	src/t/epath/Makefile
-	src/t/rpt/Makefile
-	src/t/sel/Makefile
-        src/plugin_static.c
+        utils/Makefile
+        utils/t/Makefile
+	utils/t/epath/Makefile
+	utils/t/rpt/Makefile
+	utils/t/sel/Makefile
         plugins/Makefile
 	plugins/snmp_client/Makefile
         plugins/dummy/Makefile
@@ -495,6 +493,9 @@ AC_CONFIG_FILES([openhpi.spec
         plugins/ipmidirect/Makefile
         plugins/ipmidirect/t/Makefile
         plugins/simulator/Makefile
+        src/Makefile
+        src/snmp/Makefile
+        src/plugin_static.c
         test/Makefile
         docs/Makefile
         docs/hld/Makefile

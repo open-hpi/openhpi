@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
 
-MAINTAINERCLEANFILES    = Makefile.in rpt_utils.c epath_utils.c uid_utils.c
+MAINTAINERCLEANFILES    = Makefile.in
 
 INCLUDES                = -I$(top_srcdir)/include 
 
@@ -112,34 +112,9 @@ libipmidirect_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
 
 noinst_PROGRAMS         = plugin_test
 
-plugin_test_SOURCES     = plugin_test.cpp rpt_utils.c epath_utils.c uid_utils.c
-plugin_test_LDADD       = libipmidirect.la -luuid -lm @SSL_LIB@
+plugin_test_SOURCES     = plugin_test.cpp
+plugin_test_LDADD       = libipmidirect.la $(top_builddir)/utils/libopenhpiutils.la -luuid -lm @SSL_LIB@
 plugin_test_LDFLAGS     = -static
-
-# this is a hack to links plugin_test
-rpt_utils.c:
-	if test ! -f rpt_utils.c -a ! -L rpt_utils.c; then \
-		ln -s $(top_srcdir)/src/rpt_utils.c; \
-	fi
-
-epath_utils.c:
-	if test ! -f epath_utils.c -a ! -L epath_utils.c; then \
-		ln -s $(top_srcdir)/src/epath_utils.c; \
-	fi
-
-uid_utils.c:
-	if test ! -f uid_utils.c -a ! -L uid_utils.c; then \
-		ln -s $(top_srcdir)/src/uid_utils.c; \
-	fi
 
 clean:
 	rm -f *~
-	if test -L rpt_utils.c; then \
-		rm -f rpt_utils.c; \
-	fi
-	if test -L epath_utils.c; then \
-		rm -f epath_utils.c; \
-	fi
-	if test -L uid_utils.c; then \
-		rm -f uid_utils.c; \
-	fi

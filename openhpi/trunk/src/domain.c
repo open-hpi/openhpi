@@ -24,6 +24,11 @@
 #include <openhpi.h>
 #include <sel_utils.h>
 
+
+/* declare Rptable object */
+RPTable *default_rpt = NULL; 
+
+
 /*
  *  Global list of all available domain id's (SaHpiDomainIdT).
  *  The intent is that this list is maintained as new RPT entries

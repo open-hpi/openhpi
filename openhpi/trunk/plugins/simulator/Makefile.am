@@ -35,7 +35,7 @@ INCLUDES		= -I$(top_srcdir)/include
 
 AM_CFLAGS		= -g @CFLAGS@
 
-pkglib_LTLIBRARIES		= libsimulator.la
+pkglib_LTLIBRARIES	= libsimulator.la
 
 libsimulator_la_SOURCES	= simulator.c sim_parser.h sim_parser.c sim_event.h sim_event.c sim_util.h sim_util.c
 libsimulator_la_LIBADD	= -luuid -lfam

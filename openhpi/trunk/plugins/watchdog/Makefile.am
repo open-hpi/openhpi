@@ -36,7 +36,7 @@ INCLUDES		= -I$(top_srcdir)/include
 
 AM_CFLAGS		= -g @CFLAGS@
 
-pkglib_LTLIBRARIES		= libwatchdog.la
+pkglib_LTLIBRARIES	= libwatchdog.la
 
 libwatchdog_la_SOURCES  = watchdog.c
 libwatchdog_la_LIBADD   = -luuid

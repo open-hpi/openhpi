@@ -32,16 +32,14 @@
 
 
 MAINTAINERCLEANFILES 	= Makefile.in plugin_static.c 
-
-MOSTLYCLEANFILES = @TEST_CLEAN@
+MOSTLYCLEANFILES        = @TEST_CLEAN@
 
 EXTRA_DIST              = plugin_static.c.in
 
 INCLUDES		= -I$(top_srcdir)/include
 
-SUBDIRS			= @SNMPDIR@ t
-
-DIST_SUBDIRS		= snmp t
+SUBDIRS			= @SNMPDIR@
+DIST_SUBDIRS		= snmp
 
 AM_CFLAGS		= @CFLAGS@
 
@@ -50,21 +48,16 @@ lib_LTLIBRARIES		= libopenhpi.la
 libopenhpi_la_SOURCES	= \
                            config.c \
                            convert.c \
-			   rpt_utils.c \
                            domain.c \
-                           epath_utils.c \
                            event.c \
                            hotswap.c \
                            lock.c \
                            plugin.c \
                            plugin_static.c \
                            safhpi.c \
-                           session.c \
-			   uid_utils.c \
-			   sel_utils.c
+                           session.c
 
- 
-libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ -lltdl
+
+libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
 libopenhpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
 libopenhpi_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@
-
