@@ -18,9 +18,6 @@
 #include <sahpimacros.h>
 #include <tsetup.h>
 
-static void 
-checkstatus(SaErrorT *err, SaErrorT *expected_err, int *failed, int *pass, int *testcase, int *testfail);
-
 int main(int argc, char **argv) 
 {
 
@@ -30,14 +27,11 @@ int main(int argc, char **argv)
 	gchar *BUSY_OID = ".1.3.6.1.4.1.2.3.51.2.4.4.1.7777";
 
 	int testfail = 0;
-	int testcase = 0;
-	int passed = 0, failed = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
 
         SaHpiSessionIdT sessionid;
 	struct snmp_value value;
-		
 		
 	/* ************************	 	 
 	 * Find a resource with Control type rdr
@@ -66,105 +60,72 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test 1: Test Busy Status
 	 **************************/
-	testcase++;
 	expected_err = SA_ERR_HPI_BUSY;
 	err = snmp_bc_snmp_get(custom_handle, BUSY_OID, &value); 
-	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
 	 * Test 2: Test Timeout Status
 	 **************************/
-	testcase++;
 	custom_handle->handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;
 	expected_err = SA_ERR_HPI_NO_RESPONSE;
 
 	err = snmp_bc_snmp_get(custom_handle, BUSY_OID, &value); 
-	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
 	 * Test 3: Valid case
 	 **************************/
-	testcase++;
 	expected_err = SA_OK;
 
 	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_DATETIME_OID, &value); 
-	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
 	 * Test 4: validate field
 	 **************************/
-	testcase++;
-
 	if (custom_handle->handler_retries != 0) {
-		printf("Error! bc_snmp_get TestCase %d\n", testcase);
 		printf("Error! handler_retries does not get cleared after a successful snmp_get\n");
 		testfail = -1;
-		failed++;
-	} else passed++;
+	}
 		
 	/************************** 
 	 * Test 5: Test Busy Status, snmp_set
 	 **************************/
-	testcase++;
 	expected_err = SA_ERR_HPI_BUSY;
 	err = snmp_bc_snmp_set(custom_handle, BUSY_OID, value); 
-	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
 	 * Test 6: Test Timeout Status, snmp_set
 	 **************************/
-	testcase++;
 	custom_handle->handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;
 	expected_err = SA_ERR_HPI_NO_RESPONSE;
 
 	err = snmp_bc_snmp_set(custom_handle, BUSY_OID, value); 
-	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
 	 * Test 7: Valid case
 	 **************************/
-	testcase++;
 	expected_err = SA_OK;
 
 	err = snmp_bc_snmp_set(custom_handle, SNMP_BC_DATETIME_OID, value); 
-	checkstatus(&err, &expected_err, &failed, &passed, &testcase, &testfail);
+	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
 	 * Test 8: validate field
 	 **************************/
-	testcase++;
-
 	if (custom_handle->handler_retries != 0) {
-		printf("Error! bc_snmp_set TestCase %d\n", testcase);
 		printf("Error! handler_retries does not get cleared after a successful snmp_set\n");
 		testfail = -1;
-		failed++;
-	} else passed++;
+	}
 
 	/***************************
 	 * Cleanup after all tests
 	 ***************************/
-	 printf("tsnmp_bc_getset: %d passed, %d failed\n", passed, failed);
 	 err = tcleanup(&sessionid);
 	 return testfail;
-
-}
-
-/*
- *
- *
- *
- */
-static void 
-checkstatus(SaErrorT *err, SaErrorT *expected_err, int *failed, int *passed, int *testcase, int *testfail)
-{
-	if (*err != *expected_err) {
-		printf("Error! bc_get_sensor_reading: TestCase %d\n", *testcase);
-		printf("Error! snmp_bc_get_sensor_reading returned err=%s, expected=%s\n",
-		oh_lookup_error(*err), oh_lookup_error(*expected_err));
-		*testfail = -1;
-		(*failed)++;
-	} else (*passed)++;
 
 }
 
