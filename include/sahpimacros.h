@@ -27,11 +27,12 @@
  *  more readable.
  *
  ***********************************************************/
-
-static enum {
+typedef enum {
         OH_STAT_UNINIT,
         OH_STAT_READY,
-} oh_hpi_state = OH_STAT_UNINIT;
+} oh_init_state;
+
+extern oh_init_state oh_hpi_state;
 
 #define OH_STATE_READY_CHECK                                      \
         do {                                                      \
