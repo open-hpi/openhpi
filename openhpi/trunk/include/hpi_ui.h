@@ -35,18 +35,16 @@ typedef union {
 #define	STR_TYPE	3	// string
 #define	STRUCT_TYPE	4	// structure
 #define	ARRAY_TYPE	5	// array
+#define	LOOKUP_TYPE	6	// call lookup function
 
-/*	attribute flags		*/
-
-#define	MOD_ENABLE_FLAG		0x01	// modification enable
-#define MODIFY_FLAG		0x02	// value was modified
+typedef char* (*lookup_proc_t)(int num, int val);
 
 typedef struct {
 	char		*name;		// attribute name
 	int		type;		// value type
-	int		flags;		// attribute flags
+	int		lunum;		// lookup proc number
 	union_type_t	value;		// value
-	union_type_t	orig_value;	// original value for recovery
+	lookup_proc_t	proc;		// original value for recovery
 } attr_t;
 
 typedef struct {
@@ -83,10 +81,6 @@ typedef int (*hpi_ui_print_cb_t)(char *buf);
 
 extern Domain_t	*init_resources(SaHpiSessionIdT session);	// create resources tree
 extern SaErrorT	check_resources(Domain_t *Domain);	// check resources tree
-extern SaErrorT	check_rpt(Domain_t *Domain, SaHpiResourceIdT rptId);
-			// check resources for RPT rptId
-extern SaErrorT	check_rdr(Domain_t *Domain, SaHpiResourceIdT rptId,
-				SaHpiEntryIdT rdrId);	// check rdr rdrID for rptId
 extern Rdr_t	*get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiSensorNumT num);
 extern Rpt_t	*get_rpt(Domain_t *Domain, SaHpiResourceIdT rptId);
 			// get resources for RPT rptId
@@ -98,10 +92,6 @@ extern SaErrorT	get_rdr_attr(Rdr_t *rdr, char *attr_name, union_type_t *val);
 			// get rdr attribute value
 extern SaErrorT	get_rdr_attr_as_string(Rdr_t *rdr, char *attr_name, char *val, int len);
 			// get rdr attribute value as string (max length: len)
-extern SaErrorT	set_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t val);
-			// set rpt attribute value
-extern SaErrorT	set_rdr_attr(Rdr_t *rdr, char *attr_name, union_type_t val);
-			// set rdr attribute value
 extern SaErrorT	get_value(Attributes_t *Attrs, int num, union_type_t *val);
 			// get attribute value as string by number (max length: len)
 extern SaErrorT	get_value_as_string(Attributes_t *Attrs, int num, char *val, int len);
@@ -112,10 +102,12 @@ extern int	get_attr_type(Attributes_t *Attrs, int num);
 			// get attribute type
 
 
+extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			int show_short, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc);
+extern SaErrorT	show_rdr_list(Domain_t *D, SaHpiResourceIdT resourceid, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_rpt_list(Domain_t *D, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			hpi_ui_print_cb_t proc);

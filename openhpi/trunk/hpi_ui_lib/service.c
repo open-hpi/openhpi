@@ -22,67 +22,89 @@
 
 #define RPT_ATTRS_NUM	12
 
+#define LANG_PROC	1
+#define TAGTYPE_PROC	2
+
+extern char *lookup_proc(int num, int val);
+
 attr_t	Def_rpt[] = {
-	{ "EntryId",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  0
-	{ "ResourceId",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  1
-	{ "ResourceInfo",	STRUCT_TYPE,	0, { .d = 0}, { .d = 0} },	//  2
-	{ "ResourceEntity",	ARRAY_TYPE,	0, { .d = 0}, { .d = 0} },	//  3
-	{ "Capabilities",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  4
-	{ "HotSwapCapabilities",INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  5
-	{ "ResourceSeverity",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  6
-	{ "ResourceFailed",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  7
-	{ "Tag",		STR_TYPE,	0, { .d = 0}, { .d = 0} },	//  8
-	{ "TagLength",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  9
-	{ "TagType",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	// 10
-	{ "TagLanguage",	INT_TYPE,	0, { .d = 0}, { .d = 0} }	// 11
+	{ "EntryId",		INT_TYPE,	0, { .d = 0}, 0 },	//  0
+	{ "ResourceId",		INT_TYPE,	0, { .d = 0}, 0 },	//  1
+	{ "ResourceInfo",	STRUCT_TYPE,	0, { .d = 0}, 0 },	//  2
+	{ "ResourceEntity",	ARRAY_TYPE,	0, { .d = 0}, 0 },	//  3
+	{ "Capabilities",	INT_TYPE,	0, { .d = 0}, 0 },	//  4
+	{ "HotSwapCapabilities",INT_TYPE,	0, { .d = 0}, 0 },	//  5
+	{ "ResourceSeverity",	INT_TYPE,	0, { .d = 0}, 0 },	//  6
+	{ "ResourceFailed",	INT_TYPE,	0, { .d = 0}, 0 },	//  7
+	{ "Tag",		STR_TYPE,	0, { .d = 0}, 0 },	//  8
+	{ "TagLength",		INT_TYPE,	0, { .d = 0}, 0 },	//  9
+	{ "TagType",		LOOKUP_TYPE,	TAGTYPE_PROC,	{ .d = 0}, lookup_proc },	// 10
+	{ "TagLanguage",	LOOKUP_TYPE,	LANG_PROC,	{ .d = 0}, lookup_proc }	// 11
 };
 
 #define RESINFO_ATTRS_NUM	9
 
 attr_t	Def_resinfo[] = {
-	{ "ResourceRev",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  0
-	{ "SpecificVer",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  1
-	{ "DeviceSupport",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  2
-	{ "ManufacturerId",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  3
-	{ "ProductId",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  4
-	{ "FirmwareMajorRev",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  5
-	{ "FirmwareMinorRev",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  6
-	{ "AuxFirmwareRev",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  7
-	{ "Guid",		STR_TYPE,	0, { .d = 0}, { .d = 0} }	//  8
+	{ "ResourceRev",	INT_TYPE,	0, { .d = 0}, 0 },	//  0
+	{ "SpecificVer",	INT_TYPE,	0, { .d = 0}, 0 },	//  1
+	{ "DeviceSupport",	INT_TYPE,	0, { .d = 0}, 0 },	//  2
+	{ "ManufacturerId",	INT_TYPE,	0, { .d = 0}, 0 },	//  3
+	{ "ProductId",		INT_TYPE,	0, { .d = 0}, 0 },	//  4
+	{ "FirmwareMajorRev",	INT_TYPE,	0, { .d = 0}, 0 },	//  5
+	{ "FirmwareMinorRev",	INT_TYPE,	0, { .d = 0}, 0 },	//  6
+	{ "AuxFirmwareRev",	INT_TYPE,	0, { .d = 0}, 0 },	//  7
+	{ "Guid",		STR_TYPE,	0, { .d = 0}, 0 }	//  8
 };
 
-static int find_attr(Attributes_t *Attrs, char *name)
+int find_rpt(Domain_t *Domain, SaHpiResourceIdT rptId);
+
+char *lookup_proc(int num, int val)
+{
+	char	*string = (char *)NULL;
+
+	switch (num) {
+		case LANG_PROC:
+			string = oh_lookup_language(val); break;
+		case TAGTYPE_PROC:
+			string = oh_lookup_texttype(val); break;
+	};
+	if (string == (char *)NULL)
+		return("");
+	return(string);
+}
+
+static int find_attr(Attributes_t *attrs, char *name)
 {
 	int	i;
 
-	for (i = 0; i < Attrs->n_attrs; i++) {
-		if (strcmp(Attrs->Attrs[i].name, name) == 0)
+	for (i = 0; i < attrs->n_attrs; i++) {
+		if (strcmp(attrs->Attrs[i].name, name) == 0)
 			return(i);
 	};
 	return(-1);
 }
 
-static void *resize_array(void *Ar, int item_size, int *last_num, int add_num)
-/* Resize array Ar:
+static void *resize_array(void *ar, int item_size, int *last_num, int add_num)
+/* Resize array ar:
  *	item_size - item size (bytes)
  *	last_num  - current array size
  *	add_num   - new array size = last_num + add_num
  * Return:	new pointer
  */
 {
-	void	*R;
+	void	*tmp;
 	int	new_num = *last_num + add_num;
 
 	if (new_num <= 0)
 		return((void *)NULL);
-	R = malloc(item_size * new_num);
-	memset(R, 0, item_size * new_num);
+	tmp = malloc(item_size * new_num);
+	memset(tmp, 0, item_size * new_num);
 	if (*last_num > 0) {
-		memcpy(R, Ar, *last_num * item_size);
-		free(Ar);
+		memcpy(tmp, ar, *last_num * item_size);
+		free(ar);
 	}
 	*last_num = new_num;
-	return(R);
+	return(tmp);
 }
 
 static void clear_inited(Domain_t *Domain)
@@ -96,12 +118,12 @@ static void clear_inited(Domain_t *Domain)
 
 static void make_rpt_attrs(Rpt_t *Rpt)
 {
-	attr_t			*A, *A1;
+	attr_t			*att, *att1;
 	int			len, i = 0, newrpt = 1;
-	Attributes_t		*At;
-	SaHpiRptEntryT		*Obj;
+	Attributes_t		*at;
+	SaHpiRptEntryT		*obj;
 
-	Obj = Rpt->Rpt;
+	obj = Rpt->Rpt;
 	if (Rpt->Attrutes.n_attrs > 0)
 		newrpt = 0;
 	if (newrpt) {
@@ -109,82 +131,81 @@ static void make_rpt_attrs(Rpt_t *Rpt)
 		Rpt->Attrutes.Attrs = (attr_t *)malloc(sizeof(attr_t) * RPT_ATTRS_NUM);
 		memcpy(Rpt->Attrutes.Attrs, Def_rpt, sizeof(attr_t) * RPT_ATTRS_NUM);
 	};
-	A = Rpt->Attrutes.Attrs;
-	A[i++].value.i = Obj->EntryId;
-	A[i++].value.i = Obj->ResourceId;
+	att = Rpt->Attrutes.Attrs;
+	att[i++].value.i = obj->EntryId;
+	att[i++].value.i = obj->ResourceId;
 	if (newrpt) {
-		At = (Attributes_t *)malloc(sizeof(Attributes_t));
-		At->n_attrs = RESINFO_ATTRS_NUM;
-		A1 = (attr_t *)malloc(sizeof(attr_t) * RESINFO_ATTRS_NUM);
-		memcpy(A1, Def_resinfo, sizeof(attr_t) * RESINFO_ATTRS_NUM);
-		At->Attrs = A1;
-		A[i++].value.a = At;
+		at = (Attributes_t *)malloc(sizeof(Attributes_t));
+		at->n_attrs = RESINFO_ATTRS_NUM;
+		att1 = (attr_t *)malloc(sizeof(attr_t) * RESINFO_ATTRS_NUM);
+		memcpy(att1, Def_resinfo, sizeof(attr_t) * RESINFO_ATTRS_NUM);
+		at->Attrs = att1;
+		att[i++].value.a = at;
 	} else {
-		At = (Attributes_t *)(A[i++].value.a);
-		A1 = At->Attrs;
+		at = (Attributes_t *)(att[i++].value.a);
+		att1 = at->Attrs;
 	};
-	A1[0].value.i = Obj->ResourceInfo.ResourceRev;
-	A1[1].value.i = Obj->ResourceInfo.SpecificVer;
-	A1[2].value.i = Obj->ResourceInfo.DeviceSupport;
-	A1[3].value.i = Obj->ResourceInfo.ManufacturerId;
-	A1[4].value.i = Obj->ResourceInfo.ProductId;
-	A1[5].value.i = Obj->ResourceInfo.FirmwareMajorRev;
-	A1[6].value.i = Obj->ResourceInfo.FirmwareMinorRev;
-	A1[7].value.i = Obj->ResourceInfo.AuxFirmwareRev;
-	A1[8].value.s = (char *)(Obj->ResourceInfo.Guid);
-	A[i++].value.a = &(Obj->ResourceEntity);
-	A[i++].value.i = Obj->ResourceCapabilities;
-	A[i++].value.i = Obj->HotSwapCapabilities;
-	A[i++].value.i = Obj->ResourceSeverity;
-	A[i++].value.i = Obj->ResourceFailed;
-	len = Obj->ResourceTag.DataLength;
+	att1[0].value.i = obj->ResourceInfo.ResourceRev;
+	att1[1].value.i = obj->ResourceInfo.SpecificVer;
+	att1[2].value.i = obj->ResourceInfo.DeviceSupport;
+	att1[3].value.i = obj->ResourceInfo.ManufacturerId;
+	att1[4].value.i = obj->ResourceInfo.ProductId;
+	att1[5].value.i = obj->ResourceInfo.FirmwareMajorRev;
+	att1[6].value.i = obj->ResourceInfo.FirmwareMinorRev;
+	att1[7].value.i = obj->ResourceInfo.AuxFirmwareRev;
+	att1[8].value.s = (char *)(obj->ResourceInfo.Guid);
+	att[i++].value.a = &(obj->ResourceEntity);
+	att[i++].value.i = obj->ResourceCapabilities;
+	att[i++].value.i = obj->HotSwapCapabilities;
+	att[i++].value.i = obj->ResourceSeverity;
+	att[i++].value.i = obj->ResourceFailed;
+	len = obj->ResourceTag.DataLength;
 	if (len > 0) {
-		A[i++].value.s = Obj->ResourceTag.Data;
-		Obj->ResourceTag.Data[len] = 0;
-		A[i++].value.i = len;
-		A[i++].value.i = Obj->ResourceTag.DataType;
-		A[i++].value.i = Obj->ResourceTag.Language;
+		att[i++].value.s = obj->ResourceTag.Data;
+		obj->ResourceTag.Data[len] = 0;
+		att[i++].value.i = len;
+		att[i++].value.i = obj->ResourceTag.DataType;
+		att[i++].value.i = obj->ResourceTag.Language;
 	}
 }
 
-#define RDR_ATTRS_COMMON_NUM	8
+#define RDR_ATTRS_COMMON_NUM	9
 
 attr_t	Def_common_rdr[] = {
-	{ "RecordId",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  0
-	{ "RdrType",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  1
-	{ "IsFru",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  2
-	{ "Record",		STRUCT_TYPE,	0, { .d = 0}, { .d = 0} },	//  3
-	{ "IdString",		STR_TYPE,	0, { .d = 0}, { .d = 0} },	//  4
-	{ "IdStringLength",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  5
-	{ "IdStringType",	INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  6
-	{ "IdStringLang",	INT_TYPE,	0, { .d = 0}, { .d = 0} }	//  7
-//	{ "Entity",	INT_TYPE,	0, { .d = 0}, { .d = 0} },
+	{ "RecordId",		INT_TYPE,	0, { .d = 0}, 0 },	//  0
+	{ "RdrType",		INT_TYPE,	0, { .d = 0}, 0 },	//  1
+	{ "EntityPath",		ARRAY_TYPE,	0, { .d = 0}, 0 },	//  2
+	{ "IsFru",		INT_TYPE,	0, { .d = 0}, 0 },	//  3
+	{ "Record",		STRUCT_TYPE,	0, { .d = 0}, 0 },	//  4
+	{ "IdString",		STR_TYPE,	0, { .d = 0}, 0 },	//  5
+	{ "IdStringLength",	INT_TYPE,	0, { .d = 0}, 0 },	//  6
+	{ "IdStringType",	INT_TYPE,	0, { .d = 0}, 0 },	//  7
+	{ "IdStringLang",	INT_TYPE,	0, { .d = 0}, 0 }	//  8
 };
 
 #define RDR_ATTRS_SENSOR_NUM	9
 
 attr_t	Def_sensor_rdr[] = {
-	{ "Num",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  0
-	{ "Type",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  1
-	{ "Category",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  2
-	{ "EnableCtrl",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  3
-	{ "EventCtrl",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  4
-	{ "Events",		INT_TYPE,	0, { .d = 0}, { .d = 0} },	//  5
-	{ "DataFormat",		STRUCT_TYPE,	0, { .d = 0}, { .d = 0} },	//  6
-	{ "ThresholdDefn",	STRUCT_TYPE,	0, { .d = 0}, { .d = 0} },	//  7
-	{ "Oem",		INT_TYPE,	0, { .d = 0}, { .d = 0} }	//  8
+	{ "Num",		INT_TYPE,	0, { .d = 0}, 0 },	//  0
+	{ "Type",		INT_TYPE,	0, { .d = 0}, 0 },	//  1
+	{ "Category",		INT_TYPE,	0, { .d = 0}, 0 },	//  2
+	{ "EnableCtrl",		INT_TYPE,	0, { .d = 0}, 0 },	//  3
+	{ "EventCtrl",		INT_TYPE,	0, { .d = 0}, 0 },	//  4
+	{ "Events",		INT_TYPE,	0, { .d = 0}, 0 },	//  5
+	{ "DataFormat",		STRUCT_TYPE,	0, { .d = 0}, 0 },	//  6
+	{ "ThresholdDefn",	STRUCT_TYPE,	0, { .d = 0}, 0 },	//  7
+	{ "Oem",		INT_TYPE,	0, { .d = 0}, 0 }	//  8
 };
 
 static void make_rdr_attrs(Rdr_t *Rdr)
 {
-	attr_t		*A, *A1;
+	attr_t		*att, *att1;
 	int		len, i = 0, newrdr = 1;
-	Attributes_t	*At;
-	SaHpiUint8T	*S;
-	SaHpiRdrT	*Obj;
-	SaHpiSensorRecT	*Sens;
+	Attributes_t	*at;
+	SaHpiRdrT	*obj;
+	SaHpiSensorRecT	*sensor;
 
-	Obj = Rdr->Rdr;
+	obj = Rdr->Rdr;
 	if (Rdr->Attrutes.n_attrs > 0)
 		newrdr = 0;
 	if (newrdr) {
@@ -192,49 +213,48 @@ static void make_rdr_attrs(Rdr_t *Rdr)
 		Rdr->Attrutes.Attrs = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_COMMON_NUM);
 		memcpy(Rdr->Attrutes.Attrs, Def_common_rdr, sizeof(attr_t) * RDR_ATTRS_COMMON_NUM);
 	};
-	A = Rdr->Attrutes.Attrs;
-	A[i++].value.i = Obj->RecordId;
-	A[i++].value.i = Obj->RdrType;
-	A[i++].value.i = Obj->IsFru;
-	len = Obj->IdString.DataLength;
-	switch (Obj->RdrType) {
+	att = Rdr->Attrutes.Attrs;
+	att[i++].value.i = obj->RecordId;
+	att[i++].value.i = obj->RdrType;
+	att[i++].value.a = &(obj->Entity);
+	att[i++].value.i = obj->IsFru;
+	len = obj->IdString.DataLength;
+	switch (obj->RdrType) {
 		case SAHPI_SENSOR_RDR:
 			if (newrdr) {
-				At = (Attributes_t *)malloc(sizeof(Attributes_t));
-				At->n_attrs = RDR_ATTRS_SENSOR_NUM;
-				A1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
-				memcpy(A1, Def_sensor_rdr, sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
-				At->Attrs = A1;
-				A[i].name = "Sensor";
-				A[i++].value.a = At;
+				at = (Attributes_t *)malloc(sizeof(Attributes_t));
+				at->n_attrs = RDR_ATTRS_SENSOR_NUM;
+				att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
+				memcpy(att1, Def_sensor_rdr, sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
+				at->Attrs = att1;
+				att[i].name = "Sensor";
+				att[i++].value.a = at;
 			} else {
-				At = (Attributes_t *)(A[i++].value.a);
-				A1 = At->Attrs;
+				at = (Attributes_t *)(att[i++].value.a);
+				att1 = at->Attrs;
 			};
-			Sens = &(Obj->RdrTypeUnion.SensorRec);
-			A1[0].value.i = Sens->Num;
-			A1[1].value.i = Sens->Type;
-			A1[2].value.i = Sens->Category;
-			A1[3].value.i = Sens->EnableCtrl;
-			A1[4].value.i = Sens->EventCtrl;
-			A1[5].value.i = Sens->Events;
-			A1[8].value.i = Sens->Oem;
+			sensor = &(obj->RdrTypeUnion.SensorRec);
+			att1[0].value.i = sensor->Num;
+			att1[1].value.i = sensor->Type;
+			att1[2].value.i = sensor->Category;
+			att1[3].value.i = sensor->EnableCtrl;
+			att1[4].value.i = sensor->EventCtrl;
+			att1[5].value.i = sensor->Events;
+			att1[8].value.i = sensor->Oem;
 			break;
 		default: break;
 	};
-	len = Obj->IdString.DataLength;
+	len = obj->IdString.DataLength;
 	if (len > 0) {
-		S = (SaHpiUint8T *)malloc(len + 1);
-		memset(S, 0, len + 1);
-		memcpy(S, Obj->IdString.Data, len);
-		A[i++].value.s = S;
-		A[i++].value.i = len;
-		A[i++].value.i = Obj->IdString.DataType;
-		A[i++].value.i = Obj->IdString.Language;
+		att[i++].value.s = obj->IdString.Data;
+		obj->IdString.Data[len] = 0;
+		att[i++].value.i = len;
+		att[i++].value.i = obj->IdString.DataType;
+		att[i++].value.i = obj->IdString.Language;
 	};
 }
 
-static int find_rpt(Domain_t *Domain, SaHpiResourceIdT rptId)
+int find_rpt(Domain_t *Domain, SaHpiResourceIdT rptId)
 {
 	int	i;
 
@@ -259,68 +279,68 @@ static int find_rdr(Rpt_t *Rpt, SaHpiEntryIdT rdrId)
 static void free_attrs(Attributes_t *At)
 {
 	int		i;
-	attr_t		*A;
+	attr_t		*attr;
 
-	for (i = 0, A = At->Attrs; i < At->n_attrs; i++, A++) {
-		if (A->type == STRUCT_TYPE)
-			free_attrs((Attributes_t *)(A->value.a));
-			free(A->value.a);
+	for (i = 0, attr = At->Attrs; i < At->n_attrs; i++, attr++) {
+		if (attr->type == STRUCT_TYPE)
+			free_attrs((Attributes_t *)(attr->value.a));
+			free(attr->value.a);
 	};
 	free(At->Attrs);
 }
 
 static void delete_rdr(Rpt_t *Rpt, int ind)
 {
-	Rdr_t		*Rdr, *R;
+	Rdr_t		*rdr, *rdr1;
 	int		n, i;
 
 	n = Rpt->n_rdrs;
 	if ((ind < 0) || (ind >= n))
 		return;
-	Rdr = Rpt->rdrs + ind;
-	free_attrs(&(Rdr->Attrutes));
-	free(Rdr->Rdr);
-	free(Rdr);
+	rdr = Rpt->rdrs + ind;
+	free_attrs(&(rdr->Attrutes));
+	free(rdr->Rdr);
+	free(rdr);
 	if (n == 1) {
 		Rpt->n_rdrs = 0;
 		free(Rpt->rdrs);
 		return;
 	};
-	R = Rdr = (Rdr_t *)malloc(sizeof(Rdr_t) * (n - 1));
+	rdr1 = rdr = (Rdr_t *)malloc(sizeof(Rdr_t) * (n - 1));
 	for (i = 0; i < n; i++)
-		if (i != ind) *R++ = Rpt->rdrs[i];
+		if (i != ind) *rdr1++ = Rpt->rdrs[i];
 	free(Rpt->rdrs);
-	Rpt->rdrs = Rdr;
+	Rpt->rdrs = rdr;
 }
 
 static void delete_rpt(Domain_t *Domain, int ind)
 {
-	Rpt_t		*Rpt, *R;
+	Rpt_t		*rpt_entry, *tmp;
 	int		n, i;
 
 	n = Domain->n_rpts;
 	if ((ind < 0) || (ind >= n))
 		return;
-	Rpt = Domain->rpts + ind;
-	free_attrs(&(Rpt->Attrutes));
-	free(Rpt->Rpt);
-	free(Rpt);
+	rpt_entry = Domain->rpts + ind;
+	free_attrs(&(rpt_entry->Attrutes));
+	free(rpt_entry->Rpt);
+	free(rpt_entry);
 	if (n == 1) {
 		Domain->n_rpts = 0;
 		free(Domain->rpts);
 		return;
 	};
-	R = Rpt = (Rpt_t *)malloc(sizeof(Rpt_t) * (n - 1));
+	tmp = rpt_entry = (Rpt_t *)malloc(sizeof(Rpt_t) * (n - 1));
 	for (i = 0; i < n; i++)
-		if (i != ind) *R++ = Domain->rpts[i];
+		if (i != ind) *tmp++ = Domain->rpts[i];
 	free(Domain->rpts);
-	Domain->rpts = Rpt;
+	Domain->rpts = rpt_entry;
 }
 
 static SaErrorT init_rpt(Domain_t *Domain, Rpt_t *Rpt)
 {
 	SaHpiRdrT		rdr;
-	Rdr_t			*Rdr;
+	Rdr_t			*rdr_entry;
 	SaErrorT		ret, n;
 	SaHpiEntryIdT		entryid;
 	SaHpiEntryIdT		nextentryid;
@@ -335,21 +355,21 @@ static SaErrorT init_rpt(Domain_t *Domain, Rpt_t *Rpt)
 			return(ret);
 		i = find_rdr(Rpt, rdr.RecordId);
 		if (i != -1) {
-			Rdr = Rpt->rdrs + i;
-			*(Rdr->Rdr) = rdr;
+			rdr_entry = Rpt->rdrs + i;
+			*(rdr_entry->Rdr) = rdr;
 		} else {
 			n = Rpt->n_rdrs;
 			Rpt->rdrs = (Rdr_t *)resize_array(Rpt->rdrs, sizeof(Rdr_t),
 				&(Rpt->n_rdrs), 1);
-			Rdr = Rpt->rdrs + n;
-			Rdr->Rdr = (SaHpiRdrT *)malloc(sizeof(SaHpiRdrT));
-			*(Rdr->Rdr) = rdr;
-			Rpt->rdrs[n] = *Rdr;
+			rdr_entry = Rpt->rdrs + n;
+			rdr_entry->Rdr = (SaHpiRdrT *)malloc(sizeof(SaHpiRdrT));
+			*(rdr_entry->Rdr) = rdr;
+			Rpt->rdrs[n] = *rdr_entry;
 		};
-		Rdr->RecordId = rdr.RecordId;
-		Rdr->RdrType = rdr.RdrType;
-		Rdr->is_inited = 1;
-		make_rdr_attrs(Rdr);
+		rdr_entry->RecordId = rdr.RecordId;
+		rdr_entry->RdrType = rdr.RdrType;
+		rdr_entry->is_inited = 1;
+		make_rdr_attrs(rdr_entry);
 		entryid = nextentryid;
 	};
 	for (i = Rpt->n_rdrs - 1; i >= 0; i--) {
@@ -477,107 +497,37 @@ SaErrorT get_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t *val)
 	return(SA_OK);
 }
 
-SaErrorT check_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiEntryIdT rdrId)
-{
-	SaHpiRdrT		rdr;
-	Rdr_t			*Rdr;
-	Rpt_t			*Rpt;
-	SaErrorT		ret;
-	int			rpt_ind, rdr_ind;
-	SaHpiEntryIdT		entryid;
-	SaHpiEntryIdT		nextentryid;
-
-	if (Domain == (Domain_t *)NULL)
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	rpt_ind = find_rpt(Domain, rptId);
-	if (rpt_ind < 0)
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	Rpt = Domain->rpts + rpt_ind;
-	rdr_ind = find_rdr(Rpt, rdrId);
-	if (rdr_ind < 0)
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	Rdr = Rpt->rdrs + rdr_ind;
-
-	entryid = SAHPI_FIRST_ENTRY;
-	while (entryid !=SAHPI_LAST_ENTRY) {
-		ret = saHpiRdrGet(Domain->sessionId, rptId, entryid, &nextentryid, &rdr);
-		if (ret != SA_OK)
-			return(ret);
-		if (rdr.RecordId == rdrId) {
-			make_rdr_attrs(Rdr);
-			return(SA_OK);
-		};
-		entryid = nextentryid;
-	};
-	//    FIX ME!    delete Rdr
-	return(SA_ERR_HPI_ERROR);
-}
-
-SaErrorT check_rpt(Domain_t *Domain, SaHpiResourceIdT rptId)
-{
-	SaHpiEntryIdT	rptentryid, nextrptentryid;
-	SaErrorT	ret;
-	Rpt_t		*Rpt;
-	SaHpiRptEntryT	rptentry;
-	int		rpt_ind;
-
-	if (Domain == (Domain_t *)NULL)
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	rpt_ind = find_rpt(Domain, rptId);
-	if (rpt_ind < 0)
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	Rpt = Domain->rpts + rpt_ind;
-	rptentryid = SAHPI_FIRST_ENTRY;
-	while (rptentryid != SAHPI_LAST_ENTRY) {
-		ret = saHpiRptEntryGet(Domain->sessionId, rptentryid, &nextrptentryid,
-			&rptentry);
-		if (ret != SA_OK)
-			return(ret);
-		if (rptentry.ResourceId == rptId) {
-			*(Rpt->Rpt) = rptentry;
-			make_rpt_attrs(Rpt);
-			return(SA_OK);
-		};
-		rptentryid = nextrptentryid;
-	};
-	//    FIX ME!    delete Rdr
-	return(SA_ERR_HPI_ERROR);
-}
-
 static SaErrorT get_resources(Domain_t *Domain)
 {
 	SaHpiEntryIdT	rptentryid, nextrptentryid;
 	SaErrorT	ret;
 	SaHpiRptEntryT	rptentry;
-	Rpt_t		*Rpt;
-	int		n, i, found;
+	Rpt_t		*rpt;
+	int		n, i;
 
 	rptentryid = SAHPI_FIRST_ENTRY;
 	while (rptentryid != SAHPI_LAST_ENTRY) {
-		found = 0;
 		ret = saHpiRptEntryGet(Domain->sessionId, rptentryid, &nextrptentryid,
 			&rptentry);
 		if (ret != SA_OK)
 			return(-1);
 		i = find_rpt(Domain, rptentry.ResourceId);
 		if (i != -1) {
-			Rpt = Domain->rpts + i;
-			memcpy(Rpt->Rpt, &rptentry, sizeof(SaHpiRptEntryT));
-			found = 1;
-		};
-		if (found == 0) {
+			rpt = Domain->rpts + i;
+			memcpy(rpt->Rpt, &rptentry, sizeof(SaHpiRptEntryT));
+		} else {
 			n = Domain->n_rpts;
 			Domain->rpts = (Rpt_t *)resize_array(Domain->rpts, sizeof(Rpt_t),
 				&(Domain->n_rpts), 1);
-			Rpt = Domain->rpts + n;
-			Rpt->Rpt = (SaHpiRptEntryT *)malloc(sizeof(SaHpiRptEntryT));
-			memcpy(Rpt->Rpt, &rptentry, sizeof(SaHpiRptEntryT));
+			rpt = Domain->rpts + n;
+			rpt->Rpt = (SaHpiRptEntryT *)malloc(sizeof(SaHpiRptEntryT));
+			memcpy(rpt->Rpt, &rptentry, sizeof(SaHpiRptEntryT));
 		};
-		Rpt->EntryId = rptentry.EntryId;
-		Rpt->ResourceId = rptentry.ResourceId;
-		Rpt->is_inited = 1;
-		make_rpt_attrs(Rpt);
-		ret = init_rpt(Domain, Rpt);
+		rpt->EntryId = rptentry.EntryId;
+		rpt->ResourceId = rptentry.ResourceId;
+		rpt->is_inited = 1;
+		make_rpt_attrs(rpt);
+		ret = init_rpt(Domain, rpt);
 		rptentryid = nextrptentryid;
 	};
 	for (i = Domain->n_rpts - 1; i >= 0; i--) {
@@ -590,15 +540,15 @@ static SaErrorT get_resources(Domain_t *Domain)
 Domain_t *init_resources(SaHpiSessionIdT session)
 {
 	SaErrorT	ret;
-	Domain_t	*Domain;
+	Domain_t	*domain;
 
-	Domain = (Domain_t *)malloc(sizeof(Domain_t));
-	memset(Domain, 0, sizeof(Domain_t));
-	Domain->sessionId = session;
-	ret = get_resources(Domain);
+	domain = (Domain_t *)malloc(sizeof(Domain_t));
+	memset(domain, 0, sizeof(Domain_t));
+	domain->sessionId = session;
+	ret = get_resources(domain);
 	if (ret != SA_OK)
 		return((Domain_t *)NULL);
-	return(Domain);
+	return(domain);
 }
 
 SaErrorT check_resources(Domain_t *Domain)
@@ -610,26 +560,30 @@ SaErrorT check_resources(Domain_t *Domain)
 	return(ret);
 }
 
-SaErrorT set_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t val)
+Rpt_t *get_rpt(Domain_t *domain, SaHpiResourceIdT rptId)
 {
-	return(SA_OK);
-}
+	int		i;
+	SaErrorT	ret;
+	SaHpiRptEntryT	rpt_entry;
+	Rpt_t		*rpt;
 
-SaErrorT set_rdr_attr(Rdr_t *rdr, char *attr_name, union_type_t val)
-{
-	return(SA_OK);
-}
-
-Rpt_t *get_rpt(Domain_t *Domain, SaHpiResourceIdT rptId)
-{
-	int	i;
-
-	if (Domain == (Domain_t *)NULL)
+	if (domain == (Domain_t *)NULL)
 		return((Rpt_t *)NULL);
-	i = find_rpt(Domain, rptId);
-	if (i < 0)
-		return((Rpt_t *)NULL);
-	return(Domain->rpts + i);
+	ret = saHpiRptEntryGetByResourceId(domain->sessionId, rptId, &rpt_entry);
+	i = find_rpt(domain, rptId);
+	if ((i < 0) || (ret != SA_OK)) {
+		if (check_resources(domain) != SA_OK)
+			return((Rpt_t *)NULL);
+		i = find_rpt(domain, rptId);
+		if (i < 0)
+			return((Rpt_t *)NULL);
+		rpt = domain->rpts + i;
+	} else {
+		rpt = domain->rpts + i;
+		*(rpt->Rpt) = rpt_entry;
+		make_rpt_attrs(rpt);
+	};
+	return(rpt);
 }
 
 SaErrorT get_value(Attributes_t *Attrs, int num, union_type_t *val)
@@ -650,15 +604,15 @@ SaErrorT get_value(Attributes_t *Attrs, int num, union_type_t *val)
 Rdr_t *get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiSensorNumT num)
 {
 	int	i;
-	Rpt_t	*Rpt;
+	Rpt_t	*rpt;
 
 	if (Domain == (Domain_t *)NULL)
 		return((Rdr_t *)NULL);
 	i = find_rpt(Domain, rptId);
 	if (i < 0)
 		return((Rdr_t *)NULL);
-	Rpt = Domain->rpts + i;
-	if (num >= Rpt->n_rdrs)
+	rpt = Domain->rpts + i;
+	if (num >= rpt->n_rdrs)
 		return((Rdr_t *)NULL);
-	return(Rpt->rdrs + num);
+	return(rpt->rdrs + num);
 }
