@@ -13,8 +13,8 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
-#ifndef SNMP_BC_UTIL_H
-#define SNMP_BC_UTIL_H
+#ifndef SNMP_BC_UTILS_H
+#define SNMP_BC_UTILS_H
 
 #include <config.h>
 #include <SaHpi.h>
@@ -100,4 +100,5 @@ void sc_free_pdu(struct snmp_pdu **p);
 #define OID_BLANK_STR "x"
 
 gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid);
+
 #endif

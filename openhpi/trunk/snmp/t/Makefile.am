@@ -8,7 +8,7 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-REMOTE_SOURCES		= snmp_util.c
+REMOTE_SOURCES		= snmp_utils.c
 
 MOSTLYCLEANFILES 	= $(REMOTE_SOURCES) @TEST_CLEAN@
 
