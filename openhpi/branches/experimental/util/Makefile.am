@@ -10,7 +10,7 @@ bin_PROGRAMS		= hpialarmpanel \
                           hpievent \
 	                  hpifru \
                           hpireset \
-                          hpisel \
+#                          hpisel \
                           hpisensor \
                           hpiwdt
 
