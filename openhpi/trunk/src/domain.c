@@ -70,25 +70,6 @@ struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
         return NULL;
 }
 
-struct oh_domain *get_domain_by_oid(struct oh_domain_id oid)
-{
-        GSList *i;
-        
-        data_access_lock();
-
-        g_slist_for_each(i, global_domain_list) {
-                struct oh_domain *d = i->data;
-                if(memcmp(&oid, &d->domain_oid, sizeof(oid)) == 0) {
-                        data_access_unlock();
-                        return d;
-                }
-        }
-
-        data_access_unlock();
-
-        return NULL;
-}
-
 #define MAX_GLOBAL_DOMAIN 10000
 #define MIN_DYNAMIC_DOMAIN (MAX_GLOBAL_DOMAIN+1)
 
@@ -121,35 +102,4 @@ int add_domain(SaHpiDomainIdT did)
         data_access_unlock();
         
         return 0;
-}
-
-SaHpiDomainIdT new_domain(struct oh_domain_id domain_oid) 
-{
-        static SaHpiDomainIdT dcounter = MIN_DYNAMIC_DOMAIN;
-        
-        struct oh_domain *d;        
-
-        data_access_lock();  
-
-        if(is_in_domain_list(dcounter) > 0) {
-                data_access_unlock();
-                dbg("Domain %d exists already, something is fishy", dcounter);
-                return -1;
-        }   
-
-        d = malloc(sizeof(*d));
-        if (!d) {
-                dbg("Out of memory");
-                data_access_unlock();
-                return -1;
-        }
-        memset(d, 0, sizeof(*d));
-        
-        d->domain_id = dcounter;
-        d->domain_oid = domain_oid;
-        global_domain_list = g_slist_append(global_domain_list, d);
-
-        data_access_unlock();
-
-        return dcounter++;
 }
