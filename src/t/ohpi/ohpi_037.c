@@ -38,8 +38,6 @@ int main(int argc, char **argv)
         if (!oHpiGlobalParamGet(NULL, NULL, 0))
                 return -1;
                 
-        /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);
         
         return 0;
 }

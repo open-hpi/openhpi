@@ -32,7 +32,6 @@ int main(int argc, char **argv)
         
         /* Save config file env variable and unset it */
         config_file = getenv("OPENHPI_CONF");
-        setenv("OPENHPI_CONF","./openhpi.conf", 1);
         
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
@@ -43,8 +42,5 @@ int main(int argc, char **argv)
         if (strcmp("{SYSTEM_CHASSIS,1}", buffer))
                 return -1;
                 
-        /* Restore config file env variable */
-        setenv("OPENHPI_CONF",config_file,1);
-        
         return 0;
 }
