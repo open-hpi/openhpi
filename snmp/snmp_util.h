@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,7 +11,6 @@
  *
  * Authors:
  *      Renier Morales <renierm@users.sf.net>
- *
  */
 
 #ifndef SNMP_BC_UTIL_H
@@ -96,4 +95,9 @@ SaErrorT snmp_getn_bulk( struct snmp_session *ss,
 
 void sc_free_pdu(struct snmp_pdu **p);
 
+/* Character for blanking out normalized OID elements */
+#define OID_BLANK_CHAR 'x'
+#define OID_BLANK_STR "x"
+
+gchar * snmp_derive_objid(SaHpiEntityPathT ep, const gchar *oid);
 #endif

@@ -1,5 +1,4 @@
-#
-# (C) Copyright IBM Corp 2003
+# (C) Copyright IBM Corp 2003, 2004
 # All rights reserved.
 # 
 # This program is distributed in the hope that it will be useful,
@@ -11,7 +10,7 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-SUBDIRS 		=
+SUBDIRS 		= t
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
