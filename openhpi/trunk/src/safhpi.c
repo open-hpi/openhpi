@@ -382,6 +382,12 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
         RPTable *rpt;
         int rv = 0;
 
+        /* Test pointer parameters for invalid pointers */
+        if (RptInfo == NULL)
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         rv = get_events();
 
         if (rv<0) {
@@ -419,6 +425,12 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         SaHpiRptEntryT *next_entry;
 
         OH_STATE_READY_CHECK;
+
+        /* Test pointer parameters for invalid pointers */
+        if ((NextEntryId == NULL) || (RptEntry == NULL))
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         data_access_lock();
 
@@ -463,6 +475,12 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *req_entry;
+
+        /* Test pointer parameters for invalid pointers */
+        if (RptEntry == NULL)
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         data_access_lock();
 
@@ -641,7 +659,13 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d;
-
+        
+        /* Test pointer parameters for invalid pointers */
+        if (Info == NULL)
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+	
         data_access_lock();
         OH_STATE_READY_CHECK;
 
@@ -702,6 +726,13 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         struct oh_domain *d;
         SaHpiSelEntryT *selentry;
         SaErrorT retc;
+        
+        /* Test pointer parameters for invalid pointers */
+        if (EventLogEntry == NULL)
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
 
         data_access_lock();
 
@@ -953,7 +984,13 @@ SaErrorT SAHPI_API saHpiEventLogTimeGet (
 {
         SaHpiSelInfoT info;
         SaErrorT rv;
-
+        
+        /* Test pointer parameters for invalid pointers */
+        if (Time == NULL)
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
         rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
 
         if(rv < 0) {
@@ -1025,6 +1062,12 @@ SaErrorT SAHPI_API saHpiEventLogStateGet (
 {
         SaHpiSelInfoT info;
         SaErrorT rv;
+        
+        /* Test pointer parameters for invalid pointers */
+        if (Enable == NULL)
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         rv = saHpiEventLogInfoGet(SessionId, ResourceId, &info);
 
@@ -1230,6 +1273,12 @@ SaErrorT SAHPI_API saHpiRdrGet (
         SaHpiRptEntryT *res = NULL;
         SaHpiRdrT *rdr_cur;
         SaHpiRdrT *rdr_next;
+
+        /* Test pointer parameters for invalid pointers */
+        if ((Rdr == NULL)||(NextEntryId == NULL))
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 
         data_access_lock();
 
