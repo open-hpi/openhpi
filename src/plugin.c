@@ -249,7 +249,7 @@ int oh_load_plugin(char *plugin_name)
                         err = (*p->get_interface)((void **)&plugin->abi, UUID_OH_ABI_V2);
 
                         if (err < 0 || !plugin->abi || !plugin->abi->open) {
-                                dbg("Can not get ABI V1");
+                                dbg("Can not get ABI V2");
                                 goto err1;
                         }
 
