@@ -51,6 +51,7 @@ static gpointer oh_event_thread_loop(gpointer data)
 
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
+
                 dbg("Going to sleep");
 
                 if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
@@ -394,9 +395,9 @@ SaErrorT oh_process_events()
                 default:
                         trace("Event Type = Unknown Event");
                 }
-        }
-        oh_detect_event_alarm(e);
-        g_free(e);
+                oh_detect_event_alarm(e);
+                g_free(e);
+       }
         return SA_OK;
 }
 
