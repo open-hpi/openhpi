@@ -12,6 +12,8 @@
  * Authors:
  *     Racing Guo <racing.guo@intel.com>
  *     Aaron  Chen <yukun.chen@intel.com>
+ * Changes:
+ *	11.30.2004 - Kouzmich: porting to HPI-B
  *
  *
  */
@@ -23,9 +25,9 @@
 #include <signal.h>
 #include <pthread.h>
 #include <SaHpi.h>
+#include <oh_utils.h>
 #include "hpi_cmd.h"
 #include "resource.h"
-#include "printevent_utils.h"
 
 SaHpiSessionIdT sessionid;
 static pthread_t ge_thread;
@@ -35,52 +37,39 @@ static void* get_event(void *unused)
 {
 	SaHpiEventT	event;
 	SaErrorT	rv;        
-	
-	
-	rv = saHpiSubscribe(sessionid, SAHPI_FALSE);
+
+	rv = saHpiSubscribe(sessionid);
 	if (rv != SA_OK) {
 		printf("OpenHPI>Fail to Subscribe event\n");
 		return (void *)0;
 	}	
-		
-	for(;;){
+	
+	for(;;) {
 		memset(&event, 0xF, sizeof(event));
 
-		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_BLOCK, &event, NULL, NULL);		
+		rv = saHpiEventGet(sessionid, SAHPI_TIMEOUT_BLOCK, &event, NULL, NULL, NULL);		
 		if (rv != SA_OK ) {
-			goto out;
+			saHpiUnsubscribe(sessionid);
+			return (void *)1;
 		}
-		
-		if ( prt_flag == 1 ) 
-			print_event(sessionid,&event);
+		if ( prt_flag == 1 )
+			oh_print_event(&event, 1);
 	} /*the loop for retrieving event*/
-
-out:
-	printf( "Unsubscribe\n");
-	rv = saHpiUnsubscribe( sessionid );
-
 	return (void *)1;
 }
 
 int open_session()
 {
 	SaErrorT rv;
-	SaHpiVersionT hpiVer;
 
-	rv = saHpiInitialize(&hpiVer);
-	if (rv != SA_OK) {
-		printf("saHpiInitialize error %d\n", rv);
-		return -1;
-	}
-
-	rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID, &sessionid, NULL);
+	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
 	if (rv != SA_OK) {
      		printf("saHpiSessionOpen error %d\n", rv);
 		return -1;
 	}
-	rv = saHpiResourcesDiscover(sessionid);
+	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) 
-		printf("saHpiResourcesDiscover rv = %d\n", rv);
+		printf("saHpiDiscover rv = %d\n", rv);
 
 	printf("Initial discovery done\n");	
 	printf("\tEnter a command or \"help\" for list of commands\n");
@@ -98,11 +87,6 @@ int close_session()
 	rv = saHpiSessionClose(sessionid);
 	if (rv != SA_OK) {
                 printf("saHpiSessionClose error %d\n", rv);
-                return -1;
-        }
-	rv = saHpiFinalize();
-	 if (rv != SA_OK) {
-                printf("saHpiFinalize error %d\n", rv);
                 return -1;
         }
 	return 0;
