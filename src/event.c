@@ -15,6 +15,7 @@
  *     David Judkovics <djudkovi@us.ibm.com>
  *     Sean Dague <http://dague.net/sean>
  *     Renier Morales <renierm@users.sourceforge.net>
+ *     Racing Guo <racing.guo@intel.com>
  */
 
 #include <unistd.h>
@@ -187,7 +188,7 @@ static int process_hpi_event(struct oh_event *full_event)
 
         if (e->res.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
-                hotswap_push_event(e);
+                hotswap_push_event(full_event);
                 trace("Pushed hotswap event");
         }
         
@@ -431,6 +432,8 @@ SaErrorT oh_get_events()
         if(rv != SA_OK) {
 		dbg("Error on processing of events, aborting");
         }
+
+	process_hotswap_policy();
 
         return rv;
 }

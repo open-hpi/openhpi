@@ -75,9 +75,9 @@ struct oh_resource_data
 /* hotswap - ***This all needs to be cleaned up,
  * all the way down to src/hotswap.c*** -- RM 7/16
  */
-void process_hotswap_policy(struct oh_handler *h);
-int hotswap_push_event(struct oh_hpi_event *e);
-int hotswap_pop_event(struct oh_hpi_event *e);
+void process_hotswap_policy(void);
+int hotswap_push_event(struct oh_event *e);
+int hotswap_pop_event(struct oh_event *e);
 int hotswap_has_event(void);
 SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
 void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
