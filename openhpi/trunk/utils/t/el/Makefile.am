@@ -28,10 +28,7 @@ TESTS = el_test_001 \
         el_test_003 \
         el_test_004
 
-check_PROGRAMS = el_test_001 \
-                 el_test_002 \
-                 el_test_003 \
-                 el_test_004
+check_PROGRAMS = $(TESTS)
 
 el_test_001_SOURCES = el_test.h el_test_001.c $(REMOTE_SOURCES)
 el_test_002_SOURCES = el_test.h el_test_002.c addel.c $(REMOTE_SOURCES)
