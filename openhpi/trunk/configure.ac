@@ -316,7 +316,7 @@ STATIC_PLUGIN_LIBS=
 for name in $STATIC_PLUGIN_LIST; do
         STATIC_PLUGIN="$STATIC_PLUGIN { \"$name\", ${name}_get_interface },";
         STATIC_PLUGIN_EXTERN="${STATIC_PLUGIN_EXTERN} extern int ${name}_get_interface(void **pp, const uuid_t uuid);";
-        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/src/plugins/$name/.libs/lib${name}.a";
+        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/plugins/$name/.libs/lib${name}.a";
 done
 
 dnl use src/plugin_static.c.in
