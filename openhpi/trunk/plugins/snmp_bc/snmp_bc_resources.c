@@ -1272,7 +1272,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                 .comment = "Chassis 12 volt sensor"
         },
         /* Management module redundancy sensor - event-only */
-	/* FIXME:: NOT defined for BCT */
         {
                 .sensor = {
                         .Num = 9,
@@ -1311,7 +1310,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Switch module redundancy sensor - event-only */
         {
                 .sensor = {
-			/* FIXME:: NOT defined for BCT */
                         .Num = 10,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
@@ -1348,7 +1346,6 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
         /* Power module redundancy sensor - event-only */
         {
                 .sensor = {
-			/* FIXME:: NOT defined for BCT */
                         .Num = 11,
                         .Type = SAHPI_PLATFORM_ALERT,
                         .Category = SAHPI_EC_REDUNDANCY,
@@ -3226,7 +3223,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
 
 /* BladeCenter code 59x contains a bug, which makes writing to this LED impossible thru
  * SNMP. LED works fine with BladeCenter Telco. When this bug is fixed on BladeCenter,
- * this LED can be moved back to the common control arrary and snmp_bci_blade_controls
+ * this LED can be moved back to the common control array and snmp_bci_blade_controls
  * can be deleted.
  */       
 
