@@ -21,6 +21,7 @@
 
 typedef SaHpiUint32T oHpiHandlerIdT;
 #define MAX_PLUGIN_NAME_LENGTH 32
+#define OH_GLOBAL_STR_MAX_LENGTH SAHPI_MAX_TEXT_BUFFER_LENGTH*2
 
 typedef struct {
         int refcount; /* refcount - 1 = # of handlers using it. */
@@ -50,8 +51,8 @@ typedef union {
         //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
         //unsigned char DebugLock; /* !0 = YES, 0 = NO */
         unsigned char Threaded; /* !0 = YES, 0 = NO */
-        char Path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-        char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        char Path[OH_GLOBAL_STR_MAX_LENGTH];
+        char Conf[OH_GLOBAL_STR_MAX_LENGTH];
 } oHpiGlobalParamUnionT;
 
 typedef struct {
