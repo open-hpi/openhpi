@@ -33,6 +33,9 @@
 
 #define DUMMY_THREADED
 #undef  DUMMY_THREADED
+#define THREAD_SLEEP_TIME_NS 	500000000
+#define THREAD_SLEEP_TIME_SECS 	1
+
 
 gpointer event_thread(gpointer data);
 
@@ -968,6 +971,12 @@ static void dummy_close(void *hnd)
                 inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
         }
 
+	/* destroy mutex */
+        g_static_rec_mutex_free(inst->handler_lock);
+	
+	/* destroy async queue */
+
+
         /* TODO: free the GHashTabel GHashTable *config */
 
         /* TODO: free *data void *data */
@@ -977,7 +986,7 @@ static void dummy_close(void *hnd)
         return;
 }
 
-#if 0
+#if 1
 static struct oh_event *remove_resource(struct oh_handler_state *inst)
 {
         SaHpiRptEntryT *rpt_e = NULL;
@@ -1046,20 +1055,48 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         struct oh_handler_state *inst = hnd;
 
         struct oh_event *e = NULL;
+        struct oh_event *qse = NULL;
+	qse = NULL;
 
         SaHpiRptEntryT *rpt_entry = NULL;
 
         static unsigned int toggle = 0;
         static unsigned int count = 0;
 
+
+#if 0
         if (g_slist_length(inst->eventq)>0) {
+
                 trace("List has an event, send it up");
+
                 memcpy(event, inst->eventq->data, sizeof(*event));
-                event->did = oh_get_default_domain_id(); /* FIXME: use real domain lookup */
+
+                event->did = oh_get_default_domain_id(); 
+
                 free(inst->eventq->data);
+
                 inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
-		printf("*************** dummy_get_event\n");
+
+		printf("*************** dummy_get_event, g_slist_length\n");
+
                 return(1);
+
+#else
+	if ( (qse = g_async_queue_try_pop(inst->eventq_async)) ) {
+
+                trace("List has an event, send it up");
+
+		memcpy(event, qse, sizeof(*event));
+
+                event->did = oh_get_default_domain_id(); 
+
+                g_free(qse);
+
+		printf("*************** dummy_get_event, g_async_queue_try_pop\n");
+
+                return(1);
+#endif
+
         } else if (count == 0) {
                 trace("List is empty, getting next resource");
 
@@ -1087,7 +1124,9 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         g_static_rec_mutex_lock (inst->handler_lock);
         
         toggle++;
-#if 0
+
+#ifndef DUMMY_THREADED
+
         if( (toggle%3) == 0 ) {
                 /* once initial reporting of events toggle between      */
                 /* removing and adding resource, removes resource 3     */
@@ -1138,7 +1177,12 @@ static int dummy_discover_resources(void *hnd)
                         memset(&event, 0, sizeof(event));
                         event.type = OH_ET_RESOURCE;
                         memcpy(&event.u.res_event.entry, rpt_entry, sizeof(SaHpiRptEntryT));
-                        inst->eventq = g_slist_append(inst->eventq, __eventdup(&event) );
+
+                        /* old */
+			inst->eventq = g_slist_append(inst->eventq, __eventdup(&event) );
+
+			/* new */
+			g_async_queue_push(inst->eventq_async, __eventdup(&event));
 
 
                         /* get every resource rdr's */
@@ -1151,7 +1195,12 @@ static int dummy_discover_resources(void *hnd)
                                 event.u.rdr_event.parent = rpt_entry->ResourceId;
                                 memcpy(&event.u.rdr_event.rdr, rdr_entry, sizeof(SaHpiRdrT));
 
+				/* old */
                                 inst->eventq = g_slist_append(inst->eventq, __eventdup(&event));
+
+				/* new */
+				g_async_queue_push(inst->eventq_async, __eventdup(&event));
+
                                 rdr_entry = oh_get_rdr_next(inst->rptcache,
                                                             rpt_entry->ResourceId, rdr_entry->RecordId);
                         }
@@ -1216,7 +1265,10 @@ static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT
 
         e->u.rel_event.rel.oid.ptr = rel;
 
-        inst->eventq = g_slist_append(inst->eventq, e);
+	/* new */
+	g_async_queue_push(inst->eventq_async, e);
+        //inst->eventq = g_slist_append(inst->eventq, e);
+
 #endif
         return 0;
 }
@@ -1732,7 +1784,13 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
                 if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_INACTIVE) {
                         dummy_resource_status[1].hotswap = SAHPI_HS_STATE_INSERTION_PENDING;
                         hotswap_event[0].u.hpi_event.res.ResourceId = id;
+			/* old */
                         inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[0]));
+
+			/* new */
+			g_async_queue_push(inst->eventq_async, __eventdup(&hotswap_event[0]));
+
+
                 } else {
                         dbg("Fail insertion, HotSwap");
                         rval = -1;
@@ -1742,7 +1800,14 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
                 if (dummy_resource_status[1].hotswap == SAHPI_HS_STATE_ACTIVE) {
                         dummy_resource_status[1].hotswap = SAHPI_HS_STATE_EXTRACTION_PENDING;
                         hotswap_event[1].u.hpi_event.res.ResourceId = id;
+
+			/* old */
                         inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[1]));
+
+			/* new */
+			g_async_queue_push(inst->eventq_async, __eventdup(&hotswap_event[1]));
+
+
                 } else {
                         dbg("Cannot extraction");
                         rval = -1;
@@ -2003,7 +2068,8 @@ gpointer event_thread(gpointer data)
 {
         struct timespec req, rem;
         memset(&req, 0, sizeof(req));
-        req.tv_nsec = 700000000;
+        req.tv_nsec = THREAD_SLEEP_TIME_NS;
+	req.tv_sec =  THREAD_SLEEP_TIME_SECS;
 
 
         struct oh_handler_state *inst = (struct oh_handler_state *)data;
