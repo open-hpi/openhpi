@@ -15,19 +15,19 @@
  *
  */
 
-#ifndef SEL_UTILS_H
-#define SEL_UTILS_H
+#ifndef EL_UTILS_H
+#define EL_UTILS_H
 #include <SaHpi.h>
 #include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
-#define OH_SEL_MAX_SIZE 0
+#define OH_EL_MAX_SIZE 0
 
 /* this struct encapsulates all the data for a system event log */
-/* the log records themselves are stored in the sel GList */
+/* the log records themselves are stored in the el GList */
 typedef struct {
         SaHpiBoolT       enabled; // log enabled?
         SaHpiBoolT       overflow; // log overflowed?
@@ -36,29 +36,29 @@ typedef struct {
         SaHpiTimeT       offset; // offset to be added when generating a timestamp
         SaHpiUint32T     maxsize; //max number of entries supported
         SaHpiEventLogEntryIdT nextId; // next generated Id i.e. number of entries
-        GList            *selentries; // list of SaHpiEventLogEntryT structs
-} oh_sel;
+        GList            *elentries; // list of SaHpiEventLogEntryT structs
+} oh_el;
 
-/* General SEL utility calls */
-oh_sel *oh_sel_create(SaHpiUint32T size);
-SaErrorT oh_sel_close(oh_sel *sel);
-SaErrorT oh_sel_add(oh_sel *sel, SaHpiEventT *event); /* to be removed in the future */
-SaErrorT oh_sel_append(oh_sel *sel, SaHpiEventT *event);
-SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiEventT *event);
-SaErrorT oh_sel_delete(oh_sel *sel, SaHpiEntryIdT *entryid);
-SaErrorT oh_sel_clear(oh_sel *sel);
-SaErrorT oh_sel_get(oh_sel *sel, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
+/* General EL utility calls */
+oh_el *oh_el_create(SaHpiUint32T size);
+SaErrorT oh_el_close(oh_el *el);
+SaErrorT oh_el_add(oh_el *el, SaHpiEventT *event); /* to be removed in the future */
+SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event);
+SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event);
+SaErrorT oh_el_delete(oh_el *el, SaHpiEntryIdT *entryid);
+SaErrorT oh_el_clear(oh_el *el);
+SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
                     SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT **entry);
-SaErrorT oh_sel_info(oh_sel *sel, SaHpiEventLogInfoT *info);
-SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename);
-SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename);
-SaErrorT oh_sel_timeset(oh_sel *sel, SaHpiTimeT timestamp);
-SaErrorT oh_sel_setgentimestampflag(oh_sel *sel, SaHpiBoolT flag);
+SaErrorT oh_el_info(oh_el *el, SaHpiEventLogInfoT *info);
+SaErrorT oh_el_map_to_file(oh_el *el, char *filename);
+SaErrorT oh_el_map_from_file(oh_el *el, char *filename);
+SaErrorT oh_el_timeset(oh_el *el, SaHpiTimeT timestamp);
+SaErrorT oh_el_setgentimestampflag(oh_el *el, SaHpiBoolT flag);
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* EL_UTILS_H */
 

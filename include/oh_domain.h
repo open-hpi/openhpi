@@ -20,7 +20,7 @@
 #include <SaHpi.h>
 #include <glib.h>
 #include <rpt_utils.h>
-#include <sel_utils.h>
+#include <el_utils.h>
 
 /* Number of pre-alloced session slots for a domain. */
 #define OH_SESSION_PREALLOC 5
@@ -58,7 +58,7 @@ struct oh_domain {
         SaHpiDomainInfoT info;
 
         /* Domain Event Log */
-        oh_sel *del;
+        oh_el *del;
 
         /* List of session ids */
         GArray *sessions;

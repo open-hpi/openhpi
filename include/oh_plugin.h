@@ -25,7 +25,7 @@
 #include <SaHpi.h>
 #include <oh_event.h>
 #include <rpt_utils.h>
-#include <sel_utils.h>
+#include <el_utils.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,7 +116,7 @@ extern "C" {
 
 struct oh_handler_state {
         RPTable *rptcache;
-        oh_sel  *selcache;
+        oh_el  *elcache;
         GSList *eventq;
         GHashTable *config;
         void *data;
@@ -190,41 +190,41 @@ struct oh_abi_v2 {
 
         /******************************************************
          *
-         *  System Event Log functions
+         *  Event Log functions
          *
          *****************************************************/
 
         /**
-         * get info from RSEL
+         * get info from EL
          */
-        SaErrorT (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
+        SaErrorT (*get_el_info)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
 
         /**
-         * set time to RSEL
+         * set time to EL
          */
-        SaErrorT (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
+        SaErrorT (*set_el_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 
         /**
-         * add entry to RSEL
+         * add entry to EL
          */
-        SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event);
+        SaErrorT (*add_el_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event);
 
         /**
-         * get entry in RSEL
+         * get entry in EL
          *
          * although it looks like we need Resource and RDR passed back up, we don't
          * because EventLogEntryT has that info stored in it.  We'll just unwind
          * that in infrastructure.
          */
-        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
+        SaErrorT (*get_el_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
                              SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT *entry);
 
         /**
-         * clear SEL
+         * clear EL
          */
-        SaErrorT (*clear_sel)(void *hnd, SaHpiResourceIdT id);
+        SaErrorT (*clear_el)(void *hnd, SaHpiResourceIdT id);
 
-        /* end of SEL functions */
+        /* end of EL functions */
         /**
          * get sensor data
          */

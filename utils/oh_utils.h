@@ -22,7 +22,7 @@
 #include <epath_utils.h>
 #include <uid_utils.h>
 #include <rpt_utils.h>
-#include <sel_utils.h>
+#include <el_utils.h>
 #include <ecode_utils.h>
 #include <printevent_utils.h>
 #include <sensor_utils.h>

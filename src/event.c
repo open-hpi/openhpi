@@ -33,7 +33,7 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         struct oh_session_event se;
 
         data_access_lock();
-        
+
         res = oh_get_resource_by_id(rpt, e->parent);
         if (res == NULL) {
                 dbg("No resource");
@@ -41,24 +41,24 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
                 return -1;
         }
 
-        if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP 
+        if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
                 hotswap_push_event(e);
         }
-  
-        /* 
+
+        /*
            Domain System Event Logging Mechanism.
            Check the handler configuration for the "log_severity" value
            and log everything equal or above that severity value.
            If there is no "log_severity" configured for the handler, then
            the default bar will be SAHPI_INFORMATIONAL.
-        */        
-        log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));        
+        */
+        log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));
         if (e->event.Severity <= log_severity) {
-                struct oh_domain *d;                
+                struct oh_domain *d;
                 /* yes, we need to add real domain support later here */
                 d = get_domain_by_id(SAHPI_UNSPECIFIED_DOMAIN_ID);
-                oh_sel_add(d->sel, &(e->event));
+                oh_el_add(d->del, &(e->event));
         }
 
         /* create a session event */
@@ -82,14 +82,14 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
                 struct oh_session *s = i->data;
                 /* yes, we need to add real domain support later here */
                 if (s->domain_id == SAHPI_UNSPECIFIED_DOMAIN_ID &&
-		    (s->event_state == OH_EVENT_SUBSCRIBE ||
-		     (s->event_state == OH_EVENT_UNSUBSCRIBE &&
-		      (e->event.Severity == SAHPI_MINOR ||
-		       e->event.Severity == SAHPI_MAJOR || e->event.Severity == SAHPI_CRITICAL)))) {
-			/*
-			Push event if session is subscribed, or, if session
-			is unsubscribed, the event is an active alarm.
-			*/
+                    (s->event_state == OH_EVENT_SUBSCRIBE ||
+                     (s->event_state == OH_EVENT_UNSUBSCRIBE &&
+                      (e->event.Severity == SAHPI_MINOR ||
+                       e->event.Severity == SAHPI_MAJOR || e->event.Severity == SAHPI_CRITICAL)))) {
+                        /*
+                        Push event if session is subscribed, or, if session
+                        is unsubscribed, the event is an active alarm.
+                        */
                         session_push_event(s, &se);
                 }
         }
@@ -98,7 +98,7 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         return 0;
 }
 
-static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_event *e) 
+static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_event *e)
 {
         int rv;
         data_access_lock();
@@ -121,7 +121,7 @@ static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_
         }
 
         data_access_unlock();
-        
+
         return rv;
 }
 /*
@@ -134,19 +134,19 @@ static void process_domain_event(struct oh_handler *h, struct oh_domain_event *e
 
         res = get_res_by_oid(e->res_id);
         domain = get_domain_by_oid(e->domain_id);
-        
+
         if (!res) {
                 dbg("Cannot find corresponding resource");
                 data_access_unlock();
                 return;
-        }               
+        }
         if (!domain) {
                 dbg("Cannot find corresponding domain");
                 data_access_unlock();
                 return;
-        }               
+        }
         res->domain_list = g_slist_append(res->domain_list, GUINT_TO_POINTER(domain->domain_id));
-        
+
         data_access_unlock();
 
 }
@@ -166,54 +166,54 @@ static int process_rdr_event(struct oh_handler *h, RPTable *rpt, struct oh_event
         }
 
         if (rv) dbg("Could not process rdr event. Parent resource not found.");
-                
+
         return rv;
 }
 /*
 static void process_rsel_event(struct oh_handler *h, struct oh_rsel_event *e)
 {
         struct oh_resource *res;
-        
+
         dbg("RSEL event! rsel->oid=%p", e->rsel.oid.ptr);
         res = get_res_by_oid(e->rsel.parent);
         if (!res) {
                 dbg("Cannot find corresponding resource");
                 return;
         }
-        
+
         TODO: address the rsel work later
         rsel_add2(res, e);
-        
+
 }
 */
 
 /**
  * get_handler_event:
  * @h: handler structure
- * 
+ *
  * get_handler_event pulls an event from a given handler.  It will normally
  * be called from get_events, which iterates across all handlers.
- * 
+ *
  * Return value: 1 if event exists, 0 if no more events, -1 on failure
  **/
 static int get_handler_event(struct oh_handler *h, RPTable *rpt)
 {
         struct oh_event event;
         struct timeval to = {0, 0};
-        int rv;                
+        int rv;
         rv = h->abi->get_event(h->hnd, &event, &to);
         if(rv < 1) {
                 return rv;
-        } 
+        }
         switch (event.type) {
         case OH_ET_HPI:
                 /* add the event to session event list */
                 process_session_event(h, rpt, &event.u.hpi_event);
                 break;
-        case OH_ET_RESOURCE_DEL:        
+        case OH_ET_RESOURCE_DEL:
         case OH_ET_RESOURCE:
                 process_resource_event(h, rpt, &event);
-                break;                        
+                break;
 /* Domain events are not supported, pull them out for now */
 /*                        case OH_ET_DOMAIN:
                           process_domain_event(h, &event.u.domain_event);
@@ -222,7 +222,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         case OH_ET_RDR_DEL:
         case OH_ET_RDR:
                 process_rdr_event(h, rpt, &event);
-                break;        
+                break;
 /* Resource System event logs will be handled by the plugins and
  * will not be bubbled up.
  */
@@ -234,7 +234,7 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
                 dbg("Error! Should not reach here!");
                 return -1;
         }
-        
+
         //data_access_unlock();
 
         return 1;
@@ -242,10 +242,10 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
 
 /**
  * get_events:
- * @void: 
- * 
+ * @void:
+ *
  * loops through all handlers, processes all outstanding events
- * 
+ *
  * Note: at some point we will probably have to pass it session info
  * to know which rpt to use
  *
@@ -256,19 +256,19 @@ int get_events(void)
         RPTable *rpt = default_rpt;
         GSList *i;
         int got_event = 0;
-        
+
         data_access_lock();
 
         g_slist_for_each(i, global_handler_list) {
 
-				do {
-						got_event = get_handler_event(i->data, rpt);
+                                do {
+                                                got_event = get_handler_event(i->data, rpt);
                 } while (got_event > 0);
 
-				process_hotswap_policy(i->data);
+                                process_hotswap_policy(i->data);
 
-		}
-        
+                }
+
         data_access_unlock();
 
         return 0;
@@ -283,7 +283,7 @@ static unsigned int get_log_severity(char *severity) {
         } else if (!strcmp("MINOR",severity)) {
                 return SAHPI_MINOR;
         } else if (!strcmp("OK",severity)) {
-                return SAHPI_OK;        
+                return SAHPI_OK;
         } else if (!strcmp("DEBUG",severity)) {
                 return SAHPI_DEBUG;
         } else {

@@ -25,17 +25,16 @@
 #include <oh_event.h>
 #include <event_utils.h>
 #include <glib.h>
-#include <glib/gthread.h>
 
 GAsyncQueue *oh_process_q;
 
 /*
- *  The following is required to set up the thread state for 
+ *  The following is required to set up the thread state for
  *  the use of async queues.  This is true even if we aren't
  *  using live threads.
  */
 
-int oh_event_init() 
+int oh_event_init()
 {
         if(!g_thread_supported()) {
                 dbg("Initializing thread support");
@@ -60,14 +59,14 @@ int oh_event_final()
  *
  */
 
-static int harvest_events_for_handler(struct oh_handler *h) 
+static int harvest_events_for_handler(struct oh_handler *h)
 {
         struct oh_event event;
         struct oh_event *e2;
         struct timeval to = {0, 0};
 
         int rv;
-        
+
         do {
                 rv = h->abi->get_event(h->hnd, &event, &to);
                 if(rv < 1) {
@@ -82,7 +81,7 @@ static int harvest_events_for_handler(struct oh_handler *h)
         } while(1);
 }
 
-SaErrorT harvest_events() 
+SaErrorT harvest_events()
 {
         GSList *i;
         g_slist_for_each(i, global_handler_list) {
@@ -91,20 +90,20 @@ SaErrorT harvest_events()
         return SA_OK;
 }
 
-static SaErrorT oh_add_event_to_dsel(SaHpiDomainIdT did, struct oh_hpi_event *e) 
+static SaErrorT oh_add_event_to_del(SaHpiDomainIdT did, struct oh_hpi_event *e)
 {
         unsigned int log_severity;
-        
-        log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));        
+
+        log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));
         if (e->event.Severity <= log_severity) {
-                struct oh_domain *d;                
+                struct oh_domain *d;
                 /* yes, we need to add real domain support later here */
                 d = get_domain_by_id(did);
-                return oh_sel_add(d->del, &(e->event));
+                return oh_el_add(d->del, &(e->event));
         }
         return SA_OK;
 }
-                                
+
 
 static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
 {
@@ -113,7 +112,7 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
         SaHpiRdrT *rdr;
         struct oh_session_event se;
         struct oh_hpi_event *e = NULL;
-        
+
         e = &(full_event->u.hpi_event);
 
         res = oh_get_resource_by_id(rpt, e->parent);
@@ -122,19 +121,19 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
                 return -1;
         }
 
-        if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP 
+        if (res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP
             && e->event.EventType == SAHPI_ET_HOTSWAP) {
                 hotswap_push_event(e);
         }
-  
-        oh_add_event_to_dsel(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
 
-        
+        oh_add_event_to_del(SAHPI_UNSPECIFIED_DOMAIN_ID, e);
+
+
         /* create a session event */
         memset(&se, 0, sizeof(struct oh_session_event ));
-        
+
         oh_copy_event(&se.event, &e->event);
-        
+
         /* copy rpt entry */
         memcpy(&se.rpt_entry, res, sizeof(SaHpiRptEntryT));
 
@@ -148,7 +147,7 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
         /*
          * TODO: Here is where we need the SESSION MULTIPLEXING code
          */
-        
+
         g_slist_for_each(i, global_session_list) {
                 struct oh_session *s = i->data;
                 /* yes, we need to add real domain support later here */
@@ -164,16 +163,16 @@ static int process_hpi_event(RPTable *rpt, struct oh_event *full_event)
                         session_push_event(s, &se);
                 }
         }
-        
+
         return 0;
 }
 
 
 
-static int process_resource_event(RPTable *rpt, struct oh_event *e) 
+static int process_resource_event(RPTable *rpt, struct oh_event *e)
 {
         int rv;
-        
+
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_event.entry.ResourceId);
         } else {
@@ -190,7 +189,7 @@ static int process_resource_event(RPTable *rpt, struct oh_event *e)
 
                 rv = oh_add_resource(rpt,&(e->u.res_event.entry),rd,0);
         }
-        
+
         return rv;
 }
 
@@ -206,14 +205,14 @@ static int process_rdr_event(RPTable *rpt, struct oh_event *e)
         }
 
         if (rv) dbg("Could not process rdr event. Parent resource not found.");
-                
+
         return rv;
 }
 
 SaErrorT process_events(RPTable *rpt)
 {
         struct oh_event *e;
-        
+
         while((e = g_async_queue_try_pop(oh_process_q)) != NULL) {
                 switch(e->type) {
                 case OH_ET_RESOURCE:
@@ -244,7 +243,7 @@ SaErrorT process_events(RPTable *rpt)
         return SA_OK;
 }
 
-SaErrorT get_events(RPTable *rpt) 
+SaErrorT get_events(RPTable *rpt)
 {
         // in a thread world this becomes a noop
         SaErrorT rv = SA_OK;
@@ -261,7 +260,7 @@ SaErrorT get_events(RPTable *rpt)
         return rv;
 }
 
-unsigned int get_log_severity(char *severity) 
+unsigned int get_log_severity(char *severity)
 {
         if (!severity) return SAHPI_INFORMATIONAL;
         else if (!strcmp("CRITICAL", severity)) {
@@ -271,7 +270,7 @@ unsigned int get_log_severity(char *severity)
         } else if (!strcmp("MINOR",severity)) {
                 return SAHPI_MINOR;
         } else if (!strcmp("OK",severity)) {
-                return SAHPI_OK;        
+                return SAHPI_OK;
         } else if (!strcmp("DEBUG",severity)) {
                 return SAHPI_DEBUG;
         } else {
