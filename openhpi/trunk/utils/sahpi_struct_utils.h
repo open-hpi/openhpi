@@ -80,6 +80,13 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
 			     SaHpiSensorDataFormatT *format,
 			     SaHpiSensorThdMaskT writable_thds);
 
+/************************ 
+ * Compare HPI structures
+ ************************/
+int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
+			     SaHpiSensorReadingT *reading1,
+			     SaHpiSensorReadingT *reading2);
+
 /***************************
  * Print HPI data structures
  ***************************/

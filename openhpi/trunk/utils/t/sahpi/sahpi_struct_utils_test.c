@@ -1304,5 +1304,129 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/************************************
+	 * oh_compare_sensorreading testcases
+         ************************************/
+	{
+		SaHpiSensorReadingT reading1, reading2;
+		int rtn, expected_rtn;
+
+		reading1.IsSupported = reading2.IsSupported = SAHPI_TRUE;
+		reading1.Type = reading2.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
+		
+		/* oh_compare_sensorreading - reading1 < reading2 float64 */
+		reading1.Value.SensorFloat64 = 5;
+		reading2.Value.SensorFloat64 = 10;
+		expected_rtn = -1;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		/* oh_compare_sensorreading - reading1 = reading2 float64 */
+		reading1.Value.SensorFloat64 = 5;
+		reading2.Value.SensorFloat64 = 5;
+		expected_rtn = 0;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		/* oh_compare_sensorreading - reading1 = reading2 float64 */
+		reading1.Value.SensorFloat64 = 10;
+		reading2.Value.SensorFloat64 = 5;
+		expected_rtn = 1;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		reading1.Type = reading2.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		/* oh_compare_sensorreading - reading1 < reading2 int64 */
+		reading1.Value.SensorInt64 = 5;
+		reading2.Value.SensorInt64 = 10;
+		expected_rtn = -1;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		/* oh_compare_sensorreading - reading1 = reading2 int64 */
+		reading1.Value.SensorInt64 = 5;
+		reading2.Value.SensorInt64 = 5;
+		expected_rtn = 0;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		/* oh_compare_sensorreading - reading1 = reading2 int64 */
+		reading1.Value.SensorInt64 = 10;
+		reading2.Value.SensorInt64 = 5;
+		expected_rtn = 1;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		reading1.Type = reading2.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+		/* oh_compare_sensorreading - reading1 < reading2 uint64 */
+		reading1.Value.SensorUint64 = 5;
+		reading2.Value.SensorUint64 = 10;
+		expected_rtn = -1;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		/* oh_compare_sensorreading - reading1 = reading2 uint64 */
+		reading1.Value.SensorUint64 = 5;
+		reading2.Value.SensorUint64 = 5;
+		expected_rtn = 0;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		/* oh_compare_sensorreading - reading1 = reading2 uint64 */
+		reading1.Value.SensorUint64 = 10;
+		reading2.Value.SensorUint64 = 5;
+		expected_rtn = 1;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+
+		reading1.Type = reading2.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
+		/* oh_compare_sensorreading - reading1 < reading2 uint64 */
+		strncpy(reading1.Value.SensorBuffer, "AAA", SAHPI_SENSOR_BUFFER_LENGTH);
+		strncpy(reading2.Value.SensorBuffer, "BBB", SAHPI_SENSOR_BUFFER_LENGTH);
+		expected_rtn = -1;
+		rtn = oh_compare_sensorreading(reading1.Type, &reading1, &reading2);
+		if (rtn != expected_rtn) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+	}
+
 	return(0);
 }

@@ -2946,3 +2946,53 @@ SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
 
 	return(SA_OK);
 }
+
+/**
+ * oh_compare_sensorreading:
+ * @type: Type of both sensor readings.
+ * @reading1: Pointer to sensor reading.
+ * @reading1: Pointer to sensor reading.
+ *
+ * Compares the Value field of two sensor readings. Sensor readings must be of the
+ * same Type.
+ *
+ * Return values:
+ * -1 - @reading1 < @reading2
+ *  0 - @reading1 = @reading2
+ * +1 - @reading1 > @reading2
+ **/
+int oh_compare_sensorreading(SaHpiSensorReadingTypeT type,
+			     SaHpiSensorReadingT *reading1,
+			     SaHpiSensorReadingT *reading2)
+{
+	switch(type) {
+	case SAHPI_SENSOR_READING_TYPE_INT64:
+		if (reading1->Value.SensorInt64 < reading2->Value.SensorInt64) { return -1; }
+		else {
+			if (reading1->Value.SensorInt64 == reading2->Value.SensorInt64) { return 0; }
+			else { return 1; }
+		}
+		break;
+	case SAHPI_SENSOR_READING_TYPE_UINT64:
+		if (reading1->Value.SensorUint64 < reading2->Value.SensorUint64) { return -1; }
+		else {
+			if (reading1->Value.SensorUint64 == reading2->Value.SensorUint64) { return 0; }
+			else { return 1; }
+		}
+		break;
+	case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+		if (reading1->Value.SensorFloat64 < reading2->Value.SensorFloat64) { return -1; }
+		else {
+			if (reading1->Value.SensorFloat64 == reading2->Value.SensorFloat64) { return 0; }
+			else { return 1; }
+		}
+		break;
+	case SAHPI_SENSOR_READING_TYPE_BUFFER:
+		return(memcmp(reading1->Value.SensorBuffer, reading2->Value.SensorBuffer,
+			      sizeof(SAHPI_SENSOR_BUFFER_LENGTH)));
+		break;
+	default:
+		dbg("Invalid sensor reading type.");
+		return 0;
+	}
+}
