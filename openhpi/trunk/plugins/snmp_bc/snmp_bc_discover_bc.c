@@ -418,7 +418,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					   ep_root->Entry[0].EntityLocation);
 	}
 
-	trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+	trace("Discovered resource=%s; ID=%d",
+	      e->u.res_event.entry.ResourceTag.Data,
+	      e->u.res_event.entry.ResourceId);
 
 	/* Create platform-specific info space to add to infra-structure */
 	res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_CHASSIS].res_info),
@@ -479,7 +481,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
-			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+			trace("Discovered resource=%s; ID=%d", 
+			      e->u.res_event.entry.ResourceTag.Data,
+			      e->u.res_event.entry.ResourceId);
 
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE].res_info),
@@ -541,7 +545,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 								   snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment,
 								   i + SNMP_BC_HPI_LOCATION_BASE);
 
-					trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+					trace("Discovered resource=%s; ID=%d",
+					      e->u.res_event.entry.ResourceTag.Data,
+					      e->u.res_event.entry.ResourceId);
 
 					/* Create platform-specific info space to add to infra-structure */
 					res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].res_info),
@@ -603,7 +609,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						   snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
-			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+			trace("Discovered resource=%s; ID=%d",
+			      e->u.res_event.entry.ResourceTag.Data,
+			      e->u.res_event.entry.ResourceId);
 
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].res_info),
@@ -663,7 +671,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						   snmp_bc_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
-			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+			trace("Discovered resource=%s; ID=%d",
+			      e->u.res_event.entry.ResourceTag.Data,
+			      e->u.res_event.entry.ResourceId);
 
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_POWER_MODULE].res_info),
@@ -723,7 +733,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						   snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
-			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+			trace("Discovered resource=%s; ID=%d",
+			      e->u.res_event.entry.ResourceTag.Data,
+			      e->u.res_event.entry.ResourceId);
 
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].res_info),
@@ -782,7 +794,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					   snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment,
 					   SNMP_BC_HPI_LOCATION_BASE);
 
-		trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+		trace("Discovered resource=%s; ID=%d",
+		      e->u.res_event.entry.ResourceTag.Data,
+		      e->u.res_event.entry.ResourceId);
 
 		/* Create platform-specific info space to add to infra-structure */
 		res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].res_info),
@@ -851,7 +865,9 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 						   snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment,
 						   i + SNMP_BC_HPI_LOCATION_BASE);
 
-			trace("Discovered resource=%s.", e->u.res_event.entry.ResourceTag.Data);
+			trace("Discovered resource=%s; ID=%d",
+			      e->u.res_event.entry.ResourceTag.Data,
+			      e->u.res_event.entry.ResourceId);
 
 			/* Create platform-specific info space to add to infra-structure */
 			res_info_ptr = g_memdup(&(snmp_bc_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].res_info),
