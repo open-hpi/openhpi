@@ -400,46 +400,40 @@ restart:
 
 	/* 
 	   because INVENTORY RDR will be added after some time, 
-	   we need to monitor RptInfo here 
+	   we dump what is found initially then provide a command
+	   to re-discover new additions
 	 */
-						/* Try again */
 	char input[255], *p;
 	pthread_t event_thread;
 	void *thread_done;
-	if (!inv_discovered) {
-			rv = saHpiResourcesDiscover(sessionid);
-			if (fxdebug) {
-					printf("saHpiResourcesDiscover rv = %d\n",rv);
+	int valid = 0;
+	printf("Initial discovery done, to re-discover:\n");
+	printf("\tType rediscover\n");
+	printf("Command> ");
+
+	rv = pthread_create(&event_thread, NULL, sahpi_event_thread, (void *)sessionid);
+	if(rv)
+			printf("Error creating event thread\n");
+
+	while (!valid) {
+			fflush(stdout);
+			p = fgets(input, 255, stdin);
+			if ( (p = strchr(input, '\n')) != NULL)
+					*p = '\0';
+			if (!strcmp(input, "rediscover")) {
+					goto restart;
 			}
-			goto restart;
-	} else {
-			int valid = 0;
-			printf("Initial discovery done, to re-discover:\n");
-			printf("\tType rediscover\n");
-			printf("Command> ");
-
-			rv = pthread_create(&event_thread, NULL, sahpi_event_thread, (void *)sessionid);
-			if(rv)
-					printf("Error creating event thread\n");
-
-			while (!valid) {
-					fflush(stdout);
-					p = fgets(input, 255, stdin);
-					if ( (p = strchr(input, '\n')) != NULL)
-							*p = '\0';
-					if (!strcmp(input, "rediscover")) {
-							goto restart;
-					}
-					if (!strcmp(input, "quit")) {
-							valid = 1;
-							thread = 0;
-							rv = pthread_join(event_thread, &thread_done);
-							printf("Discovery %s\n", (char *) thread_done);
-							break;
-					} else {
-							printf("Invalid command, retry or type \"quit\" to exit\n");
-							printf("Command> ");
-					}
+			if (!strcmp(input, "quit")) {
+					valid = 1;
+					thread = 0;
+					rv = pthread_join(event_thread, &thread_done);
+					if (rv)
+							printf("Error joining thread\n");
+					printf("Discovery %s\n", (char *) thread_done);
+					break;
+			} else {
+					printf("Invalid command, retry or type \"quit\" to exit\n");
+					printf("Command> ");
 			}
 	}
 
