@@ -154,7 +154,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if (ep_xref) {
                 dbg("Entity Path already assigned uid");
-                return(-1);
+                return(ep_xref->resource_id);
         }
 
         /* allocate storage for EP cross reference data structure*/
