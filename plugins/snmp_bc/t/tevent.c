@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -261,7 +261,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -308,7 +308,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -322,7 +322,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -346,7 +346,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -360,7 +360,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -378,7 +378,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -411,7 +411,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -444,7 +444,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -462,7 +462,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -478,7 +478,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -493,7 +493,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -509,7 +509,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
@@ -524,7 +524,7 @@ int main(int argc, char **argv)
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
 
-        err = saHpiEventLogEntryGet(sessionid, SAHPI_DEFAULT_DOMAIN_ID, SAHPI_NEWEST_ENTRY,
+        err = saHpiEventLogEntryGet(sessionid, SAHPI_DOMAIN_CONTROLLER_ID, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
@@ -540,7 +540,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	err = saHpiEventLogClear(sessionid, SAHPI_DEFAULT_DOMAIN_ID);
+	err = saHpiEventLogClear(sessionid, SAHPI_DOMAIN_CONTROLLER_ID);
 	if (err != SA_OK) {
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
