@@ -525,7 +525,6 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         struct oh_domain *d;
         
         OH_STATE_READY_CHECK;
-        OH_STATE_READY_CHECK;
 
         /* test for special domain case */
         if (ResourceId == SAHPI_DOMAIN_CONTROLLER_ID) {
