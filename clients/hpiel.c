@@ -50,6 +50,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 char progver[] = "1.3 HPI B";
 int fdebug = 0;
 int fclear = 0;
+int frdr   = 0;
+int frpt   = 0;
 
 int main(int argc, char **argv)
 {
@@ -70,20 +72,26 @@ int main(int argc, char **argv)
         SaHpiEventLogEntryIdT preventryid;
         SaHpiEventLogInfoT info;
         SaHpiEventLogEntryT  el;
-        SaHpiRdrT rdr;
+        SaHpiRdrT rdr, *rdrptr;
+	SaHpiRptEntryT rpt_2nd, *rptptr;
 
         int free = 50;
 
         printf("%s: version %s\n",argv[0],progver);
 
-        while ( (c = getopt( argc, argv,"cx?")) != EOF )
+        while ( (c = getopt( argc, argv,"cdpx?")) != EOF )
                 switch(c) {
                 case 'c': fclear = 1; break;
+                case 'd': frdr   = 1; break;
+                case 'p': frpt   = 1; break;				
                 case 'x': fdebug = 1; break;
                 default:
-                        printf("Usage %s [-cx]\n",argv[0]);
-                        printf("where -c clears the event log\n");
-                        printf("      -x displays eXtra debug messages\n");
+                        printf("\n\n\nUsage %s [-cdpx]\n",argv[0]);
+			printf("    Where                             \n");
+                        printf("        -c clears the event log\n");
+			printf("        -d also get RDR with the event log\n");
+			printf("        -p also get RPT with the event log\n");
+                        printf("        -x displays eXtra debug messages\n\n\n");
                         exit(1);
                 }
 	
@@ -171,15 +179,31 @@ int main(int argc, char **argv)
 				entryid = SAHPI_OLDEST_ENTRY;
 				while ((rv == SA_OK) && (entryid != SAHPI_NO_MORE_ENTRIES))
 				{
+				
+					if (frdr) rdrptr = &rdr;
+						else rdrptr = NULL;
+					
+					if (frpt) rptptr = &rpt_2nd;
+						else rptptr = NULL;
+						
 					rv = saHpiEventLogEntryGet(sessionid,resourceid,
 								entryid,&preventryid,
-								&nextentryid, &el,&rdr,NULL);
+								&nextentryid, &el,rdrptr,rptptr);
 								
 					if (fdebug) printf("saHpiEventLogEntryGet %s\n",
 							    			oh_lookup_error(rv));
 								   
 					if (rv == SA_OK) {
 						oh_print_eventlogentry(&el, 6);
+						if (frdr) {
+							if (rdrptr->RdrType == SAHPI_NO_RECORD)
+								printf("            No RDR associated with EventType =  %s\n", 
+									 oh_lookup_eventtype(el.Event.EventType));
+							else	
+								oh_print_rdr(rdrptr, 12);
+						}
+						if (frpt) 
+							oh_print_rptentry(rptptr, 10);
 						preventryid = entryid;
 						entryid = nextentryid;
 					}
