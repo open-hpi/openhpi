@@ -550,10 +550,10 @@ sub print_hfile_header(*$) {
     $hdef_name =~ s/\./_/g;	
 
     print $filehandle <<EOF;
-#ifndef $hdef_name
-#define $hdef_name
+#ifndef __$hdef_name
+#define __$hdef_name
 
-#ifndef OH_UTILS_H
+#ifndef __OH_UTILS_H
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 

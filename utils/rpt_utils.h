@@ -13,10 +13,10 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
-#ifndef RPT_UTILS_H
-#define RPT_UTILS_H
+#ifndef __RPT_UTILS_H
+#define __RPT_UTILS_H
 
-#ifndef OH_UTILS_H
+#ifndef __OH_UTILS_H
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 
