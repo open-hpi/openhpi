@@ -17,7 +17,23 @@
 #define OH_ERROR_H
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+<<<<<<< oh_error.h
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define dbg(format, ...)                                                \
+        do {                                                            \
+                if (getenv("OHDEBUG") != NULL) {                        \
+                        if (strcmp((char *)getenv("OHDEBUG"),"YES") == 0) { \
+                                fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__); \
+                                fprintf(stderr, format "\n", ## __VA_ARGS__); \
+                        }                                               \
+                }                                                       \
+=======
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,6 +47,7 @@ int  get_debug_level(void);
                         fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__);    \
                         fprintf(stderr, format "\n", ## __VA_ARGS__);                   \
                 }                                                                       \
+>>>>>>> 1.2.4.1
         } while(0)
 
 #define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
