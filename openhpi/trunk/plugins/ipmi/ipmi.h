@@ -184,20 +184,18 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
                            SaHpiRdrTypeT                 type,
                            SaHpiUint8T                   num,
                            void                          **pdata);
-/*
- * ABI stub functions
- */ 
-#if 0
-SaErrorT ohoi_get_inventory_size(void *hnd, SaHpiResourceIdT id,
-                          SaHpiEirIdT num, /* yes, they don't call it a
-                                            * num, but it still is one
-                                            */
-                          SaHpiUint32T *size);
 
-SaErrorT ohoi_get_inventory_info(void *hnd, SaHpiResourceIdT id,
-                          SaHpiEirIdT num,
-                          SaHpiInventoryDataT *data);
-#endif
+SaErrorT ohoi_get_idr_info(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrInfoT *idrinfo);
+SaErrorT ohoi_get_idr_area_header(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype,
+                              SaHpiEntryIdT areaid,  SaHpiEntryIdT *nextareaid, SaHpiIdrAreaHeaderT *header);
+SaErrorT ohoi_add_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrAreaTypeT areatype, SaHpiEntryIdT *areaid);
+SaErrorT ohoi_del_idr_area(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid);
+SaErrorT ohoi_get_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid,
+                             SaHpiEntryIdT areaid, SaHpiIdrFieldTypeT fieldtype, SaHpiEntryIdT fieldid,
+                             SaHpiEntryIdT *nextfieldid, SaHpiIdrFieldT *field);
+SaErrorT ohoi_add_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field );
+SaErrorT ohoi_set_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiIdrFieldT *field );
+SaErrorT ohoi_del_idr_field(void *hnd, SaHpiResourceIdT rid, SaHpiIdrIdT idrid, SaHpiEntryIdT areaid, SaHpiEntryIdT fieldid);
 
 int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
                      enum ipmi_hot_swap_states last_state,
