@@ -89,7 +89,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
                 	}
 
 		} else {
-                        fprintf(stderr, "Error in packet %s\nReason: %s\n",
+                        dbg("Error in packet %s\nReason: %s\n",
                                	 objid, snmp_errstring(response->errstat));
 			if (response->errstat == SNMP_ERR_NOSUCHNAME)
 				response->errstat = SNMP_NOSUCHOBJECT;
@@ -156,7 +156,7 @@ SaErrorT snmp_set(
                         break;
                 default:
                         rtncode = -1;
-                        fprintf(stderr, "datatype %c not yet supported by snmp_set()\n", value.type);
+                        dbg("datatype %c not yet supported by snmp_set()\n", value.type);
                         break;
         }
 
@@ -186,7 +186,7 @@ SaErrorT snmp_set(
         	} else {
                 	rtncode = -1;
                 	if (status == STAT_SUCCESS)
-                        	fprintf(stderr, "Error in packet %s\nReason: %s\n",
+                        	dbg("Error in packet %s\nReason: %s\n",
                                 		objid, snmp_errstring(response->errstat));
                 	else
                         	snmp_sess_perror("snmpset", ss);
