@@ -2191,8 +2191,63 @@ static SaErrorT oh_build_event_sensor(oh_big_textbuffer *buffer, const SaHpiEven
  **/
 static SaErrorT oh_build_event_sensor_enable_change(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-	/* FIXME:: Need to implement */
-	printf("Need to implement oh_build_event_sensor_enable_change\n");
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "SensorEnableChangeEvent: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "SensorNum: %d\n", 
+		 	event->EventDataUnion.SensorEnableChangeEvent.SensorNum);
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "SensorType: %s\n", 
+		 	oh_lookup_sensortype(event->EventDataUnion.SensorEnableChangeEvent.SensorType));
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EventCategory: %d\n", 
+		 	event->EventDataUnion.SensorEnableChangeEvent.EventCategory);
+	oh_append_bigtext(buffer, str);
+	
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "SensorEnable: %s\n",
+		(event->EventDataUnion.SensorEnableChangeEvent.SensorEnable == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_bigtext(buffer, str);
+	
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "SensorEventEnable: %s\n",
+		(event->EventDataUnion.SensorEnableChangeEvent.SensorEventEnable == SAHPI_TRUE) ? "TRUE" : "FALSE");
+	oh_append_bigtext(buffer, str);
+	
+	/* FIXME: */
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "AssertEventMask: %x. Mapping is TBD\n",
+				event->EventDataUnion.SensorEnableChangeEvent.AssertEventMask);
+	oh_append_bigtext(buffer, str);
+	
+	/* FIXME: */
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DeassertEventMask: %x. Mapping is TBD\n",
+				event->EventDataUnion.SensorEnableChangeEvent.DeassertEventMask);
+	oh_append_bigtext(buffer, str);
+	
+	/* FIXME: */
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "OptionalDataPresent: %x.\n",
+				event->EventDataUnion.SensorEnableChangeEvent.OptionalDataPresent);
+	oh_append_bigtext(buffer, str);
+	
+	/* FIXME: */
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "CurrentState: %x. Mapping is TBD\n",
+				event->EventDataUnion.SensorEnableChangeEvent.CurrentState);
+	oh_append_bigtext(buffer, str);
 
 	return(SA_OK);
 }
@@ -2247,9 +2302,50 @@ static SaErrorT oh_build_event_hotswap(oh_big_textbuffer *buffer, const SaHpiEve
  **/
 static SaErrorT oh_build_event_watchdog(oh_big_textbuffer *buffer, const SaHpiEventT *event, int offsets)
 {
-	/* FIXME:: Need to implement */
-	printf("Need to implement oh_build_event_watchdog\n");
 
+	char str[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	int i;
+	SaHpiBoolT matchFound = SAHPI_FALSE;
+	
+
+	if ( !buffer || !event)
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	
+	oh_append_offset(buffer, offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogEvent: \n"); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogNum: %d\n",
+					event->EventDataUnion.WatchdogEvent.WatchdogNum); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogNum: %s\n",
+			oh_lookup_watchdogactionevent(event->EventDataUnion.WatchdogEvent.WatchdogAction)); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogPreTimerAction: %s\n",
+			oh_lookup_watchdogpretimerinterrupt(event->EventDataUnion.WatchdogEvent.WatchdogPreTimerAction)); 
+	oh_append_bigtext(buffer, str);
+
+	oh_append_offset(buffer, 4+offsets);
+	for(i = 0; i < OH_MAX_WATCHDOGTIMERUSE; i++) {
+		if (event->EventDataUnion.WatchdogEvent.WatchdogUse == 
+					watchdogtimeruse_strings[i].entity_type) {
+			matchFound = SAHPI_TRUE;
+			snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogUse: %s\n",
+								watchdogtimeruse_strings[i].str);
+			break;
+		}
+	}
+	
+	 if (!matchFound)  
+		snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "WatchdogUse: %s\n",
+									"Invalid data");
+	oh_append_bigtext(buffer, str);
+			
 	return(SA_OK);
 }
 
