@@ -226,15 +226,6 @@ struct oh_abi_v2 {
         SaErrorT (*clear_el)(void *hnd, SaHpiResourceIdT id);
 
         /* end of EL functions */
-        /**
-         * get sensor data
-         * get_sensor_data will be deprecated
-         * get_sensor_data will be replaced by get_sensor_reading
-         */
-        SaErrorT (*get_sensor_data)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiSensorNumT num,
-                               SaHpiSensorReadingT *data,
-			       SaHpiEventStateT    *state);
 
         /**
          * get sensor reading
