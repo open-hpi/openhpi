@@ -1773,7 +1773,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 
         if (IdrInfo == NULL) {
                 dbg("NULL IdrInfo");
-                rv =  SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         OH_CHECK_INIT_STATE(SessionId);
