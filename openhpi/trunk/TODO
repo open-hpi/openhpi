@@ -58,4 +58,9 @@ SNMP v3 Remoting
 
 Simulator Plugin
 -------------------------
-??
+* Simulator file hierarchy structure spec
+* Simulator configure file spec
+* Simulator plug-in
+* Simulator FHS setup tool
+* Simulator FHS dynamic maintaince tool
+* Simulator FHS monitor tool
