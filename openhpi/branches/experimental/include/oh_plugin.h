@@ -187,9 +187,9 @@ struct oh_abi_v1 {
 	 * @param addr the interface name.
 	 * for example, "ipaddr:port" for SNMP, "if_num" for IPMI SMI
 	 */
-	void *(*open)(GHashTable *handler_config);
+	struct oh_handler_state *(*open)(GHashTable *handler_config);
 	
-	void (*close)(void *hnd);
+	void (*close)(struct oh_handler_state *hnd);
 	/**
 	 * The function wait for event. 
 	 * 
@@ -407,5 +407,6 @@ struct oh_abi_v1 {
 
 /*The function is used for plugin loader to get interface*/
 int get_interface(void **pp, uuid_t uuid);
+
 
 #endif/*__OH_PLUGIN_H*/
