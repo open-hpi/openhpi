@@ -114,6 +114,7 @@ int show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	};
 	if (categ != SAHPI_EC_THRESHOLD)
 		return(SA_OK);
+	memset(&senstbuff, 0, sizeof(SaHpiSensorThresholdsT));
 	rv = saHpiSensorThresholdsGet(sessionid, resourceid, sensornum, &senstbuff);
 	if (rv != SA_OK) {
 		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorThresholdsGet error = %s\n",
@@ -333,8 +334,9 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 	return(rv);
 }
 
-SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed_type,
+int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed_type,
 	hpi_ui_print_cb_t proc)
+//  return: list size
 {
 	SaHpiRdrT		rdr;
 	SaHpiEntryIdT		entryid;
@@ -348,12 +350,13 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT p
 	SaHpiInventoryRecT	*inv;
 	SaHpiWatchdogRecT	*wdog;
 	SaErrorT		ret;
+	int			res_num = 0;
 
 	entryid = SAHPI_FIRST_ENTRY;
 	while (entryid !=SAHPI_LAST_ENTRY) {
 		ret = saHpiRdrGet(domain->sessionId, rptid, entryid, &nextentryid, &rdr);
 		if (ret != SA_OK)
-			return(ret);
+			return(res_num);
 		type = rdr.RdrType;
 		if ((passed_type != SAHPI_NO_RECORD) && (type != passed_type)) {
 			entryid = nextentryid;
@@ -399,18 +402,20 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT p
 				rdr.IdString.Data);
 		};
 		strcat(buf, "\n");
+		res_num++;
 		if (proc(buf) != 0)
-			return(-1);
+			return(res_num);
 		entryid = nextentryid;
 	};
-	return(SA_OK);
+	return(res_num);
 }
 
-SaErrorT show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
+int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 	hpi_ui_print_cb_t proc)
 /*  as : SHOW_ALL_RPT  -  show all rpt entry only
  *	 SHOW_ALL_RDR  -  show all rdr for all rpt
  *	 SHOW_RPT_RDR  -  show all rdr for rptid
+ *  return: list size
  */
 {
 	SaHpiRptEntryT		rpt_entry;
@@ -421,13 +426,14 @@ SaErrorT show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 	SaHpiCapabilitiesT	cap;
 	SaHpiHsCapabilitiesT	hscap;
 	SaHpiHsStateT		state;
+	int			res_num = 0;
 
 	rptentryid = SAHPI_FIRST_ENTRY;
 	while (rptentryid != SAHPI_LAST_ENTRY) {
 		rv = saHpiRptEntryGet(domain->sessionId, rptentryid, &nextrptentryid,
 			&rpt_entry);
 		if (rv != SA_OK)
-			return(-1);
+			return(res_num);
 		if ((as == SHOW_RPT_RDR) && (rpt_entry.ResourceId != rptid)) {
 			rptentryid = nextrptentryid;
 			continue;
@@ -480,13 +486,14 @@ SaErrorT show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 			strcat(buf, "}");
 		};
 		strcat(buf, "\n");
+		res_num++;
 		if (proc(buf) != 0)
-			return(-1);
+			return(res_num);
 		if (as == SHOW_ALL_RDR)
 			show_rdr_list(domain, rpt_entry.ResourceId, SAHPI_NO_RECORD, proc);
 		rptentryid = nextrptentryid;
 	};
-	return(SA_OK);
+	return(res_num);
 }
 
 static int show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
