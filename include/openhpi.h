@@ -92,7 +92,7 @@ int is_in_domain_list(SaHpiDomainIdT domain_id);
 int add_domain(SaHpiDomainIdT domain_id);
 void oh_cleanup_domain(void);
 
-/* howswap - ***This all needs to be cleaned up,
+/* hotswap - ***This all needs to be cleaned up,
  * all the way down to src/hotswap.c*** -- RM 7/16
  */
 void process_hotswap_policy(struct oh_handler *h);
@@ -103,14 +103,6 @@ SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
 void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
 SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
 void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
-
-static __inline__
- void gettimeofday1(SaHpiTimeT *t)
-{
-        struct timeval now;
-        gettimeofday(&now, NULL);
-        *t = (SaHpiTimeT) now.tv_sec * 1000000000 + now.tv_usec*1000;
-}
 
 #define g_slist_for_each(pos, head) \
         for (pos = head; pos != NULL; pos = g_slist_next(pos))

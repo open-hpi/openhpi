@@ -1134,7 +1134,7 @@ static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
         info->Entries                   = 0;
         info->Size                      = 0xFFFFFFFF;
         info->UpdateTimestamp           = 0;
-        gettimeofday1(&info->CurrentTime);
+        oh_gettimeofday(&info->CurrentTime);
         info->Enabled                   = sel_enabled;
         info->OverflowFlag              = 0;
         info->OverflowAction            = SAHPI_EL_OVERFLOW_DROP;

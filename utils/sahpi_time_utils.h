@@ -24,8 +24,10 @@
 extern "C" {
 #endif 
 
-SaErrorT oh_decode_time(SaHpiTimeT time, 
+SaErrorT oh_decode_time(SaHpiTimeT time,
 			SaHpiTextBufferT *buffer);
+
+SaErrorT oh_gettimeofday(SaHpiTimeT *time);
 
 #ifdef __cplusplus
 }
