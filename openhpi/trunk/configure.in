@@ -234,6 +234,7 @@ fi
 
 
 AC_CONFIG_FILES([openhpi.spec
+        rt-env.sh
         Makefile
         src/Makefile
         src/plugins/Makefile
