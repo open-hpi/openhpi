@@ -457,6 +457,7 @@ AC_CONFIG_FILES([openhpi.spec
         src/plugins/sysfs/Makefile
         src/plugins/ipmidirect/Makefile
         src/plugins/simulator/Makefile
+        test/Makefile
         docs/Makefile
         docs/hld/Makefile
         examples/Makefile
