@@ -10,12 +10,14 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
-MOSTLYCLEANFILES	= @TEST_CLEAN@
+# Note same rule and files are generated in the t sub-directory - Make sure
+# you change the t/Makefile.am, if you change these
+XMLDATA = bc_xmlevents.c rsa_xmlevents.c
+
+MOSTLYCLEANFILES = @TEST_CLEAN@ $(XMLDATA)
 
 SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
 SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
-
-XMLDATA = bc_xmlevents.c rsa_xmlevents.c
 
 SUBDIRS 		= t
 
@@ -68,6 +70,8 @@ libsnmp_bc_la_SOURCES	= \
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la
 libsnmp_bc_la_LDFLAGS	= -avoid-version
 
+# Note same rule and files are generated in the t sub-directory - Make sure
+# you change the t/Makefile.am, if you change these
 $(XMLDATA): RSA_STRING.XML BC_STRING.XML $(top_srcdir)/scripts/text2cstr.pl
 	$(top_srcdir)/scripts/text2cstr.pl -s bc_eventxml BC_STRING.XML > bc_xmlevents.c
 	$(top_srcdir)/scripts/text2cstr.pl -s rsa_eventxml RSA_STRING.XML > rsa_xmlevents.c
