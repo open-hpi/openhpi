@@ -4,7 +4,7 @@
  */
 
 #include <string.h>
-
+#include <oh_config.h>
 #include <openhpi.h>
 #include <oh_plugin.h>
 #include <SaHpi.h>
@@ -122,8 +122,6 @@ static inline struct oh_rdr * get_rdr(
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
-	struct oh_domain *d;
-
         if (OH_STAT_UNINIT!=oh_hpi_state) {
                 dbg("Cannot initialize twice");
                 return SA_ERR_HPI_DUPLICATE;
@@ -136,7 +134,8 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                 dbg("Can not load/init plugin");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-	
+
+/*	
 	d = domain_add();
 	if (!d) {
 		dbg("Can not create DEFAULT DOMAIN");
@@ -162,20 +161,21 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                 return SA_ERR_HPI_NOT_PRESENT;
         }
 #endif
+*/
         oh_hpi_state= OH_STAT_READY;
 	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiFinalize(void)
 {
-	struct oh_domain *d;
+        struct oh_domain *d;
 	
-	OH_STATE_READY_CHECK;	
+        OH_STATE_READY_CHECK;	
 
-	d = domain_get(SAHPI_DEFAULT_DOMAIN_ID);
-	if (!d) {
-		dbg("No DEFAULT DOMAIN");
-		return SA_ERR_HPI_UNKNOWN;
+        d = domain_get(SAHPI_DEFAULT_DOMAIN_ID);
+        if (!d) {
+                dbg("No DEFAULT DOMAIN");
+                return SA_ERR_HPI_UNKNOWN;
 	}
 
 	uninit_domain();
@@ -190,17 +190,32 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 		SAHPI_OUT SaHpiSessionIdT *SessionId,
 		SAHPI_IN void *SecurityParams)
 {
-	struct oh_domain  *d;
-	struct oh_session *s;
-	int rv;
+        struct oh_domain  *d;
+        struct oh_session *s;
+        int rv, i;
+        struct oh_domain_config *dconf;
+        struct oh_handler_config *temp;
+
+        OH_STATE_READY_CHECK;
 	
-	OH_STATE_READY_CHECK;
-	
-	d = domain_get(DomainId);
-	if (!d) {
-		dbg("Invalid domain");
-		return SA_ERR_HPI_INVALID_DOMAIN;
+        dconf = (struct oh_domain_config *) calloc(1, sizeof(struct oh_domain_config));
+        load_domain_config(&dconf, DomainId);
+
+        d = domain_add();
+        if (!d) {
+                dbg("Can not create DEFAULT DOMAIN");
+                return SA_ERR_HPI_NOT_PRESENT;
 	}
+
+        dbg("num plugins %d", g_slist_length(dconf->plugins));
+
+        for(i = 0; i < g_slist_length(dconf->plugins); i++) {
+                temp = (struct oh_handler_config *) g_slist_nth_data(dconf->plugins, i);
+                dbg("Trying to load plugin %s", temp->plugin);
+                if(load_plugin(d, temp->plugin, temp->name, temp->address) < 0) {
+                        dbg("Can not init %s", temp->plugin);
+                }
+        }
 
 	rv = session_add(d, &s);
 	if (rv<0) {
