@@ -54,6 +54,11 @@ void process_hotswap_policy(struct oh_handler *handler)
                         return;
                 }
 
+                if (oh_is_resource_managed(e.parent)) {
+                        dbg();
+                        continue;
+                }
+
                 gettimeofday1(&cur);
         
                 if (e.event.EventDataUnion.HotSwapEvent.HotSwapState 
