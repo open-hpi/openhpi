@@ -72,21 +72,23 @@ extern GMutex *oh_thread_mutex;
 
 void oh_wake_event_thread(SaHpiBoolT wait)
 {
-        trace("Waking thread");
-        g_cond_broadcast(oh_thread_wait);
-        if(wait) {
-                /* the wait concept is important.  By taking these locks
-                   we ensure that the thread is forced to go through
-                   at least one cycle (though it could be 2 based on 
-                   racing) This is important for the infrastructure on
-                   calls like discover, which need to know *now* what
-                   is going on.  Plugins probably don't care, but we
-                   leave it as an option anyway. */
-                g_mutex_lock(oh_thread_mutex);
-                trace("Got the lock on the thread");
-                g_mutex_unlock(oh_thread_mutex);
-                trace("Gave back the thread lock");
-        }
+        if(oh_run_threaded()) {
+                trace("Waking thread");
+                g_cond_broadcast(oh_thread_wait);
+                if(wait) {
+                        /* the wait concept is important.  By taking these locks
+                           we ensure that the thread is forced to go through
+                           at least one cycle (though it could be 2 based on 
+                           racing) This is important for the infrastructure on
+                           calls like discover, which need to know *now* what
+                           is going on.  Plugins probably don't care, but we
+                           leave it as an option anyway. */
+                        g_mutex_lock(oh_thread_mutex);
+                        trace("Got the lock on the thread");
+                        g_mutex_unlock(oh_thread_mutex);
+                        trace("Gave back the thread lock");
+                }
+	}
 }
 
 /**
