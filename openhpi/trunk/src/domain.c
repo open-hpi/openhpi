@@ -22,7 +22,14 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-GSList *global_domain_list = NULL;
+/*
+ *  Global list of all available domain id's (SaHpiDomainIdT).
+ *  The intent is that this list is maintained as new RPT entries
+ *  are added and removed from the global RPT table, and used by
+ *  saHpiSessionOpen() to determine if the requested domain exist
+ *  without doing a full search of the RPT. 
+ */
+static GSList *global_domain_list = NULL;
 
 int is_in_domain_list(SaHpiDomainIdT did) 
 {
