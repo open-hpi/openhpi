@@ -740,45 +740,54 @@ EOF
 sub beautify_enum_name($$) {
     my ($enum_type, $enum_name) = @_;
     if ($debug) { print("TYPE=$enum_type: ENUM=$enum_name: "); }
-
+    
     if ($enum_type eq "SaHpiStatusCondTypeT" ||
-	$enum_type eq "SaHpiSensorReadingTypeT") {
-	$enum_name =~ s/(\s*[A-Za-z]+_{1}){4}//;
-    }
-    else {
-	if ($enum_type eq "SaErrorT" ||
-	    $enum_type eq "SaHpiAnnunciatorModeT" ||
-	    $enum_type eq "SaHpiAnnunciatorTypeT" ||
-	    $enum_type eq "SaHpiDomainEventTypeT" ||
-	    $enum_type eq "SaHpiCtrlStateDigitalT" ||
-	    $enum_type eq "SaHpiCtrlModeT" ||
-	    $enum_type eq "SaHpiCtrlTypeT" ||
-	    $enum_type eq "SaHpiIdrAreaTypeT" ||
-	    $enum_type eq "SaHpiIdrFieldTypeT" ||
-	    $enum_type eq "SaHpiHsActionT" ||
-	    $enum_type eq "SaHpiHsIndicatorStateT" ||
-	    $enum_type eq "SaHpiHsStateT" ||
-	    $enum_type eq "SaHpiResourceEventTypeT" ||
-	    $enum_type eq "SaHpiTextTypeT") {
-	    $enum_name =~ s/(\s*[A-Za-z]+_{1}){3}//;
-	}
-	else {
-	    if ($enum_type eq "SaHpiParmActionT" ||
-		$enum_type eq "SaHpiRdrTypeT" ||
-		$enum_type eq "SaHpiResetActionT" ||
-		$enum_type eq "SaHpiSensorTypeT" ||
-		$enum_type eq "SaHpiSeverityT") {
-		
-		$enum_name =~ s/\s*SAHPI_//;
-	    }
-	    else {
-		$enum_name =~ s/(\s*[A-Za-z]+_{1}){2}//;	
-	    }
-	}
-    }
-
+        $enum_type eq "SaHpiSensorReadingTypeT") 
+      {
+          $enum_name =~ s/(\s*[A-Za-z]+_{1}){4}//;
+      }
+    
+    elsif ($enum_type eq "SaErrorT" ||
+           $enum_type eq "SaHpiAnnunciatorModeT" ||
+           $enum_type eq "SaHpiAnnunciatorTypeT" ||
+           $enum_type eq "SaHpiDomainEventTypeT" ||
+           $enum_type eq "SaHpiCtrlStateDigitalT" ||
+           $enum_type eq "SaHpiCtrlModeT" ||
+           $enum_type eq "SaHpiCtrlTypeT" ||
+           $enum_type eq "SaHpiIdrAreaTypeT" ||
+           $enum_type eq "SaHpiIdrFieldTypeT" ||
+           $enum_type eq "SaHpiHsActionT" ||
+           $enum_type eq "SaHpiHsIndicatorStateT" ||
+           $enum_type eq "SaHpiHsStateT" ||
+           $enum_type eq "SaHpiResourceEventTypeT" ||
+           $enum_type eq "SaHpiTextTypeT") 
+      {
+          $enum_name =~ s/(\s*[A-Za-z]+_{1}){3}//;
+      } 
+    
+    elsif ($enum_type eq "SaHpiParmActionT" ||
+           $enum_type eq "SaHpiRdrTypeT" ||
+           $enum_type eq "SaHpiResetActionT" ||
+           $enum_type eq "SaHpiSensorTypeT" ||
+           $enum_type eq "SaHpiSeverityT") 
+      {
+          $enum_name =~ s/\s*SAHPI_//;
+      } 
+    
+    elsif ($enum_type eq "SaHpiSensorUnitsT")
+      {
+          $enum_name =~ s/(\s*[A-Za-z]+_{1}){2}//;
+          $enum_name =~ s/_/ /g;
+          $enum_name = lc($enum_name);
+          $enum_name =~ s/\b(\w)/\U$1\E/g;
+      }
+    else 
+      {
+          $enum_name =~ s/(\s*[A-Za-z]+_{1}){2}//;	
+      }
+    
     if ($debug) { print("STR=$enum_name\n"); }
-
+    
     return $enum_name;
 }
 
@@ -906,8 +915,9 @@ sub print_testfile_case($$) {
 
                 str = $lookup_name(value);
                 if (strcmp(expected_str, str)) {
-                        printf("Error! Testcase $type - $case failed\\n");
-			printf("Received string=%s\\n", str);
+                        printf("  Error! Line __LINE__ Testcase $type - $case failed\\n");
+			printf("  Received string=%s\\n", str);
+			printf("  Expected string=%s\\n", expected_str);
                         return -1;             
                 }
 
@@ -921,8 +931,8 @@ sub print_testfile_case($$) {
                 }
     
                 if ($case != enum_type) {
-                        printf("Error! Testcase $type - $case encode failed\\n");
-                        printf("Received type=%x\\n", enum_type);
+                        printf("  Error! Testcase $type - $case encode failed\\n");
+                        printf("  Received type=%x\\n", enum_type);
                         return -1;
                 }
 	}
@@ -979,8 +989,9 @@ sub print_xtestfile_case($$$) {
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("Error! Testcase $cat - $state decode failed\\n");
-                        printf("Received string=%s\\n", buffer.Data);
+                        printf("  Error! Line __LINE__ Testcase $cat - $state decode failed\\n");
+                        printf("  Received string=%s\\n", buffer.Data);
+			printf("  Expected string=%s\\n", expected_str);
                         return -1;             
                 }
     
