@@ -12,6 +12,8 @@
 #    W. David Ashley <dashley@us.ibm.com>
 #
 
+.NOTPARALLEL:
+
 SUBDIRS			= t
 DIST_SUBDIRS 		= t
 
