@@ -628,14 +628,16 @@ static struct dummy_sensor {
 /************************************************************************/
 /* Resource one inventory data                                          */
 /************************************************************************/
+#define IDR_AREAS_MAX	5
+#define IDR_FIELDS_MAX	20
 struct  dummy_idr_area {
         SaHpiIdrAreaHeaderT  idrareas;
-        SaHpiIdrFieldT  idrfields[20];
+        SaHpiIdrFieldT  idrfields[IDR_FIELDS_MAX];
 };
 
 static struct dummy_inventories {
         SaHpiIdrInfoT   idrinfo;
-        struct dummy_idr_area my_idr_area[5];
+        struct dummy_idr_area my_idr_area[IDR_AREAS_MAX];
 } dummy_inventory[] = {
 
 {
@@ -725,6 +727,99 @@ static struct dummy_inventories {
                         .FieldId = 10,
                         .Type = SAHPI_IDR_FIELDTYPE_CUSTOM,
                         .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("Hot")
+                },
+                
+                {}
+        }
+},
+{
+        .idrinfo = {
+                    .IdrId = 6,
+                    .UpdateCount = 1,
+                    .ReadOnly = SAHPI_FALSE,
+                    .NumAreas = 1
+        },
+        .my_idr_area[0] =
+        {
+                .idrareas = {
+                        .AreaId = 1,
+                        .Type = SAHPI_IDR_AREATYPE_CHASSIS_INFO,
+                        .ReadOnly = SAHPI_FALSE,
+                        .NumFields = 10,
+                },
+                
+                .idrfields[0] =
+                {
+                        .AreaId = 1,
+                        .FieldId = 1,
+                        .Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
+                        .ReadOnly = SAHPI_FALSE,
+                        .Field = def_text_buffer("Main Chassis")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 2,
+                        .Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME,
+                        .ReadOnly = SAHPI_FALSE,
+                        .Field = def_text_buffer("10/01/2004")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 3,
+                        .Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER,
+                        .ReadOnly = SAHPI_FALSE,
+                        .Field = def_text_buffer("openHPI Inc.")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 4,
+                        .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
+                        .ReadOnly = SAHPI_FALSE,
+                        .Field = def_text_buffer("Imaginary HPI Machine")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 5,
+                        .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION, /* Model number? */
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("17")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 6,
+                        .Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
+                        .ReadOnly = SAHPI_TRUE,
+                        .Field = def_text_buffer("12HPI345")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 7,
+                        .Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER,
+                        .ReadOnly = SAHPI_FALSE,
+                        .Field = def_text_buffer("78758")
+                },
+                {
+                        .AreaId = 1,
+                        .FieldId = 8,
+                        .Type = SAHPI_IDR_FIELDTYPE_FILE_ID,
+                        .ReadOnly = SAHPI_FALSE,
+                        .Field = def_text_buffer("3")
+                },
+                
+                {
+                        .AreaId = 1,
+                        .FieldId = 9,
+                        .Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG,
+                        .ReadOnly = SAHPI_FALSE,
+                        .Field = def_text_buffer("My Precious")
+                },
+                
+                {
+                        .AreaId = 1,
+                        .FieldId = 10,
+                        .Type = SAHPI_IDR_FIELDTYPE_CUSTOM,
+                        .ReadOnly = SAHPI_FALSE,
                         .Field = def_text_buffer("Hot")
                 },
                 
@@ -1508,18 +1603,25 @@ static SaErrorT dummy_get_idr_area_header( void *hnd,
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
         SaHpiIdrAreaTypeT        thisAreaType;
-        SaHpiEntryIdT            thisAreaId;
+        SaHpiEntryIdT            thisAreaId = 0;
         SaHpiBoolT foundArea = SAHPI_FALSE;
         int num_areas, i;
 
         if (rdr != NULL) {
-                struct dummy_inventories *s = dummy_inventory;
+                struct dummy_inventories *s;
+
+		for (i = 0; ; i++) {
+			if (dummy_inventory[i].idrinfo.IdrId == 0) return SA_ERR_HPI_NOT_PRESENT;
+			if (dummy_inventory[i].idrinfo.IdrId != IdrId) continue;
+			else {
+				s = dummy_inventory + i;
+				break;
+			}
+		};
                 
                 num_areas =  s->idrinfo.NumAreas;
-                i = 0;
-                do { 
-                
-                        thisAreaId = s->my_idr_area[i].idrareas.AreaId;
+                for (i = 0; i < num_areas; i++) {
+			thisAreaId = s->my_idr_area[i].idrareas.AreaId;
                         thisAreaType = s->my_idr_area[i].idrareas.Type;
                         if ( ((AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED) && (AreaId == SAHPI_FIRST_ENTRY)) ||
                              ((thisAreaType == AreaType) && ((AreaId == SAHPI_FIRST_ENTRY) || (AreaId == thisAreaId))) || 
@@ -1529,16 +1631,15 @@ static SaErrorT dummy_get_idr_area_header( void *hnd,
                                 foundArea = SAHPI_TRUE;
                                 break;
                         }
-                        i++;
-                } while (i < num_areas);
+                };
                 
                 i++;
                 if (foundArea) {
                         foundArea = SAHPI_FALSE;
                         if (i < num_areas) {
                                 do { 
-                                        thisAreaType = s->my_idr_area[i].idrareas.Type;
-                                        if ((thisAreaId == AreaId) && (thisAreaType == AreaType)) {      
+                                       thisAreaType = s->my_idr_area[i].idrareas.Type;
+                                        if ((thisAreaType == AreaType) || (AreaType == SAHPI_IDR_AREATYPE_UNSPECIFIED)) {      
                                                 *NextAreaId = s->my_idr_area[i].idrareas.AreaId;
                                                 foundArea = SAHPI_TRUE;
                                                 break;
@@ -1571,15 +1672,72 @@ static SaErrorT dummy_add_idr_area( void *hnd,
                 SaHpiEntryIdT           *AreaId)
 
 {
-        return SA_ERR_HPI_READ_ONLY;
-}
+	struct oh_handler_state	*handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT		*rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	int			num_areas, i;
+	SaHpiEntryIdT		lastId;
 
+	struct dummy_inventories *s;
+
+        if (rdr == NULL) return SA_ERR_HPI_NOT_PRESENT;
+	for (i = 0; ; i++) {
+		if (dummy_inventory[i].idrinfo.IdrId == 0) return SA_ERR_HPI_NOT_PRESENT;
+		if (dummy_inventory[i].idrinfo.IdrId != IdrId) continue;
+		else {
+			s = dummy_inventory + i;
+			break;
+		}
+	};
+
+	if (s->idrinfo.ReadOnly) return SA_ERR_HPI_READ_ONLY;
+	num_areas =  s->idrinfo.NumAreas;
+	if (num_areas >= IDR_AREAS_MAX) return(SA_ERR_HPI_OUT_OF_SPACE);
+	if (num_areas == 0) lastId = 0;
+	else  lastId = s->my_idr_area[num_areas - 1].idrareas.AreaId;
+	lastId++;
+	s->my_idr_area[num_areas].idrareas.AreaId = lastId;
+	s->my_idr_area[num_areas].idrareas.Type = AreaType;
+	s->my_idr_area[num_areas].idrareas.ReadOnly = SAHPI_FALSE;
+	s->my_idr_area[num_areas].idrareas.NumFields = 0;
+	s->idrinfo.NumAreas++;
+        return SA_OK;
+}
+   
 static SaErrorT dummy_del_idr_area( void *hnd,
                 SaHpiResourceIdT       ResourceId,
                 SaHpiIdrIdT            IdrId,
                 SaHpiEntryIdT          AreaId)
 {
-        return SA_ERR_HPI_READ_ONLY;
+	struct oh_handler_state	*handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT		*rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	int			num_areas, i, j;
+
+	struct dummy_inventories *s;
+
+        if (rdr == NULL) return SA_ERR_HPI_NOT_PRESENT;
+	for (i = 0; ; i++) {
+		if (dummy_inventory[i].idrinfo.IdrId == 0) return SA_ERR_HPI_NOT_PRESENT;
+		if (dummy_inventory[i].idrinfo.IdrId != IdrId) continue;
+		else {
+			s = dummy_inventory + i;
+			break;
+		}
+	};
+
+	if (s->idrinfo.ReadOnly) return SA_ERR_HPI_READ_ONLY;
+	num_areas =  s->idrinfo.NumAreas;
+	for (i = 0; i < num_areas; i++) {
+		if (s->my_idr_area[i].idrareas.AreaId == AreaId)
+			break;
+	};
+	if (i >= num_areas) return(SA_ERR_HPI_NOT_PRESENT);
+	if (i != (num_areas - 1)) {
+		for (j = i; j < (num_areas - 1); j++) {
+			s->my_idr_area[j].idrareas = s->my_idr_area[j + 1].idrareas;
+		}
+	};
+	s->idrinfo.NumAreas--;
+        return SA_OK;
 }
 
 static SaErrorT dummy_get_idr_field( void *hnd,
@@ -1604,7 +1762,17 @@ static SaErrorT dummy_get_idr_field( void *hnd,
 
 
         if (rdr != NULL) {
-                struct dummy_inventories *s = dummy_inventory;
+                struct dummy_inventories	*s;
+		int				i;
+
+		for (i = 0; ; i++) {
+			if (dummy_inventory[i].idrinfo.IdrId == 0) return SA_ERR_HPI_NOT_PRESENT;
+			if (dummy_inventory[i].idrinfo.IdrId != IdrId) continue;
+			else {
+				s = dummy_inventory + i;
+				break;
+			}
+		};
                 
                 num_areas =  s->idrinfo.NumAreas;
                 area_index = 0;
@@ -1621,6 +1789,7 @@ static SaErrorT dummy_get_idr_field( void *hnd,
                 
                 if (foundArea) {
                         num_fields = s->my_idr_area[area_index].idrareas.NumFields;
+			if (num_fields == 0) return SA_ERR_HPI_NOT_PRESENT;
                         thisArea   = &(s->my_idr_area[area_index]);
 
                         do { 
@@ -1676,7 +1845,40 @@ static SaErrorT dummy_add_idr_field( void *hnd,
                 SaHpiIdrIdT              IdrId,
                 SaHpiIdrFieldT        *Field)
 {
-        return SA_ERR_HPI_READ_ONLY;
+	struct oh_handler_state	*handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT		*rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	int			num_areas, area_number, num_fields, i;
+	SaHpiEntryIdT		lastId, entryId;
+
+	struct dummy_inventories *s;
+
+        if (rdr == NULL) return SA_ERR_HPI_NOT_PRESENT;
+	for (i = 0; ; i++) {
+		if (dummy_inventory[i].idrinfo.IdrId == 0) return SA_ERR_HPI_NOT_PRESENT;
+		if (dummy_inventory[i].idrinfo.IdrId != IdrId) continue;
+		else {
+			s = dummy_inventory + i;
+			break;
+		}
+	};
+
+	if (s->idrinfo.ReadOnly) return SA_ERR_HPI_READ_ONLY;
+	entryId = Field->AreaId;
+	num_areas =  s->idrinfo.NumAreas;
+	for (area_number = 0; area_number < num_areas; area_number++) {
+		if (s->my_idr_area[area_number].idrareas.AreaId == entryId) break;
+	};
+	if (area_number >= num_areas) return SA_ERR_HPI_NOT_PRESENT;
+
+	num_fields = s->my_idr_area[area_number].idrareas.NumFields;
+	if (num_fields >= IDR_FIELDS_MAX) return(SA_ERR_HPI_OUT_OF_SPACE);
+	if (num_fields == 0) lastId = 0;
+	else  lastId = s->my_idr_area[area_number].idrfields[num_fields - 1].FieldId;
+	lastId++;
+	s->my_idr_area[area_number].idrfields[num_fields] = *Field;
+	s->my_idr_area[area_number].idrfields[num_fields].FieldId = lastId;
+	s->my_idr_area[area_number].idrareas.NumFields++;
+        return SA_OK;
 }
 
 static SaErrorT dummy_set_idr_field( void *hnd,
@@ -1684,7 +1886,40 @@ static SaErrorT dummy_set_idr_field( void *hnd,
                 SaHpiIdrIdT              IdrId,
                 SaHpiIdrFieldT           *Field)
 {
-        return SA_ERR_HPI_READ_ONLY;
+	struct oh_handler_state	*handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT		*rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	int			num_areas, area_number, num_fields, i;
+	SaHpiEntryIdT		entryId, fieldId;
+
+	struct dummy_inventories *s;
+
+        if (rdr == NULL) return SA_ERR_HPI_NOT_PRESENT;
+	for (i = 0; ; i++) {
+		if (dummy_inventory[i].idrinfo.IdrId == 0) return SA_ERR_HPI_NOT_PRESENT;
+		if (dummy_inventory[i].idrinfo.IdrId != IdrId) continue;
+		else {
+			s = dummy_inventory + i;
+			break;
+		}
+	};
+
+	if (s->idrinfo.ReadOnly) return SA_ERR_HPI_READ_ONLY;
+	entryId = Field->AreaId;
+	fieldId = Field->FieldId;
+	num_areas =  s->idrinfo.NumAreas;
+	for (area_number = 0; area_number < num_areas; area_number++) {
+		if (s->my_idr_area[area_number].idrareas.AreaId == entryId) break;
+	};
+	if (area_number >= num_areas) return SA_ERR_HPI_NOT_PRESENT;
+
+	num_fields = s->my_idr_area[area_number].idrareas.NumFields;
+	for (i = 0; i < num_fields; i++)
+		if (s->my_idr_area[area_number].idrfields[i].FieldId == fieldId)
+			break;
+	if (i >= num_fields) return SA_ERR_HPI_NOT_PRESENT;
+	if (s->my_idr_area[area_number].idrfields[i].ReadOnly) return SA_ERR_HPI_READ_ONLY;
+	s->my_idr_area[area_number].idrfields[i] = *Field;
+        return SA_OK;
 }
 
 static SaErrorT dummy_del_idr_field( void *hnd, 
@@ -1693,7 +1928,42 @@ static SaErrorT dummy_del_idr_field( void *hnd,
                 SaHpiEntryIdT            AreaId,
                 SaHpiEntryIdT            FieldId)
 {
-        return SA_ERR_HPI_READ_ONLY;
+	struct oh_handler_state	*handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT		*rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	int			num_areas, area_number, num_fields, i, j;
+
+	struct dummy_inventories *s;
+
+        if (rdr == NULL) return SA_ERR_HPI_NOT_PRESENT;
+	for (i = 0; ; i++) {
+		if (dummy_inventory[i].idrinfo.IdrId == 0) return SA_ERR_HPI_NOT_PRESENT;
+		if (dummy_inventory[i].idrinfo.IdrId != IdrId) continue;
+		else {
+			s = dummy_inventory + i;
+			break;
+		}
+	};
+
+	if (s->idrinfo.ReadOnly) return SA_ERR_HPI_READ_ONLY;
+	num_areas =  s->idrinfo.NumAreas;
+	for (area_number = 0; area_number < num_areas; area_number++) {
+		if (s->my_idr_area[area_number].idrareas.AreaId == AreaId) break;
+	};
+	if (area_number >= num_areas) return SA_ERR_HPI_NOT_PRESENT;
+
+	num_fields = s->my_idr_area[area_number].idrareas.NumFields;
+	for (i = 0; i < num_fields; i++)
+		if (s->my_idr_area[area_number].idrfields[i].FieldId == FieldId)
+			break;
+	if (i >= num_fields) return SA_ERR_HPI_NOT_PRESENT;
+	if (s->my_idr_area[area_number].idrfields[i].ReadOnly) return SA_ERR_HPI_READ_ONLY;
+	if (i < (num_fields - 1)) {
+		for (j = i; j < num_fields - 1; j++)
+			s->my_idr_area[area_number].idrfields[j] = 
+				s->my_idr_area[area_number].idrfields[j + 1];
+	};
+	s->my_idr_area[area_number].idrareas.NumFields--;
+        return SA_OK;
 }
 
 /************************************************************************/

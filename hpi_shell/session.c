@@ -36,7 +36,9 @@ static int		in_progress = 0;
 static GCond		*thread_wait = NULL;
 static GMutex		*thread_mutex = NULL;
 static char		*progress_mes;
-Domain_t		*Domain;
+Domain_t		*Domain;	// curreny domain
+GSList			*domainlist;	// domain list
+
 
 #define PROGRESS_BUF_SIZE	80
 
@@ -100,60 +102,133 @@ static void* get_event(void *unused)
 		return (void *)0;
 	}	
 	
-	for(;;) {
-		memset(&event, 0xF, sizeof(event));
-
-		rv = saHpiEventGet(Domain->sessionId, SAHPI_TIMEOUT_BLOCK, &event,
-			NULL, NULL, NULL);		
-		if (rv != SA_OK ) {
-			saHpiUnsubscribe(Domain->sessionId);
-			return (void *)1;
-		}
-		if (prt_flag == 1) {
-			if (show_event_short)
-				show_short_event(&event, ui_print);
-			else
-				oh_print_event(&event, 1);
-		}
-	} /*the loop for retrieving event*/
+	while(1) {
+		for(;;) {
+			memset(&event, 0xF, sizeof(event));
+			rv = saHpiEventGet(Domain->sessionId,
+				SAHPI_TIMEOUT_IMMEDIATE, &event,
+				NULL, NULL, NULL);		
+			if (rv != SA_OK ) {
+				break;
+			}
+			if (prt_flag == 1) {
+				if (show_event_short)
+					show_short_event(&event, ui_print);
+				else
+					oh_print_event(&event, 1);
+			}
+		}/*the loop for retrieving event*/
+		sleep(1);
+	}
 	return (void *)1;
+}
+
+void set_Subscribe(Domain_t *domain, int as)
+//  as = 1  - Subscribe
+//  as = 0  - UnSubscribe
+//   if domain == NULL - for all opened domains
+{
+	int		i, n;
+	gpointer	ptr;
+	Domain_t	*dmn;
+
+	if ((domain != (Domain_t *)NULL) && domain->session_opened) {
+		if (as) saHpiSubscribe(domain->sessionId);
+		else saHpiUnsubscribe(domain->sessionId);
+		return;
+	};
+	n = g_slist_length(domainlist);
+	for (i = 0; i < n; i++) {
+		ptr = g_slist_nth_data(domainlist, i);
+		if (ptr == (gpointer)NULL) return;
+		dmn = (Domain_t *)ptr;
+		if (dmn->session_opened) {
+			if (as) saHpiSubscribe(dmn->sessionId);
+			else saHpiUnsubscribe(domain->sessionId);
+		}
+	}
+}
+
+SaErrorT get_sessionId(Domain_t *domain)
+{
+	SaErrorT		rv;
+	SaHpiDomainInfoT	info;
+
+	if (domain->session_opened) return(SA_OK);
+	rv = saHpiSessionOpen(domain->domainId, &(domain->sessionId), NULL);
+	if (rv != SA_OK) {
+		printf("saHpiSessionOpen error %s\n", oh_lookup_error(rv));
+		return rv;
+	};
+	domain->session_opened = 1;
+	rv = saHpiDomainInfoGet(domain->sessionId, &info);
+	if (rv != SA_OK) {
+		printf("ERROR!!! saHpiDomainInfoGet: %s\n", oh_lookup_error(rv));
+		return(rv);
+	};
+	domain->domainId = info.DomainId;
+	return(SA_OK);
+}
+
+SaErrorT do_discover(Domain_t *domain)
+{
+	SaErrorT rv;
+
+	if (!domain->sessionId) {
+		rv = get_sessionId(domain);
+		if (rv != SA_OK) return(-1);
+	};
+	if (domain->discovered) return(SA_OK);
+	do_progress("Discover");
+	rv = saHpiDiscover(domain->sessionId);
+	if (rv != SA_OK) {
+		delete_progress();
+		printf("saHpiDiscover error %s\n", oh_lookup_error(rv));
+		return rv;
+	};
+	delete_progress();
+	domain->discovered = 1;
+	printf("Discovery done\n");
+	return(SA_OK);
+}
+
+int add_domain(Domain_t *domain)
+{
+	SaErrorT	rv;
+	GSList		*ptr;
+
+	rv = do_discover(domain);
+	if (rv != SA_OK) return(-1);
+	ptr = g_slist_find(domainlist, domain);
+	if (ptr == (GSList *)NULL)
+		domainlist = g_slist_append(domainlist, domain);
+	return(0);
 }
 
 int open_session(int eflag)
 {
-	SaErrorT rv;
-	SaHpiSessionIdT		sessionid;
+	Domain_t	*par_domain;
 
         if (!g_thread_supported()) {
                 g_thread_init(NULL);
 	};
 	thread_wait = g_cond_new();
 	thread_mutex = g_mutex_new();
-	do_progress("Discover");
-	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
-	if (rv != SA_OK) {
-     		printf("saHpiSessionOpen error %s\n", oh_lookup_error(rv));
-		return -1;
-	};
-	Domain = init_resources(sessionid);
-	if (Domain == (Domain_t *)NULL) {
-     		printf("init_resources error\n");
-		return -1;
-	}
+	par_domain = (Domain_t *)malloc(sizeof(Domain_t));
+	memset(par_domain, 0, sizeof(Domain_t));
+	par_domain->domainId = SAHPI_UNSPECIFIED_DOMAIN_ID;
+	if (get_sessionId(par_domain) != SA_OK) return(-1);
+	// set current domain
+	Domain = par_domain;
+
 	if (eflag) {
 		show_event_short = 1;
 		prt_flag = 1;
 		pthread_create(&ge_thread, NULL, get_event, NULL);
 	};
-	rv = saHpiDiscover(Domain->sessionId);
-	if (rv != SA_OK) {
-		delete_progress();
-		printf("saHpiDiscover rv = %s\n", oh_lookup_error(rv));
-		return -1;
-	};
-	delete_progress();
+	// add main domain to the domain list
+	if (add_domain(par_domain) != SA_OK) return(-1);
 
-	printf("Initial discovery done\n");
 
 	printf("\tEnter a command or \"help\" for list of commands\n");
 
