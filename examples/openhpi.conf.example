@@ -80,10 +80,16 @@ handler	libdummy {
 #        addr = 2
 #}
 
-
-#Section for ipmidirect plugin:
+#section for ipmidirect plugin using SMI -- local interface
 #handler libipmidirect {
-#        entity_root = "{SYSTEM_CHASSIS,6}"
+#       entity_root = "{SYSTEM_CHASSIS,6}"
+#	name = "smi"
+#	addr = 0
+#}
+
+#Section for ipmidirect plugin using RMCP:
+#handler libipmidirect {
+#        entity_root = "{SYSTEM_CHASSIS,7}"
 #        name = "lan"       # RMCP
 #        addr = "localhost" # ipaddress
 #        port = "623"      # RMCP port
