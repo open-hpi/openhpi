@@ -70,10 +70,11 @@ static void add_control_event_rdr(ipmi_control_t		*control,
 				 SaHpiEntityPathT	parent_ep,
 				 SaHpiResourceIdT	res_id)
 {
-	char	name[32];
-	//SaHpiEntityPathT rdr_ep;
+	char		name[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaHpiTextTypeT	data_type;
+	int		name_len;
 
-	memset(name,'\0',32);
+	memset(name, '\0' ,SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	rdr->RecordId = 0;
 	rdr->RdrType = SAHPI_CTRL_RDR;
 	//rdr->Entity.Entry[0].EntityType = (SaHpiEntityTypeT)id;
@@ -89,12 +90,17 @@ static void add_control_event_rdr(ipmi_control_t		*control,
 
 	add_control_event_control_rec(control, &rdr->RdrTypeUnion.CtrlRec);
 
-	ipmi_control_get_id(control, name, 32);
-	rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
+	ipmi_control_get_id(control, name, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	name_len = ipmi_control_get_id_length(control);
+	if (name_len >= SAHPI_MAX_TEXT_BUFFER_LENGTH)
+		name_len = SAHPI_MAX_TEXT_BUFFER_LENGTH - 1;
+	data_type = convert_to_hpi_data_type(ipmi_control_get_id_type(control));
+	rdr->IdString.DataType = data_type;
 	rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-	rdr->IdString.DataLength = 32;
+	rdr->IdString.DataLength = name_len;
 
-	memcpy(rdr->IdString.Data,name, strlen(name) + 1);
+	memset(rdr->IdString.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	memcpy(rdr->IdString.Data, name, name_len);
 }
 
 static void add_control_event(ipmi_entity_t	*ent,
@@ -151,15 +157,20 @@ static void add_alarm_rdr(char 				*name,
 {
 	SaHpiRdrT               rdr_temp;
 	SaHpiRdrT               *rdr;
+	int			name_len;
  
 	rdr = &rdr_temp;
         rdr->RecordId = 0;
         rdr->RdrType = SAHPI_CTRL_RDR;
         rdr->Entity = parent_ent;
  
-        rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
+	name_len = strlen(name);
+	if (name_len >= SAHPI_MAX_TEXT_BUFFER_LENGTH)
+		name_len = SAHPI_MAX_TEXT_BUFFER_LENGTH - 1;
+        rdr->IdString.DataType = SAHPI_TL_TYPE_TEXT;
         rdr->IdString.Language = SAHPI_LANG_ENGLISH;
         rdr->IdString.DataLength = strlen(name);
+        memset(rdr->IdString.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
         memcpy(rdr->IdString.Data, name, strlen(name));
 
         rdr->RdrTypeUnion.CtrlRec.Num   = num;

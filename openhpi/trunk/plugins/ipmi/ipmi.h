@@ -139,6 +139,8 @@ struct ohoi_inventory_info {
 	unsigned int oem_fields_num;
 };
 
+SaHpiTextTypeT convert_to_hpi_data_type(enum ipmi_str_type_e type);
+
 /* implemented in ipmi_event.c */
 void ohoi_setup_done(ipmi_domain_t *domain, void *user_data);
 /* implemented in ipmi_close.c */

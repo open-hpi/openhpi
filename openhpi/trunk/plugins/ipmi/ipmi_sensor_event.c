@@ -862,10 +862,11 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 				 SaHpiEntityPathT	parent_ep,
 				 SaHpiResourceIdT	res_id)
 {
-	char	name[32];
-	//SaHpiEntityPathT rdr_ep;
+	char		name[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	SaHpiTextTypeT	data_type;
+	int		name_len;
 
-	memset(name,'\0',32);
+	memset(name, '\0', SAHPI_MAX_TEXT_BUFFER_LENGTH);
 	rdr->RecordId = 0;
 	rdr->RdrType = SAHPI_SENSOR_RDR;
 	//rdr->Entity.Entry[0].EntityType = (SaHpiEntityTypeT)id;
@@ -881,10 +882,14 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 
 	add_sensor_event_sensor_rec(sensor, &rdr->RdrTypeUnion.SensorRec);
 
-	ipmi_sensor_get_id(sensor, name, 32);
-	rdr->IdString.DataType = SAHPI_TL_TYPE_ASCII6;
+	ipmi_sensor_get_id(sensor, name, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	data_type = convert_to_hpi_data_type(ipmi_sensor_get_id_type(sensor));
+	name_len = ipmi_sensor_get_id_length(sensor);
+	if (name_len >= SAHPI_MAX_TEXT_BUFFER_LENGTH)
+		name_len = SAHPI_MAX_TEXT_BUFFER_LENGTH - 1;
+	rdr->IdString.DataType = data_type;
 	rdr->IdString.Language = SAHPI_LANG_ENGLISH;
-	rdr->IdString.DataLength = 32;
+	rdr->IdString.DataLength = name_len;
 
 	switch ( ipmi_sensor_get_event_support(sensor) ) {
 		case IPMI_EVENT_SUPPORT_PER_STATE:
@@ -905,7 +910,8 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 			break;
 	}
 	
-	memcpy(rdr->IdString.Data,name, strlen(name) + 1);
+	memset(rdr->IdString.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	memcpy(rdr->IdString.Data, name, name_len);
 }
 
 
