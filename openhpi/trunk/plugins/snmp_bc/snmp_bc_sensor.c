@@ -22,7 +22,6 @@
 
 #include <bc_resources.h>
 #include <snmp_bc.h>
-#include <snmp_bc_utils.h>
 #include <snmp_bc_sensor.h>
 
 SaErrorT snmp_bc_get_sensor_data(void *hnd,

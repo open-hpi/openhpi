@@ -30,7 +30,6 @@
 #include <snmp_bc_sensor.h>
 #include <snmp_bc_session.h>
 #include <snmp_bc_time.h>
-#include <snmp_bc_utils.h>
 #include <snmp_bc_watchdog.h>
 
 #endif

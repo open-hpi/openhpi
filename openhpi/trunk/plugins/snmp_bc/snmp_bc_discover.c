@@ -16,17 +16,16 @@
  */
 
 #include <glib.h>
-#include <SaHpi.h>
+#include <string.h>
 
+#include <SaHpi.h>
 #include <openhpi.h>
 #include <snmp_util.h>
 #include <oh_utils.h>
 #include <bc_resources.h>
 #include <snmp_bc.h>
-#include <snmp_bc_utils.h>
 #include <snmp_bc_event.h>
 #include <snmp_bc_discover.h>
-#include <string.h>
 
 static inline struct oh_event *eventdup(const struct oh_event *event) 
 {
