@@ -165,6 +165,18 @@ AC_DEFUN(OH_CHECK_OPENIPMI,
 
 	if test "$OPENIPMI_VERSION" == "OK"; then
 		have_openipmi=yes
+		AC_MSG_RESULT(yes)
     	fi
 ])
 
+AC_DEFUN(OH_CHECK_FAM,
+	[
+	AC_MSG_CHECKING(for FAM)
+	if test -f "/usr/include/fam.h"; then
+		have_fam=yes
+		AC_MSG_RESULT(yes)
+	else
+		have_fam=no
+		AC_MSG_RESULT(no)
+	fi
+])

@@ -44,6 +44,7 @@ fi
 dnl Check fo libraries
 have_uuid=no
 have_openipmi=no
+have_fam=no
 have_sysfs=no
 
 dnl Check for GLIB
@@ -323,14 +324,19 @@ if test "x$IPMIDIRECT" = "xipmidirect"; then
         fi
 fi
 
+OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator       build simulator plugin [default=yes]],
+    [  --enable-simulator       build simulator plugin [default=yes if fam is installed]],
     [if test "x$enableval" = "xyes"; then
-        AC_SUBST(SIMULATOR,simulator)
-    else
-        AC_SUBST(SIMULATOR,"")
+		if test "x$have_fam" = "xyes"; then
+	        AC_SUBST(SIMULATOR,simulator)
+    	else
+			OH_CHECK_FAIL(FAM packages are missing, install fam and fam-devel to build simulator plug-in)
+		fi
     fi],
-    [AC_SUBST(SIMULATOR,simulator)])
+	[if test "x$have_fam" = "xyes"; then
+    	AC_SUBST(SIMULATOR,simulator)
+     fi])
 
 
 dnl
