@@ -55,6 +55,7 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  ipmi_inventory.c	\
 			  ipmi_controls.c	\
 			  ipmi_util.c 		\
+			  ipmi_drv.c 		\
 			  hotswap.c		\
 			  sync.c 		\
 			  posix_vlog.c		\

@@ -15,10 +15,23 @@
  *     Rusty Lynch <rusty.lynch@linux.intel.com>
  *     Tariq Shureih <tariq.shureih@intel.com>
  *     Racing Guo  <racing.guo@intel.com>
+ *     Andy Cress  <andrew.r.cress@intel.com> (watchdog)
  */
 
 #include "ipmi.h"
 #include <netdb.h>
+
+/* Watchdog definitions */
+#define WATCHDOG_RESET   0x22
+#define WATCHDOG_SET     0x24
+#define WATCHDOG_GET     0x25
+#define NETFN_APP        0x06
+#define IPMI_WD_RESOLUTION           100
+#define IPMI_WD_PRETIMER_RESOLUTION 1000
+#define uchar  unsigned char
+extern int ipmi_close_mv(void);
+extern int ipmicmd_mv(uchar cmd, uchar netfn, uchar lun, uchar *pdata,
+               uchar sdata, uchar *presp, int sresp, int *rlen);
 
 /**
  * This is data structure reference by rsel_id.ptr
@@ -235,6 +248,7 @@ static void ipmi_close(void *hnd)
 		ohoi_close_connection(ipmi_handler->domain_id, ipmi_handler);
 	}
 	
+	ipmi_close_mv();
 	ipmi_refcount--;	
 	dbg("ipmi_refcount :%d", ipmi_refcount);
 	
@@ -1036,6 +1050,250 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 	return SA_OK;
 }
 
+static int ipmi_get_watchdog_info(void *hnd,
+         SaHpiResourceIdT  id,
+         SaHpiWatchdogNumT num,
+         SaHpiWatchdogT    *watchdog)
+{
+	unsigned char reqdata[16];
+	unsigned char response[16];
+	int rlen;
+	int rv;
+
+	/* 
+	 * OpenIPMI library doesn't have watchdog calls, so talk 
+	 * directly to the driver (via ipmi_drv.c). 
+	 * Currently support only default watchdog num.
+	 */
+	if (num != SAHPI_DEFAULT_WATCHDOG_NUM) 
+		return SA_ERR_HPI_INVALID_PARAMS;	
+	rlen = sizeof(response);
+	rv = ipmicmd_mv(WATCHDOG_GET,NETFN_APP,0,reqdata,0,response,rlen,&rlen);
+	if (rv != 0) return(rv);
+	rv = response[0];  /*completion code*/
+	if (rv != 0) return(rv);
+
+#if DEBUG
+	dbg("wdog_get: %02x %02x %02x %02x %02x %02x %02x %02x\n",
+		response[1], response[2], response[3], response[4], 
+		response[5], response[6], response[7], response[8]); 
+#endif
+
+	/* Translate IPMI response to HPI format */
+	memset(watchdog, 0, sizeof(SaHpiWatchdogT));
+	if (response[1] & 0x80) watchdog->Log = SAHPI_FALSE;
+	else watchdog->Log = SAHPI_TRUE;
+	if (response[1] & 0x40) watchdog->Running = SAHPI_TRUE;
+	else watchdog->Running = SAHPI_FALSE;
+	switch(response[1] & 0x07)
+	{
+	case 0x01:
+            watchdog->TimerUse = SAHPI_WTU_BIOS_FRB2;
+            break;
+        case 0x02:
+            watchdog->TimerUse = SAHPI_WTU_BIOS_POST;
+            break;
+        case 0x03:
+            watchdog->TimerUse = SAHPI_WTU_OS_LOAD;
+            break;
+        case 0x04:
+            watchdog->TimerUse = SAHPI_WTU_SMS_OS;
+            break;
+        case 0x05:
+            watchdog->TimerUse = SAHPI_WTU_OEM;
+            break;
+        default:
+            watchdog->TimerUse = SAHPI_WTU_UNSPECIFIED;
+            break;
+	}
+
+	switch (response[2] & 0x70)
+	{
+        case 0x00:
+            watchdog->PretimerInterrupt = SAHPI_WPI_NONE;
+            break;
+        case 0x10:
+            watchdog->PretimerInterrupt = SAHPI_WPI_SMI;
+            break;
+        case 0x20:
+            watchdog->PretimerInterrupt = SAHPI_WPI_NMI;
+            break;
+        case 0x30:
+            watchdog->PretimerInterrupt = SAHPI_WPI_MESSAGE_INTERRUPT;
+            break;
+        default :
+            watchdog->PretimerInterrupt = SAHPI_WPI_NONE;
+            // watchdog->PretimerInterrupt = SAHPI_WPI_OEM;
+            break;
+	}
+    
+	switch (response[2] & 0x07)
+	{
+        case 0x00:
+            watchdog->TimerAction = SAHPI_WA_NO_ACTION;
+            break;
+        case 0x01:
+            watchdog->TimerAction = SAHPI_WA_RESET;
+            break;
+        case 0x02:
+            watchdog->TimerAction = SAHPI_WA_POWER_DOWN;
+            break;
+        case 0x03:
+            watchdog->TimerAction = SAHPI_WA_POWER_CYCLE;
+            break;
+        default:
+            watchdog->TimerAction = SAHPI_WA_NO_ACTION;
+            break;
+	}
+ 
+	watchdog->PreTimeoutInterval =
+		response[3] * IPMI_WD_PRETIMER_RESOLUTION;
+
+	watchdog->TimerUseExpFlags = 0;
+	if (response[4] & 0x02)
+	   watchdog->TimerUseExpFlags |= SAHPI_WATCHDOG_EXP_BIOS_FRB2;
+	if (response[4] & 0x04)
+	   watchdog->TimerUseExpFlags |= SAHPI_WATCHDOG_EXP_BIOS_POST;
+	if (response[4] & 0x08)
+	   watchdog->TimerUseExpFlags |= SAHPI_WATCHDOG_EXP_OS_LOAD;
+	if (response[4] & 0x10)
+	   watchdog->TimerUseExpFlags |= SAHPI_WATCHDOG_EXP_SMS_OS;
+	if (response[4] & 0x20)
+	   watchdog->TimerUseExpFlags |= SAHPI_WATCHDOG_EXP_OEM;
+
+	watchdog->InitialCount = (response[5] + (response[6] * 256)) * IPMI_WD_RESOLUTION;
+	watchdog->PresentCount = (response[7] + (response[8] * 256)) * IPMI_WD_RESOLUTION;
+
+	return rv;
+}
+
+static int ipmi_set_watchdog_info(void *hnd,
+         SaHpiResourceIdT  id,
+         SaHpiWatchdogNumT num,
+         SaHpiWatchdogT    *watchdog)
+{
+	unsigned char reqdata[16];
+	unsigned char response[16];
+	int rlen;
+	int tv;
+	int rv;
+
+	if (num != SAHPI_DEFAULT_WATCHDOG_NUM) 
+		return SA_ERR_HPI_INVALID_PARAMS;	
+	/* translate HPI values to IPMI */
+	switch (watchdog->TimerUse)
+	{
+        case SAHPI_WTU_BIOS_FRB2:
+            reqdata[0] = 0x01;
+            break;
+        case SAHPI_WTU_BIOS_POST:
+            reqdata[0] = 0x02;
+            break;
+        case SAHPI_WTU_OS_LOAD:
+            reqdata[0] = 0x03;
+            break;
+        case SAHPI_WTU_SMS_OS:
+            reqdata[0] = 0x04;
+            break;
+        case SAHPI_WTU_OEM:
+            reqdata[0] = 0x05;
+            break;
+        case SAHPI_WTU_NONE:
+        default:
+            reqdata[0] = 0x00;
+	}
+	if (watchdog->Log == SAHPI_FALSE)    reqdata[0] |= 0x80;;
+	if (watchdog->Running == SAHPI_TRUE) reqdata[0] |= 0x40;;
+
+	switch (watchdog->TimerAction)
+	{
+        case SAHPI_WA_RESET:
+	    reqdata[1] = 0x01;
+            break;
+        case SAHPI_WA_POWER_DOWN:
+	    reqdata[1] = 0x02;
+            break;
+        case SAHPI_WA_POWER_CYCLE:
+	    reqdata[1] = 0x03;
+            break;
+        case SAHPI_WA_NO_ACTION:
+        default:
+	    reqdata[1] = 0x00;
+	}
+
+	switch (watchdog->PretimerInterrupt)
+	{
+        case SAHPI_WPI_SMI:
+	    reqdata[1] |= 0x10;
+            break;
+        case SAHPI_WPI_NMI:
+	    reqdata[1] |= 0x20;
+            break;
+        case SAHPI_WPI_MESSAGE_INTERRUPT:
+	    reqdata[1] |= 0x30;
+            break;
+        case SAHPI_WPI_OEM:
+	    /* Undefined, so treat it like SAHPI_WPI_NONE */
+        case SAHPI_WPI_NONE:
+        default:
+	    break;
+	}
+
+	tv = watchdog->PreTimeoutInterval / IPMI_WD_PRETIMER_RESOLUTION;
+	reqdata[2] = tv & 0x00ff;
+
+	reqdata[3] = 0;
+	if (watchdog->TimerUseExpFlags & SAHPI_WATCHDOG_EXP_BIOS_FRB2)
+		reqdata[3] |= 0x02;
+	if (watchdog->TimerUseExpFlags & SAHPI_WATCHDOG_EXP_BIOS_POST)
+		reqdata[3] |= 0x04;
+	if (watchdog->TimerUseExpFlags & SAHPI_WATCHDOG_EXP_OS_LOAD)
+		reqdata[3] |= 0x08;
+	if (watchdog->TimerUseExpFlags & SAHPI_WATCHDOG_EXP_SMS_OS)
+		reqdata[3] |= 0x10;
+	if (watchdog->TimerUseExpFlags & SAHPI_WATCHDOG_EXP_OEM)
+		reqdata[3] |= 0x20;
+
+    	if ((watchdog->InitialCount < IPMI_WD_RESOLUTION) &&
+            (watchdog->InitialCount != 0)) 
+	     tv = IPMI_WD_RESOLUTION;
+	else tv = watchdog->InitialCount / IPMI_WD_RESOLUTION;
+	reqdata[4] = tv & 0x00ff;  // tv % 256; 
+	reqdata[5] = tv / 256;   // (tv & 0xff00) >> 8;
+
+#if DEBUG
+	dbg("wdog_set: %02x %02x %02x %02x %02x %02x\n",
+		reqdata[0], reqdata[1], reqdata[2],
+		reqdata[3], reqdata[4], reqdata[5]); 
+#endif
+
+	rlen = sizeof(response);
+	rv = ipmicmd_mv(WATCHDOG_SET,NETFN_APP,0,reqdata,6,response,rlen,&rlen);
+	if (rv != 0) return(rv);
+	rv = response[0];  /*completion code*/
+
+	return rv;	
+}
+
+static int ipmi_reset_watchdog(void *hnd,
+         SaHpiResourceIdT  id,
+         SaHpiWatchdogNumT num)
+{
+	unsigned char response[16];
+	int rlen;
+	int rv;
+
+	if (num != SAHPI_DEFAULT_WATCHDOG_NUM) 
+		return SA_ERR_HPI_INVALID_PARAMS;	
+
+	rlen = sizeof(response);
+	rv = ipmicmd_mv(WATCHDOG_RESET,NETFN_APP,0,NULL,0,response,rlen,&rlen);
+	if (rv != 0) return(rv);
+	rv = response[0];  /*completion code*/
+	if (rv != 0) return(rv);
+
+	return rv;	
+}
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
 		
@@ -1092,6 +1350,11 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
         /* control support */
 	.set_control_state = ohoi_set_control_state,
 	.get_control_state = ohoi_get_control_state,
+
+	/* watchdog support */
+	.get_watchdog_info    = ipmi_get_watchdog_info,
+	.set_watchdog_info    = ipmi_set_watchdog_info,
+	.reset_watchdog       = ipmi_reset_watchdog,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);
