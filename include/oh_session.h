@@ -18,14 +18,21 @@
 #define OH_SESSION_H
 
 #include <SaHpi.h>
+#include <oh_event.h>
 #include <glib.h>
 
 /*
  *  Global table of all active sessions (oh_session).  This table is
  *  populated and depopulated by calls to saHpiSessionOpen() and
- *  saHpiSessionClose()
+ *  saHpiSessionClose(). The table has been encapsulated to have a lock
+ *  alongside of it.
  */
-extern GHashTable *session_table;
+struct sessions {
+        GHashTable *table;
+        GMutex *lock;                
+};
+
+extern struct sessions sessions;
 
 /*
  * Representation of an HPI session
@@ -34,17 +41,17 @@ struct oh_session {
         /*
           Session ID as returned by saHpiSessionOpen()
         */
-        SaHpiSessionIdT session_id;
+        SaHpiSessionIdT id;
 
         /*
           A session is always associated with exactly one domain
         */
-        SaHpiDomainIdT domain_id;
+        SaHpiDomainIdT did;
 
         enum {
-                OH_EVENT_UNSUBSCRIBE=0,
-                OH_EVENT_SUBSCRIBE,
-        } event_state;
+                OH_UNSUBSCRIBED=0,
+                OH_SUBSCRIBED,
+        } state;
 
         /*
           Even if multiple sessions are opened for the same domain,
@@ -56,11 +63,13 @@ struct oh_session {
         GSList *eventq;
 };
 
-SaErrorT oh_create_session(SaHpiDomainIdT did, SaHpiSessionIdT *sid);
-SaErrorT oh_get_session_domain(SaHpiSessionIdT sid, SaHpiDomainIdT *did);
-SaErrorT oh_lookup_session(SaHpiSessionIdT sid, struct oh_session **session);
-SaErrorT oh_list_sessions(SaHpiDomainIdT did, GSList **session_ids);
-SaHpiBoolT oh_is_session_subscribed(SaHpiDomainIdT sid);
+SaHpiSessionIdT oh_create_session(SaHpiDomainIdT did);
+SaHpiDomainIdT oh_get_session_domain(SaHpiSessionIdT sid);
+GArray *oh_list_sessions(SaHpiDomainIdT did);
+SaErrorT oh_get_session_state(SaHpiDomainIdT sid, SaHpiBoolT *state);
+SaErrorT oh_set_session_state(SaHpiDomainIdT sid, SaHpiBoolT state);
+SaErrorT oh_queue_session_event(SaHpiSessionIdT sid, struct oh_event *event);
+SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid, struct oh_event *event);
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid);
 
 #endif /* OH_SESSION_H */

@@ -18,13 +18,23 @@
 #define OH_DOMAIN_H
 
 #include <SaHpi.h>
+#include <glib.h>
 #include <rpt_utils.h>
 #include <sel_utils.h>
 
+/* Number of pre-alloced session slots for a domain. */
+#define OH_SESSION_PREALLOC 5
+
 /*
  *  Global table of all active domains (oh_domain).
+ *  Encapsulated in a struct to store a lock alongside of it.
  */
-extern GHashTable *domain_table;
+struct domains {
+        GHashTable *table;
+        GMutex *lock;
+};
+
+extern struct domains domains;
 
 /*
  * Representation of an domain
@@ -33,32 +43,35 @@ struct oh_domain {
         /* This id is used to app layer
          * to identy domain
          */
-        SaHpiDomainIdT domain_id;
+        SaHpiDomainIdT id;
 
         /* Domain's Resource Presence Table */
-        RPTable rptable;
+        RPTable rpt;
 
         /* Domain Alarm Table */
-        void * alarm_table;
+        void *dat;
 
         /* Domain Reference Table */
-        void * reference_table;
+        void *drt;
 
         /* Domain Information */
-        SaHpiDomainInfoT domain_info;
+        SaHpiDomainInfoT info;
 
         /* Domain Event Log */
-        oh_sel *sel;
+        oh_sel *del;
+
+        /* List of session ids */
+        GArray *sessions;
+
+        GMutex *lock;
 };
 
-SaErrorT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
-                          SaHpiBoolT isPeer,
-                          SaHpiTextBufferT *tag,
-                          SaHpiDomainIdT *did);
-SaErrorT oh_get_domain_rpt(SaHpiDomainIdT did, RPTable **rptable);
-SaErrorT oh_get_domain_dat(SaHpiDomainIdT did, void **datable);
-SaErrorT oh_get_domain_drt(SaHpiDomainIdT did, void **drtable);
-SaErrorT oh_get_domain_del(SaHpiDomainIdT did, oh_sel **delog);
-SaErrorT oh_get_domain_info(SaHpiDomainIdT did, SaHpiDomainInfoT **info);
+SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
+                                SaHpiBoolT isPeer,
+                                SaHpiTextBufferT *tag);
+SaErrorT oh_destroy_domain(SaHpiDomainIdT did);
+struct oh_domain *oh_get_domain(SaHpiDomainIdT did);
+GSList *oh_list_domains(void);
+SaErrorT oh_release_domain(SaHpiDomainIdT did);
 
 #endif /* OH_DOMAIN_H */

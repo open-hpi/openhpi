@@ -36,7 +36,7 @@ struct oh_session *session_get(SaHpiSessionIdT sid)
 
         g_slist_for_each(i, global_session_list) {
                 struct oh_session *s = i->data;
-                if(s->session_id == sid) {
+                if(s->id == sid) {
                         data_access_unlock();
                         return s;
                 }
@@ -63,8 +63,8 @@ int session_add(SaHpiDomainIdT did,
         memset(s, 0, sizeof(*s));
         
         // (sd: session id should be set more intellegently, no?
-        s->session_id = scounter++;
-        s->domain_id = did;
+        s->id = scounter++;
+        s->did = did;
         s->eventq = NULL;
         
         global_session_list = g_slist_append(global_session_list, s);
