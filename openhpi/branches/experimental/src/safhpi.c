@@ -1095,31 +1095,29 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
                 SAHPI_IN SaHpiSensorReadingT *ReadingInput,
                 SAHPI_OUT SaHpiSensorReadingT *ConvertedReading)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        RPTable *rpt = &default_rpt;
+        SaHpiRdrT *rdr;
         SaHpiSensorRecT *sensor;
         SaHpiSensorReadingFormatsT format;
 
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
 
         if (!rdr)
                 return SA_ERR_HPI_NOT_PRESENT;
 
-        sensor = &rdr->rdr.RdrTypeUnion.SensorRec;
+        sensor = &(rdr->RdrTypeUnion.SensorRec);
 
         /* if ReadingInput neither contains a raw nor a intepreted value or
            if it contains both, return an error */
-        format =   ReadingInput->ValuesPresent
-                 & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
-
+        format = ReadingInput->ValuesPresent
+                & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
+        
         if (format == 0 || format == (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
                 return SA_ERR_HPI_INVALID_PARAMS;
 
         /* if the sensor does not supports raw and interpreted values,
            return an error */
-        format =   sensor->DataFormat.ReadingFormats
+        format = sensor->DataFormat.ReadingFormats
                  & (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED);
 
         if (format != (SAHPI_SRF_RAW|SAHPI_SRF_INTERPRETED))
@@ -1164,24 +1162,24 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-
-        int (*set_func) (void *, struct oh_rdr_id,const SaHpiSensorThresholdsT *);
-
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
-
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        int (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, const SaHpiSensorThresholdsT *);
         
-        set_func = res->handler->abi->set_sensor_thresholds;
+        RPTable *rpt = &default_rpt;
+        struct oh_handler *h;
+
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        set_func = h->abi->set_sensor_thresholds;
 
         if (!set_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(res->handler->hnd, rdr->oid, SensorThresholds))
+        if (set_func(h->hnd, ResourceId, SensorNum, SensorThresholds))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
@@ -1193,33 +1191,33 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_IN SaHpiSensorThresholdsT *SensorThresholds)
 {
-        struct oh_resource *res;     
-        struct oh_rdr *rdr;
+        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorThresholdsT *);
 
-        int (*get_func) (void *, struct oh_rdr_id,SaHpiSensorThresholdsT *);
+        RPTable *rpt = &default_rpt;
+        struct oh_handler *h;
 
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
-
-        if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+        h = oh_get_resource_data(rpt, ResourceId);
         
-        get_func = res->handler->abi->get_sensor_thresholds;
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        
+        get_func = h->abi->get_sensor_thresholds;
 
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_func(res->handler->hnd, rdr->oid, SensorThresholds))
+        if (get_func(h->hnd, ResourceId, SensorNum, SensorThresholds))
                 return SA_ERR_HPI_UNKNOWN;
 
         return SA_OK;
 }
 
-        /* Function: SaHpiSensorTypeGet */
-        /* Core SAF_HPI function */
-        /* Not mapped to plugin */
-        /* Data in RDR */
+/* Function: SaHpiSensorTypeGet */
+/* Core SAF_HPI function */
+/* Not mapped to plugin */
+/* Data in RDR */
 SaErrorT SAHPI_API saHpiSensorTypeGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -1227,22 +1225,20 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
                 SAHPI_OUT SaHpiSensorTypeT *Type,
                 SAHPI_OUT SaHpiEventCategoryT *Category)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
+        RPTable *rpt = &default_rpt;
+        SaHpiRdrT *rdr;
 
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+        rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
         
         if (!rdr)
                 return SA_ERR_HPI_INVALID_PARAMS;
-
-        if (!memcpy(Type, &rdr->rdr.RdrTypeUnion.SensorRec.Type,
-                        sizeof(SaHpiSensorTypeT)))
+        
+        if (!memcpy(Type, &(rdr->RdrTypeUnion.SensorRec.Type),
+                    sizeof(SaHpiSensorTypeT)))
                 return SA_ERR_HPI_ERROR;
 
-        if (!memcpy(Category, &rdr->rdr.RdrTypeUnion.SensorRec.Category,
-                        sizeof(SaHpiEventCategoryT)))
+        if (!memcpy(Category, &(rdr->RdrTypeUnion.SensorRec.Category),
+                    sizeof(SaHpiEventCategoryT)))
                 return SA_ERR_HPI_ERROR;
         
         return SA_OK;
