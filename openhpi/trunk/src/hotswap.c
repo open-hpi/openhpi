@@ -35,7 +35,7 @@ void process_hotswap_policy(struct oh_handler *handler)
 
         get_hotswap_state = handler->abi->get_hotswap_state;
         if (!get_hotswap_state) {
-		dbg(" Very bad thing here");
+		dbg(" Very bad thing here or hotswap not yet supported");
                 return;
 	}
 

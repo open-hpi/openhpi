@@ -174,7 +174,6 @@ static int get_handler_event(struct oh_handler *h, RPTable *rpt)
         int rv;                
         rv = h->abi->get_event(h->hnd, &event, &to);
         if(rv < 1) {
-                dbg("No event found");
                 return rv;
         } 
         switch (event.type) {

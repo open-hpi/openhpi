@@ -140,6 +140,7 @@ SaErrorT discover_domain(SaHpiDomainIdT domain_id, SaHpiSessionIdT session_id, S
 
                 if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL) {
 			saHpiEventLogInfoGet(session_id, entry.ResourceId, &info);
+			printf("\t\tEntries in SEL: %d", info.Entries);
 		}
                 if (entry.ResourceCapabilities & SAHPI_CAPABILITY_RDR) 
                         list_rdr(session_id, entry.ResourceId);
