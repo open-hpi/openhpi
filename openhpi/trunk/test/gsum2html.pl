@@ -26,8 +26,10 @@ foreach my $file (@ARGV) {
     my $html = make_html_head($file);
     $html .= make_html_body(@lines);
     $html .= make_html_tail();
-
-    print $html;
+    
+    if(scalar(@lines) > 5) {
+        print $html;
+    }
 #    open(OUT,">$outfile");
 #    print OUT $html;
 #    close(OUT);
@@ -83,7 +85,7 @@ sub make_html_body {
             $html .= "<h2 class='function'>$line</h2>\n<table class='report'>\n";
         } elsif($line =~ /^File/) {
             $line =~ s/.*`([^']+).*/$1/;
-            $html .= "<h1 class='file'>$line</h1>\n<table class='report'>\n"
+            $html .= "<h2 class='file'>$line</h2>\n<table class='report'>\n"
         } elsif ($line =~ /^No/) {
             $html .= "<tr class='na'><td>$line</td></tr>\n";
         } elsif ($line =~ /(\d+\.\d{2})%/) {
