@@ -401,6 +401,7 @@ AC_CONFIG_FILES([openhpi.spec
         src/snmp/Makefile
         src/t/Makefile
 	src/t/epath/Makefile
+	src/t/rpt/Makefile
         src/plugin_static.c
         src/plugins/Makefile
 	src/plugins/snmp_client/Makefile
