@@ -18,12 +18,12 @@
 #ifndef __RSA_ERRORLOG_H
 #define __RSA_ERRORLOG_H
 
-#define LOG_THRESHOLD_VALUE_STRING " Threshold value "
-#define LOG_READ_VALUE_STRING " Read value "
-#define LOG_LOGIN_CHAR "'"
-#define EVT_RECOVERY "Recovery "
-#define ER_STR_POST_LOG_CLEARED "System log cleared."
-#define LOG_LOGIN_STRING "LOGIN ID:"
 #define EVT_EN_LOG_FULL "System error log full"
+#define EVT_RECOVERY "Recovery "
+#define LOG_LOGIN_CHAR "'"
+#define LOG_READ_VALUE_STRING " Read value "
+#define LOG_LOGIN_STRING "Login ID:"
+#define LOG_THRESHOLD_VALUE_STRING " Threshold value "
+#define ER_STR_POST_LOG_CLEARED "System log cleared."
 
 #endif
