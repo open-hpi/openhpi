@@ -454,6 +454,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         
         if (res->handler->abi->get_sel_info(res->handler->hnd, res->oid, Info)<0)
                 return SA_ERR_HPI_UNKNOWN;
+        Info->Enabled = (res->sel_state==OH_SEL_ENABLED)? 1:0;
         return SA_OK;
 }
 
