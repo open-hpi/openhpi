@@ -11,4 +11,6 @@ if [ $? -eq 0 ]
 then
 	echo "We have us an SMP system!"
 	make -j 2 all
+else
+	make all
 fi
