@@ -106,8 +106,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
  * SA_OK - Normal case.
  * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_POWER.
  * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
- * SA_ERR_HPI_INVALID_REQUEST - @state invalid.
- * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL.
+ * SA_ERR_HPI_INVALID_PARAMS - Pointer parameter(s) are NULL; @state invalid.
  **/
 SaErrorT snmp_bc_set_power_state(void *hnd,
 				 SaHpiResourceIdT rid,
