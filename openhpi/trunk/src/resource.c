@@ -40,10 +40,12 @@ static struct oh_resource *add_res(struct oh_handler *h, struct oh_resource_id o
 	gettimeofday(&global_rpt_timestamp, NULL);
 	
 	memcpy(&res->oid, &oid, sizeof(oid));
-	res->entry.ResourceId = global_rpt_counter;
+	// set resource id in process_internal_event
+	// res->entry.ResourceId = global_rpt_counter++;
 	res->handler = h;
 	h->resource_list = g_slist_append(h->resource_list, res);
-	
+
+	global_rpt = g_slist_append(global_rpt, res);
 	return res;
 }
 
