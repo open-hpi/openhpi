@@ -497,15 +497,18 @@ SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	}
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
+	g_static_rec_mutex_lock(&handle->handler_lock);
         tt = time / 1000000000;
         localtime_r(&tt, &tv);
 	
 	err = snmp_bc_set_sp_time(custom_handle, &tv);
         if (err) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("Cannot set time. Error=%s.", oh_lookup_error(err));
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
+	g_static_rec_mutex_unlock(&handle->handler_lock);
         return(SA_OK);
 }
 
@@ -779,9 +782,11 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
         struct snmp_bc_hnd *custom_handle = handle->data;
-			
+		
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	err = oh_el_clear(handle->elcache);
 	if (err) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("Cannot clear system Event Log. Error=%s.", oh_lookup_error(err));
 		return(err);
 	}
@@ -797,6 +802,7 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	}
 
 	if (err) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("SNMP set failed. Error=%s.", oh_lookup_error(err));
 		return(err);
 	} else if (!is_simulator()) { 
@@ -804,6 +810,7 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 		err = snmp_bc_build_selcache(handle, 1);
 	}
 		
+	g_static_rec_mutex_unlock(&handle->handler_lock);
 	return(SA_OK);
 }
 
