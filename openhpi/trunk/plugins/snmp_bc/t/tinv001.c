@@ -27,7 +27,8 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-	SaHpiRptEntryT rptentry;				
+	SaHpiRptEntryT rptentry;
+	SaHpiRdrT	rdr;				
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	SaHpiIdrIdT       idrId = 0;
@@ -35,9 +36,6 @@ int main(int argc, char **argv)
 	SaHpiEntryIdT     fieldId = 0;
 	SaHpiIdrFieldT    field; 
 	memset (&field, 0, sizeof(SaHpiIdrFieldT));	
-	
-	struct oh_handler_state l_handle;
-	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 
 	/* *************************************	 	 
 	 * Find a resource with inventory capability
@@ -56,13 +54,40 @@ int main(int argc, char **argv)
 		err = tcleanup(&sessionid);
 		return SA_OK;
 	}
-	
 	id = rptentry.ResourceId;
+
+	/************************** 
+	 * Test: find an Inventory RDR
+	 **************************/
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundControl = SAHPI_FALSE;			
+	do {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if (rdr.RdrType == SAHPI_INVENTORY_RDR) 
+			{
+				foundControl = SAHPI_TRUE;
+				break;
+														
+			}
+			entryid = nextentryid;
+		}
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
+
+	if (!foundControl) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		idrId = rdr.RdrTypeUnion.InventoryRec.IdrId; 
+	}	
+
 	/************************** 
 	 * Test: Add to a read-only Idr Area
 	 **************************/
-	expected_err = SA_ERR_HPI_READ_ONLY;                   
-	err = saHpiIdrAreaAdd(sessionid, id, idrId, SAHPI_IDR_AREATYPE_UNSPECIFIED, &areaId);
+	expected_err = SA_ERR_HPI_READ_ONLY;
+	err = saHpiIdrAreaAdd(sessionid, id, idrId, SAHPI_IDR_AREATYPE_CHASSIS_INFO, &areaId);
 	checkstatus(err, expected_err, testfail);
 
 	/************************** 
