@@ -16,7 +16,7 @@ foreach my $file (@files) {
     close(IN);
 
     my $css = '<link rel="stylesheet" href="/openhpi.css" type="text/css">';
-    my $banner = '<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div>\n<table><tr>';
+    my $banner = '<div id="banner"><div><h1>The OpenHPI Project</h1><small>Open Hardware Platform Interface</small></div></div><table><tr>';
     my $sidebar = '<!--#include virtual="/sidebar.html" -->';
     my $end = '</td></tr></table>';
     # we want to do only one of these
