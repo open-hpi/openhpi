@@ -72,7 +72,9 @@ include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
 		  $(top_srcdir)/utils/sahpi_struct_utils.h \
 		  $(top_srcdir)/utils/sahpi_time_utils.h \
 		  $(top_srcdir)/utils/rpt_utils.h \
-		  $(top_srcdir)/utils/uid_utils.h
+		  $(top_srcdir)/utils/uid_utils.h \
+		  $(top_srcdir)/hpi_shell/hpi_cmd.h \
+		  $(top_srcdir)/hpi_shell/resource.h
 
 $(top_srcdir)/utils/sahpi_enum_utils.h:
 	make -C $(top_builddir)/utils sahpi_enum_utils.h
