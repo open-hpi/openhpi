@@ -94,8 +94,7 @@ int session_pop_event(struct oh_session *s, struct oh_event *e);
 int init_domain(void);
 int uninit_domain(void);
 struct oh_domain *domain_get(SaHpiDomainIdT did);
-int domain_add(struct oh_domain **d);
-int domain_del(struct oh_domain *d);
+struct oh_domain *domain_add(void);
 int domain_process_event(struct oh_domain *d, struct oh_event *e);
 
 struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_resource_id oid);

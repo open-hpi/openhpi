@@ -91,7 +91,7 @@ int load_plugin(const char *plugin_name, const char *name, const char *addr)
 		goto err1;
 	}
 
-	domain_add(&domain);
+	domain = domain_add();
 	domain->abi = abi;
 	domain->hnd = instance;
 	

@@ -37,14 +37,14 @@ struct oh_domain *domain_get(SaHpiDomainIdT did)
 	return NULL;
 }
 
-int domain_add(struct oh_domain **domain)
+struct oh_domain *domain_add()
 {
 	struct oh_domain  *d;
 	
 	d = malloc(sizeof(*d));
 	if (!d) {
 		dbg("Cannot get memory!");
-		return -1;
+		return NULL;
 	}
 	memset(d, 0, sizeof(*d));
 	
@@ -56,17 +56,17 @@ int domain_add(struct oh_domain **domain)
 
 	d->res_counter = 0;
 
-	*domain = d;
-	return 0;
+	return d;
 }
 
-int domain_del(struct oh_domain *domain)
+#if 0
+void domain_del(struct oh_domain *domain)
 {
 	/* FIXME cleaup resources in domain */
 	list_del(&domain->node);
 	free(domain);
-	return 0;
 }
+#endif
 
 int domain_process_event(struct oh_domain *d, struct oh_event *e)
 {
