@@ -21,24 +21,24 @@ Start with empty RPTable
     - add 10 resources, start at beginning, call next on each one, compare RPTentry (007)
     - add 10 resources, start at random resource, call next to get to the end,
       compare rid (008)
-    
+
 Start with 10 resources
     - add 1 rdr to first resource
           - fetch by id, compare (009)
           - fetch by type, compare (010)
     - add 1 rdr
-    	- resource must have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
-	  sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
-	  SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX.
+        - resource must have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
+          sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
+          SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX.
     - add 5 rdrs to first resource, in random order
           - fetch by id, compare (011)
           - fetch by type, compare (012)
           - fetch by next, compare (013)
     - add 5 rdrs of for each of these types:
-    	- Control
-	- Inventory
-	- Watchdog
-      	- Annunciator
+        - Control
+        - Inventory
+        - Watchdog
+        - Annunciator
 
 Start with 10 resources, multiple rdrs on some resources
     - remove resource
@@ -50,7 +50,7 @@ Start with 10 resources, multiple rdrs on some resources
              - search for rdr by type (018)
              - call next through chain, make sure things are right (019)
     - flush rpt - check to see if there are no resources left in the table (062)
-    
+
 Check rpt info
     - add a resource, and check that rpt info has been modified. (068)
 
@@ -87,7 +87,7 @@ The negative tests:
         - rid == special value (033)
     oh_get_resource_by_ep
         - RPTable == NULL (034)
-        - epath not there (035)        
+        - epath not there (035)
     oh_get_resource_next
         - RPTable == NULL (037)
         - rid not there (038)
@@ -99,10 +99,10 @@ The negative tests:
         - rdr == NULL (043)
         - RPTable == rdr == NULL (044)
         - rdr with an out of range instrument id (067)
-    	- resource must NOT have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
-	  sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
-	  SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX.
-    oh_remove_rdr 
+        - resource must NOT have SAHPI_CAPABILITY_AGGREGATE_STATUS capability,
+          sensor num should be between SAHPI_STANDARD_SENSOR_MIN and
+          SAHPI_STANDARD_SENSOR_MAX and less than SENSOR_AGGREGATE_MAX. (078)
+    oh_remove_rdr
         - RPTable == NULL (045)
         - rid not there (046)
         - rdrid not there (047)
@@ -119,7 +119,7 @@ The negative tests:
         - rdrid == special value (065)
     oh_get_rdr_by_type
         - RPTable == NULL (054)
-        - rid not there (055)        
+        - rid not there (055)
     oh_get_rdr_next
         - RPTable == NULL (056)
         - rid not there (057)
@@ -130,18 +130,18 @@ The negative tests:
         - add same resource twice and check that the update count
           is stays the same on the second addition. (069)
     oh_flush_rpt
-    	- RPTable == NULL (061)
+        - RPTable == NULL (061)
     oh_get_rpt_info
-    	- table == NULL (070)
+        - table == NULL (070)
     oh_init_rpt
-    	- table == NULL (071)
+        - table == NULL (071)
     rpt_diff
-    	- cur_rpt == NULL (072)
-	- new_rpt == NULL (073)
-	- res_new == NULL (074)
-	- rdr_new == NULL (075)
-	- res_gone == NULL (076)
-	- rdr_gone == NULL (077)
+        - cur_rpt == NULL (072)
+        - new_rpt == NULL (073)
+        - res_new == NULL (074)
+        - rdr_new == NULL (075)
+        - res_gone == NULL (076)
+        - rdr_gone == NULL (077)
 
 Speed Tests:
     - Add 10,000 resources. Time how long it takes to fetch last one. (1000)
