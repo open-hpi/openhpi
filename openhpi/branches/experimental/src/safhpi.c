@@ -424,6 +424,8 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiSelInfoT *Info)
 {
+        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
+        
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
@@ -438,13 +440,15 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         }       
         
         /*
+          TODO: Domain SELS
+          
           Waiting for the right way to do DSELS 
           
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                if(dsel_get_info(s->domain_id, Info)<0)
-                        return SA_ERR_HPI_UNKNOWN;
-                return SA_OK;
-        }
+          if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
+          if(dsel_get_info(s->domain_id, Info)<0)
+          return SA_ERR_HPI_UNKNOWN;
+          return SA_OK;
+          }
         */
         
         h = oh_get_resource_data(rpt, ResourceId);
@@ -464,13 +468,26 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
-        if (h->abi->get_sel_info(h->hnd, ResourceId, Info)<0)
+        h = oh_get_resource_data(rpt, ResourceId);
+        
+        if(!h) {
+                dbg("Can't find handler for ResourceId %d",ResourceId);
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        get_func = h->abi->get_sel_info;
+
+        if (!get_func)
+                return SA_ERR_HPI_UNSUPPORTED_API;
+        
+        if (get_func(h->hnd, ResourceId, Info) < 0) {
+                dbg("SEL info get failed");
                 return SA_ERR_HPI_UNKNOWN;
+        }
         return SA_OK;
 }
 
 #if 0
-
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
@@ -482,7 +499,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
         struct oh_session *s;
-        GSList *sel_list;
+        RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
 
         OH_STATE_READY_CHECK;
         
@@ -492,32 +510,22 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 return SA_ERR_HPI_INVALID_SESSION;
         }       
         
-        if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
-                struct oh_domain *d;
-                
-                d = get_domain_by_id(s->domain_id);
-                if (!d) {
-                        dbg("Internal error?!");
-                        sel_list = NULL;
-                } else 
-                        sel_list = d->sel_list;
-                
-                return process_sel_entry(sel_list, EntryId, 
-                                PrevEntryId, NextEntryId, 
-                                EventLogEntry, Rdr, RptEntry, &dsel_ops);       
-        } else {
-                struct oh_resource *res;
+        /*
+          TODO: Domain SEL
+        */
+        
+        res = oh_get_resource_by_id(rpt, ResourceId);
 
-                res = get_resource(ResourceId);
-                if (!res) {
-                        dbg("Internal error?!");
-                        sel_list = NULL;
-                } else
-                        sel_list = res->sel_list;
-                return process_sel_entry(sel_list, EntryId, 
-                                PrevEntryId, NextEntryId, 
-                                EventLogEntry, Rdr, RptEntry, &rsel_ops);       
+        if(res == NULL) {
+                dbg("Resource %d doesn't exist", ResourceId);
+                return SA_ERR_HPI_INVALID_RESOURCE;
         }
+        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+                dbg("Resource %d does not have SEL", ResourceId);
+                return SA_ERR_HPI_INVALID_CMD;
+        }
+        
+        
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (

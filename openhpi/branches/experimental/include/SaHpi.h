@@ -2182,8 +2182,8 @@ typedef enum {
 } SaHpiSelOverflowActionT;
 
 typedef struct {
-    SaHpiUint32T              Entries;        
-    SaHpiUint32T              Size;      
+    SaHpiUint32T              Entries;
+    SaHpiUint32T              Size;
     SaHpiTimeT                UpdateTimestamp;  
     SaHpiTimeT                CurrentTime;
     SaHpiBoolT                Enabled;

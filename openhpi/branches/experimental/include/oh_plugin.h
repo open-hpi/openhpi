@@ -216,6 +216,12 @@ struct oh_abi_v1 {
 	 */
 	int (*get_self_id)(void *hnd, SaHpiResourceIdT id);
 
+        /******************************************************
+         *
+         *  System Event Log functions
+         *
+         *****************************************************/
+
 	/**
 	 * get info from RSEL
 	 */
@@ -224,12 +230,7 @@ struct oh_abi_v1 {
 	/**
 	 * set time to RSEL
 	 */
-	int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, const struct timeval *time);
-
-	/**
-	 * set state to RSEL
-	 */
-	int (*set_sel_state)(void *hnd, SaHpiResourceIdT id, int enabled);
+	int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT *time);
 
 	/**
 	 * add entry to RSEL
@@ -239,13 +240,19 @@ struct oh_abi_v1 {
 	/**
 	 * del entry in RSEL
 	 */
-	int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id);
+	int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
 
 	/**
 	 * get entry in RSEL
+         * 
+         * although it looks like we need Resource and RDR passed back up, we don't
+         * because SelEntryT has that info stored in it.  We'll just unwind 
+         * that in infrastructure.
 	 */
-	int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryT *Event);
-	
+        int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                             SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
+        
+        /* end of SEL functions */
 	/**
 	 * get sensor data
 	 */
@@ -278,14 +285,8 @@ struct oh_abi_v1 {
 	 * set sensor event enables
 	 */
 	int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
-                                        SaHpiSensorNumT num,
-                                        const SaHpiSensorEvtEnablesT *enables);
-	/**
-	 * get control info
-	 */
-	int (*get_control_info)(void *hnd, SaHpiResourceIdT id,
-                                SaHpiCtrlNumT num,
-                                SaHpiCtrlTypeT *type);
+                                    SaHpiSensorNumT num,
+                                    const SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * get control state
@@ -302,7 +303,7 @@ struct oh_abi_v1 {
                                  SaHpiCtrlStateT *state);
 	
 	/**
-	 * set inventory state
+	 * get inventory size
 	 */
         int (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
                                   SaHpiEirIdT num, /* yes, they don't call it a
