@@ -88,69 +88,27 @@ static int find_attr(Attributes_t *attrs, char *name)
 	return(-1);
 }
 
-static void *resize_array(void *ar, int item_size, int *last_num, int add_num)
-/* Resize array ar:
- *	item_size - item size (bytes)
- *	last_num  - current array size
- *	add_num   - new array size = last_num + add_num
- * Return:	new pointer
- */
-{
-	void	*tmp;
-	int	new_num = *last_num + add_num;
-
-	if (new_num <= 0)
-		return((void *)NULL);
-	tmp = malloc(item_size * new_num);
-	memset(tmp, 0, item_size * new_num);
-	if (*last_num > 0) {
-		memcpy(tmp, ar, *last_num * item_size);
-		free(ar);
-	}
-	*last_num = new_num;
-	return(tmp);
-}
-
-static void clear_inited(Domain_t *Domain)
-{
-	int	i, j;
-
-	for (i = 0; i < Domain->n_rpts; i++) {
-		Domain->rpts[i].is_inited = 0;
-		for (j = 0; j < Domain->rpts[i].n_rdrs; j++)
-			Domain->rpts[i].rdrs[j].is_inited = 0;
-	}
-}
-
-static void make_rpt_attrs(Rpt_t *Rpt)
+void make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry)
 {
 	attr_t			*att, *att1;
-	int			len, i = 0, newrpt = 1;
+	int			len, i = 0;
 	Attributes_t		*at;
 	SaHpiRptEntryT		*obj;
 
-	obj = Rpt->Rpt;
-	if (Rpt->Attrutes.n_attrs > 0)
-		newrpt = 0;
-	if (newrpt) {
-		Rpt->Attrutes.n_attrs = RPT_ATTRS_NUM;
-		Rpt->Attrutes.Attrs = (attr_t *)malloc(sizeof(attr_t) * RPT_ATTRS_NUM);
-		memcpy(Rpt->Attrutes.Attrs, Def_rpt, sizeof(attr_t) * RPT_ATTRS_NUM);
-	};
+	Rpt->Table = *rptentry;
+	obj = &(Rpt->Table);
+	Rpt->Attrutes.n_attrs = RPT_ATTRS_NUM;
+	Rpt->Attrutes.Attrs = (attr_t *)malloc(sizeof(attr_t) * RPT_ATTRS_NUM);
+	memcpy(Rpt->Attrutes.Attrs, Def_rpt, sizeof(attr_t) * RPT_ATTRS_NUM);
 	att = Rpt->Attrutes.Attrs;
 	att[i++].value.i = obj->EntryId;
 	att[i++].value.i = obj->ResourceId;
-	if (newrpt) {
-		at = (Attributes_t *)malloc(sizeof(Attributes_t));
-		at->n_attrs = RESINFO_ATTRS_NUM;
-		att1 = (attr_t *)malloc(sizeof(attr_t) * RESINFO_ATTRS_NUM);
-		memcpy(att1, Def_resinfo, sizeof(attr_t) * RESINFO_ATTRS_NUM);
-		at->Attrs = att1;
-		att[i++].value.a = at;
-	} else {
-		at = (Attributes_t *)(att[i++].value.a);
-		att1 = at->Attrs;
-	};
+	at = (Attributes_t *)malloc(sizeof(Attributes_t));
+	at->n_attrs = RESINFO_ATTRS_NUM;
+	att1 = (attr_t *)malloc(sizeof(attr_t) * RESINFO_ATTRS_NUM);
+	memcpy(att1, Def_resinfo, sizeof(attr_t) * RESINFO_ATTRS_NUM);
+	at->Attrs = att1;
+	att[i++].value.a = at;
 	att1[0].value.i = obj->ResourceInfo.ResourceRev;
 	att1[1].value.i = obj->ResourceInfo.SpecificVer;
 	att1[2].value.i = obj->ResourceInfo.DeviceSupport;
@@ -203,22 +161,19 @@ attr_t	Def_sensor_rdr[] = {
 	{ "Oem",		INT_TYPE,	0, { .d = 0}, 0 }	//  8
 };
 
-static void make_rdr_attrs(Rdr_t *Rdr)
+void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 {
 	attr_t		*att, *att1;
-	int		len, i = 0, newrdr = 1;
+	int		len, i = 0;
 	Attributes_t	*at;
 	SaHpiRdrT	*obj;
 	SaHpiSensorRecT	*sensor;
 
-	obj = Rdr->Rdr;
-	if (Rdr->Attrutes.n_attrs > 0)
-		newrdr = 0;
-	if (newrdr) {
-		Rdr->Attrutes.n_attrs = RDR_ATTRS_COMMON_NUM;
-		Rdr->Attrutes.Attrs = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_COMMON_NUM);
-		memcpy(Rdr->Attrutes.Attrs, Def_common_rdr, sizeof(attr_t) * RDR_ATTRS_COMMON_NUM);
-	};
+	Rdr->Record = *rdrentry;
+	obj = &(Rdr->Record);
+	Rdr->Attrutes.n_attrs = RDR_ATTRS_COMMON_NUM;
+	Rdr->Attrutes.Attrs = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_COMMON_NUM);
+	memcpy(Rdr->Attrutes.Attrs, Def_common_rdr, sizeof(attr_t) * RDR_ATTRS_COMMON_NUM);
 	att = Rdr->Attrutes.Attrs;
 	att[i++].value.i = obj->RecordId;
 	att[i++].value.i = obj->RdrType;
@@ -227,18 +182,13 @@ static void make_rdr_attrs(Rdr_t *Rdr)
 	len = obj->IdString.DataLength;
 	switch (obj->RdrType) {
 		case SAHPI_SENSOR_RDR:
-			if (newrdr) {
-				at = (Attributes_t *)malloc(sizeof(Attributes_t));
-				at->n_attrs = RDR_ATTRS_SENSOR_NUM;
-				att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
-				memcpy(att1, Def_sensor_rdr, sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
-				at->Attrs = att1;
-				att[i].name = "Sensor";
-				att[i++].value.a = at;
-			} else {
-				at = (Attributes_t *)(att[i++].value.a);
-				att1 = at->Attrs;
-			};
+			at = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at->n_attrs = RDR_ATTRS_SENSOR_NUM;
+			att1 = (attr_t *)malloc(sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
+			memcpy(att1, Def_sensor_rdr, sizeof(attr_t) * RDR_ATTRS_SENSOR_NUM);
+			at->Attrs = att1;
+			att[i].name = "Sensor";
+			att[i++].value.a = at;
 			sensor = &(obj->RdrTypeUnion.SensorRec);
 			att1[0].value.i = sensor->Num;
 			att1[1].value.i = sensor->Type;
@@ -260,151 +210,19 @@ static void make_rdr_attrs(Rdr_t *Rdr)
 	};
 }
 
-int find_rpt(Domain_t *Domain, SaHpiResourceIdT rptId)
-{
-	int	i;
-
-	for (i = 0; i < Domain->n_rpts; i++) {
-		if (Domain->rpts[i].ResourceId == rptId)
-			return(i);
-	};
-	return(-1);
-}
-
-static int find_rdr(Rpt_t *Rpt, SaHpiEntryIdT rdrId)
-{
-	int	i;
-
-	for (i = 0; i < Rpt->n_rdrs; i++) {
-		if (Rpt->rdrs[i].RecordId == rdrId)
-			return(i);
-	};
-	return(-1);
-}
-
-int find_rdr_by_num(Rpt_t *Rpt, SaHpiInstrumentIdT num)
-{
-	int		i, res_num;
-	SaHpiRdrTypeT	type;
-
-	for (i = 0; i < Rpt->n_rdrs; i++) {
-		type = Rpt->rdrs[i].RdrType;
-		switch (type) {
-			case SAHPI_SENSOR_RDR:
-				res_num = Rpt->rdrs[i].Rdr->RdrTypeUnion.SensorRec.Num;
-				break;
-			default:
-				res_num = i;
-		};
-		if (res_num == num)
-			return(i);
-	};
-	return(-1);
-}
-
-static void free_attrs(Attributes_t *At)
+void free_attrs(Attributes_t *At)
 {
 	int		i;
 	attr_t		*attr;
 
 	for (i = 0, attr = At->Attrs; i < At->n_attrs; i++, attr++) {
 		if (attr->type == STRUCT_TYPE) {
+			if (attr->value.a == 0) continue;
 			free_attrs((Attributes_t *)(attr->value.a));
 			free(attr->value.a);
 		}
 	};
 	free(At->Attrs);
-}
-
-static void delete_rdr(Rpt_t *Rpt, int ind)
-{
-	Rdr_t		*rdr, *rdr1;
-	int		n, i;
-
-	n = Rpt->n_rdrs;
-	if ((ind < 0) || (ind >= n))
-		return;
-	rdr = Rpt->rdrs + ind;
-	free_attrs(&(rdr->Attrutes));
-	free(rdr->Rdr);
-	if (n == 1) {
-		Rpt->n_rdrs = 0;
-		free(Rpt->rdrs);
-		return;
-	};
-	rdr1 = rdr = (Rdr_t *)malloc(sizeof(Rdr_t) * (n - 1));
-	for (i = 0; i < n; i++)
-		if (i != ind) *rdr1++ = Rpt->rdrs[i];
-	free(Rpt->rdrs);
-	Rpt->n_rdrs--;
-	Rpt->rdrs = rdr;
-}
-
-static void delete_rpt(Domain_t *Domain, int ind)
-{
-	Rpt_t		*rpt_entry, *tmp;
-	int		n, i;
-
-	n = Domain->n_rpts;
-	if ((ind < 0) || (ind >= n))
-		return;
-	rpt_entry = Domain->rpts + ind;
-	free_attrs(&(rpt_entry->Attrutes));
-	free(rpt_entry->Rpt);
-	if (n == 1) {
-		Domain->n_rpts = 0;
-		free(Domain->rpts);
-		return;
-	};
-	tmp = rpt_entry = (Rpt_t *)malloc(sizeof(Rpt_t) * (n - 1));
-	for (i = 0; i < n; i++) {
-		if (i != ind) *tmp++ = Domain->rpts[i];
-	};
-	free(Domain->rpts);
-	Domain->n_rpts--;
-	Domain->rpts = rpt_entry;
-}
-
-static SaErrorT init_rpt(Domain_t *Domain, Rpt_t *Rpt)
-{
-	SaHpiRdrT		rdr;
-	Rdr_t			*rdr_entry;
-	SaErrorT		ret, n;
-	SaHpiEntryIdT		entryid;
-	SaHpiEntryIdT		nextentryid;
-	int			found, i;
-
-	entryid = SAHPI_FIRST_ENTRY;
-	while (entryid !=SAHPI_LAST_ENTRY) {
-		found = 0;
-		ret = saHpiRdrGet(Domain->sessionId, Rpt->ResourceId, entryid,
-			&nextentryid, &rdr);
-		if (ret != SA_OK)
-			return(ret);
-		i = find_rdr(Rpt, rdr.RecordId);
-		if (i != -1) {
-			rdr_entry = Rpt->rdrs + i;
-			*(rdr_entry->Rdr) = rdr;
-		} else {
-			n = Rpt->n_rdrs;
-			Rpt->rdrs = (Rdr_t *)resize_array(Rpt->rdrs, sizeof(Rdr_t),
-				&(Rpt->n_rdrs), 1);
-			rdr_entry = Rpt->rdrs + n;
-			rdr_entry->Rdr = (SaHpiRdrT *)malloc(sizeof(SaHpiRdrT));
-			*(rdr_entry->Rdr) = rdr;
-			Rpt->rdrs[n] = *rdr_entry;
-		};
-		rdr_entry->RecordId = rdr.RecordId;
-		rdr_entry->RdrType = rdr.RdrType;
-		rdr_entry->is_inited = 1;
-		make_rdr_attrs(rdr_entry);
-		entryid = nextentryid;
-	};
-	for (i = Rpt->n_rdrs - 1; i >= 0; i--) {
-		if (Rpt->rdrs[i].is_inited == 0)
-			delete_rdr(Rpt, i);
-	};
-	return(SA_OK);
 }
 
 void time2str(SaHpiTimeT time, char * str, size_t size)
@@ -525,94 +343,14 @@ SaErrorT get_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t *val)
 	return(SA_OK);
 }
 
-static SaErrorT get_resources(Domain_t *Domain)
-{
-	SaHpiEntryIdT	rptentryid, nextrptentryid;
-	SaErrorT	ret;
-	SaHpiRptEntryT	rptentry;
-	Rpt_t		*rpt;
-	int		n, i;
-
-	rptentryid = SAHPI_FIRST_ENTRY;
-	while (rptentryid != SAHPI_LAST_ENTRY) {
-		ret = saHpiRptEntryGet(Domain->sessionId, rptentryid, &nextrptentryid,
-			&rptentry);
-		if (ret != SA_OK)
-			return(-1);
-printf("I got ResourceId = %d\n", rptentry.ResourceId);
-		i = find_rpt(Domain, rptentry.ResourceId);
-		if (i != -1) {
-			rpt = Domain->rpts + i;
-			memcpy(rpt->Rpt, &rptentry, sizeof(SaHpiRptEntryT));
-		} else {
-			n = Domain->n_rpts;
-			Domain->rpts = (Rpt_t *)resize_array(Domain->rpts, sizeof(Rpt_t),
-				&(Domain->n_rpts), 1);
-			rpt = Domain->rpts + n;
-			rpt->Rpt = (SaHpiRptEntryT *)malloc(sizeof(SaHpiRptEntryT));
-			memcpy(rpt->Rpt, &rptentry, sizeof(SaHpiRptEntryT));
-		};
-		rpt->EntryId = rptentry.EntryId;
-		rpt->ResourceId = rptentry.ResourceId;
-		rpt->is_inited = 1;
-		make_rpt_attrs(rpt);
-		ret = init_rpt(Domain, rpt);
-		rptentryid = nextrptentryid;
-	};
-	for (i = Domain->n_rpts - 1; i >= 0; i--) {
-		if (Domain->rpts[i].is_inited == 0)
-			delete_rpt(Domain, i);
-	};
-	return(SA_OK);
-}
-
 Domain_t *init_resources(SaHpiSessionIdT session)
 {
-	SaErrorT	ret;
 	Domain_t	*domain;
 
 	domain = (Domain_t *)malloc(sizeof(Domain_t));
 	memset(domain, 0, sizeof(Domain_t));
 	domain->sessionId = session;
-	ret = get_resources(domain);
-	if (ret != SA_OK)
-		return((Domain_t *)NULL);
 	return(domain);
-}
-
-SaErrorT check_resources(Domain_t *Domain)
-{
-	SaErrorT	ret;
-
-	clear_inited(Domain);
-	ret = get_resources(Domain);
-	return(ret);
-}
-
-Rpt_t *get_rpt(Domain_t *domain, SaHpiResourceIdT rptId)
-{
-	int		i;
-	SaErrorT	ret;
-	SaHpiRptEntryT	rpt_entry;
-	Rpt_t		*rpt;
-
-	if (domain == (Domain_t *)NULL)
-		return((Rpt_t *)NULL);
-	ret = saHpiRptEntryGetByResourceId(domain->sessionId, rptId, &rpt_entry);
-	i = find_rpt(domain, rptId);
-	if ((i < 0) || (ret != SA_OK)) {
-		if (check_resources(domain) != SA_OK)
-			return((Rpt_t *)NULL);
-		i = find_rpt(domain, rptId);
-		if (i < 0)
-			return((Rpt_t *)NULL);
-		rpt = domain->rpts + i;
-	} else {
-		rpt = domain->rpts + i;
-		*(rpt->Rpt) = rpt_entry;
-		make_rpt_attrs(rpt);
-	};
-	return(rpt);
 }
 
 SaErrorT get_value(Attributes_t *Attrs, int num, union_type_t *val)
@@ -628,21 +366,4 @@ SaErrorT get_value(Attributes_t *Attrs, int num, union_type_t *val)
 	};
 	*val = Attrs->Attrs[num].value;
 	return(SA_OK);
-}
-
-Rdr_t *get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiInstrumentIdT num)
-{
-	int	i;
-	Rpt_t	*rpt;
-
-	if (Domain == (Domain_t *)NULL)
-		return((Rdr_t *)NULL);
-	i = find_rpt(Domain, rptId);
-	if (i < 0)
-		return((Rdr_t *)NULL);
-	rpt = Domain->rpts + i;
-	i = find_rdr_by_num(rpt, num);
-	if (i < 0)
-		return((Rdr_t *)NULL);
-	return(rpt->rdrs + i);
 }
