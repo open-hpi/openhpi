@@ -81,10 +81,10 @@ guint oh_entity_path_hash(gconstpointer key)
 gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
 {
         if (!ep_cmp(a,b)) {
-                return(TRUE);
+                return 1;
         }
         else {
-                return(FALSE);
+                return 0;
         }
 }
 
@@ -137,19 +137,25 @@ SaErrorT oh_uid_initialize(void)
  **/
 guint oh_uid_from_entity_path(SaHpiEntityPathT *ep) 
 {
-        gpointer key = ep;
-        gpointer value;
+        gpointer key;
+	gpointer value;
 
         EP_XREF *ep_xref;
 
         char *uid_map_file;
         int file;
+	
+	SaHpiEntityPathT entitypath;
+	
+	ep_init(&entitypath);
+	ep_concat(&entitypath,ep);
+	key = &entitypath;
 
         /* check for presence of EP and */
         /* previously assigned uid      */
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if (ep_xref) {
-                dbg("Entity Path already assigned uid");
+                /*dbg("Entity Path already assigned uid. Use oh_uid_lookup().");*/
                 return(ep_xref->resource_id);
         }
 
@@ -161,7 +167,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         }
 
         memset(ep_xref, 0, sizeof(EP_XREF));
-        memcpy(&ep_xref->entity_path, ep, sizeof(SaHpiEntityPathT));
+        memcpy(&ep_xref->entity_path, &entitypath, sizeof(SaHpiEntityPathT));
 
         ep_xref->resource_id = resource_id;
         resource_id++;
@@ -250,7 +256,12 @@ gint oh_uid_remove(guint uid)
 guint oh_uid_lookup(SaHpiEntityPathT *ep)
 {
         EP_XREF *ep_xref;
-        gpointer key = ep;
+	SaHpiEntityPathT entitypath;
+        gpointer key;
+	
+	ep_init(&entitypath);
+	ep_concat(&entitypath, ep);
+	key = &entitypath;
         
         /* check hash table for entry in ep_hash_table */ 
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
