@@ -50,7 +50,7 @@ typedef union {
         //unsigned char dbg_lock; /* !0 = YES, 0 = NO */
         unsigned char threaded; /* !0 = YES, 0 = NO */
         char path[OH_GLOBAL_STR_MAX_LENGTH];
-        char conf[OH_GLOBAL_STR_MAX_LENGTH];
+        char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 } oh_global_param_union;
 
 struct oh_global_param {
