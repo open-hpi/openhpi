@@ -34,11 +34,11 @@ int main(int argc, char **argv)
 	SaHpiSensorReadingT reading;
 													    										    
 	/************************** 
-	 * Test 1: snmp_bc_get_sensor_reading
+	 * Test : NULL handle
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	err = snmp_bc_get_sensor_reading(NULL, id, sid, &reading, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	return testfail;
 

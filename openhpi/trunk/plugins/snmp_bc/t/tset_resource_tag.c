@@ -31,23 +31,22 @@ int main(int argc, char **argv)
 	SaErrorT          err;
 	SaErrorT expected_err;
 	SaHpiTextBufferT tag;
-	
+        SaHpiRptEntryT rptentry;	
         SaHpiSessionIdT sessionid;
 	 
 	/* ************************	 	 
 	 * Find a resource with Control type rdr
 	 * ***********************/
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	
+	struct oh_handler_state handle;
+	memset(&handle, 0, sizeof(struct oh_handler_state));
+
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
 		printf("Error! bc_set_resource_tag, can not setup test environment\n");
 		return -1;
 
 	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_CONTROL, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_CONTROL, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
 		printf("Error! bc_set_resource_tag, can not setup test environment\n");
 		err = tcleanup(&sessionid);
@@ -62,28 +61,27 @@ int main(int argc, char **argv)
 	 **************************/
 	tag.Language = SAHPI_LANG_NONSENSE;
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
-	err = snmp_bc_set_resource_tag((void *)h->hnd, id, &tag);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_set_resource_tag(&handle, id, &tag);
+	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
 	 * Test 2: Invalid ResourceId
 	 **************************/
 	oh_init_textbuffer(&tag);
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
-	id = 5000; /* set it way out */
 
-	err = snmp_bc_set_resource_tag((void *)h->hnd, id, &tag);
-	checkstatus(&err, &expected_err,  &testfail);
+	err = snmp_bc_set_resource_tag(&handle, 5000, &tag);
+	checkstatus(err, expected_err, testfail);
 	
+
 	/************************** 
 	 * Test 3: Valid case
 	 **************************/
 	oh_init_textbuffer(&tag);
 	expected_err = SA_OK;
-	id = rptentry.ResourceId; 
-
-	err = snmp_bc_set_resource_tag((void *)h->hnd, id, &tag);
-	checkstatus(&err, &expected_err, &testfail);
+	
+	err = saHpiResourceTagSet(sessionid, id, &tag);
+	checkstatus(err, expected_err, testfail);
 
 	/***************************
 	 * Cleanup after all tests
