@@ -54,6 +54,7 @@ static void set_discrete_sensor_misc_event(ipmi_event_t		*event,
 		e->SensorSpecific = data[12];
 }
 
+#if 0
 static void 
 set_discrete_sensor_event_state(ipmi_event_t		*event,
 				  SaHpiEventStateT	*state)
@@ -70,7 +71,7 @@ set_discrete_sensor_event_state(ipmi_event_t		*event,
 			break;
 		
 		case IPMI_TRANS_ACTIVE:
-			*state = IPMI_TRANS_ACTIVE;
+			*state = SAHPI_ES_ACTIVE;
 			break;
 
 		case IPMI_TRANS_BUSY:
@@ -78,6 +79,7 @@ set_discrete_sensor_event_state(ipmi_event_t		*event,
 			break;
 	}
 }
+#endif
 
 static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 				  enum ipmi_event_dir_e	dir,
@@ -129,14 +131,15 @@ static void sensor_discrete_event(ipmi_sensor_t		*sensor,
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.Assertion 
                 = !(dir);
 	
-	set_discrete_sensor_event_state(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent.EventState);
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState 
-                = SAHPI_ES_UNSPECIFIED;
+        e->u.hpi_event.event.EventDataUnion.SensorEvent.EventState = severity;
+        e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState = prev_severity;
+
 
 	set_discrete_sensor_misc_event
 		(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent);
 
 }
+
 static void 
 set_thresholed_sensor_event_state(enum ipmi_thresh_e		threshold,
 				  enum ipmi_event_dir_e		dir,
@@ -267,8 +270,6 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 			&e->u.hpi_event.event.EventDataUnion.SensorEvent,
 			&severity);
 	e->u.hpi_event.event.Severity = severity;
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState 
-                = SAHPI_ES_UNSPECIFIED;
 
 	set_thresholds_sensor_misc_event
 		(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent);
