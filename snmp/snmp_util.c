@@ -125,11 +125,11 @@ int snmp_set(
                 case ASN_INTEGER:
                 case ASN_COUNTER:
                         datatype = 'i';
-			(long *)dataptr = &value.integer;
+			dataptr = (long *)&value.integer;
                         break;
                 case ASN_OCTET_STR:
                         datatype = 's';
-			(u_char *)dataptr = &value.string;
+			dataptr = (u_char *)&value.string;
                         break;
                 default:
                         rtncode = -1;
