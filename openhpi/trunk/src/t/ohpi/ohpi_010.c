@@ -28,14 +28,11 @@
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
-        char *config_file = NULL;
         GHashTable *h0 = g_hash_table_new(g_str_hash, g_str_equal),
                    *h1 = g_hash_table_new(g_str_hash, g_str_equal),
                    *h2 = g_hash_table_new(g_str_hash, g_str_equal);
         oHpiHandlerIdT hid0 = 0, hid1 = 0, hid2 = 0, next_id = 0;
         
-        /* Save config file env variable and unset it */
-        config_file = getenv("OPENHPI_CONF");
         setenv("OPENHPI_CONF","./noconfig", 1);
         
         if (saHpiSessionOpen(1, &sid, NULL))

@@ -26,10 +26,7 @@
  
 int main(int argc, char **argv)
 {
-        char *config_file = NULL;
         
-        /* Save config file env variable and unset it */
-        config_file = getenv("OPENHPI_CONF");
         setenv("OPENHPI_CONF","./noconfig", 1);        
                     
         if (oHpiPluginLoad("libdummy"))
