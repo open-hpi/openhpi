@@ -32,7 +32,7 @@ int event2hpi_hash_free(struct oh_handler_state *handle);
 int find_res_events(struct oh_handler_state *handle, SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res_info);
 int find_sensor_events(struct oh_handler_state *handle, SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_rsa_sensor *rpt_sensor);
 
-int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled);
+int rsa_log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *event_enabled);
 int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo);
 
 int snmp_rsa_add_to_eventq(void *hnd, SaHpiEventT *thisEvent);
