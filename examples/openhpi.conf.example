@@ -1,4 +1,4 @@
-#File foramt is easy
+#File format is easy
 
 ###First section, declare plugin to use:
 #example:
@@ -13,7 +13,11 @@ plugin	libdummy
 #Depends on net-snmp being installed on the system:
 #plugin libsnmp_bc
 
-
+#############################################################################
+##**WARNING** System administrators have to make sure that entity paths are
+## unique in a domain. If entity paths are conflicting among handlers, make
+## sure the "entity_root" is unique here across handlers.
+#############################################################################
 ###Second section is a handler (instance) declaration with arguments understood by plugin
 #Strings are enclosed by "", numbers are not.
 

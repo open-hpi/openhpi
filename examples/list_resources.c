@@ -445,7 +445,8 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 					printf("\t\tRaw value: %d\n", reading.Raw);
 					
 					err = saHpiSensorThresholdsGet(session_id, resource_id, num, &thres);
-					if (err != SA_OK) {
+					if (err != SA_OK &&
+                                            rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
 						printf("Error reading sensor thresholds {sensor, %d}\n", num);
 						continue;
 					}
