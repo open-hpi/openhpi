@@ -668,6 +668,9 @@ static void add_sensor_event(ipmi_entity_t	*ent,
 	struct oh_event         *e;
         struct ohoi_resource_info *info;
 
+	int rv;
+	int sensor_num, lun;	/* sensor number from OIPMI */
+
 	sensor_info = malloc(sizeof(*sensor_info));
 
 	if (!sensor_info) {
@@ -697,9 +700,13 @@ static void add_sensor_event(ipmi_entity_t	*ent,
                 dbg("No info in resource(%d)\n", rid);
                 return;
         }
-        e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num =
-	                                       info->sensor_count;
-        info->sensor_count++;
+
+	rv = ipmi_sensor_get_num(sensor, &lun, &sensor_num);
+	if (rv != SA_OK) {
+		dbg("Error getting IPMI Sensor number");
+		return;
+	}
+        e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = sensor_num;
 
 	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 
