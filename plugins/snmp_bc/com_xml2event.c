@@ -212,27 +212,18 @@ static void event_start_element(GMarkupParseContext *context,
                         }
                 }
                 else if (strcmp(attribute_names[i], "override") == 0) {
-                        if (strcmp(attribute_values[i], "OVR_SEV") == 0) {
-                                xmlinfo->event_ovr = OVR_SEV;
+                        xmlinfo->event_ovr |= NO_OVR;
+                        /* the following are NOT mutually exclusive! */
+                        if (strstr(attribute_values[i], "OVR_SEV") != NULL) {
+                                xmlinfo->event_ovr |= OVR_SEV;
                         }
-                        else if (strcmp(attribute_values[i], "OVR_RID") == 0) {
-                                xmlinfo->event_ovr = OVR_RID;
+                        if (strstr(attribute_values[i], "OVR_RID") != NULL) {
+                                xmlinfo->event_ovr |= OVR_RID;
                         }
-                        else if (strcmp(attribute_values[i], "OVR_EXP") == 0) {
-                                xmlinfo->event_ovr = OVR_EXP;
+                        if (strstr(attribute_values[i], "OVR_EXP") != NULL) {
+                                xmlinfo->event_ovr |= OVR_EXP;
                         }
-                        else if (strcmp(attribute_values[i], "NO_OVR") == 0) {
-                                xmlinfo->event_ovr = NO_OVR;
-                        }
-                        else {
-                                g_markup_parse_context_get_position(context,
-                                                                    &line, &pos);
-                                g_set_error(error, G_MARKUP_ERROR,
-                                            G_MARKUP_ERROR_INVALID_CONTENT,
-                                            "Bad override attribute value on XML event element line %d",
-                                            line);
-                                return;
-                        }
+                        /* ignore any other values */
                 }
                 else {
                         g_markup_parse_context_get_position(context,
