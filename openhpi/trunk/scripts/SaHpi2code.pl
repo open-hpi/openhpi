@@ -78,6 +78,7 @@ die "cannot find base for file $ifile" unless $base;
 $ocfile = $base . "_enum_utils.c";
 $ohfile = $base . "_enum_utils.h";
 $oxcfile = $base . "_event_utils.c.embed";
+$txbase_name = "t" . "$base" . "_event_embed.c";
 #}
 #else {
 #    $ocfile = $oname . ".c";
@@ -86,7 +87,7 @@ $oxcfile = $base . "_event_utils.c.embed";
 
 if ($tdir) {
     $tbase_name = "t" . "$ocfile";
-    $txbase_name = "t" . "$oxcfile";
+#    $txbase_name = "t" . "$oxcfile";
     $tfile = "$tdir/$tbase_name";
     $txfile = "$tdir/$txbase_name";
 }
@@ -769,7 +770,7 @@ sub print_xtestfile_case {
                         return -1;             
                 }
     
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                err = oh_encode_eventstate(&buffer, event_state, event_cat);
                 if (err != SA_OK) {
                         printf("Error! Testcase $cat - $state encode failed. Error=%d\\n", err);
                         return -1;
