@@ -15,26 +15,6 @@
 
 #include <snmp_bc_plugin.h>
 
-static SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
-					      SaHpiResourceIdT rid,
-					      SaHpiSensorNumT sid,
-					      SaHpiSensorReadingT *reading,
-					      SaHpiEventStateT *state);
-
-static SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
-					       SaHpiResourceIdT rid,
-					       SaHpiSensorNumT sid,
-					       const char *raw_oid,
-					       SaHpiSensorReadingT *reading);
-
-static SaErrorT snmp_bc_set_threshold_reading(void *hnd,
-					      SaHpiResourceIdT rid,
-					      SaHpiSensorNumT sid,
-					      const char *raw_oid,
-					      const SaHpiSensorReadingT *reading);
-
-static SaErrorT snmp_bc_addzeros(SaHpiTextBufferT *buffer, int max_sig_digits);
-
 /**
  * snmp_bc_get_sensor_reading:
  * @hnd: Handler data pointer.
@@ -141,11 +121,11 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
  * SA_ERR_HPI_INVALID_PARAMS - if @hnd, @reading, @state is NULL.
  * SA_ERR_HPI_NOT_PRESENT - if sensor doesn't exist.
  **/
-static SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
-					      SaHpiResourceIdT rid,
-					      SaHpiSensorNumT sid,
-					      SaHpiSensorReadingT *reading,
-					      SaHpiEventStateT *state)
+SaErrorT snmp_bc_get_sensor_eventstate(void *hnd,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
+				       SaHpiSensorReadingT *reading,
+				       SaHpiEventStateT *state)
 {
 	int i;
 	struct SensorInfo *sinfo;
@@ -855,11 +835,11 @@ SaErrorT snmp_bc_set_sensor_thresholds(void *hnd,
 	return(SA_OK);
 }
 
-static SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
-					       SaHpiResourceIdT rid,
-					       SaHpiSensorNumT sid,
-					       const char *raw_oid,
-					       SaHpiSensorReadingT *reading)
+SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
+					SaHpiResourceIdT rid,
+					SaHpiSensorNumT sid,
+					const char *raw_oid,
+					SaHpiSensorReadingT *reading)
 {
 	gchar *oid;
 	SaHpiSensorReadingT working;
@@ -922,11 +902,11 @@ static SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	return(SA_OK);
 }
 
-static SaErrorT snmp_bc_set_threshold_reading(void *hnd,
-					      SaHpiResourceIdT rid,
-					      SaHpiSensorNumT sid,
-					      const char *raw_oid,
-					      const SaHpiSensorReadingT *reading)
+SaErrorT snmp_bc_set_threshold_reading(void *hnd,
+				       SaHpiResourceIdT rid,
+				       SaHpiSensorNumT sid,
+				       const char *raw_oid,
+				       const SaHpiSensorReadingT *reading)
 {
 	gchar *oid;
 	SaErrorT err;
@@ -1018,7 +998,7 @@ static SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	return(SA_OK);
 }
 
-static SaErrorT snmp_bc_addzeros(SaHpiTextBufferT *buffer, int max_sig_digits) 
+SaErrorT snmp_bc_addzeros(SaHpiTextBufferT *buffer, int max_sig_digits) 
 {
 	SaHpiTextBufferT working;
 	char sign[2];
