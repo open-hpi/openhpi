@@ -963,19 +963,19 @@ static int snmp_client_get_control_state(void *hnd,
 			switch(state->Type) {
 			case SAHPI_CTRL_TYPE_DIGITAL:
 				state->StateUnion.Digital =
-					 *(SaHpiCtrlStateDigitalT *)get_value.string;
+					 *(SaHpiCtrlStateDigitalT *)(void *)get_value.string;
 				state->StateUnion.Digital = 
 					SNMP_ENUM_ADJUST(ntohl(state->StateUnion.Digital));
 				break;
 			case SAHPI_CTRL_TYPE_DISCRETE:
 				state->StateUnion.Discrete =
-					*(SaHpiCtrlStateDiscreteT *)get_value.string;
+					*(SaHpiCtrlStateDiscreteT *)(void *)get_value.string;
 				state->StateUnion.Discrete = 
 					ntohl(state->StateUnion.Discrete);
 				break;
 			case SAHPI_CTRL_TYPE_ANALOG:
 				state->StateUnion.Analog =
-					*(SaHpiCtrlStateAnalogT *)get_value.string;
+					*(SaHpiCtrlStateAnalogT *)(void *)get_value.string;
 				state->StateUnion.Analog = 
 					ntohl(state->StateUnion.Analog);
 				break;
@@ -985,7 +985,7 @@ static int snmp_client_get_control_state(void *hnd,
                                         (*data == 1) ? SAHPI_TRUE : SAHPI_FALSE;
 				data++;
 				state->StateUnion.Stream.StreamLength = 
-					*(SaHpiUint32T *)data;
+					*(SaHpiUint32T *)(void *)data;
 				state->StateUnion.Stream.StreamLength = 
 					ntohl(state->StateUnion.Stream.StreamLength);
 				data+=sizeof(SaHpiUint32T);

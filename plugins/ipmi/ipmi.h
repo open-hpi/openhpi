@@ -238,7 +238,7 @@ static inline void  dump_rpttable(RPTable *table)
                        printf("(Rdr id:%d type:%d) data pointer:%u\n", 
                                rdr->RecordId,
                                rdr->RdrType,
-                               (unsigned int)data);
+                               (unsigned)(void *)data);
                        if (data)
                                for (i = 0; i < 30; i++)
                                        printf("%u ", data[i]);
