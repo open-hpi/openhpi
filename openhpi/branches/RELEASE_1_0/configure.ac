@@ -1,0 +1,623 @@
+dnl
+dnl autoconf and automake for openhpi
+dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
+dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
+
+AC_PREREQ(2.57)
+AC_INIT(openhpi.spec.in)
+AM_INIT_AUTOMAKE(openhpi, 1.0.0)
+
+AM_CONFIG_HEADER(config.h)
+AH_TOP([#ifndef OPENHPI_CONFIG_H
+#define OPENHPI_CONFIG_H])
+AH_BOTTOM([#endif /* OPENHPI_CONFIG_H */])
+
+dnl AM_CONFIG_HEADER(./config.h)
+
+AC_PROG_CC
+AC_LIBTOOL_DLOPEN
+AM_PROG_LIBTOOL
+
+HPI_LIB_VERSION=1:1:1
+HPI_PKG=openhpi
+HPI_UTIL_PKG=openhpiutils
+HPI_CLIENT_PKG=openhpiclient
+AC_SUBST(HPI_CLIENT_PKG)
+AC_SUBST(HPI_UTIL_PKG)
+AC_SUBST(HPI_PKG)
+AC_SUBST(HPI_LIB_VERSION)
+AC_SUBST(ac_configure_args)
+
+dnl Checks for programs
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
+# die on int != 32bits.  This is too instrumental to our code right now.
+# AC_MSG_CHECKING(int is 4 bytes)
+OH_SET_SIZES
+if test "x$OH_SIZEOF_INT" != "x4"; then
+    AC_MSG_ERROR([
+*** int is not 4 bytes, it is $OH_SIZEOF_INT bytes on this platform
+*** undefined behavior will result
+*** please contact the openhpi development team to fix this
+])
+fi
+
+dnl Check fo libraries
+have_uuid=no
+have_openipmi=no
+have_fam=no
+have_sysfs=no
+
+dnl Check for GLIB
+
+AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
+
+if test "x$found_pkg_config" != "xyes"; then
+    OH_CHECK_FAIL(pkg-config,pkg-config)
+fi
+
+# check for gcc version
+
+AC_MSG_CHECKING(gcc >= 3.2.0)
+OH_CHECK_GCC(3,2,0)
+
+GLIB_REQUIRED_VERSION=1.2.0
+
+AC_ARG_WITH([glib],
+    [[  --with-glib=VERSION     use glib version >= VERSION [default=1.2.0]]],
+    [GLIB_REQUIRED_VERSION=$withval],
+    [if pkg-config --atleast-version 1.2.0 glib; then
+         GLIB_REQUIRED_VERSION=1.2.0;
+     elif pkg-config --atleast-version 2.0.0 glib-2.0; then
+         GLIB_REQUIRED_VERSION=2.0.0;
+     else
+         AC_MSG_ERROR([
+*** GLIB is required. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+        fi])
+
+case "$GLIB_REQUIRED_VERSION" in
+    1*)
+        GLIB=glib;
+        ;;
+    2*)
+        GLIB=glib-2.0;
+        AC_MSG_WARN([glib 2.0 is not recommended, please use glib 1.2])
+        ;;
+    *)
+        AC_MSG_ERROR([
+*** unsupported GLIB $GLIB_REQUIRED_VERSION. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+esac
+
+if pkg-config --atleast-version $GLIB_REQUIRED_VERSION $GLIB; then
+   :
+else
+   AC_MSG_ERROR([
+*** GLIB >= $GLIB_REQUIRED_VERSION is required. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+fi
+
+exact_version=`pkg-config --modversion $GLIB`;
+GLIB_CFLAGS=`pkg-config --cflags $GLIB`
+GLIB_LIBS=`pkg-config --libs $GLIB`
+
+AC_MSG_CHECKING(for GLIB - version >= $GLIB_REQUIRED_VERSION)
+AC_MSG_RESULT(yes (version $exact_version))
+
+dnl if the glib is installed on a non standard place
+dnl like /opt/gnome/lib AC_CHECK_LIB will find the library.
+old_cflags=$CFLAGS
+old_libs=$LIBS
+
+CFLAGS="$CFLAGS $GLIB_CFLAGS"
+LIBS="$LIBS $GLIB_LIBS"
+
+AC_CHECK_LIB([$GLIB], [g_slist_alloc], [],
+[
+OH_CHECK_FAIL(glib,glib-devel)
+])
+
+CFLAGS=$old_cflags
+LIBS=$old_libs
+
+
+AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
+    OH_CHECK_FAIL(libltdl,libltdl-devel,,
+        this is required for plugin loading)
+    ])
+
+dnl AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
+
+AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
+
+OH_CHECK_NETSNMP
+
+AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
+    OH_CHECK_FAIL(libuuid,e2fsprogs-devel)
+    ])
+
+dnl ssl is used for md2/md5 authentification in ipmidirect
+AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
+AC_SUBST(SSL_LIB)
+AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h])
+
+dnl Extra goodies enablement stanzas
+
+AC_ARG_ENABLE([thread],
+    [  --enable-thread       make implementation thread-safe [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+	THREAD_SAFE="yes"
+    fi],
+    [THREAD_SAFE="yes"])
+
+if test "x$THREAD_SAFE" = "xyes"; then
+        AC_DEFINE([HAVE_THREAD_SAFE], [1], [Define to 1 if you want thread-safe implementation])
+        LIST_RESOURCES_THREADED=list_resources_threaded
+fi
+AC_SUBST(LIST_RESOURCES_THREADED)
+
+
+dnl Enable the marshal directory only when needed by 
+dnl the deamon or remote_client plugin
+NEED_MARSHAL=
+openhpid_static="no"
+
+AC_ARG_ENABLE([daemon],
+    [  --enable-daemon         build HPI daemon and client library [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        ENABLED_DIRS="$ENABLED_DIRS openhpid"
+	NEED_MARSHAL="yes"
+     elif test "x$enableval" = "xstatic"; then
+        ENABLED_DIRS="$ENABLED_DIRS openhpid"
+	NEED_MARSHAL="yes"
+        openhpid_static="yes"
+    fi],
+    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
+     NEED_MARSHAL="yes"])
+
+AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
+
+
+AC_ARG_ENABLE([examples],
+    [  --enable-examples       build HPI examples [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+	ENABLED_DIRS="$ENABLED_DIRS examples"
+    fi],
+    [ENABLED_DIRS="$ENABLED_DIRS examples"])
+
+AC_ARG_ENABLE([hpi_shell],
+    [  --enable-hpi_shell        build HPI shell programs [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+	ENABLED_DIRS="$ENABLED_DIRS hpi_shell"
+    fi],
+    [ENABLED_DIRS="$ENABLED_DIRS hpi_shell"])
+
+AC_ARG_ENABLE([clients],
+    [  --enable-clients        build HPI client programs [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+	ENABLED_DIRS="$ENABLED_DIRS clients"
+    fi],
+    [ENABLED_DIRS="$ENABLED_DIRS clients"])
+
+AC_SUBST(ENABLED_DIRS)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/time.h unistd.h stdarg.h netinet/in.h])
+
+dnl Checks for library functions.
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([gettimeofday memset strdup])
+
+dnl Checks for other helper programs
+
+AC_PATH_PROGS(RPM, rpmbuild)
+
+dnl plugin enablement stanzas
+
+dnl list of static plugins
+STATIC_PLUGIN_LIST=
+STATIC_PLUGIN_EXTRA_LIBS=
+
+AC_ARG_ENABLE([snmp_client],
+    [  --enable-snmp_client          build snmp_client plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_CLIENT,snmp_client)
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build SNMP client support without net-snmp)
+        fi
+     elif test "x$enableval" = "xstatic"; then
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_CLIENT,snmp_client)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build SNMP client support without net-snmp)
+        fi
+    fi],
+    [if test "x$have_netsnmp" = "xyes"; then
+        AC_SUBST(SNMP_CLIENT,snmp_client)
+     fi])
+
+AC_ARG_ENABLE([dummy],
+    [  --enable-dummy          build dummy plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        AC_SUBST(DUMMY,dummy)
+     elif test "x$enableval" = "xstatic"; then
+        AC_SUBST(DUMMY,dummy)
+        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST dummy"
+        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+    fi],
+    [AC_SUBST(DUMMY,dummy)])
+    
+AC_ARG_ENABLE([watchdog],
+    [  --enable-watchdog       build watchdog plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        AC_SUBST(WATCHDOG,watchdog)
+    else
+        AC_SUBST(WATCHDOG,"")
+    fi],
+    [AC_SUBST(WATCHDOG,watchdog)])
+
+dnl
+dnl We really need to make ipmi enablement be contigent on OpenIPMI
+dnl
+OH_CHECK_OPENIPMI(1,3,9)
+
+if pkg-config --atleast-version 1.3.8 OpenIPMI; then
+    have_openipmi=yes
+    OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
+    AC_SUBST(OPENIPMI_CFLAGS)
+    OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
+    AC_SUBST(OPENIPMI_LIBS)
+fi
+
+AC_ARG_ENABLE([ipmi],
+    [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_openipmi" = "xyes"; then
+            AC_SUBST(IPMI,ipmi)
+        else
+            OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
+                         Can not build IPMI support without OpenIPMI >= 1.3.9)
+        fi
+    elif test "x$enableval" = "xstatic"; then
+        if test "x$have_openipmi" = "xyes"; then
+            AC_SUBST(IPMI,ipmi)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmi"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS"
+        else
+            OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
+                         Can not build IPMI support without OpenIPMI >= 1.3.9)
+        fi        
+    fi],
+    [if test "x$have_openipmi" = "xyes"; then
+            AC_SUBST(IPMI,ipmi)
+     fi
+    ])
+
+AC_ARG_ENABLE([sysfs],
+    [  --enable-sysfs          build sysfs plugin [default=yes if libsysfs exists]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_sysfs" = "xyes"; then
+            AC_SUBST(SYSFS,sysfs)
+        else
+            OH_CHECK_FAIL(libsysfs,,http://linux-diag.sf.net,
+                Can not build sysfs support without libsysfs)
+        fi
+    fi],
+    [if test "x$have_sysfs" = "xyes"; then
+            AC_SUBST(SYSFS,sysfs)
+     fi
+    ])
+
+AC_ARG_ENABLE([snmp_bc],
+    [  --enable-snmp_bc        build IBM Blade Center plugin [default=yes if net-snmp is installed]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_BC,snmp_bc)
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build IBM Blade Center support without net-snmp)
+        fi
+    fi],
+    [if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_BC,snmp_bc)
+    fi]
+    )
+
+AC_ARG_ENABLE([snmp_rsa],
+    [  --enable-snmp_rsa       build IBM RSA plugin [default=yes if net-snmp is installed]],
+    [if test "x$enableval" = "xyes"; then
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_RSA,snmp_rsa)
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build IBM RSA support without net-snmp)
+        fi
+    fi],
+    [if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_RSA,snmp_rsa)
+    fi]
+    )
+
+AC_ARG_ENABLE([ipmidirect],
+    [  --enable-ipmidirect     build direct ipmi plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+            AC_SUBST(IPMIDIRECT,ipmidirect)
+     elif test "x$enableval" = "xstatic"; then
+            AC_SUBST(IPMIDIRECT,ipmidirect)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmidirect"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
+     fi],
+    [AC_SUBST(IPMIDIRECT,ipmidirect)])
+
+dnl ipmidirect needs posix threads
+if test "x$IPMIDIRECT" = "xipmidirect"; then
+        if test "x$THREAD_SAFE" != "xyes" ; then
+                AC_MSG_ERROR("ipmidirect plugin needs thread support (--enable-thread) !") 
+        fi
+fi
+
+AC_ARG_ENABLE([remote_client],
+    [  --enable-remote_client     build remote client plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+            AC_SUBST(REMOTE_CLIENT,remote_client)
+	    NEED_MARSHAL="yes"
+     elif test "x$enableval" = "xstatic"; then
+            AC_SUBST(REMOTE_CLIENT,remote_client)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libopenhpimarshal.la -luuid"
+            NEED_MARSHAL="yes"
+     fi],
+    [AC_SUBST(REMOTE_CLIENT,remote_client)
+     NEED_MARSHAL="yes"])
+
+OH_CHECK_FAM
+AC_ARG_ENABLE([simulator],
+    [  --enable-simulator       build simulator plugin [default=yes if fam is installed]],
+    [if test "x$enableval" = "xyes"; then
+		if test "x$have_fam" = "xyes"; then
+                        AC_SUBST(SIMULATOR,simulator)
+                else
+			OH_CHECK_FAIL(FAM packages are missing, install fam and fam-devel to build simulator plug-in)
+		fi
+    fi],
+	[if test "x$have_fam" = "xyes"; then
+    	AC_SUBST(SIMULATOR,simulator)
+     fi])
+
+dnl enable marshal library when needed
+if test "x$NEED_MARSHAL" = "xyes"; then
+        AC_SUBST(MARSHALDIR,marshal)
+fi
+
+
+dnl
+dnl create static plugin config
+dnl
+
+STATIC_PLUGIN=
+STATIC_PLUGIN_EXTERN=
+STATIC_PLUGIN_LIBS=
+
+for name in $STATIC_PLUGIN_LIST; do
+        STATIC_PLUGIN="$STATIC_PLUGIN { \"$name\", ${name}_get_interface },";
+        STATIC_PLUGIN_EXTERN="${STATIC_PLUGIN_EXTERN} extern int ${name}_get_interface(void **pp, const uuid_t uuid);";
+        STATIC_PLUGIN_LIBS="$STATIC_PLUGIN_LIBS \$(top_builddir)/plugins/$name/lib${name}.la";
+done
+
+dnl use src/plugin_static.c.in
+AC_SUBST(STATIC_PLUGIN_EXTERN)
+AC_SUBST(STATIC_PLUGIN)
+
+dnl additional libs
+AC_SUBST(STATIC_PLUGIN_LIBS)
+AC_SUBST(STATIC_PLUGIN_EXTRA_LIBS)
+
+dnl setup SNMPFLAGS
+AC_SUBST(SNMPFLAGS)
+AC_SUBST(SNMPLIBS)
+AC_SUBST(SNMPDIR)
+
+dnl
+dnl defines CONFPATH, OH_DEFAULT_CONF and OH_CLIENT_DEFAULT_CONF
+dnl
+
+CONFPATH=${CONFPATH:=/etc/openhpi}
+
+AC_ARG_WITH(confpath,
+   [[  --with-confpath=PATH    use directory PATH to store openhpi configuration file [default=/etc/openhpi]]],
+   [CONFPATH=$withval])
+
+dnl substitute @CONFPATH@ in all Makefiles
+AC_SUBST(CONFPATH)
+
+dnl create the #define in config.h
+AC_DEFINE_UNQUOTED(CONFPATH, "$CONFPATH",
+                   [openhpi specific config path])
+AC_DEFINE_UNQUOTED(OH_DEFAULT_CONF,"$CONFPATH/openhpi.conf",
+                   [default configfile])
+AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/openhpiclient.conf",
+                   [default client configfile])
+
+
+dnl defines OH_DEFAULT_UID_MAP and VARPATH
+dnl set VARPATH only if unset or null.
+VARPATH=${VARPATH:=/var/lib/openhpi}
+
+AC_ARG_WITH(varpath,
+    [[  --with-varpath=PATH     use directory PATH to store openhpi specific data [default=/var/lib/openhpi]]],
+    [VARPATH=$withval])
+dnl substitute @VARPATH@ in all Makefiles
+AC_SUBST(VARPATH)
+dnl create the #define VARPATH and #define OH_DEFAULT_UID_MAP in config.h
+AC_DEFINE_UNQUOTED(VARPATH,"$VARPATH",[openhpi specific data path])
+AC_DEFINE_UNQUOTED(OH_DEFAULT_UID_MAP,"$VARPATH/uid_map",[uid map])
+
+dnl 
+dnl This code was borrowed from linux-ha configure.in file
+dnl and is used for creating the proper substitutions
+dnl in the spec file. Without it, the spec file will
+dnl have ${exec_prefix}, etc. instead of the actual
+dnl directory.
+dnl
+dnl
+
+prefix=`eval echo "$prefix"`
+
+case $prefix in
+  NONE) prefix=/usr/local;;
+esac
+var() {
+  case $1 in
+    *'${'*)     res=`eval echo "$1"`;;
+    *)          res="$1";;
+  esac
+  case "$res" in
+    ""|NONE)    echo "$2";;
+    *)          echo "$res";;
+  esac
+}
+
+exec_prefix=`var "$exec_prefix" "$prefix"`
+bindir=`var "$bindir" "$exec_prefix/bin"`
+sbindir=`var "$sbindir" "$exec_prefix/sbin"`
+libdir=`var "$libdir" "$exec_prefix/lib"`
+includedir=`var "$includedir" "$exec_prefix/include"`
+base_includedir="${includedir}"
+AC_SUBST(base_includedir)
+
+TEST_CLEAN='$(shell ls *.bb* *.da *.gcov *.summary)'
+AC_SUBST(TEST_CLEAN)
+
+AC_C_STRINGIZE
+
+# getting CFLAGS right takes some effort
+# we start with a good base set that has been built up
+CFLAGS="$CFLAGS $GLIB_CFLAGS" 
+
+# next we have to do transformations to either turn on
+# test coverage or debug.
+
+AC_ARG_ENABLE([testcover],
+    [  --enable-testcover     build with test coverage support [default=no]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+            CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+    fi]
+    )
+
+#AC_ARG_ENABLE([debug],
+#    [  --enable-debug        turn on debug messages [default=no]],
+#    [if test "x$enableval" = "xyes"; then
+#            CFLAGS="$CFLAGS -DDEBUG"
+#    fi]
+#    )
+
+# Now we throw in a bunch of warnings.  C and C++ need
+# different sets here
+
+CC_WARNINGS="\
+        -Wall \
+        -Wmissing-prototypes \
+	-Wmissing-declarations \
+	-Wstrict-prototypes \
+	-Wpointer-arith \
+        -Wformat=2 \
+        -Wformat-security \
+        -Wformat-nonliteral \
+	-Werror \
+	-Wcast-qual \
+	-Wcast-align"
+
+CXX_WARNINGS="\
+        -Wall \
+        -Wmissing-prototypes \
+	-Wstrict-prototypes \
+	-Wpointer-arith \
+	-Werror \
+	-Wcast-qual \
+	-Wcast-align \
+        -Wshadow \
+        -Wwrite-strings \
+        -Wredundant-decls"
+
+# remerge the warnings into the FLAGS
+CXXFLAGS="$CFLAGS $CXX_WARNINGS"
+CFLAGS="$CFLAGS $CC_WARNINGS"
+
+# lastly, we add things if we are thread safe
+# (this could probably happen earlier in this file)
+if test "x$THREAD_SAFE" = "xyes" ; then
+        CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
+        CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
+fi
+
+# there are certain places we always want to turn off optimization
+# this has to come last
+NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+AC_SUBST(NOCFLAGS)
+NOCXXFLAGS=`echo $CXXFLAGS | perl -p -e 's/-O\S*//g'`
+AC_SUBST(NOCXXFLAGS)
+
+# Set up libs that will be linked to
+LIBS="$LIBS $GLIB_LIBS -lm"
+if test "x$THREAD_SAFE" = "xyes" ; then
+        LIBS="$LIBS -lpthread"
+fi
+
+AC_CONFIG_FILES([openhpi.spec
+        openhpi.pc
+        rt-env.sh
+        Makefile
+        utils/openhpiutils.pc
+        utils/Makefile
+        utils/t/Makefile
+	utils/t/epath/Makefile
+	utils/t/rpt/Makefile
+	utils/t/sel/Makefile
+	utils/t/uid/Makefile
+	marshal/Makefile
+	marshal/t/Makefile
+        plugins/Makefile
+	plugins/snmp_client/Makefile
+        plugins/dummy/Makefile
+        plugins/watchdog/Makefile
+        plugins/ipmi/Makefile
+        plugins/snmp_bc/Makefile
+        plugins/snmp_bc/t/Makefile
+        plugins/snmp_rsa/Makefile
+        plugins/snmp_rsa/t/Makefile
+        plugins/sysfs/Makefile
+        plugins/ipmidirect/Makefile
+        plugins/ipmidirect/t/Makefile
+        plugins/remote_client/Makefile
+        plugins/simulator/Makefile
+        snmp/Makefile
+        src/Makefile
+        src/plugin_static.c
+        test/Makefile
+        docs/Makefile
+        docs/hld/Makefile
+	openhpid/Makefile
+	openhpid/t/Makefile
+        openhpid/openhpiclient.pc
+        examples/Makefile
+	clients/Makefile
+	hpi_shell/Makefile])
+
+AC_OUTPUT
+
+
