@@ -64,6 +64,7 @@ public:
   const char *m_progname;
   bool        m_daemon;
   int         m_debug;
+  const char *m_config;
 
   // connection
   int         m_daemon_port;
@@ -84,7 +85,8 @@ public:
   void Idle();
 
   // openhpi
-  SaHpiVersionT m_version;
+  SaHpiVersionT   m_version;
+  SaHpiSessionIdT m_session;
 
   void Usage();
   bool ParseArgs( int argc, char *argv[] );

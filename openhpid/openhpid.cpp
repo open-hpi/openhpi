@@ -15,6 +15,7 @@
  */
 
 #include "openhpid.h"
+#include "ecode_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,9 +31,10 @@
 
 cOpenHpiDaemon::cOpenHpiDaemon()
   : m_progname( 0 ), m_daemon( false ), m_debug( 0 ),
-    m_daemon_port( dDefaultDaemonPort ),
+    m_config( 0 ), m_daemon_port( dDefaultDaemonPort ),
     m_main_socket( 0 ), m_connections( 0 ),
-    m_num_connections( 0 ), m_pollfd( 0 )
+    m_num_connections( 0 ), m_pollfd( 0 ),
+    m_version( 0 ), m_session( 0 )
 {
 }
 
@@ -89,6 +91,7 @@ cOpenHpiDaemon::Usage()
   fprintf( stderr, "\t-d --debug=level  debug level\n" );
   fprintf( stderr, "\t-n --nodaemon     do not became a daemon\n" );
   fprintf( stderr, "\t-p --port=port    daemon port\n" );
+  fprintf( stderr, "\t-c --config=file  use configuration file\n" );
 }
 
 
@@ -104,6 +107,7 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
   {
     { "help"    , 0, 0, 'h' },
     { "debug"   , 1, 0, 'd' },
+    { "config"  , 1, 0, 'c' },
     { "nodaemon", 0, 0, 'n' },
     { 0, 0, 0, 0 }
   };
@@ -115,7 +119,7 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
        int option_index = 0;
        int c;
 
-       c = getopt_long( argc, argv, "hd:np:",
+       c = getopt_long( argc, argv, "hd:c:np:",
                         long_options, &option_index );
 
        if ( c == -1 )
@@ -129,6 +133,10 @@ cOpenHpiDaemon::ParseArgs( int argc, char *argv[] )
 
 	    case 'd':
 		 m_debug = atoi( optarg );
+		 break;
+
+	    case 'c':
+		 m_config = optarg;
 		 break;
 
 	    case 'p':
@@ -209,13 +217,30 @@ cOpenHpiDaemon::Initialize()
        umask( 0 );
      }
 
+  // use config file given by the command line
+  if ( m_config )
+       setenv( "OPENHPI_CONF", m_config, 1 );
+       
   // initialize openhpi
   DbgInit( "initialize openhpi.\n" );
   SaErrorT rv = saHpiInitialize( &m_version );
 
   if ( rv != SA_OK )
      {
-       fprintf( stderr, "cannot initialize openhpi: %d !\n", rv );
+       fprintf( stderr, "cannot initialize openhpi: %s !\n",
+		decode_error( rv ) );
+       return false;
+     }
+
+  // create a session
+  rv = saHpiSessionOpen( SAHPI_DEFAULT_DOMAIN_ID, &m_session, 0 );
+
+  if ( rv != SA_OK )
+     {
+       fprintf( stderr, "cannot create session: %s !\n", 
+		decode_error( rv ) );
+
+       saHpiFinalize();
        return false;
      }
 
@@ -229,6 +254,7 @@ cOpenHpiDaemon::Initialize()
        fprintf( stderr, "cannot create daemon socket: %d, %s !\n",
                 errno, strerror( errno ) );
 
+       saHpiSessionClose( m_session );
        saHpiFinalize();
        return false;
      }
@@ -257,6 +283,7 @@ cOpenHpiDaemon::Finalize()
        m_main_socket = 0;
      }
 
+  saHpiSessionClose( m_session );
   saHpiFinalize();
 }
 
@@ -273,7 +300,7 @@ cOpenHpiDaemon::MainLoop()
 
   while( true )
      {
-       int rv = poll( m_pollfd, m_num_connections + 1, 100000 );
+       int rv = poll( m_pollfd, m_num_connections + 1, 100 );
 
        if ( rv < 0 )
 	  {
@@ -380,6 +407,14 @@ cOpenHpiDaemon::CloseConnection( int id )
 void
 cOpenHpiDaemon::Idle()
 {
+  // read events to keep auto insertion/extraction running
+  SaHpiEventT event;
+
+  SaErrorT rv = saHpiEventGet( m_session, 0, &event, 0, 0 );
+
+  if ( rv != SA_OK && rv != SA_ERR_HPI_TIMEOUT )
+       DbgCon( "event loop saHpiEventGet: %s !\n", 
+	       decode_error( rv ) );
 }
 
 
@@ -837,13 +872,13 @@ cOpenHpiDaemon::HandleMsg( const cMessageHeader &header, const void *data,
 				    &session_id );
 
 	      ret = saHpiUnsubscribe( session_id );
-	      
+
 	      DbgFunc( "saHpiUnsubscribe( %x ) = %d\n",
                        session_id, ret );
 
 	      rh.m_len = HpiMarshalReply0( hm, rd, &ret );
 	    }
-	    
+
 	    break;
 
        case eFsaHpiEventGet:
