@@ -1,4 +1,4 @@
-/*      -*- linux-c -* http://www.catb.org/~esr/writings/cathedral-bazaar/cathedral-bazaar/cathedral-bazaar.ps -
+/*      -*- linux-c -*-
  *
  * (C) Copyright IBM Corp. 2003, 2005
  *
