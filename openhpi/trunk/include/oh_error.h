@@ -27,8 +27,8 @@ extern "C" {
 
 #define dbg(format, ...)                                                \
         do {                                                            \
-                if (getenv("OHDEBUG") != NULL) {                        \
-                        if (strcmp((char *)getenv("OHDEBUG"),"YES") == 0) { \
+                if (getenv("OPENHPI_DEBUG") != NULL) {                  \
+                        if (strcmp((char *)getenv("OPENHPI_DEBUG"),"YES") == 0) { \
                                 fprintf(stderr, "%s:%d:%s: ", __FILE__, __LINE__, __func__); \
                                 fprintf(stderr, format "\n", ## __VA_ARGS__); \
                         }                                               \
