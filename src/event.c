@@ -441,26 +441,23 @@ SaErrorT oh_get_events()
 {
         SaErrorT rv = SA_OK;
 
-        if(oh_run_threaded()) {
-                trace("Running threaded, time to wake up the event thread");
-                oh_wake_event_thread(SAHPI_TRUE);
-                /* we force a lock that makes us wait for the thread to
-                   do at least one event cycle */
-                return rv;
-        } else {
-                trace("Running non threaded, Harvesting events");
-                rv = oh_harvest_events();
-                if(rv != SA_OK) {
-                        dbg("Error on harvest of events.");
-                }
-
-                rv = oh_process_events();
-                if(rv != SA_OK) {
-                        dbg("Error on processing of events, aborting");
-                }
-                
-                process_hotswap_policy();
-
-                return rv;
+        /* this waits for the event thread to sleep, then 
+           runs to deal with sync issues */
+        g_mutex_lock(oh_thread_mutex);
+        trace("Harvesting events synchronously");
+        rv = oh_harvest_events();
+        if(rv != SA_OK) {
+                dbg("Error on harvest of events.");
         }
+        
+        rv = oh_process_events();
+        if(rv != SA_OK) {
+                dbg("Error on processing of events, aborting");
+        }
+        
+        process_hotswap_policy();
+        
+        g_mutex_unlock(oh_thread_mutex);
+        
+        return rv;
 }
