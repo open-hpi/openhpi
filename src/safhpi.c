@@ -641,11 +641,18 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
+                struct oh_global_param param = { .type = OPENHPI_DEL_SAVE };
+                
+                oh_get_global_param(&param);
                 rv = oh_el_append(d->del, EvtEntry, NULL, NULL);
-                snprintf(del_filepath,
-                         SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
-                         "%s/del.%u", VARPATH, did);
-                oh_el_map_to_file(d->del, del_filepath);
+                if (param.u.del_save) {
+                        param.type = OPENHPI_VARPATH;
+                        oh_get_global_param(&param);
+                        snprintf(del_filepath,
+                                 SAHPI_MAX_TEXT_BUFFER_LENGTH*2,
+                                 "%s/del.%u", param.u.varpath, did);
+                        oh_el_map_to_file(d->del, del_filepath);
+                }
                 oh_release_domain(d); /* Unlock domain */
                 return rv;
         }

@@ -6,10 +6,12 @@
 #OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
 #OPENHPI_EVT_QUEUE_LIMIT = "0"
 #OPENHPI_DEL_SIZE_LIMIT = "0"
+#OPENHPI_DEL_SAVE = "NO"
 #OPENHPI_DAT_SIZE_LIMIT = "0"
 #OPENHPI_DAT_USER_LIMIT = "0"
 #OPENHPI_THREADED = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
+#OPENHPI_VARPATH = "/usr/local/var/lib/openhpi"
 
 ## The default values for each have been selected in the example above (except
 ## for OPENHPI_PATH and OPENHPI_CONF. See below).
@@ -27,15 +29,19 @@
 ## in the session's event queue. "0" means unlimited.
 ## OPENHPI_DEL_SIZE_LIMIT sets the maximum size (in number of event log entries)
 ## for the domain event log. "0" means unlimited.
+## OPENHPI_DEL_SAVE sets wether the domain event log will be persisted to disk or
+## not. The event log is written to OPENHPI_VARPATH value.
 ## OPENHPI_DAT_SIZE_LIMIT sets the maximum size (in number of alarm entries) for
 ## the alarm table. "0" means unlimited.
 ## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
 ## allowed in the alarm table.
+## OPENHPI_THREADED sets whether a thread is used for handling the event loop.
+## This thread will be looping around the plugin instances and fetching events.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
 ## the location of openhpi plugin libraries. The default is defined when the
 ## library is configured.
-## OPENHPI_THREADED sets whether a thread is used for handling the event loop.
-## This thread will be looping around the plugin instances and fetching events.
+## OPENHPI_VARPATH is a directory to which certain openhpi data will be saved to.
+## At this point, only the DEL is saved to this directory.
 
 ## Second section, declare plugin to use. For example:
 ## plugin plugin-name

@@ -36,6 +36,7 @@ typedef enum {
         OPENHPI_LOG_ON_SEV,
         OPENHPI_EVT_QUEUE_LIMIT,
         OPENHPI_DEL_SIZE_LIMIT,
+        OPENHPI_DEL_SAVE,
         OPENHPI_DAT_SIZE_LIMIT,
         OPENHPI_DAT_USER_LIMIT,
         //OPENHPI_DEBUG,
@@ -43,6 +44,7 @@ typedef enum {
         //OPENHPI_DEBUG_LOCK,
         OPENHPI_THREADED,
         OPENHPI_PATH,
+        OPENHPI_VARPATH,
         OPENHPI_CONF
 } oh_global_param_type;
 
@@ -51,13 +53,15 @@ typedef union {
         SaHpiSeverityT log_on_sev;
         SaHpiUint32T evt_queue_limit;
         SaHpiUint32T del_size_limit;
+        SaHpiBoolT del_save;
         SaHpiUint32T dat_size_limit;
         SaHpiUint32T dat_user_limit;
         //unsigned char dbg; /* 1 = YES, 0 = NO */
         //unsigned char dbg_trace; /* !0 = YES, 0 = NO */
         //unsigned char dbg_lock; /* !0 = YES, 0 = NO */
-        unsigned char threaded; /* !0 = YES, 0 = NO */
+        SaHpiBoolT threaded; /* !0 = YES, 0 = NO */
         char path[OH_GLOBAL_STR_MAX_LENGTH];
+        char varpath[OH_GLOBAL_STR_MAX_LENGTH];
         char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 } oh_global_param_union;
 

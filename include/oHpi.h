@@ -38,6 +38,7 @@ typedef enum {
         OHPI_LOG_ON_SEV,
         OHPI_EVT_QUEUE_LIMIT,
         OHPI_DEL_SIZE_LIMIT,
+        OHPI_DEL_SAVE,
         OHPI_DAT_SIZE_LIMIT,
         OHPI_DAT_USER_LIMIT,
         //OHPI_DEBUG,
@@ -45,6 +46,7 @@ typedef enum {
         //OHPI_DEBUG_LOCK,
         OHPI_THREADED,
         OHPI_PATH,
+        OHPI_VARPATH,
         OHPI_CONF
 } oHpiGlobalParamTypeT;
 
@@ -54,14 +56,16 @@ typedef union {
         SaHpiSeverityT LogOnSev;
         SaHpiUint32T EvtQueueLimit; /* Max events # allowed in session queue */
         SaHpiUint32T DelSizeLimit; /* Maximum size of domain event log */
+        SaHpiBoolT DelSave; /* True if domain event log is to be saved to disk */
         SaHpiUint32T DatSizeLimit; /* Max alarms allowed in alarm table */
         SaHpiUint32T DatUserLimit; /* Max number of user alarms allowed */
         //unsigned char Debug; /* 1 = YES, 0 = NO */
         //unsigned char DebugTrace; /* !0 = YES, 0 = NO */
         //unsigned char DebugLock; /* !0 = YES, 0 = NO */
-        unsigned char Threaded; /* !0 = YES, 0 = NO */
+        SaHpiBoolT Threaded; /* !0 = YES, 0 = NO */
         char Path[OH_GLOBAL_STR_MAX_LENGTH]; /* Dir path to openhpi plugins */
-        char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH]; /* File path of openhpi configuration */
+        char VarPath[OH_GLOBAL_STR_MAX_LENGTH]; /* Dir path for openhpi data */
+        char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH]; /* File path of openhpi configuration */        
 } oHpiGlobalParamUnionT;
 
 typedef struct {
