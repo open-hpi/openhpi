@@ -249,9 +249,10 @@ handler libwatchdog {
         <ulink
           url="http://linux-diag.sourceforge.net/Sysfsutils.html"
           >on the Linux Diagnostic Tools project page</ulink>.
-        The 0.2.0 release has a bug that needs to be fixed before using this
-        plugin.  Applying the following patch will fix this bug (or you may
-        take the latest code from the libsysfs repository):
+        The 0.2.0 release has two bugs that need to be fixed before using
+	this plugin.  Applying the two patches (separate, sorry!) will
+	fix these:<br>
+	The functionality of this first patch is also found in libsysfs 0.3.0. 
         <programlisting role="C">
 --- sysfsutils-0_2_0/lib/sysfs_device.c.orig    2003-10-17 11:25:37.000000000 -0
 700
@@ -262,6 +263,19 @@ handler libwatchdog {
         }
 +       strcpy(attrname, name);
         dlist_for_each_data(dev->directory->attributes, cur,
+        </programlisting>
+	The second patch may be found in libsysfs 0.3.0; it is not known.
+        <programlisting role="C">
+--- sysfs_dir.c.orig    2003-08-29 04:43:27.000000000 -0700
++++ sysfs_dir.c 2003-11-20 11:28:36.000000000 -0800
+@@ -274,6 +274,7 @@
+             errno = EINVAL;
+             return -1;
+        }
++       attr->value = malloc(sizeof(value));
+        strncpy(attr->value,value,sizeof(value));
+        if ((sysfs_write_attribute(attr) != 0 )) {
+             dprintf("Error write to attribute %s\n", attrpath)
         </programlisting>
       </para>
       <para>
