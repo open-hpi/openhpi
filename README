@@ -1,6 +1,6 @@
 
 This is an implementation of SAForum's Hardware Platform Interface
-specification.
+specification.  The header file was obtained from www.saforum.org/specification/download.
 
 You should be able to run 
 

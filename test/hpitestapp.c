@@ -7,7 +7,7 @@
  */
 
 #include <stdio.h>
-#include <safhpi.h>
+#include <SaHpi.h>
 #include "hpitestapp.h"
 
 int main(int argc, char *argv[])
