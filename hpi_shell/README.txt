@@ -44,6 +44,8 @@ Commands:
 	    modeset <mode> - set annunciator mode.
 	    add <values> - add new announcement.
 	    delete <entryId> - delete announcement by EntryId.
+	    acknow <EntryId> - acknowledge a single announcement.
+	    acknow all <Severity> - acknowledge a group of announcements.
 
 	clearevtlog [<rptId>]
 		Erase the contents of the Event Log for the resource <rptId>. If <rptId> 
