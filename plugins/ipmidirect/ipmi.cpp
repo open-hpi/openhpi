@@ -1307,7 +1307,7 @@ cIpmi::GetParams( GHashTable *handler_config )
 
        stdlog << "MC " << (unsigned char)i << " properties: " << pp << ".\n";
 
-       AddMcToScan( i, properties, dIpmiMcTypeBitAll, 0 );
+       // NewFruInfo( i, 0, slot, entity, dIpmiMcTypeBitAll );
      }
 
   return true;

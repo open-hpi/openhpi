@@ -110,13 +110,11 @@ protected:
   cIpmiAtcaSiteProperty m_atca_site_property[256];
 
   void SetAtcaSiteProperty( tIpmiAtcaSiteType type,
-                            unsigned int property, int max_id, 
-                            unsigned int mc_type )
+                            unsigned int property, int max_id )
   {
     cIpmiAtcaSiteProperty *p = &m_atca_site_property[type];
     p->m_property    = property;
     p->m_max_side_id = max_id;
-    p->m_mc_type     = mc_type;
   }
 
   // The main set of SDRs on a BMC.
@@ -139,7 +137,7 @@ public:
 protected:
   // global lock for reading/writing:
   //   mcs, entities, sensors, frus, sels
-  //cThreadLockRw m_lock;
+  cThreadLockRw m_lock;
 
   GList        *m_mcs; // list of all MCs
 
@@ -160,19 +158,20 @@ protected:
   // m_mc_to_check[addr] = properties
   // (dIpmiMcThreadXXXX)
   // of thread to handle mc
-  unsigned int m_mc_to_check[256];
+  //unsigned int m_mc_to_check[256];
 
   // slot id for ATCA
-  int m_mc_slot[256];
+  //int m_mc_slot[256];
 
   // possible mc types like board, power unit, fan
   // (dIpmiMcTypeBitXXX ipmi_discover.cpp)
-  unsigned int m_mc_type[256];
+  //unsigned int m_mc_type[256];
 
   // array of mc threads
   cIpmiMcThread *m_mc_thread[256];
 
 public:
+/*
   unsigned int GetMcType( int slave_addr )
   {
     if ( slave_addr < 0 || slave_addr > 0xff )
@@ -183,11 +182,13 @@ public:
 
     return m_mc_type[slave_addr];
   }
+*/
 
   int           m_num_mc_threads;
   cThreadLock   m_mc_thread_lock;
 
 public:
+/*
   void AddMcToScan( unsigned int addr,
                     unsigned int properties,
                     unsigned mc_type,
@@ -199,6 +200,7 @@ public:
     m_mc_type[addr]    |= mc_type;
     m_mc_slot[addr]     = slot;
   }
+*/
 
   // time between mc poll in ms
   unsigned int m_mc_poll_interval;

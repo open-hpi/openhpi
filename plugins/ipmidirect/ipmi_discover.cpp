@@ -37,7 +37,7 @@ public:
 
   cIpmiMcTask( tIpmiMcTask task, const cTime &timeout, 
                void *userdata )
-    : m_next( 0 ), m_task( task ), 
+    : m_next( 0 ), m_task( task ),
       m_timeout( timeout ), m_userdata( userdata )
   {}
 };
@@ -45,11 +45,12 @@ public:
 
 cIpmiMcThread::cIpmiMcThread( cIpmiDomain *domain,
                               unsigned char addr,
-                              unsigned int properties,
-                              unsigned int mc_type,
-                              int slot )
-  : m_domain( domain ), m_addr( addr ), m_type( mc_type ),
-    m_slot( slot ), m_mc( 0 ), m_properties( properties ),
+                              unsigned int properties
+                              /* unsigned int mc_type,
+                                 int slot */ )
+  : m_domain( domain ), m_addr( addr ),
+    /* m_type( mc_type ), m_slot( slot ), m_mc( 0 ) */
+    m_properties( properties ),
     m_exit( false ), m_tasks( 0 ),
     m_sel( 0 ), m_events( 0 )
 {
