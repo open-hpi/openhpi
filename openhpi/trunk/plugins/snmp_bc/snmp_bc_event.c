@@ -46,10 +46,6 @@ static void free_hash_data(gpointer key,
 			   gpointer value, 
 			   gpointer user_data);
 
-static int parse_sel_entry(char *text, 
-			   bc_sel_entry *sel, 
-			   int isdst);
-
 static int parse_threshold_str(gchar *str, 
 			       gchar *root_str, 
 			       gchar *read_value_str, 
@@ -285,7 +281,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	is_recovery_event = is_threshold_event = 0;
 
         /* Parse BC error log entry into its various components */
-	if (parse_sel_entry(logstr, &log_entry, isdst)) {
+	if (snmp_bc_parse_sel_entry(handle, logstr, &log_entry)) {
 		dbg("Couldn't parse BladeCenter error log entry=%s", logstr);
 		return -1;
 	}
@@ -799,72 +795,6 @@ int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 	}
 	
 	return 0;
-}
-
-/**********************************************************
- * Parse BC error log entries into their various components
- **********************************************************/
-static int parse_sel_entry(char *text, bc_sel_entry *sel, int isdst) 
-{
-        bc_sel_entry ent;
-        char level[8];
-        char * start = text;
-        
-        /* Severity first */
-        if(sscanf(start,"Severity:%7s",level)) {
-                if(strcmp(level,"INFO") == 0) {
-                        ent.sev = SAHPI_INFORMATIONAL;
-                } else if(strcmp(level,"WARN") == 0) {
-                        ent.sev = SAHPI_MINOR;
-                } else if(strcmp(level,"ERR") == 0) {
-                        ent.sev = SAHPI_CRITICAL;
-                } else {
-                        ent.sev = SAHPI_DEBUG;
-                }
-        } else {
-                dbg("Couldn't parse Severity from BladeCenter Log Entry");
-                return -1;
-        }
-                
-        while(start && (strncmp(start,"Source:",7) != 0)) { start++; }
-        if(!start) { return -2; }
-
-        if(!sscanf(start,"Source:%19s",ent.source)) {
-                dbg("Couldn't parse Source from BladeCenter Log Entry");
-                return -1;
-        }
-
-        while(start && (strncmp(start,"Name:",5) != 0)) { start++; }
-        if(!start) { return -2; }
-
-        if(!sscanf(start,"Name:%19s",ent.sname)) {
-                dbg("Couldn't parse Name from BladeCenter Log Entry");
-                return -1;
-        }
-        
-        while(start && (strncmp(start,"Date:",5) != 0)) { start++; }
-        if(!start) { return -2; }
-        
-        if(sscanf(start,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
-                  &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
-                  &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-                ent.time.tm_mon--;
-                ent.time.tm_year += 100;
-        } else {
-                dbg("Couldn't parse Date/Time from BladeCenter Log Entry");
-                return -1;
-        }
-        
-        while(start && (strncmp(start,"Text:",5) != 0)) { start++; }
-        if(!start) { return -2; }
-        
-        /* Advance to data */
-        start += 5;
-        strncpy(ent.text,start,BC_SEL_ENTRY_STRING - 1);
-        ent.text[BC_SEL_ENTRY_STRING - 1] = '\0';
-        
-        *sel = ent;
-        return 0;
 }
 
 /*******************************************
