@@ -977,82 +977,67 @@ SaErrorT SAHPI_API saHpiEventGet (
         RPTable *rpt = default_rpt;
         
         SaHpiTimeT now, end;
-        int value;
-        
+                
         OH_STATE_READY_CHECK;
-        
+
+        if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event)
+                return SA_ERR_HPI_INVALID_PARAMS;
+
         OH_SESSION_SETUP(SessionId, s);
+
+        if (s->event_state != OH_EVENT_SUBSCRIBE)
+                return SA_ERR_HPI_INVALID_REQUEST;
         
         gettimeofday1(&now);
-        if (Timeout== SAHPI_TIMEOUT_BLOCK) {
-                end = now + (SaHpiTimeT)10000*1000000000; /*set a long time*/
-        } else {
-                end = now + Timeout;
-        }
-        
-        while (1) {
-                int rv;
-                
-                rv = get_events();
-                if (rv<0) {
-                        value = SA_ERR_HPI_UNKNOWN;
-                        break;
-                }
-                
-                if (session_has_event(s)) {
-                        value = SA_OK;
-                        break;
-                }
-                
-                gettimeofday1(&now);    
-                if (now>=end) {
-                        value = SA_ERR_HPI_TIMEOUT;
-                        break;
-                }
-        }
-        
-        //dbg("now=%lld, end=%lld", now, end);
-        
-        if (value==SA_OK) {
+        end = now + Timeout;
+
+        do {
                 struct oh_hpi_event e;
-                SaHpiRptEntryT *res;
-                SaHpiRdrT *rdr;
                 
-                if (session_pop_event(s, &e)<0) {
-                        dbg("Empty event queue?!");
+                if (get_events() < 0)
                         return SA_ERR_HPI_UNKNOWN;
-                }
-
-                memcpy(Event, &e.event, sizeof(*Event));
-                
-                if (Rdr)
-                        Rdr->RdrType = SAHPI_NO_RECORD;
-
-                if (RptEntry)
-                        RptEntry->ResourceCapabilities = 0;
-
-                res = oh_get_resource_by_id(rpt,e.parent);
-
-                if (res) {
-                        if (Rdr) {
-                                rdr = oh_get_rdr_by_id(rpt,res->ResourceId,e.id);
-                                if (rdr) {
-                                        memcpy(Rdr, rdr, sizeof(*Rdr));
-                                } else {
-                                        dbg("Event without resource");
-                                }
+                else if (session_pop_event(s, &e) < 0) {
+                        switch (Timeout) {
+                                case SAHPI_TIMEOUT_IMMEDIATE:
+                                        return SA_ERR_HPI_TIMEOUT;
+                                case SAHPI_TIMEOUT_BLOCK:
+                                        break;
+                                default: /* Check if we have timed out */
+                                        gettimeofday1(&now);
+                                        if (now >= end) return SA_ERR_HPI_TIMEOUT;
                         }
+                        /* Sleep for 1 milli second */
+                        struct timespec req = { 0, 1000000 }, rem;
+                        nanosleep(&req, &rem);
+                        
+                } else { /* Return event, resource and rdr */
+                        SaHpiRptEntryT *res;
+                        SaHpiRdrT *rdr;
+
+                        memcpy(Event, &e.event, sizeof(*Event));
 
                         if (RptEntry) {
-                                memcpy(RptEntry, res, sizeof(*RptEntry));
-                        }
-                } else {
-                        dbg("Event without resource");  
-                }
-        }
-        
-        return value;
+                                res = oh_get_resource_by_id(rpt, e.parent);
 
+                                if (res)
+                                        memcpy(RptEntry, res, sizeof(*RptEntry));
+                                else
+                                        RptEntry->ResourceCapabilities = 0;
+                        }
+
+                        if (Rdr) {
+                                rdr = oh_get_rdr_by_id(rpt, e.parent, e.id);
+
+                                if (rdr)
+                                        memcpy(Rdr, rdr, sizeof(*Rdr));
+                                else
+                                        Rdr->RdrType = SAHPI_NO_RECORD;
+                        }                        
+                        
+                        return SA_OK;
+                }
+                
+        } while (1);
 }
 
 
