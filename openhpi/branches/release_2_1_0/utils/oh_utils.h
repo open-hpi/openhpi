@@ -24,7 +24,6 @@
 #include <sahpi_struct_utils.h>
 #include <epath_utils.h>
 #include <rpt_utils.h>
-#include <event_utils.h>
 #include <sahpi_enum_utils.h>
 #include <sahpi_event_encode.h>
 #include <sahpi_event_utils.h>
