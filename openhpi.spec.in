@@ -4,7 +4,7 @@ Name: @HPI_PKG@
 Summary: @HPI_PKG@ - implementation of SAForum Hardware Platform Interface 
 Version: @VERSION@
 Release: 1
-Copyright: BSD
+License: BSD
 URL: http://openhpi.sourceforge.net
 Group: Utilities
 Vendor: OpenHPI Project
