@@ -59,7 +59,7 @@ static int snmp_rsa_get_event(void *hnd, struct oh_event *event, struct timeval 
 static int snmp_rsa_discover_resources(void *hnd)
 {
         SaHpiEntityPathT entity_root;        
-//      guint i;
+        guint i;
         struct oh_event *e;
 //	struct snmp_value get_value, get_active;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -75,7 +75,7 @@ static int snmp_rsa_discover_resources(void *hnd)
         e = snmp_rsa_discover_chassis(&entity_root);
         if(e != NULL) {
                 struct ResourceMibInfo *res_mib =
-                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].mib),
+                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].rsa_res_info.mib),
                                  sizeof(struct snmp_rpt));
                 oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
                 tmpqueue = g_slist_append(tmpqueue, e);
@@ -86,30 +86,34 @@ static int snmp_rsa_discover_resources(void *hnd)
 //		find_inventories(snmp_rsa_chassis_inventories);
         }
 
-        e = snmp_rsa_discover_cpu(&entity_root);
-        if(e != NULL) {
-                struct ResourceMibInfo *res_mib =
-                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CPU].mib),
-                                 sizeof(struct snmp_rpt));
-                oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
-                tmpqueue = g_slist_append(tmpqueue, e);
-//              SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-//              SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
-//		find_sensors(snmp_rsa_cpu_sensors);                        
-//		find_inventories(snmp_rsa_cpu_inventories);
+        for (i = 0; i < RSA_MAX_CPU; i++) {
+                e = snmp_rsa_discover_cpu(&entity_root, i);
+                if(e != NULL) {
+                        struct ResourceMibInfo *res_mib =
+                                g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info.mib),
+                                         sizeof(struct snmp_rpt));
+                        oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
+                        tmpqueue = g_slist_append(tmpqueue, e);
+//                      SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+//                      SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+//		        find_sensors(snmp_rsa_cpu_sensors);                        
+//		        find_inventories(snmp_rsa_cpu_inventories);
+                }
         }
 
-        e = snmp_rsa_discover_dasd(&entity_root);
-        if(e != NULL) {
-                struct ResourceMibInfo *res_mib =
-                        g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_DASD].mib),
-                                 sizeof(struct snmp_rpt));
-                oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
-                tmpqueue = g_slist_append(tmpqueue, e);
-//              SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
-//              SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
-//		find_sensors(snmp_rsa_dasd_sensors);                        
-//		find_inventories(snmp_rsa_dasd_inventories);
+        for (i = 0; i < RSA_MAX_DASD; i++) {
+                e = snmp_rsa_discover_dasd(&entity_root, i);
+                if(e != NULL) {
+                        struct ResourceMibInfo *res_mib =
+                                g_memdup(&(snmp_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info.mib),
+                                         sizeof(struct snmp_rpt));
+                        oh_add_resource(tmpcache,&(e->u.res_event.entry),res_mib,0);
+                        tmpqueue = g_slist_append(tmpqueue, e);
+//                      SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
+//                      SaHpiEntityPathT parent_ep = e->u.res_event.entry.ResourceEntity;
+//		        find_sensors(snmp_rsa_dasd_sensors);                        
+//		        find_inventories(snmp_rsa_dasd_inventories);
+                }
         }
 
         /*

@@ -70,7 +70,7 @@ struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep)
 }
 
 
-struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep) 
+struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int mmnum) 
 {
 	int len;
         struct oh_event working;
@@ -92,16 +92,24 @@ struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep)
 		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_CPU].comment);
 	}
 
-        working.u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
-        working.u.res_event.entry.ResourceEntity = *ep;
+        ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
+
+        /* ???? Should we also set to index of active MM ???? */
+        set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                           SAHPI_ENT_SYS_MGMNT_MODULE, mmnum+RSA_HPI_INSTANCE_BASE);
+        working.u.res_event.entry.ResourceId =
+                oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
 
         e = eventdup(&working);
+
+//      find_res_events(&working.u.res_event.entry.ResourceEntity, 
+//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].bc_res_info);
  
 	return e;
 }
 
 
-struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep) 
+struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int mmnum) 
 {
 	int len;
         struct oh_event working;
@@ -123,10 +131,19 @@ struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep)
 		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_DASD].comment);
 	}
 
-        working.u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
-        working.u.res_event.entry.ResourceEntity = *ep;
+
+        ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
+
+        /* ???? Should we also set to index of active MM ???? */
+        set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                           SAHPI_ENT_SYS_MGMNT_MODULE, mmnum+RSA_HPI_INSTANCE_BASE);
+        working.u.res_event.entry.ResourceId =
+                oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
 
         e = eventdup(&working);
+
+//      find_res_events(&working.u.res_event.entry.ResourceEntity, 
+//                      &snmp_rpt_array[RSA_RPT_ENTRY_MGMNT_MODULE].bc_res_info);
  
 	return e;
 }
