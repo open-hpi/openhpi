@@ -867,63 +867,64 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 }
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
-		
-		/* basic ABI functions */
-		.open	 			= ipmi_open,
-		.close				= ipmi_close,
-		.get_event			= ipmi_get_event,
-		.discover_resources		= ipmi_discover_resources,
-		.set_resource_tag		= ipmi_set_resource_tag,
-		/* SEL support */
-		.get_sel_info                   = ipmi_get_sel_info,
-		.set_sel_time                   = ipmi_set_sel_time,
-		//.add_sel_entry                  = ipmi_add_sel_entry,
-		//.del_sel_entry                  = ipmi_del_sel_entry,
-		.get_sel_entry                  = ipmi_get_sel_entry,
-		.clear_sel                      = ipmi_clear_sel, 
+  	/* basic ABI functions */
 
-		/* Sensor support */
-		.get_sensor_data		= ipmi_get_sensor_data,
-		.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
-		.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
-		.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
-		.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
-		
-		/* Inventory support */
-		.get_inventory_size             = ohoi_get_inventory_size,
-		.get_inventory_info             = ohoi_get_inventory_info,
-		.set_inventory_info             = NULL,
-        
-        /* hotswap support */
-		.get_hotswap_state              = ohoi_get_hotswap_state,
-		.set_hotswap_state              = ohoi_set_hotswap_state,
-		.request_hotswap_action         = ohoi_request_hotswap_action,
-		.get_indicator_state            = ohoi_get_indicator_state,
-		.set_indicator_state            = ohoi_set_indicator_state,
-        
-        /* power support */
-		.get_power_state                = NULL,
-		.set_power_state                = ohoi_set_power_state,
-	
-        /* reset support */
-		.get_reset_state                = NULL,
-		.set_reset_state                = ohoi_set_reset_state,
+  .open	 			= ipmi_open,
+  .close			= ipmi_close,
+  .get_event			= ipmi_get_event,
+  .discover_resources		= ipmi_discover_resources,
+  .set_resource_tag		= ipmi_set_resource_tag,
 
-        /* control support */
-       .set_control_state = ohoi_set_control_state,
-       .get_control_state = ohoi_get_control_state,
+  /* SEL support */
+  .get_sel_info                 = ipmi_get_sel_info,
+  .set_sel_time                 = ipmi_set_sel_time,
+  //.add_sel_entry              = ipmi_add_sel_entry,
+  //.del_sel_entry              = ipmi_del_sel_entry,
+  .get_sel_entry                = ipmi_get_sel_entry,
+  .clear_sel                    = ipmi_clear_sel, 
+
+  /* Sensor support */
+  .get_sensor_data		= ipmi_get_sensor_data,
+  .get_sensor_thresholds	= ipmi_get_sensor_thresholds,
+  .set_sensor_thresholds	= ipmi_set_sensor_thresholds,
+  .get_sensor_event_enables     = ipmi_get_sensor_event_enables,
+  .set_sensor_event_enables     = ipmi_set_sensor_event_enables,
+
+  /* Inventory support */
+  .get_inventory_size           = ohoi_get_inventory_size,
+  .get_inventory_info           = ohoi_get_inventory_info,
+  .set_inventory_info           = NULL,
+      
+  /* hotswap support */
+  .get_hotswap_state            = ohoi_get_hotswap_state,
+  .set_hotswap_state            = ohoi_set_hotswap_state,
+  .request_hotswap_action       = ohoi_request_hotswap_action,
+  .get_indicator_state          = ohoi_get_indicator_state,
+  .set_indicator_state          = ohoi_set_indicator_state,
+
+  /* power support */
+  .get_power_state              = NULL,
+  .set_power_state              = ohoi_set_power_state,
+
+  /* reset support */
+  .get_reset_state              = NULL,
+  .set_reset_state              = ohoi_set_reset_state,
+
+  /* control support */
+  .set_control_state		= ohoi_set_control_state,
+  .get_control_state		= ohoi_get_control_state,
 };
 
 int ipmi_get_interface(void **pp, const uuid_t uuid);
 int ipmi_get_interface(void **pp, const uuid_t uuid)
 {
-	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
-		*pp = &oh_ipmi_plugin;
-		return 0;
-	}
+  if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
+    *pp = &oh_ipmi_plugin;
+    return 0;
+  }
 
-	*pp = NULL;
-	return -1;
+  *pp = NULL;
+  return -1;
 }
 
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("ipmi_get_interface")));
