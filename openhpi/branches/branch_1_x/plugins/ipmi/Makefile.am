@@ -30,28 +30,28 @@
 #
 
 MAINTAINERCLEANFILES = Makefile.in
-    EXTRA_DIST = ipmi.sym
-    INCLUDES = -I$(top_srcdir) / include - I$(top_srcdir) / utils
-    AM_CFLAGS = -g @ CFLAGS @
-    pkglib_LTLIBRARIES = libipmi.la
-    libipmi_la_SOURCES = ipmi.c
-    posix_vlog.c
-    ipmi_close.c
-    ipmi_event.c
-    ipmi_entity_event.c
-    ipmi_mc_event.c
-    ipmi_inventory_event.c
-    ipmi_sensor_event.c
-    ipmi_control_event.c
-    ipmi_entity.c
-    ipmi_sensor.c
-    ipmi_sel.c
-    ipmi_inventory.c
-    ipmi_controls.c
-    ipmi_util.c
-    hotswap.c
-    sync.c
-    ipmi.h
-    libipmi_la_LIBADD = -luuid - lncurses - lOpenIPMI - lOpenIPMIposix
-    libipmi_la_LDFLAGS =
-    -version - info @ HPI_LIB_VERSION @ -export - symbols ipmi.sym
+EXTRA_DIST = ipmi.sym
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/utils
+AM_CFLAGS = -g @CFLAGS@
+pkglib_LTLIBRARIES = libipmi.la
+
+libipmi_la_SOURCES = ipmi.c \
+                     posix_vlog.c \
+                     ipmi_close.c \
+                     ipmi_event.c \
+                     ipmi_entity_event.c \
+                     ipmi_mc_event.c \
+                     ipmi_inventory_event.c \
+                     ipmi_sensor_event.c \
+                     ipmi_control_event.c \
+                     ipmi_entity.c \
+                     ipmi_sensor.c \
+                     ipmi_sel.c \
+                     ipmi_inventory.c \
+                     ipmi_controls.c \
+                     ipmi_util.c \
+                     hotswap.c \
+                     sync.c \
+                     ipmi.h
+libipmi_la_LIBADD = -luuid -lncurses -lOpenIPMI -lOpenIPMIposix
+libipmi_la_LDFLAGS = -version -info @HPI_LIB_VERSION@ -export-symbols ipmi.sym
