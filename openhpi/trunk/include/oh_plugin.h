@@ -278,31 +278,50 @@ struct oh_abi_v2 {
                                   SaHpiCtrlNumT num,
                                   SaHpiCtrlModeT mode,
                                   SaHpiCtrlStateT *state);
-
-#if 0
+				  
         /**
-         * get inventory size
+         * get Inventory Data Record
          */
-        SaErrorT (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiIdrIdT num, /* yes, they don't call it a
-                                                    * num, but it still is one
-                                                    */
-                                  SaHpiUint32T *size);
+        SaErrorT (*get_idr_info)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrInfoT *);
 
         /**
-         * get inventory state
+         * get Inventory Data Area Header
          */
-        SaErrorT (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiIdrIdT num,
-                                  SaHpiInventoryDataT *data);
+        SaErrorT (*get_idr_area_header)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
+			      SaHpiEntryIdT,  SaHpiEntryIdT *, SaHpiIdrAreaHeaderT *);
+			      
+        /**
+         * add Inventory Data Area
+         */
+        SaErrorT (*add_idr_area)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT, SaHpiEntryIdT *);
+			      
+        /**
+         * delete Inventory Data Area
+         */
+        SaErrorT (*del_idr_area)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT );
 
         /**
-         * set inventory state
+         * get Inventory Data Field
          */
-        SaErrorT (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
-                                  SaHpiIdrIdT num,
-                                  const SaHpiInventoryDataT *data);
-#endif
+        SaErrorT (*get_idr_field)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT,
+	                     SaHpiEntryIdT, SaHpiIdrFieldTypeT, SaHpiEntryIdT,
+			     SaHpiEntryIdT *, SaHpiIdrFieldT * );
+			     
+        /**
+         * add Inventory Data Field
+         */
+        SaErrorT (*add_idr_field)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT * );
+	
+        /**
+         * set Inventory Data Field
+         */
+        SaErrorT (*set_idr_field)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrFieldT * );
+	
+        /**
+         * delete Inventory Data Field
+         */
+        SaErrorT (*del_idr_field)(void *hnd, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT, SaHpiEntryIdT );
+
         /**
          * get watchdog timer info
          */

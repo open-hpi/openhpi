@@ -925,22 +925,178 @@ static struct dummy_sensor {
     },
 };
 
-#if 0
-/* resource one inventory data */
+/************************************************************************/
+/* Resource one inventory data   					*/
+/************************************************************************/
+struct  dummy_idr_area {
+        SaHpiIdrAreaHeaderT  idrareas;
+        SaHpiIdrFieldT  idrfields[20];
+};
+
 static struct dummy_inventories {
-        SaHpiInventDataValidityT Validity;
-        SaHpiInventDataRecordT *DataRecords[2];
-        char data[512];
-} dummy_inventory = {
-                .Validity       = SAHPI_INVENT_DATA_INVALID,
-                .DataRecords    = {
-                        NULL,
-                        NULL,
+        SaHpiIdrInfoT   idrinfo;
+        struct dummy_idr_area my_idr_area[5];
+} dummy_inventory[] = {
+
+{
+        .idrinfo = {
+                    .IdrId = 8,
+                    .UpdateCount = 1,
+                    .ReadOnly = SAHPI_TRUE,
+                    .NumAreas = 1
+        },
+        .my_idr_area[0] =
+        {
+                .idrareas = {
+                        .AreaId = 1,
+                        .Type = SAHPI_IDR_AREATYPE_BOARD_INFO,
+                        .ReadOnly = SAHPI_TRUE,
+                        .NumFields = 10,
                 },
- };
 
-#endif
+                .idrfields[0] =
 
+                        {
+                                .AreaId = 1,
+                                .FieldId = 1,
+                                .Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 12,
+                                        .Data = "Main Chassis"
+                                },
+
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 2,
+                                .Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 10,
+                                        .Data = "10/01/2004",
+                                },
+
+                        },
+                        {
+                                .AreaId = 1,
+                                .FieldId = 3,
+                                .Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 12,
+                                        .Data = "openHPI Inc."
+                                },
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 4,
+                                .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 21,
+                                        .Data = "Imaginary HPI Machine"
+                                },
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 5,
+                                .Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION, /* Model number? */
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 2,
+                                        .Data = "17"
+                                },
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 6,
+                                .Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 8,
+                                        .Data = "12HPI345"
+                                },
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 7,
+                                .Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 5,
+                                        .Data = "78758"
+                                },
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 8,
+                                .Type = SAHPI_IDR_FIELDTYPE_FILE_ID,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 1,
+                                        .Data = "3"
+                                },
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 9,
+                                .Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 11,
+                                        .Data = "My Precious"
+                                },
+                        },
+
+                        {
+                                .AreaId = 1,
+                                .FieldId = 10,
+                                .Type = SAHPI_IDR_FIELDTYPE_CUSTOM,
+                                .ReadOnly = SAHPI_TRUE,
+                                .Field = {
+                                        .DataType = SAHPI_TL_TYPE_ASCII6,
+                                        .Language = SAHPI_LANG_ENGLISH,
+                                        .DataLength = 3,
+                                        .Data = "Hot"
+                                },
+                        },
+
+                        {}
+        },
+        {}
+},
+{}
+};
+
+/************************************************************************/
+/* System Event Log data 								*/
+/************************************************************************/
 static struct dummy_rel {
         SaHpiEventLogEntryT entry;
 } rel_entries = {
@@ -960,6 +1116,7 @@ static struct dummy_rel {
                         },
                 },
         },
+
 };
 
 
@@ -1305,29 +1462,29 @@ static int dummy_discover_resources(void *hnd)
         return 0;
 }
 
-static int el_enabled;
+static int sel_enabled;
 
-static int dummy_get_el_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
+static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
 {
         info->Entries                   = 0;
         info->Size                      = 0xFFFFFFFF;
         info->UpdateTimestamp           = 0;
         gettimeofday1(&info->CurrentTime);
-        info->Enabled                   = el_enabled;
+        info->Enabled                   = sel_enabled;
         info->OverflowFlag              = 0;
         info->OverflowAction            = SAHPI_EL_OVERFLOW_DROP;
 
         return 0;
 }
 
-static int dummy_set_el_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
+static int dummy_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 {
         return 0;
 }
 
-static int dummy_add_el_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
+static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
 {
-        dbg("TODO: dummy_add_el_entry(), need to set res based on id");
+        dbg("TODO: dummy_add_sel_entry(), need to set res based on id");
 
 #if 0
         struct dummy_instance *inst = hnd;
@@ -1359,14 +1516,14 @@ static int dummy_add_el_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT 
         return 0;
 }
 
-static int dummy_get_el_entry(void *hnd,
+static int dummy_get_sel_entry(void *hnd,
                                SaHpiResourceIdT id,
                                SaHpiEventLogEntryIdT current,
                                SaHpiEventLogEntryIdT *prev,
                                SaHpiEventLogEntryIdT *next,
                                SaHpiEventLogEntryT *entry)
 {
-        dbg("dummy_get_el_entry(): This is a very bad implementation");
+        dbg("dummy_get_sel_entry(): This is a very bad implementation");
         *prev = SAHPI_NO_MORE_ENTRIES;
         *next = SAHPI_NO_MORE_ENTRIES;
         memcpy(entry, &rel_entries.entry, sizeof(SaHpiEventLogEntryT));
@@ -1375,7 +1532,7 @@ static int dummy_get_el_entry(void *hnd,
 }
 
 /************************************************************************/
-/* Sensor functions                                             */
+/* Sensor functions                                                     */
 /************************************************************************/
 static int dummy_get_sensor_data(void *hnd, SaHpiResourceIdT id,
                            SaHpiSensorNumT num,
@@ -1515,123 +1672,218 @@ static int dummy_set_control_state(void *hnd, SaHpiResourceIdT id,
         return 0;
 }
 
-#if 0
+
 /************************************************************************/
-/* Inventory functions                                          */
+/* Inventory functions   						*/
 /************************************************************************/
-static int dummy_get_inventory_size(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiEirIdT num,
-                                    SaHpiUint32T *size)
+static SaErrorT dummy_get_idr_info( void *hnd,  
+		SaHpiResourceIdT        ResourceId,
+		SaHpiIdrIdT             IdrId,
+		SaHpiIdrInfoT          *IdrInfo)
 {
-        int rval = -1;
-        int i = 0;
-        int done = FALSE;
+	SaErrorT  rv = SA_OK;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
 
-        done = FALSE;
-        i = 0;
-        do {
-                if(dummy_resource_status[i].ResourceId == id) {
-                        done = TRUE;
-                }
-                else  {
-                        i++;
-                }
+	if (rdr != NULL) {
+		struct dummy_inventories *s = dummy_inventory;
+		memcpy(IdrInfo, &(s->idrinfo), sizeof(SaHpiIdrInfoT));
 
-        } while ( (i < NUM_RESOURCES) && !done  );
+	} else {
+		rv = SA_ERR_HPI_NOT_PRESENT;
+	}
 
-        if ( (i < NUM_RESOURCES) &&
-             (dummy_resources[i].ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA) ) {
-                *size = sizeof(dummy_inventory);
-                rval = 0;
-        }
-
-        return(rval);
+	return rv;
 }
 
-static int dummy_get_inventory_info(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiEirIdT num,
-                                    SaHpiInventoryDataT *data)
+static SaErrorT dummy_get_idr_area_header( void *hnd,
+		SaHpiResourceIdT         ResourceId,
+		SaHpiIdrIdT              IdrId,
+		SaHpiIdrAreaTypeT        AreaType,
+		SaHpiEntryIdT            AreaId,
+		SaHpiEntryIdT           *NextAreaId,
+		SaHpiIdrAreaHeaderT     *Header)
 {
-        struct dummy_inventories *inventory = &dummy_inventory;
-        int i;
-        int pos;
+	SaErrorT  rv = SA_OK;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	SaHpiIdrAreaTypeT        thisAreaType;
+	SaHpiEntryIdT            thisAreaId;
+	SaHpiBoolT foundArea = FALSE;
+	int num_areas, i;
 
-        int rval = -1;
-        int done = FALSE;
+	if (rdr != NULL) {
+		struct dummy_inventories *s = dummy_inventory;
+		
+		num_areas =  s->idrinfo.NumAreas;
+		i = 0;
+		do { 
+		
+			thisAreaId = s->my_idr_area[i].idrareas.AreaId;
+			thisAreaType = s->my_idr_area[i].idrareas.Type;
+			if (((thisAreaId == AreaId) || (AreaId == SAHPI_FIRST_ENTRY))
+				 			&& (thisAreaType == AreaType)) {	 
+				memcpy(Header, &(s->my_idr_area[i].idrareas) , sizeof(SaHpiIdrInfoT));
+				foundArea = SAHPI_TRUE;
+				break;
+			}
+			i++;
+		} while (i < num_areas);
+		
+		
+		if (foundArea) {
+			foundArea = SAHPI_FALSE;
+			do { 
+				thisAreaType = s->my_idr_area[i].idrareas.Type;
+				if ((thisAreaId == AreaId) && (thisAreaType == AreaType)) {	 
+					*NextAreaId = s->my_idr_area[i].idrareas.AreaId;
+					foundArea = SAHPI_TRUE;
+					break;
+				}
+				i++;
+			} while (i < num_areas);
 
-        done = FALSE;
-        i = 0;
-        do {
-                if(dummy_resource_status[i].ResourceId == id) {
-                        done = TRUE;
-                }
-                else  {
-                        i++;
-                }
+			if (!foundArea) {
+				*NextAreaId = SAHPI_LAST_ENTRY;
+			}
+									
+		} else {
+			rv = SA_ERR_HPI_NOT_PRESENT;			
+		}
+		
+	} else {
+		rv = SA_ERR_HPI_NOT_PRESENT;
+	}
 
-        } while ( (i < NUM_RESOURCES) && !done  );
+	return rv;
 
-        if ( (i < NUM_RESOURCES) &&
-             (dummy_resources[i].ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA) ) {
-                rval = 0;
-
-                data->Validity = inventory->Validity;
-                memcpy(data, inventory, sizeof(*inventory));
-
-                for (i=0,pos=0; inventory->DataRecords[i]!=NULL; i++) {
-                        /* FIXME:: very dirty hack to make code compile on IA64 */
-                        data->DataRecords[i] = (SaHpiInventDataRecordT *)(void *)&inventory->data[pos];
-                        pos+=inventory->DataRecords[i]->DataLength+8;
-                }
-
-        }
-
-        return(rval);
 }
 
-static int dummy_set_inventory_info(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiEirIdT num,
-                                    const SaHpiInventoryDataT *data)
+static SaErrorT dummy_add_idr_area( void *hnd,
+		SaHpiResourceIdT         ResourceId,
+		SaHpiIdrIdT              IdrId,
+		SaHpiIdrAreaTypeT        AreaType,
+		SaHpiEntryIdT           *AreaId)
+
 {
-
-        struct dummy_inventories *inventory = &dummy_inventory;
-        int i;
-        int pos;
-
-        int rval = -1;
-        int done = FALSE;
-
-        done = FALSE;
-        i = 0;
-        do {
-                if(dummy_resource_status[i].ResourceId == id) {
-                        done = TRUE;
-                }
-                else  {
-                        i++;
-                }
-
-        } while ( (i < NUM_RESOURCES) && !done  );
-
-
-        if ( (i < NUM_RESOURCES) &&
-             (dummy_resources[i].ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA) ) {
-                rval = 0;
-
-                inventory->Validity = data->Validity;
-
-                for (i=0, pos=0; data->DataRecords[i] != NULL; i++) {
-                        /* FIXME:: very dirty hack to make code compile on IA64 */
-                        inventory->DataRecords[i] = (SaHpiInventDataRecordT *)(void *)&inventory->data[pos];
-                        memcpy(inventory->DataRecords[i], data->DataRecords[i], data->DataRecords[i]->DataLength+8);
-                        pos+=data->DataRecords[i]->DataLength+8;
-                }
-                inventory->DataRecords[i] = NULL;
-        }
-
-        return(rval);
+	return SA_ERR_HPI_READ_ONLY;
 }
-#endif
+
+static SaErrorT dummy_del_idr_area( void *hnd,
+		SaHpiResourceIdT       ResourceId,
+		SaHpiIdrIdT            IdrId,
+		SaHpiEntryIdT          AreaId)
+{
+	return SA_ERR_HPI_READ_ONLY;
+}
+
+static SaErrorT dummy_get_idr_field( void *hnd,
+		SaHpiResourceIdT       ResourceId,
+		SaHpiIdrIdT             IdrId,
+		SaHpiEntryIdT           AreaId,
+		SaHpiIdrFieldTypeT      FieldType,
+		SaHpiEntryIdT           FieldId,
+		SaHpiEntryIdT          *NextFieldId,
+		SaHpiIdrFieldT         *Field)
+{
+	SaErrorT  rv = SA_OK;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
+	int num_areas = 0, area_index = 0, field_index = 0, num_fields = 0;
+	SaHpiEntryIdT            thisAreaId;
+	SaHpiIdrFieldTypeT      thisFieldType;
+	SaHpiEntryIdT           thisFieldId;
+	SaHpiBoolT foundArea = FALSE;
+	SaHpiBoolT foundField = FALSE;
+	struct dummy_idr_area *thisArea;
+
+
+	if (rdr != NULL) {
+		struct dummy_inventories *s = dummy_inventory;
+		
+		num_areas =  s->idrinfo.NumAreas;
+		area_index = 0;
+		do { 
+		
+			thisAreaId = s->my_idr_area[area_index].idrareas.AreaId;
+			if ((thisAreaId == AreaId) || (AreaId == SAHPI_FIRST_ENTRY)) { 
+				foundArea = SAHPI_TRUE;
+				break;
+			}
+			area_index++;
+		} while (area_index < num_areas);
+		
+		
+		if (foundArea) {
+			num_fields = s->my_idr_area[area_index].idrareas.NumFields;
+			thisArea   = &(s->my_idr_area[area_index]);
+
+			do { 
+				thisFieldType = thisArea->idrfields[field_index].Type;
+				thisFieldId = thisArea->idrfields[field_index].FieldId;
+				if (((thisFieldId == FieldId) || (FieldId == SAHPI_FIRST_ENTRY)) 
+				   && ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED)))
+				{	 
+					memcpy(Field, &(thisArea->idrfields[field_index]), sizeof(SaHpiIdrFieldT)) ;
+					foundField = SAHPI_TRUE;
+					break;
+				}
+				field_index++;
+			} while (field_index < num_fields);
+			
+			if (foundField) {
+				foundField = SAHPI_FALSE;
+				do { 
+					thisFieldType = thisArea->idrfields[field_index].Type;
+					if ((thisFieldType == FieldType) || (FieldType == SAHPI_IDR_FIELDTYPE_UNSPECIFIED))
+					{	
+						*NextFieldId = thisArea->idrfields[field_index].FieldId; 					 
+						foundField = SAHPI_TRUE;
+						break;
+					}
+					field_index++;
+				} while (field_index < num_fields);
+				
+				if (!foundField) 
+					*NextFieldId = SAHPI_LAST_ENTRY;
+			} else {
+				rv = SA_ERR_HPI_NOT_PRESENT;			
+			}
+									
+		} else {
+			rv = SA_ERR_HPI_NOT_PRESENT;			
+		}
+		
+	} else {
+		rv = SA_ERR_HPI_NOT_PRESENT;
+	}
+	return rv;
+}
+
+static SaErrorT dummy_add_idr_field( void *hnd,
+		SaHpiResourceIdT         ResourceId,
+		SaHpiIdrIdT              IdrId,
+		SaHpiIdrFieldT        *Field)
+{
+	return SA_ERR_HPI_READ_ONLY;
+}
+
+static SaErrorT dummy_set_idr_field( void *hnd,
+		SaHpiResourceIdT         ResourceId,
+		SaHpiIdrIdT              IdrId,
+		SaHpiIdrFieldT           *Field)
+{
+	return SA_ERR_HPI_READ_ONLY;
+}
+
+static SaErrorT dummy_del_idr_field( void *hnd, 
+		SaHpiResourceIdT         ResourceId,
+		SaHpiIdrIdT              IdrId,
+		SaHpiEntryIdT            AreaId,
+		SaHpiEntryIdT            FieldId)
+{
+	return SA_ERR_HPI_READ_ONLY;
+}
 
 /************************************************************************/
 /* Watchdog functions                                                   */
@@ -1754,7 +2006,7 @@ static int dummy_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
                         hotswap_event[0].u.hpi_event.parent = id;
                         inst->eventq = g_slist_append(inst->eventq, __eventdup(&hotswap_event[0]));
                 } else {
-                        dbg("Cannot instertion");
+                        dbg("Fail insertion, HotSwap");
                         rval = -1;
                 }
 
@@ -1958,37 +2210,42 @@ static int dummy_set_reset_state(void *hnd, SaHpiResourceIdT id,
 }
 
 static struct oh_abi_v2 oh_dummy_plugin = {
-        .open                           = dummy_open,
-        .close                          = dummy_close,
-        .get_event                      = dummy_get_event,
-        .discover_resources             = dummy_discover_resources,
-        .get_el_info                   = dummy_get_el_info,
-        .set_el_time                   = dummy_set_el_time,
-        .add_el_entry                  = dummy_add_el_entry,
-        .get_el_entry                  = dummy_get_el_entry,
-        .get_sensor_data                = dummy_get_sensor_data,
-        .get_sensor_thresholds          = dummy_get_sensor_thresholds,
-        .set_sensor_thresholds          = dummy_set_sensor_thresholds,
-        .get_sensor_event_enables       = dummy_get_sensor_event_enabled,
-        .set_sensor_event_enables       = dummy_set_sensor_event_enabled,
-        .get_control_state              = dummy_get_control_state,
-        .set_control_state              = dummy_set_control_state,
-        /*.get_inventory_size   = dummy_get_inventory_size,
-        .get_inventory_info     = dummy_get_inventory_info,
-        .set_inventory_info     = dummy_set_inventory_info,*/
-        .get_watchdog_info      = dummy_get_watchdog_info,
-        .set_watchdog_info      = dummy_set_watchdog_info,
-        .reset_watchdog         = dummy_reset_watchdog,
-        .get_hotswap_state      = dummy_get_hotswap_state,
-        .set_hotswap_state      = dummy_set_hotswap_state,
-        .request_hotswap_action = dummy_request_hotswap_action,
-        .get_power_state        = dummy_get_power_state,
-        .set_power_state        = dummy_set_power_state,
-        .get_indicator_state    = dummy_get_indicator_state,
-        .set_indicator_state    = dummy_set_indicator_state,
-        .control_parm           = dummy_control_parm,
-        .get_reset_state        = dummy_get_reset_state,
-        .set_reset_state        = dummy_set_reset_state
+	.open			= dummy_open,
+	.close			= dummy_close,
+	.get_event		= dummy_get_event,
+	.discover_resources     = dummy_discover_resources,
+	.get_el_info		= dummy_get_sel_info,
+	.set_el_time		= dummy_set_sel_time,
+	.add_el_entry		= dummy_add_sel_entry,	
+	.get_el_entry		= dummy_get_sel_entry,
+	.get_sensor_data	= dummy_get_sensor_data,
+	.get_sensor_thresholds	= dummy_get_sensor_thresholds,
+	.set_sensor_thresholds	= dummy_set_sensor_thresholds,
+	.get_sensor_event_enables = dummy_get_sensor_event_enabled,
+	.set_sensor_event_enables = dummy_set_sensor_event_enabled,
+	.get_control_state	= dummy_get_control_state,
+	.set_control_state	= dummy_set_control_state,
+	.get_idr_info		= dummy_get_idr_info,
+	.get_idr_area_header	= dummy_get_idr_area_header,
+	.add_idr_area		= dummy_add_idr_area,
+	.del_idr_area		= dummy_del_idr_area,
+	.get_idr_field		= dummy_get_idr_field,
+	.add_idr_field		= dummy_add_idr_field,
+	.set_idr_field		= dummy_set_idr_field,
+	.del_idr_field		= dummy_del_idr_field,
+	.get_watchdog_info	= dummy_get_watchdog_info,
+	.set_watchdog_info	= dummy_set_watchdog_info,
+	.reset_watchdog		= dummy_reset_watchdog,
+	.get_hotswap_state	= dummy_get_hotswap_state,
+	.set_hotswap_state	= dummy_set_hotswap_state,
+	.request_hotswap_action	= dummy_request_hotswap_action,
+	.get_power_state	= dummy_get_power_state,
+	.set_power_state	= dummy_set_power_state,
+	.get_indicator_state	= dummy_get_indicator_state,
+	.set_indicator_state	= dummy_set_indicator_state,
+	.control_parm		= dummy_control_parm,
+	.get_reset_state	= dummy_get_reset_state,
+	.set_reset_state	= dummy_set_reset_state
 };
 
 int dummy_get_interface(void **pp, const uuid_t uuid);

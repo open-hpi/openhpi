@@ -1628,122 +1628,12 @@ SaErrorT SAHPI_API saHpiControlSet (
         return rv;
 }
 
-/* current sahpi.h missed SA_ERR_INVENT_DATA_TRUNCATED */
-// #ifndef SA_ERR_INVENT_DATA_TRUNCATED
-//#warning "No 'SA_ERR_INVENT_DATA_TRUNCATED 'definition in sahpi.h!"
-// #define SA_ERR_INVENT_DATA_TRUNCATED    (SaErrorT)(SA_HPI_ERR_BASE - 1000)
-// #endif
 
-#if 0
-
-SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiEirIdT EirId,
-                SAHPI_IN SaHpiUint32T BufferSize,
-                SAHPI_OUT SaHpiInventoryDataT *InventData,
-                SAHPI_OUT SaHpiUint32T *ActualSize)
-{
-        SaErrorT rv;
-        SaErrorT (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiUint32T *);
-        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiInventoryDataT *);
-        struct oh_session *s;
-        RPTable *rpt;
-        SaHpiRptEntryT *res;
-        struct oh_handler *h;
-
-        data_access_lock();
-        OH_STATE_READY_CHECK;
-        OH_SESSION_SETUP(SessionId, s);
-        OH_RPT_GET(SessionId, rpt);
-        OH_RESOURCE_GET(rpt, ResourceId, res);
-
-        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
-                dbg("Resource %d doesn't have inventory data",ResourceId);
-                data_access_unlock();
-                return SA_ERR_HPI_CAPABILITY;
-        }
-
-        OH_HANDLER_GET(rpt, ResourceId, h);
-
-        get_size = h->abi->get_inventory_size;
-        get_func = h->abi->get_inventory_info;
-        if (!get_func || !get_size) {
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID_CMD;
-         }
-
-        if (ActualSize == NULL) {
-                dbg("NULL pointer for ActualSize storage\n");
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        rv = get_size(h->hnd, ResourceId, EirId, ActualSize);
-        if ( rv ) {
-                data_access_unlock();
-                return rv;
-        }
-
-        if (*ActualSize>BufferSize) {
-                data_access_unlock();
-                return SA_ERR_INVENT_DATA_TRUNCATED;
-        }
-
-        if (InventData == NULL) {
-                dbg("Call does not have buffer to store inventory data\n");
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-
-        rv = get_func(h->hnd, ResourceId, EirId, InventData);
-        data_access_unlock();
-
-        return rv;
-}
-
-SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiEirIdT EirId,
-                SAHPI_IN SaHpiInventoryDataT *InventData)
-{
-        SaErrorT rv;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, const SaHpiInventoryDataT *);
-        struct oh_session *s;
-        RPTable *rpt;
-        SaHpiRptEntryT *res;
-        struct oh_handler *h;
-
-        data_access_lock();
-        OH_STATE_READY_CHECK;
-        OH_SESSION_SETUP(SessionId, s);
-        OH_RPT_GET(SessionId, rpt);
-        OH_RESOURCE_GET(rpt, ResourceId, res);
-
-        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
-                dbg("Resource %d doesn't have inventory data",ResourceId);
-                data_access_unlock();
-                return SA_ERR_HPI_CAPABILITY;
-        }
-
-        OH_HANDLER_GET(rpt, ResourceId, h);
-
-        set_func = h->abi->set_inventory_info;
-        if (!set_func) {
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        rv = set_func(h->hnd, ResourceId, EirId, InventData);
-        data_access_unlock();
-
-        return rv;
-}
-
-// Peter gets to recode inventory
-
-#endif
+/*********************************************************************
+ *
+ *  Inventory Functions
+ *
+ ********************************************************************/
 
 SaErrorT SAHPI_API saHpiIdrInfoGet(
         SAHPI_IN SaHpiSessionIdT         SessionId,
@@ -1751,7 +1641,50 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         SAHPI_IN SaHpiIdrIdT             IdrId,
         SAHPI_OUT SaHpiIdrInfoT          *IdrInfo)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, const SaHpiIdrInfoT *);
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	if ((IdrInfo == NULL) && (rv == SA_OK)) {
+                dbg("NULL IdrInfo");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->get_idr_info;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access IdrInfo from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId, IdrInfo);
+	}
+	
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
 }
 
 SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
@@ -1763,7 +1696,58 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
         SAHPI_OUT SaHpiEntryIdT           *NextAreaId,
         SAHPI_OUT SaHpiIdrAreaHeaderT     *Header)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
+			      SaHpiEntryIdT, const SaHpiEntryIdT *, const SaHpiIdrAreaHeaderT *);
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	
+	if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
+	     ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
+	     (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
+	     (AreaType != SAHPI_IDR_AREATYPE_OEM)) || 
+	     (AreaId == SAHPI_LAST_ENTRY)||
+	     (NextAreaId == NULL) ||
+	     (Header == NULL)) && (rv == SA_OK))   {
+                dbg("Invalid Parameters");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->get_idr_area_header;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access IdrAreaHeader from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId,AreaType, AreaId, NextAreaId, Header);
+	}
+	
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
 }
 
 SaErrorT SAHPI_API saHpiIdrAreaAdd(
@@ -1773,7 +1757,56 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
         SAHPI_IN SaHpiIdrAreaTypeT        AreaType,
         SAHPI_OUT SaHpiEntryIdT           *AreaId)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiIdrAreaTypeT,
+			      const  SaHpiEntryIdT *);
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	
+	if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
+	     ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
+	     (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
+	     (AreaType != SAHPI_IDR_AREATYPE_OEM)) || 
+	     (AreaId == NULL)) && (rv == SA_OK))   {
+                dbg("Invalid Parameters");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->add_idr_area;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access IdrAreaAdd from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId, AreaType, AreaId);
+	}
+	
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
+
 }
 
 SaErrorT SAHPI_API saHpiIdrAreaDelete(
@@ -1782,7 +1815,53 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
     SAHPI_IN SaHpiIdrIdT            IdrId,
     SAHPI_IN SaHpiEntryIdT          AreaId)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT );
+
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	
+	if ( (AreaId == SAHPI_LAST_ENTRY) && (rv == SA_OK))   {
+                dbg("Invalid Parameters");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->del_idr_area;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access IdrAreaDelete from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId, AreaId);
+	}
+	
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
+
+      
 }
 
 SaErrorT SAHPI_API saHpiIdrFieldGet(
@@ -1795,7 +1874,59 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
         SAHPI_OUT SaHpiEntryIdT          *NextFieldId,
         SAHPI_OUT SaHpiIdrFieldT         *Field)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT,
+	                     SaHpiEntryIdT, SaHpiIdrFieldTypeT, SaHpiEntryIdT,
+			     const  SaHpiEntryIdT *, const SaHpiIdrFieldT * );
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	
+	if ((((FieldType > SAHPI_IDR_FIELDTYPE_CUSTOM) &&
+	     (FieldType != SAHPI_IDR_FIELDTYPE_UNSPECIFIED)) ||
+	     (AreaId == SAHPI_LAST_ENTRY) ||
+	     (FieldId == SAHPI_LAST_ENTRY) ||
+	     (NextFieldId == NULL) ||  
+	     (Field == NULL)) && (rv == SA_OK))    {
+                dbg("Invalid Parameters");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->get_idr_field;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access saHpiIdrFieldGet from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId, AreaId,
+		               FieldType, FieldId, NextFieldId, Field);
+	}
+	
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
+
 }
 
 SaErrorT SAHPI_API saHpiIdrFieldAdd(
@@ -1804,7 +1935,56 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
         SAHPI_IN SaHpiIdrIdT              IdrId,
         SAHPI_INOUT SaHpiIdrFieldT        *Field)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, const SaHpiIdrFieldT * );
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	
+	if ((Field == NULL) && (rv == SA_OK))   {
+                dbg("Invalid Parameter: Field is NULL ");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+	if ((Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM) && (rv == SA_OK)) {	
+		dbg("Invalid Parameters in Field->Type");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+		
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->add_idr_field;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access saHpiIdrFieldAdd from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId, Field);
+	}
+
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
 }
 
 SaErrorT SAHPI_API saHpiIdrFieldSet(
@@ -1813,7 +1993,57 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
         SAHPI_IN SaHpiIdrIdT              IdrId,
         SAHPI_IN SaHpiIdrFieldT           *Field)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, const SaHpiIdrFieldT * );
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	
+	if ((Field == NULL) && (rv == SA_OK))   {
+                dbg("Invalid Parameter: Field is NULL ");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+	if ((Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM) && (rv == SA_OK)) {	
+		dbg("Invalid Parameters in Field->Type");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+		
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->set_idr_field;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access saHpiIdrFieldSet from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId, Field);
+	}
+
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
+
 }
 
 SaErrorT SAHPI_API saHpiIdrFieldDelete(
@@ -1823,8 +2053,55 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
         SAHPI_IN SaHpiEntryIdT            AreaId,
         SAHPI_IN SaHpiEntryIdT            FieldId)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
+	SaErrorT rv = SA_OK;	/* Default to SA_OK */
+        struct oh_handler *h;
+        struct oh_session *s;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiIdrIdT, SaHpiEntryIdT, SaHpiEntryIdT );
+	
+	
+        data_access_lock();
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+	/* Interface and conformance checking */
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                rv =  SA_ERR_HPI_CAPABILITY;
+        }
+	
+	
+	if ( ((FieldId == SAHPI_LAST_ENTRY)|| (AreaId == SAHPI_LAST_ENTRY)) && (rv == SA_OK))   {
+                dbg("Invalid Parameters");
+                rv =  SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+        set_func = h->abi->del_idr_field;
+        if ((!set_func) && (rv == SA_OK)) {
+                dbg("Plugin does not have this function in jump table.");
+		/* SA_ERR_HPI_UNSUPPORTED_API is used for non-conformance HPI implementation */
+                rv = SA_ERR_HPI_INVALID_CMD;
+        }
+
+
+	/* Access Inventory Info from plugin */
+	if (rv == SA_OK) { 
+	        dbg("Access saHpiIdrFieldDelete from plugin.");
+        	rv = set_func(h->hnd, ResourceId, IdrId, AreaId, FieldId);
+	}
+
+	/* Free mutext then return */
+        data_access_unlock();
+	return rv;
+
 }
+
+/* End of Inventory Functions  */
 
 /*********************************************************************
  *
