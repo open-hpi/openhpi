@@ -54,8 +54,13 @@ struct oh_resource {
 
 	struct oh_resource_id	oid;
 	SaHpiRptEntryT		entry;
-	/* valid when entry.ResourceCapabilities | SAHPI_CAPABILITY_DOMAIN */
-	struct oh_domain 	*domain;
+	
+	/* 
+	 * when entry.ResourceCapabilities | SAHPI_CAPABILITY_DOMAIN 
+	 * The entry.DomainId identies the domain which the resource
+	 * contains
+	 */
+	
 	/* valid when entry.ResourceCapabilities | SAHPI_CAPABILITY_SEL */
 	struct oh_sel		*sel;
 	/* valid when entry.ResourceCapabilities | SAHPI_CAPABILITY_RDR */
