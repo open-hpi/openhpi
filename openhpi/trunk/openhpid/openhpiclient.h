@@ -29,6 +29,11 @@
 #define OH_CLIENT_DEFAULT_CONF "/etc/openhpi/openhpiclient.conf"
 #endif
 
+// 30s timeout for messages
+#define dDefaultMessageTimeout 30000
+
+// 20 outstanding messages before block
+#define dDefaultMaxOutstanding 20
 
 struct sOpenHpiClientRequest;
 typedef struct sOpenHpiClientRequest cOpenHpiClientRequest;

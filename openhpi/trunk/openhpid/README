@@ -6,12 +6,12 @@ openhpid.cpp        - the daemon
 simple_config.c     - general config file reading code
 
 To run type:
-openhpid -d 15
+openhpid -d 31
 This enables debug messages of the daemon.
 To run more than one daemon on the same machine, use
-the option -c for different configurations.
+the option -c config_file for different configurations.
 
-To use the daemon, link you HPI application to -lopenhpiclient
+To use the daemon, link you HPI application to -lopenhpiclient -lpthread
 not -lopenhpi. To run hpitest with the daemon/client library just
 change hpitest/v1/1.0/LDFLAGS.
 Be aware, hpitest will run in unexpected high speed.

@@ -709,7 +709,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
   cHpiMarshal *hm = HpiMarshalFind( header.m_id );
 
   // check for function and data length
-  if ( !hm || hm->m_request_len != header.m_len )
+  if ( !hm || hm->m_request_len < header.m_len )
      {
        //MessageHeaderInit( &rh, eMhError, header.m_seq, 0, 0 );
        //rd = 0;
