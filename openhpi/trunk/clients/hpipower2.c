@@ -101,52 +101,47 @@ main(int argc, char **argv)
 		SaErrorT rv1;
 		
 		rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-		if (rv != SA_OK)
+		if (rv != SA_OK) {
 		       printf("RptEntryGet: rv = %d\n",rv);
-		else {
-			/* walk the RDR list for this RPT entry */
-			resourceid = rptentry.ResourceId;
-			rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
-			printf("rptentry[%d] resourceid=%d tag: %s\n",
-					rptentryid,resourceid, (char *)rptentry.ResourceTag.Data);
-			
-			if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
-				is_power = 1;
-				
-				/* read the current power state */
-				rv1 = saHpiResourcePowerStateGet(sessionid, resourceid,
-								&current_state);
-				if (rv1 != SA_OK) {
-					printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
-					rptentryid = nextrptentryid;
-					continue;
-				} 
+		       break;
+		};
+		/* walk the RDR list for this RPT entry */
+		resourceid = rptentry.ResourceId;
+		rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
+		printf("rptentry[%d] resourceid=%d tag: %s\n",
+				rptentryid,resourceid, (char *)rptentry.ResourceTag.Data);
 
+		if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
+			is_power = 1;
+
+			/* read the current power state */
+			rv1 = saHpiResourcePowerStateGet(sessionid, resourceid,
+							&current_state);
+			if (rv1 != SA_OK) {
+				printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
+				rptentryid = nextrptentryid;
+				continue;
+			} 
 				printf("Current power state:");
-				state2str(current_state);
-					
-				
-				/* set new power state */
-				printf("Setting power state to:");
-				state2str(in_state);
+			state2str(current_state);
 
+			/* set new power state */
+			printf("Setting power state to:");
+			state2str(in_state);
 				rv1 = saHpiResourcePowerStateSet(sessionid, resourceid, in_state);
-				if (rv1 != SA_OK)
-				       printf("PowerStateSet status = %d\n",rv1);
-
+			if (rv1 != SA_OK)
+			       printf("PowerStateSet status = %d\n",rv1);
 				/* check new state again */
-				rv1 = saHpiResourcePowerStateGet(sessionid, resourceid,
-								&current_state);
-				if (rv1 != SA_OK)
-					printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
-				else
-					printf("New power state:");
-					state2str(current_state);
-				};	
-
-			rptentryid = nextrptentryid;
-
-		}
+			rv1 = saHpiResourcePowerStateGet(sessionid, resourceid,
+							&current_state);
+			if (rv1 != SA_OK)
+				printf("saHpiResourcePowerStateGet: error = %d\n", rv1);
+			else {
+				printf("New power state:");
+				state2str(current_state);
+			}	
+		};
+		rptentryid = nextrptentryid;
 	}
 
 	 rv = saHpiSessionClose(sessionid);
