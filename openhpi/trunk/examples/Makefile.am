@@ -11,7 +11,7 @@ bin_PROGRAMS		= list_resources
 include_HEADERS		= 
 
 list_resources_SOURCES	= list_resources.c
-list_resources_LDADD	= $(COMMONLIBS) -lltdl
+list_resources_LDADD	= $(COMMONLIBS)
 list_resources_LDFLAGS	= 
 
 clean:

@@ -16,7 +16,7 @@
 #ifndef __OH_CONFIG_H
 #define __OH_CONFIG_H
 
-#include <glib-1.2/glib.h>
+#include <glib.h>
 #include <SaHpi.h>
 
 /*
