@@ -139,8 +139,8 @@ static void __set_control_state(ipmi_control_t *control,
                                 int            err,
                                 void           *cb_data)
 {
-       struct ohoi_control_info *info = cb_data;
-       info->done = 1;
+	struct ohoi_control_info *info = cb_data;
+	info->done = 1;
 	if (err) {
 		dbg("__set_control_state: err = %d", err);
 		info->err = SA_ERR_HPI_INTERNAL_ERROR;
@@ -156,12 +156,128 @@ static void _set_control_state(ipmi_control_t *control,
                         != ipmi_control_get_num_vals(control)) {
                 dbg("control number is not equal to supplied data");
                 info->done = -1;
+		info->err = SA_ERR_HPI_INVALID_PARAMS;
                 return;
         }
                         
         ipmi_control_set_val(control, 
                              (int *)&info->state->StateUnion.Oem.Body[0],
                              __set_control_state, info);
+}
+
+static SaErrorT set_front_panrl_alarm_led(void *hnd,
+					  SaHpiResourceIdT id,
+					  SaHpiCtrlNumT num,
+					  ipmi_control_id_t *ctrl,
+					  SaHpiUint8T idx,
+					  SaHpiCtrlModeT mode,
+					  SaHpiCtrlStateT *state)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+        struct ohoi_control_info info;
+	SaErrorT         rv;
+	SaHpiUint8T val, mask;
+
+
+	/* just get the current control states */
+	rv = ohoi_get_control_state(hnd, id, num, NULL, NULL);
+	if (rv != SA_OK) {
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	
+	val = oem_alarm_state;
+	val |= 0xf0;  /* h.o. nibble always write 1 */
+	state->Type = SAHPI_CTRL_TYPE_OEM;
+	state->StateUnion.Oem.BodyLength = 1;
+	state->StateUnion.Oem.Body[0] = val;
+	mask = 0x01;
+	/* bits 0 - 3 = Pwr, Crit, Maj, Min */
+	mask = 1 << idx;
+//	for (i = 0; i < idx; i++) mask = mask << 1;
+        info.done  = 0;
+        info.state = state;
+	info.err = SA_OK;
+	switch (state->StateUnion.Digital) {
+	case SAHPI_CTRL_STATE_ON :
+		if (!(val & mask)) { /* already turned on */
+			return SA_OK;
+		} 
+		state->StateUnion.Oem.Body[0] = val & ~mask;
+		break;
+	case SAHPI_CTRL_STATE_OFF :
+		if (val & mask) { /* already turned off */
+			return SA_OK;
+		} 
+		state->StateUnion.Oem.Body[0] = val |mask;
+		break;
+
+	case SAHPI_CTRL_STATE_PULSE_ON :
+		if (!(val & mask)) { /* already turned on */
+			return SA_ERR_HPI_INVALID_REQUEST;
+		}
+		/* turn it on */
+		state->StateUnion.Oem.Body[0] = val & ~mask;
+        	rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+		if (rv) {
+			dbg("Unable to set control state");
+			return SA_ERR_HPI_ERROR;
+		}
+        	rv = ohoi_loop(&info.done, ipmi_handler);
+		if (info.err != SA_OK) {
+			dbg("Unable to set control state");
+			return info.err;
+		}
+		if (rv != SA_OK) {
+			dbg("Unable to set control state");
+			return rv;
+		}
+		/* then turn it off. IPMI is slow, it provides us delay */
+		state->StateUnion.Oem.Body[0] = val | mask;
+		break;
+	case SAHPI_CTRL_STATE_PULSE_OFF :
+		if (val & mask) { /* already turned off */
+			return SA_ERR_HPI_INVALID_REQUEST;
+		}
+		/* turn it off */
+		state->StateUnion.Oem.Body[0] = val | mask;
+        	rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+		if (rv) {
+			dbg("Unable to set control state");
+			return SA_ERR_HPI_ERROR;
+		}
+        	rv = ohoi_loop(&info.done, ipmi_handler);
+		if (info.err != SA_OK) {
+			dbg("Unable to set control state");
+			return info.err;
+		}
+		if (rv != SA_OK) {
+			dbg("Unable to set control state");
+			return rv;
+		}
+		/* then turn it on. IPMI is slow, it provides us delay */
+		state->StateUnion.Oem.Body[0] = val | mask;
+		break;
+	default :
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+	
+        rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
+	if (rv) {
+		dbg("Unable to set control state");
+		return SA_ERR_HPI_ERROR;
+	}
+        rv = ohoi_loop(&info.done, ipmi_handler);
+	if (info.err != SA_OK) {
+		dbg("Unable to set control state");
+		return info.err;
+	}
+	if (rv != SA_OK) {
+		dbg("Unable to set control state");
+		return rv;
+	}
+	
+	return SA_OK;
 }
 
 SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
@@ -175,7 +291,6 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
 	SaErrorT         rv;
 	ipmi_control_id_t *ctrl;
 	SaHpiRdrT * rdr;
-	SaHpiUint8T val, mask, idx, i;
 
 	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_CTRL_RDR, num);
 	if (!rdr) return SA_ERR_HPI_INVALID_RESOURCE;
@@ -186,19 +301,9 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
             (rdr->RdrTypeUnion.CtrlRec.OutputType == SAHPI_CTRL_LED) &&
             (rdr->RdrTypeUnion.CtrlRec.Oem >= OEM_ALARM_BASE)) {
                 /* This is a front panel alarm LED. */
-                val = oem_alarm_state;
-                val |= 0xf0;  /* h.o. nibble always write 1 */
-                mask = 0x01;
-                idx = rdr->RdrTypeUnion.CtrlRec.Oem - OEM_ALARM_BASE;
-                /* bits 0 - 3 = Pwr, Crit, Maj, Min */
-                for (i = 0; i < idx; i++) mask = mask << 1;
-                if (state->StateUnion.Digital == SAHPI_CTRL_STATE_ON)
-                        val &= (0xff - mask);  /*turn it on */
-                else   /* turn it off */
-                        val |= mask;
-                state->Type = SAHPI_CTRL_TYPE_OEM;
-                state->StateUnion.Oem.BodyLength = 1;
-                state->StateUnion.Oem.Body[0] = val;
+		return set_front_panrl_alarm_led(hnd, id, num, ctrl,
+			rdr->RdrTypeUnion.CtrlRec.Oem - OEM_ALARM_BASE,
+			mode, state);
         }
         info.done  = 0;
         info.state = state;
@@ -209,7 +314,7 @@ SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
        
         rv = ipmi_control_pointer_cb(*ctrl, _set_control_state, &info);
 	if (rv) {
-		dbg("Unable to retrieve control state");
+		dbg("Unable to set control state");
 		return SA_ERR_HPI_ERROR;
 	}
 

@@ -152,6 +152,8 @@ static void add_alarm_rdr(char 				*name,
 			  int 				num,
 			  SaHpiResourceIdT 		rptid,
 			  SaHpiEntityPathT 		parent_ent,
+			  SaHpiCtrlDefaultModeT		*def_mode,
+			  SaHpiBoolT			wo,
 			  ipmi_control_id_t 		*control_id,
 			  struct oh_handler_state 	*handler)
 {
@@ -175,11 +177,14 @@ static void add_alarm_rdr(char 				*name,
 
         rdr->RdrTypeUnion.CtrlRec.Num   = num;
         rdr->RdrTypeUnion.CtrlRec.Type         = SAHPI_CTRL_TYPE_DIGITAL;
+        rdr->RdrTypeUnion.CtrlRec.TypeUnion.Digital.Default =
+						SAHPI_CTRL_STATE_OFF;
         rdr->RdrTypeUnion.CtrlRec.OutputType   = SAHPI_CTRL_LED; 
         rdr->RdrTypeUnion.CtrlRec.Oem          = OEM_ALARM_BASE + num;
 	/* FIXME: OpenIPMI does not provide a reading */
-        rdr->RdrTypeUnion.CtrlRec.WriteOnly    = SAHPI_FALSE;
-
+        rdr->RdrTypeUnion.CtrlRec.WriteOnly    = wo;
+	rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode = def_mode->Mode;
+	rdr->RdrTypeUnion.CtrlRec.DefaultMode.ReadOnly = def_mode->ReadOnly;
         oh_add_rdr(handler->rptcache, rptid, rdr, control_id, 1);
 	dbg("add_alarm_rdr: %s\n",name); 
 }
@@ -194,22 +199,31 @@ static int add_alarm_rdrs(
 {
 	SaHpiResourceIdT   	rid;
         SaHpiEntityPathT        ent;
+	SaHpiCtrlDefaultModeT default_mode;
+	SaHpiBoolT wo;
 	static ipmi_control_id_t   alarm_control_id;  /*save this */
 	static int alarms_done = 0;
+	
 
 	if (alarms_done) return 0;  /* only do alarms the first time */
 	rid = rpt->ResourceId;
 	ent = rpt->ResourceEntity;
 
 	alarm_control_id = ipmi_control_convert_to_id(control);
-
+	wo = (ipmi_control_is_readable(control) == 0);
+	default_mode.ReadOnly = (ipmi_control_is_settable(control) != 0);
+	default_mode.Mode = SAHPI_CTRL_MODE_AUTO;
 	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR;
 	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_CONTROL;
 
-	add_alarm_rdr("Power Alarm LED",   0,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Critical Alarm LED",1,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Major Alarm LED",   2,rid,ent,&alarm_control_id,handler);
-	add_alarm_rdr("Minor Alarm LED",   3,rid,ent,&alarm_control_id,handler);
+	add_alarm_rdr("Power Alarm LED", 0, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
+	add_alarm_rdr("Critical Alarm LED", 1, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
+	add_alarm_rdr("Major Alarm LED", 2, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
+	add_alarm_rdr("Minor Alarm LED",   3, rid, ent,
+		&default_mode, wo, &alarm_control_id, handler);
 	alarms_done = 1;
 	return 0;
 }
