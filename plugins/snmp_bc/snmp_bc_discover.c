@@ -265,11 +265,10 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), sensor_array[i].comment);
-#if 0
-			trace("Discovered sensor: %s.", e->u.rdr_event.rdr.IdString.Data);
-#endif
-			sensor_info_ptr = g_memdup(&(sensor_array[i].sensor_info), sizeof(struct SensorInfo));
 
+			trace("Discovered sensor: %s.", e->u.rdr_event.rdr.IdString.Data);
+
+			sensor_info_ptr = g_memdup(&(sensor_array[i].sensor_info), sizeof(struct SensorInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
 					 &(e->u.rdr_event.rdr),
@@ -349,9 +348,9 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), control_array[i].comment);
-#if 0
+
 			trace("Discovered control: %s.", e->u.rdr_event.rdr.IdString.Data);
-#endif
+
 			control_info_ptr = g_memdup(&(control_array[i].control_info), sizeof(struct ControlInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,
@@ -429,9 +428,9 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 
 			oh_init_textbuffer(&(e->u.rdr_event.rdr.IdString));
 			oh_append_textbuffer(&(e->u.rdr_event.rdr.IdString), inventory_array[i].comment);
-#if 0
+
 			trace("Discovered inventory: %s.", e->u.rdr_event.rdr.IdString.Data);
-#endif
+
 			inventory_info_ptr = g_memdup(&(inventory_array[i].inventory_info), sizeof(struct InventoryInfo));
 			err = oh_add_rdr(custom_handle->tmpcache,
 					 res_oh_event->u.res_event.entry.ResourceId,

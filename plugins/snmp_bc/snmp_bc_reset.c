@@ -126,10 +126,9 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 		
 		err = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (err) {
-			dbg("SNMP could not set OID=%s; Type=%d.", oid, set_value.type);
+			dbg("Cannot set SNMP OID=%s; Type=%d.", oid, set_value.type);
 			g_free(oid);
-			if (err == SA_ERR_HPI_BUSY) return(err);
-			else return(SA_ERR_HPI_NO_RESPONSE);
+			return(err);
 		}
 		g_free(oid);
 		break;

@@ -838,8 +838,7 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	if (err) {
 		dbg("SNMP cannot set sensor OID=%s.", oid);
 		g_free(oid);
-		if (err == SA_ERR_HPI_BUSY) return(err);
-		else return(SA_ERR_HPI_NO_RESPONSE);
+		return(err);
 	}
 	g_free(oid);
 		
