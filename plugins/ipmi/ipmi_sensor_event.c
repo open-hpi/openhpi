@@ -175,8 +175,17 @@ static struct oh_event *sensor_discrete_map_event(
 
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum = 0;
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType = data[7];
-	e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory 
-                = data[9] & 0x7f;
+	if ((data[9] & 0x7f) == 0x6f) {
+		/* sensor specific event */
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory = 
+			SAHPI_EC_SENSOR_SPECIFIC;
+	} else if ((data[9] & 0x7f) >= 0x70) {
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory = 
+			SAHPI_EC_GENERIC;	
+	} else {
+		e->u.hpi_event.event.EventDataUnion.SensorEvent.EventCategory 
+                	= data[9] & 0x7f;
+	}
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.Assertion 
                 = !(dir);
 
@@ -781,8 +790,7 @@ typedef struct {
 static void get_sensor_by_sensor_id_handler(ipmi_sensor_t *sensor,
 					    void *info)
 {
-	sens_info_t	*data = (sens_info_t *)info;
-	
+	sens_info_t	*data = (sens_info_t *)info;	
 	data->sensor = sensor;
 	data->done = 1;
 }
