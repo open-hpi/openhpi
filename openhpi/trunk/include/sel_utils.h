@@ -41,8 +41,8 @@ SaErrorT oh_sel_close(oh_sel *sel);
 SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry);
 SaErrorT oh_sel_delete(oh_sel *sel, SaHpiEntryIdT *entryid);
 SaErrorT oh_sel_clear(oh_sel *sel);
-SaErrorT oh_sel_get(oh_sel *sel, SaHpiEntryIdT entryid, SaHpiSelEntryId *prev,
-                    SaHpiSelEntryId *next, SaHpiSelEntryT **entry);
+SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *prev,
+                    SaHpiSelEntryIdT *next, SaHpiSelEntryT **entry);
 SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename);
 SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename);
 SaErrorT oh_sel_timeset(oh_sel *sel, SaHpiTimeT timestamp);
