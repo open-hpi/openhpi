@@ -19,6 +19,7 @@ REMOTE_SIM_SOURCES 	= 	bc_resources.c \
 				snmp_bc_inventory.c \
 	     			snmp_bc_sel.c \
 				snmp_bc_sensor.c \
+				snmp_bc_time.c \
 				snmp_bc_utils.c \
 				snmp_bc_watchdog.c
 
