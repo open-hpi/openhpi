@@ -1181,6 +1181,39 @@ static int dummy_discover_resources(void *hnd)
         return 0;
 }
 
+static SaErrorT dummy_set_resource_tag(void *hnd, SaHpiResourceIdT id, SaHpiTextBufferT *tag)
+{
+        struct oh_handler_state *inst = hnd;
+        SaHpiRptEntryT *resource = NULL;
+        
+        if (!tag)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        
+        resource = oh_get_resource_by_id(inst->rptcache, id);
+        if (!resource) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        memcpy(&resource->ResourceTag, tag, sizeof(SaHpiTextBufferT));
+        
+        return SA_OK;
+}
+
+static SaErrorT dummy_set_resource_severity(void *hnd, SaHpiResourceIdT id, SaHpiSeverityT sev)
+{
+        struct oh_handler_state *inst = hnd;
+        SaHpiRptEntryT *resource = NULL;
+        
+        resource = oh_get_resource_by_id(inst->rptcache, id);
+        if (!resource) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
+        resource->ResourceSeverity = sev;
+        
+        return SA_OK;
+}
+
 static int sel_enabled;
 
 static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
@@ -1996,6 +2029,8 @@ static struct oh_abi_v2 oh_dummy_plugin = {
         .close                  = dummy_close,
         .get_event              = dummy_get_event,
         .discover_resources     = dummy_discover_resources,
+        .set_resource_tag       = dummy_set_resource_tag,
+        .set_resource_severity  = dummy_set_resource_severity,
         .get_el_info            = dummy_get_sel_info,
         .set_el_time            = dummy_set_sel_time,
         .add_el_entry           = dummy_add_sel_entry,  
