@@ -52,20 +52,21 @@ SaErrorT snmp_bc_get_control_state(void *hnd, SaHpiResourceIdT id,
 
 	memset(&working, 0, sizeof(SaHpiCtrlStateT));
 	working.Type = rdr->RdrTypeUnion.CtrlRec.Type;
+
+	oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
+	if(oid == NULL) {
+		dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
+		return -1;
+	}
+	if((snmp_get(custom_handle->ss, oid, &get_value) != 0) | (get_value.type != ASN_INTEGER)) {
+		dbg("SNMP could not read %s; Type=%d.\n", oid, get_value.type);
+		g_free(oid);
+		return SA_ERR_HPI_NO_RESPONSE;
+	}
+	g_free(oid);
 	
 	switch (working.Type) {
 	case SAHPI_CTRL_TYPE_DIGITAL:
-		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
-		if(oid == NULL) {
-			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-			return -1;
-		}
-		if((snmp_get(custom_handle->ss, oid, &get_value) != 0) | (get_value.type != ASN_INTEGER)) {
-			dbg("SNMP could not read %s; Type=%d.\n", oid, get_value.type);
-			g_free(oid);
-			return SA_ERR_HPI_NO_RESPONSE;
-		}
-		g_free(oid);
 		
 		found = 0;
 		/* Icky dependency on SaHpiStateDigitalT enum */
@@ -102,10 +103,9 @@ SaErrorT snmp_bc_get_control_state(void *hnd, SaHpiResourceIdT id,
 			return -1;
 		}
 		break;
-
 	case SAHPI_CTRL_TYPE_DISCRETE:
-		dbg("Discrete controls not supported\n");
-		return -1;
+		working.StateUnion.Discrete = get_value.integer;
+		break;
 	case SAHPI_CTRL_TYPE_ANALOG:
 		dbg("Analog controls not supported\n");
 		return -1;
@@ -202,10 +202,26 @@ SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
 			return SA_ERR_HPI_NO_RESPONSE;
 		}
 		g_free(oid);
+		break;
 
 	case SAHPI_CTRL_TYPE_DISCRETE:
-		dbg("Discrete controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
+		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
+		if(oid == NULL) {
+			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
+			return -1;
+		}
+
+		set_value.type = ASN_INTEGER;
+		set_value.str_len = 1;
+		set_value.integer = state->StateUnion.Discrete;
+
+		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
+			dbg("SNMP could not set %s; Type=%d.\n",s->mib.oid,set_value.type);
+			g_free(oid);
+			return SA_ERR_HPI_NO_RESPONSE;
+		}
+		g_free(oid);
+		break;
 	case SAHPI_CTRL_TYPE_ANALOG:
 		dbg("Analog controls not supported\n");
 		return SA_ERR_HPI_INVALID_CMD;
