@@ -32,9 +32,9 @@ typedef struct {
 } Str2EventInfoT;
 
 /* Global String 2 Event Hash Table */
-GHashTable * str2event_hash;
+extern GHashTable * rsa_str2event_hash;
 
-int str2event_hash_init(void);
-int str2event_hash_free(void);
+int rsa_str2event_hash_init(void);
+int rsa_str2event_hash_free(void);
 
 #endif

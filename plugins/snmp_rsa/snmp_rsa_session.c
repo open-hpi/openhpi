@@ -32,7 +32,7 @@ int sim_banner(void);
 int sim_init(void);
 int sim_close(void);
 
-extern unsigned int str2event_use_count;  
+extern unsigned int rsa_str2event_use_count;  
 /**
  * snmp_rsa_open: open RSA plugin
  * @handler_config: hash table passed by infrastructure
@@ -76,14 +76,14 @@ void *snmp_rsa_open(GHashTable *handler_config)
         handle->selcache =  oh_sel_create(512);
 
 	/* Initialize String-to-Event hash table */
-	if (str2event_use_count == 0) {  
-		if (str2event_hash_init()) {
+	if (rsa_str2event_use_count == 0) {  
+		if (rsa_str2event_hash_init()) {
 			dbg("Couldn't initialize str2event hash table.");
 			return NULL;
 		}
-		str2event_use_count++;
+		rsa_str2event_use_count++;
 	} else 
-		str2event_use_count++;
+		rsa_str2event_use_count++;
 	
 	/* Initialize RSA_Event_Number-to-HPI_Event hash table */
 	if (event2hpi_hash_init(handle)) {
@@ -234,11 +234,11 @@ void snmp_rsa_close(void *hnd)
 	}
 
 	/* Cleanup str2event hash table */
-	str2event_hash_free();
+	rsa_str2event_hash_free();
 
 	/* Cleanup event2hpi hash table */
-	str2event_use_count--;
-	if (str2event_use_count == 0) 
-		str2event_hash_free();
+	rsa_str2event_use_count--;
+	if (rsa_str2event_use_count == 0) 
+		rsa_str2event_hash_free();
 }
 
