@@ -33,11 +33,11 @@ int main(int argc, char **argv)
 	SaHpiEventStateT assertMask;     
 	SaHpiEventStateT deassertMask;     
 	/************************** 
-	 * Test 1: snmp_bc_get_sensor_reading
+	 * Test Invalid handler
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	err = snmp_bc_get_sensor_event_masks(NULL, id, sid, &assertMask, &deassertMask);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	return testfail;
 

@@ -27,56 +27,29 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
-        SaHpiSessionIdT sessionid;
 	struct tm time;
 	memset(&time, 0, sizeof(struct tm));
-        /* *************************************                 
-	 * Find a resource 
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
-
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		return -1;
-	}
-
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_POWER, h, &rptentry);
-	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
-		err = tcleanup(&sessionid);
-		return -1;
-	}
-
+	
+	struct oh_handler_state l_handle;
+	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 	/************************** 
-	 * Test :
+	 * Test : Invalid handle
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	err = snmp_bc_get_sp_time(NULL, &time);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test :
+	 * Test : Invalid pointer to time struct
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
-	err = snmp_bc_get_sp_time((void *)h->hnd, NULL);
-	checkstatus(&err, &expected_err, &testfail);
-
-	/************************** 
-	 * Test :
-	 **************************/
-	expected_err = SA_OK;                   
-	err = snmp_bc_get_sp_time((void *)h->hnd, &time);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_get_sp_time(&l_handle, NULL);
+	checkstatus(err, expected_err, testfail);
 
 	/**************************
 	 * Cleanup after all tests
 	 ***************************/
-	err = tcleanup(&sessionid);
-	return testfail;
+	 return testfail;
 
 }
 
