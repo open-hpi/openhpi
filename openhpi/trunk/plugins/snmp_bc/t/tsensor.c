@@ -21,7 +21,6 @@
 #include <snmp_util.h>
 #include <snmp_bc.h>
 #include <bc_resources.h>
-#include <snmp_bc_utils.h>
 #include <snmp_bc_sensor.h>
 
 #include <tstubs_rdr.h>
