@@ -185,10 +185,38 @@ SaErrorT SAHPI_API saHpiFinalize(void)
 	/* TODO: realy should have a oh_uid_finalize() that */
 	/* frees memory,				    */
 	if(oh_uid_map_to_file())
-		dbg("error writing uid entity path mapping to file");    
-        /*
-          we should be doing handler shutdown here.
-        */
+		dbg("error writing uid entity path mapping to file");
+
+        /* check for open sessions */
+        if ( global_session_list ) {
+                dbg("cannot saHpiFinalize because of open sessions" );
+                data_access_unlock();
+                return SA_ERR_HPI_BUSY;
+        }
+
+        /* close all plugins */
+        while(global_handler_list) {
+                struct oh_handler *handler = (struct oh_handler *)global_handler_list->data;
+                /* unload_handler will remove handler from global_handler_list */
+                unload_handler(handler);
+        }
+
+        /* unload plugins */
+        while(global_plugin_list) {
+                struct oh_plugin_config *plugin = (struct oh_plugin_config *)global_plugin_list->data;
+                unload_plugin(plugin);
+        }
+
+        /* free global rpt */
+        if (default_rpt) {
+                oh_flush_rpt(default_rpt);
+                g_free(default_rpt);
+                default_rpt = 0;
+        }
+
+        /* free global_handler_configs and uninit_plugin */
+        oh_unload_config();
+
         oh_hpi_state = OH_STAT_UNINIT;
 
         /* free mutex */

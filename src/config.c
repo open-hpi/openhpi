@@ -499,4 +499,22 @@ int oh_load_config (char *filename)
 }
 
 
+void oh_unload_config()
+{
+        while(global_handler_configs) {
+                GHashTable *hash_table = global_handler_configs->data;
+
+                global_handler_configs = g_slist_remove(
+                        global_handler_configs,
+                        (gpointer)hash_table );
+
+                g_hash_table_destroy(hash_table);
+        }
+
+        uninit_plugin();
+
+}
+
+
+
 
