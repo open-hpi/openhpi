@@ -122,7 +122,6 @@ void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data)
         rv = ohoi_loop(&data.flag, ipmi_handler);
         if (rv)
                 dbg("Unable to get sel time: Timeout!");
-		dbg("sel time raw: %llx", data.time);
         
         *time = (SaHpiTimeT)data.time*1000000000;
 }
