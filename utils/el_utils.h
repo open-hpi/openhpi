@@ -47,16 +47,16 @@ typedef struct {
 typedef struct {
         SaHpiEventLogEntryT event;
         SaHpiRdrT        rdr; // All 0's means no associated rdr
-        SaHpiRptEntryT   rpt; // All 0's means no associated rpt
+        SaHpiRptEntryT   res; // All 0's means no associated rpt
 } oh_el_entry;
 
 /* General EL utility calls */
 oh_el *oh_el_create(SaHpiUint32T size);
 SaErrorT oh_el_close(oh_el *el);
 SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                      SaHpiRptEntryT *rpt);
+                      SaHpiRptEntryT *res);
 SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                      SaHpiRptEntryT *rpt);
+                      SaHpiRptEntryT *res);
 SaErrorT oh_el_clear(oh_el *el);
 SaErrorT oh_el_get(oh_el *el, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
                     SaHpiEventLogEntryIdT *next, oh_el_entry **entry);

@@ -62,7 +62,7 @@ SaErrorT oh_el_close(oh_el *el)
 
 /* append a new entry to the EL */
 SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                      SaHpiRptEntryT *rpt)
+                      SaHpiRptEntryT *res)
 {
         oh_el_entry *entry;
         time_t tt1;
@@ -85,8 +85,8 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
         if (rdr != NULL) {
                 memcpy(&(entry->rdr), rdr, sizeof(SaHpiRdrT));
         }
-        if (rpt != NULL) {
-                memcpy(&(entry->rpt), rdr, sizeof(SaHpiRptEntryT));
+        if (res != NULL) {
+                memcpy(&(entry->res), res, sizeof(SaHpiRptEntryT));
         }
 
         /* if necessary, wrap the el entries */
@@ -116,7 +116,7 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
 
 /* prepend a new entry to the EL */
 SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
-                       SaHpiRptEntryT *rpt)
+                       SaHpiRptEntryT *res)
 {
         oh_el_entry *entry, *tmpentry;
         SaHpiEventLogEntryT *tmplog;
@@ -141,6 +141,12 @@ SaErrorT oh_el_prepend(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
         if (entry == NULL) {
                 el->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
+        }
+        if (rdr != NULL) {
+                memcpy(&(entry->rdr), rdr, sizeof(SaHpiRdrT));
+        }
+        if (res != NULL) {
+                memcpy(&(entry->res), res, sizeof(SaHpiRptEntryT));
         }
 
         /* since we are adding entries in reverse order we have to renumber
@@ -341,7 +347,7 @@ SaErrorT oh_el_map_from_file(oh_el *el, char *filename)
                  * if that is of use. -- RM
                  */
                 retc = oh_el_append(el, &(entry.event.Event), &(entry.rdr),
-                                    &(entry.rpt));
+                                    &(entry.res));
                 if (retc) {
                         close(file);
                         return retc;
