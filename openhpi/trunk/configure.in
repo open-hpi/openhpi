@@ -86,11 +86,10 @@ AC_ARG_ENABLE([dummy],
     [PLUGINS="$PLUGINS dummy"])
 
 AC_ARG_ENABLE([watchdog],
-    [  --enable-watchdog       build watchdog plugin [default=yes]],
+    [  --enable-watchdog       build watchdog plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         PLUGINS="$PLUGINS watchdog"
-    fi],
-    [PLUGINS="$PLUGINS watchdog"])
+    fi])
 
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
@@ -152,18 +151,6 @@ AC_SUBST(base_includedir)
 
 AC_C_STRINGIZE
 
-AC_ARG_ENABLE([fatal-warnings],
-[  --enable-fatal-warnings very pedantic and fatal warnings for gcc
-                          [default=yes]])
-
-AC_ARG_ENABLE([no-long-long],
-[  --enable-no-long-long removes no long long warning for gcc
-                          [default=yes]])
-
-AC_ARG_ENABLE([traditional-warnings],
-[  --enable-traditional-warnings
-                          enable traditional warnings gcc (-Wtraditional)
-                          [default=no]])
 CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wmissing-declarations \
 	-Wstrict-prototypes \

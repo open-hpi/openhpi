@@ -1,6 +1,6 @@
 #!/bin/sh -x
 #
-
+./nukem.sh
 ./bootstrap
 ./configure
 make all
