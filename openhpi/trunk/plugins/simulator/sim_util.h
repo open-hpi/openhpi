@@ -54,6 +54,9 @@ char *sim_util_get_sensor_enables_file(struct oh_handler_state *inst,
                                        SaHpiResourceIdT rid,
                                        SaHpiSensorNumT num);
 
+char *sim_util_get_rdr_file(struct oh_handler_state *inst,
+                                       SaHpiResourceIdT rid,
+                                       SaHpiSensorNumT num);
 /* for event */
 
 int sim_util_insert_event(GSList **eventq, struct oh_event *event);
