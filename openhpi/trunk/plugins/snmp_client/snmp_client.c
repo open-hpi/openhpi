@@ -41,7 +41,8 @@
  **/
  
 //char our_v3_passphrase[] = "openhpiv3";
-char our_v3_passphrase[] = "my_password";
+char Apsz[] = "my_password";
+char Xpsz[] = "my_password";
 
 static void *snmp_client_open(GHashTable *handler_config)
 {
@@ -102,25 +103,103 @@ static void *snmp_client_open(GHashTable *handler_config)
     custom_handle->session.securityAuthProtoLen = sizeof(usmHMACMD5AuthProtocol)/sizeof(oid);
     custom_handle->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
 
-    /* set the encryption method to DES */
-    custom_handle->session.securityPrivProto = usmDESPrivProtocol;
-    custom_handle->session.securityPrivProtoLen = sizeof(usmDESPrivProtocol)/sizeof(oid);
-    custom_handle->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
-
     /* set the authentication key to a MD5 hashed version of our
        passphrase "The UCD Demo Password" (which must be at least 8
        characters long) */
     if (generate_Ku(custom_handle->session.securityAuthProto,
                     custom_handle->session.securityAuthProtoLen,
-                    (u_char *) our_v3_passphrase, 
-		    strlen(our_v3_passphrase),
+                    (u_char *) Apsz, 
+		    strlen(Apsz),
                     custom_handle->session.securityAuthKey,
                     &custom_handle->session.securityAuthKeyLen) != SNMPERR_SUCCESS) {
         snmp_perror("ack");
         snmp_log(LOG_ERR,
-                 "Error generating Ku from authentication pass phrase. \n");
-        dbg("Error generating Ku from authentication pass phrase.");
+                 "Error generating Ku from AUTHENTICATION pass phrase. \n");
+        dbg("Error generating Ku from AUTHENTICATION pass phrase.");
     }
+
+    /* set the encryption method to DES */
+    custom_handle->session.securityPrivProto = usmDESPrivProtocol;
+    custom_handle->session.securityPrivProtoLen = sizeof(usmDESPrivProtocol)/sizeof(oid);
+    custom_handle->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
+    /* generate Key */
+    if (generate_Ku(custom_handle->session.securityAuthProto,
+		    custom_handle->session.securityAuthProtoLen,
+		    (u_char *) Xpsz, strlen(Xpsz),
+		    custom_handle->session.securityPrivKey,
+		    &custom_handle->session.securityPrivKeyLen) != SNMPERR_SUCCESS) {
+        snmp_perror("ack");
+        snmp_log(LOG_ERR,
+                 "Error generating Ku from PRIVACY pass phrase. \n");
+        dbg("Error generating Ku from PRIVACY pass phrase.");
+    }
+
+
+#if 0
+    if (Apsz) {
+        session->securityAuthKeyLen = USM_AUTH_KU_LEN;
+        if (session->securityAuthProto == NULL) {
+            /*
+             * get .conf set default 
+             */
+            const oid      *def =
+                get_default_authtype(&session->securityAuthProtoLen);
+            session->securityAuthProto =
+                snmp_duplicate_objid(def, session->securityAuthProtoLen);
+        }
+        if (session->securityAuthProto == NULL) {
+            /*
+             * assume MD5 
+             */
+            session->securityAuthProto =
+                snmp_duplicate_objid(usmHMACMD5AuthProtocol,
+                                     USM_AUTH_PROTO_MD5_LEN);
+            session->securityAuthProtoLen = USM_AUTH_PROTO_MD5_LEN;
+        }
+        if (generate_Ku(session->securityAuthProto,
+                        session->securityAuthProtoLen,
+                        (u_char *) Apsz, strlen(Apsz),
+                        session->securityAuthKey,
+                        &session->securityAuthKeyLen) != SNMPERR_SUCCESS) {
+            snmp_perror(argv[0]);
+            fprintf(stderr,
+                    "Error generating a key (Ku) from the supplied authentication pass phrase. \n");
+            return (-2);
+        }
+    }
+    if (Xpsz) {
+        session->securityPrivKeyLen = USM_PRIV_KU_LEN;
+        if (session->securityPrivProto == NULL) {
+            /*
+             * get .conf set default 
+             */
+            const oid      *def =
+                get_default_privtype(&session->securityPrivProtoLen);
+            session->securityPrivProto =
+                snmp_duplicate_objid(def, session->securityPrivProtoLen);
+        }
+        if (session->securityPrivProto == NULL) {
+            /*
+             * assume DES 
+             */
+            session->securityPrivProto =
+                snmp_duplicate_objid(usmDESPrivProtocol,
+                                     USM_PRIV_PROTO_DES_LEN);
+            session->securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
+        }
+        if (generate_Ku(session->securityAuthProto,
+                        session->securityAuthProtoLen,
+                        (u_char *) Xpsz, strlen(Xpsz),
+                        session->securityPrivKey,
+                        &session->securityPrivKeyLen) != SNMPERR_SUCCESS) {
+            snmp_perror(argv[0]);
+            fprintf(stderr,
+                    "Error generating a key (Ku) from the supplied privacy pass phrase. \n");
+            return (-2);
+        }
+    }
+#endif
+
     
 #else /* we'll use the insecure (but simplier) SNMPv2c */
 
