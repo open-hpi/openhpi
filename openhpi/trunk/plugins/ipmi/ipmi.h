@@ -67,6 +67,7 @@ struct ohoi_handler {
 
 	char *entity_root;
 	int connected;
+	int islan;
 };
 
 struct ohoi_resource_info {
