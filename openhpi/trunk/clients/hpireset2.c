@@ -66,6 +66,7 @@ main(int argc, char **argv)
      		break;  /* hard reset */
 	  case 'w':
 		action = SAHPI_WARM_RESET;
+		break;
           case 'x': fdebug = 1;     break;  /* debug messages */
           case 'c': breset = 2;     break;  /* power cycle */
           case 'o': fshutdown = 1;  break;  /* shutdown OS */
