@@ -41,62 +41,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <time.h>
 #include "SaHpi.h"
+#include "ecode_utils.h"
 
 char progver[] = "1.0";
 int fdebug = 0;
 int findate = 0;
 int fintime = 0;
-
-
-#define NECODES  27
-struct { int code; char *str;
-} ecodes[NECODES] = { 
- {  0,    "Success" },
- { -1001, "HPI unspecified error" },
- { -1002, "HPI unsupported function" },
- { -1003, "HPI busy" },
- { -1004, "HPI request invalid" },
- { -1005, "HPI command invalid" },
- { -1006, "HPI timeout" },
- { -1007, "HPI out of space" },
- { -1008, "HPI data truncated" },
- { -1009, "HPI data length invalid" },
- { -1010, "HPI data exceeds limits" },
- { -1011, "HPI invalid params" },
- { -1012, "HPI invalid data" },
- { -1013, "HPI not present" },
- { -1014, "HPI invalid data field" },
- { -1015, "HPI invalid sensor command" },
- { -1016, "HPI no response" },
- { -1017, "HPI duplicate request" },
- { -1018, "HPI updating" },
- { -1019, "HPI initializing" },
- { -1020, "HPI unknown error" },
- { -1021, "HPI invalid session" },
- { -1022, "HPI invalid domain" },
- { -1023, "HPI invalid resource id" },
- { -1024, "HPI invalid request" },
- { -1025, "HPI entity not present" },
- { -1026, "HPI uninitialized" }
-};
-
-char def_estr[15] = "HPI error %d   ";
-
-static char *decode_error(SaErrorT code)
-{
-	int i;
-	char *str = NULL;
-	for (i = 0; i < NECODES; i++) {
-		if (code == ecodes[i].code) { str = ecodes[i].str; break; }
-	}
-
-	if (str == NULL) { 
-		sprintf(&def_estr[10],"%d",code);
-		str = &def_estr[0];
-	}
-
-	return(str);
-}
 
 static void saftime2str(SaHpiTimeT time, char * str, size_t size)
 {

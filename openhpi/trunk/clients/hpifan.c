@@ -21,62 +21,9 @@
 #include <getopt.h>
 #include "SaHpi.h"
 #include <epath_utils.h>
-
+#include <ecode_utils.h>
 
 static int fan_speed = -1;
-
-
-#define NECODES  27
-static struct 
-{ 
-        int code; char *str;
-} ecodes[NECODES] =
-{
-        {  0,    "Success" },
-        { -1001, "HPI unspecified error" },
-        { -1002, "HPI unsupported function" },
-        { -1003, "HPI busy" },
-        { -1004, "HPI request invalid" },
-        { -1005, "HPI command invalid" },
-        { -1006, "HPI timeout" },
-        { -1007, "HPI out of space" },
-        { -1008, "HPI data truncated" },
-        { -1009, "HPI data length invalid" },
-        { -1010, "HPI data exceeds limits" },
-        { -1011, "HPI invalid params" },
-        { -1012, "HPI invalid data" },
-        { -1013, "HPI not present" },
-        { -1014, "HPI invalid data field" },
-        { -1015, "HPI invalid sensor command" },
-        { -1016, "HPI no response" },
-        { -1017, "HPI duplicate request" },
-        { -1018, "HPI updating" },
-        { -1019, "HPI initializing" },
-        { -1020, "HPI unknown error" },
-        { -1021, "HPI invalid session" },
-        { -1022, "HPI invalid domain" },
-        { -1023, "HPI invalid resource id" },
-        { -1024, "HPI invalid request" },
-        { -1025, "HPI entity not present" },
-        { -1026, "HPI uninitialized" }
-};
-
-static char def_estr[15] = "HPI error %d   ";
-
-
-static char *
-decode_error( SaErrorT code )
-{
-        int i;
-
-        for( i = 0; i < NECODES; i++ )
-                if ( code == ecodes[i].code )
-                        return ecodes[i].str;
-
-        sprintf( def_estr + 10, "%d", code );
-
-        return def_estr;
-}
 
 
 static int
