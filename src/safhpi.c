@@ -469,9 +469,10 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiTextBufferT *ResourceTag)
 {
-        int (*set_res_tag)(void *hnd, SaHpiResourceIdT id, 
-                           SaHpiTextBufferT *ResourceTag);
-        
+        SaErrorT rv;
+        SaErrorT (*set_res_tag)(void *hnd, SaHpiResourceIdT id,
+                                SaHpiTextBufferT *ResourceTag);
+
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         struct oh_handler *h;
@@ -484,15 +485,15 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         
         if (!set_res_tag)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        
-        if (set_res_tag(h->hnd, ResourceId, ResourceTag) < 0) {
+
+        rv = set_res_tag(h->hnd, ResourceId, ResourceTag);
+
+        if ( rv )
                 dbg("Tage set failed for Resource %d", ResourceId);
-                return SA_ERR_HPI_UNKNOWN;
-        }
-        
+
         /* to get RSEL entry into infrastructure */
         get_events();
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiResourceIdGet(
@@ -519,9 +520,8 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiSelInfoT *Info)
 {
-        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
-        
         SaErrorT rv;
+        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -568,10 +568,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 SAHPI_INOUT SaHpiRdrT *Rdr,
                 SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
-        int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
-                             SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
-        
         SaErrorT rv;
+        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
+                                  SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -627,10 +626,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSelEntryT *EvtEntry)
 {
-        int (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, 
-                             const SaHpiSelEntryT *Event);
-        
         SaErrorT rv;
+        SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, 
+                                  const SaHpiSelEntryT *Event);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -678,10 +676,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiSelEntryIdT EntryId)
 {
-        int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, 
-                             SaHpiSelEntryIdT sid);
-        
         SaErrorT rv;
+        SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, 
+                                  SaHpiSelEntryIdT sid);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -722,9 +719,8 @@ SaErrorT SAHPI_API saHpiEventLogClear (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        int (*clear_sel)(void *hnd, SaHpiResourceIdT id);
-        
         SaErrorT rv;
+        SaErrorT (*clear_sel)(void *hnd, SaHpiResourceIdT id);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -785,9 +781,8 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiTimeT Time)
 {
-        int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
-
         SaErrorT rv;
+        SaErrorT (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1045,7 +1040,8 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorReadingT *Reading)
 {
-        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
+        SaErrorT rv;
+        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
         
         struct oh_session *s;
         RPTable *rpt = default_rpt;
@@ -1068,10 +1064,9 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_func(h->hnd, ResourceId, SensorNum, Reading))
-                return SA_ERR_HPI_UNKNOWN;
+        rv = get_func(h->hnd, ResourceId, SensorNum, Reading);
 
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiSensorReadingConvert (
@@ -1148,9 +1143,9 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds)
 {
-        int (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, 
+        SaErrorT rv;
+        SaErrorT (*set_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, 
                          const SaHpiSensorThresholdsT *);
-        
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1172,10 +1167,9 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         if (!set_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(h->hnd, ResourceId, SensorNum, SensorThresholds) < 0)
-                return SA_ERR_HPI_UNKNOWN;
+        rv = set_func(h->hnd, ResourceId, SensorNum, SensorThresholds);
 
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiSensorThresholdsGet (
@@ -1184,8 +1178,8 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_IN SaHpiSensorThresholdsT *SensorThresholds)
 {
-        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorThresholdsT *);
-
+        SaErrorT rv;
+        SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorThresholdsT *);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1207,10 +1201,9 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_func(h->hnd, ResourceId, SensorNum, SensorThresholds) < 0)
-                return SA_ERR_HPI_UNKNOWN;
+        rv = get_func(h->hnd, ResourceId, SensorNum, SensorThresholds);
 
-        return SA_OK;
+        return rv;
 }
 
 /* Function: SaHpiSensorTypeGet */
@@ -1255,10 +1248,10 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorEvtEnablesT *Enables)
 {
-        int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT, 
-                                        SaHpiSensorNumT,
-                                        SaHpiSensorEvtEnablesT *enables);
-        
+        SaErrorT rv;
+        SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT, 
+                                             SaHpiSensorNumT,
+                                             SaHpiSensorEvtEnablesT *enables);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1279,9 +1272,9 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesGet (
         
         if (!get_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (get_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables) < 0)
-                return SA_ERR_HPI_UNKNOWN;
-        return SA_OK;
+        rv = get_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
@@ -1290,10 +1283,10 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_IN SaHpiSensorEvtEnablesT *Enables)
 {
-        int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
-                                        SaHpiSensorNumT,
-                                        const SaHpiSensorEvtEnablesT *enables);
-        
+        SaErrorT rv;
+        SaErrorT (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
+                                             SaHpiSensorNumT,
+                                             const SaHpiSensorEvtEnablesT *enables);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1314,9 +1307,9 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
         
         if (!set_sensor_event_enables)
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        if (set_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables) < 0)
-                return SA_ERR_HPI_UNKNOWN;
-        return SA_OK;
+        rv = set_sensor_event_enables(h->hnd, ResourceId, SensorNum, Enables);
+
+        return rv;
 }
 
 /* End Sensor functions */
@@ -1361,8 +1354,8 @@ SaErrorT SAHPI_API saHpiControlStateGet (
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
                 SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
 {
-        int (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
-        
+        SaErrorT rv;
+        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1383,10 +1376,9 @@ SaErrorT SAHPI_API saHpiControlStateGet (
         if (!get_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (get_func(h->hnd, ResourceId, CtrlNum, CtrlState))
-                return SA_ERR_HPI_UNKNOWN;
-        
-        return SA_OK;
+        rv = get_func(h->hnd, ResourceId, CtrlNum, CtrlState);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiControlStateSet (
@@ -1395,7 +1387,8 @@ SaErrorT SAHPI_API saHpiControlStateSet (
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
                 SAHPI_IN SaHpiCtrlStateT *CtrlState)
 {
-        int (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
+        SaErrorT rv;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
 
         struct oh_session *s;
         RPTable *rpt = default_rpt;
@@ -1417,10 +1410,9 @@ SaErrorT SAHPI_API saHpiControlStateSet (
         if (!set_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (set_func(h->hnd, ResourceId, CtrlNum, CtrlState))
-                return SA_ERR_HPI_UNKNOWN;
+        rv = set_func(h->hnd, ResourceId, CtrlNum, CtrlState);
 
-        return SA_OK;
+        return rv;
 }
 
 /* current sahpi.h missed SA_ERR_INVENT_DATA_TRUNCATED */
@@ -1437,9 +1429,9 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
                 SAHPI_OUT SaHpiInventoryDataT *InventData,
                 SAHPI_OUT SaHpiUint32T *ActualSize)
 {
-        int (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiUint32T *);
-        int (*get_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiInventoryDataT *);
-        
+        SaErrorT rv;
+        SaErrorT (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiUint32T *);
+        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiInventoryDataT *);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1461,16 +1453,17 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
         if (!get_func || !get_size)             
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_size(h->hnd, ResourceId, EirId, ActualSize))
-                return SA_ERR_HPI_UNKNOWN;
-        
+        rv = get_size(h->hnd, ResourceId, EirId, ActualSize);
+ 
+        if ( rv )
+                return rv;
+
         if (*ActualSize>BufferSize)
                 return SA_ERR_INVENT_DATA_TRUNCATED;
-        
-        if (get_func(h->hnd, ResourceId, EirId, InventData))
-                return SA_ERR_HPI_UNKNOWN;
 
-        return SA_OK;
+        rv = get_func(h->hnd, ResourceId, EirId, InventData);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
@@ -1479,8 +1472,8 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
                 SAHPI_IN SaHpiEirIdT EirId,
                 SAHPI_IN SaHpiInventoryDataT *InventData)
 {
-        int (*set_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, const SaHpiInventoryDataT *);
-
+        SaErrorT rv;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, const SaHpiInventoryDataT *);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1501,10 +1494,9 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
         if (!set_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(h->hnd, ResourceId, EirId, InventData))
-                return SA_ERR_HPI_UNKNOWN;
+        rv = set_func(h->hnd, ResourceId, EirId, InventData);
 
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiWatchdogTimerGet (
@@ -1513,8 +1505,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
                 SAHPI_IN SaHpiWatchdogNumT WatchdogNum,
                 SAHPI_OUT SaHpiWatchdogT *Watchdog)
 {
-        int (*get_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
-        
+        SaErrorT rv;
+        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1535,10 +1527,9 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
         if (!get_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (get_func(h->hnd, ResourceId, WatchdogNum, Watchdog))
-                return SA_ERR_HPI_UNKNOWN;
+        rv = get_func(h->hnd, ResourceId, WatchdogNum, Watchdog);
         
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiWatchdogTimerSet (
@@ -1547,8 +1538,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
                 SAHPI_IN SaHpiWatchdogNumT WatchdogNum,
                 SAHPI_IN SaHpiWatchdogT *Watchdog)
 {
-        int (*set_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
-
+        SaErrorT rv;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1569,10 +1560,9 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
         if (!set_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_func(h->hnd, ResourceId, WatchdogNum, Watchdog))
-                return SA_ERR_HPI_UNKNOWN;
+        rv = set_func(h->hnd, ResourceId, WatchdogNum, Watchdog);
 
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiWatchdogTimerReset (
@@ -1580,8 +1570,8 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiWatchdogNumT WatchdogNum)
 {
-        int (*reset_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT);
-        
+        SaErrorT rv;
+        SaErrorT (*reset_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT);
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1602,10 +1592,9 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
         if (!reset_func)                
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (reset_func(h->hnd, ResourceId, WatchdogNum) != SA_OK)
-                return SA_ERR_HPI_UNKNOWN;
+        rv = reset_func(h->hnd, ResourceId, WatchdogNum);
 
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapControlRequest (
@@ -1640,7 +1629,8 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         SAHPI_IN SaHpiSessionIdT SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT,
+        SaErrorT rv;
+        SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT,
                         SaHpiHsStateT state);
         
         RPTable *rpt = default_rpt;
@@ -1671,23 +1661,22 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         set_hotswap_state = h->abi->set_hotswap_state;
         if (!set_hotswap_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
-        
+
         /* this was done in the old code, so we do it here */
         rd->controlled = 0;
 
-        if (set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE_HEALTHY)<0) 
-                return SA_ERR_HPI_UNKNOWN;
-        
-        return SA_OK;
+        rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE_HEALTHY);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiResourceInactiveSet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId)
 {
-        int (*set_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
-                                 SaHpiHsStateT state);
-        
+        SaErrorT rv;
+        SaErrorT (*set_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+                                      SaHpiHsStateT state);
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
@@ -1719,10 +1708,9 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
 
         rd->controlled = 0;
 
-        if (set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE)<0) 
-                return SA_ERR_HPI_UNKNOWN;
-        
-        return SA_OK;
+        rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiAutoInsertTimeoutGet(
@@ -1826,7 +1814,8 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiHsStateT *State)
 {
-        int (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
+        SaErrorT rv;
+        SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -1847,10 +1836,9 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         if (!get_hotswap_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_hotswap_state(h->hnd, ResourceId, State)<0) 
-                return SA_ERR_HPI_UNKNOWN;
-        
-        return SA_OK;
+        rv = get_hotswap_state(h->hnd, ResourceId, State);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapActionRequest (
@@ -1858,7 +1846,8 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiHsActionT Action)
 {
-        int (*request_hotswap_action)(void *hnd, SaHpiResourceIdT rid,
+        SaErrorT rv;
+        SaErrorT (*request_hotswap_action)(void *hnd, SaHpiResourceIdT rid,
                         SaHpiHsActionT act);
         
         RPTable *rpt = default_rpt;
@@ -1877,15 +1866,14 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
                 return SA_ERR_HPI_INVALID;
         
         request_hotswap_action = h->abi->request_hotswap_action;
-        if (!request_hotswap_action) 
+        if (!request_hotswap_action)
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (request_hotswap_action(h->hnd, ResourceId, Action)<0) 
-                return SA_ERR_HPI_UNKNOWN;
-        
+        rv = request_hotswap_action(h->hnd, ResourceId, Action);
+
         get_events();
-        
-        return SA_OK;
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiResourcePowerStateGet (
@@ -1893,7 +1881,8 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiHsPowerStateT *State)
 {
-        int (*get_power_state)(void *hnd, SaHpiResourceIdT id,
+        SaErrorT rv;
+        SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id,
                                SaHpiHsPowerStateT *state);
         RPTable *rpt = default_rpt;
         struct oh_handler *h;
@@ -1904,10 +1893,9 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         if (!get_power_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_power_state(h->hnd, ResourceId, State)<0) 
-                return SA_ERR_HPI_UNKNOWN;
-        
-        return SA_OK;
+        rv = get_power_state(h->hnd, ResourceId, State);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiResourcePowerStateSet (
@@ -1915,8 +1903,9 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiHsPowerStateT State)
 {
-        int (*set_power_state)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiHsPowerStateT state);
+        SaErrorT rv;
+        SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id,
+                                    SaHpiHsPowerStateT state);
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
@@ -1933,10 +1922,9 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         if (!set_power_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_power_state(h->hnd, ResourceId, State)<0) 
-                return SA_ERR_HPI_UNKNOWN;
-        
-        return SA_OK;
+        rv = set_power_state(h->hnd, ResourceId, State);
+
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
@@ -1944,8 +1932,9 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiHsIndicatorStateT *State)
 {
-        int (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
-                                   SaHpiHsIndicatorStateT *state);
+        SaErrorT rv;
+        SaErrorT (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
+                                        SaHpiHsIndicatorStateT *state);
         RPTable *rpt = default_rpt;
         struct oh_handler *h;
 
@@ -1955,10 +1944,9 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         if (!get_indicator_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (get_indicator_state(h->hnd, ResourceId, State)<0) 
-                return SA_ERR_HPI_UNKNOWN;
+        rv = get_indicator_state(h->hnd, ResourceId, State);
         
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
@@ -1966,8 +1954,9 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiHsIndicatorStateT State)
 {
-        int (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
-                                   SaHpiHsIndicatorStateT state);
+        SaErrorT rv;
+        SaErrorT (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
+                                        SaHpiHsIndicatorStateT state);
         RPTable *rpt = default_rpt;
         struct oh_handler *h;
 
@@ -1977,10 +1966,9 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         if (!set_indicator_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (set_indicator_state(h->hnd, ResourceId, State)<0) 
-                return SA_ERR_HPI_UNKNOWN;
+        rv = set_indicator_state(h->hnd, ResourceId, State);
         
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiParmControl (
@@ -1988,8 +1976,8 @@ SaErrorT SAHPI_API saHpiParmControl (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiParmActionT Action)
 {
-        int (*control_parm)(void *, SaHpiResourceIdT, SaHpiParmActionT);
-        
+        SaErrorT rv;
+        SaErrorT (*control_parm)(void *, SaHpiResourceIdT, SaHpiParmActionT);
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
@@ -2008,10 +1996,9 @@ SaErrorT SAHPI_API saHpiParmControl (
         if (!control_parm) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
 
-        if (control_parm(h->hnd, ResourceId, Action)<0) 
-                return SA_ERR_HPI_UNKNOWN;
+        rv = control_parm(h->hnd, ResourceId, Action);
         
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiResourceResetStateGet (
@@ -2019,7 +2006,8 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiResetActionT *ResetAction)
 {
-        int (*get_func)(void *, SaHpiResourceIdT, SaHpiResetActionT *);
+        SaErrorT rv;
+        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiResetActionT *);
 
         RPTable *rpt = default_rpt;
         struct oh_handler *h;
@@ -2030,10 +2018,9 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
         if (!get_func) 
                 return SA_ERR_HPI_INVALID_CMD;
 
-        if (get_func(h->hnd, ResourceId, ResetAction)<0) 
-                return SA_ERR_HPI_UNKNOWN;
+        rv = get_func(h->hnd, ResourceId, ResetAction);
         
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiResourceResetStateSet (
@@ -2041,7 +2028,8 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiResetActionT ResetAction)
 {
-        int (*set_func)(void *, SaHpiResourceIdT, SaHpiResetActionT);
+        SaErrorT rv;
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiResetActionT);
         RPTable *rpt = default_rpt;
         struct oh_handler *h;
 
@@ -2051,8 +2039,7 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
         if (!set_func) 
                 return SA_ERR_HPI_INVALID_CMD;
 
-        if (set_func(h->hnd, ResourceId, ResetAction)<0) 
-                return SA_ERR_HPI_UNKNOWN;
-        
-        return SA_OK;
+        rv = set_func(h->hnd, ResourceId, ResetAction);
+
+        return rv;
 }
