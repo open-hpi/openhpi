@@ -39,7 +39,7 @@ oh_sel *oh_sel_create(SaHpiUint32T size)
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
                 sel->offset = 0;
                 sel->maxsize = size;
-                sel->nextId = SAHPI_OLDEST_ENTRY;
+                sel->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
                 sel->selentries = NULL;
         }
         return sel;
@@ -120,7 +120,7 @@ SaErrorT oh_sel_clear(oh_sel *sel)
                 sel->enabled = TRUE;
                 sel->overflow = FALSE;
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
-                sel->nextId = SAHPI_OLDEST_ENTRY;
+                sel->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
                 sel->selentries = NULL;
                 return SA_OK;
         }
