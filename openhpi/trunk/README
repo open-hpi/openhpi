@@ -1,0 +1,12 @@
+
+This is an implementation of SAForum's Hardware Platform Interface
+specification.
+
+You should be able to run configure, then make (or make rpm)
+and then make install (or install from the rpm).
+
+It will generate the library you need and a sample application 
+that uses the library.
+
+For more information please see http://openhpi.sourceforge.net
+

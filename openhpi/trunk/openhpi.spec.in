@@ -1,0 +1,96 @@
+Name: @HPI_PKG@
+Summary: @HPI_PKG@ - implementation of SAForum Hardware Platform Interface 
+Version: @VERSION@
+Release: 1
+Copyright: BSD
+URL: http://openhpi.sf.net
+Group: Utilities
+Vendor: Intel Corporation
+Packager: Andrea Brugger <andrea.l.brugger@intel.com>
+Source: @HPI_PKG@-@VERSION@.tar.gz
+Buildroot: /var/tmp/@HPI_PKG@-root
+
+%package lib
+Summary: Library that provides the API for HPI
+Group: Utilities
+
+#%package devel
+#Summary: development tools for HPI
+#Group: Utilities
+
+%package test
+Summary: Test applications for HPI
+Group: Utilities
+
+%description 
+This package contains an implementation of SAForum's HPI specification
+and a sample application.
+
+%description lib
+This library is an implementation of SAForum's HPI specification.
+
+#%description devel
+#Contains the development files for HPI.
+
+%description test
+This package contains the test applications that demonstrate
+the use of SAForum's HPI specification.
+
+###################################################
+%prep
+###################################################
+
+###################################################
+%setup
+###################################################
+
+###################################################
+%build
+###################################################
+./configure @ac_configure_args@
+make
+
+###################################################
+%install
+###################################################
+if
+  [ ! -z "${RPM_BUILD_ROOT}"  -a "${RPM_BUILD_ROOT}" != "/" ]
+then
+  rm -rf $RPM_BUILD_ROOT
+fi
+make DESTDIR=$RPM_BUILD_ROOT install
+
+# install -m 644 ....
+
+###################################################
+%files lib
+###################################################
+%defattr(-,root,root)
+@libdir@/libopenhpi.*
+%dir @includedir@/openhpi
+@includedir@/openhpi
+
+#%doc @mandir@/man8/hpi.8
+
+###################################################
+#%files devel
+###################################################
+#%defattr(-,root,root)
+
+
+###################################################
+%files test
+###################################################
+%defattr(-,root,root)
+@bindir@/hpitestapp
+
+###################################################
+%clean
+###################################################
+if
+  [ -z "${RPM_BUILD_ROOT}"  -a "${RPM_BUILD_ROOT}" != "/" ]
+then
+  rm -rf $RPM_BUILD_ROOT
+fi
+rm -rf $RPM_BUILD_DIR/@HPI_PKG@-@VERSION@
+
