@@ -15,8 +15,6 @@
  *
  */
 
-#ifdef O 
-
 #include <sim_init.h>
 #include <sim_resources.c>
 #include <sim_resources.h>
@@ -63,7 +61,7 @@ void *sim_open(GHashTable *handler_config)
                 return NULL;
         }
        
-       build_rptcache(state);
+       build_rptcache(state->rptcache);
 
         return ( (void *) state);
 }
@@ -124,14 +122,14 @@ SaErrorT build_rptcache(RPTable *rptcache)
 {
 	int i;
 	for(i=0; i<sizeof(SaHpiRptEntryT)/sizeof(dummy_rpt_array); i++){
-		oh_add_resource(&rptcache, &dummy_rpt_array[i], NULL, FREE_RPT_DATA);
+		oh_add_resource(rptcache, &dummy_rpt_array[i].rpt, NULL, FREE_RPT_DATA);
 		i++;
         }
 
         return 0;
 }
 
-SaErrorT oh_event *eventdup(const struct oh_event *event)
+struct oh_event *eventdup(const struct oh_event *event)
 {
         struct oh_event *e;
         e = g_malloc0(sizeof(*e));
@@ -170,4 +168,3 @@ int sim_get_interface(void **pp, const uuid_t uuid)
 }
 
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("sim_get_interface")));
-#endif
