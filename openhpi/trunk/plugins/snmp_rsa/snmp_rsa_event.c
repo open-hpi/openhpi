@@ -110,10 +110,16 @@ int find_res_events(struct oh_handler_state *handle, SaHpiEntityPathT *ep, const
 	char *normalized_str;
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
-	SaHpiResourceIdT rid = oh_uid_from_entity_path(ep);
+	SaHpiResourceIdT rid;
 	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
 	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 	
+	rid = oh_uid_lookup(ep);
+	if (rid == 0) {
+		dbg("RID = 0");
+		return -1;
+	}
+
 	for (i=0; rsa_res_info->event_array[i].event != NULL && i < max; i++) {
 
 		/* Normalized and convert event string */
@@ -165,10 +171,16 @@ int find_sensor_events(struct oh_handler_state *handle, SaHpiEntityPathT *ep, Sa
 	char *normalized_str;
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
-	SaHpiResourceIdT rid = oh_uid_from_entity_path(ep);
+	SaHpiResourceIdT rid;
 	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
 	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 	
+	rid = oh_uid_lookup(ep);
+	if (rid == 0) {
+		dbg("RID = 0");
+		return -1;
+	}
+
 	for (i=0; rpt_sensor->rsa_sensor_info.event_array[i].event != NULL && i < max; i++) {
 	
 		/* Normalized and convert event string */
@@ -733,9 +745,10 @@ int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 
 	/* Find rest of Entity Path and calculate RID */
 	if (ep_concat(&ep, &snmp_rpt_array[rpt_index].rpt.ResourceEntity)) {
-		dbg("ep_concat failed for ep init");
+		dbg("ep_concat failed for RPT concat");
 		return -1;
 	}
+
 	if (ep_concat(&ep, &ep_root)) {
 		dbg("ep_concat failed to append root");
 		return -1;
@@ -746,10 +759,14 @@ int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 	}
 
 	/* Fill in RID and RPT table info about Error Log's Source */
-	resinfo->rid = oh_uid_from_entity_path(&ep);
 	resinfo->rpt = rpt_index;
 	resinfo->sensor_array_ptr = array_ptr;
 	resinfo->ep = ep;
+	resinfo->rid = oh_uid_lookup(&ep);
+	if (resinfo->rid == 0) {
+		dbg("RID = 0");
+		return -1;
+	}
 	
 	return 0;
 }
