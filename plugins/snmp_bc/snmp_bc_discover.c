@@ -147,22 +147,17 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                         continue;
                 }
                 gpointer data = oh_get_resource_data(custom_handle->tmpcache, res->ResourceId);
-		if (data) {
-                	oh_add_resource(handle->rptcache, res, g_memdup(data, sizeof(struct snmp_rpt)),0);
-                	/* Add new/changed resources to the event queue */
-                	for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
-                        	struct oh_event *e = (struct oh_event *)tmpnode->data;
-                        	if (e->type == OH_ET_RESOURCE &&
-                           	 e->u.res_event.entry.ResourceId == res->ResourceId) {
-                                	handle->eventq = g_slist_append(handle->eventq, e);
-                                	custom_handle->tmpqueue = g_slist_remove_link(custom_handle->tmpqueue, tmpnode);
-					g_slist_free_1(tmpnode);
-                                	break;
-                        	}
-                	}
-
-                } else {
-		       dbg(" NULL data pointer for ResourceID %d \n", res->ResourceId);
+                oh_add_resource(handle->rptcache, res, g_memdup(data, sizeof(struct snmp_rpt)),0);
+                /* Add new/changed resources to the event queue */
+                for (tmpnode = custom_handle->tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
+                        struct oh_event *e = (struct oh_event *)tmpnode->data;
+                        if (e->type == OH_ET_RESOURCE &&
+                            e->u.res_event.entry.ResourceId == res->ResourceId) {
+                                handle->eventq = g_slist_append(handle->eventq, e);
+                                custom_handle->tmpqueue = g_slist_remove_link(custom_handle->tmpqueue, tmpnode);
+				g_slist_free_1(tmpnode);
+                                break;
+                        }
                 }
         }
         g_slist_free(res_new);

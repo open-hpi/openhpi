@@ -20,7 +20,6 @@ static unsigned char oem_alarm_state = 0xff;
 
 struct ohoi_control_info {
         int done;
-	SaErrorT err;
         SaHpiCtrlStateT *state;
 };
 
@@ -50,12 +49,6 @@ static void __get_control_state(ipmi_control_t *control,
                 return;
         }
         
-	if (err || !val) {
-		dbg("__get_control_state: err = %d; val = %p", err, val);
-		info->err = SA_ERR_HPI_INTERNAL_ERROR;
-		info->done = 1;
-		return;
-	}
         info->state->StateUnion.Oem.BodyLength 
                 = ipmi_control_get_num_vals(control);
         memcpy(&info->state->StateUnion.Oem.Body[0],
@@ -97,6 +90,7 @@ SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
 		mode = &localmode;
 	}
 	memset(state, 0, sizeof(*state));
+	memset(mode, 0, sizeof(*mode));
 	
         info.done  = 0;
         info.state = state;
@@ -135,10 +129,6 @@ static void __set_control_state(ipmi_control_t *control,
 {
        struct ohoi_control_info *info = cb_data;
        info->done = 1;
-	if (err) {
-		dbg("__set_control_state: err = %d", err);
-		info->err = SA_ERR_HPI_INTERNAL_ERROR;
-	}
 }
 
 static void _set_control_state(ipmi_control_t *control,
@@ -218,10 +208,7 @@ static void reset_resource_done (ipmi_control_t *ipmi_control,
 {
 	struct ohoi_reset_info *info = cb_data;
 	info->done = 1;
-	if (err) {
-		dbg("reset_resource_done: err = %d", err);
-		info->err = SA_ERR_HPI_INTERNAL_ERROR;
-	}
+	info->err = err;
 }
 
 static void set_resource_reset_state(ipmi_control_t *control,
@@ -332,10 +319,6 @@ static void power_done (ipmi_control_t *ipmi_control,
 	struct ohoi_power_info *power_info = cb_data;
 
 	power_info->done = 1;
-	if (err) {
-		dbg("power_done: err = %d", err);
-		power_info->err = SA_ERR_HPI_INTERNAL_ERROR;
-	}
 }
 
 static void set_power_state_on(ipmi_control_t *control,
@@ -452,12 +435,6 @@ static void get_power_control_val (ipmi_control_t *control,
 {
 	struct ohoi_power_info *info = cb_data;
 
-	if (err || !val) {
-		dbg("get_power_control_val: err = %d; val = %p", err, val);
-		info->err = SA_ERR_HPI_INTERNAL_ERROR;
-		info->done = 1;
-		return;
-	}
 	if (*val == 0) {
 		dbg("Power Control Value: %d", *val);
 		*info->state = SAHPI_POWER_OFF;
@@ -483,7 +460,7 @@ static void get_power_state (ipmi_control_t *ipmi_control,
 	rv = ipmi_control_get_val(ipmi_control, get_power_control_val, cb_data);
 
 	if(rv) {
-		dbg("[power]control_get_val failed. rv = %d", rv);
+		dbg("[power]control_get_val failed");
 		power_state->err = SA_ERR_HPI_INTERNAL_ERROR;
 		power_state->done = 1;
 	}
@@ -530,12 +507,6 @@ static void get_reset_control_val (ipmi_control_t *control,
 {
 	struct ohoi_reset_info *info = cb_data;
 
-	if (err || !val) {
-		dbg("get_reset_control_val: err = %d; val = %p", err, val);
-		info->err = SA_ERR_HPI_INTERNAL_ERROR;
-		info->done = 1;
-		return;
-	}
 	if (*val == 0) {
 		dbg("Reset Control Value: %d", *val);
 		*info->state = SAHPI_RESET_DEASSERT;
@@ -566,14 +537,8 @@ void get_reset_state(ipmi_control_t *control,
 
 	rv = ipmi_control_get_val(control, get_reset_control_val, cb_data);
 	if (rv) {
-		//dbg("[reset] control_get_val failed. IPMI error = %i", rv);
-		dbg("This IPMI system has a pulse reset, state is always DEASSERT");
-		/* OpenIPMI will return an error for this call
-		   since pulse resets do not support get_state
-		   we will return UNSUPPORTED_API
-		 */
-		*reset_info->state = SAHPI_RESET_DEASSERT;
-		reset_info->err = SA_OK;
+		dbg("[reset] control_get_val failed. IPMI error = %i", rv);
+		reset_info->err = SA_ERR_HPI_INTERNAL_ERROR;
 		reset_info->done = 1;
 	}
 }
@@ -603,8 +568,8 @@ SaErrorT ohoi_get_reset_state(void *hnd,
 	rv = ipmi_control_pointer_cb(ohoi_res_info->reset_ctrl,
 				     get_reset_state, &reset_state);
 	if(rv) {
-		dbg("[reset_state] controm pointer callback failed. rv = %d", rv);
-		return SA_ERR_HPI_INVALID_CMD;
+		dbg("[reset_state] controm pointer callback failed");
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	ohoi_loop(&reset_state.done, ipmi_handler);

@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 
 AC_PREREQ(2.57)
-AC_INIT(openhpi, 2.1.0)
+AC_INIT(openhpi, 2.0.2)
 AC_CONFIG_SRCDIR(openhpi.spec.in)
 AM_INIT_AUTOMAKE
 
@@ -19,7 +19,7 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
 
-HPI_LIB_VERSION=3:0:1
+HPI_LIB_VERSION=2:2:0
 HPI_PKG=$PACKAGE_NAME
 HPI_UTIL_PKG=${PACKAGE_NAME}utils
 HPI_CLIENT_PKG=${PACKAGE_NAME}client
@@ -109,6 +109,7 @@ AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
         this is required for plugin loading)
     ])
 
+
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
 
 OH_CHECK_NETSNMP
@@ -155,14 +156,12 @@ AC_ARG_ENABLE([daemon],
     fi],
     [   
     ENABLED_DIRS="$ENABLED_DIRS openhpid2"
-    NEED_MARSHAL="yes"
-    openhpid_dinamic="yes"])
+    NEED_MARSHAL="yes"])
 
 dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid2"
 dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
-
 
 shell_client="no"
 AC_ARG_ENABLE([shell_client],
@@ -263,7 +262,7 @@ dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
 
-if pkg-config --atleast-version 1.4.13 OpenIPMI; then
+if pkg-config --atleast-version 1.3.11 OpenIPMI; then
     have_openipmi=yes
     AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
     OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
@@ -272,6 +271,7 @@ if pkg-config --atleast-version 1.4.13 OpenIPMI; then
     AC_SUBST(OPENIPMI_LIBS)
 fi
 
+
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
     [if test "x$enableval" = "xyes"; then
@@ -279,7 +279,7 @@ AC_ARG_ENABLE([ipmi],
             AC_SUBST(IPMI,ipmi)
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
-                         Can not build IPMI support without OpenIPMI >= 1.4.13)
+                         Can not build IPMI support without OpenIPMI >= 1.3.14)
         fi
     elif test "x$enableval" = "xstatic"; then
         if test "x$have_openipmi" = "xyes"; then
@@ -288,7 +288,7 @@ AC_ARG_ENABLE([ipmi],
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS"
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
-                         Can not build IPMI support without OpenIPMI >= 1.4.13)
+                         Can not build IPMI support without OpenIPMI >= 1.3.14)
         fi        
     fi],
     [if test "x$have_openipmi" = "xyes"; then
@@ -348,7 +348,7 @@ fi
 
 AC_ARG_ENABLE([remote_client],
     [  --enable-remote_client     build remote client plugin [default=yes]],
-    [if test "x$enableval" = "xyes"; then
+    [if test "x$enableval" = "xyess"; then
             AC_SUBST(REMOTE_CLIENT,remote_client)
 	    NEED_MARSHAL="yes"
      elif test "x$enableval" = "xstatic"; then
@@ -364,11 +364,13 @@ dnl     NEED_MARSHAL="yes"])
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator       build simulator plugin [default=no]],
-    [if test "x$enableval" = "xyes"; then
-        AC_SUBST(SIMULATOR,simulator)
+    [if test "x$enableval" = "xyess"; then
+		if test "x$have_fam" = "xyes"; then
+                        AC_SUBST(SIMULATOR,simulator)
+                else
+			OH_CHECK_FAIL(FAM packages are missing, install fam and fam-devel to build simulator plug-in)
+		fi
     fi])
-
-#    [AC_SUBST(SIMULATOR,simulator)])
 
 dnl	[if test "x$have_fam" = "xyes"; then
 dnl    	AC_SUBST(SIMULATOR,simulator)
@@ -533,8 +535,7 @@ CXX_WARNINGS="\
 	-Wcast-align \
         -Wshadow \
         -Wwrite-strings \
-        -Wredundant-decls \
-	-Werror "
+        -Wredundant-decls"
 
 dnl remerge the warnings into the FLAGS
 CXXFLAGS="$CFLAGS $CXX_WARNINGS"
