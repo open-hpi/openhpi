@@ -62,7 +62,7 @@ openhpi-manual/book1.html: $(SGML_FILES)
 	-cp $(DIAGRAMS) openhpi-manual/images
 
 publish: openhpi-manual/book1.html
-	-rsync -rP --delete openhpi-manual/ $(SERVER):$(HLDDIR)
+	-rsync -e ssh -rP --delete openhpi-manual/ $(SERVER):$(HLDDIR)
 	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -exec chmod g+w {} \;"
 	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -type d -exec chmod g+s {} \;"
 
