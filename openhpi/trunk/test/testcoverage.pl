@@ -26,21 +26,21 @@ my $report = "";
 
 # this needs to be made more generic over time
 my %files = (
-             "src/sel_utils.c" => "t/sel",
-             "src/rpt_utils.c" => "t/rpt",
-             "src/epath_utils.c" => "t/epath",
+             "utils/sel_utils.c" => "t/sel",
+             "utils/rpt_utils.c" => "t/rpt",
+             "utils/epath_utils.c" => "t/epath",
              # now for the blade center stuff
-             "src/plugins/snmp_bc/bc_resources.c" => "t",
-             "src/plugins/snmp_bc/bc_str2event.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_control.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_discover.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_hotswap.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_sel.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_sensor.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_session.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_utils.c" => "t",
-             "src/plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
+             "plugins/snmp_bc/bc_resources.c" => "t",
+             "plugins/snmp_bc/bc_str2event.c" => "t",
+             "plugins/snmp_bc/snmp_bc.c" => "t",
+             "plugins/snmp_bc/snmp_bc_control.c" => "t",
+             "plugins/snmp_bc/snmp_bc_discover.c" => "t",
+             "plugins/snmp_bc/snmp_bc_hotswap.c" => "t",
+             "plugins/snmp_bc/snmp_bc_sel.c" => "t",
+             "plugins/snmp_bc/snmp_bc_sensor.c" => "t",
+             "plugins/snmp_bc/snmp_bc_session.c" => "t",
+             "plugins/snmp_bc/snmp_bc_utils.c" => "t",
+             "plugins/snmp_bc/snmp_bc_watchdog.c" => "t",
             );
 
 # we must ensure that we have coverage created

@@ -16,7 +16,7 @@
 
 use strict;
 
-my @dirs = qw(src src/plugins/snmp_bc);
+my @dirs = qw(src utils plugins/snmp_bc);
 
 my $outdir = "report_html";
 
