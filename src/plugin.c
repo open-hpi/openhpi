@@ -105,6 +105,9 @@ int load_plugin(struct oh_plugin_config *config)
         /* first take search plugin in the array of static plugin */
         while( p->name ) {
                 if ( !strcmp( config->name, p->name ) ) {
+
+                        config->dl_handle = 0;
+
                         err = (*p->get_interface)( (void **)&config->abi, UUID_OH_ABI_V2);
 
                         if (err < 0 || !config->abi || !config->abi->open) {
@@ -113,8 +116,6 @@ int load_plugin(struct oh_plugin_config *config)
                         }
 
                         trace( "found static plugin %s", p->name );
-
-                        config->dl_handle = 0;
 
                         return 0;
                 }
