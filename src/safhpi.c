@@ -465,6 +465,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
 {
         int (*get_func) (void *, SaHpiResourceIdT, SaHpiSelInfoT *);
         
+        SaErrorT rv;
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -487,11 +488,11 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         if (!get_func)
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (get_func(h->hnd, ResourceId, Info) < 0) {
+        rv = get_func(h->hnd, ResourceId, Info);
+        if (rv != SA_OK) {
                 dbg("SEL info get failed");
-                return SA_ERR_HPI_UNKNOWN;
         }
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryGet (
@@ -507,6 +508,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         int (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
                              SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         
+        SaErrorT rv;
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -530,14 +532,15 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                 return SA_ERR_HPI_UNSUPPORTED_API;
         }
         
-        if (get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
-                          NextEntryId, EventLogEntry) < 0) {
+        rv = get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
+                           NextEntryId, EventLogEntry);
+        
+        if(rv != SA_OK) {
                 dbg("SEL entry get failed");
-                return SA_ERR_HPI_UNKNOWN;
         }
         
         /* TODO: pull RDR and RPTEntry from EventLogEntry for return */
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (
@@ -548,6 +551,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         int (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, 
                              const SaHpiSelEntryT *Event);
         
+        SaErrorT rv;
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -569,14 +573,17 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         if (!add_sel_entry)
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (add_sel_entry(h->hnd, ResourceId, EvtEntry) < 0) {
+        rv = add_sel_entry(h->hnd, ResourceId, EvtEntry);
+        if(rv != SA_OK) {
                 dbg("SEL add entry failed");
-                return SA_ERR_HPI_UNKNOWN;
         }
         
         /* to get RSEL entry into infrastructure */
-        get_events();
-        return SA_OK;
+        rv = get_events();
+        if(rv != SA_OK) {
+                dbg("Event loop failed");
+        }
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryDelete (
@@ -587,6 +594,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
         int (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, 
                              SaHpiSelEntryIdT sid);
         
+        SaErrorT rv;
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -608,12 +616,12 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
         if (!del_sel_entry)
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (del_sel_entry(h->hnd, ResourceId, EntryId) < 0) {
+        rv = del_sel_entry(h->hnd, ResourceId, EntryId);
+        if(rv != SA_OK) {
                 dbg("SEL delete entry failed");
-                return SA_ERR_HPI_UNKNOWN;
         }
         
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEventLogClear (
@@ -622,6 +630,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 {
         int (*clear_sel)(void *hnd, SaHpiResourceIdT id);
         
+        SaErrorT rv;
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -642,12 +651,12 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         if (!clear_sel)
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (clear_sel(h->hnd, ResourceId) < 0) {
+        rv = clear_sel(h->hnd, ResourceId);
+        if(rv != SA_OK) {
                 dbg("SEL delete entry failed");
-                return SA_ERR_HPI_UNKNOWN;
         }
         
-        return SA_OK; 
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEventLogTimeGet (
@@ -676,6 +685,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
 {
         int (*set_sel_time)(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 
+        SaErrorT rv;
         struct oh_session *s;
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
@@ -697,12 +707,12 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         if (!set_sel_time)
                 return SA_ERR_HPI_UNSUPPORTED_API;
         
-        if (set_sel_time(h->hnd, ResourceId, Time) < 0) {
+        rv = set_sel_time(h->hnd, ResourceId, Time);
+        if(rv != SA_OK) {
                 dbg("Set SEL time failed");
-                return SA_ERR_HPI_UNKNOWN;
         }
         
-        return SA_OK;
+        return rv;
 }
 
 SaErrorT SAHPI_API saHpiEventLogStateGet (
