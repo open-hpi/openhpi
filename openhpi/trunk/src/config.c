@@ -368,7 +368,7 @@ int process_handler_token (GScanner* oh_scanner)
                         gpointer value;
                         int current_token = g_scanner_get_next_token(oh_scanner);
 
-                        if (current_token == G_TOKEN_INT) { /* For int andfloat */
+                        if (current_token == G_TOKEN_INT) {
                                 value_int = (gulong *)g_malloc(sizeof(gulong));
                                 if (value_int != NULL) *value_int = oh_scanner->value.v_int;
                                 value = (gpointer)value_int;                                
@@ -420,16 +420,32 @@ free_table:
 }
 
 /**
-free_hash_table: used in the g_hash_table_foreach call in process_handler_token.
-This funtion is passed to that table call by reference. Frees the memory allocated
-for the key and value arguments it receives.
-*/
+ * free_hash_table: used in the g_hash_table_foreach call in process_handler_token.
+ * This funtion is passed to that table call by reference. Frees the memory allocated
+ * for the key and value arguments it receives.
+ *
+ * @key: key into a GHashTable
+ * @value: value correspoinding to key in GHasgTable
+ * @user_data: It is NULL. Not used here.
+ *
+ * Return value: None (void).
+ **/
 void free_hash_table (gpointer key, gpointer value, gpointer user_data)
 {
         g_free(key);
         g_free(value);
 }
 
+/**
+ * scanner_msg_handler: a reference of this function is passed into the GScanner.
+ * Used by the GScanner object to output messages that come up during parsing.
+ *
+ * @scanner: Object used to parse the config file.
+ * @message: Message string.
+ * @is_error: Bit to say the message is an error.
+ *
+ * Return value: None (void).
+ **/
 static void scanner_msg_handler (GScanner		*scanner,
                                  gchar		*message,
                                  gboolean		is_error)
