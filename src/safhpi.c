@@ -26,6 +26,7 @@
 #include <oh_plugin.h>
 #include <SaHpi.h>
 #include <uid_utils.h>
+#include <epath_utils.h>
 
 #include <pthread.h>
 
@@ -508,7 +509,7 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         rv = set_res_tag(h->hnd, ResourceId, ResourceTag);
 
         if ( rv )
-                dbg("Tage set failed for Resource %d", ResourceId);
+                dbg("Tag set failed for Resource %d", ResourceId);
 
         /* to get RSEL entry into infrastructure */
         get_events();
@@ -519,8 +520,24 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_OUT SaHpiResourceIdT *ResourceId)
 {
-        /* this is going to be an interesting call to figure out */
-        return SA_ERR_HPI_UNKNOWN;
+        RPTable *rpt = default_rpt;
+        SaHpiEntityPathT ep;
+        SaHpiRptEntryT *rptentry;
+        char *on_entitypath = getenv("OPENHPI_ON_EP");
+
+        if (!on_entitypath) {
+                return SA_ERR_HPI_UNKNOWN;
+        }
+
+        string2entitypath(on_entitypath, &ep);
+        rptentry = oh_get_resource_by_ep(rpt, &ep);
+        if (!rptentry) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        *ResourceId = rptentry->ResourceId;
+
+        return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEntitySchemaGet(
