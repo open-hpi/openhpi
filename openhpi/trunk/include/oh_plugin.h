@@ -219,7 +219,7 @@ struct oh_abi_v1 {
 	 * set inventory state
 	 */
 	int (*set_inventory_info)(void *hnd, struct oh_rdr_id id,
-				  SaHpiInventoryDataT *data);
+				  const SaHpiInventoryDataT *data);
 
 	/**
 	 * get watchdog timer info
