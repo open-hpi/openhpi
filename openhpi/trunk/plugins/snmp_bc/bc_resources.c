@@ -3181,7 +3181,7 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                 {},
                         },
                 },
-                .comment = "Add-in card voltage sensor"
+                .comment = "Blade expansion card voltage sensor"
         },
 
         {} /* Terminate array with a null element */
