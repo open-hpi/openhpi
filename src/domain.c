@@ -16,6 +16,7 @@
 
 #include <oh_domain.h>
 #include <oh_session.h>
+#include <oh_alarm.h>
 #include <oh_error.h>
 #include <oh_utils.h>
 #include <string.h>
@@ -109,6 +110,7 @@ static void __delete_domain(struct oh_domain *d)
 {
         oh_flush_rpt(&(d->rpt));
         oh_el_close(d->del);
+        oh_close_alarmtable(d);
         g_array_free(d->sessions, TRUE);
         g_static_rec_mutex_free(&(d->lock));
         g_static_rec_mutex_free(&(d->refcount_lock));
