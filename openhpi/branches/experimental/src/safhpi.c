@@ -1274,16 +1274,22 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
         int (*get_size)(void *, SaHpiResourceIdT, SaHpiEirIdT, size_t *);
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, SaHpiInventoryDataT *);
         
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        h = oh_get_resource_data(rpt, ResourceId);
-        
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
-        
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+                
         get_size = h->abi->get_inventory_size;
         get_func = h->abi->get_inventory_info;
         if (!get_func || !get_size)             
@@ -1309,16 +1315,22 @@ SaErrorT SAHPI_API saHpiEntityInventoryDataWrite (
 {
         int (*set_func)(void *, SaHpiResourceIdT, SaHpiEirIdT, const SaHpiInventoryDataT *);
 
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        h = oh_get_resource_data(rpt, ResourceId);
-        
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)) {
+                dbg("Resource %d doesn't have inventory data",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
-        
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
+
         set_func = h->abi->set_inventory_info;
         if (!set_func)          
                 return SA_ERR_HPI_UNSUPPORTED_API;
@@ -1337,15 +1349,21 @@ SaErrorT SAHPI_API saHpiWatchdogTimerGet (
 {
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
         
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        h = oh_get_resource_data(rpt, ResourceId);
-        
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
+                dbg("Resource %d doesn't have watchdog",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
 
         get_func = h->abi->get_watchdog_info;
         if (!get_func)          
@@ -1365,15 +1383,21 @@ SaErrorT SAHPI_API saHpiWatchdogTimerSet (
 {
         int (*set_func)(void *, SaHpiResourceIdT, SaHpiWatchdogNumT, SaHpiWatchdogT *);
 
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        h = oh_get_resource_data(rpt, ResourceId);
-        
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG)) {
+                dbg("Resource %d doesn't have watchdog",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
 
         set_func = h->abi->set_watchdog_info;
         if (!set_func)          
