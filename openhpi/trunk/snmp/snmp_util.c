@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003,2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,6 +17,7 @@
 
 #include <snmp_util.h>
 #include <string.h>
+#include <openhpi.h>
 
 /**
  * snmp_get
@@ -29,7 +30,7 @@
  * In the case of multiple values being returned, the type in @value will be
  * ASN_NULL (0x05). Nothing else in @value will be filled in.
  *
- * Returns: 0 if successful, -1 if there was an error.
+ * Returns: 0 if successful, <0 if there was an error.
  **/
 SaErrorT snmp_get(struct snmp_session *ss, const char *objid, 
              struct snmp_value *value) 
@@ -40,6 +41,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
         oid anOID[MAX_OID_LEN];
         size_t anOID_len = MAX_OID_LEN;
         struct variable_list *vars;
+	SaErrorT returncode = SA_OK;
         int status;
         
         /*
@@ -48,43 +50,62 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
         pdu = snmp_pdu_create(SNMP_MSG_GET);
         read_objid(objid, anOID, &anOID_len);
         snmp_add_null_var(pdu, anOID, anOID_len);
+
         /*
          * Send the Request out.
          */
         status = snmp_synch_response(ss, pdu, &response);
+
         /*
          * Process the response.
          */
-        if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                vars = response->variables;
-                value->type = vars->type;
-                if (vars->next_variable != NULL) {
-                        value->type = ASN_NULL;
-                }/* If there are more values, set return type to null. */
-                else if ( (vars->type == ASN_INTEGER) || (vars->type == ASN_COUNTER) ) {
-                        value->integer = *(vars->val.integer);
-                } else {
-                        value->str_len = vars->val_len;
-                        if (value->str_len >= MAX_ASN_STR_LEN)
-                                value->str_len = MAX_ASN_STR_LEN;
-                        else value->string[value->str_len] = '\0';
+        if (status == STAT_SUCCESS) {
+		if(response->errstat == SNMP_ERR_NOERROR) {
+               	 	vars = response->variables;
+                	value->type = vars->type;
+                	if (vars->next_variable != NULL) {
+                		/* There are more values, set return type to null. */
+                        	value->type = ASN_NULL;
+			} else if ( (vars->type == SNMP_NOSUCHOBJECT) 	||
+				    (vars->type == SNMP_NOSUCHINSTANCE)	||
+				    (vars->type == SNMP_ENDOFMIBVIEW)) {
+				/* This is one of the exception condition */
+				returncode = (SaErrorT) (SA_SNMP_ERR_BASE - vars->type);
+				dbg("snmp exception %d \n",vars->type);
 
-                        memcpy(value->string, vars->val.string, value->str_len);
-                       
-                }
-        } else {
-                value->type = (u_char)0x00; /* Set return type to 0 in case of error. */
-                if (status == STAT_SUCCESS)
+                	} else if ( (vars->type == ASN_INTEGER) || (vars->type == ASN_COUNTER) ) {
+                        	value->integer = *(vars->val.integer);
+
+                	} else { 
+                        	value->str_len = vars->val_len;
+                        	if (value->str_len >= MAX_ASN_STR_LEN)
+                                		value->str_len = MAX_ASN_STR_LEN;
+                        	else value->string[value->str_len] = '\0';
+
+                        	memcpy(value->string, vars->val.string, value->str_len);
+                	}
+
+		} else {
                         fprintf(stderr, "Error in packet %s\nReason: %s\n",
-                                objid, snmp_errstring(response->errstat));
-                else
-                        snmp_sess_perror("snmpget", ss);
+                               	 objid, snmp_errstring(response->errstat));
+			if (response->errstat == SNMP_ERR_NOSUCHNAME)
+				response->errstat = SNMP_NOSUCHOBJECT;
+			returncode = (SaErrorT) (SA_SNMP_ERR_BASE - response->errstat);
+		}
+
+        } else {
+                /* Set return type to 0 in case of error. */
+		/* Probably not needed since we switch to returncode */
+		/* Leave it in until examine all users of this func  */
+                value->type = (u_char)0x00; 
+                snmp_sess_perror("snmpget", ss);
+		returncode = (SaErrorT) (SA_SNMP_ERR_BASE - status);
         }
 
         /* Clean up: free the response */
         if (response) snmp_free_pdu(response);
 
-        return value->type? 0 : -1;
+        return (returncode);
 }
 
 /**
@@ -111,7 +132,7 @@ SaErrorT snmp_set(
         char datatype = 's';
         void *dataptr = NULL;
         int status = 0;
-	int rtncode = 0;
+	SaErrorT rtncode = 0;
 
         /*
          * Create the PDU for the data for our request.
@@ -144,17 +165,19 @@ SaErrorT snmp_set(
 		 * Set the data to send out
 		 */
 		snmp_pdu_add_variable(pdu, anOID, anOID_len, value.type, dataptr, value.str_len);
-                /* snmp_add_var(pdu, anOID, anOID_len, datatype, dataptr);*/
+                /* old code --> send out blank oid. why? snmp_add_var(pdu, anOID, anOID_len, datatype, dataptr);*/
+
         	/*
          	* Send the Request out.
          	*/
         	status = snmp_synch_response(ss, pdu, &response);
+
         	/*
          	* Process the response.
          	*/
         	if (status == STAT_SUCCESS && response->errstat == SNMP_ERR_NOERROR) {
-                	rtncode = 0;
-                
+			/* TO DO - Check for snmp exception cases */ 
+                	rtncode = SA_OK;
         	} else {
                 	rtncode = -1;
                 	if (status == STAT_SUCCESS)
