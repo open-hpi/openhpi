@@ -39,20 +39,40 @@ static void set_discrete_sensor_misc_event(ipmi_event_t		*event,
 {
 	enum ohoi_event_type  type;
         unsigned char *data;
+	SaHpiSensorOptionalDataT od = 0;
  
         data = ipmi_event_get_data_ptr(event);
 	
+	e->EventState = (1 << (data[10] & 0x0f));
 	type = data[10] >> 6;
-	if (type == EVENT_DATA_2) 
-		e->Oem = data[11]; 
-	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = data[11]; 
+	if (type == EVENT_DATA_1) {
+		if ((data[11] & 0x0f) != 0x0f) {
+			od |= SAHPI_SOD_PREVIOUS_STATE;
+			e->PreviousState = (1 << (data[11] & 0x0f));
+		}
+	} else if (type == EVENT_DATA_2) { 
+		od |= SAHPI_SOD_OEM;
+	} else if (type == EVENT_DATA_3) {
+		od |= SAHPI_SOD_SENSOR_SPECIFIC;
+	}
 
 	type = (data[10] & 0x30) >> 4;
-	if (type == EVENT_DATA_2)
-		e->Oem = data[12];
-	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = data[12];
+	if (type == EVENT_DATA_2) { 
+		od |= SAHPI_SOD_OEM;
+	} else if (type == EVENT_DATA_3) {
+		od |= SAHPI_SOD_SENSOR_SPECIFIC;
+	}
+	if (e->SensorType == IPMI_SENSOR_TYPE_OS_CRITICAL_STOP) {
+		// implementation feature
+		od |= SAHPI_SOD_SENSOR_SPECIFIC;
+		e->SensorSpecific = (data[12] << 16) |
+			(data[11] << 8) | data[9];
+	} else {
+		e->SensorSpecific = (data[12] << 16) |
+			(data[11] << 8) | data[10];
+	}
+	e->Oem = (data[12] << 16) | (data[11] << 8) | data[10];
+	e->OptionalDataPresent = od;
 }
 
 
@@ -159,14 +179,9 @@ static struct oh_event *sensor_discrete_map_event(
                 = data[9] & 0x7f;
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.Assertion 
                 = !(dir);
-	
-        e->u.hpi_event.event.EventDataUnion.SensorEvent.EventState = severity;
-        e->u.hpi_event.event.EventDataUnion.SensorEvent.PreviousState =
-	                                                    prev_severity;
 
-
-	set_discrete_sensor_misc_event
-		(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent);
+	set_discrete_sensor_misc_event(event,
+		&e->u.hpi_event.event.EventDataUnion.SensorEvent);
 	return e;
 
 }
@@ -247,32 +262,44 @@ static void set_thresholds_sensor_misc_event(ipmi_event_t	*event,
 {
 	unsigned int type;
         unsigned char *data;
+	SaHpiSensorOptionalDataT od = 0;
  
         data = ipmi_event_get_data_ptr(event);
 	
 	type = data[10] >> 6;
 	if (type == EVENT_DATA_1) {
+		od |= SAHPI_SOD_TRIGGER_READING;
 		e->TriggerReading.IsSupported = SAHPI_TRUE;
 		e->TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
 		e->TriggerReading.Value.SensorUint64 = data[11];
+	} else if (type == EVENT_DATA_2) {
+		od |= SAHPI_SOD_OEM; 
+	} else if (type == EVENT_DATA_3) {
+		od |= SAHPI_SOD_SENSOR_SPECIFIC;
 	}
-	else if (type == EVENT_DATA_2) 
-		e->Oem = data[11]; 
-	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = data[11]; 
 
 	type = (data[10] & 0x30) >> 4;
 	if (type == EVENT_DATA_1) {
-		e->TriggerReading.IsSupported = SAHPI_TRUE;
-                e->TriggerReading.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
-                e->TriggerReading.Value.SensorUint64 = data[12];
+		od |= SAHPI_SOD_TRIGGER_THRESHOLD;
+		e->TriggerThreshold.IsSupported = SAHPI_TRUE;
+                e->TriggerThreshold.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
+                e->TriggerThreshold.Value.SensorUint64 = data[12];
+	} else if (type == EVENT_DATA_2) {
+		od |= SAHPI_SOD_OEM;
+	} else if (type == EVENT_DATA_3) {
+		od |= SAHPI_SOD_SENSOR_SPECIFIC;
 	}
-	else if (type == EVENT_DATA_2)
-		e->Oem = data[12];
-	else if (type == EVENT_DATA_3)
-		e->SensorSpecific = data[12];
+	if (e->SensorType == IPMI_SENSOR_TYPE_OS_CRITICAL_STOP) {
+		od |= SAHPI_SOD_SENSOR_SPECIFIC;
+		e->SensorSpecific = (data[12] << 16) |
+			(data[11] << 8) | data[9];
+	} else {
+		e->SensorSpecific = (data[12] << 16) |
+			(data[11] << 8) | data[10];
+	}
+	e->Oem = (data[12] << 16) | (data[11] << 8) | data[10];
+	e->OptionalDataPresent = od;
 }
-
 
 /*
  * sensor_threshold_map_event
@@ -299,7 +326,6 @@ static struct oh_event *sensor_threshold_map_event(
 				   ipmi_event_t			*event)
 {
 	struct oh_event		*e;
-//        struct oh_handler_state *handler;
 	SaHpiSeverityT		severity;
         unsigned char           *data;
  
@@ -318,7 +344,7 @@ static struct oh_event *sensor_threshold_map_event(
 	e->u.hpi_event.event.Timestamp 
                 = (SaHpiTimeT)ipmi_get_uint32(data) * 1000000000;
 
-       // sensor type should be assigned later in calling functions
+       // sensor num should be assigned later in calling functions
        e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorNum = 0;
 
 	e->u.hpi_event.event.EventDataUnion.SensorEvent.SensorType 
