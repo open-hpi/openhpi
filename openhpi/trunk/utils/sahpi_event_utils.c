@@ -261,6 +261,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			return(SAHPI_FALSE);
 		}
 
+#if 0
 		/* Check that all lower-level thresholds are set */
 		if (check_mutal_exclusion) {
 			if (event_state & SAHPI_ES_LOWER_CRIT) {
@@ -288,7 +289,7 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 				}
 			}
 		}
-	
+#endif	
 		return(SAHPI_TRUE);
 
 	case SAHPI_EC_USAGE:
