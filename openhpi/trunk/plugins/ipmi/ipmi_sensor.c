@@ -750,8 +750,10 @@ int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
         
         rv = ohoi_loop(&enable_data.done, ipmi_handler);
 
-	if (rv || enable_data.rvalue)
-		return SA_ERR_HPI_INVALID_CMD;
+	if (rv)
+		return rv;
+	if (enable_data.rvalue)
+		return enable_data.rvalue;
 
 	*enable = enable_data.enable;
 	*assert = enable_data.assert;
@@ -788,8 +790,11 @@ int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
         
         rv = ohoi_loop(&enable_data.done, ipmi_handler);
 
-	if (rv || enable_data.rvalue)
-		return SA_ERR_HPI_INTERNAL_ERROR;
+	if (rv)
+		return rv;
+	
+	if (enable_data.rvalue)
+		return enable_data.rvalue;
 
 	return SA_OK;
 }
