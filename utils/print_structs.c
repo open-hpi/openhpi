@@ -21,7 +21,7 @@
 #include <SaHpi.h>
 #include <oh_error.h>
 #include <oh_utils.h>
-#include <print_utils.h>
+#include <SaHpi_enum_utils.h>
 #include <print_structs.h>
 
 /*

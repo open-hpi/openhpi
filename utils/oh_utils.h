@@ -17,6 +17,8 @@
 #ifndef OH_UTILS_H
 #define OH_UTILS_H
 
+#include <SaHpi_enum_utils.h>
+#include <SaHpi_struct_utils.h>
 #include <epath_utils.h>
 #include <uid_utils.h>
 #include <rpt_utils.h>
@@ -25,6 +27,5 @@
 #include <printevent_utils.h>
 #include <sensor_utils.h>
 #include <event_utils.h>
-#include <print_utils.h>
 
 #endif
