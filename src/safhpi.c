@@ -630,7 +630,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
         OH_RPT_GET(SessionId,rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -690,7 +690,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
-        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -762,7 +762,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -812,7 +812,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -856,7 +856,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -919,7 +919,7 @@ SaErrorT SAHPI_API saHpiEventLogTimeSet (
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);  
 
-        if(!(res->ResourceCapabilities && SAHPI_CAPABILITY_SEL)) {
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
                 dbg("Resource %d does not have SEL", ResourceId);
                 return SA_ERR_HPI_INVALID_CMD;
         }
@@ -1116,15 +1116,26 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 SAHPI_OUT SaHpiRdrT *Rdr)
 {
         struct oh_session *s;
-        RPTable *rpt = default_rpt;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
         SaHpiRdrT *rdr_cur;
         SaHpiRdrT *rdr_next;
 
-        OH_STATE_READY_CHECK;
-        OH_SESSION_SETUP(SessionId, s);
 
         data_access_lock();
-        
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_RDR)) {
+                dbg("No RDRs for Resource %d",ResourceId);
+                data_access_unlock();
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
+
         if(EntryId == SAHPI_FIRST_ENTRY) {
                 rdr_cur = oh_get_rdr_next(rpt, ResourceId, SAHPI_FIRST_ENTRY);
         } else {
