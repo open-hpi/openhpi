@@ -178,6 +178,7 @@ static SaHpiRptEntryT dummy_resources[NUM_RESOURCES] = {
 static struct oh_event hotswap_event[] = {
         /* This is an hotswap event for insertion pending */
         {
+                .did = 1, /* set up domain id */
                 .type = OH_ET_HPI,
                 .u = {
                         .hpi_event = {
@@ -200,6 +201,7 @@ static struct oh_event hotswap_event[] = {
         },
         /* This is an hotswap event for insertion pending */
         {
+                .did = 1, /* set up domain id */
                 .type = OH_ET_HPI,
                 .u = {
                         .hpi_event = {
@@ -249,7 +251,7 @@ static SaHpiRdrT dummy_rdrs[] = {
                                          .IsSupported = SAHPI_TRUE,
                                          .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                          .ModifierUse = SAHPI_SMUU_NONE,
-                                         .Percentage = SAHPI_TRUE,
+                                         .Percentage = SAHPI_FALSE,
                                          .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
                                          .Range = {
                                                   .Flags = SAHPI_SRF_MIN |
@@ -765,37 +767,39 @@ static struct dummy_rel {
 
 /* The event is used to fill event list */
 static struct oh_event dummy_user_event = {
-                .type = OH_ET_HPI,
-                .u = {
-                        .hpi_event = {
-                                .res.ResourceId = 0,
-                                .rdr.RecordId = 0,
-                                .event = {
-                                        .Source = 0,
-                                        .EventType = SAHPI_ET_USER,
-                                        .Timestamp = 0,
-                                        .Severity = SAHPI_CRITICAL,
-                                },
-                        },
-                },
+        .did = 1, /* set up domain id */
+        .type = OH_ET_HPI,
+        .u = {
+                .hpi_event = {
+                         .res.ResourceId = 0,
+                         .rdr.RecordId = 0,
+                         .event = {
+                                 .Source = 0,
+                                 .EventType = SAHPI_ET_USER,
+                                 .Timestamp = 0,
+                                 .Severity = SAHPI_CRITICAL,
+                         },
+                 },
+        },
 };
 
 #if 0
 /* The sensor event is used */
 static struct oh_event dummy_user_event = {
-                .type = OH_ET_RESOURCE_DEL,
-                .u = {
-                        .res_event = {
-                                .res.ResourceId = 0,
-                                .domain = 0,
-                                .entry = {
-                                        .Source = 0,
-                                        .EventType = SAHPI_ET_USER,
-                                        .Timestamp = 0,
-                                        .Severity = SAHPI_CRITICAL,
-                                },
-                        },
-                },
+        .did = 1, /* set up domain id */
+        .type = OH_ET_RESOURCE_DEL,
+        .u = {
+                .res_event = {
+                         .res.ResourceId = 0,
+                         .domain = 0,
+                         .entry = {
+                                 .Source = 0,
+                                 .EventType = SAHPI_ET_USER,
+                                 .Timestamp = 0,
+                                 .Severity = SAHPI_CRITICAL,
+                         },
+                 },
+        },
 };
 #endif
 
@@ -899,8 +903,8 @@ static void *dummy_open(GHashTable *handler_config)
         /* fill in the local rpt cache */
         __build_the_rpt_cache(i);
         /* associate the static hotswap_event data with a resource */
-        hotswap_event[0].u.hpi_event.res.ResourceId = dummy_resources[1].ResourceId;
-        hotswap_event[1].u.hpi_event.res.ResourceId = dummy_resources[1].ResourceId;
+        hotswap_event[0].u.hpi_event.res = dummy_resources[1];
+        hotswap_event[1].u.hpi_event.res = dummy_resources[1];
 
 #ifdef DUMMY_THREADED
 
@@ -972,13 +976,13 @@ static struct oh_event *remove_resource(struct oh_handler_state *inst)
 
         /* generate remove resource event */
         if(rpt_e_pre) {
-
+                e.did = 1;
                 e.type = OH_ET_RESOURCE_DEL;
                 e.u.res_event.entry.ResourceId = rpt_e_pre->ResourceId;
                 /*memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));*/
         }
 
-        dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
+        dbg("**** ResourceId %d ******", e.u.res_event.entry.ResourceId);
 
         return(&e);
 
@@ -1004,11 +1008,12 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 
         /* generate remove resource event */
         if(rpt_e_pre) {
+                e.did = 1;
                 e.type = OH_ET_RESOURCE;
                 memcpy(&e.u.res_event.entry, rpt_e_pre, sizeof(SaHpiRptEntryT));
         }
 
-        dbg("**** ReourceId %d ******", e.u.res_event.entry.ResourceId);
+        dbg("**** ResourceId %d ******", e.u.res_event.entry.ResourceId);
 
         return(&e);
 
