@@ -170,6 +170,61 @@ handler libsnmp_bc {
     </sect2>
   </sect1>
   <sect1>
+    <title>SNMP RSA Plugin</title>
+    <para>
+      The SNMP RSA plugin is an SNMP based interface to IBM's
+      Remote Supervisor Adapter hardware.  Technical information about RSA
+      is best found at <ulink
+        url="http://www-1.ibm.com/support/docview.wss?rs=0&q1=remote+supervisor+adapter&uid=psg1MIGR-4UKSML&loc=en_US&cs=utf-8&cc=us&lang=en"
+        >the RSA Overview
+        Page</ulink>.
+      
+    </para>
+    <para>
+      This plugin is called <literal>snmp_rsa</literal> in the OpenHPI tree, and will be
+      referenced by the name <literal>libsnmp_rsa</literal> in all
+      OpenHPI configuration files.
+    </para>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+        The snmp_rsa plugin is not currently built by default in the
+        OpenHPI build process.  In order to enable the building of the
+        snmp_rsa module one must add the configure flag
+        <literal>--enable-snmp_rsa</literal> during the configure
+        process.
+      </para>
+      <para>
+        snmp_rsa relies on Net-SNMP >= 5.0.  most testing has
+        been done with >= 5.0.7 so the latest version available for
+        your distribution is recommended.
+      </para>
+      <para>
+	Currently the only functions supported are discovery for the main
+	chassis, CPUs and DASD. These resources are dynamically discovered
+        but no RDR records are created. Sensors, controls and inventories are
+	not yet discovered.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+        Below is an example configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libsnmp_rsa
+
+handler libsnmp_rsa {
+          community = "x440public"
+          host = "10.0.0.130"
+	  entity_root = "{ROOT,0}{SYSTEM_CHASSIS,1}"
+}
+            </programlisting>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1>
     <title>Watchdog Timer Plugin</title>
     <para>
       The watchdog timer plugin provides OpenHPI access to the software
