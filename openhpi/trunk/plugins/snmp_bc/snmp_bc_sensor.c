@@ -21,6 +21,7 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				 SaHpiSensorReadingT *data,
 				 SaHpiEventStateT    *state)
 {
+	SaErrorT err = SA_OK;
         gchar *oid=NULL;
 	SaHpiSensorReadingT working;
         struct snmp_value get_value;
@@ -28,9 +29,9 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
         SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if(rdr == NULL) {
+	if(rdr == NULL) 
 		return SA_ERR_HPI_NOT_PRESENT;
-	}
+
 	struct BC_SensorInfo *s =
                 (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
  	if(s == NULL) {
@@ -96,10 +97,80 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 		
 	/* NUL is a valid value for state, need to check before use */
 	if(state)
-		memset(state, 0, sizeof(SaHpiEventStateT));
+		err = snmp_bc_determine_sensor_eventstates(hnd, id, num, &working, state); 
         
         return SA_OK;
 }
+
+/*
+ *
+ */
+SaErrorT snmp_bc_determine_sensor_eventstates(void *hnd,
+				 SaHpiResourceIdT id,
+				 SaHpiSensorNumT num,
+				 SaHpiSensorReadingT *reading,
+				 SaHpiEventStateT    *state)		
+{
+
+	SaErrorT err = SA_OK;
+	SaHpiEventStateT thisEventStates = 0;
+	SaHpiSensorThresholdsT thres;
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;	
+	
+	if (!hnd || !reading || !state)
+		return SA_ERR_HPI_INTERNAL_ERROR;
+
+	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if(rdr == NULL) 
+		return SA_ERR_HPI_NOT_PRESENT;
+		
+	memset(&thres, 0, sizeof(SaHpiSensorThresholdsT));
+	
+	if (rdr->RdrTypeUnion.SensorRec.Events != 0) {
+		switch(rdr->RdrTypeUnion.SensorRec.Category) {
+			case SAHPI_EC_THRESHOLD:
+				err = snmp_bc_get_sensor_thresholds(hnd, id, num, &thres);
+				if (err == SA_OK) {
+					if (memcmp(&reading->Value, &thres.LowCritical.Value,
+								 sizeof(SaHpiSensorReadingUnionT)) <= 0)
+						thisEventStates |= SAHPI_ES_LOWER_CRIT;	 
+					if (memcmp(&reading->Value, &thres.LowMajor.Value,
+								 sizeof(SaHpiSensorReadingUnionT)) <= 0)
+						thisEventStates |= SAHPI_ES_LOWER_MAJOR;	 
+					if (memcmp(&reading->Value, &thres.LowMinor.Value,
+								 sizeof(SaHpiSensorReadingUnionT)) <= 0)
+						thisEventStates |= SAHPI_ES_LOWER_MINOR;	 
+					if (memcmp(&reading->Value, &thres.UpCritical.Value,
+								 sizeof(SaHpiSensorReadingUnionT)) >= 0)
+						thisEventStates |= SAHPI_ES_UPPER_CRIT;	 
+					if (memcmp(&reading->Value, &thres.UpMajor.Value,
+								 sizeof(SaHpiSensorReadingUnionT)) >= 0)					
+						thisEventStates |= SAHPI_ES_UPPER_MAJOR;	 
+					if (memcmp(&reading->Value, &thres.UpMinor.Value,
+								 sizeof(SaHpiSensorReadingUnionT)) >= 0)					
+						thisEventStates |= SAHPI_ES_UPPER_MINOR;
+				}				
+				break;
+			case SAHPI_EC_SEVERITY:
+				break;
+			case SAHPI_EC_PRED_FAIL:
+				break;
+			case SAHPI_EC_AVAILABILITY:
+				break;
+			case SAHPI_EC_REDUNDANCY:
+				break; 
+			case SAHPI_EC_USAGE:
+				break;
+			default:
+				break;
+		}
+	}
+	
+	*state = thisEventStates;
+	return(err);
+		
+   
+}   
 
 #define get_interpreted_thresholds(thdmask, thdoid, thdname) \
 do { \

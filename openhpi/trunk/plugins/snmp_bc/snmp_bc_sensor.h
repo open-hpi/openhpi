@@ -42,4 +42,11 @@ SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 					  SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
 					  const SaHpiBoolT enables);
+					  
+SaErrorT snmp_bc_determine_sensor_eventstates(void *hnd,
+				 SaHpiResourceIdT id,
+				 SaHpiSensorNumT num,
+				 SaHpiSensorReadingT *reading,
+				 SaHpiEventStateT    *state);		
+
 #endif
