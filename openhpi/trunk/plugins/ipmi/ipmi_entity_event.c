@@ -18,12 +18,57 @@
 #include <uid_utils.h>
 #include <string.h>
 
+static void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
+{
+	SaHpiRdrT  *rdr;
+
+	rdr = oh_get_rdr_next(table, rid, SAHPI_FIRST_ENTRY);
+	while (rdr) {
+		if(rdr->RdrType == SAHPI_SENSOR_RDR) {
+			if (present) {
+				dbg("present");
+				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_FALSE;
+			}else {
+				dbg("not present");
+				rdr->RdrTypeUnion.SensorRec.Ignore = SAHPI_TRUE;
+			}
+		}
+		rdr = oh_get_rdr_next(table, rid, rdr->RecordId);
+	}
+}
 
 static void entity_presence(ipmi_entity_t	*entity,
 			    int			present,
 			    void		*cb_data,
 			    ipmi_event_t	*event)
 {
+	struct oh_handler_state *handler = (struct oh_handler_state *)cb_data;
+
+	SaHpiRptEntryT  *rpt;
+	SaHpiResourceIdT rid;
+	ipmi_entity_id_t ent_id;
+
+	ent_id = ipmi_entity_convert_to_id(entity);
+
+	rpt = ohoi_get_resource_by_entityid(handler->rptcache, &ent_id);
+	if (!rpt) {
+		dbg("No rpt");
+		return;
+	}
+	rid = rpt->ResourceId;
+	dbg("%s %s",ipmi_entity_get_entity_id_string(entity), present?"present":"not present");
+	entity_update_rpt(handler->rptcache, rid, present);
+#if 0
+/*
+	The following code is masked by Racing. The reasons are listed as:
+
+	1. The hotswap event is not populated to HPI
+	2. The param 3 is changed to handler
+           in ipmi_entity_set_presence_handler(entity, entity_presence, handler);
+	3. The orignal param (&entry.ResourceID) is a bug. Because entity_presence 
+	is callback function and entry.ResourceID is local variable, it may cause
+	segment fault
+*/
 	struct oh_event	*e;
 	SaHpiResourceIdT *rid = cb_data;
 
@@ -56,7 +101,7 @@ static void entity_presence(ipmi_entity_t	*entity,
 	else
 		e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState
 			= SAHPI_HS_STATE_NOT_PRESENT;
-	
+#endif	
 }
 
 static void get_entity_event(ipmi_entity_t	*entity,
@@ -174,7 +219,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 
 		/* entity presence overall */
 
-		rv = ipmi_entity_set_presence_handler(entity, entity_presence, &entry.ResourceId);
+		rv = ipmi_entity_set_presence_handler(entity, entity_presence, handler);
 		if (rv) {
 				dbg("ipmi_entity_set_presence_handler: %#x", rv);
 				return;

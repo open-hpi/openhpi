@@ -644,49 +644,72 @@ static int ipmi_get_sensor_data(void 			*hnd,
 				SaHpiSensorNumT		num,
 				SaHpiSensorReadingT	*data)
 {
-		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-        
-		SaErrorT         rv;
-		ipmi_sensor_id_t *sensor;
-        
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
-        if (rv!=SA_OK)
-                return rv;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-		memset(data, 0, sizeof(*data));
-		return ohoi_get_sensor_data(*sensor, data, ipmi_handler);
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+
+SaHpiRdrT *rdr;
+
+rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+if (!rdr) {
+dbg("no rdr");
+return SA_ERR_HPI_NOT_PRESENT;
+}
+if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+dbg("sensor is not present");
+return SA_ERR_HPI_NOT_PRESENT;
+}
+
+rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+if (rv!=SA_OK)
+return rv;
+
+	memset(data, 0, sizeof(*data));
+	return ohoi_get_sensor_data(*sensor, data, ipmi_handler);
 }
 
 /**
- * ipmi_get_sensor_thresholds: for hysteresis sensors, get thresholds.
- * @hnd: handler instance
- * @id: ResourceId parent of this sensor
- * @num: sensor number
- * @thres: struct returned with data about sensor thresholds.
- *
- *
- *
- * Return value: 0 for success or negative for error
- **/
+* ipmi_get_sensor_thresholds: for hysteresis sensors, get thresholds.
+* @hnd: handler instance
+* @id: ResourceId parent of this sensor
+* @num: sensor number
+* @thres: struct returned with data about sensor thresholds.
+*
+*
+*
+* Return value: 0 for success or negative for error
+**/
 static int ipmi_get_sensor_thresholds(void			*hnd, 
 				      SaHpiResourceIdT		id,
 				      SaHpiSensorNumT		num,
 				      SaHpiSensorThresholdsT	*thres)
 {
-		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-		SaErrorT         rv;
-		ipmi_sensor_id_t *sensor;
-        
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
-        if (rv!=SA_OK)
-				return rv;
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+	
+	SaHpiRdrT *rdr;
 
-		memset(thres, 0, sizeof(*thres));
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
+	memset(thres, 0, sizeof(*thres));
 		
-		return ohoi_get_sensor_thresholds(*sensor, thres, ipmi_handler);
+	return ohoi_get_sensor_thresholds(*sensor, thres, ipmi_handler);
 }
 
 static int ipmi_set_sensor_thresholds(void				*hnd,
@@ -694,18 +717,29 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 				      SaHpiSensorNumT			num,
 				      const SaHpiSensorThresholdsT	*thres)
 {
-		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-		SaErrorT         rv;
-		ipmi_sensor_id_t *sensor;
-        
-        rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 		
-        if (rv!=SA_OK)
-				return rv;
-
-		return ohoi_set_sensor_thresholds(*sensor, thres, ipmi_handler);	
+	if (rv!=SA_OK)
+		return rv;
+	return ohoi_set_sensor_thresholds(*sensor, thres, ipmi_handler);	
 }
 
 static int ipmi_get_sensor_event_enables(void			*hnd, 
@@ -719,6 +753,18 @@ static int ipmi_get_sensor_event_enables(void			*hnd,
 	SaErrorT         rv;
 	ipmi_sensor_id_t *sensor;
 	
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
 	if (rv!=SA_OK)
 		return rv;
@@ -736,6 +782,19 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 	
 	SaErrorT         rv;
 	ipmi_sensor_id_t *sensor;
+
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	
 	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
 		(void *)&sensor);
 	if (rv!=SA_OK)
