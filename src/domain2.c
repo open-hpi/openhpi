@@ -126,14 +126,9 @@ struct oh_domain *oh_get_domain(SaHpiDomainIdT did)
 static void collect_domain_ids(gpointer key, gpointer value, gpointer user_data)
 {
         struct oh_domain *domain = (struct oh_domain *)value;
-        GSList **data = (GSList **)user_data;
-        SaHpiDomainIdT *p_did = NULL;
-
-        p_did = g_new0(SaHpiDomainIdT, 1);
-        if (!p_did) return;
+        GArray *data = (GArray *)user_data;                
         
-        *p_did = domain->id;
-        *data = g_slist_append(*data, p_did);
+        g_array_append_val(data, domain->id);
 }
 /**
  * oh_list_domains
@@ -142,12 +137,15 @@ static void collect_domain_ids(gpointer key, gpointer value, gpointer user_data)
  *
  * Returns:
  **/
-GSList *oh_list_domains()
+GArray *oh_list_domains()
 {
-        GSList *domain_ids = NULL;
+        GArray *domain_ids = NULL;
 
+        domain_ids = g_array_new(FALSE, TRUE, sizeof(SaHpiDomainIdT));
+        if (!domain_ids) return NULL;
+        
         g_mutex_lock(domains.lock);
-        g_hash_table_foreach(domains.table, collect_domain_ids, &domain_ids);
+        g_hash_table_foreach(domains.table, collect_domain_ids, domain_ids);
         g_mutex_unlock(domains.lock);
 
         return domain_ids;

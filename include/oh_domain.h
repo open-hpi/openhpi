@@ -71,7 +71,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                                 SaHpiTextBufferT *tag);
 SaErrorT oh_destroy_domain(SaHpiDomainIdT did);
 struct oh_domain *oh_get_domain(SaHpiDomainIdT did);
-GSList *oh_list_domains(void);
+GArray *oh_list_domains(void);
 SaErrorT oh_release_domain(SaHpiDomainIdT did);
 
 #endif /* OH_DOMAIN_H */
