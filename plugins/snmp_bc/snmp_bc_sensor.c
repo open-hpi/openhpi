@@ -43,13 +43,21 @@ SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 	SaHpiSensorReadingT working_reading;
 	SaHpiEventStateT working_state;
 	struct SensorInfo *sinfo;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-
-	if (!hnd || !custom_handle) {
+	
+	if (!hnd) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+
+        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+
+	
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
 
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
