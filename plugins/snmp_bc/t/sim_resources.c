@@ -9,7 +9,7 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
@@ -85,7 +85,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:48  Text:Remote Login Successful. Login ID:'(SNMP Manager at IP@=192.168.64.5 authenticated).'",
+				.string = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:12/25/03  Time:09:09:48  Text:Remote Login Successful.Login ID:'(SNMP Manager at IP@=192.168.64.5 authenticated).'",
 			},
 		},
 	},
@@ -95,7 +95,7 @@ struct snmp_bc_data sim_resource_array[] = {
 		.mib = {
 			.type = ASN_OCTET_STR,
 			.value = {
-				.string = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:10/11/03  Time:09:09:48  Text:Remote Login Successful. Login ID:'(SNMP Manager at IP@=192.168.64.5 authenticated).'",
+				.string = "Severity:INFO  Source:SERVPROC  Name:WMN315702424  Date:12/25/03  Time:09:10:00  Text:Bogus String",
 			},
 		},
 	},

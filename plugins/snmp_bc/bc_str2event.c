@@ -59,7 +59,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "08216003"; /* EN_PS3_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -215,7 +215,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026002"; /* EN_FAULT_FAN2 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -228,7 +228,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026802"; /* EN_FAN2_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -267,7 +267,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0821E002"; /* EN_FAULT_PS2_REMOVED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -436,7 +436,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026004"; /* EN_FAULT_FAN4 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -540,7 +540,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026003"; /* EN_FAULT_FAN3 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -579,7 +579,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026804"; /* EN_FAN4_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -605,7 +605,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0681D481"; /* EN_PFA_HI_OVER_TEMP_DASD1 */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -644,7 +644,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026003"; /* EN_FAULT_FAN3 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -657,7 +657,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026803"; /* EN_FAN3_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -670,7 +670,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0821E001"; /* EN_FAULT_PS1_REMOVED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -696,7 +696,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026001"; /* EN_FAULT_FAN1 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -865,7 +865,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026801"; /* EN_FAN1_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -956,7 +956,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026803"; /* EN_FAN3_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -969,7 +969,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026801"; /* EN_FAN1_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -995,7 +995,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "08216002"; /* EN_PS2_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1060,7 +1060,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00282002"; /* EN_MM_2_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1125,7 +1125,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026001"; /* EN_FAULT_FAN1 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1207,6 +1207,19 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "I/O module 2 was removed. Multiple I/O module failures";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "0EA04002"; /* EN_SWITCH_2_REMOVED */
+	strinfo->event_sev = SAHPI_INFORMATIONAL;
+	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "System shutoff due to high ambient temperature.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1241,19 +1254,6 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E002009"; /* EN_BLADE_9_INSTALLED */
-	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
-	key = "I/O module 2 was removed. Multiple I/O module failures";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "0EA04002"; /* EN_SWITCH_2_REMOVED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
 	strinfo->event_ovr = OVR_SEV;
 	strinfo->event_dup = 0;
@@ -1307,7 +1307,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026004"; /* EN_FAULT_FAN4 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1359,7 +1359,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026802"; /* EN_FAN2_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1385,7 +1385,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "000A6002"; /* EN_FAN2_PFA */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1398,7 +1398,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0A026002"; /* EN_FAULT_FAN2 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1489,7 +1489,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00284001"; /* EN_MM_1_REMOVED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1541,7 +1541,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0821E003"; /* EN_FAULT_PS3_REMOVED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1567,7 +1567,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "000A6003"; /* EN_FAN3_PFA */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1619,7 +1619,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0821E004"; /* EN_FAULT_PS4_REMOVED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1632,7 +1632,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00284002"; /* EN_MM_2_REMOVED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1658,7 +1658,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0681C481"; /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1684,7 +1684,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "06A1E001"; /* EN_MEDIA_TRAY_REMOVED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1762,7 +1762,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00026804"; /* EN_FAN4_SPEED */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1814,7 +1814,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "08216001"; /* EN_PS1_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1827,7 +1827,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "000A6001"; /* EN_FAN1_PFA */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1883,6 +1883,19 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
+	key = "Bogus Test Event.";
+	strinfo = g_malloc0(sizeof(Str2EventInfoT));
+	if (!strinfo) {
+		dbg("Cannot allocate memory for hash value - %s", key);
+		str2event_hash_free();
+		return -1;
+	}
+	strinfo->event = "FFFFFFFF"; /* EN_TEST_EVENT */
+	strinfo->event_sev = SAHPI_CRITICAL;
+	strinfo->event_ovr = NO_OVR;
+	strinfo->event_dup = 0;
+	g_hash_table_insert(str2event_hash, key, strinfo);
+
 	key = "Blade Server 14 was installed.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -1931,7 +1944,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "08216004"; /* EN_PS4_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1957,7 +1970,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "00282001"; /* EN_MM_1_INSTALLED */
 	strinfo->event_sev = SAHPI_INFORMATIONAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -2074,7 +2087,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "000A6004"; /* EN_FAN4_PFA */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_RID;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
