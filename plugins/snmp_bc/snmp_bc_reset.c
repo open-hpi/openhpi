@@ -76,7 +76,6 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 				 SaHpiResourceIdT rid,
 				 SaHpiResetActionT act)
 {
-	gchar *oid;
 	SaErrorT err;
 	struct ResourceInfo *resinfo;
         struct snmp_value set_value;
@@ -114,23 +113,17 @@ SaErrorT snmp_bc_set_reset_state(void *hnd,
 	switch (act) {
 	case SAHPI_COLD_RESET: /* COLD = WARM Reset Action */
 	case SAHPI_WARM_RESET:
-		oid = oh_derive_string(&(rpt->ResourceEntity), resinfo->mib.OidReset);
-		if (oid == NULL) {
-			dbg("NULL SNMP OID returned for %s", resinfo->mib.OidReset);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
 		
 		set_value.type = ASN_INTEGER;
 		set_value.str_len = 1;
 		set_value.integer = 1;
 		
-		err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity),
+						 resinfo->mib.OidReset, set_value);
 		if (err) {
-			dbg("Cannot set SNMP OID=%s; Type=%d.", oid, set_value.type);
-			g_free(oid);
+			dbg("Cannot set SNMP OID=%s; Type=%d.", resinfo->mib.OidReset, set_value.type);
 			return(err);
 		}
-		g_free(oid);
 		break;
 	case SAHPI_RESET_ASSERT: /* RESET_ASSERT = RESET_DEASSERT Action */
 	case SAHPI_RESET_DEASSERT:

@@ -237,19 +237,11 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 		}
 		else {
 			if (sensor_array[i].sensor_info.mib.oid != NULL) {
-				gchar *oid;
-
-				oid = oh_derive_string(&(res_oh_event->u.res_event.entry.ResourceEntity),
-							sensor_array[i].sensor_info.mib.oid);
-				if (oid == NULL) {
-					dbg("Cannot derive %s.", sensor_array[i].sensor_info.mib.oid);
-					g_free(e);
-					return(SA_ERR_HPI_INTERNAL_ERROR);
-				}
-				valid_sensor = rdr_exists(custom_handle, oid, 
+				valid_sensor = rdr_exists(custom_handle,
+							  &(res_oh_event->u.res_event.entry.ResourceEntity),
+							  sensor_array[i].sensor_info.mib.oid, 
 							  sensor_array[i].sensor_info.mib.not_avail_indicator_num,
 							  sensor_array[i].sensor_info.mib.write_only);
-				g_free(oid);
 			}
 			else {
 				dbg("Sensor %s cannot be read.", sensor_array[i].comment);
@@ -314,7 +306,6 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 				   struct oh_event *res_oh_event)
 {
 	int i;
-	gchar *oid;
 	SaErrorT err;
 	SaHpiBoolT valid_control;
 	struct oh_event *e;
@@ -328,18 +319,11 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
-		oid = oh_derive_string(&(res_oh_event->u.res_event.entry.ResourceEntity),
-					control_array[i].control_info.mib.oid);
-		if (oid == NULL) {
-			dbg("Cannot derive %s.", control_array[i].control_info.mib.oid);
-			g_free(e);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
-
-		valid_control = rdr_exists(custom_handle, oid, 
+		valid_control = rdr_exists(custom_handle,
+					   &(res_oh_event->u.res_event.entry.ResourceEntity),
+					   control_array[i].control_info.mib.oid,
 					   control_array[i].control_info.mib.not_avail_indicator_num,
 					   control_array[i].control_info.mib.write_only);
-		g_free(oid);
 
 		/* Add control RDR, if control can be read */
 		if (valid_control) {
@@ -392,7 +376,6 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 				      struct oh_event *res_oh_event)
 {
 	int i;
-	gchar *oid;
 	SaHpiBoolT valid_idr;
 	SaErrorT err;
 	struct oh_event *e;
@@ -406,18 +389,11 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
-
-		oid = oh_derive_string(&(res_oh_event->u.res_event.entry.ResourceEntity),
-					inventory_array[i].inventory_info.mib.oid.OidManufacturer);
-		if (oid == NULL) {
-			dbg("Cannot derive %s.", 
-			      inventory_array[i].inventory_info.mib.oid.OidManufacturer);
-			g_free(e);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
 		
-		valid_idr = rdr_exists(custom_handle, oid, 0, 0);
-		g_free(oid);
+		valid_idr = rdr_exists(custom_handle,
+					 &(res_oh_event->u.res_event.entry.ResourceEntity),
+					 inventory_array[i].inventory_info.mib.oid.OidManufacturer,
+					 0, 0);
 
 		/* Add inventory RDR, if inventory can be read */
 		if (valid_idr) {
@@ -514,22 +490,19 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
  * SAHPI_FALSE - if OID's value cannot be read.
  **/
 SaHpiBoolT rdr_exists(struct snmp_bc_hnd *custom_handle,
-		      const char *oid,
-		      unsigned int na,
-		      SaHpiBoolT write_only)
+			SaHpiEntityPathT *ep,
+			const gchar *oidstr,
+			unsigned int na,
+			SaHpiBoolT write_only)
 {
         SaErrorT err;
 	struct snmp_value get_value;
 
 	if (write_only == SAHPI_TRUE) { return(SAHPI_FALSE); }; /* Can't check it if its non-readable */
 
-        err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
-        if (err || (get_value.type == ASN_INTEGER && na && na == get_value.integer) ||
-                (get_value.type == ASN_OCTET_STR &&
-                        (!strcmp(get_value.string,"Not available") ||
-                         !strcmp(get_value.string,"Not installed") ||
-                         !strcmp(get_value.string,"Not Readable!")))) {
-                return(SAHPI_FALSE);
+        err = snmp_bc_oid_snmp_get(custom_handle, ep, oidstr, &get_value, SAHPI_TRUE);
+        if (err || (get_value.type == ASN_INTEGER && na && na == get_value.integer)) {
+		return(SAHPI_FALSE);
         }
 
         return(SAHPI_TRUE);

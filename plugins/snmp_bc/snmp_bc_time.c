@@ -307,10 +307,10 @@ SaErrorT snmp_bc_get_sp_time(struct oh_handler_state *handle, struct tm *time)
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
         
 	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
-		rv = snmp_bc_snmp_get(custom_handle, SNMP_BC_DATETIME_OID_RSA, &get_value);
+		rv = snmp_bc_snmp_get(custom_handle, SNMP_BC_DATETIME_OID_RSA, &get_value, SAHPI_TRUE);
 	}
 	else {
-		rv = snmp_bc_snmp_get(custom_handle, SNMP_BC_DATETIME_OID, &get_value);
+		rv = snmp_bc_snmp_get(custom_handle, SNMP_BC_DATETIME_OID, &get_value, SAHPI_TRUE);
 	}
 
         if ( (rv == SA_OK) && (get_value.type == ASN_OCTET_STR) ) {

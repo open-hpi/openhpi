@@ -33,7 +33,6 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 				 SaHpiResourceIdT rid,
 				 SaHpiPowerStateT *state)
 {
-	gchar *oid;
 	SaErrorT err = SA_OK;
 	struct ResourceInfo *resinfo;
         struct snmp_value get_value;
@@ -67,13 +66,9 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 	}
 
 	/* Read power state of resource */
-	oid = oh_derive_string(&(rpt->ResourceEntity), resinfo->mib.OidPowerState);
-	if (oid == NULL) {
-		dbg("NULL SNMP OID returned for %s", resinfo->mib.OidPowerState);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
 
-	err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+	err = snmp_bc_oid_snmp_get(custom_handle, &(rpt->ResourceEntity),
+				   resinfo->mib.OidPowerState, &get_value, SAHPI_TRUE);
 	if (!err && (get_value.type == ASN_INTEGER)) {
 		switch (get_value.integer) {
 		case 0:
@@ -83,14 +78,13 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 			*state = SAHPI_POWER_ON;
 			break;
 		default:
-			dbg("Invalid power state for OID=%s.", oid);
+			dbg("Invalid power state for OID=%s.", resinfo->mib.OidPowerState);
 		        err = SA_ERR_HPI_INTERNAL_ERROR;
 		}
         } else {
-		dbg("Cannot read SNMP OID=%s; Type=%d.", oid, get_value.type);
+		dbg("Cannot read SNMP OID=%s; Type=%d.", resinfo->mib.OidPowerState, get_value.type);
 	}
 
-	g_free(oid);
         return(err);
 }
 
@@ -112,7 +106,6 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 				 SaHpiResourceIdT rid,
 				 SaHpiPowerStateT state)
 {
-	gchar *oid;
 	SaErrorT err = SA_OK;
 	struct ResourceInfo *resinfo;
         struct snmp_value set_value;
@@ -146,11 +139,6 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 	}
 
 	/* Set power on/off */
-	oid = oh_derive_string(&(rpt->ResourceEntity), resinfo->mib.OidPowerOnOff);
-	if (oid == NULL) {
-		dbg("NULL SNMP OID returned for %s.", resinfo->mib.OidPowerOnOff);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
 
 	set_value.type = ASN_INTEGER;
 	set_value.str_len = 1;
@@ -158,7 +146,8 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 	switch (state) {
 	case SAHPI_POWER_OFF:
 		set_value.integer = 0;
-		err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity),
+					 resinfo->mib.OidPowerOnOff, set_value);
 		if (err) {
 			dbg("Cannot set SNMP OID=%s; Type=%d.",
 			    resinfo->mib.OidPowerOnOff, set_value.type);
@@ -167,7 +156,8 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 		break;
 	case SAHPI_POWER_ON:
 		set_value.integer = 1;
-		err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+		err = snmp_bc_oid_snmp_set(custom_handle, &(rpt->ResourceEntity),
+						 resinfo->mib.OidPowerOnOff, set_value);
 		if (err) {
 			dbg("Cannot set SNMP OID=%s; Type=%d.",
 			    resinfo->mib.OidPowerOnOff, set_value.type);
@@ -185,6 +175,5 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 		err = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
-	g_free(oid);
         return(err);
 }

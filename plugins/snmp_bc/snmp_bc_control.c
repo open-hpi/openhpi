@@ -40,7 +40,6 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 				   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state)
 {
-        gchar *oid;
 	int i, found;
 	SaErrorT err;
 	SaHpiCtrlStateT working_state;
@@ -86,20 +85,12 @@ SaErrorT snmp_bc_get_control_state(void *hnd,
 
 		/* Find control's state */
 		working_state.Type = rdr->RdrTypeUnion.CtrlRec.Type;
-
-		oid = oh_derive_string(&(rdr->Entity), cinfo->mib.oid);
-		if (oid == NULL) {
-			dbg("NULL SNMP OID returned for %s.", cinfo->mib.oid);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
 		
-		err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+		err = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), cinfo->mib.oid, &get_value, SAHPI_TRUE);
 		if (err  || get_value.type != ASN_INTEGER) {
-			dbg("Cannot read SNMP OID=%s; Type=%d.", oid, get_value.type);
-			g_free(oid);
+			dbg("Cannot read SNMP OID=%s; Type=%d.", cinfo->mib.oid, get_value.type);
 			return(err);
 		}
-		g_free(oid);
 		
 		switch (rdr->RdrTypeUnion.CtrlRec.Type) {
 		case SAHPI_CTRL_TYPE_DIGITAL:
@@ -186,7 +177,6 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 				   SaHpiCtrlModeT mode,
 				   SaHpiCtrlStateT *state)
 {
-        gchar *oid;
 	int value;
 	SaErrorT err;
         struct ControlInfo *cinfo;
@@ -253,44 +243,29 @@ SaErrorT snmp_bc_set_control_state(void *hnd,
 				    oh_lookup_ctrlstatedigital(state->StateUnion.Digital));
 				return(SA_ERR_HPI_INVALID_CMD);
 			}
-
-			oid = oh_derive_string(&(rdr->Entity), cinfo->mib.oid);
-			if (oid == NULL) {
-				dbg("NULL SNMP OID returned for %s.", cinfo->mib.oid);
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
 			
 			set_value.type = ASN_INTEGER;
 			set_value.str_len = 1;
 			set_value.integer = value;
 
-			err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.oid, set_value);
 			if (err) {
-				dbg("Cannot set SNMP OID=%s.; Value=%d.", oid, value);
-				g_free(oid);
+				dbg("Cannot set SNMP OID=%s.; Value=%d.", cinfo->mib.oid, value);
 				return(err);
 			}
-			g_free(oid);
 			break;
 		case SAHPI_CTRL_TYPE_DISCRETE:
-			oid = oh_derive_string(&(rdr->Entity), cinfo->mib.oid);
-			if (oid == NULL) {
-				dbg("NULL SNMP OID returned for %s.", cinfo->mib.oid);
-				return(SA_ERR_HPI_INTERNAL_ERROR);
-			}
 			
 			set_value.type = ASN_INTEGER;
 			set_value.str_len = 1;
 			set_value.integer = state->StateUnion.Discrete;
 			
-			err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+			err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), cinfo->mib.oid, set_value);
 			if (err) {
 				dbg("Cannot set SNMP OID=%s; Value=%d.", 
-				    oid, (int)set_value.integer);
-				g_free(oid);
+				    cinfo->mib.oid, (int)set_value.integer);
 				return(err);
 			}
-			g_free(oid);
 			break;
 		case SAHPI_CTRL_TYPE_ANALOG:
 			dbg("Analog controls not supported.");

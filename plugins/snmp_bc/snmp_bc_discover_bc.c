@@ -18,11 +18,12 @@
 #include <glib.h>
 #include <snmp_bc_plugin.h>
 
+/*
 static SaErrorT snmp_bc_get_oid_value(struct snmp_bc_hnd *custom_handle,
 				      SaHpiEntityPathT *ep,
 				      const gchar *oid,
 				      struct snmp_value *oid_value);
-
+*/
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data);
 
 #define SNMP_BC_IPMI_STRING_DELIMITER "="
@@ -350,34 +351,11 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 					      struct snmp_bc_ipmi_sensor *sensor_array,
 					      struct oh_event *res_oh_event);
 
-#define GET_GUID()                                                             \
-        oid_ptr = oh_derive_string(&(e->u.res_event.entry.ResourceEntity),     \
-                                   res_info_ptr->mib.OidUuid);                 \
-        if (oid_ptr == NULL) {                                                 \
-                dbg("Cannot derive oid %s, set GUID to zero", oid_ptr);        \
-                memset(&guid, 0, sizeof(SaHpiGuidT));  /*default to zero*/     \
-        }                                                                      \
-        else {                                                                 \
-                err = snmp_bc_get_guid(custom_handle, oid_ptr, &guid);         \
-                if ( err == SA_ERR_HPI_BUSY ) {                                \
-                        dbg("%d snmp busy, retry get_guid\n", err);            \
-                        err = snmp_bc_get_guid(custom_handle, oid_ptr, &guid); \
-                }                                                              \
-                if (err) {                                                     \
-                        dbg("Failed to get GUID, Error=%d\n", err);            \
-                        memset(&guid,0,sizeof(SaHpiGuidT)); /*default to zero*/\
-                }                                                              \
-        }                                                                      \
-        memmove(e->u.res_event.entry.ResourceInfo.Guid, guid, sizeof(SaHpiGuidT));\
-        g_free(oid_ptr);
-
 
 SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root)
 {
 	int i;
-        char *oid_ptr;
-        SaHpiGuidT guid;
 	SaErrorT err;
         struct oh_event *e;
 	struct snmp_value get_value, get_active;
@@ -395,7 +373,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	}
 
         /* Discover chassis, blades, expansion cards */
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value, SAHPI_TRUE);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_BLADE_VECTOR, get_value.type, oh_lookup_error(err));
@@ -454,7 +432,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
         /* Get UUID and convert to GUID */
-        GET_GUID();
+        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 	/* Add resource to temporary event cache/queue */
 	err = oh_add_resource(custom_handle->tmpcache, 
@@ -505,7 +483,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get UUID and convert to GUID */
-                        GET_GUID();
+                        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
 			err = oh_add_resource(custom_handle->tmpcache, 
@@ -533,21 +511,13 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			 ********************************/
 			{
 				SaHpiEntityPathT ep;
-                                gchar *oid;
 
 				ep = snmp_bc_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].rpt.ResourceEntity;
 				ep_concat(&ep, ep_root);
 				set_ep_instance(&ep, SAHPI_ENT_ADD_IN_CARD, i + SNMP_BC_HPI_LOCATION_BASE);
 				set_ep_instance(&ep, SAHPI_ENT_SBC_BLADE, i + SNMP_BC_HPI_LOCATION_BASE);
 
-				oid = oh_derive_string(&ep, SNMP_BC_BLADE_ADDIN_VECTOR);
-				if (oid == NULL) {
-					dbg("Cannot derive %s.", SNMP_BC_BLADE_ADDIN_VECTOR);
-					return(SA_ERR_HPI_INTERNAL_ERROR);
-				}
-
-				err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
-				g_free(oid);
+				err = snmp_bc_oid_snmp_get(custom_handle, &ep, SNMP_BC_BLADE_ADDIN_VECTOR, &get_value, SAHPI_TRUE);
 
 				if (!err && get_value.integer != 0) {
 
@@ -575,7 +545,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                                         /* Get BC UUID and convert to GUID */
-                                        GET_GUID();
+                                        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 					/* Add resource to temporary event cache/queue */
 					err = oh_add_resource(custom_handle->tmpcache, 
@@ -601,7 +571,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         /*************** 
 	 * Discover Fans
 	 ***************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_FAN_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_FAN_VECTOR, &get_value, SAHPI_TRUE);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_FAN_VECTOR, get_value.type, oh_lookup_error(err));
@@ -637,7 +607,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get BC UUID and convert to GUID */
-                        GET_GUID();
+                        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
 			err = oh_add_resource(custom_handle->tmpcache, 
@@ -661,7 +631,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         /************************
 	 * Discover Power Modules
 	 ************************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_POWER_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_POWER_VECTOR, &get_value, SAHPI_TRUE);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_POWER_VECTOR, get_value.type, oh_lookup_error(err));
@@ -697,7 +667,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get BC UUID and convert to GUID */
-                        GET_GUID();
+                        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
 			err = oh_add_resource(custom_handle->tmpcache, 
@@ -721,7 +691,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/******************* 
 	 * Discover Switches
 	 *******************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_SWITCH_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_SWITCH_VECTOR, &get_value, SAHPI_TRUE);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_SWITCH_VECTOR, get_value.type, oh_lookup_error(err));
@@ -757,7 +727,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get BC UUID and convert to GUID */
-                        GET_GUID();
+                        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
 			err = oh_add_resource(custom_handle->tmpcache, 
@@ -781,7 +751,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/********************** 
 	 * Discover Media Tray
 	 *********************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIATRAY_EXISTS, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIATRAY_EXISTS, &get_value, SAHPI_TRUE);
         if (err || get_value.type != ASN_INTEGER) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_MEDIATRAY_EXISTS, get_value.type, oh_lookup_error(err));
@@ -816,8 +786,8 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                 /* Get BC UUID and convert to GUID */
-                GET_GUID();
-
+                err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
+		
 		/* Add resource to temporary event cache/queue */
 		err = oh_add_resource(custom_handle->tmpcache, 
 				      &(e->u.res_event.entry),
@@ -840,7 +810,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/***************************** 
 	 * Discover Management Modules
 	 *****************************/
-	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_VECTOR, &get_value, SAHPI_TRUE);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_MGMNT_VECTOR, get_value.type, oh_lookup_error(err));
@@ -849,7 +819,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         }
 
 	for (i=0; i < strlen(get_value.string); i++) {
-		err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &get_active);
+		err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &get_active, SAHPI_TRUE);
 		if (err || get_active.type != ASN_INTEGER) {
 			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 			      SNMP_BC_MGMNT_ACTIVE, get_active.type, oh_lookup_error(err));
@@ -885,7 +855,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			res_info_ptr->cur_state = SAHPI_HS_STATE_ACTIVE;
 
                         /* Get BC UUID and convert to GUID */
-                        GET_GUID();
+                        err = snmp_bc_get_guid(custom_handle, e, res_info_ptr);
 
 			/* Add resource to temporary event cache/queue */
 			err = oh_add_resource(custom_handle->tmpcache, 
@@ -933,8 +903,11 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	struct snmp_value get_value;
 
 	/* Check if this is an IPMI blade */
-	err = snmp_bc_get_oid_value(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
-				    SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value);
+	/* err = snmp_bc_get_oid_value(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
+				    SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value); */
+	err = snmp_bc_oid_snmp_get(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
+				    SNMP_BC_IPMI_TEMP_BLADE_OID, &get_value, SAHPI_FALSE);
+				    
         if (err || get_value.type != ASN_INTEGER) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		   SNMP_BC_IPMI_TEMP_BLADE_OID, get_value.type, oh_lookup_error(err));
@@ -953,8 +926,13 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 
 	/* Search for active IPMI sensors */
 	for (i=0; i<SNMP_BC_MAX_IPMI_SENSORS; i++) {
-		err = snmp_bc_get_oid_value(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
-					    snmp_bc_ipmi_sensors[i].oid, &get_value);
+	
+		/* err = snmp_bc_get_oid_value(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity), */
+		/*			    snmp_bc_ipmi_sensors[i].oid, &get_value);                            */
+		err = snmp_bc_oid_snmp_get(custom_handle, &(res_oh_event->u.res_event.entry.ResourceEntity),
+					    snmp_bc_ipmi_sensors[i].oid, &get_value, SAHPI_FALSE);
+
+
 		if (!err) {
 			char *hash_existing_key, *hash_value;
 			gchar  **strparts = NULL;
@@ -1059,12 +1037,13 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 	return(rtn_code);
 }
 
+#if 0
+/* Extra function - to be sunset */
 static SaErrorT snmp_bc_get_oid_value(struct snmp_bc_hnd *custom_handle,
 				      SaHpiEntityPathT *ep,
 				      const gchar *oid,
 				      struct snmp_value *oid_value)
 {
-	gchar *normalized_oid;
 	SaErrorT err = SA_OK;
 	
 	if (!custom_handle || !oid || !ep || !oid_value) {
@@ -1072,19 +1051,12 @@ static SaErrorT snmp_bc_get_oid_value(struct snmp_bc_hnd *custom_handle,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	normalized_oid = oh_derive_string(ep, oid);
-	if (normalized_oid == NULL) {
-		dbg("Cannot derive %s.", oid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-
-	trace("Getting IPMI OID=%s", normalized_oid);
-
-	err = snmp_bc_snmp_get(custom_handle, normalized_oid, oid_value);
-	g_free(normalized_oid);
+	trace("Getting IPMI OID=%s", oid);
+	err = snmp_bc_oid_snmp_get(custom_handle, ep, oid, oid_value, SAHPI_FALSE);
 
 	return(err);
 }
+#endif
 
 static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
 {

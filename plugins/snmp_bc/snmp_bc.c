@@ -261,11 +261,24 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 	}
 }
 
+
+#define snmp_bc_internal_retry()                   \
+	if (l_retry >= 2) {                        \
+        	custom_handle->handler_retries++;  \
+		err = SA_ERR_HPI_BUSY;             \
+		break;                             \
+	} else {                                   \
+		l_retry++;                         \
+		continue;                          \
+	}
+
+
 /**
  * snmp_bc_snmp_get:
  * @custom_handle:  Plugin's data pointer.
  * @objid: SNMP OID.
  * @value: Location to store returned SNMP value.
+ * @retry: retry is requested on snmp timeout
  *
  * Plugin wrapper for SNMP get call. If SNMP command times out,
  * this function returns an SA_ERR_HPI_BUSY until a max number
@@ -279,36 +292,88 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
  **/
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           const char *objid,
-			  struct snmp_value *value)
+			  struct snmp_value *value,
+			  SaHpiBoolT retry)
 {
         SaErrorT err;
         struct snmp_session *ss = custom_handle->ss;
+	int l_retry;
 	
-        err = snmp_get(ss, objid, value);
-        if (err == SA_ERR_HPI_TIMEOUT) {
-                if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
-                        custom_handle->handler_retries = 0;
-                        err = SA_ERR_HPI_NO_RESPONSE;
-                } 
-		else {
-                        custom_handle->handler_retries++;
-                        err = SA_ERR_HPI_BUSY;
-                }
-        } 
-	else {
-                custom_handle->handler_retries = 0;
-		if ((err == SA_OK) && (value->type == ASN_OCTET_STR)) {
-			if ( (strncmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
-			     (strncmp(value->string,"(No voltage)", sizeof("(No voltage)")) == 0) ||
-			     (strncmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) )
-			{
-				err = SA_ERR_HPI_BUSY;
+	if (retry) l_retry = 0;
+	else l_retry = 2;
+	
+	do {	
+        	err = snmp_get(ss, objid, value);
+        	if (err == SA_ERR_HPI_TIMEOUT) {
+                	if (custom_handle->handler_retries == SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED) {
+                        	custom_handle->handler_retries = 0;
+                        	err = SA_ERR_HPI_NO_RESPONSE;
+				break;
+                	} else {
+				trace("HPI_TIMEOUT %s\n", objid);
+				snmp_bc_internal_retry();			
 			}
-		}
-        }               
+        	} else {
+                	custom_handle->handler_retries = 0;
+			if ((err == SA_OK) && (value->type == ASN_OCTET_STR)) {
+				if ( (strncmp(value->string,"(No temperature)", sizeof("(No temperature)")) == 0) ||
+			     		(strncmp(value->string,"(No voltage)", sizeof("(No voltage)")) == 0) )
+				{
+					snmp_bc_internal_retry();
+				} else if (strncmp(value->string,"Not Readable!", sizeof("Not Readable!")) == 0) {
+                        		custom_handle->handler_retries = 0;
+                        		err = SA_ERR_HPI_NO_RESPONSE;
+					break;
+				} else {
+					break;
+				} 
+			} else break;
+	        }               
 
+	} while(l_retry < 3);
+	
         return(err);
 }
+
+
+/**
+ * snmp_bc_oid_snmp_get:
+ * @custom_handle:  Plugin's data pointer.
+ * @ep: Entity path of the resource
+ * @oidstr: raw SNMP OID.
+ * @value: Location to store returned SNMP value.
+ * @retry: Retry requested on snmp timeout
+ *
+ * Plugin wrapper for SNMP get call. If SNMP command times out,
+ * this function returns an SA_ERR_HPI_BUSY until a max number
+ * of retries occurs - then it returns SA_ERR_HPI_NO_RESPONSE.
+ * BladeCenter hardware often takes several SNMP attempts before
+ * it responses. User applications should continue to retry on
+ * BUSY and only fail on NO_RESPONSE.
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ **/
+SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
+				SaHpiEntityPathT *ep, const gchar *oidstr,
+				struct snmp_value *value, SaHpiBoolT retry)
+{
+
+	SaErrorT rv = SA_OK;
+	gchar *oid;
+	
+	oid = oh_derive_string(ep, oidstr);
+	if (oid == NULL) {
+		dbg("Cannot derive %s.", oidstr); 
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+	
+	rv = snmp_bc_snmp_get(custom_handle, oid, value, retry);
+	g_free(oid);
+	
+	return(rv);
+}
+
 
 /**
  * snmp_bc_snmp_set:
@@ -349,4 +414,39 @@ SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
         }
 
         return(err);
+}
+
+
+/**
+ * snmp_bc_snmp_set:
+ * @custom_handle:  Plugin's data pointer.
+ * @ep: Entity path of the resource
+ * @oidstr: raw SNMP OID.
+ * @value: SNMP value to set.
+ *
+ * Plugin wrapper for SNMP set call. If SNMP command times out,
+ * this function returns an SA_ERR_HPI_BUSY until a max number
+ * of retries occurs - then it returns SA_ERR_HPI_NO_RESPONSE.
+ * BladeCenter hardware often takes several SNMP attempts before
+ * it responses. User applications should continue to retry on
+ * BUSY and only fail on NO_RESPONSE.
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ **/
+SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
+				SaHpiEntityPathT *ep, const gchar *oidstr,
+			  	struct snmp_value value)
+{
+	SaErrorT rv = SA_OK;
+	gchar *oid;
+
+	oid = oh_derive_string(ep , oidstr);
+	if (oid == NULL) {
+		dbg("NULL SNMP OID returned for %s.", oidstr);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+	rv = snmp_bc_snmp_set(custom_handle, oid, value);
+	g_free(oid);
+	return(rv);
 }

@@ -717,7 +717,6 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 					const char *raw_oid,
 					SaHpiSensorReadingT *reading)
 {
-	gchar *oid;
 	SaHpiSensorReadingT working;
 	struct SensorInfo *sinfo;
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -733,17 +732,10 @@ SaErrorT snmp_bc_get_sensor_oid_reading(void *hnd,
 	}
 
 	/* Normalize and read sensor's raw SNMP OID */
-	oid = oh_derive_string(&(rdr->Entity), raw_oid);
-	if (oid == NULL) {
-		dbg("NULL SNMP OID returned for %s", raw_oid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-	if (snmp_bc_snmp_get(custom_handle, oid, &get_value) != 0) {
-		dbg("SNMP cannot read sensor OID=%s. Type=%d", oid, get_value.type);
-		g_free(oid);
+	if (snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity), raw_oid, &get_value, SAHPI_TRUE) != 0) {
+		dbg("SNMP cannot read sensor OID=%s. Type=%d", raw_oid, get_value.type);
 		return(SA_ERR_HPI_NO_RESPONSE);
 	}
-	g_free(oid);
 		
 	/* Convert SNMP value to HPI reading value */
 	working.IsSupported = SAHPI_TRUE;
@@ -777,7 +769,6 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 				       const char *raw_oid,
 				       const SaHpiSensorReadingT *reading)
 {
-	gchar *oid;
 	SaErrorT err;
 	SaHpiTextBufferT buffer;
 	SaHpiFloat64T tmp_num;
@@ -829,18 +820,11 @@ SaErrorT snmp_bc_set_threshold_reading(void *hnd,
 	strncpy(set_value.string, buffer.Data, buffer.DataLength);
 
 	/* Normalize and read sensor's raw SNMP OID */
-	oid = oh_derive_string(&(rdr->Entity), raw_oid);
-	if (oid == NULL) {
-		dbg("NULL SNMP OID returned for %s", raw_oid);
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-	}
-	err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+	err = snmp_bc_oid_snmp_set(custom_handle, &(rdr->Entity), raw_oid, set_value);
 	if (err) {
-		dbg("SNMP cannot set sensor OID=%s.", oid);
-		g_free(oid);
+		dbg("SNMP cannot set sensor OID=%s.", raw_oid);
 		return(err);
 	}
-	g_free(oid);
 		
 	return(SA_OK);
 }

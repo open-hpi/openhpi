@@ -18,10 +18,11 @@
 #include <snmp_bc_utils.h>
 
 SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
-                          const char *oid,
-                          SaHpiGuidT *guid)
+			  struct oh_event *e,
+			  struct ResourceInfo *res_info_ptr)
 {
         SaErrorT status;
+	SaHpiGuidT guid;
         struct  snmp_value get_value;
         gchar  *UUID = NULL, *BC_UUID = NULL;
         gchar **tmpstr = NULL;
@@ -32,16 +33,27 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         guint   UUID_cnt = 0, i = 0;
         uuid_t  UUID_val;
 
-        if ( (custom_handle == NULL) || (oid == NULL) || (guid == NULL)) {
+
+        if ( (custom_handle == NULL) || (e == NULL) || (res_info_ptr == NULL)) {
                 dbg("Error: found NULL pointer  handle %p  oid %p  guid %p\n",
-                    custom_handle,oid,guid);
+                    custom_handle,e,res_info_ptr);
                 status = SA_ERR_HPI_INVALID_PARAMS;
-                goto CLEANUP;
+                goto CLEANUP2;
         }
-        status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+	
+	memset(&guid, 0, sizeof(SaHpiGuidT));  /*default to zero*/
+	if (res_info_ptr->mib.OidUuid == NULL) {
+		dbg("NULL OidUuid.\n");
+		status = SA_OK;
+		goto CLEANUP;
+	}
+        status = snmp_bc_oid_snmp_get(custom_handle, 
+					&(e->u.res_event.entry.ResourceEntity),
+					res_info_ptr->mib.OidUuid,            
+					&get_value, SAHPI_TRUE);
         if(( status != SA_OK) || (get_value.type != ASN_OCTET_STR)) {
                 dbg("Error: snmp_get failed rc=%d oid=%s type=%d.\n", 
-                        status, oid, get_value.type);
+                        status, res_info_ptr->mib.OidUuid, get_value.type);
                 if ( status != SA_ERR_HPI_BUSY)  status = SA_ERR_HPI_NO_RESPONSE;
                 goto CLEANUP;
         }
@@ -139,6 +151,8 @@ SaErrorT snmp_bc_get_guid(struct snmp_bc_hnd *custom_handle,
         }
 
   CLEANUP:
+  	memmove(e->u.res_event.entry.ResourceInfo.Guid, guid, sizeof(SaHpiGuidT));
+  CLEANUP2:
         g_free(UUID);
         g_free(BC_UUID);
         g_strfreev(tmpstr);

@@ -34,12 +34,24 @@ struct snmp_bc_hnd {
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           const char *objid,
-                          struct snmp_value *value);
+                          struct snmp_value *value, 
+			  SaHpiBoolT retry);
+
+SaErrorT snmp_bc_oid_snmp_get(struct snmp_bc_hnd *custom_handle,
+			      SaHpiEntityPathT *ep,
+			      const gchar *oidstr,
+			      struct snmp_value *value,
+			      SaHpiBoolT retry);
 
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
                           char *objid,
                           struct snmp_value value);
 			  
+SaErrorT snmp_bc_oid_snmp_set(struct snmp_bc_hnd *custom_handle,
+			      SaHpiEntityPathT *ep,
+			      const gchar *oidstr,
+			      struct snmp_value value);
+			  			  
 SaErrorT snmp_bc_get_event(void *hnd,
 			   struct oh_event *event);
 			   

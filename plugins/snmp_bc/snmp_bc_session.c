@@ -182,13 +182,13 @@ void *snmp_bc_open(GHashTable *handler_config)
 		struct snmp_value get_value;
 		SaErrorT err;
 
-		err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value);
+		err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_RSA, &get_value, SAHPI_FALSE);
 		if (err == SA_OK) {
 			trace("Found RSA");
 			custom_handle->platform = SNMP_BC_PLATFORM_RSA;
 		}
 		else {
-			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BCT, &get_value);
+			err = snmp_bc_snmp_get(custom_handle, SNMP_BC_PLATFORM_OID_BCT, &get_value, SAHPI_FALSE);
 			if (err == SA_OK) {
 				trace("Found BCT");
 				custom_handle->platform = SNMP_BC_PLATFORM_BCT;
@@ -210,7 +210,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) { oid = SNMP_BC_DST_RSA; }
 		else { oid = SNMP_BC_DST; }
 
-		err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+		err = snmp_bc_snmp_get(custom_handle, oid, &get_value, SAHPI_TRUE);
 		if (err == SA_OK) {
 			strcpy(custom_handle->handler_timezone, get_value.string);
 		}

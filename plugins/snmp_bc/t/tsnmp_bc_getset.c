@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 	 * Under simulation it is ok for custom_handle == NULL
 	 **************************/
 	expected_err = SA_ERR_HPI_BUSY;
-	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value); 
+	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value, SAHPI_FALSE); 
 	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	custom_handle.handler_retries = SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED;
 	expected_err = SA_ERR_HPI_NO_RESPONSE;
 
-	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value); 
+	err = snmp_bc_snmp_get(&custom_handle, BUSY_OID, &value, SAHPI_TRUE); 
 	checkstatus(err, expected_err, testfail);
 	
 	/************************** 
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 	 **************************/
 	expected_err = SA_OK;
 
-	err = snmp_bc_snmp_get(&custom_handle, SNMP_BC_DATETIME_OID, &value); 
+	err = snmp_bc_snmp_get(&custom_handle, SNMP_BC_DATETIME_OID, &value, SAHPI_TRUE); 
 	checkstatus(err, expected_err, testfail);
 	
 	/************************** 

@@ -26,7 +26,8 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 
 static	       
 SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
-		gchar *oid,
+		SaHpiEntityPathT *ep,
+		const gchar *oidstr,
 		SaHpiIdrFieldT  *thisField,
 		struct bc_idr_area *thisInventoryArea);
 
@@ -374,7 +375,6 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 	struct snmp_bc_hnd *custom_handle = handle->data;
 	SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, ResourceId, SAHPI_INVENTORY_RDR, IdrId);
 	
-	gchar        *oid = NULL;
 	struct snmp_value get_value;
 	
 	/* Local work spaces */
@@ -410,14 +410,11 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE;
 
 		if(s->mib.oid.OidChassisType != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidChassisType);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for Chassis Type\n");
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
-				if (rv != SA_OK)
-					dbg("Having problem building Chassis Idr Field, continue to next field.\n");
-			}
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+					s->mib.oid.OidChassisType, &thisField, &thisInventoryArea);
+			if (rv != SA_OK)
+				dbg("Having problem building Chassis Idr Field, continue to next field.\n");
+			
 		}
 
 		/**
@@ -427,31 +424,25 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.FieldId = 2;
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */
-		if (s->mib.oid.OidMfgDateTime != NULL) 	
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidMfgDateTime);
-		else 
-			oid = NULL;
 		
-		if(!oid){
+		if(s->mib.oid.OidMfgDateTime == NULL){
 			thisField.Field.DataLength = sizeof("SAHPI_TIME_UNSPECIFIED"); /* SaHpiUint8T  */	
 			thisField.Field.DataType = SAHPI_TL_TYPE_TEXT; /* SaHpiTextTypeT */
 			strcpy(thisField.Field.Data,"SAHPI_TIME_UNSPECIFIED");
 		
 		} else {
-                        rv = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+                        rv = snmp_bc_oid_snmp_get(custom_handle, &(rdr->Entity),s->mib.oid.OidMfgDateTime, &get_value, SAHPI_TRUE);
                         if(rv != SA_OK) {
-                                dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-                                g_free(oid);
+                                dbg("SNMP could not read %s; Type=%d.\n",s->mib.oid.OidMfgDateTime,get_value.type);
                                 return rv;
                         } else if((rv == SA_OK) && (get_value.type == ASN_OCTET_STR )) {
 				thisField.Field.DataLength = get_value.str_len;
 				thisField.Field.DataType = SAHPI_TL_TYPE_TEXT;
 				memcpy(thisField.Field.Data, get_value.string, get_value.str_len); 
                         } else 
-                                dbg("%s Invalid type for MfgDateTime inventory data\n",oid);
+                                dbg("%s Invalid type for MfgDateTime inventory data\n",s->mib.oid.OidMfgDateTime);
         	}
 		
-		if (oid) g_free(oid);
 		if (thisField.Field.DataLength != 0) {
 			memcpy(&thisInventoryArea.field[thisInventoryArea.idrareas.NumFields], &thisField, sizeof(SaHpiIdrFieldT));
 			thisInventoryArea.idrareas.NumFields++;
@@ -464,15 +455,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER;
 
 		if(s->mib.oid.OidManufacturer != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidManufacturer);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for Manufacturer\n");
-
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
-				if (rv != SA_OK)
-					dbg("Having problem building ManufacturerId Idr Field, continue to next field.\n");
-			}
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+					s->mib.oid.OidManufacturer, &thisField, &thisInventoryArea);
+			if (rv != SA_OK)
+				dbg("Having problem building ManufacturerId Idr Field, continue to next field.\n");
 		}
 			
 		/**
@@ -483,14 +469,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME;
 
 		if(s->mib.oid.OidProductName != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidProductName);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for ProductName\n");
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
-				if (rv != SA_OK)
-					dbg("Having problem building ProductName Idr Field, continue to next field.\n");
-			}
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+					s->mib.oid.OidProductName, &thisField, &thisInventoryArea);
+			if (rv != SA_OK)
+				dbg("Having problem building ProductName Idr Field, continue to next field.\n");
 		}
 
 		/**
@@ -501,15 +483,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
 
 		if(s->mib.oid.OidProductVersion != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidProductVersion);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for ProductVersion\n");
-
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
-				if (rv != SA_OK)
-					dbg("Having problem building ProductVersion Idr Field, continue to next field.\n");
-			}
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+				s->mib.oid.OidProductVersion, &thisField, &thisInventoryArea);
+			if (rv != SA_OK)
+				dbg("Having problem building ProductVersion Idr Field, continue to next field.\n");
 		}
 			
 		/**
@@ -520,15 +497,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
 
 		if(s->mib.oid.OidSerialNumber != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidSerialNumber);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for SerialNumber\n");
-
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
-				if (rv != SA_OK)
-					dbg("Having problem building SerialNumber Idr Field, continue to next field.\n");
-			}
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+				s->mib.oid.OidSerialNumber, &thisField, &thisInventoryArea);
+			if (rv != SA_OK)
+				dbg("Having problem building SerialNumber Idr Field, continue to next field.\n");
 		}
 			
 		/**
@@ -539,15 +511,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
 
 		if(s->mib.oid.OidPartNumber != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidPartNumber);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for PartNumber\n");
-
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+				s->mib.oid.OidPartNumber, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
 					dbg("Having problem building PartNumber Idr Field, continue to next field.\n");
-			}
 		}
 			
 		/**
@@ -558,15 +525,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_FILE_ID;
 
 		if(s->mib.oid.OidFileId != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidFileId);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for FileId\n");
-
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+				s->mib.oid.OidFileId, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
 					dbg("Having problem building FileID Idr Field, continue to next field.\n");
-			}
 		}
 			
 		/**
@@ -577,15 +539,10 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
 
 		if(s->mib.oid.OidAssetTag != NULL) {
-			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidAssetTag);
-			if(oid == NULL) {
-                        	dbg("NULL SNMP OID returned for AssetTag\n");
-
-                	} else {
-				rv = snmp_bc_idr_build_field(custom_handle, oid, &thisField, &thisInventoryArea);
+			rv = snmp_bc_idr_build_field(custom_handle, &(rdr->Entity),
+				s->mib.oid.OidAssetTag, &thisField, &thisInventoryArea);
 				if (rv != SA_OK)
 					dbg("Having problem building AssetTag Idr Field, continue ...\n");
-			}
 		}
 			
 		memcpy( &(i_record->area[0]), &thisInventoryArea, sizeof(struct bc_idr_area));
@@ -614,25 +571,28 @@ SaErrorT snmp_bc_build_idr( void *hnd,
  **/
 
 static
-SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle, gchar *oid,
-		  SaHpiIdrFieldT  *thisField, struct bc_idr_area *thisInventoryArea)
+SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle,
+				 SaHpiEntityPathT *ep,
+				 const gchar *oidstr,
+		  		 SaHpiIdrFieldT  *thisField,
+				 struct bc_idr_area *thisInventoryArea)
 {
 
-	if (!custom_handle || !oid || !thisField || !thisInventoryArea)
+	if (!custom_handle || !thisField || !thisInventoryArea)
 		return(SA_ERR_HPI_INVALID_PARAMS);
 
 	struct snmp_value get_value;
 	SaErrorT rv = SA_OK;
+
 	/**
 	 *
 	 */
 	memset(thisField->Field.Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);		
 	thisField->Field.DataLength = 0; /* SaHpiUint8T  */	
 
-        rv = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+        rv = snmp_bc_oid_snmp_get(custom_handle, ep, oidstr, &get_value, SAHPI_TRUE);
 	if(rv != SA_OK) {	
-		dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type);
-                g_free(oid);		
+		dbg("SNMP could not read %s; Type=%d.\n",oidstr ,get_value.type);		
                 return(rv);
 	} else {
 		if( get_value.type == ASN_OCTET_STR ) {
@@ -645,10 +605,9 @@ SaErrorT snmp_bc_idr_build_field(struct snmp_bc_hnd *custom_handle, gchar *oid,
 			snprintf(thisField->Field.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH,
 								 "%ld",get_value.integer );
 		} else
-			dbg("%s Invalid data type for Chassis data\n",oid);
+			dbg("%s Invalid data type for Chassis data\n",oidstr);
 	}
 
-	g_free(oid);
 		
 	if (thisField->Field.DataLength != 0) {
 		memcpy(&thisInventoryArea->field[thisInventoryArea->idrareas.NumFields], 
