@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2003 Intel Corporation
+# (C) Copyright IBM Corp 2003, 2004
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or
@@ -27,40 +28,41 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
+MAINTAINERCLEANFILES = Makefile.in
 
-MAINTAINERCLEANFILES    = Makefile.in
+GENERATED_FILES = \
+		sahpi_enum_utils.c \
+		sahpi_enum_utils.h \
+		sahpi_event_encode.c \
+		sahpi_event_encode.h
 
-SAHPIFILES = sahpi_enum_utils.c sahpi_enum_utils.h \
-			sahpi_event_encode.c sahpi_event_encode.h
+EXTRA_DIST = \
+		sahpi_enum_utils.h \
+		sahpi_event_encode.h \
+		el_utils.h \
+		epath_utils.h \
+		event_utils.h \
+		oh_utils.h \
+		rpt_utils.h \
+		sahpi_event_utils.h \
+		sahpi_struct_utils.h \
+		sahpi_time_utils.h \
+		uid_utils.h 
 
-EXTRA_DIST		= \
-					el_utils.h \
-					epath_utils.h \
-					event_utils.h \
-					oh_utils.h \
-					rpt_utils.h \
-					sahpi_event_encode.h \
-					sahpi_event_utils.h \
-					sahpi_struct_utils.h \
-					sahpi_time_utils.h \
-					uid_utils.h 
+MOSTLYCLEANFILES = @TEST_CLEAN@ $(GENERATED_FILES)
 
+INCLUDES = -I$(top_srcdir)/include
 
-MOSTLYCLEANFILES        = @TEST_CLEAN@
+SUBDIRS = t
+DIST_SUBDIRS = t
 
-INCLUDES                = -I$(top_srcdir)/include
+AM_CFLAGS = @CFLAGS@
 
-SUBDIRS                 = t
-DIST_SUBDIRS            = t
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = openhpiutils.pc
 
-AM_CFLAGS               = @CFLAGS@
-
-pkgconfigdir            = $(libdir)/pkgconfig
-pkgconfig_DATA          = openhpiutils.pc
-
-lib_LTLIBRARIES         = libopenhpiutils.la
+lib_LTLIBRARIES = libopenhpiutils.la
 
 # Generated files (e.g.sahpi_enum_utils.c) must be listed first
 libopenhpiutils_la_SOURCES = \
@@ -76,5 +78,5 @@ libopenhpiutils_la_SOURCES = \
 
 libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 
-$(SAHPIFILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
+$(GENERATED_FILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
 	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h
