@@ -61,11 +61,14 @@ static inline struct oh_rdr * get_rdr(
 	SaHpiRdrTypeT type, 
 	SaHpiUint8T num)
 {
-	int i;
+	GSList *i;
 
-	for (i=0; i<g_slist_length(res->rdr_list); i++) {
+	g_slist_for_each(i, res->rdr_list) {
 		struct oh_rdr *rdr;
-		rdr = g_slist_nth_data(res->rdr_list, i);
+		rdr = i->data;
+		
+		if (rdr->rdr.RdrType != type)
+			continue;
 		
 		switch (type) {
 		case SAHPI_CTRL_RDR:

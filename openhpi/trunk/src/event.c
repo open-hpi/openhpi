@@ -86,6 +86,15 @@ static void process_internal_event(struct oh_handler *h, struct oh_event *e)
 		case SAHPI_SENSOR_RDR: 
 			rdr->rdr.RdrTypeUnion.SensorRec.Num = res->sensor_counter++;
 			break;
+		case SAHPI_CTRL_RDR:
+			rdr->rdr.RdrTypeUnion.CtrlRec.Num = res->ctrl_counter++;
+			break;
+		case SAHPI_INVENTORY_RDR:
+			rdr->rdr.RdrTypeUnion.InventoryRec.EirId = res->inventory_counter++;
+			break;
+		case SAHPI_WATCHDOG_RDR:
+			rdr->rdr.RdrTypeUnion.WatchdogRec.WatchdogNum =  res->watchdog_counter++;
+			break;
 		default:
 			dbg("FIXME: Cannot process such RDR type ");
 			break;
