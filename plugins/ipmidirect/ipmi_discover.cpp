@@ -255,6 +255,15 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
   unsigned int pid = IpmiGetUint16( get_device_id_rsp->m_data + 10 );
   stdlog << "\tproduct id            : " << pid << "\n";
 
+  // in the initial discover phase
+  // a write lock is not nessesary
+  m_domain->m_initial_discover_lock.Lock();
+  bool need_lock = m_domain->m_initial_discover ? false : true;
+  m_domain->m_initial_discover_lock.Unlock();
+
+  if ( need_lock )
+       m_domain->WriteLock();
+
   m_mc = m_domain->FindMcByAddr( addr );
 
   if (    m_mc && m_mc->IsActive()
@@ -289,6 +298,9 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             m_domain->CleanupMc( m_mc );
             m_mc = 0;
 
+	    if ( need_lock )
+		 m_domain->WriteUnlock();
+
             return;
           }
 
@@ -302,6 +314,9 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             m_domain->CleanupMc( m_mc );
             m_mc = 0;
 
+	    if ( need_lock )
+		 m_domain->WriteUnlock();
+
             return;
           }
 
@@ -314,9 +329,12 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             m_domain->CleanupMc( m_mc );
             m_mc = 0;
 
+	    if ( need_lock )
+		 m_domain->WriteUnlock();
+
             return;
           }
-       
+
        if ( m_mc->SelDeviceSupport() )
           {
             GList *new_events = m_mc->Sel()->GetEvents();
@@ -338,12 +356,17 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
                   m_domain->m_sel_rescan_interval,
                   m_sel );
      }
+
+  if ( need_lock )
+       m_domain->WriteUnlock();
 }
 
 
 void
 cIpmiMcThread::HandleEvents()
 {
+  m_domain->ReadLock();
+
   bool loop = true;
 
   while( loop )
@@ -373,6 +396,8 @@ cIpmiMcThread::HandleEvents()
             delete event;
           }
      }
+
+  m_domain->ReadUnlock();
 }
 
 
@@ -553,8 +578,12 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   if ( current_state == eIpmiFruStateNotInstalled )
      {
        // remove mc
+       m_domain->WriteLock();
+
        if ( m_mc )
             m_domain->CleanupMc( m_mc );
+
+       m_domain->WriteUnlock();
 
        m_mc = 0;
      }
@@ -677,8 +706,12 @@ cIpmiMcThread::PollAddr( void *userdata )
 void 
 cIpmiMcThread::ReadSel( void *userdata )
 {
+  m_domain->ReadLock();
+
   cIpmiSel *sel = (cIpmiSel *)userdata;
   GList *new_events = sel->GetEvents();
+
+  m_domain->ReadUnlock();
 
   stdlog << "addr " << m_addr << ": add sel reading. cIpmiMcThread::ReadSel\n";
 

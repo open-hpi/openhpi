@@ -29,15 +29,12 @@ __BEGIN_DECLS
 __END_DECLS
 
 
-#define dControlIdLen 32
-
-
 class cIpmiControl : public cIpmiRdr
 {
 protected:
-  unsigned int m_num;
-  bool         m_ignore;
-  unsigned int m_oem;
+  unsigned int         m_num; // control num
+  bool                 m_ignore;
+  unsigned int         m_oem;
 
   SaHpiCtrlOutputTypeT m_output_type;
   SaHpiCtrlTypeT       m_type;

@@ -35,7 +35,7 @@ IpmiGetUint32( const unsigned char *data )
 }
 
 
-/* Extract a 16-bit integer from the data, IPMI (little-endian) style. */
+// Extract a 16-bit integer from the data, IPMI (little-endian) style.
 unsigned int
 IpmiGetUint16( const unsigned char *data )
 {
@@ -43,7 +43,7 @@ IpmiGetUint16( const unsigned char *data )
 }
 
 
-/* Add a 32-bit integer to the data, IPMI (little-endian) style. */
+// Add a 32-bit integer to the data, IPMI (little-endian) style.
 void
 IpmiSetUint32( unsigned char *data, int val )
 {
@@ -54,7 +54,7 @@ IpmiSetUint32( unsigned char *data, int val )
 }
 
 
-/* Add a 16-bit integer to the data, IPMI (little-endian) style. */
+// Add a 16-bit integer to the data, IPMI (little-endian) style.
 void
 IpmiSetUint16( unsigned char *data, int val )
 {

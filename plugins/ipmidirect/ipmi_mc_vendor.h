@@ -81,7 +81,10 @@ public:
   virtual bool CreateFrus( cIpmiMc *mc, cIpmiSdrs *sdrs );
 
 protected:
-  virtual bool CreateFru( cIpmiMc *mc, cIpmiSdr *sdr );  
+  virtual bool CreateFru( cIpmiMc *mc, cIpmiSdr *sdr );
+
+public:
+  virtual bool CreateSel( cIpmiMc *mc, cIpmiSdrs *sdrs );  
 };
 
 
@@ -89,9 +92,9 @@ class cIpmiMcVendorFactory
 {
   static cIpmiMcVendorFactory *m_factory;
 
-public:
   cIpmiMcVendorFactory();
   ~cIpmiMcVendorFactory();
+public:
 
   static void InitFactory();
   static void CleanupFactory();

@@ -29,7 +29,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
 
-MAINTAINERCLEANFILES    = Makefile.in
+MAINTAINERCLEANFILES    = Makefile.in *~ core core.*
 
 INCLUDES                = -I$(top_srcdir)/include 
 
@@ -100,7 +100,6 @@ libipmidirect_la_SOURCES= \
 		ipmi_text_buffer.cpp \
 		ipmi_utils.h \
 		ipmi_utils.cpp \
-		sel.cpp \
 		thread.h \
 		thread.cpp
 

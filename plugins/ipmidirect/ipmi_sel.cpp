@@ -66,7 +66,7 @@ cIpmiSel::~cIpmiSel()
 }
 
 
-int
+SaErrorT
 cIpmiSel::ClearSel()
 {
   cThreadLockAuto al( m_sel_lock );
@@ -80,7 +80,7 @@ cIpmiSel::ClearSel()
        rv = Reserve();
 
        if ( rv )
-            return rv;
+            return SA_ERR_HPI_INVALID_CMD;
      }
 
   stdlog << "clear SEL.\n";
@@ -98,7 +98,7 @@ cIpmiSel::ClearSel()
   rv = m_mc->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
-       return rv;
+       return SA_ERR_HPI_INVALID_CMD;
 
   if ( rsp.m_data[0] == 0 )
      {
@@ -106,7 +106,7 @@ cIpmiSel::ClearSel()
        m_sel_num = 0;
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -551,17 +551,26 @@ cIpmiSel::GetSelEntry( unsigned short rid, unsigned short &prev,
 }
 
 
-int
-cIpmiSel::DeleteSelEntry( unsigned short rid )
+SaErrorT
+cIpmiSel::DeleteSelEntry( SaHpiSelEntryIdT sid )
 {
   cThreadLockAuto al( m_sel_lock );
+
+  unsigned short rid = (unsigned short)sid;
+
+  if ( sid == SAHPI_OLDEST_ENTRY )
+       rid = 0;
+  else if ( sid == SAHPI_NEWEST_ENTRY )
+       rid = 0xffff;
+  else
+       rid = sid;
 
   for( int i = 0; i < dMaxSelFetchRetries; i++ )
      {
        int rv = Reserve();
 
        if ( rv )
-            return rv;
+            return SA_ERR_HPI_INVALID_CMD;
 
        cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdDeleteSelEntry );
        cIpmiMsg rsp;
@@ -575,7 +584,7 @@ cIpmiSel::DeleteSelEntry( unsigned short rid )
        if ( rv )
           {
             stdlog << "Could not send delete SEL entry: " << rv << " !\n";
-            return EINVAL;
+            return SA_ERR_HPI_INVALID_CMD;
           }
 
        if ( rsp.m_data[0] != eIpmiCcOk )
@@ -587,7 +596,7 @@ cIpmiSel::DeleteSelEntry( unsigned short rid )
             stdlog << "IPMI error from delete SEL entry: "
                    << rsp.m_data[0] << " !\n";
 
-            return EINVAL;
+            return SA_ERR_HPI_INVALID_CMD;
           }
 
        if ( rsp.m_data_len < 3 )
@@ -595,7 +604,7 @@ cIpmiSel::DeleteSelEntry( unsigned short rid )
             stdlog << "IPMI error from delete SEL entry: message to short "
                    << rsp.m_data_len << " !\n";
 
-            return EINVAL;
+            return SA_ERR_HPI_INVALID_CMD;
           }
 
        // deleted record id
@@ -623,18 +632,18 @@ cIpmiSel::DeleteSelEntry( unsigned short rid )
 
        m_async_events_lock.Unlock();
 
-       return 0;
+       return SA_OK;
      }
 
   // reservation lost too many times
   stdlog << "IPMI error from delete SEL entry: reservation lost too many times !\n";
 
-  return EINVAL;
+  return SA_ERR_HPI_INVALID_CMD;
 }
 
 
-int
-cIpmiSel::GetSelTime( time_t &t )
+SaErrorT
+cIpmiSel::GetSelTime( SaHpiTimeT &ht )
 {
   cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdGetSelTime );
   cIpmiMsg rsp;
@@ -644,7 +653,7 @@ cIpmiSel::GetSelTime( time_t &t )
   if ( rv )
      {
        stdlog << "Could not send get SEL time: " << rv << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
@@ -652,7 +661,7 @@ cIpmiSel::GetSelTime( time_t &t )
        stdlog << "IPMI error from get SEL time: " 
               << rsp.m_data[0] << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data_len < 5 )
@@ -660,20 +669,51 @@ cIpmiSel::GetSelTime( time_t &t )
        stdlog << "IPMI error from get SEL time: message to short "
               << rsp.m_data_len << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_CMD;
      }
 
-  t = IpmiGetUint32( rsp.m_data + 1 );
+  ht = IpmiGetUint32( rsp.m_data + 1 );
+  ht *= 1000000000;
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
-cIpmiSel::SetSelTime( time_t t )
+static time_t
+CovertToAbsTimeT( SaHpiTimeT ti )
 {
-  cIpmiMsg       msg( eIpmiNetfnStorage, eIpmiCmdSetSelTime );
-  cIpmiMsg       rsp;
+  if ( ti <= SAHPI_TIME_MAX_RELATIVE )
+     {
+       timeval tv;
+       gettimeofday( &tv, 0 );
+       
+       tv.tv_sec  += ti / 1000000000;
+       tv.tv_usec += ti % 1000000000 / 1000;
+
+       while( tv.tv_usec > 1000000 )
+          {
+            tv.tv_sec++;
+            tv.tv_usec -= 1000000;
+          }
+ 
+       return tv.tv_sec;
+     }
+
+  return ti / 1000000000;
+}
+
+
+SaErrorT
+cIpmiSel::SetSelTime( SaHpiTimeT ht )
+{
+  if ( ht == SAHPI_TIME_UNSPECIFIED )
+       return SA_ERR_HPI_ERROR;
+
+  // convert HPI time to time_t
+  time_t t = CovertToAbsTimeT( ht );
+
+  cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdSetSelTime );
+  cIpmiMsg rsp;
 
   IpmiSetUint32( msg.m_data, t );
   msg.m_data_len = 4;
@@ -683,7 +723,7 @@ cIpmiSel::SetSelTime( time_t t )
   if ( rv )
      {
        stdlog << "Could not send set SEL time: " << rv << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_CMD;
      }
 
   if ( rsp.m_data[0] != eIpmiCcOk )
@@ -691,10 +731,10 @@ cIpmiSel::SetSelTime( time_t t )
        stdlog << "IPMI error from set SEL time: "
               << rsp.m_data[0] << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_CMD;
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -733,56 +773,6 @@ cIpmiSel::AddAsyncEvent( cIpmiEvent *new_event )
   *e = *new_event;
 
   return 0;
-}
-
-
-void
-IpmiSelHandleSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs )
-{
-  cIpmiSel *sel = mc->Sel();
-  cIpmiSdr *sdr = 0;
-  unsigned char slave_addr = 0;
-  unsigned char channel = 0;
-
-  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
-     {
-       cIpmiSdr *s = sdrs->Sdr( i );
-
-       if ( s->m_type != eSdrTypeMcDeviceLocatorRecord )
-            continue;
-
-       slave_addr = s->m_data[5];
-       channel    = s->m_data[6] & 0xf;
-
-       cIpmiAddr addr( eIpmiAddrTypeIpmb, channel, 0, slave_addr );
-
-       if ( addr != mc->Addr() )
-            continue;
-
-       sdr = s;
-       break;
-     }
-
-  if ( sdr == 0 )
-       return;
-
-  tIpmiEntityId id      = (tIpmiEntityId)sdr->m_data[12];
-  unsigned int instance = sdr->m_data[13];
-
-  cIpmiMc     *m   = domain->FindOrCreateMcBySlaveAddr( slave_addr );
-  cIpmiEntity *ent = domain->Entities().Add( m, 0, id, instance );
-
-  // check this
-  if ( ent->Sel() == 0 )
-     {
-       assert( ent->Sel() == 0 );
-       ent->Sel() = sel;
-
-       assert( sel->Entity() == 0 );
-       sel->Entity() = ent;
-
-       ent->Domain()->IfSelAdd( ent, sel );
-     }
 }
 
 
@@ -835,4 +825,128 @@ cIpmiSel::Dump( cIpmiLog &dump, const char *name )
      }
 
   dump.End();
+}
+
+
+SaErrorT
+cIpmiSel::GetSelInfo( SaHpiSelInfoT &info )
+{
+  cIpmiMc *mc = Mc();
+  int lun = Lun();
+
+  cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdGetSelTime );
+  cIpmiMsg rsp;
+
+  int rv = mc->SendCommand( msg, rsp, lun );
+
+  if ( rv || rsp.m_data[0] != eIpmiCcOk )
+       return SA_ERR_HPI_INVALID_DATA;
+
+  Lock();
+
+  info.Entries              = SelNum();
+  info.Size                 = 0xffff;
+
+  if ( AdditionTimestamp() > EraseTimestamp() )
+       info.UpdateTimestamp = AdditionTimestamp();
+  else
+       info.UpdateTimestamp      = EraseTimestamp();
+
+  info.UpdateTimestamp     *= 1000000000;
+  info.CurrentTime          = IpmiGetUint32( rsp.m_data + 1 );
+  info.CurrentTime         *= 1000000000;
+  info.Enabled              = SAHPI_TRUE; // ?????
+  info.OverflowFlag         = Overflow() ? SAHPI_TRUE : SAHPI_FALSE;
+  info.OverflowAction       = SAHPI_SEL_OVERFLOW_DROP;
+  info.DeleteEntrySupported = SupportsDeleteSel() ? SAHPI_TRUE : SAHPI_FALSE;
+
+  Unlock();
+
+  return SA_OK;
+}
+
+
+SaErrorT
+cIpmiSel::AddSelEntry( const SaHpiSelEntryT & /*Event*/ )
+{
+  return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
+
+SaErrorT
+cIpmiSel::GetSelEntry( SaHpiSelEntryIdT current,
+		       SaHpiSelEntryIdT &prev, SaHpiSelEntryIdT &next,
+		       SaHpiSelEntryT &entry )
+{
+  unsigned short rid = (unsigned short)current;
+
+  if ( current == SAHPI_OLDEST_ENTRY )
+       rid = 0;
+  else if ( current == SAHPI_NEWEST_ENTRY )
+       rid = 0xffff;
+
+  unsigned short p;
+  unsigned short n;
+
+  cIpmiEvent e;
+
+  int rv = GetSelEntry( rid, p, n, e );
+
+  if ( rv == -1 )
+       // sel empty
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  if ( rv )
+       return SA_ERR_HPI_ERROR;
+
+  cIpmiMc     *mc = 0;
+  cIpmiSensor *sensor = 0;
+  cIpmiAddr    addr;
+
+  addr.m_type = eIpmiAddrTypeIpmb;
+
+  if ( e.m_data[6] == 0x03 )
+       addr.m_channel = 0;
+  else
+       addr.m_channel = e.m_data[5] >> 4;
+
+  addr.m_slave_addr = e.m_data[4];
+  addr.m_lun = 0;
+
+  mc = Mc()->Domain()->FindMcByAddr( addr );
+
+  if ( mc )
+       sensor = mc->FindSensor( (e.m_data[5] & 0x3), e.m_data[8] );
+
+  prev = p;
+  next = n;
+
+  if ( prev == 0 )
+       prev = SAHPI_NO_MORE_ENTRIES;
+
+  if ( next == 0xffff )
+       next = SAHPI_NO_MORE_ENTRIES;
+
+  entry.EntryId = e.m_record_id;
+  entry.Timestamp = IpmiGetUint32( e.m_data );
+
+  if ( entry.Timestamp == 0 )
+       entry.Timestamp = SAHPI_TIME_UNSPECIFIED;
+  else
+       entry.Timestamp *= 1000000000;
+
+  entry.Event.Timestamp = entry.Timestamp;
+
+  if ( !sensor )
+     {
+       // this is possible an event of a resource
+       // no longer present.
+       entry.Event.Source    = 0;
+       entry.Event.EventType = SAHPI_ET_OEM;
+       entry.Event.Severity  = SAHPI_MAJOR;
+
+       return SA_OK;
+     }
+
+  return sensor->CreateEvent( &e, entry.Event );
 }

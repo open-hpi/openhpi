@@ -33,7 +33,12 @@
 #include "thread.h"
 #endif
 
-#include "glib.h"
+#include <assert.h>
+#include <glib.h>
+
+__BEGIN_DECLS
+#include "SaHpi.h"
+__END_DECLS
 
 
 class cIpmiEntity;
@@ -108,21 +113,29 @@ public:
   // add an event to the list of async events
   int AddAsyncEvent( cIpmiEvent *event );
 
+  SaErrorT GetSelInfo( SaHpiSelInfoT &info );
+
   // get an event
   int GetSelEntry( unsigned short rid, unsigned short &prev, 
                    unsigned short &next, cIpmiEvent &event );
 
+  SaErrorT GetSelEntry( SaHpiSelEntryIdT current,
+                        SaHpiSelEntryIdT &prev, SaHpiSelEntryIdT &next,
+                        SaHpiSelEntryT &entry );
+
+  SaErrorT AddSelEntry( const SaHpiSelEntryT & /*Event*/ );
+
   // delete SEL entry
-  int DeleteSelEntry( unsigned short rid );
+  SaErrorT DeleteSelEntry( SaHpiSelEntryIdT sid );
 
   // clear the SEL
-  int ClearSel();
+  SaErrorT ClearSel();
 
   // set SEL time
-  int SetSelTime( time_t t );
+  SaErrorT SetSelTime( SaHpiTimeT t );
 
   // get SEL time
-  int GetSelTime( time_t &t );
+  SaErrorT GetSelTime( SaHpiTimeT &t );
 
   cIpmiEntity *&Entity() { return m_entity; }
   cIpmiMc      *Mc() { return m_mc; }
@@ -139,9 +152,6 @@ public:
 
   void Dump( cIpmiLog &dump, const char *name );
 };
-
-
-void IpmiSelHandleSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
 
 
 #endif

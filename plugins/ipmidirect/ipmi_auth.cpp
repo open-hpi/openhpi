@@ -32,13 +32,18 @@ IpmiAuthFactory( tIpmiAuthType type )
        case eIpmiAuthTypeNone:
             return new cIpmiAuthNone;
 
-#ifdef HAVE_OPENSSL_MD2_H
        case eIpmiAuthTypeMd2:
+#ifdef HAVE_OPENSSL_MD2_H
             return new cIpmiAuthMd2;
+#else
+            break;
 #endif
-#ifdef HAVE_OPENSSL_MD5_H
+
        case eIpmiAuthTypeMd5:
+#ifdef HAVE_OPENSSL_MD5_H
             return new cIpmiAuthMd5;
+#else
+            break;
 #endif
 
        case eIpmiAuthTypeStraight:
@@ -184,6 +189,7 @@ cIpmiAuthMd5::Check( cIpmiAuthSg d[],
 
   return 0;
 }
+#endif
 
 
 int
@@ -211,6 +217,3 @@ cIpmiAuthStraight::Check( cIpmiAuthSg /*d*/[], void *code )
 
   return 0;
 }
-
-
-#endif
