@@ -29,8 +29,8 @@
 #include "sim_event.h"
 
 
-static const unsigned int req_res = 0;
-static const unsigned int req_rdr = 1;
+static  void * REQ_RES = (void *)0;
+static  void * REQ_RDR = (void *)1;
 
 static int str2uint32(char *str, SaHpiUint32T *val)
 {
@@ -113,7 +113,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                 sprintf(path, "%s/%s/%s/sensor", root_path, res, pd->d_name); 
                 tmp = opendir(path);
                 if (tmp) {
-                        FAMMonitorDirectory(fe->fc, path, &fr, (void *)req_rdr);
+                        FAMMonitorDirectory(fe->fc, path, &fr, REQ_RDR);
                         sim_util_add_rdr_id(feh->ids, fe->filename, fr.reqnum, index);
                         printf("monitor sensor:%s\n", pd->d_name);
                         closedir(tmp);
@@ -182,7 +182,7 @@ static void* fhs_event_process(void *data)
 #endif
 
         FAMOpen(&fc);
-        FAMMonitorDirectory(&fc, root_path, &fr, (void*)req_res);
+        FAMMonitorDirectory(&fc, root_path, &fr, REQ_RES);
 
         while(!feh->closing) { 
 /*
@@ -203,16 +203,16 @@ static void* fhs_event_process(void *data)
                         FAMNextEvent(&fc, &fe);
                 }else  continue; 
 
-                if ((fe.userdata == (void *)req_res) &&
+                if ((fe.userdata == REQ_RES) &&
                     ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
                         if (!IS_DIR(fe.filename))
                                 fhs_event_add_resource(feh, fe.filename, &fe);
-                }else if ((fe.userdata == (void*) req_res) && (fe.code == FAMDeleted)) {
+                }else if ((fe.userdata == REQ_RDR) && (fe.code == FAMDeleted)) {
                      	if (!IS_DIR(fe.filename))
                              	fhs_event_remove_resource(feh, &fe);
                       	else
                   		printf("faint! why delete root path\n");
-                }else if (fe.userdata == (void *)req_rdr) {
+                }else if (fe.userdata == REQ_RDR) {
                         if (((fe.code == FAMChanged) || (fe.code == FAMExists))&&
                             ((!strcmp(fe.filename, "reading"))||
                              (!strcmp(fe.filename, "thres")))) {
