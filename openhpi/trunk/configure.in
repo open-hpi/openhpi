@@ -15,7 +15,7 @@ AM_PROG_LIBTOOL
 HPI_PKG=openhpi
 AC_SUBST(HPI_PKG)
 AC_SUBST(ac_configure_args)
-AC_PATH_PROGS(RPM, rpm)
+AC_PATH_PROGS(RPM, rpmbuild)
 
 dnl 
 dnl This code was borrowed from linux-ha configure.in file
