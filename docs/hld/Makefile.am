@@ -66,6 +66,9 @@ openhpi-manual/book1.html: $(SGML_FILES)
 publish: openhpi-manual/book1.html
 	-htmlfilter.pl $(shell ls openhpi-manual/*html)
 	-chmod a+x $(shell ls openhpi-manual/*html)
+	if [ ! -e openhpi-manual/book1.html ]; then \
+		ln openhpi-manual/index.html openhpi-manual/book1.html; \
+	fi;
 	-echo "XBitHack on" > openhpi-manual/.htaccess
 	-rsync -e ssh -rP --delete openhpi-manual/ $(SERVER):$(HLDDIR)
 	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -exec chmod g+w {} \;"
