@@ -37,7 +37,7 @@ SUBDIRS			= t
 
 INCLUDES		= @OPENHPI_INCLUDES@
 
-AM_CFLAGS		= -g @CFLAGS@
+AM_CFLAGS		= -g @CFLAGS@ @OPENIPMI_CFLAGS@
 
 pkglib_LTLIBRARIES	= libipmi.la
 
@@ -62,5 +62,5 @@ libipmi_la_SOURCES	= ipmi.c 		\
 			  posix_vlog.c		\
 			  ipmi.h
 			  
-libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix
+libipmi_la_LIBADD	= -luuid -lncurses -lOpenIPMI -lOpenIPMIposix @OPENIPMI_LIBS@
 libipmi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@ -export-symbols ipmi.sym

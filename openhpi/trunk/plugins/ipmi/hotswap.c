@@ -85,6 +85,7 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 		     ipmi_event_t              *event)
 {
 	struct oh_handler_state *handler =  (struct oh_handler_state*)cb_data;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)ipmi_handler;
 	ipmi_entity_id_t entity_id;
 	SaHpiRptEntryT  *rpt_entry;
 	struct oh_event  *e;
@@ -121,7 +122,7 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 
 	if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent.HotSwapState ==
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
-		dbg("HS_STATE NOT PRESENT");
+		dbg("HS_STATE NOT PRESENT, removing RPT");
 	  	handler->eventq = g_slist_append(handler->eventq,e);
 		ohoi_remove_entity(handler, rpt_entry->ResourceId);
 	}else if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent
