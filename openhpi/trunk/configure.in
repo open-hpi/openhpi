@@ -82,6 +82,7 @@ include/Makefile		\
 	include/utils/Makefile	\
 lib/Makefile			\
 	lib/utils/Makefile	\
+docs/Makefile			\
 test/Makefile			\
 )
 
