@@ -137,32 +137,43 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	char			errbuf[SHOW_BUF_SZ];
 
 	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) ", resourceid, sensornum);
-	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &val);
+	rv = saHpiSensorEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
-			"ERROR: saHpiSensorEventEnableGet: error: %s\n",
+			"\nERROR: saHpiSensorEnableGet: error: %s\n",
 			oh_lookup_error(rv));
 		if (proc(errbuf) != 0) return(rv);
 	} else {
-		strcat(buf, "event : ");
 		if (val) strcat(buf, "Enable ");
 		else strcat(buf, "Disable ");
 	};
-	if (proc(buf) != 0) return(SA_OK);
-	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum, &assert, &deassert);
+	rv = saHpiSensorEventEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
-			"ERROR: saHpiSensorEventMasksGet: error: %s\n",
+			"\nERROR: saHpiSensorEventEnableGet: error: %s\n",
 			oh_lookup_error(rv));
 		if (proc(errbuf) != 0) return(rv);
+	} else {
+		strcat(buf, "    event : ");
+		if (val) strcat(buf, "Enable");
+		else strcat(buf, "Disable");
 	};
-	snprintf(buf, SHOW_BUF_SZ, "   masks: assert = 0x%4.4x   deassert = 0x%4.4x\n",
-		assert, deassert);
+	strcat(buf, "\n");
 	if (proc(buf) != 0) return(SA_OK);
+	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum, &assert, &deassert);
+	if (rv != SA_OK)
+		snprintf(errbuf, SHOW_BUF_SZ,
+			"\nERROR: saHpiSensorEventMasksGet: error: %s\n",
+			oh_lookup_error(rv));
+	else
+		snprintf(buf, SHOW_BUF_SZ,
+			"   masks: assert = 0x%4.4x   deassert = 0x%4.4x\n",
+			assert, deassert);
+	if (proc(buf) != 0) return(rv);
 	rv = saHpiSensorReadingGet(sessionid, resourceid, sensornum,
 		&reading, &status);
         if (rv != SA_OK)  {
-		snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiSensorReadingGet error = %s\n",
+		snprintf(buf, SHOW_BUF_SZ, "\nERROR: saHpiSensorReadingGet error = %s\n",
 			oh_lookup_error(rv));
 		proc(buf);
 		return rv;
@@ -313,7 +324,8 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT p
 		switch (type) {
 			case SAHPI_SENSOR_RDR:
 				sensor = &(rdr.RdrTypeUnion.SensorRec);
-				snprintf(ar, 256, "%3.3d Ctrl=", sensor->Num);
+				snprintf(ar, 256, "%3.3d Ctrl=%d EvtCtrl=",
+					sensor->Num, sensor->EnableCtrl);
 				switch (sensor->EventCtrl) {
 					case SAHPI_SEC_PER_EVENT:
 						strcat(ar, "WR"); break;
