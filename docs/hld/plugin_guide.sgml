@@ -91,9 +91,8 @@ int get_interface(void **pp, uuid_t uuid)
 }
     </programlisting>
     </para>
-    </sect1>
 
-    <sect1>
+    <sect2>
     <title>Naming convention and return codes</title>
     <para>
 
@@ -115,33 +114,62 @@ int get_interface(void **pp, uuid_t uuid)
 	 on different architectures.
     </para>
     </note>
-    
+    </sect2>
 	
-    </sect1>
 
-    <sect1>
+    <sect2>
     <title>The <literal>Open</literal> function</title>
     <para>
-	The open function is the first function called when a plug-in is initialized.
+	<programlisting>
+prototype:
+static void *my_open(GHashTable *config_file);
+	</programlisting>
     </para>
+	<para>
+	The open function is the first function called when a plug-in is initialized.
+	It takes one parameter of type GHashTable (from glib), a pointer to the hanlder's
+	config hash which would have all parameters for your plug-in.
+	</para>
 
-   </sect1>
+	<para>
+	In the open function you would do what your plug-in requires to initialize
+	access to the hardware management protocol.
+	</para>
+	<para>
+	Further, you would initialize the oh_handler_state elements, allocate the 
+	handler structureparse the plug-in parameters from the confi hash, allocate
+	the rptcache and initialize any private data structures in your plug-in.
+    	</para>
+	<para>
+	When done, you would return a pointer to the handler allocated for this plugin
+	instance.
+	</para>
+   </sect2>
 
-    <sect1>
+    <sect2>
     <title>The <literal>close</literal> function</title>
     <para>
+	<programlisting>
+prototype:
+static void *my_close(void *hnd);
+	</programlisting>
+    </para>
+    <para>
 	The close function is called when a plug-in is finalized.
+	You would close any open connection, free any private data structures and
+	terminate all loose data.
     </para>
 
-   </sect1>
+   </sect2>
 
-    <sect1>
+    <sect2>
     <title>The <literal>discover_resources</literal> function</title>
     <para>
 	The discover_resources function is the function which reports the plug-in's
 	findings of resources, sensors, controls, etc. to the infrastructure.
     </para>
 
-   </sect1>
+   </sect2>
+</sect1>
 
 </chapter>
