@@ -213,7 +213,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
         /* Clean up: free the response */
         if (response) snmp_free_pdu(response);
 
-        return value->type? SA_OK : -1;
+        return value->type? SA_OK : SA_ERR_HPI_ERROR;
 }
 
 
