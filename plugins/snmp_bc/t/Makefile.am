@@ -59,8 +59,8 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Setup environment variables for TESTS programs
-TESTS_ENVIRONMENT  = LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
-TESTS_ENVIRONMENT += OPENHPI_CONF=$(shell pwd)/openhpi.conf
+TESTS_ENVIRONMENT  = OPENHPI_CONF=$(shell pwd)/openhpi.conf
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
