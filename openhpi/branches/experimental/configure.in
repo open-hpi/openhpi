@@ -175,7 +175,7 @@ AC_ARG_ENABLE([sysfs],
     ])
 
 AC_ARG_ENABLE([snmp_bc],
-    [  --enable-snmp_bc        build IBM Blade Center plugin [default=no]],
+    [  --enable-snmp_bc        build IBM Blade Center plugin [default=yes if net-snmp is installed]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
@@ -184,7 +184,12 @@ AC_ARG_ENABLE([snmp_bc],
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM Blade Center support without net-snmp)
         fi
-    fi])
+    fi],
+    [if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_BC,snmp_bc)
+            CFLAGS="$CFLAGS $SNMPFLAGS"
+    fi]
+    )
 
 
 dnl 
