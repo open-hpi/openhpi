@@ -316,7 +316,8 @@ struct snmp_rpt snmp_bc_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Blade"
+                .comment = "Blade",
+		.OidResourceTag = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.6.x"
         },
         /* Blade expansion (add-in) card */
         {

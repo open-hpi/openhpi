@@ -489,7 +489,8 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
-	snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
+	if (loc != SNMP_BC_NOT_VALID) 
+		snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
 
 	if (str) { oh_append_textbuffer(&working, str); }
 	err = oh_append_textbuffer(&working, locstr);

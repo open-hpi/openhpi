@@ -65,6 +65,9 @@
 /* Start HPI location numbers from 1 */
 #define SNMP_BC_HPI_LOCATION_BASE 1
 
+/* An invalid snmp_bc index */
+#define SNMP_BC_NOT_VALID 0xFF
+
 /* IBM Manufacturing Number */
 #define IBM_MANUFACTURING_ID 2
 
@@ -170,6 +173,7 @@ struct snmp_rpt {
         SaHpiRptEntryT rpt;
         struct ResourceInfo res_info;
         const  char *comment;
+	const  char *OidResourceTag;
 };
 
 extern struct snmp_rpt snmp_bc_rpt_array[];
