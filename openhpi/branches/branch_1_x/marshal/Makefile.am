@@ -18,7 +18,7 @@ DIST_SUBDIRS 		= t
 MAINTAINERCLEANFILES 	= Makefile.in *~
 
 AM_CFLAGS		= @CFLAGS@
-INCLUDES 		= -I $(top_srcdir)/include
+INCLUDES 		= -I $(top_srcdir)/include -I $(srcdir)
 # just to clear LIBS
 LIBS			=
 
