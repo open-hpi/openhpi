@@ -114,19 +114,19 @@ SaErrorT snmp_bc_get_control_state(void *hnd, SaHpiResourceIdT id,
 		break;
 	case SAHPI_CTRL_TYPE_ANALOG:
 		dbg("Analog controls not supported\n");
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_CTRL_TYPE_STREAM:
 		dbg("Stream controls not supported\n");
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_CTRL_TYPE_TEXT:
 		dbg("Text controls not supported\n");
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
 	case SAHPI_CTRL_TYPE_OEM:	
 		dbg("Oem controls not supported\n");
-		return -1;
+		return SA_ERR_HPI_INVALID_CMD;
         default:
 		dbg("%s has invalid control state=%d\n", s->mib.oid,working.Type);
-                return -1;
+                return SA_ERR_HPI_INVALID_CMD;
         }
 
 	memcpy(state,&working,sizeof(SaHpiCtrlStateT));
