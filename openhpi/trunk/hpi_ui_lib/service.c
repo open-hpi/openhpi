@@ -53,7 +53,7 @@ extern SaErrorT	decode_proc(int num, void *val, char *buf, int bufsize);
 extern SaErrorT	decode1_proc(int num, int val, char *buf, int bufsize);
 extern SaErrorT	thres_value(SaHpiSensorReadingT *item, char *buf, int size);
 
-#define RPT_ATTRS_NUM	12
+#define RPT_ATTRS_NUM	9
 
 attr_t	Def_rpt[] = {
 	{ "EntryId",		INT_TYPE,	0, { .d = 0} },	//  0
@@ -64,10 +64,7 @@ attr_t	Def_rpt[] = {
 	{ "HotSwapCapabilities",DECODE1_TYPE,	HSCAPAB_PROC, { .d = 0} },	//  5
 	{ "ResourceSeverity",	LOOKUP_TYPE,	SEVERITY_PROC, { .d = 0} },	//  6
 	{ "ResourceFailed",	BOOL_TYPE,	0, { .d = 0} },	//  7
-	{ "Tag",		STR_TYPE,	0, { .d = 0} },	//  8
-	{ "TagLength",		INT_TYPE,	0, { .d = 0} },	//  9
-	{ "TagType",		LOOKUP_TYPE,	TAGTYPE_PROC,	{ .d = 0} },	// 10
-	{ "TagLanguage",	LOOKUP_TYPE,	LANG_PROC,	{ .d = 0} }	// 11
+	{ "Tag",		TEXT_BUFF_TYPE,	0, { .d = 0} }	//  8
 };
 
 #define RESINFO_ATTRS_NUM	9
@@ -274,7 +271,7 @@ static int find_attr(Attributes_t *attrs, char *name)
 void make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry)
 {
 	attr_t			*att, *att1;
-	int			len, i = 0;
+	int			i = 0;
 	Attributes_t		*at;
 	SaHpiRptEntryT		*obj;
 
@@ -306,17 +303,10 @@ void make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry)
 	att[i++].value.i = obj->HotSwapCapabilities;
 	att[i++].value.i = obj->ResourceSeverity;
 	att[i++].value.i = obj->ResourceFailed;
-	len = obj->ResourceTag.DataLength;
-	if (len > 0) {
-		att[i++].value.s = obj->ResourceTag.Data;
-		obj->ResourceTag.Data[len] = 0;
-		att[i++].value.i = len;
-		att[i++].value.i = obj->ResourceTag.DataType;
-		att[i++].value.i = obj->ResourceTag.Language;
-	}
+	att[i++].value.a = &(obj->ResourceTag);
 }
 
-#define RDR_ATTRS_COMMON_NUM	9
+#define RDR_ATTRS_COMMON_NUM	6
 
 attr_t	Def_common_rdr[] = {
 	{ "RecordId",		INT_TYPE,	0, { .d = 0} },	//  0
@@ -324,10 +314,7 @@ attr_t	Def_common_rdr[] = {
 	{ "EntityPath",		DECODE_TYPE,	EPATH_PROC, { .d = 0} },	//  2
 	{ "IsFru",		BOOL_TYPE,	0, { .d = 0} },	//  3
 	{ "Record",		STRUCT_TYPE,	0, { .d = 0} },	//  4
-	{ "IdString",		STR_TYPE,	0, { .d = 0} },	//  5
-	{ "IdStringLength",	INT_TYPE,	0, { .d = 0} },	//  6
-	{ "IdStringType",	LOOKUP_TYPE,	TAGTYPE_PROC,	{ .d = 0} },	//  7
-	{ "IdStringLang",	LOOKUP_TYPE,	LANG_PROC,	{ .d = 0} }	//  8
+	{ "IdString",		TEXT_BUFF_TYPE,	0, { .d = 0} }	//  5
 };
 
 #define RDR_ATTRS_SENSOR_NUM	9
@@ -491,13 +478,20 @@ attr_t	Def_ctrl_text[] = {
 	{ "MaxLines",		INT_TYPE,	0, { .d = 0} },	//  1
 	{ "Language",		LOOKUP_TYPE,	LANG_PROC, { .d = 0} },	//  2
 	{ "DataType",		LOOKUP_TYPE,	TAGTYPE_PROC, { .d = 0} },	//  3
-	{ "Default",		NO_TYPE,	0, { .d = 0} }  //  4
+	{ "Default",		STR_TYPE,	0, { .d = 0} }  //  4
+};
+
+#define ATTRS_CTRL_TEXT_DEFAULT	2
+
+attr_t	Def_ctrl_text_def[] = {
+	{ "Line",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Text",		TEXT_BUFF_TYPE,	0, { .d = 0} }  //  4
 };
 
 static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 {
-	attr_t			*att1, *att2;
-	Attributes_t		*at, *at2;
+	attr_t			*att1, *att2, *att3;
+	Attributes_t		*at, *at2, *at3;
 	SaHpiCtrlRecDigitalT	*digital;
 	SaHpiCtrlRecDiscreteT	*discrete;
 	SaHpiCtrlRecAnalogT	*analog;
@@ -578,6 +572,15 @@ static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 			att2[1].value.i = text->MaxLines;
 			att2[2].value.i = text->Language;
 			att2[3].value.i = text->DataType;
+			at3 = (Attributes_t *)malloc(sizeof(Attributes_t));
+			at3->n_attrs = ATTRS_CTRL_TEXT_DEFAULT;
+			att3 = (attr_t *)malloc(sizeof(attr_t) * ATTRS_CTRL_TEXT_DEFAULT);
+			memcpy(att3, Def_ctrl_text_def,
+				sizeof(attr_t) * ATTRS_CTRL_TEXT_DEFAULT);
+			at3->Attrs = att3;
+			att3[0].value.i = text->Default.Line;
+			att3[1].value.a = &(text->Default.Text);
+			att2[4].value.a = at3;
 			att1[3].value.a = at2;
 			break;
 		default:
@@ -648,7 +651,7 @@ static Attributes_t *make_attrs_wdog(SaHpiWatchdogRecT *wdog)
 void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 {
 	attr_t			*att;
-	int			len, i = 0;
+	int			i = 0;
 	Attributes_t		*at;
 	SaHpiRdrT		*obj;
 	SaHpiSensorRecT		*sensor;
@@ -666,7 +669,6 @@ void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 	att[i++].value.i = obj->RdrType;
 	att[i++].value.a = &(obj->Entity);
 	att[i++].value.i = obj->IsFru;
-	len = obj->IdString.DataLength;
 
 	switch (obj->RdrType) {
 		case SAHPI_SENSOR_RDR:
@@ -695,14 +697,7 @@ void make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdrentry)
 			break;
 		default: break;
 	};
-	len = obj->IdString.DataLength;
-	if (len > 0) {
-		att[i++].value.s = obj->IdString.Data;
-		obj->IdString.Data[len] = 0;
-		att[i++].value.i = len;
-		att[i++].value.i = obj->IdString.DataType;
-		att[i++].value.i = obj->IdString.Language;
-	};
+	att[i++].value.a = &(obj->IdString);
 }
 
 void free_attrs(Attributes_t *At)
@@ -904,10 +899,10 @@ SaErrorT find_rdr_by_num(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	return(-1);
 }
 
-static char *hex_codes = "0123456789ABCDEF";
-static char *bcdplus_codes = "0123456789 -.???";
+char *hex_codes = "0123456789ABCDEF";
+char *bcdplus_codes = "0123456789 -.???";
 
-static char ascii6_codes[64] = {
+char ascii6_codes[64] = {
 	' ', '!', '"', '#', '$',  '%', '&', '\'',
 	'(', ')', '*', '+', ',',  '-', '.', '/', 
 	'0', '1', '2', '3', '4',  '5', '6', '7',
@@ -952,20 +947,50 @@ static int ascii6tostring(char *ascii, int n_ascii, char *str, int n)
 	return(ascii_len);
 }
 
-int print_text_buffer(char *mes, SaHpiTextBufferT *buf, int show_type,
-	int show_length, int show_lenguage, hpi_ui_print_cb_t proc)
+int print_text_buffer_type(char *mes, SaHpiTextBufferT *buf, char *meslast,
+	hpi_ui_print_cb_t proc)
+{
+	if (mes != (char *)NULL) {
+		if (proc(mes) != 0) return(1);
+	};
+	switch (buf->DataType) {
+		case SAHPI_TL_TYPE_UNICODE:
+			proc("UNICODE");
+			break;
+		case SAHPI_TL_TYPE_BCDPLUS:
+			if (proc("BCDPLUS") != 0) return(1);
+			break;
+		case SAHPI_TL_TYPE_ASCII6:
+			if (proc("ASCII6") != 0) return(1);
+			break;
+		case SAHPI_TL_TYPE_TEXT:
+			if (proc("TEXT") != 0) return(1);
+			break;
+		case SAHPI_TL_TYPE_BINARY:
+			if (proc("BIN") != 0) return(1);
+			break;
+	};
+	if (meslast != (char *)NULL) {
+		if (proc(meslast) != 0) return(1);
+	};
+	return(0);
+}
+
+int print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
+	hpi_ui_print_cb_t proc)
 {
 	int	i, c, tmp_ind, len;
-	char	*tmp, len_buf[32];
+	char	*tmp;
 
-	if (proc(mes) != 0) return(1);
+	if (mes != (char *)NULL) {
+		if (proc(mes) != 0) return(1);
+	};
 	if (buf->DataLength < 2) return(0);
 	switch (buf->DataType) {
 		case SAHPI_TL_TYPE_UNICODE:
 			proc("Not implemented UNICODE");
 			break;
 		case SAHPI_TL_TYPE_BCDPLUS:
-			if (show_type && (proc("BCDPLUS: ") != 0)) return(1);
 			len = buf->DataLength * 2 + 1;
 			tmp = malloc(len);
 			memset(tmp, 0, len);
@@ -982,7 +1007,6 @@ int print_text_buffer(char *mes, SaHpiTextBufferT *buf, int show_type,
 			if (i != 0) return(1);
 			break;
 		case SAHPI_TL_TYPE_ASCII6:
-			if (show_type && (proc("ASCII6: ") != 0)) return(1);
 			len = buf->DataLength * 8 / 6;
 			tmp = malloc(len + 1);
 			memset(tmp, 0, len + 1);
@@ -993,11 +1017,9 @@ int print_text_buffer(char *mes, SaHpiTextBufferT *buf, int show_type,
 			if (i != 0) return(1);
 			break;
 		case SAHPI_TL_TYPE_TEXT:
-			if (show_type && (proc("TEXT: ") != 0)) return(1);
 			if (proc(buf->Data) != 0) return(1);
 			break;
 		case SAHPI_TL_TYPE_BINARY:
-			if (show_type && (proc("BIN: ") != 0)) return(1);
 			len = buf->DataLength * 2 + 1;
 			tmp = malloc(len);
 			memset(tmp, 0, len);
@@ -1014,9 +1036,62 @@ int print_text_buffer(char *mes, SaHpiTextBufferT *buf, int show_type,
 			if (i != 0) return(1);
 			break;
 	};
-	if (show_length) {
-		snprintf(len_buf, 31, " (len=%d)", buf->DataLength);
-		if (proc(len_buf) != 0) return(1);
+	if (meslast != (char *)NULL) {
+		if (proc(meslast) != 0) return(1);
+	};
+	return(0);
+}
+
+int print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf, char *meslast,
+	hpi_ui_print_cb_t proc)
+{
+	char	*str;
+
+	if ((buf->DataType == SAHPI_TL_TYPE_UNICODE) ||
+		(buf->DataType == SAHPI_TL_TYPE_TEXT)) {
+		str = oh_lookup_language(buf->Language);
+		if (str == (char *)NULL) return(0);
+		if (strlen(str) == 0) return(0);
+		if (mes != (char *)NULL) {
+			if (proc(mes) != 0) return(1);
+		};
+		if (proc(str) != 0) return(1);
+		if (meslast != (char *)NULL) {
+			if (proc(meslast) != 0) return(1);
+		}
+	};
+	return(0);
+}
+
+int print_text_buffer_length(char *mes, SaHpiTextBufferT *buf, char *meslast,
+	hpi_ui_print_cb_t proc)
+{
+	char	len_buf[32];
+
+	if (mes != (char *)NULL) {
+		if (proc(mes) != 0) return(1);
+	};
+	snprintf(len_buf, 31, "%d", buf->DataLength);
+	if (proc(len_buf) != 0) return(1);
+	if (meslast != (char *)NULL) {
+		if (proc(meslast) != 0) return(1);
+	};
+	return(0);
+}
+
+int print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
+	hpi_ui_print_cb_t proc)
+{
+	if (mes != (char *)NULL) {
+		if (proc(mes) != 0) return(1);
+	};
+	if (buf->DataLength < 2) return(0);
+	if (print_text_buffer_type(NULL, buf, ": ", proc) != 0) return(1);
+	if (print_text_buffer_lang(NULL, buf, ": ", proc) != 0) return(1);
+	if (print_text_buffer_text(NULL, buf, NULL, proc) != 0) return(1);
+	if (print_text_buffer_length(" (len=", buf, ")", proc) != 0) return(1);
+	if (meslast != (char *)NULL) {
+		if (proc(meslast) != 0) return(1);
 	};
 	return(0);
 }

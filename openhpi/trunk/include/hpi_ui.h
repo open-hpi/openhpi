@@ -45,6 +45,7 @@ typedef union {
 #define	READING_TYPE	9	// call reading print function
 #define	BOOL_TYPE	10	// boolean
 #define	HEX_TYPE	11	// hexadecimal
+#define	TEXT_BUFF_TYPE	12	// TextBuffer
 
 typedef struct {
 	char		*name;		// attribute name
@@ -81,6 +82,10 @@ typedef struct {
 
 typedef int (*hpi_ui_print_cb_t)(char *buf);
 
+extern char *hex_codes;
+extern char *bcdplus_codes;
+extern char ascii6_codes[];
+
 extern SaErrorT	find_rdr_by_num(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiInstrumentIdT num, SaHpiRdrTypeT type, int as,
 			SaHpiRdrT *retrdr);
@@ -103,8 +108,16 @@ extern int	get_attr_type(Attributes_t *Attrs, int num);
 			// get attribute type
 extern void	make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdr_entry);
 extern void	make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry);
-extern int	print_text_buffer(char *mes, SaHpiTextBufferT *buf, int show_type,
-			int show_length, int show_lenguage, hpi_ui_print_cb_t proc);
+extern int	print_text_buffer(char *mes, SaHpiTextBufferT *buf, char *meslast,
+			hpi_ui_print_cb_t proc);
+extern int	print_text_buffer_lang(char *mes, SaHpiTextBufferT *buf,
+			char *meslast, hpi_ui_print_cb_t proc);
+extern int	print_text_buffer_length(char *mes, SaHpiTextBufferT *buf,
+			char *meslast, hpi_ui_print_cb_t proc);
+extern int	print_text_buffer_text(char *mes, SaHpiTextBufferT *buf,
+			char *meslast, hpi_ui_print_cb_t proc);
+extern int	print_text_buffer_type(char *mes, SaHpiTextBufferT *buf,
+			char *meslast, hpi_ui_print_cb_t proc);
 extern int	print_thres_value(SaHpiSensorReadingT *item, char *mes,
 			SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,

@@ -218,12 +218,14 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
 			text = &(ctrl->TypeUnion.Text);
-			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Line # = %d  text = %s\n",
-				text->Default.Line, text->Default.Text.Data);
-			break;
+			snprintf(buf, SHOW_BUF_SZ, "\tDefault: Line # = %d", text->Default.Line);
+			proc(buf);
+			print_text_buffer_text("  Text = ", &(text->Default.Text), "\n", proc);
+			return SA_OK;
 		case SAHPI_CTRL_TYPE_OEM:
 			oem = &(ctrl->TypeUnion.Oem);
-			snprintf(buf, SHOW_BUF_SZ, "\tMId = %d  Config data = %s\n\tDefault: MId = %d  Body = %s\n",
+			snprintf(buf, SHOW_BUF_SZ,
+				"\tMId = %d  Config data = %s\n\tDefault: MId = %d  Body = %s\n",
 				oem->MId, oem->ConfigData, oem->Default.MId, oem->Default.Body);
 			break;
 		default: strcpy(buf, "Unknown control type\n");
@@ -286,9 +288,10 @@ SaErrorT show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 			break;
 		case SAHPI_CTRL_TYPE_TEXT:
 			text = &(state.StateUnion.Text);
-			snprintf(buf, SHOW_BUF_SZ, "Line # = %d  text = %s\n",
-				text->Line, text->Text.Data);
-			break;
+			snprintf(buf, SHOW_BUF_SZ, "Line # = %d", text->Line);
+			proc(buf);
+			print_text_buffer_text("  Text = ", &(text->Text), "\n", proc);
+			return SA_OK;
 		case SAHPI_CTRL_TYPE_OEM:
 			oem = &(state.StateUnion.Oem);
 			snprintf(buf, SHOW_BUF_SZ, "MId = %d  Body = %s\n", oem->MId, oem->Body);
@@ -319,11 +322,10 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		proc(errbuf);
 		return(rv);
 	};
-	if (rdr.IdString.DataLength > 0)
-		snprintf(errbuf, SHOW_BUF_SZ, "tag=%s", rdr.IdString.Data);
-	else *errbuf = 0;
-	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) %s  %s\n", resourceid, sensornum,
-		oh_lookup_sensortype(rdr.RdrTypeUnion.SensorRec.Type), errbuf);
+	snprintf(buf, SHOW_BUF_SZ, "Sensor(%d/%d) %s", resourceid, sensornum,
+		oh_lookup_sensortype(rdr.RdrTypeUnion.SensorRec.Type));
+	proc(buf);
+	print_text_buffer_text("  ", &(rdr.IdString), "\n", proc);
 	rv = saHpiSensorEnableGet(sessionid, resourceid, sensornum, &val);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
@@ -341,12 +343,10 @@ SaErrorT show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			oh_lookup_error(rv));
 		if (proc(errbuf) != 0) return(rv);
 	} else {
-		strcat(buf, "    event : ");
-		if (val) strcat(buf, "Enable");
-		else strcat(buf, "Disable");
+		proc("    event : ");
+		if (val) proc("Enable");
+		else proc("Disable");
 	};
-	strcat(buf, "\n");
-	if (proc(buf) != 0) return(SA_OK);
 	rv = saHpiSensorEventMasksGet(sessionid, resourceid, sensornum, &assert, &deassert);
 	if (rv != SA_OK) {
 		snprintf(errbuf, SHOW_BUF_SZ,
@@ -457,7 +457,6 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 	SaHpiEntryIdT	nextentryid;
 	SaHpiRdrT	rdr;
 	char		buf[SHOW_BUF_SZ];
-	int		len;
 
 	entryid = SAHPI_FIRST_ENTRY;
 	while (entryid != SAHPI_LAST_ENTRY) {
@@ -467,16 +466,10 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 		if (rdr.RdrType == SAHPI_SENSOR_RDR) {
 			snprintf(buf, 256, "Resource Id: %d, Sensor Num: %d",
 				resourceid, rdr.RdrTypeUnion.SensorRec.Num);
-			len = rdr.IdString.DataLength;
-			if (len > 0) {
-				rdr.IdString.Data[len] = 0;
-printf("TYPE = %d\n", rdr.IdString.DataType);
-				strcat(buf, " Tag: ");
-				strcat(buf, rdr.IdString.Data);
-			};
-			strcat(buf, "\n");
-			if (proc(buf) != 0)
+			if (proc(buf) != 0) return(-1);
+			if (print_text_buffer_text(" Tag: ", &(rdr.IdString), NULL, proc) != 0)
 				return(-1);
+			if (proc("\n") != 0) return(-1);
 		};
 		entryid = nextentryid;
 	};
@@ -490,7 +483,6 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
 	SaHpiRdrT		rdr;
 	SaHpiEntryIdT		entryid;
 	SaHpiEntryIdT		nextentryid;
-	int			len, ind;
 	char			buf[SHOW_BUF_SZ];
 	SaHpiRdrTypeT		type;
 	char			ar[256];
@@ -543,16 +535,10 @@ int show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT passed
 				snprintf(ar, 256, "%c", '?');
 		};
 		strcat(buf, ar);
-		len = rdr.IdString.DataLength;
-		if (len > 0) {
-			rdr.IdString.Data[len] = 0;
-			ind = strlen(buf);
-			snprintf(buf + ind, SHOW_BUF_SZ - ind - 1, " Tag=%s",
-				rdr.IdString.Data);
-		};
-		strcat(buf, "\n");
 		res_num++;
 		if (proc(buf) != 0)
+			return(res_num);
+		if (print_text_buffer_text(" Tag=", &(rdr.IdString), "\n", proc) != 0)
 			return(res_num);
 		entryid = nextentryid;
 	};
@@ -569,7 +555,7 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 {
 	SaHpiRptEntryT		rpt_entry;
 	SaHpiEntryIdT		rptentryid, nextrptentryid;
-	int			ind = 0, len;
+	int			ind = 0;
 	char			buf[SHOW_BUF_SZ];
 	SaErrorT		rv;
 	SaHpiCapabilitiesT	cap;
@@ -587,15 +573,11 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 			rptentryid = nextrptentryid;
 			continue;
 		};
+		res_num++;
 		snprintf(buf, SHOW_BUF_SZ, "(%3.3d):", rpt_entry.ResourceId);
-		ind = strlen(buf);
-		len = rpt_entry.ResourceTag.DataLength;
-		if (len > 0) {
-			rpt_entry.ResourceTag.Data[len] = 0;
-			strcat(buf, rpt_entry.ResourceTag.Data);
-			strcat(buf, ":");
-		};
-		strcat(buf, "{");
+		proc(buf);
+		print_text_buffer_text(NULL, &(rpt_entry.ResourceTag), ":", proc);
+		strcpy(buf, "{");
 		cap = rpt_entry.ResourceCapabilities;
 		if (cap & SAHPI_CAPABILITY_SENSOR) strcat(buf, "S|");
 		if (cap & SAHPI_CAPABILITY_RDR) strcat(buf, "RDR|");
@@ -635,7 +617,6 @@ int show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 			strcat(buf, "}");
 		};
 		strcat(buf, "\n");
-		res_num++;
 		if (proc(buf) != 0)
 			return(res_num);
 		if (as == SHOW_ALL_RDR)
@@ -666,7 +647,7 @@ static int show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
 		switch (type) {
 			case NO_TYPE:	continue;
 			case STRUCT_TYPE:
-				snprintf(buf+ del, len, "%s:\n", name);
+				snprintf(buf + del, len, "%s:\n", name);
 				if (proc(buf) != 0)
 					return(-1);
 				rv = get_value(Attrs, i, &val);
@@ -689,6 +670,11 @@ static int show_attrs(Attributes_t *Attrs, int delta, hpi_ui_print_cb_t proc)
 				if (thres_value(val.a, tmp, 256) != SA_OK)
 					continue;
 				break;
+			case TEXT_BUFF_TYPE:
+				snprintf(buf + del, len, "%s: ", name);
+				if (proc(buf) != 0) return(-1);
+				print_text_buffer(NULL, val.a, "\n", proc);
+				continue;
 			default:
 				rv = get_value_as_string(Attrs, i, tmp, 256);
 				if (rv != SA_OK) continue;
@@ -823,7 +809,7 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	SaHpiIdrAreaHeaderT	hdr;
 	SaHpiIdrFieldT		field;
 	char			buf[SHOW_BUF_SZ];
-	char			*str, *str1;
+	char			*str;
 	int			num;
 
 	rv = saHpiIdrInfoGet(sessionid, resourceid, IdrId, &info);
@@ -862,12 +848,10 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			};
 			str = oh_lookup_idrfieldtype(field.Type);
 			if (str == NULL) str = "Unknown";
-			if (field.Field.DataLength > 0) str1 = field.Field.Data;
-			else str1 = "";
-			snprintf(buf, SHOW_BUF_SZ, "        Field: %d   Type: %s   Read Only: %d (",
+			snprintf(buf, SHOW_BUF_SZ, "        Field: %d  Type: %s Read Only: %d (",
 				field.FieldId, str, field.ReadOnly);
 			if (proc(buf) != 0) return(SA_OK);
-			if (print_text_buffer("", &(field.Field), 1, 1, 1, proc) != 0) return(SA_OK);
+			if (print_text_buffer(NULL, &(field.Field), NULL, proc) != 0) return(SA_OK);
 			if (proc(")\n") != 0) return(SA_OK);
 			fentryid = nextfentryid;
 		}
