@@ -32,7 +32,53 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
+
+/*
+ *  Global listing of plugins (oh_plugin_config).  This list is populated
+ *  by the configuration subsystem, and used by the plugin loader.
+ */
+extern GSList *global_plugin_list;
+
+/*
+ *  Global listing of handler configs (GHashTable).  This list is
+ *  populated during config file parse, and used to build
+ *  global_handler_list
+ */
+extern GSList *global_handler_configs;
+
+/*
+ *  Global listing of handlers (oh_handler).  This list is populated
+ *  by the first call the saHpiSessionOpen().
+ */
+extern GSList *global_handler_list;
+
+/*
+ *  Representation of a plugin instance
+ */
+struct oh_handler {
+        /*
+         * pointer to configuration
+         */
+        GHashTable *config;
+
+        /*
+           pointer to associated plugin interface
+        */
+        struct oh_abi_v2 *abi;
+
+        /*
+          private pointer used by plugin implementations to distinguish
+          between different instances
+        */
+        void *hnd;
+
+        /*
+          This is the list of resources which the handler reports
+         */
+        GSList *resource_list;
+
+};
 
 struct oh_plugin_config {
         char *name;
@@ -41,6 +87,10 @@ struct oh_plugin_config {
         int refcount;
         struct oh_abi_v2 *abi;
 };
+
+/* Initialization and closing of ltdl structures */
+int oh_init_ltdl(void);
+void oh_exit_ltdl(void);
 
 /* Plugin configuration information prototypes */
 int oh_load_config(char *);
@@ -51,14 +101,11 @@ int plugin_refcount (char *);
 struct oh_plugin_config * plugin_config (char *);
 
 /* Plugin and instances prototypes. Implemented in plugin.c */
-int init_plugin(void);
-void uninit_plugin(void);
 int load_plugin(struct oh_plugin_config *);
 void unload_plugin(struct oh_plugin_config *config);
 
 int load_handler(GHashTable *handler_config);
 void unload_handler( struct oh_handler *handler );
-struct oh_handler *new_handler(GHashTable *handler_config);
 
 #ifdef __cplusplus
 }

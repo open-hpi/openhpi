@@ -75,6 +75,7 @@ SaErrorT oh_initialize()
                 openhpi_conf = OH_DEFAULT_CONF;
         }
 
+        oh_init_ltdl(); /* Must initialize ltdl before loading plugins */
         if (oh_load_config(openhpi_conf) < 0) {
                 dbg("Can not load config");
                 data_access_unlock();
@@ -129,7 +130,7 @@ SaErrorT oh_initialize()
 
 /**
  * oh_finalize
- * 
+ *
  * Returns:
  **/
 SaErrorT oh_finalize()
@@ -174,6 +175,7 @@ SaErrorT oh_finalize()
 
         /* free global_handler_configs and uninit_plugin */
         oh_unload_config();
+        oh_exit_ltdl(); /* Free ltdl structures after unloading plugins */
 
         /* free domain list */
         oh_cleanup_domain();

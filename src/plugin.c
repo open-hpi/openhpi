@@ -1,5 +1,5 @@
 /*      -*- linux-c -*-
- * 
+ *
  * Copyright (c) 2003 by Intel Corp.
  * (C) Copyright IBM Corp. 2003
  *
@@ -14,32 +14,38 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     Sean Dague <http://dague.net/sean>
  * Contributors:
- *     David Judkovics <djudkovi@us.ibm.com> 
+ *     David Judkovics <djudkovi@us.ibm.com>
  */
 
 #include <string.h>
 #include <ltdl.h>
 
-#include <SaHpi.h>
-#include <openhpi.h>
+#include <glib.h>
+#include <oh_plugin.h>
 #include <oh_config.h>
+#include <oh_error.h>
+#include <oh_lock.h>
 
-/*******************************************************************************
- * init_plugin - does all the initialization needed for the ltdl process to
+
+/**
+ * oh_init_ltdl
+ *
+ * Does all the initialization needed for the ltdl process to
  * work.  It takes no arguments, and returns 0 on success, < 0 on error
- *******************************************************************************/
-
-int init_plugin()
+ *
+ * Returns: 0 on success.
+ **/
+int oh_init_ltdl()
 {
         char * path = NULL;
         int err;
-        
+
         err = lt_dlinit();
         if (err != 0) {
                 dbg("Can not init ltdl");
                 goto err1;
         }
-        
+
         path = getenv("OPENHPI_PATH");
         if(path == NULL) {
                 path = OH_PLUGIN_PATH;
@@ -50,16 +56,21 @@ int init_plugin()
                 dbg("Can not set lt_dl search path");
                 goto err2;
         }
-        
+
         return 0;
-        
+
  err2:
         lt_dlexit();
  err1:
         return -1;
 }
 
-void uninit_plugin(void)
+/**
+ * oh_exit_ltdl
+ *
+ * Does everything needed to close the ltdl structures.
+ **/
+void oh_exit_ltdl()
 {
         int rv;
 
@@ -113,13 +124,13 @@ int load_plugin(struct oh_plugin_config *config)
                 dbg("Can not get 'get_interface' symbol, is it a plugin?!");
                 goto err1;
         }
-        
+
         err = get_interface(&config->abi, UUID_OH_ABI_V2);
         if (err < 0 || !config->abi || !config->abi->open) {
                 dbg("Can not get ABI V1");
                 goto err1;
         }
-        
+
         return 0;
  err1:
         if (config->dl_handle) {
@@ -147,47 +158,23 @@ void unload_plugin(struct oh_plugin_config *config)
         free(config);
 }
 
-
-int load_handler (GHashTable *handler_config)
-{
-        struct oh_handler *handler;
-
-        data_access_lock();
-
-        handler = new_handler(handler_config);
-
-        if(handler == NULL) {
-                data_access_unlock();
-                return -1;
-        }
-        
-        global_handler_list = g_slist_append(
-                global_handler_list,
-                (gpointer) handler
-                );
-        
-        data_access_unlock();
-        
-        return 0;
-}
-
 /*
  * Load plugin by name and make a instance.
  * FIXME: the plugins with multi-instances should reuse 'lt_dlhandler'
  */
 
-struct oh_handler *new_handler(GHashTable *handler_config)
+static struct oh_handler *new_handler(GHashTable *handler_config)
 {
         struct oh_plugin_config *p_config;
         struct oh_handler *handler;
-        
+
         handler = malloc(sizeof(*handler));
         if (!handler) {
                 dbg("Out of Memory!");
                 goto err;
         }
         memset(handler, '\0', sizeof(*handler));
-        
+
         if(plugin_refcount((char *)g_hash_table_lookup(handler_config, "plugin")) < 1) {
                 dbg("Attempt to create handler for unknown plugin %s",
                         (char *)g_hash_table_lookup(handler_config, "plugin"));
@@ -199,7 +186,7 @@ struct oh_handler *new_handler(GHashTable *handler_config)
                 dbg("No such plugin config");
                 goto err;
         }
-        
+
         handler->abi = p_config->abi;
         handler->config = handler_config;
 
@@ -217,6 +204,28 @@ err:
         return NULL;
 }
 
+int load_handler (GHashTable *handler_config)
+{
+        struct oh_handler *handler;
+
+        data_access_lock();
+
+        handler = new_handler(handler_config);
+
+        if(handler == NULL) {
+                data_access_unlock();
+                return -1;
+        }
+
+        global_handler_list = g_slist_append(
+                global_handler_list,
+                (gpointer) handler
+                );
+
+        data_access_unlock();
+
+        return 0;
+}
 
 void unload_handler(struct oh_handler *handler)
 {
