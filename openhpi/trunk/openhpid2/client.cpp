@@ -124,25 +124,27 @@ CleanupClient(void)
 SaHpiVersionT SAHPI_API dOpenHpiClientFunction(VersionGet)
 	dOpenHpiClientParam(void)
 {
-	void *request;
+	void *request = NULL;
 	char reply[dMaxMessageLength];  
 	SaHpiVersionT err; 
 	char cmd[] = "saHpiVersionget";
 
+        if (pinst == NULL) {
+                if (InitClient()) {
+                        cdebug_err(cmd, "client initialization failed");
+                        return SA_ERR_HPI_NO_RESPONSE;
+                }
+        }
+
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiVersionGet);
 
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiVersionGet, 0);
-	request = malloc(hm->m_request_len);
 
 	SendRecv(cmd);
 
 	int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err);
 
-	cdebug_out(cmd, "end");
-
-	if (request)
-		free(request);
 	if (mr < 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -164,16 +166,16 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 	SaErrorT err; 
 	char cmd[] = "saHpiSessionOpen";
 
-	cdebug_out(cmd, "start");
-
-	if (SessionId == 0 || SecurityParams != 0) {
+	if (SecurityParams != 0) {
 		cdebug_err(cmd, "invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	};
-	if (InitClient()) {
-		cdebug_err(cmd, "client initialization failed");
-		return SA_ERR_HPI_NO_RESPONSE;
-	}
+        if (pinst == NULL) {
+                if (InitClient()) {
+                        cdebug_err(cmd, "client initialization failed");
+                        return SA_ERR_HPI_NO_RESPONSE;
+                }
+        }
 
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionOpen);
 
@@ -187,8 +189,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 
 	int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err, SessionId);
-
-	cdebug_out(cmd, "end");
 
 	if (err != SA_OK)
 		CleanupClient();
@@ -213,8 +213,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 	SaErrorT err; 
 	char cmd[] = "saHpiSessionClose";
 
-	cdebug_out(cmd, "start");
-
 	if (SessionId < 0 || pinst == NULL ) {
 		cdebug_err(cmd, "invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -231,8 +229,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 
 	int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err);
-
-	cdebug_out(cmd, "end");
 
 	if (request)
 		free(request);
@@ -255,8 +251,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 	SaErrorT err; 
 	char cmd[] = "saHpiDiscover";
 
-	cdebug_out(cmd, "start");
-
 	if (SessionId < 0 || pinst == NULL) {
 		cdebug_err(cmd, "invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -273,8 +267,6 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 
 	int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err);
-
-	cdebug_out(cmd, "end");
 
 	if (pinst->header.m_type == eMhError)
 		return SA_ERR_HPI_INVALID_PARAMS;

@@ -102,7 +102,9 @@ bool strmsock::WriteMsg(const void *request)
 	}
 
 	memcpy(&data[0], &header, sizeof(cMessageHeader));
-        memcpy(&data[sizeof(cMessageHeader)], request, header.m_len);
+        if (request != NULL) {
+                memcpy(&data[sizeof(cMessageHeader)], request, header.m_len);
+        }
 //      printf("Size of message header is %d\n", sizeof(cMessageHeader));
 //      printf("Buffer header address is %p\n", &data[0]);
 //      printf("Buffer request address is %p\n", &data[sizeof(cMessageHeader)]);
