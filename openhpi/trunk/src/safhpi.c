@@ -886,6 +886,11 @@ SaErrorT SAHPI_API saHpiEventGet (
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
+        if( !oh_run_threaded() && Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
+                dbg("Can not support timeouts in non threaded mode");
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         error = oh_get_session_subscription(SessionId, &session_state);
         if (error) return error;
 
@@ -896,10 +901,6 @@ SaErrorT SAHPI_API saHpiEventGet (
 	if ( !oh_run_threaded() ) {
 		error = oh_get_events();       
 		if (error < 0) return SA_ERR_HPI_UNKNOWN;
-		if (Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
-			Timeout = SAHPI_TIMEOUT_IMMEDIATE;
-			dbg("Warning: Non-Threaded Mode using Immediate Timeout");
-		}
 	}
 
         error = oh_dequeue_session_event(SessionId, Timeout, &e);
