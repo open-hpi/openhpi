@@ -8,13 +8,17 @@
 # the Copying file included with the OpenHPI distribution for
 # full licensing terms.
 
-MOSTLYCLEANFILES 	= @TEST_CLEAN@
+MOSTLYCLEANFILES 	= @TEST_CLEAN@ uid_map
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
 AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
 TDEPLIB                 = $(top_builddir)/src/libopenhpi.la
+
+TESTS_ENVIRONMENT = LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/utils/.libs
+TESTS_ENVIRONMENT += OPENHPI_PLUGINS=$(top_builddir)/plugins/dummy:$(top_builddir)/plugins/ipmi:$(top_builddir)/plugins/ipmidirect:$(top_builddir)/plugins/watchdog:$(top_builddir)/plugins/sysfs:$(top_builddir)/plugins/text_remote:$(top_builddir)/plugins/snmp_bc:$(top_builddir)/plugins/snmp_rsa
+TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 
 TESTS = ohpi_000 \
         ohpi_001 \
@@ -26,7 +30,17 @@ TESTS = ohpi_000 \
         ohpi_007 \
         ohpi_008 \
         ohpi_009 \
-        ohpi_010
+        ohpi_010 \
+        ohpi_011 \
+        ohpi_012 \
+        ohpi_013 \
+        ohpi_014 \
+        ohpi_015 \
+        ohpi_016 \
+        ohpi_017 \
+        ohpi_018 \
+        ohpi_019 \
+        ohpi_020
 
 check_PROGRAMS = $(TESTS)
 
@@ -62,3 +76,33 @@ ohpi_009_LDADD   = $(TDEPLIB)
 
 ohpi_010_SOURCES = ohpi_010.c
 ohpi_010_LDADD   = $(TDEPLIB)
+
+ohpi_011_SOURCES = ohpi_011.c
+ohpi_011_LDADD   = $(TDEPLIB)
+
+ohpi_012_SOURCES = ohpi_012.c
+ohpi_012_LDADD   = $(TDEPLIB)
+
+ohpi_013_SOURCES = ohpi_013.c
+ohpi_013_LDADD   = $(TDEPLIB)
+
+ohpi_014_SOURCES = ohpi_014.c
+ohpi_014_LDADD   = $(TDEPLIB)
+
+ohpi_015_SOURCES = ohpi_015.c
+ohpi_015_LDADD   = $(TDEPLIB)
+
+ohpi_016_SOURCES = ohpi_016.c
+ohpi_016_LDADD   = $(TDEPLIB)
+
+ohpi_017_SOURCES = ohpi_017.c
+ohpi_017_LDADD   = $(TDEPLIB)
+
+ohpi_018_SOURCES = ohpi_018.c
+ohpi_018_LDADD   = $(TDEPLIB)
+
+ohpi_019_SOURCES = ohpi_019.c
+ohpi_019_LDADD   = $(TDEPLIB)
+
+ohpi_020_SOURCES = ohpi_020.c
+ohpi_020_LDADD   = $(TDEPLIB)
