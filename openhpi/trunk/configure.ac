@@ -352,8 +352,8 @@ AC_ARG_ENABLE([simulator],
     [  --enable-simulator       build simulator plugin [default=yes if fam is installed]],
     [if test "x$enableval" = "xyes"; then
 		if test "x$have_fam" = "xyes"; then
-	        AC_SUBST(SIMULATOR,simulator)
-    	else
+                        AC_SUBST(SIMULATOR,simulator)
+                else
 			OH_CHECK_FAIL(FAM packages are missing, install fam and fam-devel to build simulator plug-in)
 		fi
     fi],
