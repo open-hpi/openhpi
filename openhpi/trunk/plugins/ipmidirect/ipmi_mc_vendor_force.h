@@ -29,7 +29,7 @@ public:
   cIpmiMcVendorForceShMc();
   virtual ~cIpmiMcVendorForceShMc();
   
-  virtual bool Init( cIpmiMc *mc, const cIpmiMsg &devid );
+  virtual bool InitMc( cIpmiMc *mc, const cIpmiMsg &devid );
 };
 
 

@@ -535,11 +535,11 @@ IpmiGetInventoryInfo( void *hnd, SaHpiResourceIdT id,
   if ( !fru )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = fru->GetInventoryInfo( *data );
+  fru->GetInventoryInfo( *data ) ;
 
   ipmi->IfLeave();
 
-  return rv;
+  return SA_OK;
 }
 
 

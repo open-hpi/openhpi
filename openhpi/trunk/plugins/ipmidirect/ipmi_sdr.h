@@ -159,6 +159,8 @@ public:
   int Fetch();
 
   void Dump( cIpmiLog &dump, const char *name ) const;
+
+  cIpmiSdr *FindSdr( cIpmiMc *mc );
 };
 
 

@@ -165,97 +165,273 @@ cIpmiMcVendor::~cIpmiMcVendor()
 
 
 bool
-cIpmiMcVendor::Init( cIpmiMc * /*mc*/, const cIpmiMsg & /*devid*/ )
+cIpmiMcVendor::InitMc( cIpmiMc * /*mc*/, const cIpmiMsg & /*devid*/ )
 {
   return true;
 }
 
 
 void
-cIpmiMcVendor::Cleanup( cIpmiMc * /*mc*/ )
+cIpmiMcVendor::CleanupMc( cIpmiMc * /*mc*/ )
 {
 }
 
 
-GList *
-cIpmiMcVendor::CreateSensorHotswap( cIpmiMc *mc, cIpmiSdr *sdr )
+bool
+cIpmiMcVendor::CreateRdrs( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
 {
-  cIpmiSensorHotswap *hs = new cIpmiSensorHotswap( mc );
+  if ( CreateSensors( domain, source_mc, sdrs ) == false )
+       return false;
 
-  if ( !hs->GetDataFromSdr( mc, sdr ) )
+  if ( CreateControls( domain, source_mc, sdrs ) == false )
+       return false;
+
+  if ( CreateSels( domain, source_mc, sdrs ) == false )
+       return false;
+
+  if ( CreateFrus( domain, source_mc, sdrs ) == false )
+       return false;
+
+  return true;
+}
+
+
+cIpmiEntity *
+cIpmiMcVendor::FindOrCreateEntity( cIpmiDomain *domain, cIpmiMc *mc, int lun,
+                                   tIpmiEntityId entity_id, unsigned int entity_instance,
+                                   bool came_from_sdr, cIpmiSdr *sdr )
+{
+  assert( mc );
+
+  tIpmiDeviceNum device_num;
+
+  if ( mc && entity_instance >= 0x60 )
      {
-       delete hs;
-       return 0;
+       device_num.channel = mc->GetChannel();
+       device_num.address = mc->GetAddress();
+       entity_instance   -= 0x60;
      }
-
-  return g_list_append( 0, hs );
-}
-
-
-GList *
-cIpmiMcVendor::CreateSensorThreshold( cIpmiMc *mc, cIpmiSdr *sdr )
-{
-  cIpmiSensorThreshold *ts = new cIpmiSensorThreshold( mc );
-
-  if ( !ts->GetDataFromSdr( mc, sdr ) )
-     {
-       delete ts;
-
-       return 0;
-     }
-
-  return g_list_append( 0, ts );
-}
-
-
-GList *
-cIpmiMcVendor::CreateSensorDiscrete( cIpmiMc *mc, cIpmiSdr *sdr )
-{
-  cIpmiSensorDiscrete *ds = new cIpmiSensorDiscrete( mc );
-
-  if ( !ds->GetDataFromSdr( mc, sdr ) )
-     {
-       delete ds;
-
-       return 0;
-     }
-
-  return g_list_append( 0, ds );
-}
-
-
-GList *
-cIpmiMcVendor::CreateSensorDefault( cIpmiMc *mc, cIpmiSdr *sdr )
-{
-  return CreateSensorDiscrete( mc, sdr );
-}
-
-
-GList *
-cIpmiMcVendor::CreateSensorFromFullSensorRecord( cIpmiMc *mc, cIpmiSdr *sdr )
-{
-  GList *list = 0;
-
-  tIpmiSensorType sensor_type = (tIpmiSensorType)sdr->m_data[12];
-
-  if ( sensor_type == eIpmiSensorTypeAtcaHotSwap )
-       list = CreateSensorHotswap( mc, sdr );
   else
      {
-       tIpmiEventReadingType reading_type = (tIpmiEventReadingType)sdr->m_data[13];
-  
-       if ( reading_type == eIpmiEventReadingTypeThreshold )
-            list = CreateSensorThreshold( mc, sdr );
-       else
-            list = CreateSensorDefault( mc, sdr );
+       device_num.channel = 0;
+       device_num.address = 0;
      }
 
-  return list;
+  cIpmiEntity *ent = domain->FindEntity( device_num, entity_id, entity_instance );
+
+  if ( ent )
+     {
+       // If it came from an SDR, it always will have come from an SDR.
+       if ( !ent->CameFromSdr() )
+	    ent->CameFromSdr() = came_from_sdr;
+
+       ent->AccessAddress() = mc->GetAddress();
+       ent->Channel()       = mc->GetChannel();
+       ent->Lun()           = lun;
+
+       return ent;
+    }
+
+  return CreateEntity( domain, mc, device_num, lun, entity_id, entity_instance,
+                       came_from_sdr, sdr );
+}
+
+
+cIpmiEntity *
+cIpmiMcVendor::CreateEntity( cIpmiDomain *domain, cIpmiMc *mc,
+                             tIpmiDeviceNum device_num, int lun,
+                             tIpmiEntityId entity_id, unsigned int entity_instance,
+                             bool came_from_sdr, cIpmiSdr *sdr )
+{
+  // create a new entity
+  cIpmiEntity *ent = new cIpmiEntity( domain, device_num, entity_id, entity_instance, came_from_sdr );
+  assert( ent );
+
+  domain->AddEntity( ent );
+
+  ent->AccessAddress() = mc->GetAddress();
+  ent->Channel()       = mc->GetChannel();
+  ent->Lun()           = lun;
+
+  if ( sdr && sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
+     {
+       // set mc id string
+       ent->IdString().SetIpmi( sdr->m_data + 15 );
+       ent->Oem() = sdr->m_data[14];
+
+       // TODO: additional fields like m_acpi_system_power_notify_required ...
+     }
+
+  // create rpt entry
+  stdlog << "adding entity: " << ent->EntityId() << "." << ent->EntityInstance()
+	 << " (" << IpmiEntityIdToString( entity_id ) << ").\n";
+
+  struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return 0;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+  e->type = oh_event::OH_ET_RESOURCE;
+
+  if ( ent->CreateResource( e->u.res_event.entry ) == false )
+     {
+       g_free( e );
+       return 0;
+     }
+
+  // assign the hpi resource id to ent, so we can find
+  // the resource for a given entity
+  ent->m_resource_id = e->u.res_event.entry.ResourceId;
+
+  // add the entity to the resource cache
+  int rv = oh_add_resource( domain->GetHandler()->rptcache,
+			    &(e->u.res_event.entry), ent, 1 );
+  assert( rv == 0 );
+
+  domain->AddHpiEvent( e );
+
+  return ent;
+}
+
+
+static cIpmiSensor *
+FindSensor( GList *list, unsigned int num, unsigned char lun )
+{
+  for( ; list; list = g_list_next( list ) )
+     {
+       cIpmiSensor *sensor = (cIpmiSensor *)list->data;
+       
+       if (    sensor->Num() == num
+            && sensor->Lun() == lun )
+            return sensor;
+     }
+
+  return 0;
+}
+
+
+bool
+cIpmiMcVendor::CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
+{
+  GList *old_sensors = domain->GetSdrSensors( source_mc );
+  GList *new_sensors = 0;
+  GList *sensors     = GetSensorsFromSdrs( domain, source_mc, sdrs );
+
+  while( sensors )
+     {
+       cIpmiSensor *sensor = (cIpmiSensor *)sensors->data;
+       sensors = g_list_remove( sensors, sensor );
+
+       cIpmiSensor *old_sensor = FindSensor( old_sensors, sensor->Num(), sensor->Lun() );
+
+       if ( old_sensor && sensor->Cmp( *old_sensor ) )
+          {
+            // sensor already there, use old one
+            delete sensor;
+            old_sensor->HandleNew( domain );
+            old_sensors = g_list_remove( old_sensors, old_sensor );
+            new_sensors = g_list_append( new_sensors, old_sensor );
+            continue;
+          }
+
+       if ( old_sensor )
+          {
+            // remove the old sensor
+            old_sensors = g_list_remove( old_sensors, old_sensor );
+            old_sensor->Entity()->Rem( old_sensor );
+            delete old_sensor;
+          }
+
+       // check if the sensor is defined twice
+       if ( FindSensor( new_sensors, sensor->Num(), sensor->Lun() ) )
+          {
+            stdlog << "sensor " << sensor->IdString() << " define twice in SDR !\n";
+            delete sensor;
+            continue;
+          }
+
+       cIpmiSdr *mcdlr = sdrs->FindSdr( sensor->Mc() );
+
+       // create entity
+       cIpmiEntity *ent = FindOrCreateEntity( domain, sensor->Mc(), sensor->Lun(),
+                                              sensor->EntityId(), sensor->EntityInstance(),
+                                              true, mcdlr );
+
+       assert( ent );
+       new_sensors = g_list_append( new_sensors, sensor );
+       sensor->HandleNew( domain );
+       ent->Add( sensor );
+     }
+
+  // destry old sensors
+  while( old_sensors )
+     {
+       cIpmiSensor *sensor = (cIpmiSensor *)old_sensors->data;
+       old_sensors = g_list_remove( old_sensors, sensor );
+       sensor->Entity()->Rem( sensor );
+       delete sensor;
+     }
+
+  // set new sdr sensors
+  domain->SetSdrSensors( source_mc, new_sensors );
+
+  return true;
 }
 
 
 GList *
-cIpmiMcVendor::ConvertToFullSensorRecords( cIpmiMc */*mc*/, cIpmiSdr *sdr )
+cIpmiMcVendor::GetSensorsFromSdrs( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                   cIpmiSdrs *sdrs )
+{
+  GList *sensors = 0;
+
+  // create a list of full sensor records
+  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
+     {
+       GList *records = 0;
+
+       cIpmiSdr *sdr = sdrs->Sdr( i );
+
+       if ( sdr->m_type == eSdrTypeFullSensorRecord )
+          {
+            cIpmiSdr *s = new cIpmiSdr;
+            *s = *sdr;
+            records = g_list_append( records, s );
+          }
+       else if ( sdr->m_type == eSdrTypeCompactSensorRecord )
+          {
+            GList *r = ConvertToFullSensorRecords( domain, source_mc, sdr );
+
+            if ( r )
+                 records = g_list_concat( records, r );
+          }
+
+       // create sensors for each full sensor record
+       while( records )
+          {
+            cIpmiSdr *s = (cIpmiSdr *)records->data;
+
+            GList *l = CreateSensorFromFullSensorRecord( domain, source_mc, s, sdrs );
+
+            if ( l )
+                 sensors = g_list_concat( sensors, l );
+
+            records = g_list_remove( records, s );
+            delete s;
+          }
+     }
+
+  return sensors;
+}
+
+
+// this routine is completly untested !!!
+GList *
+cIpmiMcVendor::ConvertToFullSensorRecords( cIpmiDomain *domain, cIpmiMc * /*_source_mc*/, cIpmiSdr *sdr )
 {
   int n = 1;
 
@@ -331,143 +507,131 @@ cIpmiMcVendor::ConvertToFullSensorRecords( cIpmiMc */*mc*/, cIpmiSdr *sdr )
 
 
 GList *
-cIpmiMcVendor::GetSensorsFromSdrs( cIpmiMc   *mc,
-                                   cIpmiSdrs *sdrs )
+cIpmiMcVendor::CreateSensorFromFullSensorRecord( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                                 cIpmiSdr *sdr, cIpmiSdrs *sdrs )
 {
-  unsigned int i;
-
-  // create a list of full sensor records
-  GList *records = 0;
-
-  for( i = 0; i < sdrs->NumSdrs(); i++ )
-     {
-       cIpmiSdr *sdr = sdrs->Sdr( i );
-
-       if ( sdr->m_type == eSdrTypeFullSensorRecord )
-          {
-            cIpmiSdr *s = new cIpmiSdr;
-            *s = *sdr;
-            records = g_list_append( records, s );
-          }
-       else if ( sdr->m_type == eSdrTypeCompactSensorRecord )
-          {
-            GList *r = ConvertToFullSensorRecords( mc, sdr );
-
-            if ( r )
-                 records = g_list_concat( records, r );
-          }
-     }
-
-  // create sensors for each full sensor record
   GList *list = 0;
 
-  while( records )
+  tIpmiSensorType sensor_type = (tIpmiSensorType)sdr->m_data[12];
+
+  if ( sensor_type == eIpmiSensorTypeAtcaHotSwap )
+       list = CreateSensorHotswap( domain, source_mc, sdr, sdrs );
+  else
      {
-       cIpmiSdr *s = (cIpmiSdr *)records->data;
+       tIpmiEventReadingType reading_type = (tIpmiEventReadingType)sdr->m_data[13];
 
-       GList *l = CreateSensorFromFullSensorRecord( mc, s );
-
-       if ( l )
-            list = g_list_concat( list, l );
-
-       records = g_list_remove( records, s );
-       delete s;
+       if ( reading_type == eIpmiEventReadingTypeThreshold )
+            list = CreateSensorThreshold( domain, source_mc, sdr, sdrs );
+       else
+            list = CreateSensorDefault( domain, source_mc, sdr, sdrs );
      }
 
   return list;
 }
 
 
-static cIpmiSensor *
-FindSensor( GList *list, unsigned int num, unsigned char lun )
+GList *
+cIpmiMcVendor::CreateSensorHotswap( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                    cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
 {
-  for( ; list; list = g_list_next( list ) )
+  cIpmiMc *mc = FindMcBySdr( domain, sdr );
+  assert( mc );
+
+  cIpmiSensorHotswap *hs = new cIpmiSensorHotswap( mc );
+  hs->SourceMc() = source_mc;
+
+  if ( !hs->GetDataFromSdr( mc, sdr ) )
      {
-       cIpmiSensor *sensor = (cIpmiSensor *)list->data;
-       
-       if (    sensor->Num() == num
-            && sensor->Lun() == lun )
-            return sensor;
+       delete hs;
+       return 0;
      }
+
+  return g_list_append( 0, hs );
+}
+
+
+GList *
+cIpmiMcVendor::CreateSensorThreshold( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                      cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
+{
+  cIpmiMc *mc = FindMcBySdr( domain, sdr );
+  assert( mc );
+  
+  cIpmiSensorThreshold *ts = new cIpmiSensorThreshold( mc );
+  ts->SourceMc() = source_mc;
+
+  if ( !ts->GetDataFromSdr( mc, sdr ) )
+     {
+       delete ts;
+
+       return 0;
+     }
+
+  return g_list_append( 0, ts );
+}
+
+
+GList *
+cIpmiMcVendor::CreateSensorDiscrete( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                     cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
+{
+  cIpmiMc *mc = FindMcBySdr( domain, sdr );
+  assert( mc );
+
+  cIpmiSensorDiscrete *ds = new cIpmiSensorDiscrete( mc );
+  ds->SourceMc() = source_mc;
+
+  if ( !ds->GetDataFromSdr( mc, sdr ) )
+     {
+       delete ds;
+
+       return 0;
+     }
+
+  return g_list_append( 0, ds );
+}
+
+
+GList *
+cIpmiMcVendor::CreateSensorDefault( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                    cIpmiSdr *sdr, cIpmiSdrs *sdrs )
+{
+  return CreateSensorDiscrete( domain, source_mc, sdr, sdrs );
+}
+
+
+cIpmiMc *
+cIpmiMcVendor::FindMcBySdr( cIpmiDomain *domain, cIpmiSdr *sdr )
+{
+  switch( sdr->m_type )
+     {
+       case eSdrTypeFullSensorRecord:
+       case eSdrTypeMcDeviceLocatorRecord:
+       case eSdrTypeFruDeviceLocatorRecord:
+            return domain->FindOrCreateMcBySlaveAddr( sdr->m_data[5] );
+
+       default:
+            break;
+     }
+
+  assert( 0 );
 
   return 0;
 }
 
 
 bool
-cIpmiMcVendor::CreateSensors( cIpmiMc *mc, cIpmiSdrs *sdrs )
+cIpmiMcVendor::CreateControls( cIpmiDomain *domain, cIpmiMc *source_mc, 
+                               cIpmiSdrs *sdrs )
 {
-  GList *old_sensors = mc->GetSdrSensors();
-  GList *new_sensors = 0;
-  GList *sensors     = GetSensorsFromSdrs( mc, sdrs );
+  // controls only for device SDR
+  if ( source_mc == 0 )
+       return true;
 
-  while( sensors )
+  if ( domain->IsAtca() )
      {
-       cIpmiSensor *sensor = (cIpmiSensor *)sensors->data;
-       sensors = g_list_remove( sensors, sensor );
-
-       cIpmiSensor *old_sensor = FindSensor( old_sensors, sensor->Num(), sensor->Lun() );
-
-       if ( old_sensor && sensor->Cmp( *old_sensor ) )
-          {
-            // sensor already there, use old one
-            delete sensor;
-            old_sensor->HandleNew( mc->Domain() );
-            old_sensors = g_list_remove( old_sensors, old_sensor );
-            new_sensors = g_list_append( new_sensors, old_sensor );
-            continue;
-          }
-
-       if ( old_sensor )
-          {
-            // remove the old sensor
-            old_sensors = g_list_remove( old_sensors, old_sensor );
-            old_sensor->Entity()->Rem( old_sensor );
-            delete old_sensor;
-          }
-
-       // check if the sensor is defined twice
-       if ( FindSensor( new_sensors, sensor->Num(), sensor->Lun() ) )
-          {
-            stdlog << "sensor " << sensor->IdString() << " define twice in SDR !\n";
-            delete sensor;
-            continue;
-          }
-
-       // create entity
-       cIpmiEntity *ent = mc->Domain()->Entities().Add( sensor->Mc(), sensor->Lun(),
-                                                        sensor->EntityId(),
-                                                        (unsigned int)sensor->EntityInstance() );
-
-       assert( ent );
-       new_sensors = g_list_append( new_sensors, sensor );
-       sensor->HandleNew( mc->Domain() );
-       ent->Add( sensor );
-     }
-
-  // destry old sensors
-  while( old_sensors )
-     {
-       cIpmiSensor *sensor = (cIpmiSensor *)old_sensors->data;
-       old_sensors = g_list_remove( old_sensors, sensor );
-       sensor->Entity()->Rem( sensor );
-       delete sensor;
-     }
-
-  // set new sdr sensors
-  mc->SetSdrSensors( new_sensors );
-
-  return true;
-}
-
-
-bool
-cIpmiMcVendor::CreateControls( cIpmiMc *mc, cIpmiSdrs *sdrs )
-{
-  if ( mc->Domain()->IsAtca() )
-     {
-       unsigned int mc_type = mc->Domain()->GetMcType( mc->GetAddress() );
-       return CreateControlsAtca( mc, sdrs, mc_type );
+       unsigned int mc_type = domain->GetMcType( source_mc->GetAddress() );
+       return CreateControlsAtca( domain, source_mc, sdrs, mc_type );
      }
 
   return true;
@@ -475,26 +639,17 @@ cIpmiMcVendor::CreateControls( cIpmiMc *mc, cIpmiSdrs *sdrs )
 
 
 bool
-cIpmiMcVendor::CreateControlsAtca( cIpmiMc *mc, cIpmiSdrs *sdrs,
+cIpmiMcVendor::CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
                                    unsigned int mc_type )
 {
-  // can only create fan controls 
+  // TODO: check if there is already a fan control
+
+  // can only create fan controls
   if ( (mc_type & dIpmiMcTypeBitFan) == 0 )
        return true;
 
   // find the mcdlr
-  cIpmiSdr *mcdlr = 0;
-
-  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
-     {
-       cIpmiSdr *sdr = sdrs->Sdr( i );
-
-       if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
-          {
-            mcdlr = sdr;
-            break;
-          }
-     }
+  cIpmiSdr *mcdlr = sdrs->FindSdr( mc );
 
   if ( mcdlr == 0 )
      {
@@ -506,8 +661,8 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiMc *mc, cIpmiSdrs *sdrs,
   tIpmiEntityId ent_id       = (tIpmiEntityId)mcdlr->m_data[12];
   unsigned int  ent_instance =  mcdlr->m_data[13];
 
-  cIpmiEntity *ent = mc->Domain()->Entities().Add( mc, 0,
-                                             ent_id, ent_instance );
+  cIpmiEntity *ent = FindOrCreateEntity( domain, mc, 0, ent_id, 
+                                         ent_instance, true, mcdlr );
 
   // cannot find or create ent
   if ( ent == 0 )
@@ -516,7 +671,7 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiMc *mc, cIpmiSdrs *sdrs,
   // create ATCA fan
   if ( mc_type & dIpmiMcTypeBitFan )
      {
-       if ( CreateControlAtcaFan( mc, sdrs, ent ) == false )
+       if ( CreateControlAtcaFan( domain, mc, sdrs, ent ) == false )
             return false;
      }
 
@@ -525,7 +680,7 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiMc *mc, cIpmiSdrs *sdrs,
 
 
 bool
-cIpmiMcVendor::CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
+cIpmiMcVendor::CreateControlAtcaFan( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
                                      cIpmiEntity *ent )
 {
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetFanSpeedProperties );
@@ -537,7 +692,7 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
 
   int rv = mc->SendCommand( msg, rsp );
 
-  if (    rv 
+  if (    rv
        || rsp.m_data_len < 6
        || rsp.m_data[0] != eIpmiCcOk
        || rsp.m_data[1] != dIpmiPigMgId )
@@ -564,7 +719,7 @@ cIpmiMcVendor::CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
 
 
 bool
-cIpmiMcVendor::CreateFrus( cIpmiMc *mc, cIpmiSdrs *sdrs )
+cIpmiMcVendor::CreateFrus( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
 {
   for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
      {
@@ -590,7 +745,7 @@ cIpmiMcVendor::CreateFrus( cIpmiMc *mc, cIpmiSdrs *sdrs )
        else if ( sdr->m_type != eSdrTypeFruDeviceLocatorRecord )
             continue;
 
-       if ( CreateFru( mc, sdr ) == false )
+       if ( CreateFru( domain, source_mc, sdr, sdrs ) == false )
             return false;
      }
 
@@ -599,11 +754,9 @@ cIpmiMcVendor::CreateFrus( cIpmiMc *mc, cIpmiSdrs *sdrs )
 
 
 bool
-cIpmiMcVendor::CreateFru( cIpmiMc *mc, cIpmiSdr *sdr )
+cIpmiMcVendor::CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr, cIpmiSdrs * /*sdrs*/ )
 {
   unsigned int fru_id;
-  unsigned int addr;
-  unsigned int channel;
   unsigned int lun;
 
   tIpmiEntityId id       = (tIpmiEntityId)sdr->m_data[12];
@@ -611,24 +764,20 @@ cIpmiMcVendor::CreateFru( cIpmiMc *mc, cIpmiSdr *sdr )
 
   if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
      {
-       fru_id   = 0;
-       addr     = sdr->m_data[5];
-       channel  = sdr->m_data[6] & 0xf;
-       lun      = 0;
+       fru_id = 0;
+       lun    = 0;
      }
   else
      {
-       fru_id   = sdr->m_data[6];
-       addr     = sdr->m_data[5];
-       channel  = (sdr->m_data[8] >> 4) & 0xf;
-       lun      = (sdr->m_data[7] >> 3) & 3;
+       fru_id = sdr->m_data[6];
+       lun    = (sdr->m_data[7] >> 3) & 3;
      }
 
-  cIpmiDomain *domain = mc->Domain();
-
   // create mc/ domain if nessesary
-  cIpmiMc     *m   = domain->FindOrCreateMcBySlaveAddr( addr );
-  cIpmiEntity *ent = domain->Entities().Add( m, lun, id, instance );
+  cIpmiMc *m = FindMcBySdr( domain, sdr );
+  assert( m );
+
+  cIpmiEntity *ent = FindOrCreateEntity( domain, m, lun, id, instance, true, sdr );
   assert( ent );
 
   cIpmiFru *fru = (cIpmiFru *)ent->Find( m, SAHPI_INVENTORY_RDR, fru_id );
@@ -637,6 +786,10 @@ cIpmiMcVendor::CreateFru( cIpmiMc *mc, cIpmiSdr *sdr )
   if ( fru == 0 )
      {
        fru = new cIpmiFru( m, fru_id );
+
+       fru->IdString().SetIpmi( sdr->m_data + 15 );
+       fru->Oem() = sdr->m_data[14];
+
        fru->Entity() = ent;
        need_add = true;
      }
@@ -663,40 +816,23 @@ cIpmiMcVendor::CreateFru( cIpmiMc *mc, cIpmiSdr *sdr )
 
 
 bool
-cIpmiMcVendor::CreateSel( cIpmiMc *mc, cIpmiSdrs *sdrs )
+cIpmiMcVendor::CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs )
 {
-  cIpmiSel *sel = mc->Sel();
-  cIpmiSdr *sdr = 0;
-  unsigned char slave_addr = 0;
-  unsigned char channel = 0;
+  if ( source_mc == 0 )
+       return false;
 
-  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
-     {
-       cIpmiSdr *s = sdrs->Sdr( i );
+  cIpmiSdr *mcdlr = sdrs->FindSdr( source_mc );
 
-       if ( s->m_type != eSdrTypeMcDeviceLocatorRecord )
-            continue;
-
-       slave_addr = s->m_data[5];
-       channel    = s->m_data[6] & 0xf;
-
-       cIpmiAddr addr( eIpmiAddrTypeIpmb, channel, 0, slave_addr );
-
-       if ( addr != mc->Addr() )
-            continue;
-
-       sdr = s;
-       break;
-     }
-
-  if ( sdr == 0 )
+  if ( mcdlr == 0 )
        return true;
 
-  tIpmiEntityId id      = (tIpmiEntityId)sdr->m_data[12];
-  unsigned int instance = sdr->m_data[13];
+  tIpmiEntityId id       = (tIpmiEntityId)mcdlr->m_data[12];
+  unsigned int  instance = mcdlr->m_data[13];
 
-  cIpmiMc     *m   = mc->Domain()->FindOrCreateMcBySlaveAddr( slave_addr );
-  cIpmiEntity *ent = mc->Domain()->Entities().Add( m, 0, id, instance );
+  cIpmiEntity *ent = FindOrCreateEntity( domain, source_mc, 0, id, instance, true, mcdlr );
+  assert( ent );
+
+  cIpmiSel *sel = source_mc->Sel();
 
   // check this
   if ( ent->Sel() != 0 )

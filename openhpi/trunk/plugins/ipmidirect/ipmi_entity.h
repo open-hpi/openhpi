@@ -111,46 +111,12 @@ const char *IpmiEntityIdToString( tIpmiEntityId id );
 
 
 class cIpmiDomain;
-class cIpmiEntity;
 
 
 struct tIpmiDeviceNum
 {
   unsigned char channel;
   unsigned char address;
-};
-
-
-class cIpmiEntityInfo
-{
-protected:
-  cIpmiDomain *m_domain;
-  GList       *m_entities;
-
-  cIpmiEntity *Add( tIpmiDeviceNum device_num,
-                    tIpmiEntityId entity_id, int entity_instance,
-                    bool came_from_sdr,
-                    cIpmiMc *mc, int lun );
-  cIpmiEntity *Find( tIpmiDeviceNum device_num,
-                     tIpmiEntityId entity_id, int entity_instance );
-
-public:
-  cIpmiEntityInfo( cIpmiDomain *domain );
-  ~cIpmiEntityInfo();
-
-  cIpmiDomain *Domain() { return m_domain; }
-
-  cIpmiEntity  *VerifyEntify( cIpmiEntity *ent );
-  cIpmiSensor  *VerifySensor( cIpmiSensor *s );
-  cIpmiControl *VerifyControl( cIpmiControl *c );
-  cIpmiFru     *VerifyFru( cIpmiFru *f );
-
-  cIpmiEntity *Find( cIpmiMc *mc,
-                     tIpmiEntityId entity_id, int entity_instance );
-
-  cIpmiEntity *Add( cIpmiMc *mc, int lun, 
-                    tIpmiEntityId entity_id, int entity_instance );
-  void Rem( cIpmiEntity *ent );
 };
 
 
@@ -203,18 +169,17 @@ protected:
 
   tIpmiDeviceNum m_device_num;
   tIpmiEntityId  m_entity_id;
-  unsigned char  m_entity_instance;
+  unsigned int   m_entity_instance;
 
   unsigned char m_device_type;
   unsigned char m_device_modifier;
-  unsigned char m_oem;
+  unsigned int  m_oem;
 
   cIpmiTextBuffer m_id_string;
 
   bool          m_presence_sensor_always_there;
   int           m_presence_possibly_changed;
 
-  cIpmiEntityInfo *m_ents;
   cIpmiSensorHotswap *m_hotswap_sensor;
 
 public:
@@ -245,7 +210,7 @@ public:
   cIpmiSel *&Sel() { return m_sel; }
 
 public:
-  cIpmiEntity( cIpmiEntityInfo *ents, tIpmiDeviceNum device_num,
+  cIpmiEntity( cIpmiDomain *domain, tIpmiDeviceNum device_num,
                tIpmiEntityId entity_id, int entity_instance,
                bool came_from_sdr );
   ~cIpmiEntity();
@@ -269,6 +234,8 @@ public:
   {
     return m_id_string;
   }
+
+  unsigned int &Oem() { return m_oem; }
 
   bool Destroy();
 

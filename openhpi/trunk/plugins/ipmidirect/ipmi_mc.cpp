@@ -126,6 +126,8 @@ cIpmiMc::Cleanup()
 
   stdlog << "removing MC: " << m_addr.m_channel << " " << m_addr.m_slave_addr << "\n";
 
+  m_vendor->CleanupMc( this );
+
   return true;
 }
 
@@ -178,16 +180,7 @@ cIpmiMc::HandleNew()
        if ( rv )
             return EINVAL;
 
-       if ( m_vendor->CreateSensors( this, m_sdrs ) == false )
-            return EINVAL;
-
-       if ( m_vendor->CreateControls( this, m_sdrs ) == false )
-            return EINVAL;
-
-       if ( m_sel_device_support )
-            m_vendor->CreateSel( this, m_sdrs );
-
-       if ( m_vendor->CreateFrus( this, m_sdrs ) == false )
+       if ( m_vendor->CreateRdrs( Domain(), this, m_sdrs ) == false )
             return EINVAL;
      }
 

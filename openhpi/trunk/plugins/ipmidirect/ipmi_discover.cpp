@@ -307,7 +307,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        cIpmiMcVendor *mv = cIpmiMcVendorFactory::GetFactory()->Get( mid, pid );
        m_mc->SetVendor( mv );
 
-       if ( mv->Init( m_mc, *get_device_id_rsp ) == false )
+       if ( mv->InitMc( m_mc, *get_device_id_rsp ) == false )
           {
             stdlog << "cannot initialize MC: " <<  (unsigned char)m_mc->GetAddress() << " !\n";
 

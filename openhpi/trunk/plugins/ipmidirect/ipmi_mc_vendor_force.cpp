@@ -33,7 +33,7 @@ cIpmiMcVendorForceShMc::~cIpmiMcVendorForceShMc()
 
 
 bool
-cIpmiMcVendorForceShMc::Init( cIpmiMc *mc, const cIpmiMsg &devid )
+cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
 {
   stdlog << "Force ShMc found.\n";
 

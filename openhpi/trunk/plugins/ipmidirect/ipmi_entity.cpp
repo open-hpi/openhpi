@@ -31,231 +31,10 @@
 #include "ipmi_domain.h"
 
 
-cIpmiEntityInfo::cIpmiEntityInfo( cIpmiDomain *domain )
-  : m_domain( domain ), m_entities( 0 )
-{
-}
-
-
-cIpmiEntityInfo::~cIpmiEntityInfo()
-{
-  while( m_entities )
-     {
-       cIpmiEntity *ent = (cIpmiEntity *)m_entities->data;
-     
-       m_entities = g_list_remove( m_entities, ent );
-       delete ent;
-     }  
-}
-
-
-cIpmiEntity *
-cIpmiEntityInfo::VerifyEntify( cIpmiEntity *ent )
-{
-  if ( g_list_find( m_entities, ent ) )
-       return ent;
-
-  return 0;
-}
-
-
-cIpmiSensor *
-cIpmiEntityInfo::VerifySensor( cIpmiSensor *s )
-{
-  for( GList *list = m_entities; list; list = g_list_next( list ) )
-     {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
-       
-       if ( ent->Find( s ) )
-            return s;
-     }
-
-  return 0;
-}
-
-
-cIpmiControl *
-cIpmiEntityInfo::VerifyControl( cIpmiControl *c )
-{
-  for( GList *list = m_entities; list; list = g_list_next( list ) )
-     {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
-
-       if ( ent->Find( c ) )
-            return c;
-     }
-
-  return 0;
-}
-
-
-cIpmiFru *
-cIpmiEntityInfo::VerifyFru( cIpmiFru *f )
-{
-  for( GList *list = m_entities; list; list = g_list_next( list ) )
-     {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
-
-       if ( ent->Find( f ) )
-            return f;
-     }
-
-  return 0;
-}
-
-
-cIpmiEntity *
-cIpmiEntityInfo::Find( tIpmiDeviceNum device_num,
-                       tIpmiEntityId entity_id, 
-		       int entity_instance )
-{
-  GList *list = m_entities;
-
-  while( list )
-     {
-       cIpmiEntity *ent = (cIpmiEntity *)list->data;
-
-       if (    ( ent->DeviceNum().channel == device_num.channel )
-	    && ( ent->DeviceNum().address == device_num.address )
-	    && ( ent->EntityId()          == entity_id )
-            && ( ent->EntityInstance()    == entity_instance ) )
-            return ent;
-
-       list  = g_list_next( list );
-     }
-  
-  return 0;
-}
-
-
-cIpmiEntity *
-cIpmiEntityInfo::Find( cIpmiMc *mc,
-                       tIpmiEntityId entity_id,
-		       int entity_instance )
-{
-  tIpmiDeviceNum device_num;
-
-  if ( mc && entity_instance >= 0x60 )
-     {
-       device_num.channel = mc->GetChannel();
-       device_num.address = mc->GetAddress();
-       entity_instance   -= 0x60;
-     }
-  else
-     {
-       device_num.channel = 0;
-       device_num.address = 0;
-     }
-
-  return Find( device_num, entity_id, entity_instance );
-}
-
-
-cIpmiEntity *
-cIpmiEntityInfo::Add( tIpmiDeviceNum device_num,
-                      tIpmiEntityId entity_id, int entity_instance,
-                      bool came_from_sdr,
-                      cIpmiMc *mc, int lun )
-{
-  cIpmiEntity *ent = Find( device_num, entity_id, entity_instance );
-
-  if ( ent )
-     {
-       // If it came from an SDR, it always will have come from an SDR.
-       if ( !ent->CameFromSdr() )
-	    ent->CameFromSdr() = came_from_sdr;
-
-       ent->AccessAddress() = mc->GetAddress();
-       ent->Channel()       = mc->GetChannel();
-       ent->Lun()           = lun;
-
-       return ent;
-    }
-
-  ent = new cIpmiEntity( this, device_num, entity_id, entity_instance, came_from_sdr );
-  assert( ent );
-
-  m_entities = g_list_append( m_entities, ent );
-
-  ent->AccessAddress() = mc->GetAddress();
-  ent->Channel()       = mc->GetChannel();
-  ent->Lun()           = lun;
-
-  // create rpt entry
-  stdlog << "adding entity: " << ent->EntityId() << "." << ent->EntityInstance()
-	 << " (" << IpmiEntityIdToString( entity_id ) << ").\n";
-
-  struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
-
-  if ( !e )
-     {
-       stdlog << "out of space !\n";
-       return 0;
-     }
-
-  memset( e, 0, sizeof( struct oh_event ) );
-  e->type = oh_event::OH_ET_RESOURCE;
-
-  if ( ent->CreateResource( e->u.res_event.entry ) == false )
-     {
-       g_free( e );
-       return 0;
-     }
-
-  // assign the hpi resource id to ent, so we can find
-  // the resource for a given entity
-  ent->m_resource_id = e->u.res_event.entry.ResourceId;
-
-  // add the entity to the resource cache
-  int rv = oh_add_resource( ent->Domain()->GetHandler()->rptcache,
-			    &(e->u.res_event.entry), ent, 1 );
-  assert( rv == 0 );
-
-  Domain()->AddHpiEvent( e );
-
-  return ent;
-}
-
-
-cIpmiEntity *
-cIpmiEntityInfo::Add( cIpmiMc *mc, int lun, 
-                      tIpmiEntityId entity_id, int entity_instance )
-{
-  tIpmiDeviceNum device_num;
-  cIpmiEntity *ent;
-
-  if ( mc && entity_instance >= 0x60 )
-     {
-       device_num.channel = mc->GetChannel();
-       device_num.address = mc->GetAddress();
-       entity_instance -= 0x60;
-     }
-  else
-     {
-       device_num.channel = 0;
-       device_num.address = 0;
-     }
-
-  ent = Add( device_num, entity_id, entity_instance, false, mc, lun );
-
-  if ( !ent )
-       return 0;
-
-  return ent;
-}
-
-
-void
-cIpmiEntityInfo::Rem( cIpmiEntity *ent )
-{
-  m_entities = g_list_remove( m_entities, ent );
-}
-
-
-cIpmiEntity::cIpmiEntity( cIpmiEntityInfo *ents, tIpmiDeviceNum device_num,
-                          tIpmiEntityId entity_id, int entity_instance,
+cIpmiEntity::cIpmiEntity( cIpmiDomain *domain, tIpmiDeviceNum device_num,
+                          tIpmiEntityId entity_id, unsigned int entity_instance,
                           bool came_from_sdr )
-  : m_domain( ents->Domain() ),
+  : m_domain( domain ),
     m_access_address( 0 ),
     m_slave_address( 0 ), 
     m_channel( 0 ),
@@ -282,7 +61,6 @@ cIpmiEntity::cIpmiEntity( cIpmiEntityInfo *ents, tIpmiDeviceNum device_num,
     m_device_type( 0 ), m_device_modifier( 0 ),
     m_oem( 0 ), m_presence_sensor_always_there( false ),
     m_presence_possibly_changed( true ),
-    m_ents( ents ),
     m_hotswap_sensor( 0 ),
     m_current_control_id( 0 ),
     m_sel( 0 )
@@ -326,7 +104,7 @@ cIpmiEntity::Destroy()
   Domain()->AddHpiEvent( e );
 
   // Remove it from the entities list.
-  m_ents->Rem( this );
+  Domain()->RemEntity( this );
 
   delete this;
 
