@@ -35,7 +35,7 @@ TESTS = el_test_001 \
 	el_test_010 \
 	el_test_011 \
 	el_test_012 \
-	el_test_013 \
+	el_test_013 
 
 
 check_PROGRAMS = $(TESTS)
