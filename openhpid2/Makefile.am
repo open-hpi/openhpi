@@ -12,6 +12,8 @@
 #    W. David Ashley <dashley@us.ibm.com>
 #
 
+pkglibdir = $(libdir)/openhpi/standard
+
 .NOTPARALLEL:
 
 SUBDIRS			= t
@@ -35,22 +37,25 @@ openhpid_SOURCES        = \
 
 # this is defined with ./configure --enable-daemon=static
 if OPENHPID_STATIC
-openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la \
+	$(top_builddir)/marshal/libohtcpconnx.la
 openhpid_LDFLAGS        = -static
 else
-openhpid_LDADD          = $(top_builddir)/marshal/libohtcpconnx.la -L$(top_builddir)/src -lopenhpi
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la \
+	$(top_builddir)/marshal/libohtcpconnx.la \
+	-lstdc++
 openhpid_LDFLAGS        =
 endif
 
 
-lib_LTLIBRARIES	        = libopenhpiclient.la
+pkglib_LTLIBRARIES	        = libopenhpi.la
 
-libopenhpiclient_la_SOURCES = \
+libopenhpi_la_SOURCES = \
 	openhpiclient.cpp \
 	openhpiclient.h
 
-libopenhpiclient_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-libopenhpiclient_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la
+libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
+libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++
 
 clean-local:
 	rm -f *~ core core.*
