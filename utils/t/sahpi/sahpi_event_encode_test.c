@@ -43,13 +43,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_UNSPECIFIED, SAHPI_EC_UNSPECIFIED, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -57,13 +57,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -73,618 +73,7 @@ int main(int argc, char **argv)
         /* SAHPI_EC_UNSPECIFIED - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_UNSPECIFIED)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        return -1;
-                }
-	}
-
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_00 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_00;
-                expected_str = "STATE_00";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_00, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_01 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_01;
-                expected_str = "STATE_01";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_01, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_02 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_02;
-                expected_str = "STATE_02";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_02, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_03 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_03;
-                expected_str = "STATE_03";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_03, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_04 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_04;
-                expected_str = "STATE_04";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_04, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_05 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_05;
-                expected_str = "STATE_05";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_05, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_06 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_06;
-                expected_str = "STATE_06";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_06, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_07 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_07;
-                expected_str = "STATE_07";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_07, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_08 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_08;
-                expected_str = "STATE_08";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_08, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_09 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_09;
-                expected_str = "STATE_09";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_09, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_10 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_10;
-                expected_str = "STATE_10";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_10, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_11 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_11;
-                expected_str = "STATE_11";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_11, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_12 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_12;
-                expected_str = "STATE_12";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_12, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_13 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_13;
-                expected_str = "STATE_13";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_13, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_14 testcase */
-        {
-                expected_cat = SAHPI_EC_GENERIC;
-                expected_state = SAHPI_ES_STATE_14;
-                expected_str = "STATE_14";
-  
-                err = oh_decode_eventstate(SAHPI_ES_STATE_14, SAHPI_EC_GENERIC, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_GENERIC - Bad event testcase */
-        {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_GENERIC)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        return -1;
-                }
-	}
-
-        /* SAHPI_EC_PRESENCE - SAHPI_ES_ABSENT testcase */
-        {
-                expected_cat = SAHPI_EC_PRESENCE;
-                expected_state = SAHPI_ES_ABSENT;
-                expected_str = "ABSENT";
-  
-                err = oh_decode_eventstate(SAHPI_ES_ABSENT, SAHPI_EC_PRESENCE, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_PRESENCE - SAHPI_ES_PRESENT testcase */
-        {
-                expected_cat = SAHPI_EC_PRESENCE;
-                expected_state = SAHPI_ES_PRESENT;
-                expected_str = "PRESENT";
-  
-                err = oh_decode_eventstate(SAHPI_ES_PRESENT, SAHPI_EC_PRESENCE, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_PRESENCE - Bad event testcase */
-        {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRESENCE)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
 	}
@@ -697,13 +86,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_LIMIT_NOT_EXCEEDED, SAHPI_EC_LIMIT, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -711,13 +100,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -732,13 +121,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_LIMIT_EXCEEDED, SAHPI_EC_LIMIT, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -746,13 +135,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -762,704 +151,7 @@ int main(int argc, char **argv)
         /* SAHPI_EC_LIMIT - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_LIMIT)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        return -1;
-                }
-	}
-
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_RUNNING testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_RUNNING;
-                expected_str = "RUNNING";
-  
-                err = oh_decode_eventstate(SAHPI_ES_RUNNING, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_TEST testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_TEST;
-                expected_str = "TEST";
-  
-                err = oh_decode_eventstate(SAHPI_ES_TEST, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_POWER_OFF testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_POWER_OFF;
-                expected_str = "POWER_OFF";
-  
-                err = oh_decode_eventstate(SAHPI_ES_POWER_OFF, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_ON_LINE testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_ON_LINE;
-                expected_str = "ON_LINE";
-  
-                err = oh_decode_eventstate(SAHPI_ES_ON_LINE, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_OFF_LINE testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_OFF_LINE;
-                expected_str = "OFF_LINE";
-  
-                err = oh_decode_eventstate(SAHPI_ES_OFF_LINE, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_OFF_DUTY testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_OFF_DUTY;
-                expected_str = "OFF_DUTY";
-  
-                err = oh_decode_eventstate(SAHPI_ES_OFF_DUTY, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_DEGRADED testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_DEGRADED;
-                expected_str = "DEGRADED";
-  
-                err = oh_decode_eventstate(SAHPI_ES_DEGRADED, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_POWER_SAVE testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_POWER_SAVE;
-                expected_str = "POWER_SAVE";
-  
-                err = oh_decode_eventstate(SAHPI_ES_POWER_SAVE, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_INSTALL_ERROR testcase */
-        {
-                expected_cat = SAHPI_EC_AVAILABILITY;
-                expected_state = SAHPI_ES_INSTALL_ERROR;
-                expected_str = "INSTALL_ERROR";
-  
-                err = oh_decode_eventstate(SAHPI_ES_INSTALL_ERROR, SAHPI_EC_AVAILABILITY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_AVAILABILITY - Bad event testcase */
-        {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_AVAILABILITY)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        return -1;
-                }
-	}
-
-        /* SAHPI_EC_ENABLE - SAHPI_ES_DISABLED testcase */
-        {
-                expected_cat = SAHPI_EC_ENABLE;
-                expected_state = SAHPI_ES_DISABLED;
-                expected_str = "DISABLED";
-  
-                err = oh_decode_eventstate(SAHPI_ES_DISABLED, SAHPI_EC_ENABLE, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_ENABLE - SAHPI_ES_ENABLED testcase */
-        {
-                expected_cat = SAHPI_EC_ENABLE;
-                expected_state = SAHPI_ES_ENABLED;
-                expected_str = "ENABLED";
-  
-                err = oh_decode_eventstate(SAHPI_ES_ENABLED, SAHPI_EC_ENABLE, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_ENABLE - Bad event testcase */
-        {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_ENABLE)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        return -1;
-                }
-	}
-
-        /* SAHPI_EC_PRED_FAIL - SAHPI_ES_PRED_FAILURE_DEASSERT testcase */
-        {
-                expected_cat = SAHPI_EC_PRED_FAIL;
-                expected_state = SAHPI_ES_PRED_FAILURE_DEASSERT;
-                expected_str = "PRED_FAILURE_DEASSERT";
-  
-                err = oh_decode_eventstate(SAHPI_ES_PRED_FAILURE_DEASSERT, SAHPI_EC_PRED_FAIL, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_PRED_FAIL - SAHPI_ES_PRED_FAILURE_ASSERT testcase */
-        {
-                expected_cat = SAHPI_EC_PRED_FAIL;
-                expected_state = SAHPI_ES_PRED_FAILURE_ASSERT;
-                expected_str = "PRED_FAILURE_ASSERT";
-  
-                err = oh_decode_eventstate(SAHPI_ES_PRED_FAILURE_ASSERT, SAHPI_EC_PRED_FAIL, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_PRED_FAIL - Bad event testcase */
-        {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRED_FAIL)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        return -1;
-                }
-	}
-
-        /* SAHPI_EC_THRESHOLD - SAHPI_ES_LOWER_MINOR testcase */
-        {
-                expected_cat = SAHPI_EC_THRESHOLD;
-                expected_state = SAHPI_ES_LOWER_MINOR;
-                expected_str = "LOWER_MINOR";
-  
-                err = oh_decode_eventstate(SAHPI_ES_LOWER_MINOR, SAHPI_EC_THRESHOLD, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_THRESHOLD - SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR testcase */
-        {
-                expected_cat = SAHPI_EC_THRESHOLD;
-                expected_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR;
-                expected_str = "LOWER_MINOR | LOWER_MAJOR";
-  
-                err = oh_decode_eventstate(SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR, SAHPI_EC_THRESHOLD, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_THRESHOLD - SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT testcase */
-        {
-                expected_cat = SAHPI_EC_THRESHOLD;
-                expected_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT;
-                expected_str = "LOWER_MINOR | LOWER_MAJOR | LOWER_CRIT";
-  
-                err = oh_decode_eventstate(SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT, SAHPI_EC_THRESHOLD, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_THRESHOLD - SAHPI_ES_UPPER_MINOR testcase */
-        {
-                expected_cat = SAHPI_EC_THRESHOLD;
-                expected_state = SAHPI_ES_UPPER_MINOR;
-                expected_str = "UPPER_MINOR";
-  
-                err = oh_decode_eventstate(SAHPI_ES_UPPER_MINOR, SAHPI_EC_THRESHOLD, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_THRESHOLD - SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR testcase */
-        {
-                expected_cat = SAHPI_EC_THRESHOLD;
-                expected_state = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR;
-                expected_str = "UPPER_MINOR | UPPER_MAJOR";
-  
-                err = oh_decode_eventstate(SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR, SAHPI_EC_THRESHOLD, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_THRESHOLD - SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT testcase */
-        {
-                expected_cat = SAHPI_EC_THRESHOLD;
-                expected_state = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT;
-                expected_str = "UPPER_MINOR | UPPER_MAJOR | UPPER_CRIT";
-  
-                err = oh_decode_eventstate(SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT, SAHPI_EC_THRESHOLD, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_THRESHOLD - Bad event testcase */
-        {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_THRESHOLD)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
 	}
@@ -1472,13 +164,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_00, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1486,13 +178,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1507,13 +199,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_01, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1521,13 +213,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1542,13 +234,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_02, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1556,13 +248,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1577,13 +269,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_03, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1591,13 +283,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1612,13 +304,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_04, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1626,13 +318,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1647,13 +339,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_05, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1661,13 +353,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1682,13 +374,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_06, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1696,13 +388,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1717,13 +409,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_07, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1731,13 +423,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1752,13 +444,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_08, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1766,13 +458,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1787,13 +479,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_09, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1801,13 +493,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1822,13 +514,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_10, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1836,13 +528,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1857,13 +549,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_11, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1871,13 +563,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1892,13 +584,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_12, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1906,13 +598,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1927,13 +619,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_13, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1941,13 +633,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1962,13 +654,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_STATE_14, SAHPI_EC_SENSOR_SPECIFIC, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -1976,13 +668,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -1992,7 +684,7 @@ int main(int argc, char **argv)
         /* SAHPI_EC_SENSOR_SPECIFIC - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_SENSOR_SPECIFIC)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
 	}
@@ -2005,13 +697,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_IDLE, SAHPI_EC_USAGE, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2019,13 +711,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2040,13 +732,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_ACTIVE, SAHPI_EC_USAGE, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2054,13 +746,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2075,13 +767,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_BUSY, SAHPI_EC_USAGE, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2089,13 +781,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2105,26 +797,26 @@ int main(int argc, char **argv)
         /* SAHPI_EC_USAGE - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_USAGE)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
 	}
 
-        /* SAHPI_EC_STATE - SAHPI_ES_STATE_DEASSERTED testcase */
+        /* SAHPI_EC_PRED_FAIL - SAHPI_ES_PRED_FAILURE_DEASSERT testcase */
         {
-                expected_cat = SAHPI_EC_STATE;
-                expected_state = SAHPI_ES_STATE_DEASSERTED;
-                expected_str = "STATE_DEASSERTED";
+                expected_cat = SAHPI_EC_PRED_FAIL;
+                expected_state = SAHPI_ES_PRED_FAILURE_DEASSERT;
+                expected_str = "PRED_FAILURE_DEASSERT";
   
-                err = oh_decode_eventstate(SAHPI_ES_STATE_DEASSERTED, SAHPI_EC_STATE, &buffer);
+                err = oh_decode_eventstate(SAHPI_ES_PRED_FAILURE_DEASSERT, SAHPI_EC_PRED_FAIL, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2132,34 +824,34 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
                 }
         }
 	    
-        /* SAHPI_EC_STATE - SAHPI_ES_STATE_ASSERTED testcase */
+        /* SAHPI_EC_PRED_FAIL - SAHPI_ES_PRED_FAILURE_ASSERT testcase */
         {
-                expected_cat = SAHPI_EC_STATE;
-                expected_state = SAHPI_ES_STATE_ASSERTED;
-                expected_str = "STATE_ASSERTED";
+                expected_cat = SAHPI_EC_PRED_FAIL;
+                expected_state = SAHPI_ES_PRED_FAILURE_ASSERT;
+                expected_str = "PRED_FAILURE_ASSERT";
   
-                err = oh_decode_eventstate(SAHPI_ES_STATE_ASSERTED, SAHPI_EC_STATE, &buffer);
+                err = oh_decode_eventstate(SAHPI_ES_PRED_FAILURE_ASSERT, SAHPI_EC_PRED_FAIL, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2167,23 +859,397 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
                 }
         }
 	    
-        /* SAHPI_EC_STATE - Bad event testcase */
+        /* SAHPI_EC_PRED_FAIL - Bad event testcase */
         {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_STATE)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRED_FAIL)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        return -1;
+                }
+	}
+
+        /* SAHPI_EC_THRESHOLD - SAHPI_ES_LOWER_MINOR testcase */
+        {
+                expected_cat = SAHPI_EC_THRESHOLD;
+                expected_state = SAHPI_ES_LOWER_MINOR;
+                expected_str = "LOWER_MINOR";
+  
+                err = oh_decode_eventstate(SAHPI_ES_LOWER_MINOR, SAHPI_EC_THRESHOLD, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_THRESHOLD - SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR testcase */
+        {
+                expected_cat = SAHPI_EC_THRESHOLD;
+                expected_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR;
+                expected_str = "LOWER_MINOR | LOWER_MAJOR";
+  
+                err = oh_decode_eventstate(SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR, SAHPI_EC_THRESHOLD, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_THRESHOLD - SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT testcase */
+        {
+                expected_cat = SAHPI_EC_THRESHOLD;
+                expected_state = SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT;
+                expected_str = "LOWER_MINOR | LOWER_MAJOR | LOWER_CRIT";
+  
+                err = oh_decode_eventstate(SAHPI_ES_LOWER_MINOR | SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_CRIT, SAHPI_EC_THRESHOLD, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_THRESHOLD - SAHPI_ES_UPPER_MINOR testcase */
+        {
+                expected_cat = SAHPI_EC_THRESHOLD;
+                expected_state = SAHPI_ES_UPPER_MINOR;
+                expected_str = "UPPER_MINOR";
+  
+                err = oh_decode_eventstate(SAHPI_ES_UPPER_MINOR, SAHPI_EC_THRESHOLD, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_THRESHOLD - SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR testcase */
+        {
+                expected_cat = SAHPI_EC_THRESHOLD;
+                expected_state = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR;
+                expected_str = "UPPER_MINOR | UPPER_MAJOR";
+  
+                err = oh_decode_eventstate(SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR, SAHPI_EC_THRESHOLD, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_THRESHOLD - SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT testcase */
+        {
+                expected_cat = SAHPI_EC_THRESHOLD;
+                expected_state = SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT;
+                expected_str = "UPPER_MINOR | UPPER_MAJOR | UPPER_CRIT";
+  
+                err = oh_decode_eventstate(SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT, SAHPI_EC_THRESHOLD, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_THRESHOLD - Bad event testcase */
+        {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_THRESHOLD)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        return -1;
+                }
+	}
+
+        /* SAHPI_EC_ENABLE - SAHPI_ES_DISABLED testcase */
+        {
+                expected_cat = SAHPI_EC_ENABLE;
+                expected_state = SAHPI_ES_DISABLED;
+                expected_str = "DISABLED";
+  
+                err = oh_decode_eventstate(SAHPI_ES_DISABLED, SAHPI_EC_ENABLE, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_ENABLE - SAHPI_ES_ENABLED testcase */
+        {
+                expected_cat = SAHPI_EC_ENABLE;
+                expected_state = SAHPI_ES_ENABLED;
+                expected_str = "ENABLED";
+  
+                err = oh_decode_eventstate(SAHPI_ES_ENABLED, SAHPI_EC_ENABLE, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_ENABLE - Bad event testcase */
+        {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_ENABLE)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        return -1;
+                }
+	}
+
+        /* SAHPI_EC_PRESENCE - SAHPI_ES_ABSENT testcase */
+        {
+                expected_cat = SAHPI_EC_PRESENCE;
+                expected_state = SAHPI_ES_ABSENT;
+                expected_str = "ABSENT";
+  
+                err = oh_decode_eventstate(SAHPI_ES_ABSENT, SAHPI_EC_PRESENCE, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_PRESENCE - SAHPI_ES_PRESENT testcase */
+        {
+                expected_cat = SAHPI_EC_PRESENCE;
+                expected_state = SAHPI_ES_PRESENT;
+                expected_str = "PRESENT";
+  
+                err = oh_decode_eventstate(SAHPI_ES_PRESENT, SAHPI_EC_PRESENCE, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_PRESENCE - Bad event testcase */
+        {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PRESENCE)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
 	}
@@ -2196,13 +1262,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_OK, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2210,13 +1276,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2231,13 +1297,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_MINOR_FROM_OK, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2245,13 +1311,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2266,13 +1332,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_MAJOR_FROM_LESS, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2280,13 +1346,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2301,13 +1367,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_CRITICAL_FROM_LESS, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2315,13 +1381,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2336,13 +1402,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_MINOR_FROM_MORE, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2350,13 +1416,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2371,13 +1437,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_MAJOR_FROM_CRITICAL, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2385,13 +1451,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2406,13 +1472,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_CRITICAL, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2420,13 +1486,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2441,13 +1507,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_MONITOR, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2455,13 +1521,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2476,13 +1542,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_INFORMATIONAL, SAHPI_EC_SEVERITY, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2490,13 +1556,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2506,295 +1572,7 @@ int main(int argc, char **argv)
         /* SAHPI_EC_SEVERITY - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_SEVERITY)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        return -1;
-                }
-	}
-
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_FULLY_REDUNDANT testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_FULLY_REDUNDANT;
-                expected_str = "FULLY_REDUNDANT";
-  
-                err = oh_decode_eventstate(SAHPI_ES_FULLY_REDUNDANT, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_LOST testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_REDUNDANCY_LOST;
-                expected_str = "REDUNDANCY_LOST";
-  
-                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_LOST, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_DEGRADED testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_REDUNDANCY_DEGRADED;
-                expected_str = "REDUNDANCY_DEGRADED";
-  
-                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_DEGRADED, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES;
-                expected_str = "REDUNDANCY_LOST_SUFFICIENT_RESOURCES";
-  
-                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES;
-                expected_str = "NON_REDUNDANT_SUFFICIENT_RESOURCES";
-  
-                err = oh_decode_eventstate(SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES;
-                expected_str = "NON_REDUNDANT_INSUFFICIENT_RESOURCES";
-  
-                err = oh_decode_eventstate(SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL;
-                expected_str = "REDUNDANCY_DEGRADED_FROM_FULL";
-  
-                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON testcase */
-        {
-                expected_cat = SAHPI_EC_REDUNDANCY;
-                expected_state = SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON;
-                expected_str = "REDUNDANCY_DEGRADED_FROM_NON";
-  
-                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON, SAHPI_EC_REDUNDANCY, &buffer);
-                if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
-		    printf("  Received error=%d\n", err);
-		    return -1; 
-                }
-    
-                if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received string=%s\n", buffer.Data);
-			printf("  Expected string=%s\n", expected_str);
-                        return -1;             
-                }
-    
-                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
-                if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-			printf("  Received error=%d\n", err);
-                        return -1;
-                }
-    
-                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
-                        printf("  Received state=%x; Received cat=%x\n", 
-			       event_state, event_cat);
-                        return -1;
-                }
-        }
-	    
-        /* SAHPI_EC_REDUNDANCY - Bad event testcase */
-        {
-		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_REDUNDANCY)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
 	}
@@ -2807,13 +1585,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_PERFORMANCE_MET, SAHPI_EC_PERFORMANCE, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2821,13 +1599,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2842,13 +1620,13 @@ int main(int argc, char **argv)
   
                 err = oh_decode_eventstate(SAHPI_ES_PERFORMANCE_LAGS, SAHPI_EC_PERFORMANCE, &buffer);
                 if (err != SA_OK) {
-		    printf("  Error! Testcase failed. Line=__LINE__\n");
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		    printf("  Received error=%d\n", err);
 		    return -1; 
                 }
     
                 if (strcmp(expected_str, buffer.Data)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received string=%s\n", buffer.Data);
 			printf("  Expected string=%s\n", expected_str);
                         return -1;             
@@ -2856,13 +1634,13 @@ int main(int argc, char **argv)
     
                 err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
                 if (err != SA_OK) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
                         return -1;
                 }
     
                 if ((expected_state != event_state) || !(expected_cat == event_cat)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         printf("  Received state=%x; Received cat=%x\n", 
 			       event_state, event_cat);
                         return -1;
@@ -2872,7 +1650,1229 @@ int main(int argc, char **argv)
         /* SAHPI_EC_PERFORMANCE - Bad event testcase */
         {
 		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_PERFORMANCE)) {
-                        printf("  Error! Testcase failed. Line=__LINE__\n");
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        return -1;
+                }
+	}
+
+        /* SAHPI_EC_STATE - SAHPI_ES_STATE_DEASSERTED testcase */
+        {
+                expected_cat = SAHPI_EC_STATE;
+                expected_state = SAHPI_ES_STATE_DEASSERTED;
+                expected_str = "STATE_DEASSERTED";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_DEASSERTED, SAHPI_EC_STATE, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_STATE - SAHPI_ES_STATE_ASSERTED testcase */
+        {
+                expected_cat = SAHPI_EC_STATE;
+                expected_state = SAHPI_ES_STATE_ASSERTED;
+                expected_str = "STATE_ASSERTED";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_ASSERTED, SAHPI_EC_STATE, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_STATE - Bad event testcase */
+        {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_STATE)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        return -1;
+                }
+	}
+
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_RUNNING testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_RUNNING;
+                expected_str = "RUNNING";
+  
+                err = oh_decode_eventstate(SAHPI_ES_RUNNING, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_TEST testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_TEST;
+                expected_str = "TEST";
+  
+                err = oh_decode_eventstate(SAHPI_ES_TEST, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_POWER_OFF testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_POWER_OFF;
+                expected_str = "POWER_OFF";
+  
+                err = oh_decode_eventstate(SAHPI_ES_POWER_OFF, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_ON_LINE testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_ON_LINE;
+                expected_str = "ON_LINE";
+  
+                err = oh_decode_eventstate(SAHPI_ES_ON_LINE, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_OFF_LINE testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_OFF_LINE;
+                expected_str = "OFF_LINE";
+  
+                err = oh_decode_eventstate(SAHPI_ES_OFF_LINE, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_OFF_DUTY testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_OFF_DUTY;
+                expected_str = "OFF_DUTY";
+  
+                err = oh_decode_eventstate(SAHPI_ES_OFF_DUTY, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_DEGRADED testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_DEGRADED;
+                expected_str = "DEGRADED";
+  
+                err = oh_decode_eventstate(SAHPI_ES_DEGRADED, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_POWER_SAVE testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_POWER_SAVE;
+                expected_str = "POWER_SAVE";
+  
+                err = oh_decode_eventstate(SAHPI_ES_POWER_SAVE, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - SAHPI_ES_INSTALL_ERROR testcase */
+        {
+                expected_cat = SAHPI_EC_AVAILABILITY;
+                expected_state = SAHPI_ES_INSTALL_ERROR;
+                expected_str = "INSTALL_ERROR";
+  
+                err = oh_decode_eventstate(SAHPI_ES_INSTALL_ERROR, SAHPI_EC_AVAILABILITY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_AVAILABILITY - Bad event testcase */
+        {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_AVAILABILITY)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        return -1;
+                }
+	}
+
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_FULLY_REDUNDANT testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_FULLY_REDUNDANT;
+                expected_str = "FULLY_REDUNDANT";
+  
+                err = oh_decode_eventstate(SAHPI_ES_FULLY_REDUNDANT, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_LOST testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_REDUNDANCY_LOST;
+                expected_str = "REDUNDANCY_LOST";
+  
+                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_LOST, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_DEGRADED testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_REDUNDANCY_DEGRADED;
+                expected_str = "REDUNDANCY_DEGRADED";
+  
+                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_DEGRADED, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES;
+                expected_str = "REDUNDANCY_LOST_SUFFICIENT_RESOURCES";
+  
+                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_LOST_SUFFICIENT_RESOURCES, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES;
+                expected_str = "NON_REDUNDANT_SUFFICIENT_RESOURCES";
+  
+                err = oh_decode_eventstate(SAHPI_ES_NON_REDUNDANT_SUFFICIENT_RESOURCES, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES;
+                expected_str = "NON_REDUNDANT_INSUFFICIENT_RESOURCES";
+  
+                err = oh_decode_eventstate(SAHPI_ES_NON_REDUNDANT_INSUFFICIENT_RESOURCES, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL;
+                expected_str = "REDUNDANCY_DEGRADED_FROM_FULL";
+  
+                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_DEGRADED_FROM_FULL, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON testcase */
+        {
+                expected_cat = SAHPI_EC_REDUNDANCY;
+                expected_state = SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON;
+                expected_str = "REDUNDANCY_DEGRADED_FROM_NON";
+  
+                err = oh_decode_eventstate(SAHPI_ES_REDUNDANCY_DEGRADED_FROM_NON, SAHPI_EC_REDUNDANCY, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !(expected_cat == event_cat)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_REDUNDANCY - Bad event testcase */
+        {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_REDUNDANCY)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        return -1;
+                }
+	}
+
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_00 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_00;
+                expected_str = "STATE_00";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_00, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_01 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_01;
+                expected_str = "STATE_01";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_01, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_02 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_02;
+                expected_str = "STATE_02";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_02, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_03 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_03;
+                expected_str = "STATE_03";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_03, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_04 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_04;
+                expected_str = "STATE_04";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_04, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_05 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_05;
+                expected_str = "STATE_05";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_05, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_06 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_06;
+                expected_str = "STATE_06";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_06, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_07 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_07;
+                expected_str = "STATE_07";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_07, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_08 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_08;
+                expected_str = "STATE_08";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_08, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_09 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_09;
+                expected_str = "STATE_09";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_09, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_10 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_10;
+                expected_str = "STATE_10";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_10, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_11 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_11;
+                expected_str = "STATE_11";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_11, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_12 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_12;
+                expected_str = "STATE_12";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_12, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_13 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_13;
+                expected_str = "STATE_13";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_13, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - SAHPI_ES_STATE_14 testcase */
+        {
+                expected_cat = SAHPI_EC_GENERIC;
+                expected_state = SAHPI_ES_STATE_14;
+                expected_str = "STATE_14";
+  
+                err = oh_decode_eventstate(SAHPI_ES_STATE_14, SAHPI_EC_GENERIC, &buffer);
+                if (err != SA_OK) {
+		    printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		    printf("  Received error=%d\n", err);
+		    return -1; 
+                }
+    
+                if (strcmp(expected_str, buffer.Data)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received string=%s\n", buffer.Data);
+			printf("  Expected string=%s\n", expected_str);
+                        return -1;             
+                }
+    
+                err = oh_encode_eventstate(&buffer, &event_state, &event_cat);
+                if (err != SA_OK) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%d\n", err);
+                        return -1;
+                }
+    
+                if ((expected_state != event_state) || !((SAHPI_EC_GENERIC == event_cat) || (SAHPI_EC_SENSOR_SPECIFIC == event_cat))) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+                        printf("  Received state=%x; Received cat=%x\n", 
+			       event_state, event_cat);
+                        return -1;
+                }
+        }
+	    
+        /* SAHPI_EC_GENERIC - Bad event testcase */
+        {
+		if (oh_valid_eventstate(BAD_EVENT, SAHPI_EC_GENERIC)) {
+                        printf("  Error! Testcase failed. Line=%d\n", __LINE__);
                         return -1;
                 }
 	}

@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
 	fp = fopen(name, mode);
 	if (fp == NULL) {
-		printf("  Error! Testcase failed. Line=__LINE__\n");
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		return -1;
 	}
 
@@ -46,21 +46,21 @@ int main(int argc, char **argv)
 	
 	err = oh_fprint_idrfield(NULL, &thisIdrField, 3);
 	if (err != SA_ERR_HPI_INVALID_PARAMS) {
-		printf("  Error! Testcase failed. Line=__LINE__\n");
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%d\n", err);
 		test1Fail = SAHPI_TRUE;
 	}
 	
 	err = oh_fprint_idrfield(fp, NULL, 3);
 	if (err != SA_ERR_HPI_INVALID_PARAMS) {
-		printf("  Error! Testcase failed. Line=__LINE__\n");
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%d\n", err);
 		test2Fail = SAHPI_TRUE;
 	}
 	
 	err = oh_fprint_idrfield(NULL , NULL, 3);
 	if (err != SA_ERR_HPI_INVALID_PARAMS) {
-		printf("  Error! Testcase failed. Line=__LINE__\n");
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%d\n", err);
 		test3Fail = SAHPI_TRUE;
 	}
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	
 	err = oh_fprint_idrfield(fp, &thisIdrField, 3);
 	if (err != SA_OK) {
-		printf("  Error! Testcase failed. Line=__LINE__\n");
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%d\n", err);
 		test4Fail = SAHPI_TRUE;
 	}
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 	
 	err = oh_print_idrfield(&thisIdrField, 3);
 	if (err != SA_OK) {
-		printf("  Error! Testcase failed. Line=__LINE__\n");
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 		printf("  Received error=%d\n", err);
 		test5Fail = SAHPI_TRUE;
 	}
