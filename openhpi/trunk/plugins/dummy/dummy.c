@@ -29,6 +29,7 @@
 #include <epath_utils.h>
 #include <uid_utils.h>
 #include <oh_error.h>
+#include <oh_domain.h>
 
 #define DUMMY_THREADED
 #undef  DUMMY_THREADED
@@ -836,11 +837,15 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
                 res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 
                 /* add the resource */
-                if (oh_add_resource(oh_hnd->rptcache, &res, NULL, 0))
-                        dbg("oh_add_resource failed for resource %d", i);
+                if (oh_add_resource(oh_hnd->rptcache, &res, NULL, 0)) {
+                        dbg("oh_add_resource failed for RESOURCE %d", i);
+			return -1;
+		}
 
                 /* save the resource id for tracking resource status */
                 dummy_resource_status[i].ResourceId = res.ResourceId;
+
+		printf("oh_add_resource succeeded for RESOURCE %d\n", i);
 
         }
         /* append entity root to rdrs entity paths */
@@ -851,12 +856,18 @@ static int __build_the_rpt_cache(struct oh_handler_state *oh_hnd)
 
                 id = oh_uid_lookup(&res_rdr.Entity);
 
-                if( id < 0 ) { dbg("error looking up uid in dummy_open");  return(-1); }
+                if( id < 0 ) { 
+			dbg("error looking up uid in dummy_open");  
+			return-1; 
+		}
 
                 /* add rdrs */
                 if (oh_add_rdr(oh_hnd->rptcache, id, &res_rdr, NULL, 0)) {
-                        dbg("oh_add_resource failed for rdr %d", i);
+                        dbg("oh_add_resource failed for RDR %d", i);
+			return -1;
                 }
+
+		printf("oh_add_resource succeeded for RDR %d\n", i);
         }
 
         return(0);
@@ -920,18 +931,17 @@ static void *dummy_open(GHashTable *handler_config)
         }
         g_static_rec_mutex_init (i->handler_lock);
 
-#ifdef DUMMY_THREADED
-
-        /* add to oh_handler_state */
-        GThread *thread_handle;
-        GError **e = NULL;
-
         /* create event queue for async events*/
         if ( !(i->eventq_async = g_async_queue_new()) ) {
                 printf("g_async_queue_new failed\n");
                 g_free(i);
                 return NULL;
         }
+
+#ifdef DUMMY_THREADED
+        /* add to oh_handler_state */
+        GThread *thread_handle;
+        GError **e = NULL;
         
         /* spawn a thread */
         if ( !(thread_handle = g_thread_create (event_thread,
@@ -967,6 +977,7 @@ static void dummy_close(void *hnd)
         return;
 }
 
+#if 0
 static struct oh_event *remove_resource(struct oh_handler_state *inst)
 {
         SaHpiRptEntryT *rpt_e = NULL;
@@ -1029,7 +1040,7 @@ static struct oh_event *add_resource(struct oh_handler_state *inst)
 
 }
 
-
+#endif
 static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *timeout)
 {
         struct oh_handler_state *inst = hnd;
@@ -1044,9 +1055,10 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         if (g_slist_length(inst->eventq)>0) {
                 trace("List has an event, send it up");
                 memcpy(event, inst->eventq->data, sizeof(*event));
-                event->did = 1; /* FIXME: use real domain lookup */
+                event->did = oh_get_default_domain_id(); /* FIXME: use real domain lookup */
                 free(inst->eventq->data);
                 inst->eventq = g_slist_remove_link(inst->eventq, inst->eventq);
+		printf("*************** dummy_get_event\n");
                 return(1);
         } else if (count == 0) {
                 trace("List is empty, getting next resource");
@@ -1060,6 +1072,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         return(-1);
                 }
 
+		dummy_user_event.did = oh_get_default_domain_id();
                 *event = dummy_user_event;
                 memcpy(&(event->u.hpi_event.res),&rpt_entry,sizeof(rpt_entry));
 
@@ -1074,6 +1087,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         g_static_rec_mutex_lock (inst->handler_lock);
         
         toggle++;
+#if 0
         if( (toggle%3) == 0 ) {
                 /* once initial reporting of events toggle between      */
                 /* removing and adding resource, removes resource 3     */
@@ -1096,7 +1110,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         }
                 }
         }
-
+#endif
         g_static_rec_mutex_unlock (inst->handler_lock);
 
         return(-1);
