@@ -44,6 +44,19 @@ int is_in_domain_list(SaHpiDomainIdT did)
         return 0;
 }
 
+struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
+{
+        GSList *i;
+        
+        g_slist_for_each(i, global_domain_list) {
+		struct oh_domain *d = i->data;
+                if(d->domain_id == did) {
+                        return d;
+                }
+        }
+        return NULL;
+}
+
 #define MAX_GLOBAL_DOMAIN 10000
 #define MIN_DYNAMIC_DOMAIN (MAX_GLOBAL_DOMAIN+1)
 
@@ -89,6 +102,7 @@ SaHpiDomainIdT new_domain()
 		dbg("Out of memory");
 		return -1;
 	}
+	memset(d, 0, sizeof(*d));
 	
 	d->domain_id = dcounter;
 	global_domain_list

@@ -254,6 +254,11 @@ struct oh_rdr {
         SaHpiRdrT	 rdr;
 };
 
+struct oh_sel {
+	struct oh_rdr_id rdr_id;
+	struct oh_resource_id res_id;
+	SaHpiSelEntryT entry;
+};
 
 /*
  *  Global listing of plugins (oh_plugin).  This list is populated
@@ -306,6 +311,8 @@ int session_pop_event(struct oh_session*, struct oh_event*);
 /*query if the session has events*/
 int session_has_event(struct oh_session *s);
 
+
+struct oh_domain *get_domain_by_id(SaHpiDomainIdT did);
 int is_in_domain_list(SaHpiDomainIdT domain_id);
 /* this is used to pre-alllocated domainal id in config */
 int add_domain(SaHpiDomainIdT domain_id);
@@ -336,9 +343,15 @@ int dsel_get_state(SaHpiDomainIdT domain_id);
 void dsel_set_state(SaHpiDomainIdT domain_id, int enable);
 SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
+SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
+void dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry);
+void dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
+void dsel_clr(SaHpiDomainIdT domain_id);
+
 
 /* event handler */
 int get_events(void);
+
 
 /* howswap */
 void process_hotswap_policy(void);
