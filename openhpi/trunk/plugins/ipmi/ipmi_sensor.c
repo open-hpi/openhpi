@@ -18,6 +18,8 @@
 
 #include "ipmi.h"
 
+#define OHOI_TIMEOUT  10    /* 10 seconds, was 5 seconds */
+
 /* 
  * Use for getting sensor reading
  */
@@ -203,7 +205,7 @@ static void thresholds_read(ipmi_sensor_t	*sensor,
 			    void		*cb_data)
 {
 	struct ohoi_sensor_thresholds *p = cb_data;
-	
+
 	p->thres_done = 1;
 
 	if (err) {
@@ -319,6 +321,11 @@ static void get_sensor_thresholds(ipmi_sensor_t *sensor,
 				if (rv < 0)
 					dbg("failed to get hysteresis");
 			}
+			else {  /* may not get here, but just in case */
+			   thres_data->hyster_done = 1;
+			   thres_data->sensor_thres.PosThdHysteresis.IsSupported = SAHPI_FALSE;
+			   thres_data->sensor_thres.NegThdHysteresis.IsSupported = SAHPI_FALSE;
+			}
 		}
 		
 	} else {
@@ -333,6 +340,7 @@ static int is_get_sensor_thresholds_done(const void *cb_data)
         const struct ohoi_sensor_thresholds *thres_data;
         
         thres_data = cb_data;
+	/* Can we check the validity of this pointer here to avoid SegFault? */
         return (thres_data->thres_done && thres_data->hyster_done);
 }
 
@@ -354,8 +362,10 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
         }
 
         rv = ohoi_loop_until(is_get_sensor_thresholds_done, 
-                               &thres_data, 5, ipmi_handler);
-	if (rv)
+                               &thres_data, OHOI_TIMEOUT, ipmi_handler);
+	/* If this ever returns SA_ERR_HPI_TIMEOUT, the _done routine
+	   will SegFault.  */
+	if (rv) 
 		return rv;
 	
 	if (thres_data.rvalue)
@@ -563,8 +573,11 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
                 return SA_ERR_HPI_INVALID_CMD;
 	}
 
-        return ohoi_loop_until(is_get_sensor_thresholds_done, 
-                               &thres_data, 5, ipmi_handler);
+	rv = ohoi_loop_until(is_get_sensor_thresholds_done, 
+                               &thres_data, OHOI_TIMEOUT, ipmi_handler);
+	/* If this ever returns SA_ERR_HPI_TIMEOUT, the _done routine
+	   will SegFault.  */
+	return(rv);
 }
 
 static void set_sensor_enable(ipmi_sensor_t *sensor,
