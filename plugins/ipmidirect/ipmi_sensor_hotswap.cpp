@@ -122,7 +122,19 @@ cIpmiSensorHotswap::ConvertIpmiToHpiHotswapState( tIpmiFruState h )
 SaErrorT
 cIpmiSensorHotswap::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
 {
+  memset( &h, 0, sizeof( SaHpiEventT ) );
+
+  cIpmiResource *res = Resource();
+  assert( res );
+
+  h.Source    = res->m_resource_id;
   h.EventType = SAHPI_ET_HOTSWAP;
+  h.Timestamp = (SaHpiTimeT)IpmiGetUint32( event->m_data );
+
+  if ( h.Timestamp == 0 )
+       h.Timestamp = SAHPI_TIME_UNSPECIFIED;
+  else
+       h.Timestamp *= 1000000000;
 
   // Do not find the severity of hotswap event
   h.Severity = SAHPI_MAJOR;
