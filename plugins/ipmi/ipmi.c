@@ -1448,6 +1448,10 @@ static SaErrorT ipmi_set_res_tag (void 			*hnd,
 				dbg("Error retrieving entity pointer for resource %d",
 					       rpt_entry->ResourceId);
 	}
+
+	rpt_entry->ResourceTag.DataType = tag->DataType;
+	rpt_entry->ResourceTag.Language = tag->Language;
+	rpt_entry->ResourceTag.DataLength = strlen(tag->Data);
 	
 	/* change it in our memory as well */
 	memcpy(&rpt_entry->ResourceTag.Data, tag->Data, strlen(tag->Data) + 1);
