@@ -14,8 +14,6 @@ AH_TOP([#ifndef __OPENHPI_CONFIG_H
 #define __OPENHPI_CONFIG_H])
 AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 
-dnl AM_CONFIG_HEADER(./config.h)
-
 AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
@@ -39,8 +37,8 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 
-# die on int != 32bits.  This is too instrumental to our code right now.
-# AC_MSG_CHECKING(int is 4 bytes)
+dnl die on int != 32bits.  This is too instrumental to our code right now.
+dnl AC_MSG_CHECKING(int is 4 bytes)
 OH_SET_SIZES
 if test "x$OH_SIZEOF_INT" != "x4"; then
     AC_MSG_ERROR([
@@ -56,14 +54,6 @@ have_openipmi=no
 have_fam=no
 have_sysfs=no
 
-#  Doing the following doesn't change the defaults, it makes it so you can
-#  *never* enable them.  This isn't what we are looking to do.
-#enable_daemon=no
-#enable_ipmidirect=no
-#enable_simulator=no
-#enable_remote_client=no
-#enable_examples=no
-
 dnl Check for GLIB
 
 AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
@@ -77,7 +67,7 @@ fi
 AC_MSG_CHECKING(gcc >= 3.2.0)
 OH_CHECK_GCC(3,2,0)
 
-# glib 2.x checks
+dnl glib 2.x checks
 GLIB_REQUIRED_VERSION=2.2.0
 GLIB=glib-2.0
 
@@ -164,9 +154,9 @@ AC_ARG_ENABLE([daemon],
 	NEED_MARSHAL="yes"
         openhpid_static="yes"
     fi])
-#
-#    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
-#     NEED_MARSHAL="yes"])
+
+dnl    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
+dnl     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
 
@@ -176,8 +166,8 @@ AC_ARG_ENABLE([examples],
     [if test "x$enableval" = "xyess"; then
 	ENABLED_DIRS="$ENABLED_DIRS examples"
     fi])
-#
-#    [ENABLED_DIRS="$ENABLED_DIRS examples"])
+
+dnl    [ENABLED_DIRS="$ENABLED_DIRS examples"])
 
 AC_ARG_ENABLE([clients],
     [  --enable-clients        build HPI client programs [default=yes]],
@@ -226,10 +216,10 @@ AC_ARG_ENABLE([snmp_client],
                 Can not build SNMP client support without net-snmp)
         fi
     fi])
-#
-#    [if test "x$have_netsnmp" = "xyes"; then
-#        AC_SUBST(SNMP_CLIENT,snmp_client)
-#     fi])
+
+dnl    [if test "x$have_netsnmp" = "xyes"; then
+dnl        AC_SUBST(SNMP_CLIENT,snmp_client)
+dnl     fi])
 
 AC_ARG_ENABLE([dummy],
     [  --enable-dummy          build dummy plugin [default=yes]],
@@ -320,11 +310,11 @@ AC_ARG_ENABLE([snmp_rsa],
                 Can not build IBM RSA support without net-snmp)
         fi
     fi])
-#
-#    [if test "x$have_netsnmp" = "xyes"; then
-#            AC_SUBST(SNMP_RSA,snmp_rsa)
-#    fi]
-#    )
+
+dnl    [if test "x$have_netsnmp" = "xyes"; then
+dnl            AC_SUBST(SNMP_RSA,snmp_rsa)
+dnl    fi]
+dnl    )
 
 AC_ARG_ENABLE([ipmidirect],
     [  --enable-ipmidirect     build direct ipmi plugin [default=no]],
@@ -336,7 +326,7 @@ AC_ARG_ENABLE([ipmidirect],
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
      fi])
 
-#    [AC_SUBST(IPMIDIRECT,ipmidirect)])
+dnl    [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
 dnl ipmidirect needs posix threads
 if test "x$IPMIDIRECT" = "xipmidirect"; then
@@ -356,9 +346,9 @@ AC_ARG_ENABLE([remote_client],
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libopenhpimarshal.la -luuid"
             NEED_MARSHAL="yes"
      fi])
-#
-#    [AC_SUBST(REMOTE_CLIENT,remote_client)
-#     NEED_MARSHAL="yes"])
+
+dnl    [AC_SUBST(REMOTE_CLIENT,remote_client)
+dnl     NEED_MARSHAL="yes"])
 
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
@@ -370,10 +360,10 @@ AC_ARG_ENABLE([simulator],
 			OH_CHECK_FAIL(FAM packages are missing, install fam and fam-devel to build simulator plug-in)
 		fi
     fi])
-#
-#	[if test "x$have_fam" = "xyes"; then
-#    	AC_SUBST(SIMULATOR,simulator)
-#     fi])
+
+dnl	[if test "x$have_fam" = "xyes"; then
+dnl    	AC_SUBST(SIMULATOR,simulator)
+dnl     fi])
 
 dnl enable marshal library when needed
 if test "x$NEED_MARSHAL" = "xyes"; then
@@ -490,12 +480,12 @@ AC_SUBST(TEST_CLEAN)
 
 AC_C_STRINGIZE
 
-# getting CFLAGS right takes some effort
-# we start with a good base set that has been built up
+dnl getting CFLAGS right takes some effort
+dnl we start with a good base set that has been built up
 CFLAGS="$CFLAGS $GLIB_CFLAGS" 
 
-# next we have to do transformations to either turn on
-# test coverage or debug.
+dnl next we have to do transformations to either turn on
+dnl test coverage or debug.
 
 AC_ARG_ENABLE([testcover],
     [  --enable-testcover     build with test coverage support [default=no]],
@@ -505,8 +495,8 @@ AC_ARG_ENABLE([testcover],
     fi]
     )
 
-# Now we throw in a bunch of warnings.  C and C++ need
-# different sets here
+dnl Now we throw in a bunch of warnings.  C and C++ need
+dnl different sets here
 
 CC_WARNINGS="\
         -Wall \
@@ -533,25 +523,25 @@ CXX_WARNINGS="\
         -Wwrite-strings \
         -Wredundant-decls"
 
-# remerge the warnings into the FLAGS
+dnl remerge the warnings into the FLAGS
 CXXFLAGS="$CFLAGS $CXX_WARNINGS"
 CFLAGS="$CFLAGS $CC_WARNINGS"
 
-# lastly, we add things if we are thread safe
-# (this could probably happen earlier in this file)
+dnl lastly, we add things if we are thread safe
+dnl (this could probably happen earlier in this file)
 if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -fexceptions"
         CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -fexceptions"
 fi
 
-# there are certain places we always want to turn off optimization
-# this has to come last
+dnl there are certain places we always want to turn off optimization
+dnl this has to come last
 NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
 AC_SUBST(NOCFLAGS)
 NOCXXFLAGS=`echo $CXXFLAGS | perl -p -e 's/-O\S*//g'`
 AC_SUBST(NOCXXFLAGS)
 
-# Set up libs that will be linked to
+dnl Set up libs that will be linked to
 LIBS="$LIBS $GLIB_LIBS -lm"
 if test "x$THREAD_SAFE" = "xyes" ; then
         LIBS="$LIBS -lpthread"
