@@ -116,14 +116,14 @@ main(int argc, char **argv)
 		if (fxdebug) printf("saHpiDiscover rv = %s\n",oh_lookup_error(rv));
 		if (rv != SA_OK) {
 			printf("saHpiDiscover error %s\n",oh_lookup_error(rv));
-			exit(-1);
+			// continue anyway exit(-1);
 		}
 
 		/* walk the RPT list */
 		rptentryid = SAHPI_FIRST_ENTRY;
 		do {
 			rvRptGet = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-			if (rv != SA_OK) printf("RptEntryGet error %s\n",oh_lookup_error(rvRptGet));
+			if (rvRptGet != SA_OK) printf("RptEntryGet error %s\n",oh_lookup_error(rvRptGet));
 
 			if (rvRptGet == SA_OK 
                     		&& (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
