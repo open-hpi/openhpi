@@ -36,7 +36,8 @@ GAsyncQueue *oh_process_q;
  *  using live threads.
  */
 
-int oh_event_init() {
+int oh_event_init() 
+{
         if(!g_thread_supported()) {
                 dbg("Initializing thread support");
                 g_thread_init(NULL);
@@ -49,12 +50,13 @@ int oh_event_init() {
 }
 
 /*
- *  Event processing is split up into 3 stages
+ *  Event processing is split up into 2 stages
  *
  *
  */
 
-static int harvest_events_for_handler(struct oh_handler *h) {
+static int harvest_events_for_handler(struct oh_handler *h) 
+{
         struct oh_event event;
         struct oh_event *e2;
         struct timeval to = {0, 0};
@@ -75,7 +77,8 @@ static int harvest_events_for_handler(struct oh_handler *h) {
         } while(1);
 }
 
-SaErrorT harvest_events() {
+SaErrorT harvest_events() 
+{
         GSList *i;
         g_slist_for_each(i, global_handler_list) {
                 harvest_events_for_handler(i->data);
@@ -238,7 +241,8 @@ SaErrorT process_events(RPTable *rpt)
         return SA_OK;
 }
 
-unsigned int get_log_severity(char *severity) {
+unsigned int get_log_severity(char *severity) 
+{
         if (!severity) return SAHPI_INFORMATIONAL;
         else if (!strcmp("CRITICAL", severity)) {
                 return SAHPI_CRITICAL;
