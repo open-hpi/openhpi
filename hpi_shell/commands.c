@@ -831,7 +831,6 @@ static ret_code_t run(void)
 	term_def_t	*term;
 	char		*path;
 
-	if (read_file) return(HPI_SHELL_CMD_ERROR);
 	term = get_next_term();
 	if (term == NULL) return(HPI_SHELL_PARM_ERROR);
 	path = term->term;

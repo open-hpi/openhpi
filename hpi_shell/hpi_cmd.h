@@ -70,6 +70,7 @@ extern ret_code_t	shell_error;
 extern int		debug_flag;
 
 extern int		add_domain(Domain_t *domain);
+extern int		add_input_file(char *name);
 extern ret_code_t	ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type,
 				SaHpiInstrumentIdT *ret);
 extern ret_code_t	ask_rpt(SaHpiResourceIdT *ret);
