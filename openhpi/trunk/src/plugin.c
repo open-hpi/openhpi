@@ -72,14 +72,14 @@ extern struct oh_static_plugin static_plugins[];
 int load_plugin(struct oh_plugin_config *config)
 {
         lt_dlhandle h = 0;
-        int (*get_interface) (struct oh_abi_v1 ** pp, const uuid_t uuid);
+        int (*get_interface) (struct oh_abi_v2 ** pp, const uuid_t uuid);
         int err;
         struct oh_static_plugin *p = static_plugins;
 
         /* first take search plugin in the array of static plugin */
         while( p->name ) {
                 if ( !strcmp( config->name, p->name ) ) {
-                        err = (*p->get_interface)( (void **)&config->abi, UUID_OH_ABI_V1);
+                        err = (*p->get_interface)( (void **)&config->abi, UUID_OH_ABI_V2);
 
                         if (err < 0 || !config->abi || !config->abi->open) {
                                 dbg("Can not get ABI V1");
@@ -106,7 +106,7 @@ int load_plugin(struct oh_plugin_config *config)
                 goto err1;
         }
         
-        err = get_interface(&config->abi, UUID_OH_ABI_V1);
+        err = get_interface(&config->abi, UUID_OH_ABI_V2);
         if (err < 0 || !config->abi || !config->abi->open) {
                 dbg("Can not get ABI V1");
                 goto err1;

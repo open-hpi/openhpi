@@ -41,12 +41,12 @@
     </para>
     <para>
 	Every plug-in in openhpi requires the following:
-	<literal>struct oh_abi_v1</literal> declaration such as:
+	<literal>struct oh_abi_v2</literal> declaration such as:
     </para>
     <para>
     <programlisting role="C">
 
-static struct oh_abi_v1 my_plugin = {
+static struct oh_abi_v2 my_plugin = {
 	.open				= my_open,
 	.close				= my_close,
 	.get_event			= my_get_event,
@@ -81,8 +81,8 @@ static struct oh_abi_v1 my_plugin = {
     <programlisting role="C">
 int get_interface(void **pp, uuid_t uuid)
 {
-	if (uuid_compare(uuid, UUID_OH_ABI_V1)==0) {
-		*(struct oh_abi_v1 **)pp = &<literal>oh_my_plugin</literal>;
+	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
+		*pp = &<literal>oh_my_plugin</literal>;
 		return 0;
 	}
 

@@ -41,7 +41,7 @@
       </para>
       <para>
         Every plugin must include a <literal>get_interface</literal>
-        function which populates an oh_abi_v1 structure.  This
+        function which populates an oh_abi_v2 structure.  This
         structure contains 35 function pointers, and is loaded only
         once per plugin.  Many of the functions in the plugin ABI map
         very closely to those in the SA HPI, however they are named
@@ -71,7 +71,7 @@
       <para>
         OpenHPI plugins are shared objects that are loaded by the
         plugin loader.  Handlers are instances of those objects
-        created by the oh_abi_v1.open function included in the plugin.
+        created by the oh_abi_v2.open function included in the plugin.
       </para>
       <para>
         The handler open call is made during the saHpiSessionOpen

@@ -39,7 +39,7 @@
 struct oh_plugin_config {
         char *name;
         int refcount;
-        struct oh_abi_v1 *abi;
+        struct oh_abi_v2 *abi;
 };
 
 /*struct oh_handler_config {
