@@ -373,8 +373,9 @@ SaErrorT SAHPI_API saHpiEntitySchemaGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_OUT SaHpiUint32T *SchemaId)
 {
-	/*FIXME: how to determine schema is ongoing*/
-	*SchemaId = ('C'<<24) | ('P'<<16) | ('C'<<8) | 'I';
+        /* Defaulting to 0 (i.e. User Defined) when further logic
+           for schema definition arives, we'll add real logic here. */
+	*SchemaId = 0;
 	return SA_OK;
 }
 
