@@ -38,6 +38,7 @@ extern "C" {
 #endif
 
 
+#define SaHpiVoidType    Marshal_Uint8Type
 #define SaHpiUint8Type   Marshal_Uint8Type
 #define SaHpiUint16Type  Marshal_Uint16Type
 #define SaHpiUint32Type  Marshal_Uint32Type

@@ -49,8 +49,8 @@ enum tResult
 
 static bool morph2daemon(bool runasdaemon);
 static void service_thread(gpointer data, gpointer user_data);
-static void HandleInvalidRequest(psstrmsock thrdinst, void *buf);
-static tResult HandleMsg(psstrmsock thrdinst, void *buf);
+static void HandleInvalidRequest(psstrmsock thrdinst);
+static tResult HandleMsg(psstrmsock thrdinst, char *buf);
 
 }
 
@@ -84,7 +84,7 @@ int main (int argc, char *argv[])
 	thrdpool = g_thread_pool_new(service_thread, NULL, -1, FALSE, NULL);
 
         // get our listening port
-        portstr = getenv("OPENHPI_DAEMON_HOST");
+        portstr = getenv("OPENHPI_DAEMON_PORT");
         if (portstr == NULL) {
                 port =  4743;
         }
@@ -177,24 +177,23 @@ static void service_thread(gpointer data, gpointer user_data)
 {
 	psstrmsock thrdinst = (psstrmsock) data;
         bool stop = false;
-	void *buf;
+	char buf[dMaxMessageLength];  
         tResult result;
 
 	printf("Servicing connection.\n");
 	while (stop == false) {
-                buf = thrdinst->ReadMsg();
-                if (buf == NULL) {
+                if (thrdinst->ReadMsg(buf)) {
                         printf("Error reading socket.\n");
-                        delete thrdinst; // cleanup thread instance data
-                        return; // do NOT use g_thread_exit here!
+                        goto thrd_cleanup;
                 }
                 else {
-                        switch( thrdinst->reqheader.m_type ) {
+                        switch( thrdinst->header.m_type ) {
                         case eMhMsg:
                                 result = HandleMsg(thrdinst, buf);
                                 // marshal error ?
                                 if (result == eResultError) {
-                                        HandleInvalidRequest(thrdinst, buf);
+                                        printf("Invalid API found.\n");
+                                        HandleInvalidRequest(thrdinst);
                                 }
                                 // done ?
                                 if (result == eResultClose) {
@@ -202,13 +201,14 @@ static void service_thread(gpointer data, gpointer user_data)
                                 }
                                 break;
                         default:
-                                HandleInvalidRequest(thrdinst, buf);
+                                printf("Error in socket read buffer data.\n");
+                                HandleInvalidRequest(thrdinst);
                                 break;
                         }
-                        free(buf); // this was malloced in ReadMsg
                 }
 	}
 
+        thrd_cleanup:
         delete thrdinst; // cleanup thread instance data
 
 	printf("Connection ended.\n");
@@ -220,13 +220,12 @@ static void service_thread(gpointer data, gpointer user_data)
 /* Function: HandleInvalidRequest                                     */
 /*--------------------------------------------------------------------*/
 
-void HandleInvalidRequest(psstrmsock thrdinst, void *data) {
-        char *pReq = (char *)data + sizeof(cMessageHeader);
+void HandleInvalidRequest(psstrmsock thrdinst) {
 
   /* create and deliver a pong message */
   printf("Invalid request.\n");
-  thrdinst->RepMessageHeaderInit(eMhError, 0, thrdinst->reqheader.m_id, 0 );
-  thrdinst->WriteMsg(pReq, NULL);
+  thrdinst->MessageHeaderInit(eMhError, 0, thrdinst->header.m_id, 0 );
+  thrdinst->WriteMsg(NULL);
 
   return;
 }
@@ -236,75 +235,66 @@ void HandleInvalidRequest(psstrmsock thrdinst, void *data) {
 /* Function: HandleMsg                                                */
 /*--------------------------------------------------------------------*/
 
-static tResult HandleMsg(psstrmsock thrdinst, void *data)
+static tResult HandleMsg(psstrmsock thrdinst, char *data)
 {
   cHpiMarshal *hm;
-  void *rd;
   SaErrorT ret;
   tResult result = eResultReply;
-  char *pReq = (char *)data + sizeof(cMessageHeader);
+  char *pReq = data + sizeof(cMessageHeader);
 
 
-  hm = HpiMarshalFind(thrdinst->reqheader.m_id);
+  hm = HpiMarshalFind(thrdinst->header.m_id);
   // check for function and data length
-  if ( !hm || hm->m_request_len < thrdinst->reqheader.m_len )
+  if ( !hm || hm->m_request_len != thrdinst->header.m_len )
      {
-//       fprintf( stderr, "Wrong message length: id %d !\n", thrdinst->reqheader.m_id );
        return eResultError;
      }
 
   // init reply header
-  thrdinst->RepMessageHeaderInit((tMessageType) thrdinst->reqheader.m_type, 0, 
-                                 thrdinst->reqheader.m_id, hm->m_reply_len );
+  thrdinst->MessageHeaderInit((tMessageType) thrdinst->header.m_type, 0, 
+                                 thrdinst->header.m_id, hm->m_reply_len );
 
-  // alloc reply buffer
-  rd = malloc( hm->m_reply_len );
-  memset( rd, 0, hm->m_reply_len );
-
-  switch( thrdinst->reqheader.m_id ) {
+  switch( thrdinst->header.m_id ) {
        case eFsaHpiVersionGet: {
 	      SaHpiVersionT ver;
-	      void *dummy;
 
               printf("Processing saHpiVersionGet.\n");
-	      if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
-                                         hm, pReq, &dummy ) < 0 )
-		   return eResultError;
 
 	      ver = saHpiVersionGet( );
 
-	      thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ver );
+	      HpiMarshalReply0( hm, pReq, &ver );
        }
        break;
 
-  case eFsaHpiSessionOpen: {
-         SaHpiDomainIdT  domain_id;
-         SaHpiSessionIdT session_id = 0;
-         void            *securityparams;
+       case eFsaHpiSessionOpen: {
+              SaHpiDomainIdT  domain_id;
+              SaHpiSessionIdT session_id = 0;
+              void            *securityparams = NULL;
 
-         printf("Processing saHpiSessionOpen.\n");
-         if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
-                                    hm, pReq, &domain_id, &securityparams ) < 0 )
-              return eResultError;
+              printf("Processing saHpiSessionOpen.\n");
 
-         ret = saHpiSessionOpen( domain_id, &session_id, 0 );
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
+                                         hm, pReq, &domain_id ) < 0 )
+                   return eResultError;
 
-         thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &session_id );
-  }
-  break;
+              ret = saHpiSessionOpen( domain_id, &session_id, securityparams );
+
+              HpiMarshalReply1( hm, pReq, &ret, &session_id );
+       }
+       break;
 
        case eFsaHpiSessionClose: {
 	      SaHpiSessionIdT session_id;
 
               printf("Processing saHpiSessionClose.\n");
 	      
-              if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiSessionClose( session_id );
 
-	      thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+	      HpiMarshalReply0( hm, pReq, &ret );
               result = eResultClose;
        }
        break;
@@ -314,13 +304,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiDiscover.\n");
 	      
-              if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
 		   return eResultError;
 
 	      ret = saHpiDiscover( session_id );
 
-	      thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+	      HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -330,13 +320,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiDomainInfoGet.\n");
 
-              if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
                    return eResultError;
 
               ret = saHpiDomainInfoGet( session_id, &domain_info );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &domain_info );
+              HpiMarshalReply1( hm, pReq, &ret, &domain_info );
        }
        break;
 
@@ -348,16 +338,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiDrtEntryGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &entry_id ) < 0 )
                    return eResultError;
 
               ret = saHpiDrtEntryGet( session_id, entry_id, &next_entry_id,
                                       &drt_entry );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret,
-                                                            &next_entry_id,
-                                                            &drt_entry );
+              HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &drt_entry );
        }
        break;
 
@@ -367,13 +355,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiDomainTagSet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &domain_tag ) < 0 )
                    return eResultError;
 
               ret = saHpiDomainTagSet( session_id, domain_tag );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -383,17 +371,15 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               SaHpiEntryIdT   next_entry_id = 0; // for valgring
               SaHpiRptEntryT  rpt_entry;
 
-              printf("Processing saHpiRptEntryGet.\n");
+              printf("Processing saHpiRptEntryGet.\n,");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &entry_id ) < 0 )
                    return eResultError;
 
               ret = saHpiRptEntryGet( session_id, entry_id, &next_entry_id, &rpt_entry );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret,
-                                                            &next_entry_id,
-                                                            &rpt_entry );
+              HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rpt_entry );
        }
        break;
 
@@ -404,13 +390,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiRptEntryGetByResourceId.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiRptEntryGetByResourceId( session_id, resource_id, &rpt_entry );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &rpt_entry );
+              HpiMarshalReply1( hm, pReq, &ret, &rpt_entry );
        }
        break;
 
@@ -421,7 +407,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourceSeveritySet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &severity ) < 0 )
                    return eResultError;
@@ -429,7 +415,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiResourceSeveritySet( session_id,
                                               resource_id, severity );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -441,14 +427,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourceTagSet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &resource_tag ) < 0 )
                    return eResultError;
 
               ret = saHpiResourceTagSet( session_id, resource_id, &resource_tag );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
 
        break;
@@ -459,13 +445,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourceIdGet.\n");
 
-              if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
                    return eResultError;
 
               ret = saHpiResourceIdGet( session_id, &resource_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &resource_id );
+              HpiMarshalReply1( hm, pReq, &ret, &resource_id );
        }
 
        break;
@@ -477,13 +463,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogInfoGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogInfoGet( session_id, resource_id, &info );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &info );
+              HpiMarshalReply1( hm, pReq, &ret, &info );
        }
        break;
 
@@ -497,10 +483,12 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               SaHpiRdrT             rdr;
               SaHpiRptEntryT        rpt_entry;
 
+              printf("Processing saHpiEventLogEntryGet.\n");
+
               memset( &rdr, 0, sizeof( SaHpiRdrT ) );
               memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id, 
                                          &entry_id, &rdr, &rpt_entry ) < 0 )
                    return eResultError;
@@ -509,11 +497,8 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
                                            &prev_entry_id, &next_entry_id,
                                            &event_log_entry, &rdr, &rpt_entry );
 
-              thrdinst->repheader.m_len = HpiMarshalReply5( hm, rd, &ret,
-                                                            &prev_entry_id,
-                                                            &next_entry_id,
-                                                            &event_log_entry,
-                                                            &rdr, &rpt_entry );
+              HpiMarshalReply5( hm, pReq, &ret, &prev_entry_id, &next_entry_id,
+                                &event_log_entry, &rdr, &rpt_entry );
        }
        break;
 
@@ -524,7 +509,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogEntryAdd.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &evt_entry ) < 0 )
                    return eResultError;
@@ -532,7 +517,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiEventLogEntryAdd( session_id, resource_id,
                                            &evt_entry );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -542,13 +527,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogClear.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogClear( session_id, resource_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -559,13 +544,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogTimeGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogTimeGet( session_id, resource_id, &ti );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &ti );
+              HpiMarshalReply1( hm, pReq, &ret, &ti );
        }
        break;
 
@@ -576,14 +561,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogTimeSet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &ti ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogTimeSet( session_id, resource_id, ti );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -594,13 +579,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogStateGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogStateGet( session_id, resource_id, &enable );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &enable );
+              HpiMarshalReply1( hm, pReq, &ret, &enable );
        }
        break;
 
@@ -611,14 +596,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogStateSet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &enable ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogStateSet( session_id, resource_id, enable );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -628,13 +613,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventLogOverflowReset.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiEventLogOverflowReset( session_id, resource_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -643,13 +628,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSubscribe.\n");
 
-              if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
                    return eResultError;
 
               ret = saHpiSubscribe( session_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -658,13 +643,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiUnsubscribe.\n");
 
-              if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
                    return eResultError;
 
               ret = saHpiUnsubscribe( session_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -678,16 +663,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventGet.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &timeout, &rdr, &rpt_entry, &status ) < 0 )
                    return eResultError;
 
               ret = saHpiEventGet( session_id, timeout, &event, &rdr,
                                    &rpt_entry, &status );
 
-              thrdinst->repheader.m_len = HpiMarshalReply4( hm, rd, &ret, &event,
-                                                            &rdr, &rpt_entry,
-                                                            &status );
+              HpiMarshalReply4( hm, pReq, &ret, &event, &rdr, &rpt_entry, &status );
        }
        break;
 
@@ -697,13 +680,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiEventAdd.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &event ) < 0 )
                    return eResultError;
 
               ret = saHpiEventAdd( session_id, &event );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -715,14 +698,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAlarmGetNext.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &severity,
                                          &unack, &alarm ) < 0 )
                    return eResultError;
 
               ret = saHpiAlarmGetNext( session_id, severity, unack, &alarm );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &alarm );
+              HpiMarshalReply1( hm, pReq, &ret, &alarm );
        }
        break;
 
@@ -733,13 +716,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAlarmGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm_id ) < 0 )
                    return eResultError;
 
               ret = saHpiAlarmGet( session_id, alarm_id, &alarm );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &alarm );
+              HpiMarshalReply1( hm, pReq, &ret, &alarm );
        }
        break;
 
@@ -750,14 +733,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAlarmAcknowledge.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm_id,
                                          &severity ) < 0 )
                    return eResultError;
 
               ret = saHpiAlarmAcknowledge( session_id, alarm_id, severity );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -767,13 +750,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAlarmAdd.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm ) < 0 )
                    return eResultError;
 
               ret = saHpiAlarmAdd( session_id, &alarm );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &alarm );
+              HpiMarshalReply1( hm, pReq, &ret, &alarm );
        }
        break;
 
@@ -784,14 +767,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAlarmDelete.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &alarm_id,
                                          &severity ) < 0 )
                    return eResultError;
 
               ret = saHpiAlarmDelete( session_id, alarm_id, severity );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -804,7 +787,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiRdrGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &entry_id ) < 0 )
                    return eResultError;
@@ -812,8 +795,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiRdrGet( session_id, resource_id, entry_id,
                                  &next_entry_id, &rdr );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret,
-                                                            &next_entry_id, &rdr );
+              HpiMarshalReply2( hm, pReq, &ret, &next_entry_id, &rdr );
        }
        break;
 
@@ -826,7 +808,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiRdrGetByInstrumentId.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &rdr_type, &inst_id ) < 0 )
                    return eResultError;
@@ -834,7 +816,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiRdrGetByInstrumentId( session_id, resource_id, rdr_type,
                                                inst_id, &rdr );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &rdr );
+              HpiMarshalReply1( hm, pReq, &ret, &rdr );
        }
        break;
 
@@ -847,7 +829,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorReadingGet.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num, &reading, &state ) < 0 )
                    return eResultError;
@@ -855,8 +837,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorReadingGet( session_id, resource_id,
                                            sensor_num, &reading, &state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret,
-                                                            &reading, &state );
+              HpiMarshalReply2( hm, pReq, &ret, &reading, &state );
        }
        break;
 
@@ -868,7 +849,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorThresholdsGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num ) < 0 )
                    return eResultError;
@@ -877,7 +858,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
                                               resource_id, sensor_num,
                                               &sensor_thresholds);
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &sensor_thresholds );
+              HpiMarshalReply1( hm, pReq, &ret, &sensor_thresholds );
        }
        break;
 
@@ -889,7 +870,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorThresholdsSet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num, &sensor_thresholds ) < 0 )
                    return eResultError;
@@ -898,7 +879,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
                                               sensor_num,
                                               &sensor_thresholds );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -911,7 +892,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorTypeGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num ) < 0 )
                    return eResultError;
@@ -919,8 +900,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorTypeGet( session_id, resource_id,
                                         sensor_num, &type, &category );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret, &type,
-                                                      &category );
+              HpiMarshalReply2( hm, pReq, &ret, &type, &category );
        }
        break;
 
@@ -932,7 +912,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorEnableGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num ) < 0 )
                    return eResultError;
@@ -940,7 +920,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorEnableGet( session_id, resource_id,
                                           sensor_num, &enables );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &enables );
+              HpiMarshalReply1( hm, pReq, &ret, &enables );
        }
        break;
 
@@ -952,7 +932,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorEnableSet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num, &enables ) < 0 )
                    return eResultError;
@@ -960,7 +940,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorEnableSet( session_id, resource_id,
                                           sensor_num, enables );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -972,7 +952,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorEventEnableGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num ) < 0 )
                    return eResultError;
@@ -980,7 +960,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorEventEnableGet( session_id, resource_id,
                                                sensor_num, &enables );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &enables );
+              HpiMarshalReply1( hm, pReq, &ret, &enables );
        }
        break;
 
@@ -992,7 +972,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorEventEnableSet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num, &enables ) < 0 )
                    return eResultError;
@@ -1000,7 +980,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorEventEnableSet( session_id, resource_id,
                                                sensor_num, enables );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1013,7 +993,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorEventMasksGet.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num, &assert_mask,
                                          &deassert_mask ) < 0 )
@@ -1022,9 +1002,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorEventMasksGet( session_id, resource_id, sensor_num,
                                               &assert_mask, &deassert_mask );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret,
-                                                            &assert_mask,
-                                                            &deassert_mask );
+              HpiMarshalReply2( hm, pReq, &ret, &assert_mask, &deassert_mask );
        }
        break;
 
@@ -1038,7 +1016,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiSensorEventMasksSet.\n");
 
-              if ( HpiDemarshalRequest6( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest6( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &sensor_num, &action, &assert_mask,
                                          &deassert_mask ) < 0 )
@@ -1047,7 +1025,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiSensorEventMasksSet( session_id, resource_id, sensor_num,
                                               action, assert_mask, deassert_mask );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1059,7 +1037,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiControlTypeGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &ctrl_num ) < 0 )
                    return eResultError;
@@ -1067,7 +1045,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiControlTypeGet( session_id, resource_id, ctrl_num,
                                          &type );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &type );
+              HpiMarshalReply1( hm, pReq, &ret, &type );
        }
        break;
 
@@ -1080,7 +1058,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiControlGet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &ctrl_num, &ctrl_state ) < 0 )
                    return eResultError;
@@ -1088,9 +1066,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiControlGet( session_id, resource_id, ctrl_num,
                                      &ctrl_mode, &ctrl_state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret,
-                                                            &ctrl_mode,
-                                                            &ctrl_state );
+              HpiMarshalReply2( hm, pReq, &ret, &ctrl_mode, &ctrl_state );
        }
        break;
 
@@ -1103,7 +1079,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiControlSet.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &ctrl_num, &ctrl_mode, &ctrl_state ) < 0 )
                    return eResultError;
@@ -1111,7 +1087,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiControlSet( session_id, resource_id,
                                      ctrl_num, ctrl_mode, &ctrl_state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1123,7 +1099,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrInfoGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id ) < 0 )
                    return eResultError;
@@ -1131,7 +1107,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrInfoGet( session_id, resource_id,
                                      idr_id, &info );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &info );
+              HpiMarshalReply1( hm, pReq, &ret, &info );
        }
        break;
 
@@ -1146,7 +1122,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrAreaHeaderGet.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id, &area, &area_id ) < 0 )
                    return eResultError;
@@ -1154,8 +1130,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrAreaHeaderGet( session_id, resource_id, idr_id,
                                            area, area_id, &next, &header );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret, &next,
-                                                            &header );
+              HpiMarshalReply2( hm, pReq, &ret, &next, &header );
        }
        break;
 
@@ -1168,7 +1143,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrAreaAdd.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id, &area ) < 0 )
                    return eResultError;
@@ -1176,8 +1151,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrAreaAdd( session_id, resource_id, idr_id,
                                      area, &area_id  );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret,
-                                                            &area_id );
+              HpiMarshalReply1( hm, pReq, &ret, &area_id );
        }
        break;
 
@@ -1189,7 +1163,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrAreaAdd.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id, &area_id ) < 0 )
                    return eResultError;
@@ -1197,7 +1171,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrAreaDelete( session_id, resource_id, idr_id,
                                         area_id  );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1213,7 +1187,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrFieldGet.\n");
 
-              if ( HpiDemarshalRequest6( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest6( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id, &area_id, &type, &field_id ) < 0 )
                    return eResultError;
@@ -1221,8 +1195,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrFieldGet( session_id, resource_id, idr_id, area_id,
                                       type, field_id, &next, &field );
 
-              thrdinst->repheader.m_len = HpiMarshalReply2( hm, rd, &ret, &next,
-                                                            &field );
+              HpiMarshalReply2( hm, pReq, &ret, &next, &field );
        }
        break;
 
@@ -1234,7 +1207,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrFieldAdd.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id, &field ) < 0 )
                    return eResultError;
@@ -1242,7 +1215,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrFieldAdd( session_id, resource_id, idr_id,
                                       &field );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &field );
+              HpiMarshalReply1( hm, pReq, &ret, &field );
        }
        break;
 
@@ -1254,7 +1227,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrFieldSet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id, &field ) < 0 )
                    return eResultError;
@@ -1262,7 +1235,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrFieldSet( session_id, resource_id, idr_id,
                                       &field );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1275,7 +1248,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiIdrFieldSet.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &idr_id, &area_id, &field_id ) < 0 )
                    return eResultError;
@@ -1283,7 +1256,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiIdrFieldDelete( session_id, resource_id, idr_id,
                                          area_id, field_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1295,7 +1268,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiWatchdogTimerGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &watchdog_num ) < 0 )
                    return eResultError;
@@ -1303,8 +1276,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiWatchdogTimerGet( session_id, resource_id,
                                            watchdog_num, &watchdog );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret,
-                                                            &watchdog );
+              HpiMarshalReply1( hm, pReq, &ret, &watchdog );
        }
        break;
 
@@ -1316,7 +1288,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiWatchdogTimerSet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &watchdog_num, &watchdog ) < 0 )
                    return eResultError;
@@ -1324,7 +1296,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiWatchdogTimerSet( session_id, resource_id,
                                            watchdog_num, &watchdog );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1335,7 +1307,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiWatchdogTimerReset.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &watchdog_num ) < 0 )
                    return eResultError;
@@ -1343,7 +1315,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiWatchdogTimerReset( session_id, resource_id,
                                              watchdog_num );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1357,7 +1329,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAnnunciatorGetNext.\n");
 
-              if ( HpiDemarshalRequest6( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest6( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &annun_num, &severity, &unack,
                                          &announcement ) < 0 )
@@ -1366,8 +1338,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiAnnunciatorGetNext( session_id, resource_id, annun_num,
                                              severity, unack, &announcement );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret,
-                                                            &announcement );
+              HpiMarshalReply1( hm, pReq, &ret, &announcement );
        }
        break;
 
@@ -1380,7 +1351,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAnnunciatorGet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &annun_num, &entry_id ) < 0 )
                    return eResultError;
@@ -1388,8 +1359,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiAnnunciatorGet( session_id, resource_id, annun_num,
                                          entry_id, &announcement );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret,
-                                                            &announcement );
+              HpiMarshalReply1( hm, pReq, &ret, &announcement );
        }
        break;
 
@@ -1402,7 +1372,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAnnunciatorAcknowledge.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &annun_num, &entry_id, &severity ) < 0 )
                    return eResultError;
@@ -1410,7 +1380,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiAnnunciatorAcknowledge( session_id, resource_id, annun_num,
                                                  entry_id, severity );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1422,7 +1392,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAnnunciatorAdd.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &annun_num, &announcement ) < 0 )
                    return eResultError;
@@ -1430,8 +1400,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiAnnunciatorAdd( session_id, resource_id, annun_num,
                                          &announcement );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret,
-                                                            &announcement );
+              HpiMarshalReply1( hm, pReq, &ret, &announcement );
        }
        break;
 
@@ -1444,7 +1413,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAnnunciatorAdd.\n");
 
-              if ( HpiDemarshalRequest5( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest5( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &annun_num, &entry_id, &severity ) < 0 )
                    return eResultError;
@@ -1452,7 +1421,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiAnnunciatorDelete( session_id, resource_id, annun_num,
                                             entry_id, severity );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1464,7 +1433,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAnnunciatorModeGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &annun_num ) < 0 )
                    return eResultError;
@@ -1472,8 +1441,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiAnnunciatorModeGet( session_id, resource_id, annun_num,
                                              &mode );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret,
-                                                            &mode );
+              HpiMarshalReply1( hm, pReq, &ret, &mode );
        }
        break;
 
@@ -1485,7 +1453,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAnnunciatorModeSet.\n");
 
-              if ( HpiDemarshalRequest4( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &annun_num, &mode ) < 0 )
                    return eResultError;
@@ -1493,7 +1461,7 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
               ret = saHpiAnnunciatorModeSet( session_id, resource_id, annun_num,
                                              mode );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1503,13 +1471,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiHotSwapPolicyCancel.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiHotSwapPolicyCancel( session_id, resource_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1519,13 +1487,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourceActiveSet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiResourceActiveSet( session_id, resource_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1535,13 +1503,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourceInactiveSet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiResourceInactiveSet( session_id, resource_id );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1551,14 +1519,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAutoInsertTimeoutGet.\n");
 
-              if ( HpiDemarshalRequest1( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest1( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id ) < 0 )
                    return eResultError;
 
               ret = saHpiAutoInsertTimeoutGet( session_id, &timeout );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret,
-                                                            &timeout );
+              HpiMarshalReply1( hm, pReq, &ret, &timeout );
        }
        break;
 
@@ -1568,13 +1535,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAutoInsertTimeoutSet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &timeout ) < 0 )
                    return eResultError;
 
               ret = saHpiAutoInsertTimeoutSet( session_id, timeout );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1585,13 +1552,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAutoExtractTimeoutGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiAutoExtractTimeoutGet( session_id, resource_id, &timeout );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &timeout );
+              HpiMarshalReply1( hm, pReq, &ret, &timeout );
        }
        break;
 
@@ -1602,14 +1569,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiAutoExtractTimeoutSet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &timeout ) < 0 )
                    return eResultError;
 
               ret = saHpiAutoExtractTimeoutSet( session_id, resource_id, timeout );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1620,13 +1587,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiHotSwapStateGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiHotSwapStateGet( session_id, resource_id, &state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &state );
+              HpiMarshalReply1( hm, pReq, &ret, &state );
        }
        break;
 
@@ -1637,14 +1604,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiHotSwapActionRequest.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &action ) < 0 )
                    return eResultError;
 
               ret = saHpiHotSwapActionRequest( session_id, resource_id, action );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1655,13 +1622,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiHotSwapIndicatorStateGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiHotSwapIndicatorStateGet( session_id, resource_id, &state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &state );
+              HpiMarshalReply1( hm, pReq, &ret, &state );
        }
        break;
 
@@ -1672,14 +1639,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiHotSwapIndicatorStateSet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &state ) < 0 )
                    return eResultError;
 
               ret = saHpiHotSwapIndicatorStateSet( session_id, resource_id, state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1690,14 +1657,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiParmControl.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &action ) < 0 )
                    return eResultError;
 
               ret = saHpiParmControl( session_id, resource_id, action );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1708,13 +1675,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourceResetStateGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiResourceResetStateGet( session_id, resource_id, &action );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &action );
+              HpiMarshalReply1( hm, pReq, &ret, &action );
        }
        break;
 
@@ -1725,14 +1692,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourceResetStateSet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &action ) < 0 )
                    return eResultError;
 
               ret = saHpiResourceResetStateSet( session_id, resource_id, action );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1744,13 +1711,13 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourcePowerStateGet.\n");
 
-              if ( HpiDemarshalRequest2( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest2( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id ) < 0 )
                    return eResultError;
 
               ret = saHpiResourcePowerStateGet( session_id, resource_id, &state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply1( hm, rd, &ret, &state );
+              HpiMarshalReply1( hm, pReq, &ret, &state );
        }
        break;
 
@@ -1761,14 +1728,14 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
 
               printf("Processing saHpiResourcePowerStateGet.\n");
 
-              if ( HpiDemarshalRequest3( thrdinst->reqheader.m_flags & dMhEndianBit,
+              if ( HpiDemarshalRequest3( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
                                          &state  ) < 0 )
                    return eResultError;
 
               ret = saHpiResourcePowerStateSet( session_id, resource_id, state );
 
-              thrdinst->repheader.m_len = HpiMarshalReply0( hm, rd, &ret );
+              HpiMarshalReply0( hm, pReq, &ret );
        }
        break;
 
@@ -1777,11 +1744,10 @@ static tResult HandleMsg(psstrmsock thrdinst, void *data)
        }
 
        // send the reply
-       thrdinst->WriteMsg(pReq, rd);
+       thrdinst->WriteMsg(pReq);
 
-       if (rd != NULL) {
-               free(rd);
-       }
+       printf("Return code = %d\n", ret);
+
        return result;
 }
 
