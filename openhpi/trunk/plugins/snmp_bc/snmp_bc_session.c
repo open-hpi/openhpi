@@ -58,8 +58,10 @@ void *snmp_bc_open(GHashTable *handler_config)
         handle->config = handler_config;
 
         /* Initialize the lock */
-        g_static_rec_mutex_init(&handle->handler_lock);
-
+        /* g_static_rec_mutex_init(&handle->handler_lock); */
+	g_static_rec_mutex_init(&custom_handle->snmp_bc_hlock.lock);
+	custom_handle->snmp_bc_hlock.count = 0;
+	
         /* Initialize RPT cache */
         handle->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
         oh_init_rpt(handle->rptcache);

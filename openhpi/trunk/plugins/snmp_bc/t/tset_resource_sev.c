@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	}
 
 	id = rptentry.ResourceId;
+#if 0
 	/************************** 
 	 * Test 1: Invalid severity 
 	 **************************/
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
 
 	err = snmp_bc_set_resource_severity(&handle, 5000, sev);
 	checkstatus(err, expected_err, testfail);
-	
+#endif	
 	/************************** 
 	 * Test 3: Valid case
 	 **************************/

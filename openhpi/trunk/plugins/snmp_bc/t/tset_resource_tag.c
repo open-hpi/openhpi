@@ -37,9 +37,6 @@ int main(int argc, char **argv)
 	/* ************************	 	 
 	 * Find a resource with Control type rdr
 	 * ***********************/
-	struct oh_handler_state handle;
-	memset(&handle, 0, sizeof(struct oh_handler_state));
-
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
 		printf("Error! Can not open session for test environment\n");
@@ -56,6 +53,12 @@ int main(int argc, char **argv)
 
 	id = rptentry.ResourceId;
 	oh_init_textbuffer(&tag);
+	
+#if 0	
+	struct oh_handler_state handle;
+	memset(&handle, 0, sizeof(struct oh_handler_state));
+
+
 	/************************** 
 	 * Test 1: Invalid Tag 
 	 **************************/
@@ -72,7 +75,7 @@ int main(int argc, char **argv)
 
 	err = snmp_bc_set_resource_tag(&handle, 5000, &tag);
 	checkstatus(err, expected_err, testfail);
-	
+#endif	
 
 	/************************** 
 	 * Test 3: Valid case

@@ -51,22 +51,22 @@ SaErrorT snmp_bc_get_next_announce(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 
 	dbg("Annunciators not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
         
@@ -105,21 +105,21 @@ SaErrorT snmp_bc_get_announce(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 	dbg("Annunciators not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
  }
 
@@ -158,22 +158,22 @@ SaErrorT snmp_bc_ack_announce(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 
 	dbg("Annunciators not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
  
@@ -210,22 +210,22 @@ SaErrorT snmp_bc_add_announce(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 
 	dbg("Annunciators not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
@@ -264,22 +264,22 @@ SaErrorT snmp_bc_del_announce(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 	
 
 	dbg("Annunciators not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
         
@@ -316,22 +316,22 @@ SaErrorT snmp_bc_get_annunc_mode(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 
 
 	dbg("Annunciators not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }
 
@@ -368,21 +368,21 @@ SaErrorT snmp_bc_set_annunc_mode(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	/* Check if resource exists and has managed hotswap capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INVALID_RESOURCE);
 	} 
 	
         if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR)) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	} 
 	
 
 	dbg("Annunciators not supported by platform");
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 	return(SA_ERR_HPI_INTERNAL_ERROR);
 }

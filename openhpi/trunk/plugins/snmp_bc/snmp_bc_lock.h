@@ -24,10 +24,13 @@
 
 /* FIXME: turn all this off if there isn't thread safe enabled */
 
-typedef struct {
-        GStaticRecMutex lock;
-        guint32 count;
-} ohpi_bc_lock;
+#if 0
+	typedef struct {
+        	GStaticRecMutex lock;
+        	guint32 count;
+	} ohpi_bc_lock;
+
+#endif
 
 #define dbg_snmp_lock(format, ...) \
         do { \
@@ -59,4 +62,22 @@ typedef struct {
                 dbg_snmp_lock("Released the lock");   \
         } while(0)
 
+
+#define snmp_bc_lock_handler(custom_handle)                                    	\
+        do {                                                         		\
+                snmp_bc_lock( custom_handle->snmp_bc_hlock );\
+                dbg("%s lock custom_handle %p, lock count %d \n", __FILE__, custom_handle,    \
+		    (custom_handle->snmp_bc_hlock.count)); \
+        } while(0)
+
+
+#define snmp_bc_unlock_handler(custom_handle)                  	                  \
+        do {               	                    	                          \
+                snmp_bc_unlock( custom_handle->snmp_bc_hlock );\
+                dbg("%s unlock custom_handle %p , lock count %d \n", __FILE__, custom_handle,   \
+		      (custom_handle->snmp_bc_hlock.count)); \
+        } while(0)
+
 #endif
+
+

@@ -111,12 +111,14 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
         SaErrorT err;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         
-        if (!event) {
+        if (!event || !hnd) {
                 dbg("Invalid parameter");
                 return(SA_ERR_HPI_INVALID_PARAMS);
         }
-        g_static_rec_mutex_lock(&handle->handler_lock);
-
+	
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+     	snmp_bc_lock_handler(custom_handle);	
 	err = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 	
 	/* If err is encounterred during el cache sync, */
@@ -131,12 +133,12 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
                 memcpy(event, handle->eventq->data, sizeof(*event));
                 free(handle->eventq->data);
                 handle->eventq = g_slist_remove_link(handle->eventq, handle->eventq);
-                g_static_rec_mutex_unlock(&handle->handler_lock);
+                snmp_bc_unlock_handler(custom_handle);
                 return(1);
         } 
 
 	/* No events for infra-structure to process */
-        g_static_rec_mutex_unlock(&handle->handler_lock);
+        snmp_bc_unlock_handler(custom_handle);
 	return(SA_OK);
 }
 
@@ -160,22 +162,23 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
         struct oh_event *e;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
-	if (!oh_valid_textbuffer(tag)) {
+	if (!oh_valid_textbuffer(tag) || !hnd) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("No RID.");
                 return(SA_ERR_HPI_INVALID_RESOURCE);
         }
 
 	err = oh_copy_textbuffer(&(rpt->ResourceTag), tag);
 	if (err) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("Cannot copy textbuffer");
 		return(err);
 	}
@@ -183,7 +186,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
         /* Add changed resource to event queue */
         e = g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
@@ -191,7 +194,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
         e->type = OH_ET_RESOURCE;
         e->u.res_event.entry = *rpt;
         handle->eventq = g_slist_append(handle->eventq, e);
-        g_static_rec_mutex_unlock(&handle->handler_lock);
+        snmp_bc_unlock_handler(custom_handle);
         return(SA_OK);
 }
 
@@ -218,11 +221,12 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	
+	snmp_bc_lock_handler(custom_handle);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
                 dbg("No RID.");
                 return(SA_ERR_HPI_INVALID_RESOURCE);
         }
@@ -232,7 +236,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
         /* Add changed resource to event queue */
         e = g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
@@ -240,7 +244,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
         e->type = OH_ET_RESOURCE;
         e->u.res_event.entry = *rpt;
         handle->eventq = g_slist_append(handle->eventq, e);
-	g_static_rec_mutex_unlock(&handle->handler_lock);
+	snmp_bc_unlock_handler(custom_handle);
 
         return(SA_OK);
 }
@@ -260,29 +264,31 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT act)
 {
 
-	SaHpiRptEntryT *rpt;
-	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-
+	if (!hnd) return(SA_ERR_HPI_INVALID_PARAMS);	
 	if (oh_lookup_parmaction(act) == NULL) {
 		dbg("Invalid parameter");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
+	
+	SaHpiRptEntryT *rpt;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-	g_static_rec_mutex_lock(&handle->handler_lock);
+	snmp_bc_lock_handler(custom_handle);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
 	if (!rpt) {
                 dbg("No RID.");
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
                 return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 
 	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
 		dbg("Resource configuration saving not supported.");
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	else {
-		g_static_rec_mutex_unlock(&handle->handler_lock);
+		snmp_bc_unlock_handler(custom_handle);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 }

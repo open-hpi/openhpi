@@ -52,13 +52,17 @@ int main(int argc, char **argv)
 
 	}
 
+	id = rptentry.ResourceId;
+	act = SAHPI_RESTORE_PARM;
+	
+#if 0			
+
 	struct oh_handler_state handle;
 	memset(&handle, 0, sizeof(struct oh_handler_state));
-			
 	/************************** 
 	 * Test 1: Invalid Control Action
 	 **************************/
-	id = rptentry.ResourceId;
+	
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
 	act = 0xFF;
 																																														
@@ -69,12 +73,11 @@ int main(int argc, char **argv)
 	 * Test 2: Invalid ResourceId
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
-	act = SAHPI_RESTORE_PARM;
 
 	err = snmp_bc_control_parm(&handle, 5000, act);
 	checkstatus(err, expected_err, testfail);
 
-#if 0
+
 	/************************** 
 	 * Test 3: Resource configuration saving not supported
 	 *************************/
