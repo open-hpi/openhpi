@@ -67,7 +67,7 @@ struct oh_sel_id {
  * (Domain, SEL and RDR etc.).
  */
 struct oh_resource_event {
-	SaHpiResourceIdT id;
+	struct oh_resource_id id;
 	
 	/* Report domain which belongs to the resource
 	 * Valid if the resource is CAPABILITY_DOMAIN 
