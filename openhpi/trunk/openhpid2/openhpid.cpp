@@ -27,6 +27,7 @@
 #include <glib.h>
 
 #include "strmsock.h"
+#include "openhpi.h"
 
 
 /*--------------------------------------------------------------------*/
@@ -46,128 +47,134 @@ static bool stop_server = FALSE;
 
 
 /*--------------------------------------------------------------------*/
-/* Function: main                                                     */
+/* Function: main                                                         */
 /*--------------------------------------------------------------------*/
 
 int main (int argc, char *argv[])
 {
-        GThreadPool *thrdpool;
+	GThreadPool *thrdpool;
 
-        /* become a daemon */
-        if (!morph2daemon(FALSE)) {
-                /* this is an error condition */
-                exit(8);
-        }
+// become a daemon
+	if (!morph2daemon(FALSE)) {	// this is an error condition
+		exit(8);
+	}
 
-        /* create the thread pool */
-        g_thread_init(NULL);
-        thrdpool = g_thread_pool_new(service_thread, NULL, -1, FALSE, NULL);
+// create the thread pool
+	g_thread_init(NULL);
+	thrdpool = g_thread_pool_new(service_thread, NULL, -1, FALSE, NULL);
 
-        /* create the server socket */
-        psstrmsock servinst = new sstrmsock;
-        if (servinst->Create(55566)) {
-                printf("Error creating server socket.\n");
-                g_thread_pool_free(thrdpool, FALSE, TRUE);
-                delete servinst;
-                return 8;
-                }
+// create the server socket
+	psstrmsock servinst = new sstrmsock;
+	if (servinst->Create(55566)) {
+		printf("Error creating server socket.\n");
+		g_thread_pool_free(thrdpool, FALSE, TRUE);
+                	delete servinst;
+		return 8;
+	}
 
-        /* wait for a connection and then service the connection */
-        while (TRUE) {
-                if (stop_server) {
-                        break;
-                }
-                printf("Waiting on connection.\n");
-                if (servinst->Accept()) {
-                        printf("Error accepting server socket.\n");
-                        break;
-                        }
-                printf("Spawning thread to handle connection.\n");
-                psstrmsock thrdinst = new sstrmsock(*servinst);
-                g_thread_pool_push(thrdpool, (gpointer)thrdinst, NULL);
-        }
+// wait for a connection and then service the connection
+	while (TRUE) {
+		if (stop_server) {
+			break;
+		}
+		printf("Waiting on connection.\n");
+		if (servinst->Accept()) {
+			printf("Error accepting server socket.\n");
+			break;
+		}
+		printf("Spawning thread to handle connection.\n");
+		psstrmsock thrdinst = new sstrmsock(*servinst);
+		g_thread_pool_push(thrdpool, (gpointer)thrdinst, NULL);
+	}
 
-        servinst->CloseSrv();
-        printf("Server socket closed.\n");
+	servinst->CloseSrv();
+	printf("Server socket closed.\n");
 
-        /* ensure all threads are complete */
-        g_thread_pool_free(thrdpool, FALSE, TRUE);
+// ensure all threads are complete
+	g_thread_pool_free(thrdpool, FALSE, TRUE);
 
-        delete servinst;
-        return 0;
+	delete servinst;
+	return 0;
 }
 
 
 /*--------------------------------------------------------------------*/
-/* Function: morph2daemon                                             */
+/* Function: morph2daemon                                       */
 /*--------------------------------------------------------------------*/
 
 static bool morph2daemon(bool runasdaemon)
 {
-        if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-                return false;
-        }
+	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
+		return false;
+	}
 
-        if (runasdaemon) {
-                pid_t pid = fork();
-                if (pid < 0) {
-                        return false;
-                }
-                // parent process
-                if (pid != 0) {
-                        exit( 0 );
-                }
+	if (runasdaemon) {
+		pid_t pid = fork();
+		if (pid < 0) {
+			return false;
+		}
+// parent process
+		if (pid != 0) {
+			exit( 0 );
+		}
 
-                // become the session leader
-                setsid();
-                // second fork to become a real daemon
-                pid = fork();
-                if (pid < 0) {
-                        return false;
-                }
-                // parent process
-                if (pid != 0) {
-                        exit(0);
-                }
+// become the session leader
+		setsid();
+// second fork to become a real daemon
+		pid = fork();
+		if (pid < 0) {
+			return false;
+		}
+// parent process
+		if (pid != 0) {
+			exit(0);
+		}
 
-                chdir("/");
-                umask(0);
-                for(int i = 0; i < 1024; i++) {
-                        close(i);
-                }
-//              m_interactive = false;
-        }
+		chdir("/");
+		umask(0);
+		for(int i = 0; i < 1024; i++) {
+			close(i);
+		}
+// m_interactive = false;
+	}
 
-        return true;
+	return true;
 }
 
 
 /*--------------------------------------------------------------------*/
-/* Function: service_thread                                           */
+/* Function: service_thread                                        */
 /*--------------------------------------------------------------------*/
 
 static void service_thread(gpointer data, gpointer user_data)
 {
-        psstrmsock thrdinst = (psstrmsock) data;
-        char *msg;
+	psstrmsock thrdinst = (psstrmsock) data;
 
-        printf("Servicing connection.\n");
+	char *buf;
 
-        msg = thrdinst->Read();
-        if (msg == NULL) {
-                printf("Error reading message from client.\n");
-                thrdinst->Close();
-                delete thrdinst;
-                g_thread_exit(NULL);
-                }
-        printf("Message from client read. The message is\n");
-        printf("%s\n", msg);
+	printf("Servicing connection.\n");
 
-        thrdinst->Close();
-        printf("Client socket closed.\n");
+	while (TRUE) {
+		(void *)buf = thrdinst->ServerReadMsg();
+		if (buf == NULL) {
+			if (thrdinst->GetErrcode() == 0) {
+				printf("Conection has been aborted!\n");
+				delete thrdinst;
+				break;
+			} else {
+				printf("Error reading message from client.\n");
+				thrdinst->Close();
+				delete thrdinst;
+				g_thread_exit(NULL);
+			}
+		}
 
-        delete thrdinst;
-//      stop_server = TRUE;
-        return; // do NOT use g_thread_exit here!
+	cMessageHeader *header =  thrdinst->GetHeader();
+	printf("Message from client read. The message (len=%d) is \"%s\" --- type=%d\n",
+						header->m_len, buf, header->m_id);
+	}
+
+// stop_server = TRUE;
+	return; // do NOT use g_thread_exit here!
 }
 

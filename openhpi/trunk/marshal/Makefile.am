@@ -47,7 +47,7 @@ libohtcpconnx_la_SOURCES    = \
 	strmsock.cpp
 
 libohtcpconnx_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
-#libohtcpconnx_la_LIBADD  = $(top_builddir)/marshal/libopenhpimarshal.la
+libohtcpconnx_la_LIBADD  = $(top_builddir)/marshal/libopenhpimarshal.la
 
 clean-local:
 	rm -f *~ core core.*
