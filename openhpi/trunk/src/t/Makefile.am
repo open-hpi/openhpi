@@ -11,6 +11,6 @@
 MAINTAINERCLEANFILES    = Makefile.in
 #EXTRA_DIST              =
 
-SUBDIRS                 = ohpi
+SUBDIRS                 = ohpi ohpic
 
-DIST_SUBDIRS            = ohpi
+DIST_SUBDIRS            = ohpi ohpic

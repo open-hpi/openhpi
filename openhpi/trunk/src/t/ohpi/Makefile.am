@@ -13,7 +13,10 @@ EXTRA_DIST              = openhpi.conf
 
 INCLUDES		= @OPENHPI_INCLUDES@ 
 
-AM_CFLAGS		= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS		= @NOCFLAGS@ 
+
+# removed until the gcc 3.4 bug is fixed
+# -ftest-coverage -fprofile-arcs
 
 TDEPLIB                 = $(top_builddir)/src/libopenhpi.la \
 			  $(top_builddir)/utils/libopenhpiutils.la
@@ -65,8 +68,7 @@ TESTS = ohpi_000 \
         ohpi_037 \
         ohpi_038 \
         ohpi_039 \
-	ohpi_version \
-	ohpi_version_client
+	ohpi_version
 
 check_PROGRAMS = $(TESTS)
 
@@ -194,5 +196,5 @@ ohpi_version_SOURCES = ohpi_version.c
 ohpi_version_LDADD   = $(TDEPLIB)
 
 ohpi_version_client_SOURCES = ohpi_version_client.c
-ohpi_version_client_LDADD   = $(CDEPLIB)
+ohpi_version_client_LDADD   = $(TDEPLIB)
 
