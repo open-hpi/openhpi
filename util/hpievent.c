@@ -1,41 +1,17 @@
-/*
- * hpievent.c
+/*      -*- linux-c -*-
  *
- * Author:  Bill Barkley
- * Copyright (c) 2003 Intel Corporation.
+ * Copyright (c) 2003 by Intel Corp.
  *
- * 05/14/03 
- * 06/06/03 - complete working version
- * 06/20/03 ARCress - added option for Mullins w default=Langley-type sensor
- *                    added progver
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Andy Cress <arcress@users.sourceforge.net>
  */
-/*M*
-Copyright (c) 2003, Intel Corporation
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions are met:
-
-  a.. Redistributions of source code must retain the above copyright notice, 
-      this list of conditions and the following disclaimer. 
-  b.. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation 
-      and/or other materials provided with the distribution. 
-  c.. Neither the name of Intel Corporation nor the names of its contributors 
-      may be used to endorse or promote products derived from this software 
-      without specific prior written permission. 
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *M*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,11 +31,8 @@ char s_name[] = "80mm Sys Fan (R)";
 char sm_name[] = "Baseboard Fan 2";
 char progname[] = "hpievent";
 char progver[] = "0.5";
-char inbuff[1024];
 char outbuff[256];
-SaHpiUint32T buffersize;
 SaHpiUint32T actualsize;
-SaHpiInventoryDataT *inv;
 SaHpiInventGeneralDataT *dataptr;
 SaHpiTextBufferT *strptr;
 SaHpiSensorEvtEnablesT enables1;
@@ -84,16 +57,7 @@ char *units[NSU] = {
 	"mm",    "cm"
 };
 
-void
-fixstr(SaHpiTextBufferT *strptr)
-{ 
-	size_t datalen;
-	if ((datalen=strptr->DataLength) != 0)
-		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
-	outbuff[datalen] = 0;
-}
-
-void ShowThresh(
+static void ShowThresh(
    SaHpiSensorThresholdsT *sensbuff)
 {
       printf( "    Supported Thresholds:\n");
@@ -324,7 +288,7 @@ printf( "Unsubscribe\n");
 int
 main(int argc, char **argv)
 {
-  char c;
+  int c;
   SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
   SaHpiRptInfoT rptinfo;
@@ -366,7 +330,6 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
-  inv = (SaHpiInventoryDataT *)&inbuff[0];
 
   rv = saHpiInitialize(&hpiVer);
 

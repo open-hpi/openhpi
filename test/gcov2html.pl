@@ -35,20 +35,22 @@ foreach my $file (@ARGV) {
 
 sub make_html_head {
     my $title = shift;
+    $title =~ s/.*\/(.*)\.gcov$/$1/;
     return <<END;
 <html>
-<head><title>GCOV Report for $title</title>
-<style>
-TR.na {color: grey}
-TR.notexec {background-color: #e84545}
-TR.low {background-color: #dde244}
-TR.good {background-color: #4ae544}
-TD.num {align: right}
-PRE {font-family: san-serif}
-</style>
+<head><title>GCOV execution analyis for $title</title>
+<!--#include virtual="/openhpi.css" -->
 </head>
 <body>
-<h1>GCOV Report for $title</h1>
+<table>
+<tr>
+<!--#include virtual="/sidebar.html" -->
+<td valign="top">
+<h1>GCOV Execution Analysis for $title</h1>
+<p>
+The left column is the number of times the code was executed
+during the unit test suites.
+</p>
 <table>
 <tr><th>Exec</th><th>&nbsp;</th><th>Code</th></tr>
 END
@@ -57,6 +59,7 @@ END
 sub make_html_tail {
     return <<END;
 </table>
+</td></tr></table>
 </body>
 </html>
 END
@@ -80,8 +83,12 @@ sub make_html_body {
     my $html;
     foreach my $line (@$lines) {
         my $status = set_status($line->{exec});
-        my $exec = $line->{exec} + 0;
-        my $data = encode_entities($line->{data});
+        my $exec = ($status eq "na") ? " " : $line->{exec} + 0;
+	
+        my $data = $line->{data};
+	$data =~ s{<(\S+)\@(.*?)\.(net|com)>}{< address removed >}ig; 
+	$data = encode_entities($data);
+
         $html .= "<tr class='$status'><td align='right'>$exec</td><td>&nbsp;</td><td><pre>$data</pre></td></tr>\n";
     }
     return $html;

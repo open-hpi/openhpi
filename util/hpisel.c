@@ -1,9 +1,13 @@
-/*
- * hpisel.c
+/* -*- linux-c -*-
  *
- * Author:  Andy Cress  arcress@users.sourceforge.net
+ * $Id$
+ *
  * Copyright (c) 2003 Intel Corporation.
- *
+ * (C) Copyright IBM Corp 2003
+ * Authors:  
+ *     Andy Cress  arcress@users.sourceforge.net
+ *     Sean Dague <http://dague.net/sean>
+ *  
  * 04/28/03 Andy Cress - created
  * 04/30/03 Andy Cress v0.6 first good run with common use cases
  * 05/06/03 Andy Cress v0.7 added -c option to clear it
@@ -13,6 +17,7 @@
  * 06/19/03 Andy Cress 0.91 added low SEL free space warning
  * 06/25/03 Andy Cress v1.0 rework event data logic 
  * 07/23/03 Andy Cress workaround for OpenHPI BUGGY stuff
+ * 11/12/03 Andy Cress v1.1 check for CAPABILITY_SEL
  * 
  * Note that HPI 1.0 does not return all event data fields, so event
  * types other than 'user' will not have all bytes filled in as they
@@ -53,7 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 #include "SaHpi.h"
 
-char progver[] = "1.0";
+char progver[] = "1.1";
 int fdebug = 0;
 int fclear = 0;
 
@@ -200,295 +205,311 @@ const char *sensor_types[NUMST] = {
 /* 29h */ "Battery",
 };
 
-static
-char *decode_error(SaErrorT code)
+static char *decode_error(SaErrorT code)
 {
-   int i;
-   char *str = NULL;
-   for (i = 0; i < NECODES; i++) {
-	if (code == ecodes[i].code) { str = ecodes[i].str; break; }
-   }
-   if (str == NULL) { 
-	sprintf(&def_estr[10],"%d",code);
-	str = &def_estr[0];
-   }
-   return(str);
+        int i;
+        char *str = NULL;
+        for (i = 0; i < NECODES; i++) {
+                if (code == ecodes[i].code) { str = ecodes[i].str; break; }
+        }
+        if (str == NULL) { 
+                sprintf(&def_estr[10],"%d",code);
+                str = &def_estr[0];
+        }
+        return(str);
 }
 
-void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr, 
-		SaHpiRptEntryT *rptentry )
+static void saftime2str(SaHpiTimeT time, char * str, size_t size) 
 {
-  unsigned char evtype;
-  char timestr[40];
-  time_t tt1;
-  int ec, eci; 
-  int es, esi; 
-  char *srctag;
-  char *rdrtag;
-  char *pstr;
-  char estag[8];
-  unsigned char *pd;
-  int ix, i, styp; 
-  int outlen;
-  char outbuf[132];
-  char mystr[26];
-  unsigned char data1, data2, data3;
-
-  /*format & print the EventLog entry*/
-
-  if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
-     tt1 = sel->Event.Timestamp / 1000000000;
-     strftime(timestr,sizeof(timestr),"%x %H:%M:%S", localtime(&tt1));
-  } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
-     strcpy(timestr,"invalid time     ");
-  } else {   /*relative time*/
-     tt1 = sel->Event.Timestamp / 1000000000;
-     sprintf(timestr,"rel(%lx)", (unsigned long)tt1);  
-  }
-  if (rptentry->ResourceId == sel->Event.Source) 
-	srctag = rptentry->ResourceTag.Data;
-  else  srctag = "unspec ";  /* SAHPI_UNSPECIFIED_RESOURCE_ID */
-  evtype = sel->Event.EventType;
-  if (evtype > NEVTYPES) evtype = NEVTYPES - 1;
-  if (rdr->RdrType == SAHPI_NO_RECORD) rdrtag = "rdr-unkn"; 
-  else {
-	rdr->IdString.Data[rdr->IdString.DataLength] = 0; 
-	rdrtag = &rdr->IdString.Data[0];
-  }
-  sprintf(outbuf,"%04x %s %s ", sel->EntryId, 
-	timestr, evtypes[evtype] );
-  outlen = strlen(outbuf);
-  pstr = "";
-
-  switch(evtype)
-  {
-     case 0:   /*Sensor*/
-	/* decode event category */
-	ec = sel->Event.EventDataUnion.SensorEvent.EventCategory;
-	for (eci = 0; eci < NUM_EC; eci++) 
-		if (eventcats[eci].val == ec) break; 
-	if (eci >= NUM_EC) eci = 0;
-	/* decode event state */
-	es = sel->Event.EventDataUnion.SensorEvent.EventState;
-	if (eci == 1) { /*SAHPI_EC_THRESHOLD*/
-	  for (esi = 0; esi < NUM_ES; esi++) 
-		if (eventstates[esi].val == es) break; 
-	  if (esi >= NUM_ES) esi = 0;
-	  strcpy(estag,eventstates[esi].str);
-	} else sprintf(estag,"%02x",es);
-
-	/* decode sensor type */
-	styp = sel->Event.EventDataUnion.SensorEvent.SensorType;
-	/* data3 is not specifically defined in HPI 1.0, implementation hack */
-	pd = (unsigned char *)&sel->Event.EventDataUnion.SensorEvent.SensorSpecific;
-	data1 = pd[0];
-	data2 = pd[1];
-	data3 = pd[2];
-	if (styp >= NUMST) { styp = 0; }
-
-	if (styp == 0x20) { /*OS Critical Stop*/
-	   /* Show first 3 chars of panic string */
-	   mystr[0] = '(';
-	   mystr[1] = sel->Event.EventDataUnion.SensorEvent.SensorNum & 0x7f;
-	   mystr[2] = data2 & 0x007f;
-	   mystr[3] = data3 & 0x7f;
-	   mystr[4] = ')';
-	   mystr[5] = 0;
-	   if (sel->Event.EventDataUnion.SensorEvent.SensorNum & 0x80)
-		strcat(mystr,"Oops!");
-	   if (data2 & 0x80) strcat(mystr,"Int!");
-	   if (data3 & 0x80) strcat(mystr,"NullPtr!");
-	   pstr = mystr;
-	}
-        sprintf(&outbuf[outlen], "%s, %s %s %x [%02x %02x %02x] %s", 
-	   sensor_types[styp], eventcats[eci].str, estag,
-	   sel->Event.EventDataUnion.SensorEvent.SensorNum,
-	   data1, data2, data3, pstr);
-	break;
-     case 4:   /*User, usu 16-byte IPMI SEL record */
-	pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
-	/* get gen_desc from offset 7 */
-	for (ix = 0; ix < NGDESC; ix++)
-		if (gen_desc[ix].val == pd[7]) break;
-	if (ix >= NGDESC) ix = 0;
-	/* get sensor type description for misc cases */
-	styp = pd[10];   /*sensor type*/
-	data3 = pd[15];
-	  /* = *sel->Event.EventDataUnion.SensorEvent.SensorSpecific+1; */
-	for (i = 0; i < NSDESC; i++) {
-	   if (sens_desc[i].s_typ == styp) {
-		if (sens_desc[i].s_num != 0xff &&
-		    sens_desc[i].s_num != pd[11])
-			continue;
-		if (sens_desc[i].data1 != 0xff &&
-		   (sens_desc[i].data1 & 0x07) != pd[13])
-			continue;
-		if (sens_desc[i].data2 != 0xff &&
-		    sens_desc[i].data2 != pd[14])
-			continue;
-		if (sens_desc[i].data3 != 0xff &&
-		    sens_desc[i].data3 != data3)
-			continue;
-		/* have a match, use description */
-		pstr = (char *)sens_desc[i].desc;
-		break;
-	   }
-	} /*end for*/
-	if (i >= NSDESC) {
-	   if (styp >= NUMST) styp = 0;
-	   pstr = (char *)sensor_types[styp];
-	}
-        sprintf(&outbuf[outlen], "%s, %s %02x %02x %02x [%02x %02x %02x]",
-		pstr, gen_desc[ix].str,
-		pd[10],pd[11],pd[12],pd[13],pd[14],data3);
-	break;
-     default:
-	pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
-	styp = pd[10];
-	data3 = pd[15];
-	   /* *sel->Event.EventDataUnion.SensorEvent.SensorSpecific+1 */
-	if (styp >= NUMST) { 
-		if (fdebug) printf("sensor type %d >= max %d\n",styp,NUMST);
-		styp = 0; 
-	}
-	pstr = (char *)sensor_types[styp];
-        sprintf(&outbuf[outlen], "%s, %x %x, %02x %02x %02x [%02x %02x %02x/%02x]",
-			pstr, pd[0], pd[7], pd[10], pd[11], pd[12], 
-				pd[13], pd[14], pd[15], data3);
-	break;
-   }
-   printf("%s\n",outbuf);
+        struct tm t;
+        time_t tt;
+        tt = time / 1000000000;
+        localtime_r(&tt, &t);
+        strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
 }
 
-int
-main(int argc, char **argv)
+static void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr, 
+                     SaHpiRptEntryT *rptentry )
 {
-  char c;
-  SaErrorT rv;
-  SaHpiVersionT hpiVer;
-  SaHpiSessionIdT sessionid;
-  SaHpiRptInfoT rptinfo;
-  SaHpiRptEntryT rptentry;
-  SaHpiEntryIdT rptentryid;
-  SaHpiEntryIdT nextrptentryid;
-  SaHpiResourceIdT resourceid;
-  SaHpiSelEntryIdT entryid;
-  SaHpiSelEntryIdT nextentryid;
-  SaHpiSelEntryIdT preventryid;
-  SaHpiSelInfoT info;
-  SaHpiSelEntryT  sel;
-  SaHpiRdrT rdr;
+        unsigned char evtype;
+        char timestr[40];
+        time_t tt1;
+        int ec, eci; 
+        int es, esi; 
+        char *srctag;
+        char *rdrtag;
+        const char *pstr;
+        char estag[8];
+        unsigned char *pd;
+        int ix, i, styp; 
+        int outlen;
+        char outbuf[132];
+        char mystr[26];
+        unsigned char data1, data2, data3;
+        
+        /*format & print the EventLog entry*/
+        
+        if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
+                tt1 = sel->Event.Timestamp / 1000000000;
+                strftime(timestr,sizeof(timestr),"%F %T", localtime(&tt1));
+        } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
+                strcpy(timestr,"invalid time     ");
+        } else {   /*relative time*/
+                tt1 = sel->Event.Timestamp / 1000000000;
+                sprintf(timestr,"rel(%lx)", (unsigned long)tt1);  
+        }
+        if (rptentry->ResourceId == sel->Event.Source) 
+                srctag = rptentry->ResourceTag.Data;
+        else  
+                srctag = "unspec ";  /* SAHPI_UNSPECIFIED_RESOURCE_ID */
 
-  printf("%s: version %s\n",argv[0],progver); 
+        evtype = sel->Event.EventType;
+        if (evtype > NEVTYPES) 
+                evtype = NEVTYPES - 1;
+        
+        if (rdr->RdrType == SAHPI_NO_RECORD) {
+                rdrtag = "rdr-unkn"; 
+        } else {
+                rdr->IdString.Data[rdr->IdString.DataLength] = 0; 
+                rdrtag = &rdr->IdString.Data[0];
+        }
+        sprintf(outbuf,"%04x %s %s ", sel->EntryId, 
+                timestr, evtypes[evtype] );
+        outlen = strlen(outbuf);
+        pstr = "";
 
-  while ( (c = getopt( argc, argv,"cx?")) != EOF )
-  switch(c) {
-        case 'c': fclear = 1; break;
-        case 'x': fdebug = 1; break;
+        /*
+          sld: there is a lot of stuff specific to IPMI and other HPI implementations
+          here.  Scrubing for HPI 1.0 only data would be a good thing soon
+        */
+        
+        switch(evtype)
+        {
+        case SAHPI_ET_SENSOR:   /*Sensor*/
+                /* decode event category */
+                ec = sel->Event.EventDataUnion.SensorEvent.EventCategory;
+                for (eci = 0; eci < NUM_EC; eci++) 
+                        if (eventcats[eci].val == ec) break; 
+                if (eci >= NUM_EC) eci = 0;
+                /* decode event state */
+                es = sel->Event.EventDataUnion.SensorEvent.EventState;
+                if (eci == 1) { /*SAHPI_EC_THRESHOLD*/
+                        for (esi = 0; esi < NUM_ES; esi++) 
+                                if (eventstates[esi].val == es) break; 
+                        if (esi >= NUM_ES) esi = 0;
+                        strcpy(estag,eventstates[esi].str);
+                } else sprintf(estag,"%02x",es);
+                
+                /* decode sensor type */
+                styp = sel->Event.EventDataUnion.SensorEvent.SensorType;
+                /* data3 is not specifically defined in HPI 1.0, implementation hack */
+                pd = (unsigned char *)&sel->Event.EventDataUnion.SensorEvent.SensorSpecific;
+                data1 = pd[0];
+                data2 = pd[1];
+                data3 = pd[2];
+                if (styp >= NUMST) { styp = 0; }
+                
+                if (styp == 0x20) { /*OS Critical Stop*/
+                        /* Show first 3 chars of panic string */
+                        mystr[0] = '(';
+                        mystr[1] = sel->Event.EventDataUnion.SensorEvent.SensorNum & 0x7f;
+                        mystr[2] = data2 & 0x007f;
+                        mystr[3] = data3 & 0x7f;
+                        mystr[4] = ')';
+                        mystr[5] = 0;
+                        if (sel->Event.EventDataUnion.SensorEvent.SensorNum & 0x80)
+                                strcat(mystr,"Oops!");
+                        if (data2 & 0x80) strcat(mystr,"Int!");
+                        if (data3 & 0x80) strcat(mystr,"NullPtr!");
+                        pstr = mystr;
+                }
+                sprintf(&outbuf[outlen], "%s, %s %s %x [%02x %02x %02x] %s", 
+                        sensor_types[styp], eventcats[eci].str, estag,
+                        sel->Event.EventDataUnion.SensorEvent.SensorNum,
+                        data1, data2, data3, pstr);
+                break;
+        case SAHPI_ET_USER:   /*User, usu 16-byte IPMI SEL record */
+                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
+                /* get gen_desc from offset 7 */
+                for (ix = 0; ix < NGDESC; ix++)
+                        if (gen_desc[ix].val == pd[7]) break;
+                if (ix >= NGDESC) ix = 0;
+                /* get sensor type description for misc cases */
+                styp = pd[10];   /*sensor type*/
+                data3 = pd[15];
+                /* = *sel->Event.EventDataUnion.SensorEvent.SensorSpecific+1; */
+                for (i = 0; i < NSDESC; i++) {
+                        if (sens_desc[i].s_typ == styp) {
+                                if (sens_desc[i].s_num != 0xff &&
+                                    sens_desc[i].s_num != pd[11])
+                                        continue;
+                                if (sens_desc[i].data1 != 0xff &&
+                                    (sens_desc[i].data1 & 0x07) != pd[13])
+                                        continue;
+                                if (sens_desc[i].data2 != 0xff &&
+                                    sens_desc[i].data2 != pd[14])
+                                        continue;
+                                if (sens_desc[i].data3 != 0xff &&
+                                    sens_desc[i].data3 != data3)
+                                        continue;
+                                /* have a match, use description */
+                                pstr = (char *)sens_desc[i].desc;
+                                break;
+                        }
+                } /*end for*/
+                if (i >= NSDESC) {
+                        if (styp >= NUMST) styp = 0;
+                        pstr = sensor_types[styp];
+                }
+                sprintf(&outbuf[outlen], "%s, %s %02x %02x %02x [%02x %02x %02x]",
+                        pstr, gen_desc[ix].str,
+                        pd[10],pd[11],pd[12],pd[13],pd[14],data3);
+                break;
+        case SAHPI_ET_OEM:
+                /* only go into this if it is IBM hardware, as others might use
+                   the Oem field differently */
+                if(sel->Event.EventDataUnion.OemEvent.MId == 2) {
+                        /* sld: I'm going to printf directly, as the output buffer isn't
+                           big enough for what I want to do */
+                        printf("Oem Event:\n");
+                        saftime2str(sel->Timestamp, timestr, 40);
+                        printf("\tTimestamp: %s\n", timestr);
+                        printf("\tSeverity: %d\n", sel->Event.Severity);
+                        printf("\tMId:%d, Data: %s\n", 
+                               sel->Event.EventDataUnion.OemEvent.MId,
+                               sel->Event.EventDataUnion.OemEvent.OemEventData);
+                }
+                break;
+                
         default:
-                printf("Usage %s [-cx]\n",argv[0]);
-                printf("where -c clears the event log\n");
-                printf("      -x displays eXtra debug messages\n");
-                exit(1);
-  }
-  rv = saHpiInitialize(&hpiVer);
-  if (rv != SA_OK) {
-	printf("saHpiInitialize: %s\n",decode_error(rv));
-	exit(-1);
-	}
-  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
-  if (rv != SA_OK) {
-	if (rv == SA_ERR_HPI_ERROR) 
-	   printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
-	else
-	   printf("saHpiSessionOpen: %s\n",decode_error(rv));
-	exit(-1);
-	}
+                pd = &sel->Event.EventDataUnion.UserEvent.UserEventData[0];
+                styp = pd[10];
+                data3 = pd[15];
+                /* *sel->Event.EventDataUnion.SensorEvent.SensorSpecific+1 */
+                if (styp >= NUMST) { 
+                        if (fdebug) printf("sensor type %d >= max %d\n",styp,NUMST);
+                        styp = 0; 
+                }
+                pstr = sensor_types[styp];
+                sprintf(&outbuf[outlen], "%s, %x %x, %02x %02x %02x [%02x %02x %02x/%02x]",
+                        pstr, pd[0], pd[7], pd[10], pd[11], pd[12], 
+                        pd[13], pd[14], pd[15], data3);
+                break;
+        }
+        printf("%s\n",outbuf);
+}
+
+int main(int argc, char **argv)
+{
+        int c;
+        SaErrorT rv;
+        SaHpiVersionT hpiVer;
+        SaHpiSessionIdT sessionid;
+        SaHpiRptInfoT rptinfo;
+        SaHpiRptEntryT rptentry;
+        SaHpiEntryIdT rptentryid;
+        SaHpiEntryIdT nextrptentryid;
+        SaHpiResourceIdT resourceid;
+        SaHpiSelEntryIdT entryid;
+        SaHpiSelEntryIdT nextentryid;
+        SaHpiSelEntryIdT preventryid;
+        SaHpiSelInfoT info;
+        SaHpiSelEntryT  sel;
+        SaHpiRdrT rdr;
+        
+        printf("%s: version %s\n",argv[0],progver); 
+        
+        while ( (c = getopt( argc, argv,"cx?")) != EOF )
+                switch(c) {
+                case 'c': fclear = 1; break;
+                case 'x': fdebug = 1; break;
+                default:
+                        printf("Usage %s [-cx]\n",argv[0]);
+                        printf("where -c clears the event log\n");
+                        printf("      -x displays eXtra debug messages\n");
+                        exit(1);
+                }
+        rv = saHpiInitialize(&hpiVer);
+        if (rv != SA_OK) {
+                printf("saHpiInitialize: %s\n",decode_error(rv));
+                exit(-1);
+        }
+        rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+        if (rv != SA_OK) {
+                if (rv == SA_ERR_HPI_ERROR) 
+                        printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
+                else
+                        printf("saHpiSessionOpen: %s\n",decode_error(rv));
+                exit(-1);
+        }
  
-  rv = saHpiResourcesDiscover(sessionid);
-  if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
-  rv = saHpiRptInfoGet(sessionid,&rptinfo);
-  if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
-  printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
-         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
-
-#ifdef BUGGY
-  /* ARC: Bug here in OpenHPI requires re-doing discovery (workaround). */
-  { 
-      int updcnt;
-      int i = 0;
-      updcnt = rptinfo.UpdateCount;
-      while (rptinfo.UpdateCount == updcnt) {
-	   rv = saHpiResourcesDiscover(sessionid);
-	 if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
-	 rv = saHpiRptInfoGet(sessionid,&rptinfo);
-	 if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
-	 printf("RptInfo/%d: UpdateCount = %d, UpdateTime = %lx\n",
-	      ++i,rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
-      }
-  }  /*end openhpi bug workaround*/
-#endif
- 
-  /* walk the RPT list */
-  rptentryid = SAHPI_OLDEST_ENTRY;
-  while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
-  {
-     rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
-     if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
-     if (rv == SA_OK) {
-	resourceid = rptentry.ResourceId;
-	if (fclear) {
-		rv = saHpiEventLogClear(sessionid,resourceid);
-		if (rv == SA_OK) printf("EventLog successfully cleared\n");
-		else printf("EventLog clear, error = %d\n",rv);
-		break;
-	}
-        rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
-	printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
-
-	rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
-	if (fdebug) printf("saHpiEventLogInfoGet %s\n",decode_error(rv));
-	if (rv == SA_OK) {
-		/* This data isn't reliable yet with Spi beta2 implementation */
-		/* Use the entryid instead to calculate log size below. */
-		printf("EventLog entries=%d, size=%d, enabled=%d\n",
-			info.Entries,info.Size,info.Enabled);
-	}
-
-	entryid = SAHPI_OLDEST_ENTRY;
-	while ((rv == SA_OK) && (entryid != SAHPI_NO_MORE_ENTRIES))
-	{
-		rv = saHpiEventLogEntryGet(sessionid,resourceid,entryid,
-				&preventryid,&nextentryid,&sel,&rdr,NULL);
-		if (fdebug) printf("saHpiEventLogEntryGet %s\n",
-					decode_error(rv));
-		if (rv == SA_OK) {
-			ShowSel(&sel, &rdr, &rptentry);
-			preventryid = entryid;
-			entryid = nextentryid;
-		}
-	}
-	if (preventryid >= 0xff80) {
-	   int free;
-	   /* 
-	    * This test could be more generic if the log info fields above 
-	    * were accurate.  IPMI SEL logs have a fixed size of 0x10000 
-	    * bytes.  New log records are thrown away when it gets full.
-	    * (OLDEST = 0, NO_MORE = fffffffe , so these are ok.)
-	    */
-	   free = (0x10000 - 20) - preventryid;
-	   printf("WARNING: Log free space is very low (%d bytes)\n"
-		  "         Clear log with hpisel -c\n",free);
-	   }
-	rptentryid = nextrptentryid;
-     }
-  }
- 
-  rv = saHpiSessionClose(sessionid);
-  rv = saHpiFinalize();
-
-  exit(0);
-  return(0);
+        rv = saHpiResourcesDiscover(sessionid);
+        if (fdebug) printf("saHpiResourcesDiscover %s\n",decode_error(rv));
+        rv = saHpiRptInfoGet(sessionid,&rptinfo);
+        if (fdebug) printf("saHpiRptInfoGet %s\n",decode_error(rv));
+        printf("RptInfo: UpdateCount = %d, UpdateTime = %lx\n",
+               rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
+        
+        /* walk the RPT list */
+        rptentryid = SAHPI_FIRST_ENTRY;
+        while ((rv == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY))
+        {
+                rv = saHpiRptEntryGet(sessionid,rptentryid,&nextrptentryid,&rptentry);
+                if (fdebug) printf("saHpiRptEntryGet %s\n",decode_error(rv));
+                if (rv == SA_OK) {
+                        resourceid = rptentry.ResourceId;
+                        if (fdebug) printf("RPT %x capabilities = %x\n", resourceid,
+                                           rptentry.ResourceCapabilities);
+                        if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+                                if (fdebug) printf("RPT doesn't have SEL\n");
+                                rptentryid = nextrptentryid;
+                                continue;  /* no SEL here, try next RPT */
+                        }
+                        if (fclear) {
+                                rv = saHpiEventLogClear(sessionid,resourceid);
+                                if (rv == SA_OK) printf("EventLog successfully cleared\n");
+                                else printf("EventLog clear, error = %d\n",rv);
+                                break;
+                        }
+                        rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0; 
+                        printf("rptentry[%d] tag: %s\n", resourceid,rptentry.ResourceTag.Data);
+                        
+                        rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
+                        if (fdebug) printf("saHpiEventLogInfoGet %s\n",decode_error(rv));
+                        if (rv == SA_OK) {
+                                char date[30];
+                                printf("EventLog entries=%d, size=%d, enabled=%d\n",
+                                       info.Entries,info.Size,info.Enabled);
+                                saftime2str(info.UpdateTimestamp,date,30);
+                                printf("UpdateTime = %s,", date);
+                                saftime2str(info.CurrentTime,date,30);
+                                printf("CurrentTime = %s\n", date);
+				printf("Overflow = %d\n", info.OverflowFlag);
+				printf("DeleteEntrySupported = %d\n", info.DeleteEntrySupported);
+                        }
+                        
+                        entryid = SAHPI_OLDEST_ENTRY;
+                        while ((rv == SA_OK) && (entryid != SAHPI_NO_MORE_ENTRIES))
+                        {
+                                rv = saHpiEventLogEntryGet(sessionid,resourceid,entryid,
+                                                           &preventryid,&nextentryid,&sel,&rdr,NULL);
+                                if (fdebug) printf("saHpiEventLogEntryGet %s\n",
+                                                   decode_error(rv));
+                                if (rv == SA_OK) {
+                                        ShowSel(&sel, &rdr, &rptentry);
+                                        preventryid = entryid;
+                                        entryid = nextentryid;
+                                }
+                        }
+                        rptentryid = nextrptentryid;
+                }
+        }
+        
+        rv = saHpiSessionClose(sessionid);
+        rv = saHpiFinalize();
+        
+        exit(0);
+        return(0);
 }
  
 /* end hpisel.c */

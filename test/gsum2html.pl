@@ -26,8 +26,10 @@ foreach my $file (@ARGV) {
     my $html = make_html_head($file);
     $html .= make_html_body(@lines);
     $html .= make_html_tail();
-
-    print $html;
+    
+    if(scalar(@lines) > 5) {
+        print $html;
+    }
 #    open(OUT,">$outfile");
 #    print OUT $html;
 #    close(OUT);
@@ -39,20 +41,13 @@ sub make_html_head {
     return <<END;
 <html>
 <head><title>GCOV Report for $title</title>
-<style>
-TABLE.report {width: 600; border-width: thin; border-style: solid}
-TR.function {font-size: larger; font-weight: bold}
-TR.file {font-size: largest; font-weight: bold}
-TR.na {color: grey}
-TR.bad {background-color: #e84545}
-TR.ok {background-color: #dde244}
-TR.good {background-color: #4ae544}
-TR.great {background-color: green}
-TD.num {align: right}
-PRE {font-family: san-serif}
-</style>
+<!--#include virtual="/openhpi.css" -->
 </head>
 <body>
+<table>
+<tr>
+<!--#include virtual="/sidebar.html" -->
+<td valign="top">
 <h1>GCOV Summary for $title</h1>
 END
 }
@@ -60,6 +55,7 @@ END
 sub make_html_tail {
     return <<END;
 </table>
+</td></tr></table>
 </body>
 </html>
 END
@@ -86,10 +82,10 @@ sub make_html_body {
             $line =~ s/.*`([^']+).*/$1/;
             # close the last table
             $html .= "</table>\n";
-            $html .= "<h2>$line</h2>\n<table class='report'>\n";
+            $html .= "<h2 class='function'>$line</h2>\n<table class='report'>\n";
         } elsif($line =~ /^File/) {
             $line =~ s/.*`([^']+).*/$1/;
-            $html .= "<h1>$line</h1>\n<table class='report'>\n"
+            $html .= "<h2 class='file'>$line</h2>\n<table class='report'>\n"
         } elsif ($line =~ /^No/) {
             $html .= "<tr class='na'><td>$line</td></tr>\n";
         } elsif ($line =~ /(\d+\.\d{2})%/) {
@@ -97,9 +93,9 @@ sub make_html_body {
             my $status = "bad";
             if($per >= 100) {
                 $status = "great";
-            } elsif($per >= 80) {
+            } elsif($per > 80) {
                 $status = "good";
-            } elsif($per >= 50) {
+            } elsif($per > 50) {
                 $status = "ok";
             }
             $html .= "<tr class='$status'><td>$line</td></tr>\n";

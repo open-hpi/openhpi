@@ -118,7 +118,7 @@ static void usage(char **argv)
 
 int main(int argc, char **argv)
 {
-	char c;
+	int c;
 	char i_newdate[20];
 	char i_newtime[20];
 	char timestr[40];
