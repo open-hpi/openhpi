@@ -72,6 +72,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
 				/* This is one of the exception condition */
 				returncode = SA_ERR_HPI_NOT_PRESENT;
 				dbg("snmp exception %d \n",vars->type);
+				dbg("OID=%s", objid);
 
                     	} else if ( (vars->type == ASN_INTEGER) || 
 				    (vars->type == ASN_COUNTER) || 
@@ -96,6 +97,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
         } else {
                 value->type = (u_char)0x00; 
                 snmp_sess_perror("snmpget", ss);
+		dbg("OID=%s", objid);
 		returncode = snmpstat2hpi(status);
         }
 
