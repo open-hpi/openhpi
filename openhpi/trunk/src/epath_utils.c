@@ -143,22 +143,22 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 {
 
 	gchar  **epathdefs = NULL, **epathvalues = NULL;
-	gchar  *gstr = NULL, *etype = NULL, *einstance = NULL, *endptr;
+	gchar  *gstr = NULL, *etype = NULL, *einstance = NULL, *endptr = NULL;
         gint rtncode = 0;
 	guint   i, j, match, instance, num_valid_entities = 0;
         GSList *epath_list = NULL, *lst = NULL;
 
 	SaHpiEntityT  *entityptr = NULL;
 
-	if (epathstr == NULL) {
+	if (epathstr == NULL || epathstr[0] == '\0') {
 		dbg("Input entity path string is NULL"); return(-1);
 	}
 
 	/* Split out {xxx,yyy} definition pairs */
-	gstr = g_strdup(epathstr);
-	epathdefs = g_strsplit(g_strstrip(gstr), EPATHSTRING_END_DELIMITER, -1);
-	if (*epathdefs == NULL) { 
-		dbg("Stripped entity path string is NULL"); 
+	gstr = g_strstrip(g_strdup(epathstr));
+	epathdefs = g_strsplit(gstr, EPATHSTRING_END_DELIMITER, -1);
+	if (epathdefs == NULL) { 
+		dbg("Could not split entity path string."); 
 		rtncode = -1; goto CLEANUP;
         }
 
@@ -172,17 +172,18 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 		einstance = g_strstrip(epathvalues[1]);
 
 		instance = strtol(einstance, &endptr, 10);
-		if (*endptr != '\0') { 
+		if (endptr[0] != '\0') { 
 			dbg("Invalid instance character"); 
-			rtncode = -1; goto CLEANUP; }
+			rtncode = -1; goto CLEANUP;
+                }
 
-		match = 0;
-		for (j=0; j < ESHORTNAMES_ARRAY_SIZE + 1; j++) {
+		for (match=0, j=0; j < ESHORTNAMES_ARRAY_SIZE + 1; j++) {
 			if (!strcmp(eshort_names[j], etype)) {
 				match = 1;
 				break;
 			}
 		}
+                
 		if (!match) { 
 			dbg("Invalid entity type string"); 
 			rtncode = -1; goto CLEANUP;
@@ -207,27 +208,28 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 	/* Clear and write HPI entity path structure */
 	memset(epathptr, 0, SAHPI_MAX_ENTITY_PATH * sizeof(*entityptr));
 
-	i = 0;
-	g_slist_for_each(lst, epath_list) {
-		epathptr->Entry[i].EntityType = 
-			((SaHpiEntityT *)(lst->data))->EntityType;
-		epathptr->Entry[i].EntityInstance = 
-			((SaHpiEntityT *)(lst->data))->EntityInstance;
-
-		g_free(lst->data); /* Is this necessary ??? */
-		epath_list = g_slist_remove(epath_list, lst);
-		i++;
+	for (i = 0; epath_list != NULL; i++) {
+                lst = epath_list;
+                if (i < SAHPI_MAX_ENTITY_PATH) {
+                        epathptr->Entry[i].EntityType = 
+                                ((SaHpiEntityT *)(lst->data))->EntityType;
+                        epathptr->Entry[i].EntityInstance = 
+                                ((SaHpiEntityT *)(lst->data))->EntityInstance;
+                }
+                epath_list = g_slist_remove_link(epath_list,lst);
+                g_free(lst->data);
+                g_free(lst);
 	}
-
+        
 	if (num_valid_entities > SAHPI_MAX_ENTITY_PATH) { 
 		dbg("Too many entity defs"); rtncode = -1;
 	}
    
  CLEANUP:
-	g_free(gstr);
-	g_strfreev(epathdefs);
-	g_strfreev(epathvalues);
-	g_slist_free(epath_list);
+	if (gstr) g_free(gstr);
+	if (epathdefs) g_strfreev(epathdefs);
+	if (epathvalues) g_strfreev(epathvalues);
+	if (epath_list) g_slist_free(epath_list);
 
 	return(rtncode);
 } /* End string2entitypath */
@@ -261,11 +263,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 
 	instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
 	tmpstr = (gchar *)g_malloc0(strsize);
-	if (instance_str == NULL) { 
-		dbg("Out of memory"); 
-		rtncode = -1; goto CLEANUP;
-	}
-	if (tmpstr == NULL) { 
+	if (instance_str == NULL || tmpstr == NULL) { 
 		dbg("Out of memory"); 
 		rtncode = -1; goto CLEANUP;
 	}
@@ -282,11 +280,10 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
                 for (num_digits = 1; (work_instance_num = work_instance_num/10) > 0; num_digits++);
 		
 		if (num_digits > MAX_INSTANCE_DIGITS) { 
-                        g_free(instance_str); 
-			dbg("Instance value too big");
+                        dbg("Instance value too big");
                         rtncode = -1; goto CLEANUP;
 		}
-
+                memset(instance_str, 0, MAX_INSTANCE_DIGITS + 1);
                 err = snprintf(instance_str, MAX_INSTANCE_DIGITS + 1,
                                "%d", epathptr->Entry[i].EntityInstance);
 
@@ -297,7 +294,7 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 			strlen(instance_str) + 
 			strlen(EPATHSTRING_END_DELIMITER);
 
-		if (strcount >= strsize - 1) {
+		if (strcount > strsize - 1) {
 			dbg("Not enough space allocated for string"); 
 			rtncode = -1; goto CLEANUP;
 		}
@@ -318,8 +315,8 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	strcpy(epathstr, tmpstr);
 
  CLEANUP:
-	g_free(instance_str);
-	g_free(tmpstr);
+	if (instance_str) g_free(instance_str);
+	if (tmpstr) g_free(tmpstr);
 
 	return(rtncode);
 } /* End entitypath2string */
