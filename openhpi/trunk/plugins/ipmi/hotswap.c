@@ -124,7 +124,6 @@ int ohoi_hot_swap_cb(ipmi_entity_t  *ent,
 	    					SAHPI_HS_STATE_NOT_PRESENT) {
 		dbg("HS_STATE NOT PRESENT, removing RPT");
 	  	handler->eventq = g_slist_append(handler->eventq,e);
-//		ohoi_remove_entity(handler, rpt_entry->ResourceId);
 	}else if (e->u.hpi_event.event.EventDataUnion.HotSwapEvent
 		  	.HotSwapState == SAHPI_HS_STATE_ACTIVE) {
 		dbg("HS_STATE ACTIVE");
