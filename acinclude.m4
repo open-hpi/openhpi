@@ -15,6 +15,27 @@
 #
 ##################################################
 
+
+AC_DEFUN(OH_SET_SIZES,
+    [
+    OH_SSFILE=testsize
+    OH_SSSOURCE="$OH_SSFILE.c"
+    echo "#include <stdlib.h>" > $OH_SSSOURCE
+    echo "#include <stdio.h>" >> $OH_SSSOURCE
+    echo "int main() {" >> $OH_SSSOURCE
+    # add more here if you need them
+    echo "printf(\"int %d\n\",sizeof(int));" >> $OH_SSSOURCE
+    echo "return 0;" >> $OH_SSSOURCE
+    echo "}" >> $OH_SSSOURCE
+    
+    gcc -o $OH_SSFILE $OH_SSSOURCE
+
+    OH_TYPE_SIZES=`$OH_SSFILE`
+    # feel free to define more logic here if we need it
+    OH_SIZEOF_INT=`echo $OH_TYPE_SIZES | grep "^int" | awk '{print $[2]}'`
+    rm -f $OH_SSFILE $OH_SSSOURCE
+    ])
+
 #
 # OH_CHECK_FAIL($LIBNAME,$PACKAGE_SUGGEST,$URL,$EXTRA)
 #
