@@ -34,6 +34,8 @@ saHpiRdrGetByInstrumentId
 saHpiSensorReadingGet
 saHpiSensorThresholdsSet
 saHpiSensorThresholdsGet
+saHpiSensorEnableGet
+saHpiSensorEnableSet
 saHpiSensorTypeGet
 saHpiSensorEventEnableGet
 saHpiSensorEventEnableSet
