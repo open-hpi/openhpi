@@ -38,6 +38,8 @@ INCLUDES		= -I$(top_srcdir)/include
 
 SUBDIRS			= @SNMPDIR@ plugins t
 
+DIST_SUBDIRS		= snmp plugins t
+
 AM_CFLAGS		= @CFLAGS@
 
 lib_LTLIBRARIES		= libopenhpi.la
