@@ -34,7 +34,7 @@ do{                                                                  \
 	}                                                            \
 	if (idrid != OHOI_IDR_DEFAULT_ID) {                          \
 		dbg("error id");                                     \
-		return SA_ERR_HPI_INVALID_PARAMS;                    \
+		return SA_ERR_HPI_NOT_PRESENT;                    \
 	}                                                            \
 }while(0)
 
