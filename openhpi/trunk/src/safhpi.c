@@ -649,7 +649,29 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
 		SAHPI_IN SaHpiSensorNumT SensorNum,
 		SAHPI_OUT SaHpiSensorThresholdsT *SensorThresholds)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_zone *zone;
+	struct oh_rdr *rdr;
+
+	int (*set_func) (void *, struct oh_rdr_id *,const SaHpiSensorThresholdsT *);
+
+	OH_GET_RESOURCE;
+	OH_GET_ZONE;
+
+	rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
+
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+	
+	set_func = zone->abi->set_sensor_thresholds;
+
+	if (!set_func)
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (set_func(zone->hnd, &rdr->oid, SensorThresholds))
+		return SA_ERR_HPI_UNKNOWN;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiSensorThresholdsGet (
@@ -679,7 +701,6 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
 
 	if (get_func(zone->hnd, &rdr->oid, SensorThresholds))
 		return SA_ERR_HPI_UNKNOWN;
-	dbg("Thresholds Get called");
 
 	return SA_OK;
 }
