@@ -39,8 +39,8 @@ extern struct oh_domain_table oh_domains;
  * Representation of an domain
  */
 struct oh_domain {
-        /* This id is used to app layer
-         * to identy domain
+        /* This id is used by app
+         * to identify the domain
          */
         SaHpiDomainIdT id;
 

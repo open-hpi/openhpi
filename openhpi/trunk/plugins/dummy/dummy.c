@@ -895,6 +895,7 @@ static void *dummy_open(GHashTable *handler_config)
 
         /* initialize hashtable pointer */
         i->rptcache = (RPTable *)g_malloc0(sizeof(RPTable));
+        oh_init_rpt(i->rptcache, NULL);
 
         /* fill in the local rpt cache */
         __build_the_rpt_cache(i);

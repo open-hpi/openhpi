@@ -20,6 +20,8 @@
 #include <oh_utils.h>
 #include <string.h>
 
+#define OH_FIRST_DOMAIN 1
+
 struct oh_domain_table oh_domains = {        
         .table = NULL,
         .lock = G_STATIC_REC_MUTEX_INIT,
@@ -40,7 +42,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
                                 SaHpiTextBufferT *tag)
 {
         struct oh_domain *domain = NULL;
-        static SaHpiDomainIdT id = 1; /* domain ids will start at 1 */
+        static SaHpiDomainIdT id = OH_FIRST_DOMAIN; /* domain ids will start at 1 */
         
         domain = g_new0(struct oh_domain,1);
         if (!domain) return 0;
@@ -50,13 +52,14 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         domain->info.DatUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
         domain->info.DrtUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
         domain->info.RptUpdateTimestamp = SAHPI_TIME_UNSPECIFIED;
+        oh_init_rpt(&(domain->rpt), &(domain->info));
         
         if (tag)
-                memcpy(&(domain->info.DomainTag),tag,sizeof(SaHpiTextBufferT));
+                memcpy(&(domain->info.DomainTag),tag,sizeof(SaHpiTextBufferT));        
         domain->del = oh_el_create(OH_EL_MAX_SIZE);
         domain->sessions = g_array_sized_new(FALSE, TRUE,
                                              sizeof(SaHpiSessionIdT),
-                                             OH_SESSION_PREALLOC);
+                                             OH_SESSION_PREALLOC);        
 
         g_static_rec_mutex_init(&(domain->lock));
 
@@ -82,7 +85,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
  **/
 SaHpiDomainIdT oh_get_default_domain_id()
 {
-        return (SaHpiDomainIdT)1;
+        return (SaHpiDomainIdT)OH_FIRST_DOMAIN;
 }
 
 /**

@@ -31,6 +31,7 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
+        oh_init_rpt(rptable, NULL);
         void *data = NULL;
 	char *res_data = "This is the resource's data...It's private.";
 	unsigned int res_data_len = strlen(res_data);
