@@ -574,7 +574,7 @@ cOpenHpiDaemon::Idle()
        DbgEvent( "idle: saHpiEventGet read event\n" );
 
        if ( m_debug & dDebugEvent )
-	    print_event( &event );
+	    print_event( m_session, &event );
      }
   else if ( ret == SA_ERR_HPI_TIMEOUT )
        DbgEvent( "idle: saHpiEventGet timeout.\n", ret );
