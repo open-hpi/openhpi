@@ -22,7 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
-#include "SaHpi.h"
+#include <SaHpi.h>
 
 
 int fdebug = 0;
@@ -66,7 +66,9 @@ char *units[NSU] = {
 	"mm",    "cm"
 };
 
-void
+
+/*
+static void
 fixstr(SaHpiTextBufferT *strptr)
 { 
 	size_t datalen;
@@ -74,9 +76,10 @@ fixstr(SaHpiTextBufferT *strptr)
 		strncpy ((char *)outbuff, (char *)strptr->Data, datalen);
 	outbuff[datalen] = 0;
 }
+*/
 
-void ShowThresh(
-   SaHpiSensorThresholdsT *sensbuff)
+static void
+ShowThresh(SaHpiSensorThresholdsT *sensbuff)
 {
       printf( "    Supported Thresholds:\n");
       if (sensbuff->LowCritical.ValuesPresent & SAHPI_SRF_INTERPRETED)
