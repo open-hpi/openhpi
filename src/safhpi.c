@@ -79,28 +79,27 @@ SaErrorT SAHPI_API saHpiSessionClose(
         return oh_destroy_session(SessionId);
 }
 
-static void oh_handler_table_discover(gpointer key, gpointer value, gpointer data)
-{
-        struct oh_handler *h = (struct oh_handler*)value;
-        SaErrorT *error = (SaErrorT *)data;
-        
-        if (h->abi->discover_resources(h->hnd) == SA_OK && *error)
-                *error = SA_OK;
-}
-
 SaErrorT SAHPI_API saHpiDiscover(
         SAHPI_IN SaHpiSessionIdT SessionId)
 {
         SaHpiDomainIdT did;
         int rv = SA_ERR_HPI_ERROR;
+        unsigned int hid = 0, next_hid;
+        struct oh_handler *h = NULL;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-                
-        data_access_lock();        
-        g_hash_table_foreach(handler_table,
-                              oh_handler_table_discover,
-                              &rv);
+
+        data_access_lock();
+        oh_lookup_next_handler_id(hid, &next_hid);
+        while (next_hid) {
+                hid = next_hid;
+                h = oh_lookup_handler(hid);
+                if (h->abi->discover_resources(h->hnd) == SA_OK && rv)
+                        rv = SA_OK;
+
+                oh_lookup_next_handler_id(hid, &next_hid);
+        }
         data_access_unlock();
 
         if (rv) {

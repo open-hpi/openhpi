@@ -28,16 +28,18 @@
 #include <config.h>
 
 /*
- * List of plugins (oh_plugin_config). This list is populated
- * by the plugin loader.
+ * List of plugins (oh_plugin).
  */
-GSList *plugin_list = NULL;
+static GSList *plugin_list = NULL;
 
 /*
- * Table of handlers (oh_handler). This list is populated
- * by the first call the saHpiSessionOpen().
+ * Table of handlers (oh_handler).
  */
-GHashTable *handler_table = NULL;
+static GHashTable *handler_table = NULL;
+/*
+ * List of handler ids (unsigned int).
+ */
+static GSList *handler_ids = NULL;
 
 
 extern GCond *oh_thread_wait;
@@ -53,7 +55,7 @@ void oh_cond_signal(void)
  * Does all the initialization needed for the ltdl process to
  * work.  It takes no arguments, and returns 0 on success, < 0 on error
  *
- * Returns: 0 on success.
+ * Returns: 0 on Success.
  **/
 int oh_init_ltdl()
 {
@@ -85,26 +87,41 @@ int oh_init_ltdl()
  * oh_exit_ltdl
  *
  * Does everything needed to close the ltdl structures.
+ *
+ * Returns: 0 on Success. 
  **/
-void oh_exit_ltdl()
+int oh_exit_ltdl()
 {
         int rv;
 
         rv = lt_dlexit();
-        if (rv < 0)
+        if (rv < 0) {
                 dbg("Could not exit ltdl!");
+                return -1;
+        }
+
+        return 0;
 }
 
-static struct oh_plugin *get_plugin(char *plugin_name)
+/**
+ * oh_lookup_plugin
+ * @plugin_name
+ *
+ * Lookup and get a reference for @plugin_name.
+ *
+ * Returns: oh_plugin reference or NULL if plugin_name was not found.
+ **/
+struct oh_plugin *oh_lookup_plugin(char *plugin_name)
 {
         GSList *node = NULL;
         struct oh_plugin *plugin = NULL;
 
         if (!plugin_name) {
-                dbg("Error getting plugin. Invalid parameter.");
+                dbg("ERROR getting plugin. Invalid parameter.");
                 return NULL;
         }
-
+        
+        data_access_lock();
         for (node = plugin_list; node != NULL; node = node->next) {
                 struct oh_plugin *p = node->data;
                 if(strcmp(p->name, plugin_name) == 0) {
@@ -112,8 +129,60 @@ static struct oh_plugin *get_plugin(char *plugin_name)
                         break;
                 }
         }
+        data_access_unlock();
                 
         return plugin;
+}
+
+/**
+ * oh_lookup_next_plugin
+ * @plugin_name: IN. If NULL is passed, the first plugin in the list is returned.
+ * @next_plugin_name: OUT. Buffer to print the next plugin name to.
+ * @size: IN. Size of the buffer at @next_plugin_name.
+ *
+ * Returns: 0 on Success.
+ **/
+int oh_lookup_next_plugin_name(char *plugin_name,
+                          char *next_plugin_name,
+                          unsigned int size)
+{
+        GSList *node = NULL;
+
+        if (!next_plugin_name) {
+                dbg("ERROR. Invalid parameter.");
+                return -1;
+        }
+        memset(next_plugin_name, '\0', size);
+
+        data_access_lock();
+        if (!plugin_name) {                
+                if (plugin_list) {
+                        struct oh_plugin *plugin = plugin_list->data;
+                        strncpy(next_plugin_name, plugin->name, size);
+                        data_access_unlock();
+                        return 0;
+                } else {
+                        dbg("ERROR. No plugins found and NULL param passed.");
+                        data_access_unlock();
+                        return -1;
+                }
+        }
+
+        for (node = plugin_list; node != NULL; node = node->next) {
+                struct oh_plugin *p = node->data;
+                if(strcmp(p->name, plugin_name) == 0) {
+                        if (node->next) {
+                                p = node->next->data;
+                                strncpy(next_plugin_name, p->name, size);
+                                data_access_unlock();
+                                return 0;
+                        } else
+                                break;
+                }
+        }
+        data_access_unlock();
+        
+        return -1;
 }
 
 /*
@@ -122,7 +191,7 @@ static int get_plugin_refcount(char *plugin_name)
         struct oh_plugin *plugin = NULL;
 
         if (!plugin_name) {
-                dbg("Error getting plugin refcount. Invalid parameter.");
+                dbg("ERROR getting plugin refcount. Invalid parameter.");
                 return -1;
         }
 
@@ -138,11 +207,14 @@ static int get_plugin_refcount(char *plugin_name)
 
 /* list of static plugins. defined in plugin_static.c.in */
 extern struct oh_static_plugin static_plugins[];
-
-/*
- * Load plugin by name and make a instance.
- * FIXME: the plugins with multi-instances should reuse 'lt_dlhandler'
- */
+/**
+ * oh_unload_plugin
+ * @plugin_name
+ *
+ * Load plugin by name and make a instance. 
+ *
+ * Returns: 0 on Success.
+ **/
 int oh_load_plugin(char *plugin_name)
 {
         struct oh_plugin *plugin = NULL;
@@ -151,11 +223,11 @@ int oh_load_plugin(char *plugin_name)
         struct oh_static_plugin *p = static_plugins;        
 
         if (!plugin_name) {
-                dbg("Error. NULL plugin name passed.");
+                dbg("ERROR. NULL plugin name passed.");
                 return -1;
         }
 
-        if (get_plugin(plugin_name)) {
+        if (oh_lookup_plugin(plugin_name)) {
                 dbg("Warning. Plugin %s already loaded. Not loading twice.",
                     plugin_name);
                 return -1;
@@ -169,6 +241,7 @@ int oh_load_plugin(char *plugin_name)
         plugin->name = plugin_name;
         plugin->refcount = 1;
 
+        data_access_lock();
         /* first take search plugin in the array of static plugin */
         while( p->name ) {
                 if (!strcmp(plugin->name, p->name)) {
@@ -183,6 +256,7 @@ int oh_load_plugin(char *plugin_name)
                         trace( "found static plugin %s", p->name );
                                                 
                         plugin_list = g_slist_append(plugin_list, plugin);
+                        data_access_unlock();
 
                         return 0;
                 }
@@ -208,6 +282,7 @@ int oh_load_plugin(char *plugin_name)
                 goto err1;
         }
         plugin_list = g_slist_append(plugin_list, plugin);
+        data_access_unlock();
 
         return 0;
         
@@ -216,18 +291,34 @@ int oh_load_plugin(char *plugin_name)
                 lt_dlclose(plugin->dl_handle);
                 plugin->dl_handle = 0;
         }
-        g_free(plugin);
+        data_access_unlock();        
+        g_free(plugin);        
 
         return -1;
 }
 
-
-void oh_unload_plugin(struct oh_plugin *plugin)
+/**
+ * oh_unload_plugin
+ * @plugin_name
+ *
+ * Returns: 0 on Success.
+ **/
+int oh_unload_plugin(char *plugin_name)
 {
-        if (!plugin) {
+        struct oh_plugin *plugin = NULL;
+
+        if (!plugin_name) {
                 dbg("ERROR unloading plugin. NULL parameter passed.");
-                return;
+                return -1;
         }
+
+        plugin = oh_lookup_plugin(plugin_name);
+        if (!plugin) {
+                dbg("ERROR unloading plugin. Plugin not found.");
+                return -2;
+        }
+
+        data_access_lock();
 
         if (plugin->dl_handle)
         {
@@ -236,11 +327,89 @@ void oh_unload_plugin(struct oh_plugin *plugin)
         }
 
         plugin_list = g_slist_remove(plugin_list, plugin);
+        data_access_unlock();
 
         if (plugin->name)
                 g_free(plugin->name);
 
         g_free(plugin);
+
+        return 0;
+}
+
+/**
+ * oh_lookup_handler
+ *
+ * Initializes handler hash table.
+ **/
+void oh_init_handler_table(void)
+{
+        if (!handler_table)
+                handler_table = g_hash_table_new(g_int_hash, g_int_equal);
+}
+
+/**
+ * oh_lookup_handler
+ * @hid
+ *
+ * Returns: NULL on Failure.
+ **/
+struct oh_handler *oh_lookup_handler(unsigned int hid)
+{
+        struct oh_handler *handler = NULL;
+        
+        data_access_lock();
+        handler = g_hash_table_lookup(handler_table, &hid);
+        data_access_unlock();
+        
+        return handler;
+}
+
+/**
+ * oh_lookup_next_handler
+ * @hid: If 0, will return the first handler id in the list.
+ * @next_hid
+ *
+ * Returns: 0 on Success.
+ **/
+int oh_lookup_next_handler_id(unsigned int hid, unsigned int *next_hid)
+{
+        GSList *node = NULL;
+
+        if (!next_hid) {
+                dbg("ERROR. Invalid parameter.");
+                return -1;
+        }
+        *next_hid = 0;
+
+        data_access_lock();
+        if (!hid) {
+                if (handler_ids) {
+                        unsigned int *id = handler_ids->data;
+                        *next_hid = *id;
+                        data_access_unlock();
+                        return 0;
+                } else {
+                        data_access_unlock();
+                        return -1;
+                }
+        }
+
+        for (node = handler_ids; node; node = node->next) {
+                unsigned int *id = node->data;
+                if (*id == hid) {
+                        if (node->next) {
+                                id = node->next->data;
+                                *next_hid = *id;
+                                data_access_unlock();
+                                return 0;
+                        } else
+                                break;
+                }
+        }
+        data_access_unlock();
+
+        return -1;        
 }
 
 static struct oh_handler *new_handler(GHashTable *handler_config)
@@ -260,7 +429,7 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
                 return NULL;
         }
 
-        plugin = get_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
+        plugin = oh_lookup_plugin((char *)g_hash_table_lookup(handler_config, "plugin"));
         if(!plugin || plugin->refcount < 1) {
                 dbg("Attempt to create handler for unknown plugin %s",
                         (char *)g_hash_table_lookup(handler_config, "plugin"));
@@ -277,15 +446,22 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
                 dbg("A plugin instance could not be opened.");
                 goto err;
         }
+
         handler->id = handler_id++;
         plugin->refcount++;
-
+        
         return handler;
 err:
         g_free(handler);
         return NULL;
 }
 
+/**
+ * oh_load_handler
+ * @handler_config
+ *
+ * Returns: 0 on Success.
+ **/
 int oh_load_handler (GHashTable *handler_config)
 {
         struct oh_handler *handler;
@@ -307,25 +483,43 @@ int oh_load_handler (GHashTable *handler_config)
         g_hash_table_insert(handler_table,
                             &(handler->id),
                             handler);
+        handler_ids = g_slist_append(handler_ids, &(handler->id));
 
         data_access_unlock();
 
         return 0;
 }
 
-void oh_unload_handler(struct oh_handler *handler)
+/**
+ * oh_unload_handler
+ * @hid
+ *
+ * Returns: 0 on Success.
+ **/
+int oh_unload_handler(unsigned int hid)
 {
-        if (!handler) {
-                dbg("ERROR unloading handler. Invalid handler passed.");
-                return;
+        struct oh_handler *handler = NULL;
+
+        if (!hid) {
+                dbg("ERROR unloading handler. Invalid handler id passed.");
+                return -1;
         }
 
+        handler = oh_lookup_handler(hid);
+        if (!handler) {
+                dbg("ERROR unloading handler. Handler not found.");
+                return -1;
+        }
+                
+        data_access_lock();
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
-
-        data_access_lock();
+                
         g_hash_table_remove(handler_table, &(handler->id));
+        handler_ids = g_slist_remove(handler_ids, &(handler->id));
         data_access_unlock();
 
         g_free(handler);
+
+        return 0;
 }

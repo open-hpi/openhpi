@@ -19,9 +19,6 @@
 #include <glib.h>
 #include <oh_handler.h>
 
-extern GSList *plugin_list;
-extern GHashTable *handler_table;
-
 struct oh_plugin {
         char *name;
         /* handle returned by lt_dlopenext or 0 for static plugins */
@@ -49,14 +46,20 @@ struct oh_handler {
 
 /* Initialization and closing of ltdl structures. */
 int oh_init_ltdl(void);
-void oh_exit_ltdl(void);
+int oh_exit_ltdl(void);
 
-/* Plugin and instances prototypes. Implemented in plugin.c */
+/* Plugin and handler prototypes. */
+struct oh_plugin *oh_lookup_plugin(char *plugin_name);
+int oh_lookup_next_plugin_name(char *plugin_name,
+                          char *next_plugin_name,
+                          unsigned int size);
 int oh_load_plugin(char *plugin_name);
-void oh_unload_plugin(struct oh_plugin *plugin);
+int oh_unload_plugin(char *plugin_name);
 
+void oh_init_handler_table(void);
+struct oh_handler *oh_lookup_handler(unsigned int hid);
+int oh_lookup_next_handler_id(unsigned int hid, unsigned int *next_hid);
 int oh_load_handler(GHashTable *handler_config);
-void oh_unload_handler(struct oh_handler *handler);
-
+int oh_unload_handler(unsigned int hid);
 
 #endif /*__OH_PLUGIN_H*/

@@ -47,6 +47,7 @@ SaErrorT oh_initialize()
         struct oh_parsed_config config;
         char *openhpi_conf;
         int rval;
+        unsigned int i;
 
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
         SaHpiTextBufferT tag;
@@ -98,7 +99,7 @@ SaErrorT oh_initialize()
         }        
 
         /* Initialize handlers */
-        handler_table = g_hash_table_new(g_int_hash, g_int_equal);
+        oh_init_handler_table();
         for (node = config.handler_configs; node; node = node->next) {
                 GHashTable *handler_config = (GHashTable *)node->data;
                 if(oh_load_handler(handler_config) == 0) {
@@ -109,10 +110,17 @@ SaErrorT oh_initialize()
                             (char *)g_hash_table_lookup(handler_config, "plugin"));
                         g_hash_table_destroy(handler_config);
                 }
-        }        
+        }
+
+        /*
+         * Wipes away configuration lists (plugin_names and handler_configs).
+         * global_params is not touched.
+         */
+        oh_clean_config();
 
         /* Check if we have at least one handler */
-        if (g_hash_table_size(handler_table) < 1 ) {
+        oh_lookup_next_handler_id(0, &i);
+        if (!i) {
                 /* there is no handler => this can not work */
                 dbg("No handler found. please check %s!", openhpi_conf);
                 data_access_unlock();
@@ -136,13 +144,7 @@ SaErrorT oh_initialize()
 
         /* Initialize session table */        
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        trace("Initialized session table");
-
-        /*
-         * Unload configuration lists (plugin_names and handler_configs).
-         * global_params is not touched.
-         */
-        oh_unload_config();
+        trace("Initialized session table");        
         
         oh_init_state = INIT;
         trace("Set init state");

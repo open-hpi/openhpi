@@ -31,6 +31,7 @@ struct oh_parsed_config {
 
 /* Plugin configuration information prototypes */
 int oh_load_config(char *filename, struct oh_parsed_config *config);
+void oh_clean_config(void);
 void oh_unload_config(void);
 
 #ifdef __cplusplus

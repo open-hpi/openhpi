@@ -128,21 +128,22 @@ static SaErrorT harvest_events_for_handler(struct oh_handler *h)
         return error;
 }
 
-static void harvest_events(gpointer key, gpointer value, gpointer data)
-{
-        struct oh_handler *h = (struct oh_handler *)value;
-        SaErrorT *error = (SaErrorT *)data;
-
-        if (harvest_events_for_handler(h) == SA_OK && *error)
-                *error = SA_OK;        
-}
-
 SaErrorT oh_harvest_events()
 {
         SaErrorT error = SA_ERR_HPI_ERROR;
+        unsigned int hid = 0, next_hid;
+        struct oh_handler *h = NULL;
         
         data_access_lock();
-        g_hash_table_foreach(handler_table, harvest_events, &error);
+        oh_lookup_next_handler_id(hid, &next_hid);
+        while (next_hid) {
+                hid = next_hid;
+                h = oh_lookup_handler(hid);
+                if (harvest_events_for_handler(h) == SA_OK && error)
+                        error = SA_OK;
+
+                oh_lookup_next_handler_id(hid, &next_hid);
+        }
         data_access_unlock();
         
         return error;
