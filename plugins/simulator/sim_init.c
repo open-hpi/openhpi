@@ -16,10 +16,9 @@
  */
 
 #include <sim_init.h>
-#include <sim_resources.c>
+#include <sim_sensors.h>
 #include <sim_resources.h>
-//#include <sim_sensors.c>
-//#include <sim_sensors.h>
+#include <math.h>
 
 void *sim_open(GHashTable *handler_config)
 {
@@ -112,14 +111,15 @@ SaErrorT sim_discover(void *hnd)
 	
 	oh_init_textbuffer(&build_name);
 
-	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+	for(i=0; i<sizeof(&dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
 		oh_append_textbuffer(&build_name, dummy_rpt_array[i].comment);
 		dummy_create_resourcetag(&(e->u.res_event.entry.ResourceTag), (char *)build_name.Data, root_ep.Entry[i].EntityLocation);
 	}
 
-	//doesn't work
-	new_sensor(inst->rptcache, rpt_entry->ResourceId, rpt_entry->SensorNum);	
-        return 0;
+        
+	sim_discover_sensors(inst->rptcache);
+	
+	return 0;
 }
 
 
@@ -153,29 +153,27 @@ SaErrorT build_rptcache(RPTable *rptcache, SaHpiEntityPathT *root_ep)
 	int i;
 	SaHpiRptEntryT res;
 	               
-	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+	for(i=0; i<sizeof(&dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
 		memcpy(&res, &dummy_rpt_array[i], sizeof(SaHpiRptEntryT));
 		oh_concat_ep(&res.ResourceEntity, root_ep);
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 		
 		dbg("Adding resource number %d",i);
 		oh_add_resource(rptcache, &res, NULL, FREE_RPT_DATA);
-
+	}
         return 0;
 }
 
-SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiSensorNumT IndexInSensorArray)
-{
+SaErrorT new_sensor(RPTable *rptcache, SaHpiResourceIdT ResId, SaHpiSensorNumT Index){
 	SaHpiRdrT res_rdr;
 	SaHpiRptEntryT res;
 
-	memcpy(&res_rdr, &dummy_sensors[IndexInSesnorArray], sizeof(SaHpiRdrT));
+	memcpy(&res_rdr, &dummy_voltage_sensors[Index], sizeof(SaHpiRdrT));
 	memcpy(&res, &dummy_rpt_array[ResId], sizeof(SaHpiRptEntryT));
-	res_rdr.ResourceId = ResId;
 	res_rdr.Entity = res.ResourceEntity;
-	res_rdr.sensor->Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.type);
+	res_rdr.RdrTypeUnion.SensorRec.Num = sim_get_next_sensor_num(rptcache, ResId, res_rdr.RdrTypeUnion.SensorRec.Type);
 
-	oh_add_rdr(rptcache, res_rdr.ResourceId, &res_rdr, NULL, 0);
+	oh_add_rdr(rptcache, ResId, &res_rdr, NULL, 0);
 
 	return 0;
 }
@@ -209,13 +207,15 @@ struct oh_event *eventdup(const struct oh_event *event)
         return e;
 }
 
+
+#if 0
 /*
  * Simulator function table for plugin interface 
  *
  */
 
-static struct oh_abi_v2 oh_sim_plugin = {
-        .open                   = sim_open,
+//static struct oh_abi_v2 oh_sim_plugin = {
+//        .open                   = sim_open,
         .close                  = sim_close,
         .get_event              = sim_get_event,
         .discover_resources     = sim_discover
@@ -235,4 +235,5 @@ int sim_get_interface(void **pp, const uuid_t uuid)
         return -1;
 }
 
-int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("sim_get_interface")));
+//int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("sim_get_interface")));
+#endif
