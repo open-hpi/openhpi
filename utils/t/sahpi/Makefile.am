@@ -28,6 +28,9 @@ $(REMOTE_SOURCES):
 		fi; \
 	fi
 
+# FIXME:: Remove epath_enum_utils_test and sahpi_event_encode_test files 
+#         when we can auto-generate file for SMP systems. 
+#         Create rule using SaHpi2code.pl using -tdir option
 TESTS = sahpi_enum_utils_test \
 	sahpi_event_encode_test \
 	sahpi_event_utils_test \

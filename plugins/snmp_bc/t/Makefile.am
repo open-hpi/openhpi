@@ -40,30 +40,34 @@ REMOTE_SIM_SOURCES   = \
 			snmp_bc_watchdog.c \
 			snmp_bc_xml2event.c
 
-MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
-			  $(GENERATED_CODE) \
-			  $(REMOTE_SIM_SOURCES) \
-			  uid_map
+MOSTLYCLEANFILES = \
+		@TEST_CLEAN@ \
+		$(REMOTE_SIM_SOURCES) \
+		uid_map
 
-SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
+# FIXME:: Add when we can auto-generate files for SMP systems
+# MOSTLCLEANFILES += $(GENERATED_CODE)
 
-INCLUDES                = @OPENHPI_INCLUDES@ \
-			  -I$(top_srcdir)/snmp \
-			  -I$(SNMPUTILSDIR) \
-                          -I$(top_srcdir)/plugins/snmp_bc
+SNMPUTILSDIR = $(top_srcdir)/$(SNMPDIR)
 
-AM_CFLAGS		= -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
+INCLUDES = \
+		@OPENHPI_INCLUDES@ \
+		-I$(top_srcdir)/snmp \
+		-I$(SNMPUTILSDIR) \
+                -I$(top_srcdir)/plugins/snmp_bc
 
-EXTRA_DIST		= sim_resources.h openhpi.conf tsetup.h
+AM_CFLAGS = -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
 
-noinst_LTLIBRARIES	= libsnmp_bc.la
+EXTRA_DIST = sim_resources.h openhpi.conf tsetup.h
+
+noinst_LTLIBRARIES = libsnmp_bc.la
 
 $(REMOTE_SIM_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
 		$(LN_S) $(top_srcdir)/plugins/snmp_bc/$@; \
 	fi
 
-libsnmp_bc_la_SOURCES	= \
+libsnmp_bc_la_SOURCES = \
 			$(GENERATED_EVENT_CODE) \
 			$(REMOTE_SIM_SOURCES) \
 			sim_init.c \
@@ -71,8 +75,8 @@ libsnmp_bc_la_SOURCES	= \
 			snmp_utils.c \
 			tsetup.c
 
-libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@
-libsnmp_bc_la_LDFLAGS	= -version 0:0:0
+libsnmp_bc_la_LIBADD = -luuid @SNMPLIBS@
+libsnmp_bc_la_LDFLAGS = -version 0:0:0
 
 libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
@@ -82,11 +86,12 @@ EVENT_MAP_FILE = $(top_srcdir)/plugins/snmp_bc/snmp_bc_event.map
 EVENT_MAP_SCRIPT = $(top_srcdir)/plugins/snmp_bc/eventmap2code.pl
 EVENT_XML_MAP_SCRIPT = $(top_srcdir)/scripts/text2cstr.pl
 
-$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
-	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
-
-$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
-	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
+# # FIXME:: Add when we can auto-generate files for SMP systems
+#$(GENERATED_EVENT_CODE): $(GENERATED_EVENT_HEADER_FILES)
+#	$(EVENT_XML_MAP_SCRIPT) -s eventxml $(GENERATED_EVENT_XML_MAP) > $(GENERATED_EVENT_CODE)
+#
+#$(GENERATED_EVENT_HEADER_FILES): $(EVENT_MAP_FILE) $(EVENT_MAP_SCRIPT)
+#	$(EVENT_MAP_SCRIPT) -xml -idir $(top_srcdir)/plugins/snmp_bc -mapfile snmp_bc_event.map
 
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT  = OPENHPI_CONF=$(srcdir)/openhpi.conf

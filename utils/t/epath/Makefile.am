@@ -29,18 +29,19 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
 
-REMOTE_SOURCES	= 	epath_utils.c \
-			sahpi_enum_utils.c \
-			sahpi_event_encode.c \
-			sahpi_event_utils.c \
-			sahpi_struct_utils.c \
-			sahpi_time_utils.c
+REMOTE_SOURCES = \
+		epath_utils.c \
+		sahpi_enum_utils.c \
+		sahpi_event_encode.c \
+		sahpi_event_utils.c \
+		sahpi_struct_utils.c \
+		sahpi_time_utils.c
 
-MOSTLYCLEANFILES = 	$(REMOTE_SOURCES) @TEST_CLEAN@ 
+MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@ 
 
-INCLUDES	= 	@OPENHPI_INCLUDES@ 
+INCLUDES = @OPENHPI_INCLUDES@ 
 
-AM_CFLAGS	= 	@NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS = @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
@@ -51,6 +52,8 @@ $(REMOTE_SOURCES):
 		fi; \
 	fi
 
+# FIXME:: Remove epath_conv_0xx files when we can auto-generate file for SMP systems
+#         Create rule using gen_tests.pl
 TESTS = \
 	epath_utils_test \
 	epath_numeric_000 \
