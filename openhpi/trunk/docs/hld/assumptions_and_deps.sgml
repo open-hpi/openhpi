@@ -1,5 +1,5 @@
 <!-- ...................................................................... -->
-<!-- File assuptions_and_deps.dtd ......................................... -->
+<!-- $Id$ ......................................... -->
 <!-- 
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
@@ -14,5 +14,5 @@
 
 <chapter>
   <title>Assumptions and Dependencies</title>
-  <para>(TBD)</para>
+  <para>It is assumed that OpenHPI will be used in </para>
 </chapter>

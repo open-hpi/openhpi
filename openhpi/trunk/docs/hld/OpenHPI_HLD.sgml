@@ -1,5 +1,5 @@
 <!-- ...................................................................... -->
-<!-- File OpenHPI_HLD.sgml ................................................ -->
+<!-- $Id$ ................................................ -->
 <!-- 
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
@@ -28,6 +28,7 @@
 <!ENTITY methods_and_notations SYSTEM "methods_and_notations.sgml">
 <!ENTITY assumptions_and_deps SYSTEM "assumptions_and_deps.sgml">
 <!ENTITY design_decomposition SYSTEM "design_decomposition.sgml">
+<!ENTITY sahpi_breakdown SYSTEM "sahpi_breakdown.sgml">
 <!ENTITY internel_components SYSTEM "internel_components.sgml">
 <!ENTITY internel_data_structure SYSTEM "internel_data_structure.sgml">
 <!ENTITY internel_methods SYSTEM "internel_methods.sgml">
