@@ -26,12 +26,9 @@ static enum {
 
 SaErrorT oh_initialized()
 {
-        data_access_lock();
         if(oh_init_state == UNINIT) {                
-                data_access_unlock();
                 return SA_ERR_HPI_ERROR;
         } else {
-                data_access_unlock();
                 return SA_OK;
         }
 }
