@@ -246,9 +246,12 @@ SaErrorT SAHPI_API saHpiResourcesDiscover(SAHPI_IN SaHpiSessionIdT SessionId)
 	list_for_each(i, &d->zone_list) {
 		struct oh_zone *z
 			= list_container(i, struct oh_zone, node);
-		z->abi->discover_resources(z->hnd);
+		rv |= z->abi->discover_resources(z->hnd);
 	}
+	if (rv)
+		return SA_ERR_HPI_UNKNOWN;
 
+	
 	rv = session_get_events(s);
 	if (rv<0) {
 		dbg("Error attempting to discover resources");
@@ -629,7 +632,20 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
 		SAHPI_IN SaHpiCtrlNumT CtrlNum,
 		SAHPI_OUT SaHpiCtrlTypeT *Type)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_rdr *rdr;
+
+	OH_GET_RESOURCE;
+
+	rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	if (!memcpy(Type, &rdr->rdr.RdrTypeUnion.CtrlRec.Type, 
+		    sizeof(SaHpiCtrlTypeT)))
+	    return SA_ERR_HPI_ERROR;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiControlStateGet (
@@ -638,7 +654,27 @@ SaErrorT SAHPI_API saHpiControlStateGet (
 		SAHPI_IN SaHpiCtrlNumT CtrlNum,
 		SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_zone *zone;
+	struct oh_rdr *rdr;
+
+	int (*get_func)(void *, struct oh_rdr_id *,SaHpiCtrlStateT *);
+
+	OH_GET_RESOURCE;
+	OH_GET_ZONE;
+
+	rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	get_func = zone->abi->get_control_state;
+	if (!get_func)		
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (get_func(zone->hnd, &rdr->oid, CtrlState))
+		return SA_ERR_HPI_UNKNOWN;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiControlStateSet (
@@ -647,7 +683,27 @@ SaErrorT SAHPI_API saHpiControlStateSet (
 		SAHPI_IN SaHpiCtrlNumT CtrlNum,
 		SAHPI_IN SaHpiCtrlStateT *CtrlState)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	struct oh_zone *zone;
+	struct oh_rdr *rdr;
+
+	int (*set_func)(void *, struct oh_rdr_id *,SaHpiCtrlStateT *);
+
+	OH_GET_RESOURCE;
+	OH_GET_ZONE;
+
+	rdr = get_rdr(res, SAHPI_CTRL_RDR, CtrlNum);
+	if (!rdr)
+		return SA_ERR_HPI_INVALID_PARAMS;
+
+	set_func = zone->abi->set_control_state;
+	if (!set_func)		
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (set_func(zone->hnd, &rdr->oid, CtrlState))
+		return SA_ERR_HPI_UNKNOWN;
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEntityInventoryDataRead (
