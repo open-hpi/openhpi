@@ -682,6 +682,79 @@ static int set_tag(int argc, char *argv[])
 	return (SA_OK);
 }
 
+#define	SEV_BUF_SIZE	32
+
+typedef struct {
+	char		*name;
+	SaHpiSeverityT	val;
+} Sev_def_t;
+
+static Sev_def_t Sev_array[] = {
+	{"crit", 	SAHPI_CRITICAL},
+	{"maj", 	SAHPI_MAJOR},
+	{"min", 	SAHPI_MINOR},
+	{"inf", 	SAHPI_INFORMATIONAL},
+	{"ok", 		SAHPI_OK},
+	{"debug", 	SAHPI_DEBUG},
+	{"all", 	SAHPI_ALL_SEVERITIES},
+	{NULL,	 	0}
+};
+
+static int set_sever(int argc, char *argv[])
+{
+	SaHpiResourceIdT	resid = 0;
+	SaHpiSeverityT		sev = SAHPI_OK;
+	int			res, i;
+	char			buf[SEV_BUF_SIZE + 1];
+	char			*str;
+	SaErrorT		rv;
+	SaHpiRptEntryT		rpt_entry;
+	Rpt_t			tmp_rpt;
+
+	clear_input();
+	if (argc < 2) {
+		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
+		if (i == 1) resid = (SaHpiResourceIdT)res;
+		else return SA_OK;
+	} else {
+		resid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+	printf("New severity (crit, maj, min, inf, ok, debug, all): ");
+	memset(buf, 0, SEV_BUF_SIZE + 1);
+	fgets(buf, SEV_BUF_SIZE, stdin);
+	for (res = 0; res < SEV_BUF_SIZE; res++)
+		if (buf[res] == '\n') buf[res] = 0;
+	str = buf;
+	while (*str == ' ') str++;
+	i = strlen(str);
+	while ((i > 0) && (str[i - 1] == ' ')) i--;
+	str[i] = 0;
+	if (i == 0) {
+		printf("Invalid sevetity: %s\n", buf);
+		return(-1);
+	};
+	for (i = 0; Sev_array[i].name != (char *)NULL; i++)
+		if (strcmp(str, Sev_array[i].name) == 0) {
+			sev = Sev_array[i].val;
+			break;
+		};
+	if (Sev_array[i].name == (char *)NULL) {
+		printf("Invalid sevetity type: %s\n", buf);
+		return(-1);
+	};
+	rv = saHpiResourceSeveritySet(Domain->sessionId, resid, sev);
+	if (rv != SA_OK) {
+		printf("saHpiResourceSeveritySet error = %s\n", oh_lookup_error(rv));
+		return -1;
+	};
+	rv = saHpiRptEntryGetByResourceId(Domain->sessionId, resid, &rpt_entry);
+	make_attrs_rpt(&tmp_rpt, &rpt_entry);
+	show_Rpt(&tmp_rpt, ui_print);
+	free_attrs(&(tmp_rpt.Attrutes));
+	return (SA_OK);
+}
+
 static int discovery(int argc, char *argv[])
 {
 	SaErrorT        ret;
@@ -1265,6 +1338,8 @@ const char senhelp[] =	"sen: sensor command block\n"
 			"Usage: sen [<sensorId>]\n"
 			"	sensorId:: <resourceId> <num>\n"
 			SEN_AV_COM;
+const char setseverhelp[] = "setsever: set severity for a resource\n"
+			"Usage: setsever [<resource id>]";
 const char settaghelp[] = "settag: set tag for a particular resource\n"
 			"Usage: settag [<resource id>]";
 const char settimeevtloghelp[] = "settimeevtlog: sets the event log's clock\n"
@@ -1300,6 +1375,7 @@ struct command commands[] = {
     { "rpt",		show_rpt,		showrpthelp },
     { "sen",		sen_block,		senhelp },
     { "settag",		set_tag,		settaghelp },
+    { "setsever",	set_sever,		setseverhelp },
     { "settimeevtlog",	settime_evtlog,		settimeevtloghelp },
     { "showevtlog",	show_evtlog,		showevtloghelp },
     { "showinv",	show_inv,		showinvhelp },
