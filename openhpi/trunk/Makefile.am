@@ -51,6 +51,8 @@ MOSTLYCLEANFILES	= tags
 
 SUBDIRS			= src docs @ENABLED_DIRS@
 
+DIST_SUBDIRS = src docs examples util
+
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
 ALL_SOURCES = $(shell \
@@ -59,8 +61,7 @@ ALL_SOURCES = $(shell \
 
 includedir=$(base_includedir)/openhpi
 
-include_HEADERS	= include/SaHpi.h include/openhpi.h \
-		  include/net_msg.h  include/oh_config.h  include/oh_plugin.h
+include_HEADERS	= $(shell find include -name *.h)
 
 rpm: dist
 	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
