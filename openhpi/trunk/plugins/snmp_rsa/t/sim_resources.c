@@ -23,6 +23,16 @@
 #include <sim_resources.h>
 
 struct snmp_rsa_data sim_resource_array[] = {
+        /* TimeZone - DayLight Savings Time */
+        {
+                .oid = ".1.3.6.1.4.1.2.3.51.1.4.4.2.0",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "+0:00,no",
+                        },
+                },
+        },
 	/* Add more example event log messages */
         {
 		/* Event Log Index Number */	
