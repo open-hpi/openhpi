@@ -35,10 +35,17 @@ oh_el *bc_selcache = NULL;
 static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceIdT id)
 {
         int i = 1;
-	
+	SaErrorT err = SA_OK;
 	/* Go synchronize cache and hardware copy of the SEL */
-        snmp_bc_check_selcache(handle, id, SAHPI_NEWEST_ENTRY);
-	
+        err = snmp_bc_check_selcache(handle, id, SAHPI_NEWEST_ENTRY);
+	if (err)
+		/* --------------------------------------------------------------- */
+		/* If an error is encounterred during building of snmp_bc elcache, */
+		/* only log the error.  Do not do any recovery because log entries */
+		/* are still kept in bc mm.  We'll pick them up during synch.      */
+		/* --------------------------------------------------------------- */
+		dbg("snmp_bc_discover, Error %s when building elcache.\n", oh_lookup_error(err));
+
 	/* Return the entry count */
         i = g_list_length(handle->elcache->elentries);
         return i;
@@ -200,8 +207,12 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
 		/* Force a cache sync before servicing the request */
 		err = snmp_bc_check_selcache(handle, id, current);
 		if (err) {
-			dbg("Event Log cache check failed.");
-			return(err);
+			dbg("Event Log cache sync failed %s\n", oh_lookup_error(err));
+		/* --------------------------------------------------------------- */
+		/* If an error is encounterred during building of snmp_bc elcache, */
+		/* only log the error.  Do not do any recovery because log entries */
+		/* are still kept in bc mm.  We'll pick them up during synch.      */
+		/* --------------------------------------------------------------- */
 		}
 	
 		err = oh_el_get(handle->elcache, current, prev, next, &tmpentryptr);
@@ -258,7 +269,7 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 
 	if (current > 0) {
 		for (i=1; i<=current; i++) {
-			err = snmp_bc_sel_read_add(handle, id, i);
+			err = snmp_bc_sel_read_add(handle, id, i, SAHPI_TRUE);
 			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
 				/* Either of these 2 errors prevent us from doing anything meaningful */
 				return(err);
@@ -360,8 +371,14 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 
        	err = snmp_bc_snmp_get(custom_handle, oid, &get_value, SAHPI_TRUE);
        	if (err) {
-		dbg("SNMP log is empty.");
-		err = oh_el_clear(handle->elcache);
+		dbg("Error %s snmp_get latest BC Event Log.\n", oh_lookup_error(err));
+		
+		/* Error attempting to sync elcache and BC Event Log */
+		/* Leave thing as is, instead of clearing elcache.   */
+		/* Clearing cache will cause snmp traffic to re-read */
+		/* all BC Event Log.  We want to keep traffic to min */
+		/* for snmp interface recovery                       */
+		/*    err = oh_el_clear(handle->elcache);            */
 		return(err);
 	}
 
@@ -408,7 +425,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		
 		if (cacheupdate) {
 			for (i=1; i<=current; i++) {
-				err = snmp_bc_sel_read_add (handle, id, i);
+				err = snmp_bc_sel_read_add (handle, id, i, SAHPI_FALSE);
 				if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
 					/* Either of these 2 errors prevent us from doing anything meaningful */
 					return(err);
@@ -505,7 +522,8 @@ SaErrorT snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT
  **/
 SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 			       SaHpiResourceIdT id, 
-			       SaHpiEventLogEntryIdT current)
+			       SaHpiEventLogEntryIdT current, 
+			       SaHpiBoolT prepend)
 {
 	int isdst=0;
         char oid[SNMP_BC_MAX_OID_LENGTH];
@@ -585,12 +603,32 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	id = tmpevent.Source;
 	if (NULL == oh_get_resource_by_id(handle->rptcache, id))
 					dbg("NULL RPT for rid %d.", id);
-	err = oh_el_prepend(handle->elcache, &tmpevent,
+	if (prepend) 
+		err = oh_el_prepend(handle->elcache, &tmpevent,
+			    rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
+	else 
+		err = oh_el_append(handle->elcache, &tmpevent,
 			    rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
 	
-	if (err) dbg("Cannot add entry to elcache. Error=%s.", oh_lookup_error(err));
-		
-	err = snmp_bc_add_to_eventq(handle, &tmpevent);
+	
+	/* If can not add el entry to elcache, do not add entry to eventq */
+	/* If entry is not added to elcache and is added to eventq, there */
+	/* will be an indefinite loop:                                    */
+	/*        1. get_event is called. get_event call elcache_sync     */
+	/*        2. elcache_sync finds new el entry                      */
+	/*        3a. adding new el entry to elcache fails                */
+	/*	  3b. adding new el entry to eventq                       */
+	/*	  4. new event is propergate to infrastructure            */
+	/*	  5. infrastructure consume new event                     */
+	/*	  		*and*  call get_event for any more        */
+	/*	  6. we repeat step 1 ... indefinite loop                 */   
+	
+	if (!err)
+		err = snmp_bc_add_to_eventq(handle, &tmpevent);
+		if (err) 
+		 dbg("Cannot add el entry to eventq. Error=%s.", oh_lookup_error(err));
+	else 
+	 	dbg("Cannot add el entry to elcache. Error=%s.", oh_lookup_error(err));
 			
         return(err);
 }
