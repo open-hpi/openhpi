@@ -902,6 +902,7 @@ static void *dummy_open(GHashTable *handler_config)
         hotswap_event[0].u.hpi_event.res = dummy_resources[1];
         hotswap_event[1].u.hpi_event.res = dummy_resources[1];
 
+
 	/* make sure the glib threading subsystem is initialized */
         if (!g_thread_supported ()) {
                 g_thread_init (NULL);
@@ -1039,6 +1040,8 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
         static unsigned int toggle = 0;
         static unsigned int count = 0;
 
+if (!inst->handler_lock) printf("\n\n\n\n\the fucking hnd pointer is NULL!!!!!\n\n\n");
+
         if (g_slist_length(inst->eventq)>0) {
                 trace("List has an event, send it up");
                 memcpy(event, inst->eventq->data, sizeof(*event));
@@ -1081,6 +1084,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         dbg("\n**** EVEN ****, remove the resource\n");
                         if ( (e = remove_resource(inst)) ) {
                                 *event = *e;
+				g_static_rec_mutex_unlock (inst->handler_lock);
                                 return(1);
                         }
                 } else {
@@ -1088,6 +1092,7 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                         dbg("\n**** ODD ****, add the resource\n");
                         if ( (e = add_resource(inst)) ) {
                                 *event = *e;
+				g_static_rec_mutex_unlock (inst->handler_lock);
                                 return(1);
                         }
                 }
@@ -1985,7 +1990,7 @@ gpointer event_thread(gpointer data)
 {
 	struct timespec req, rem;
 	memset(&req, 0, sizeof(req));
-	req.tv_nsec = 750000000;
+	req.tv_nsec = 700000000;
 
 
 	struct oh_handler_state *inst = (struct oh_handler_state *)data;
@@ -2022,7 +2027,11 @@ printf("event burp!\n");
 			return 0;
 		}
 
-		g_static_rec_mutex_lock (inst->handler_lock);
+
+		while (!g_static_rec_mutex_trylock (inst->handler_lock))
+			printf("mutex is going to block [%d]\n", (int)inst->handler_lock);
+
+		//g_static_rec_mutex_lock (inst->handler_lock);
 		
 		if ( (toggle%2) == 0 ) {
 			toggle++;
