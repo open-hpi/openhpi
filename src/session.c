@@ -1,6 +1,18 @@
-/* BSD License
- * Copyright (C) by Intel Crop.
- * Author: Louis Zhuang <louis.zhuang@linux.intel.com>
+/*      -*- linux-c -*-
+ *
+ * Copyright (c) 2003 by Intel Corp.
+ * Copyright (c) 2003 by International Business Machines
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Sean Dague <sean@dague.net>
  */
 
 #include <stdio.h>
@@ -10,35 +22,26 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static struct list_head slist;
-static SaHpiSessionIdT scounter = 0;
-
-
-int init_session(void) 
-{
-	list_init(&slist);
-	return 0;
-}
-
-int uninit_session(void) 
-{
-	return 0;
-}
+#define get_session_entry(n) (struct oh_session*) g_slist_nth_data(global_session_list, n);
 
 struct oh_session *session_get(SaHpiSessionIdT sid)
 {
-	struct list_head *i;
-	list_for_each(i, &slist) {
-		struct oh_session *s;
-		s = list_container(i, struct oh_session, node);
-		if (s->sid == sid) return s;
-	}
-
-	return NULL;
+        struct oh_session *temp = NULL;
+        int i;
+        
+        for (i = 0; i < g_slist_length(global_session_list); i++) {
+                temp = (struct oh_session*) 
+                        g_slist_nth_data(global_session_list, i);
+                if(temp->session_id == sid) {
+                        return temp;
+                }
+        }
+        
+        return NULL;
 }
 
 int session_add(struct oh_domain *domain,
-		 struct oh_session **session)
+                struct oh_session **session)
 {
 	struct oh_session *s;
 	
