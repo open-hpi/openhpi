@@ -76,9 +76,9 @@ instance number. Users must make sure that entity hasn't the same type and
 instance with the others' in the same directory. 
 
 3.3  Resource
-   Resources are all under 'resource' directory of root directory with flat 
+   Resources are all under 'resources' directory of root directory with flat 
 hierarchy. Other sub-component such as sensor should be contained under
-resourcedirectory. Every resource is presented as a directory. The resource
+resources directory. Every resource is presented as a directory. The resource
 directory name contains 8 characters which are '0'-'9' or 'A'-'F'. The name 
 means resourceindex instead of resource id.
    Every resource may contain RDR(Resource Data Record), sensor, control, 
@@ -470,7 +470,7 @@ change of time.
 
 3.4 FHS Example
     The root directory of FHS has two subdirectories, entity directory and 
-resource directory.       
+resources directory.       
         root -- entity -- rack -- type 'SAHPI_ENT_RACK'
             |                  +- instance '1'
             |                  +- subrack -- type 'SAHPI_ENT_SUBRACK'
@@ -478,7 +478,7 @@ resource directory.
             |                             +- power_supply -- type 'SAHPI_ENT'
             |                                             +- instance '1'
             |
-            +- resource  -- 00000001-- rpt_entry
+            +- resources -- 00000001-- rpt_entry
                          |         |
                          |         +-- 00000001 -- rdr
                          |         |            +- sensor -- reading

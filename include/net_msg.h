@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * Copyright (c) 2003 by International Business Machines
+ * (C) Copyright IBM Corp. 2003
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -9,7 +9,7 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Authors:  David Judkovics
  *     
  *     
  *     
@@ -67,7 +67,7 @@ enum Msg_Types {
 
 typedef struct {
         int msg_length;
-        char msg_type;
+        int msg_type;
 } NETWORK_HDR_STR;
 
 typedef struct {
@@ -87,7 +87,9 @@ typedef struct {
         NETWORK_HDR_STR header;
         int error;
         int num_resource_events;
-        struct oh_event oh_event_arry[2];
+	struct oh_event event;   
+//	this is for your own good need to recreate indexing without use of this element
+//        struct oh_event oh_event_arry[3];
 } DISCOVER_RESOURCES_MSG_STR;
 
 typedef struct {
@@ -205,7 +207,6 @@ typedef struct {
 typedef struct {
         NETWORK_HDR_STR header;
 } UNKNOWN_MSG_TYPE_MSG_STR;
-
 
 #endif/*__NET_MSG_H*/
 

@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/sh -x
 
 # This script will clean out a project of all files that were generated
 # while building.  Automake generates all kinds of file, and sometimes
 # it is nice to be able to see only the code from the repository.
 
-make distclean
+make maintainer-clean
 
 for i in `find . -name Makefile.in`; do
     rm $i
@@ -18,11 +18,9 @@ for i in `find . -name '*~'`; do
     rm $i
 done
 
-rm -f aclocal.m4
-rm -fR autom4te-2.53.cache
-rm -f config.guess
-rm -f config.sub
-rm -f configure
-rm -f depcomp
-rm -fR docs/hld/OpenHPI_HLD/
+for i in `find . -name '.#*'`; do
+    rm $i
+done
 
+rm -fR docs/hld/OpenHPI_HLD/
+rm -fR docs/test_specification/test_specification

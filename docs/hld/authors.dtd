@@ -1,5 +1,5 @@
 <!-- ...................................................................... -->
-<!-- File authors.dtd ..................................................... -->
+<!-- $Id$ ..................................................... -->
 <!-- 
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
@@ -12,12 +12,6 @@
         marks of others.
 -->
 
-<!ENTITY andrea-brugger "
-<author>
-  <firstname>Andrea</firstname>
-  <surname>Brugger</surname>
-</author>
-">
 <!ENTITY sean-dague "
 <author>
   <firstname>Sean</firstname>
@@ -48,13 +42,33 @@
   <surname>Zhuang</surname>
 </author>
 ">
+<!ENTITY tariq-shureih "
+<author>
+  <firstname>Tariq</firstname>
+  <surname>Shureih</surname>
+</author>
+">
+<!ENTITY thomas-kanngieser "
+<author>
+  <firstname>Thomas</firstname>
+  <surname>Kanngieser</surname>
+</author>
+">
+<!ENTITY renier-morales "
+<author>
+  <firstname>Renier</firstname>
+  <surname>Morales</surname>
+</author>
+">
 <!ENTITY openhpi-authors "
 <authorgroup>
-  &andrea-brugger;
   &sean-dague;
   &kevin-gao;
   &david-judkovics;
   &rusty-lynch;
   &louis-zhuang;
+  &tariq-shureih;
+  &thomas-kanngieser;
+  &renier-morales;
 </authorgroup>
 ">

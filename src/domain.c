@@ -1,6 +1,19 @@
-/* BSD License
- * Copyright (C) by Intel Crop.
- * Author: Louis Zhuang <louis.zhuang@linux.intel.com>
+/*      -*- linux-c -*-
+ *
+ * Copyright (c) 2003 by Intel Corp.
+ * (C) Copyright IBM Corp. 2003
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Louis Zhuang <louis.zhuang@linux.intel.com>
+ *     Sean Dague <http://dague.net/sean>
+ *     David Judkovics <djudkovi@us.ibm.com>
  */
 
 #include <stdio.h>
@@ -9,90 +22,105 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
+#include <sel_utils.h>
 
-static struct list_head dlist;
-static SaHpiDomainIdT dcounter = SAHPI_DEFAULT_DOMAIN_ID;
+/*
+ *  Global list of all available domain id's (SaHpiDomainIdT).
+ *  The intent is that this list is maintained as new RPT entries
+ *  are added and removed from the global RPT table, and used by
+ *  saHpiSessionOpen() to determine if the requested domain exist
+ *  without doing a full search of the RPT. 
+ */
+static GSList *global_domain_list = NULL;
 
-
-int init_domain(void) 
+int is_in_domain_list(SaHpiDomainIdT did) 
 {
-	list_init(&dlist);
-	return 0;
+        GSList *i;
+        
+        data_access_lock();
+
+        g_slist_for_each(i, global_domain_list) {
+                struct oh_domain *d = i->data;
+                if(d->domain_id == did) {
+                        data_access_unlock();
+                        return 1;
+                }
+        }
+
+        data_access_unlock();
+        
+        return 0;
 }
 
-int uninit_domain(void) 
+struct oh_domain *get_domain_by_id(SaHpiDomainIdT did)
 {
-	return 0;
+        GSList *i;
+        
+        data_access_lock();
+
+        g_slist_for_each(i, global_domain_list) {
+                struct oh_domain *d = i->data;
+                if(d->domain_id == did) {
+                        data_access_unlock();
+                        return d;
+                }
+        }
+
+        data_access_unlock();
+
+        return NULL;
 }
 
-struct oh_domain *domain_get(SaHpiDomainIdT did)
-{
-	struct list_head *i;
-	list_for_each(i, &dlist) {
-		struct oh_domain *d;
-		d = list_container(i, struct oh_domain, node);
-		if (d->did == did) return d;
-	}
+#define MAX_GLOBAL_DOMAIN 10000
+#define MIN_DYNAMIC_DOMAIN (MAX_GLOBAL_DOMAIN+1)
 
-	return NULL;
+int add_domain(SaHpiDomainIdT did)
+{
+        struct oh_domain *d;
+        
+        if (did>MAX_GLOBAL_DOMAIN) {
+                dbg("Could not add so large domain, the region is kept for dymanic domain");
+                return -1;
+        }
+        if(is_in_domain_list(did) > 0) {
+                dbg("Domain %d exists already, something is fishy", did);
+                return -1;
+        }
+        
+        data_access_lock();
+        
+        d = malloc(sizeof(*d));
+        if (!d) {
+                dbg("Out of memory");
+                data_access_unlock();
+                return -1;
+        }
+        
+        d->domain_id = did;
+        d->sel = oh_sel_create(OH_SEL_MAX_SIZE);
+ 
+        global_domain_list = g_slist_append(global_domain_list, d);
+
+        data_access_unlock();
+        
+        return 0;
 }
 
-int domain_add(struct oh_domain **domain)
+
+void cleanup_domain(void)
 {
-	struct oh_domain  *d;
-	
-	d = malloc(sizeof(*d));
-	if (!d) {
-		dbg("Cannot get memory!");
-		return -1;
-	}
-	memset(d, 0, sizeof(*d));
-	
-	d->did = dcounter++;
+        data_access_lock();
 
-	list_add(&d->node, &dlist);
-	list_init(&d->res_list);
-	list_init(&d->session_list);
+        while(global_domain_list) {
+                struct oh_domain *d = (struct oh_domain *)global_domain_list->data;
+                global_domain_list = g_slist_remove(global_domain_list, d);
 
-	d->res_counter = 0;
+                if (d->sel)
+                        oh_sel_close(d->sel);
 
-	*domain = d;
-	return 0;
+                free(d);
+        }
+
+        data_access_unlock();
 }
 
-int domain_del(struct oh_domain *domain)
-{
-	/* FIXME cleaup resources in domain */
-	list_del(&domain->node);
-	free(domain);
-	return 0;
-}
-
-int domain_process_event(struct oh_domain *d, struct oh_event *e)
-{
-	switch (e->type) {
-	case OH_ET_ENTITY:
-		if (e->entity.category!=SAHPI_EC_PRESENCE) {
-			dbg("Unexcepted event category");
-			return -1;
-		}
-		
-		if (e->entity.state == SAHPI_ES_ABSENT) {
-			absent_entity(d, &e->oid);
-		} else if (e->entity.state == SAHPI_ES_PRESENT) {
-			present_entity(d, &e->oid);
-		} else {
-			dbg("Unexcepted event state");
-			return -1;
-		}
-		break;
-
-	/* FIXME: there are controls/sensors/event logs etc 
-	 * need to be processed
-	 */
-	default:
-		break;
-	}
-
-	return 0;
-}

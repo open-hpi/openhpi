@@ -141,23 +141,24 @@ int main(int arc, const char *argv[])
 	/* analysis of pthread_event_get run */
 	printf("***************************************\n");
 	printf("saHpiEventGet Event Mis-Compares:%d\n", event_get_error_count);
-#ifdef _TEST_THREADS_
+
 	/* Total Data Access Mutex Collisions */
 	printf("***************************************\n");
-	printf("Total Data Access Mutex Collisions: %d\n", collision);
-#endif
+	printf("Total Data Access Mutex Collisions: %d\n", data_access_block_times());
 
 	return 0;
 }
 
 /**
- * thread spawned after all discover_domain threads exit, 
+ * pthread_event_get: 
+ * @arg: struct contains all necessary data
+ *
+ * thread spawned after all 
+ * discover_domain threads exit, 
  * this thread loops until any key is pressed
  * each loop queries plugin for doamin events
- * 
- * 
- * @return void
- * @param arg,  struct contains all necessary data
+ *
+ * Return Value: void
  */
 void *pthread_event_get(void *arg)
 {
@@ -281,9 +282,9 @@ void *discover_domain(void *arg)
 					break;
 				}
 			}
-      			printf("                       address   rpt_entries %d\n", (int)rpt_entries);
+      			printf("                       address   rpt_entries %p\n", rpt_entries);
 			manage_rpt_entries(&rpt_entries, &last_rpt_entries, &entry, ADD);
-			printf("                       address   rpt_entries %d\n", (int)rpt_entries);
+			printf("                       address   rpt_entries %p\n", rpt_entries);
 
 			
 			printf("***Records:\n");
@@ -865,7 +866,7 @@ int manage_rpt_entries(GSList **rpt_entries, GSList **last_rpt_entries, SaHpiRpt
 		memcpy((void *)ep, entry, sizeof(SaHpiRptEntryT));
 
 		*rpt_entries = g_slist_append(*rpt_entries, ep);
-		printf("                       address   rpt_entries %d\n", (int)*rpt_entries);
+		printf("                       address   rpt_entries %p\n", *rpt_entries);
 		printf("                       lenght of rpt_entries %d\n", g_slist_length(*rpt_entries));
 		printf("                       lenght of last_rpt_entries %d\n", g_slist_length(*last_rpt_entries));
 	}
