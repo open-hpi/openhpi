@@ -211,7 +211,7 @@ public:
 
 public:
   cIpmiEntity( cIpmiDomain *domain, tIpmiDeviceNum device_num,
-               tIpmiEntityId entity_id, int entity_instance,
+               tIpmiEntityId entity_id, unsigned int entity_instance,
                bool came_from_sdr );
   ~cIpmiEntity();
 

@@ -821,6 +821,9 @@ cIpmiMcVendor::CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *s
   if ( source_mc == 0 )
        return false;
 
+  if ( !source_mc->SelDeviceSupport() )
+       return true;
+
   cIpmiSdr *mcdlr = sdrs->FindSdr( source_mc );
 
   if ( mcdlr == 0 )

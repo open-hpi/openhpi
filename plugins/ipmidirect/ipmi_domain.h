@@ -223,21 +223,8 @@ public:
   void AddEntity( cIpmiEntity *ent );
   void RemEntity( cIpmiEntity *ent );
 
-
   int CheckAtca();
   int GetChannels();
-
-/*
-  enum tScanState
-  {
-    eScanOk,
-    eScanStateRescan,
-    eScanStateError
-  };
-
-  cIpmiMc *Scan( const cIpmiAddr &addr, int &missed_responses, tScanState &state );
-  void SelTimerAddToList( cIpmiMc *mc );
-*/
 
 public:
   cIpmiMc *NewMc( const cIpmiAddr &addr );
