@@ -2891,7 +2891,7 @@ SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
                 /* 8-bit ASCII, '0'-'9', space, dash, period, colon, comma, or
 		   underscore. Always encoded in HPI as 8-bit values */
                 for (i = 0;
-                     i < SAHPI_MAX_TEXT_BUFFER_LENGTH || buffer->Data[i] != '\0';
+                     i < buffer->DataLength && i < SAHPI_MAX_TEXT_BUFFER_LENGTH;
                      i++)
                 {
                         if ((buffer->Data[i] < 0x30 || buffer->Data[i] > 0x39) &&
@@ -2904,7 +2904,7 @@ SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
 	case SAHPI_TL_TYPE_ASCII6:		                
                 /* reduced set, 0x20-0x5f only. Always encoded in HPI as 8-bit values */
                 for (i = 0;
-                     i < SAHPI_MAX_TEXT_BUFFER_LENGTH || buffer->Data[i] != '\0';
+                     i < buffer->DataLength && i < SAHPI_MAX_TEXT_BUFFER_LENGTH;
                      i++)
                 {
                         if (buffer->Data[i] < 0x20 || buffer->Data[i] > 0x5f)

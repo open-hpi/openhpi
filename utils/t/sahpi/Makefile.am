@@ -17,7 +17,8 @@ REMOTE_SOURCES =  epath_utils.c \
 
 MOSTLYCLEANFILES = $(REMOTE_SOURCES) @TEST_CLEAN@
 INCLUDES	= @OPENHPI_INCLUDES@ 
-AM_CFLAGS	= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
+AM_CFLAGS	= @NOCFLAGS@ -ftest-coverage -fprofile-arcs -std=c99
+# the -std=c99 comment above is required to have unicode in the tests
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
@@ -40,7 +41,8 @@ TESTS = sahpi_enum_utils_test \
 	sahpi_struct_idrfield_test \
 	sahpi_struct_rptentry_test \
 	sahpi_struct_rdr_test \
-	sahpi_struct_utils_test
+	sahpi_struct_utils_test \
+	sahpi_text_utils_test
 
 check_PROGRAMS = $(TESTS)
 
@@ -48,6 +50,7 @@ sahpi_enum_utils_test_SOURCES = sahpi_enum_utils_test.c  $(REMOTE_SOURCES)
 sahpi_event_encode_test_SOURCES = sahpi_event_encode_test.c  $(REMOTE_SOURCES)
 sahpi_event_utils_test_SOURCES = sahpi_event_utils_test.c  $(REMOTE_SOURCES)
 sahpi_struct_utils_test_SOURCES = sahpi_struct_utils_test.c $(REMOTE_SOURCES)
+sahpi_text_utils_test_SOURCES = sahpi_text_utils_test.c $(REMOTE_SOURCES)
 sahpi_time_utils_test_SOURCES = sahpi_time_utils_test.c $(REMOTE_SOURCES)
 sahpi_struct_idrinfo_test_SOURCES = sahpi_struct_idrinfo_test.c $(REMOTE_SOURCES)
 sahpi_struct_idrarea_test_SOURCES = sahpi_struct_idrarea_test.c $(REMOTE_SOURCES)
