@@ -23,9 +23,9 @@ INCLUDES 		= -I $(top_srcdir)/include
 LIBS			=
 
 # marshal and connection used by the daemon and client library
-noinst_LIBRARIES        = libmarshal.a
+noinst_LTLIBRARIES        = libmarshal.la
 
-libmarshal_a_SOURCES    = \
+libmarshal_la_SOURCES    = \
 	connection.h \
 	connection.c \
 	marshal_hpi.h \
