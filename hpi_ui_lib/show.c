@@ -344,6 +344,9 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT p
 	SaHpiRdrTypeT		type;
 	char			ar[256];
 	SaHpiSensorRecT		*sensor;
+	SaHpiCtrlRecT		*ctrl;
+	SaHpiInventoryRecT	*inv;
+	SaHpiWatchdogRecT	*wdog;
 	SaErrorT		ret;
 
 	entryid = SAHPI_FIRST_ENTRY;
@@ -372,8 +375,20 @@ SaErrorT show_rdr_list(Domain_t *domain, SaHpiResourceIdT rptid, SaHpiRdrTypeT p
 						strcat(ar, "RO"); break;
 				};
 				break;
+			case SAHPI_CTRL_RDR:
+				ctrl = &(rdr.RdrTypeUnion.CtrlRec);
+				snprintf(ar, 256, "%3.3d", ctrl->Num);
+				break;
+			case SAHPI_INVENTORY_RDR:
+				inv = &(rdr.RdrTypeUnion.InventoryRec);
+				snprintf(ar, 256, "%3.3d", inv->IdrId);
+				break;
+			case SAHPI_WATCHDOG_RDR:
+				wdog = &(rdr.RdrTypeUnion.WatchdogRec);
+				snprintf(ar, 256, "%3.3d", wdog->WatchdogNum);
+				break;
 			default:
-				snprintf(ar, 256, "%3.3d", 0);
+				snprintf(ar, 256, "%c", '?');
 		};
 		strcat(buf, ar);
 		len = rdr.IdString.DataLength;
