@@ -15,230 +15,297 @@
 
 #include <snmp_bc_plugin.h>
 
-SaErrorT snmp_bc_get_control_state(void *hnd, 
-				   SaHpiResourceIdT id,
-				   SaHpiCtrlNumT num,
+/**
+ * snmp_bc_get_control_state:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @cid: Control ID.
+ * @mode: Location to store control's operational mode.
+ * @state: Location to store control's state.
+ *
+ * Retrieves a control's operational mode and/or state. Both @mode and @state
+ * may be NULL (e.g. check for presence).
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_CONTROL.
+ * SA_ERR_HPI_INVALID_CMD - Control is write-only.
+ * SA_ERR_HPI_INVALID_DATA - @state contain invalid text line number.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_NOT_PRESENT - Control doesn't exist.
+ **/
+SaErrorT snmp_bc_get_control_state(void *hnd,
+				   SaHpiResourceIdT rid,
+				   SaHpiCtrlNumT cid,
 				   SaHpiCtrlModeT *mode,
 				   SaHpiCtrlStateT *state)
 {
         gchar *oid;
 	int i, found;
-	SaHpiCtrlStateT working;
-        struct snmp_value get_value;
-	SaErrorT status;
+	SaErrorT err;
+	SaHpiCtrlStateT working_state;
+        struct ControlInfo *cinfo;
+	struct snmp_value get_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_CTRL_RDR, num);
-	if(rdr == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-        struct ControlInfo *s =
-                (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
-	if(s == NULL) {
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}	
 
-	memset(&working, 0, sizeof(SaHpiCtrlStateT));
-	working.Type = rdr->RdrTypeUnion.CtrlRec.Type;
+	memset(&working_state, 0, sizeof(SaHpiCtrlStateT));
 
-	/* FIXME: */
-	/* Special consideration for SAHPI_CTRL_TYPE_TEXT */
-	/* Do we have any control of this type?           */
-	
-	oid = oh_derive_string(&(rdr->Entity), s->mib.oid);
-	if(oid == NULL) {
-		dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	}
-	
-	status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
-	if(( status != SA_OK) | (get_value.type != ASN_INTEGER)) {
-		dbg("SNMP could not read %s; Type=%d.\n", oid, get_value.type);
+	/* Check if resource exists and has control capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) return(SA_ERR_HPI_CAPABILITY);
+
+	/* Find control and its mapping data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_CTRL_RDR, cid);
+	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
+	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+ 	if (cinfo == NULL) {
+		dbg("No control data. Control=%s", rdr->IdString.Data);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}       
+
+	if (rdr->RdrTypeUnion.CtrlRec.WriteOnly) return(SA_ERR_HPI_INVALID_CMD);
+	if (!mode && !state) return(SA_OK);
+	if (state) {
+		if (state->Type == SAHPI_CTRL_TYPE_TEXT) {
+			if (state->StateUnion.Text.Line != SAHPI_TLN_ALL_LINES ||
+			    state->StateUnion.Text.Line > rdr->RdrTypeUnion.CtrlRec.TypeUnion.Text.MaxLines)
+				return(SA_ERR_HPI_INVALID_DATA);
+		}
+
+		/* Find control's state */
+		working_state.Type = rdr->RdrTypeUnion.CtrlRec.Type;
+
+		oid = oh_derive_string(&(rdr->Entity), cinfo->mib.oid);
+		if (oid == NULL) {
+			dbg("NULL SNMP OID returned for %s.", cinfo->mib.oid);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
+		
+		err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
+		if (err  || get_value.type != ASN_INTEGER) {
+			dbg("Cannot read SNMP OID=%s; Type=%d.", oid, get_value.type);
+			g_free(oid);
+			return(err);
+		}
 		g_free(oid);
-		if ( status == SA_ERR_HPI_BUSY) 
-			return status;
-		else 
-			return SA_ERR_HPI_NO_RESPONSE;
+		
+		switch (rdr->RdrTypeUnion.CtrlRec.Type) {
+		case SAHPI_CTRL_TYPE_DIGITAL:
+			found = 0;
+			for (i=0; i<OH_MAX_CTRLSTATEDIGITAL; i++) {
+				if (cinfo->mib.digitalmap[i] == get_value.integer) { 
+					found++;
+					break; 
+				}
+			}
+			if (found) {
+				switch (i) {
+				case 0:
+					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
+					break;
+				case 1:
+					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
+					break;
+				case 2:
+					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_OFF;
+					break;
+				case 3:
+					working_state.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_ON;
+					break;
+				default:
+					dbg("No control state defined for reading=%d.", i);
+					return(SA_ERR_HPI_INTERNAL_ERROR);
+				}
+			} 
+			else {
+				dbg("Control's value not defined");
+				return(SA_ERR_HPI_INTERNAL_ERROR);
+			}
+			break;
+		case SAHPI_CTRL_TYPE_DISCRETE:
+			working_state.StateUnion.Discrete = get_value.integer;
+			break;
+		case SAHPI_CTRL_TYPE_ANALOG:
+			dbg("Analog controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		case SAHPI_CTRL_TYPE_STREAM:
+			dbg("Stream controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		case SAHPI_CTRL_TYPE_TEXT:
+			dbg("Text controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		case SAHPI_CTRL_TYPE_OEM:	
+			dbg("Oem controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		default:
+			dbg("%s has invalid control state=%d.", cinfo->mib.oid, working_state.Type);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
 	}
-	g_free(oid);
-	
-	switch (working.Type) {
-	case SAHPI_CTRL_TYPE_DIGITAL:
-		
-		found = 0;
-		for(i=0; i<OH_MAX_CTRLSTATEDIGITAL; i++) {
-			if(s->mib.digitalmap[i] == get_value.integer) { 
-				found++;
-				break; 
-			}
-		}
 
-		if(found) {
-			switch (i) {
-			case 0:
-				working.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
-				break;
-			case 1:
-				working.StateUnion.Digital = SAHPI_CTRL_STATE_ON;
-				break;
-			case 2:
-				working.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_OFF;
-				break;
-			case 3:
-				working.StateUnion.Digital = SAHPI_CTRL_STATE_PULSE_ON;
-				break;
-			default:
-				dbg("Invalid Case=%d", i);
-				return SA_ERR_HPI_INTERNAL_ERROR;
-			}
-		} else {
-			dbg("Control's value not defined\n");
-			return SA_ERR_HPI_INTERNAL_ERROR;
-		}
-		break;
-	case SAHPI_CTRL_TYPE_DISCRETE:
-		working.StateUnion.Discrete = get_value.integer;
-		break;
-	case SAHPI_CTRL_TYPE_ANALOG:
-		dbg("Analog controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-	case SAHPI_CTRL_TYPE_STREAM:
-		dbg("Stream controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-	case SAHPI_CTRL_TYPE_TEXT:
-		dbg("Text controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-	case SAHPI_CTRL_TYPE_OEM:	
-		dbg("Oem controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-        default:
-		dbg("%s has invalid control state=%d\n", s->mib.oid,working.Type);
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-	/* state & mode can be NULL, need check before use */
-	if (state) memcpy(state,&working,sizeof(SaHpiCtrlStateT));
-	
-	if(mode) 
-		*mode = rdr->RdrTypeUnion.CtrlRec.DefaultMode.Mode;
+	if (state) memcpy(state, &working_state, sizeof(SaHpiCtrlStateT));
+	if (mode) *mode = cinfo->cur_mode;
 		
-	return SA_OK;
+	return(SA_OK);
 }
 
-SaErrorT snmp_bc_set_control_state(void *hnd, 
-				   SaHpiResourceIdT id,
-				   SaHpiCtrlNumT num,
+/**
+ * snmp_bc_set_control_state:
+ * @hnd: Handler data pointer.
+ * @rid: Resource ID.
+ * @cid: Control ID.
+ * @mode: Control's operational mode to set.
+ * @state: Pointer to control's state to set.
+ *
+ * Sets a control's operational mode and/or state. Both @mode and @state
+ * may be NULL (e.g. check for presence).
+ *
+ * Return values:
+ * SA_OK - Normal case.
+ * SA_ERR_HPI_CAPABILITY - Resource doesn't have SAHPI_CAPABILITY_CONTROL.
+ * SA_ERR_HPI_INVALID_CMD - Control is write-only.
+ * SA_ERR_HPI_INVALID_DATA - @state contains bad text control data.
+ * SA_ERR_HPI_INVALID_RESOURCE - Resource doesn't exist.
+ * SA_ERR_HPI_NOT_PRESENT - Control doesn't exist.
+ **/
+SaErrorT snmp_bc_set_control_state(void *hnd,
+				   SaHpiResourceIdT rid,
+				   SaHpiCtrlNumT cid,
 				   SaHpiCtrlModeT mode,
 				   SaHpiCtrlStateT *state)
 {
         gchar *oid;
 	int value;
-	SaErrorT status;
+	SaErrorT err;
+        struct ControlInfo *cinfo;
+	struct snmp_value set_value;
 
-        struct snmp_value set_value;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_CTRL_RDR, num);
-	if(rdr == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-        struct ControlInfo *s =
-                (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
-	if(s == NULL) {
-		return SA_ERR_HPI_INTERNAL_ERROR;
+	if (!custom_handle) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-	if(state->Type != rdr->RdrTypeUnion.CtrlRec.Type) {
-		dbg("Control %s type %d cannot be changed\n",s->mib.oid,state->Type);
-		return SA_ERR_HPI_INVALID_PARAMS;
-	}
+	/* Check if resource exists and has control capabilities */
+	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
+        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) return(SA_ERR_HPI_CAPABILITY);
 
-	/* FIXME: */
-	/* Need to revisit spec. Not sure what to do for  */
-	/* mode == SAHPI_CTRL_MODE_AUTO                   */
-	switch (state->Type) {
-	case SAHPI_CTRL_TYPE_DIGITAL:
-		switch (state->StateUnion.Digital) {
-		case SAHPI_CTRL_STATE_OFF:
-			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_OFF];
+	/* Find control and its mapping data - see if it accessable */
+        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, rid, SAHPI_CTRL_RDR, cid);
+	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
+	cinfo = (struct ControlInfo *)oh_get_rdr_data(handle->rptcache, cid, rdr->RecordId);
+ 	if (cinfo == NULL) {
+		dbg("No control data. Control=%s", rdr->IdString.Data);
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}       
+
+	/* Validate static control state and mode data */
+	err = oh_valid_ctrl_state_mode(&(rdr->RdrTypeUnion.CtrlRec), mode, state);
+	if (err) return(err);
+
+	/* Write control state */
+	if (mode != SAHPI_CTRL_MODE_AUTO && state) {
+		switch (state->Type) {
+		case SAHPI_CTRL_TYPE_DIGITAL:
+			switch (state->StateUnion.Digital) {
+			case SAHPI_CTRL_STATE_OFF:
+				value = cinfo->mib.digitalwmap[SAHPI_CTRL_STATE_OFF];
+				break;
+			case SAHPI_CTRL_STATE_ON:
+				value = cinfo->mib.digitalwmap[SAHPI_CTRL_STATE_ON];
+				break;	
+			case SAHPI_CTRL_STATE_PULSE_OFF:
+				/* NOTE: Not checking to see if already off;
+				   hardware doesn't support setting pulse off */
+				value = cinfo->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_OFF];
+				break;
+			case SAHPI_CTRL_STATE_PULSE_ON:
+				/* NOTE: Not checking to see if already on;
+				   hardware doesn't support setting pulse on */
+				value = cinfo->mib.digitalwmap[OH_MAX_CTRLSTATEDIGITAL - 1];
+				break;
+			default:
+				dbg("Invalid Case=%d", state->StateUnion.Digital);
+				return SA_ERR_HPI_INVALID_PARAMS;
+			}
+
+			if (value < 0) {
+				dbg("Control does not allow state=%s to be set.", 
+				    oh_lookup_ctrlstatedigital(state->StateUnion.Digital));
+				return(SA_ERR_HPI_INVALID_CMD);
+			}
+
+			oid = oh_derive_string(&(rdr->Entity), cinfo->mib.oid);
+			if (oid == NULL) {
+				dbg("NULL SNMP OID returned for %s.", cinfo->mib.oid);
+				return(SA_ERR_HPI_INTERNAL_ERROR);
+			}
+			
+			set_value.type = ASN_INTEGER;
+			set_value.str_len = 1;
+			set_value.integer = value;
+
+			err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+			if (err) {
+				dbg("Cannot set SNMP OID=%s.; Value=%d.", oid, value);
+				g_free(oid);
+				return(err);
+			}
+			g_free(oid);
 			break;
-		case SAHPI_CTRL_STATE_ON:
-			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_ON];
-			break;	
-		case SAHPI_CTRL_STATE_PULSE_OFF:
-			value = s->mib.digitalwmap[SAHPI_CTRL_STATE_PULSE_OFF];
+		case SAHPI_CTRL_TYPE_DISCRETE:
+			oid = oh_derive_string(&(rdr->Entity), cinfo->mib.oid);
+			if (oid == NULL) {
+				dbg("NULL SNMP OID returned for %s.", cinfo->mib.oid);
+				return(SA_ERR_HPI_INTERNAL_ERROR);
+			}
+			
+			set_value.type = ASN_INTEGER;
+			set_value.str_len = 1;
+			set_value.integer = state->StateUnion.Discrete;
+			
+			err = snmp_bc_snmp_set(custom_handle, oid, set_value);
+			if (err) {
+				dbg("Cannot set SNMP OID=%s; Value=%d.", 
+				    oid, (int)set_value.integer);
+				g_free(oid);
+				return(err);
+			}
+			g_free(oid);
 			break;
-		case SAHPI_CTRL_STATE_PULSE_ON:
-			value = s->mib.digitalwmap[OH_MAX_CTRLSTATEDIGITAL - 1];
-			break;
+		case SAHPI_CTRL_TYPE_ANALOG:
+			dbg("Analog controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		case SAHPI_CTRL_TYPE_STREAM:
+			
+			dbg("Stream controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		case SAHPI_CTRL_TYPE_TEXT:
+			dbg("Text controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		case SAHPI_CTRL_TYPE_OEM:	
+			dbg("OEM controls not supported.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
 		default:
-			dbg("Invalid Case=%d", state->StateUnion.Digital);
-			return SA_ERR_HPI_INVALID_PARAMS;
+			dbg("Invalid control state=%d", state->Type);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
+	}
 
-		if(value < 0) {
-			dbg("Control state %d not allowed to be set\n",state->StateUnion.Digital);
-			return SA_ERR_HPI_INVALID_CMD;
-		}
-
-		oid = oh_derive_string(&(rdr->Entity), s->mib.oid);
-		if(oid == NULL) {
-			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-			return SA_ERR_HPI_INTERNAL_ERROR;
-		}
-
-		set_value.type = ASN_INTEGER;
-		set_value.str_len = 1;
-		set_value.integer = value;
-
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
-		if (status != SA_OK) {
-			dbg("SNMP could not set %s; Value=%d.\n", oid, value);
-			g_free(oid);
-			if (status == SA_ERR_HPI_BUSY) return status;
-			else return SA_ERR_HPI_NO_RESPONSE;
-		}
-		g_free(oid);
-		break;
-
-	case SAHPI_CTRL_TYPE_DISCRETE:
-		oid = oh_derive_string(&(rdr->Entity), s->mib.oid);
-		if(oid == NULL) {
-			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-			return SA_ERR_HPI_INTERNAL_ERROR;
-		}
-
-		set_value.type = ASN_INTEGER;
-		set_value.str_len = 1;
-		set_value.integer = state->StateUnion.Discrete;
-
-		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
-		if (status != SA_OK) {
-			dbg("SNMP could not set %s; Value=%d.\n", oid, (int)set_value.integer);
-			g_free(oid);
-			if (status == SA_ERR_HPI_BUSY) return status;
-			else return SA_ERR_HPI_NO_RESPONSE;
-		}
-		g_free(oid);
-		break;
-	case SAHPI_CTRL_TYPE_ANALOG:
-		dbg("Analog controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-	case SAHPI_CTRL_TYPE_STREAM:
-		dbg("Stream controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-	case SAHPI_CTRL_TYPE_TEXT:
-		dbg("Text controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-	case SAHPI_CTRL_TYPE_OEM:	
-		dbg("Oem controls not supported\n");
-		return SA_ERR_HPI_INVALID_CMD;
-        default:
-		dbg("Request has invalid control state=%d\n", state->Type);
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+	/* Write control mode, if changed */
+	if (mode != cinfo->cur_mode) {
+		cinfo->cur_mode = mode;
+	}
 	
-        return SA_OK;
+        return(SA_OK);
 }

@@ -244,6 +244,7 @@ struct ControlMibInfo {
 
 struct ControlInfo {
         struct ControlMibInfo mib;
+	SaHpiCtrlModeT cur_mode;
 };
 
 struct snmp_bc_control {
