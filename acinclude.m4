@@ -80,6 +80,38 @@ $OH_MSG
     ]
 )
 
+#
+#  gcc version check.
+#
+
+AC_DEFUN(OH_CHECK_GCC,
+    [
+    GCCVERSIONOK=`gcc --version | grep "(GCC)" | \
+    sed 's/.*GCC.//' | sed 's/\./ /g' | \
+    awk '{ \
+        if ( $[1] > $1) { \
+            print "OK"; \
+        } \
+        if ( $[1] == $1 ) { \
+            if( $[2] > $2 ) { \
+                print "OK"; \
+            } \
+            if( $[2] == $2 ) { \
+                if( $[3] >= $3 ) { \
+                    print "OK"; \
+                } \
+            } \
+        } \
+    }'` \
+    
+    if test "$GCCVERSIONOK" == "OK"; then
+        AC_MSG_RESULT(yes)
+    else
+        OH_CHECK_FAIL(gcc >= $1.$2.$3 is required to build OpenHPI)
+    fi
+])
+    
+
 # it is worth noting that we have to strip 
 # optimization from the cflags for net-snmp
 # hopefully they'll fix that bug in the future
