@@ -139,7 +139,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		set_value.integer = 1;
 		
 		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
-			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidReset,set_value.type);
+			dbg("SNMP could not set %s; Type=%d.\n",oid,set_value.type);
 			g_free(oid);
 			return SA_ERR_HPI_NO_RESPONSE;
 		}
