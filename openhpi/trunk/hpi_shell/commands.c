@@ -670,7 +670,11 @@ static int set_tag(int argc, char *argv[])
 
 	clear_input();
 	if (argc < 2) {
-		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
 		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
 		if (i == 1) resid = (SaHpiResourceIdT)res;
 		else return SA_OK;
@@ -737,7 +741,11 @@ static int set_sever(int argc, char *argv[])
 
 	clear_input();
 	if (argc < 2) {
-		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
 		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
 		if (i == 1) resid = (SaHpiResourceIdT)res;
 		else return SA_OK;
@@ -801,7 +809,8 @@ static int dat_list(int argc, char *argv[])
 
 static int listres(int argc, char *argv[])
 {
-	return show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
+	show_rpt_list(Domain, SHOW_ALL_RPT, 0, ui_print);
+	return(SA_OK);
 }
 
 static int clear_evtlog(int argc, char *argv[])
@@ -1096,7 +1105,11 @@ static int sen_block(int argc, char *argv[])
 
 	clear_input();
 	if (argc < 2) {
-		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
 		i = get_int_param("RPT ID ==> ", &res, buf, 9);
 		if (i != 1) return SA_OK;
 		rptid = (SaHpiResourceIdT)res;
@@ -1105,7 +1118,11 @@ static int sen_block(int argc, char *argv[])
 	};
 	type = SAHPI_SENSOR_RDR;
 	if (argc < 3) {
-		show_rdr_list(Domain, rptid, type, ui_print);
+		i = show_rdr_list(Domain, rptid, type, ui_print);
+		if (i == 0) {
+			printf("No rdr for rpt: %d\n", rptid);
+			return(SA_OK);
+		};
 		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
 		if (i != 1) return SA_OK;
 		rdrnum = (SaHpiInstrumentIdT)res;
@@ -1245,7 +1262,11 @@ static int show_inv(int argc, char *argv[])
 
 	clear_input();
 	if (argc < 2) {
-		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
 		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
 		if (i == 1) resid = (SaHpiResourceIdT)res;
 		else return SA_OK;
@@ -1266,7 +1287,11 @@ static int show_rpt(int argc, char *argv[])
 
 	clear_input();
 	if (argc < 2) {
-		show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, resid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
 		i = get_int_param("RPT ID ==> ", &res, (char *)NULL, 0);
 		if (i == 1) resid = (SaHpiResourceIdT)res;
 		else return SA_OK;
@@ -1293,7 +1318,11 @@ static int show_rdr(int argc, char *argv[])
 
 	clear_input();
 	if (argc < 2) {
-		show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		i = show_rpt_list(Domain, SHOW_ALL_RPT, rptid, ui_print);
+		if (i == 0) {
+			printf("NO rpt!\n");
+			return(SA_OK);
+		};
 		i = get_int_param("RPT (ID | all) ==> ", &res, buf, 9);
 		if ((i == 0) && (strncmp(buf, "all", 3) == 0)) {
 			show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
@@ -1302,7 +1331,14 @@ static int show_rdr(int argc, char *argv[])
 		if (i != 1) return SA_OK;
 		rptid = (SaHpiResourceIdT)res;
 	} else {
-		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+		if (strcmp(argv[1], "all") == 0) {
+			show_rpt_list(Domain, SHOW_ALL_RDR, rptid, ui_print);
+			return(SA_OK);
+		};
+		if (isdigit(argv[1][0]))
+			rptid = (SaHpiResourceIdT)atoi(argv[1]);
+		else
+			return HPI_SHELL_PARM_ERROR;
 	};
 	if (argc < 3) {
 		i = get_int_param("RDR Type (s|a|c|w|i|all) ==> ", &res, buf, 9);
@@ -1320,7 +1356,11 @@ static int show_rdr(int argc, char *argv[])
 	else if (t == 'a') type = SAHPI_ANNUNCIATOR_RDR;
 	else type = SAHPI_NO_RECORD;
 	if (argc < 4) {
-		show_rdr_list(Domain, rptid, type, ui_print);
+		i = show_rdr_list(Domain, rptid, type, ui_print);
+		if (i == 0) {
+			printf("No rdr for rpt: %d\n", rptid);
+			return(SA_OK);
+		};
 		i = get_int_param("RDR NUM ==> ", &res, buf, 9);
 		if (i != 1) return SA_OK;
 		rdrnum = (SaHpiInstrumentIdT)res;
