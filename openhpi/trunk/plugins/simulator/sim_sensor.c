@@ -20,7 +20,12 @@
 #include <openhpi.h>
 
 #include "sim_util.h"
+#include "sim_parser.h"
 #include "sim_sensor.h"
+
+#define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
+#define error(f, ...) perror("ERROR: " f, ## __VA_ARGS__)
+#define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)
 
 
 static int get_sensor_event_state(SaHpiSensorThdDefnT *def,
@@ -32,26 +37,30 @@ static int get_sensor_event_state(SaHpiSensorThdDefnT *def,
 {
 #define  CHECK_RAW(x)                                  \
 do {                                                   \
-        if (!(((x)->ValuesPresent) & SAHPI_SRF_RAW))   \
+        if (!(((x)->ValuesPresent) & SAHPI_SRF_RAW)) { \
+                 info("not supported raw value\n");    \
                  return -1;                            \
+        }                                              \
 }while(0)
 
-#define GET_RAW_EVENT_STATE(r1, r2, p, n, es)          \
-do {                                                   \
-        if (((r1)->Raw < (r2)->Raw + (p)->Raw) &&      \
-            ((r1)->Raw < (r2)->Raw - (p)->Raw)) {      \
-                 *ev_state = es;                       \
-                 *trigger = *(r2);                     \
-                 return 0;                             \
-        }                                              \
+#define GET_RAW_EVENT_STATE(r1, r2, p, n, es)                  \
+do {                                                           \
+        if (((r1)->Raw <= (r2)->Raw + (p)->Raw) &&             \
+            ((r1)->Raw >= (r2)->Raw - (p)->Raw)) {             \
+                 *ev_state = es;                               \
+                 *trigger = *(r2);                             \
+                 return 0;                                     \
+        }                                                      \
 } while(0)
 
-        if (def->IsThreshold != SAHPI_TRUE)
-                return -1;     
+        if (def->IsThreshold != SAHPI_TRUE) {
+                info("not threshold\n");
+                return -1;
+        }
 
         if (def->TholdCapabilities & SAHPI_STC_RAW) {
                 if (sign != SAHPI_SDF_UNSIGNED) {
-                        printf("not implement for 1s and 2s type\n");
+                        info("not implement for 1s and 2s type\n");
                         return -1;
                 }
                 CHECK_RAW(reading);
@@ -74,10 +83,11 @@ do {                                                   \
                                     &thres->NegThdHysteresis,
                                     SAHPI_ES_LOWER_MAJOR);
 
-                GET_RAW_EVENT_STATE(reading, &thres->UpMinor,
+
+                GET_RAW_EVENT_STATE(reading, &thres->LowMinor,
                                     &thres->PosThdHysteresis,
                                     &thres->NegThdHysteresis,
-                                    SAHPI_ES_UPPER_MINOR);
+                                    SAHPI_ES_LOWER_MINOR);
 
                 GET_RAW_EVENT_STATE(reading, &thres->UpCritical,
                                     &thres->PosThdHysteresis,
@@ -93,12 +103,13 @@ do {                                                   \
                                     &thres->PosThdHysteresis,
                                     &thres->NegThdHysteresis,
                                     SAHPI_ES_UPPER_MINOR);
-        
+                return -1;
         }else if (def->TholdCapabilities & SAHPI_STC_INTERPRETED) {
                 /* Fix Me */
-                printf("don't implement for interpreted type\n");
+                info("don't implement for interpreted type\n");
                 return -1;
         }else {
+                error("no raw or interpreted\n");
                 return -1;
         }
         return -1;
@@ -125,15 +136,20 @@ static int generate_sensor_event(SaHpiRptEntryT *rpt,
        */
 
        /* Events not supported, therefore don't generate event */
-       if (rec->EventCtrl == SAHPI_SEC_NO_EVENTS)
+       if (rec->EventCtrl == SAHPI_SEC_NO_EVENTS) {
+               info("events not supported\n");
                return -1;
-
+       }
        /* Ignore sensor, therefor don't generate event */       
-       if (rec->Ignore == SAHPI_TRUE)
+       if (rec->Ignore == SAHPI_TRUE) {
+               info("ignore sensor\n");
                return -1;       
+       }
  
-       if (rec->DataFormat.IsNumeric != SAHPI_TRUE)
+       if (rec->DataFormat.IsNumeric != SAHPI_TRUE) {
+               info("not numeric\n");
                return -1;
+       }
 
        memset(new_ev, 0, sizeof(*new_ev));
 
@@ -152,13 +168,15 @@ static int generate_sensor_event(SaHpiRptEntryT *rpt,
                ns_ev->EventState = 0;
        }else {
 
-               if (!get_sensor_event_state(&rec->ThresholdDefn,
+               if (get_sensor_event_state(&rec->ThresholdDefn,
                                            rec->DataFormat.SignFormat,
                                            thres,
                                            reading,
                                            &ns_ev->EventState,
-                                           &ns_ev->TriggerThreshold))
-                     return -1;
+                                           &ns_ev->TriggerThreshold)) {
+                       info("no event generate\n");
+                       return -1;
+               }
 
                /* Fix Me */
                if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS)
@@ -180,29 +198,65 @@ int sim_sensor_update(struct oh_handler_state *inst,
                       SaHpiResourceIdT rid,
                       SaHpiSensorNumT num)
 {
+        int retval = -1;
+        char *file1 = NULL;
+        char *file2 = NULL;
+        char *file3 = NULL;
+        char *file4 = NULL;
+        char *file5 = NULL;
         SaHpiRptEntryT  rpt;
         SaHpiRdrT  rdr;
         SaHpiSensorReadingT  reading;
         SaHpiSensorThresholdsT  thres;
         SaHpiSensorEvtEnablesT  enables;
     
-        struct oh_event *ev;
-        int retval;
+        struct oh_event *ev = NULL;
 
         ev = g_malloc0(sizeof(*ev));
 
-        if (!ev)
-                return -1;
+        file1 = sim_util_get_rpt_file(inst, rid);
+        file2 = sim_util_get_rdr_file(inst, rid, num);
+        file3 = sim_util_get_sensor_reading_file(inst, rid, num);
+        file4 = sim_util_get_sensor_thres_file(inst, rid, num);
+        file5 = sim_util_get_sensor_enables_file(inst, rid, num);
+
+        if (!file1 || !file2 || !file3 || !file4 || !file5 || !ev)
+                goto out;
+
+        retval = sim_parser_get_rpt(file1, &rpt);
+        if (retval) goto out;
+        rpt.ResourceId = rid;
+
+        retval = sim_parser_get_rdr(file2, &rdr);
+        if (retval) goto out;
+        
+    
+        retval = sim_parser_get_sensor_reading(file3, &reading);
+        if (retval) goto out;        
+
+        retval = sim_parser_get_sensor_thres(file4, &thres);
+        if (retval) goto out;
+ 
+        retval = sim_parser_get_sensor_enables(file5, &enables);
+        if (retval) goto out;
 
         ev->type = OH_ET_HPI;
-        ev->u.hpi_event.parent = rpt.ResourceId;
+        ev->u.hpi_event.parent = rid;
         ev->u.hpi_event.id = get_rdr_uid(SAHPI_SENSOR_RDR, num);
         
         retval = generate_sensor_event(&rpt, &rdr, &reading, &thres, 
                                        &enables, NULL, &ev->u.hpi_event.event);
-        if (retval)
-                return -1;
+        if (retval) 
+                goto out;
 
-        sim_util_insert_event(&inst->eventq, ev);
-        return 0;
+        retval = sim_util_insert_event(&inst->eventq, ev);
+
+out:
+        if (file1) g_free(file1);
+        if (file2) g_free(file2);
+        if (file3) g_free(file3);
+        if (file4) g_free(file4);
+        if (file5) g_free(file5);
+        if (ev && retval) g_free(ev);
+        return  retval;
 }
