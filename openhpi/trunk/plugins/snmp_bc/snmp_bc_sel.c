@@ -15,16 +15,8 @@
 
 #include <glib.h>
 #include <time.h>
-#include <SaHpi.h>
 
-#include <openhpi.h>
-#include <snmp_util.h>
-#include <bc_resources.h>
-#include <snmp_bc.h>
-#include <snmp_bc_sel.h>
-#include <snmp_bc_time.h>
-#include <snmp_bc_event.h>
-
+#include <snmp_bc_plugin.h>
 
 oh_sel *bc_selcache = NULL;
 

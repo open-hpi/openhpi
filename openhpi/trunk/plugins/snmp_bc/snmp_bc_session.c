@@ -14,8 +14,6 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <openhpi.h>
-#include <snmp_util.h>
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 
@@ -40,20 +38,20 @@ void *snmp_bc_open(GHashTable *handler_config)
 
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
         if (!root_tuple) {
-                error("Cannot find \"entity_root\" configuration parameter.");
+                dbg("Cannot find \"entity_root\" configuration parameter.");
                 return NULL;
         }
 
         hostname = (char *)g_hash_table_lookup(handler_config, "host");
         if (!hostname) {
-                error("Cannot find \"host\" configuration parameter.");
+                dbg("Cannot find \"host\" configuration parameter.");
                 return NULL;
         }
 
         handle = (struct oh_handler_state *)g_malloc0(sizeof(struct oh_handler_state));
         custom_handle = (struct snmp_bc_hnd *)g_malloc0(sizeof(struct snmp_bc_hnd));
         if (!handle || !custom_handle) {
-                error("Cannot allocate memory for handle or custom_handle.");
+                dbg("Cannot allocate memory for handle or custom_handle.");
                 return NULL;
         }
 
@@ -75,7 +73,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 	/* Initialize "String to Event" mapping hash table */
 	if (str2event_use_count == 0) {
 		if (str2event_hash_init()) {
-			error("Cannot initialize str2event hash table.");
+			dbg("Cannot initialize str2event hash table.");
 			return NULL;
 		}
 	}
@@ -85,7 +83,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 #if 0
 	/* Initialize "Event Number to HPI Event" mapping hash table */
 	if (event2hpi_hash_init(handle)) {
-		error("Cannot initialize event2hpi hash table.");
+		dbg("Cannot initialize event2hpi hash table.");
 		return NULL;
 	}
 #endif     
@@ -104,7 +102,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		custom_handle->session.retries = 3;
 		version = (char *)g_hash_table_lookup(handle->config, "version");
 		if (!version) {
-			error("Cannot find \"version\" configuration parameter.");
+			dbg("Cannot find \"version\" configuration parameter.");
 			return NULL;
 		}
 		sec_level = (char *)g_hash_table_lookup(handle->config, "security_level");
@@ -116,7 +114,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		/* Configure SNMP V3 session */
 		if (!strcmp(version, "3")) {
 			if (!user) {
-				error("Cannot find \"security_name\" configuration parameter.");
+				dbg("Cannot find \"security_name\" configuration parameter.");
 				return NULL;
 			}
 			custom_handle->session.version = SNMP_VERSION_3;
@@ -126,7 +124,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 			
 			if (!strncmp(sec_level, "auth", 4)) { /* If using password */
 				if (!pass) {
-					error("Cannot find \"passphrase\" configuration parameter.");
+					dbg("Cannot find \"passphrase\" configuration parameter.");
 					return NULL;
 				}
 				
@@ -138,7 +136,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 					custom_handle->session.securityAuthProto = usmHMACSHA1AuthProtocol;
 					custom_handle->session.securityAuthProtoLen = USM_AUTH_PROTO_SHA_LEN;
 				} else {
-					error("Unrecognized authenication type=%s.", authtype); 
+					dbg("Unrecognized authenication type=%s.", authtype); 
 					return NULL;
 				}
 				
@@ -152,7 +150,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 					snmp_perror("snmp_bc");
 					snmp_log(LOG_ERR,
 						 "Error generating Ku from authentication passphrase.\n");
-					error("Unable to establish SNMP authnopriv session.");
+					dbg("Unable to establish SNMP authnopriv session.");
 					return NULL;
 				}
 				
@@ -169,7 +167,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 						snmp_perror("snmp_bc");
 						snmp_log(LOG_ERR,
 							 "Error generating Ku from private passphrase.\n");
-						error("Unable to establish SNMP authpriv session.");
+						dbg("Unable to establish SNMP authpriv session.");
 						return NULL;
 					}
 					
@@ -178,14 +176,14 @@ void *snmp_bc_open(GHashTable *handler_config)
                 /* Configure SNMP V1 session */
 		} else if (!strcmp(version, "1")) { 
 			if (!community) {
-				error("Cannot find \"community\" configuration parameter.");
+				dbg("Cannot find \"community\" configuration parameter.");
 				return NULL;
 			}
 			custom_handle->session.version = SNMP_VERSION_1;
 			custom_handle->session.community = community;
 			custom_handle->session.community_len = strlen(community);
 		} else {
-			error("Unrecognized SNMP version=%s.", version);
+			dbg("Unrecognized SNMP version=%s.", version);
 			return NULL;
 		}
                 
@@ -197,7 +195,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 		if (!custom_handle->ss) {
 			snmp_perror("ack");
 			snmp_log(LOG_ERR, "Something horrible happened!!!\n");
-		 	error("Unable to open SNMP session.");
+		 	dbg("Unable to open SNMP session.");
 			return NULL;
 		}
 	}
@@ -222,7 +220,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 					custom_handle->platform = SNMP_BC_PLATFORM_BC;
 				}
 				else {
-					error("Cannot read model type=%s; Error=%d.",
+					dbg("Cannot read model type=%s; Error=%d.",
 					      SNMP_BC_PLATFORM_OID_BCT, err);
 					return NULL;
 				}
@@ -238,7 +236,7 @@ void *snmp_bc_open(GHashTable *handler_config)
 			strcpy(custom_handle->handler_timezone, get_value.string);
 		}
 		else {
-			error("Cannot read DST=%s; Error=%d.", oid, get_value.type);
+			dbg("Cannot read DST=%s; Error=%d.", oid, get_value.type);
 			return NULL;
 		}
 	}

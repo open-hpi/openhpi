@@ -13,16 +13,7 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#include <glib.h>
-#include <SaHpi.h>
-
-#include <openhpi.h>
-#include <oh_plugin.h>
-#include <snmp_util.h>
-
-#include <bc_resources.h>
-#include <snmp_bc.h>
-#include <snmp_bc_sensor.h>
+#include <snmp_bc_plugin.h>
 
 SaErrorT snmp_bc_get_sensor_data(void *hnd,
 				 SaHpiResourceIdT id,
