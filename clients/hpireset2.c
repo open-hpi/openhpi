@@ -19,7 +19,7 @@
 #include "SaHpi.h"
 
 #define  uchar  unsigned char
-char *progver  = "1.0";
+char *progver  = "1.1";
 char fdebug = 0;
 
 static void Usage(char *pname)
@@ -43,9 +43,7 @@ main(int argc, char **argv)
 {
   int c;
   SaErrorT rv;
-  SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
-  SaHpiRptInfoT rptinfo;
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -75,12 +73,7 @@ main(int argc, char **argv)
   }
   if (fshutdown) breset = 5;     /* soft shutdown option */
 
-  rv = saHpiInitialize(&hpiVer);
-  if (rv != SA_OK) {
-	printf("saHpiInitialize error %d\n",rv);
-	exit(-1);
-	}
-  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
            printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -89,12 +82,8 @@ main(int argc, char **argv)
 	exit(-1);
 	}
  
-  rv = saHpiResourcesDiscover(sessionid);
+  rv = saHpiDiscover(sessionid);
   if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
-  rv = saHpiRptInfoGet(sessionid,&rptinfo);
-  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
-         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
 
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -110,17 +99,17 @@ main(int argc, char **argv)
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
 		entryid,resourceid, rptentry.ResourceTag.Data);
-        
-	rv1 = saHpiResourceResetStateSet(sessionid, 
-	     	resourceid, SAHPI_COLD_RESET);
-        printf("ResetStateSet status = %d\n",rv1);
+        if (rptentry.ResourceCapabilities && SAHPI_CAPABILITY_RESET) {
+            rv1 = saHpiResourceResetStateSet(sessionid, 
+                                             resourceid, SAHPI_COLD_RESET);
+            printf("ResetStateSet status = %d\n",rv1);
+        }
         
 	rptentryid = nextrptentryid;
      }
   }
  
   rv = saHpiSessionClose(sessionid);
-  rv = saHpiFinalize();
 
   exit(0);
   return(0);

@@ -10,8 +10,7 @@
  * full licensing terms.
  *
  * Authors:
- *     Andy Cress       <arcress@users.sourceforge.net>
- *     Louis Zhuang     <louis.zhuang@linux.intel.com>
+ *     Andy Cress <arcress@users.sourceforge.net>
  */
 
 #include <stdio.h>
@@ -20,7 +19,7 @@
 #include "SaHpi.h"
 
 #define  uchar  unsigned char
-char *progver  = "1.0";
+char *progver  = "1.1";
 char fdebug = 0;
 
 static void Usage(char *pname)
@@ -28,6 +27,7 @@ static void Usage(char *pname)
                 printf("Usage: %s [-r -d -x]\n", pname);
                 printf(" where -r  hard Resets the system\n");
                 printf("       -d  powers Down the system\n");
+                printf("       -u  powers Up the system\n");
 #ifdef MAYBELATER
 /*++++ not implemented in HPI 1.0 ++++
                 printf("       -c  power Cycles the system\n");
@@ -44,9 +44,7 @@ main(int argc, char **argv)
 {
   int c;
   SaErrorT rv;
-  SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
-  SaHpiRptInfoT rptinfo;
   SaHpiRptEntryT rptentry;
   SaHpiEntryIdT rptentryid;
   SaHpiEntryIdT nextrptentryid;
@@ -54,14 +52,14 @@ main(int argc, char **argv)
   SaHpiResourceIdT resourceid;
   uchar breset;
   uchar bopt;
-  uchar fshutdown = 0;
  
   printf("%s ver %s\n", argv[0],progver);
   breset = 3; /* hard reset as default */
   bopt = 0;    /* Boot Options default */
-  while ( (c = getopt( argc, argv,"rdx?")) != EOF )
+  while ( (c = getopt( argc, argv,"rdux?")) != EOF )
      switch(c) {
-          case 'd': breset = 0;     break;  /* power down */
+          case 'd': breset = 0;     break;  /* power down SAHPI_POWER_OFF */
+          case 'u': breset = 5;     break;  /* power up SAHPI_POWER_ON */
           case 'r': breset = 3;     break;  /* hard reset */
           case 'x': fdebug = 1;     break;  /* debug messages */
 #ifdef MAYBELATER
@@ -74,14 +72,8 @@ main(int argc, char **argv)
 		Usage(argv[0]);
                 exit(1);
   }
-  if (fshutdown) breset = 5;     /* soft shutdown option */
 
-  rv = saHpiInitialize(&hpiVer);
-  if (rv != SA_OK) {
-	printf("saHpiInitialize error %d\n",rv);
-	exit(-1);
-	}
-  rv = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID,&sessionid,NULL);
+  rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
   if (rv != SA_OK) {
         if (rv == SA_ERR_HPI_ERROR)
            printf("saHpiSessionOpen: error %d, SpiLibd not running\n",rv);
@@ -90,12 +82,8 @@ main(int argc, char **argv)
 	exit(-1);
 	}
  
-  rv = saHpiResourcesDiscover(sessionid);
+  rv = saHpiDiscover(sessionid);
   if (fdebug) printf("saHpiResourcesDiscover rv = %d\n",rv);
-  rv = saHpiRptInfoGet(sessionid,&rptinfo);
-  if (fdebug) printf("saHpiRptInfoGet rv = %d\n",rv);
-  printf("RptInfo: UpdateCount = %x, UpdateTime = %lx\n",
-         rptinfo.UpdateCount, (unsigned long)rptinfo.UpdateTimestamp);
 
   /* walk the RPT list */
   rptentryid = SAHPI_FIRST_ENTRY;
@@ -111,17 +99,24 @@ main(int argc, char **argv)
 	rptentry.ResourceTag.Data[rptentry.ResourceTag.DataLength] = 0;
 	printf("rptentry[%d] resourceid=%d tag: %s\n",
 		entryid,resourceid, rptentry.ResourceTag.Data);
-        
-	rv1 = saHpiResourcePowerStateSet(sessionid, 
-	     	resourceid, SAHPI_HS_POWER_OFF);
-        printf("PowerStateSet status = %d\n",rv1);
+        if (rptentry.ResourceCapabilities && SAHPI_CAPABILITY_POWER) {
+
+            if (breset == 5) {
+                rv1 = saHpiResourcePowerStateSet(sessionid, 
+                                                 resourceid, SAHPI_POWER_ON);
+            }
+
+            if (breset == 0) {
+                rv1 = saHpiResourcePowerStateSet(sessionid, 
+                                                 resourceid, SAHPI_POWER_OFF);
+            }
+        }
         
 	rptentryid = nextrptentryid;
      }
   }
  
   rv = saHpiSessionClose(sessionid);
-  rv = saHpiFinalize();
 
   exit(0);
   return(0);
