@@ -318,7 +318,7 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
         }
         
         if (EntryId == SAHPI_FIRST_ENTRY) {
-                req_entry = oh_get_resource_next(rpt, RPT_ENTRY_FIRST);
+                req_entry = oh_get_resource_next(rpt, RPT_ENTRY_BEGIN);
         } else {
                 req_entry = oh_get_resource_by_id(rpt, EntryId);
         }
@@ -350,16 +350,24 @@ SaErrorT SAHPI_API saHpiRptEntryGetByResourceId(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-        struct oh_session *s;
-        
         RPTable *rpt = &default_rpt;
-        
+        SaHpiRptEntryT *req_entry;
+
         OH_STATE_READY_CHECK;
-        
+
+        data_access_lock();
+
         req_entry = oh_get_resource_by_id(rpt, ResourceId);
+
+        if(req_entry == NULL) {
+                dbg("No such resource id");
+                data_access_unlock();
+                return SA_ERR_HPI_INVALID;
+        }
         
         memcpy(RptEntry, req_entry, sizeof(*RptEntry));
-
+        
+        data_access_unlock();
         return SA_OK;
 }
 
