@@ -19,8 +19,7 @@
 #include <snmp_util.h>
 #include <snmp_bc_session.h>
 #include <snmp_bc.h>
-#include <rpt_utils.h>
-#include <sel_utils.h>
+#include <oh_utils.h>
 #include <bc_resources.h>
 #include <bc_str2event.h>
 #include <snmp_bc_event.h>
