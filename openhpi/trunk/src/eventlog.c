@@ -132,6 +132,7 @@ int dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
 {
 	struct oh_domain *d;
 	
+	dbg("DSEL from application!");
 	d = get_domain_by_id(domain_id);
 	if (!d) {
 		dbg("Invalid domain");
@@ -147,6 +148,7 @@ int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 {
 	struct oh_sel *sel;
 	
+	dbg("DSEL from plugin!");
 	sel = malloc(sizeof(*sel));
 	if (!sel) {
 		dbg("Out of memory");
