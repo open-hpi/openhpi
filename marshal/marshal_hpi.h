@@ -122,8 +122,8 @@ typedef struct
   int                  m_id;
   const cMarshalType **m_request;
   const cMarshalType **m_reply; // the first param is the result
-  int                  m_request_len;
-  int                  m_reply_len;
+  unsigned int         m_request_len;
+  unsigned int         m_reply_len;
 } cHpiMarshal;
 
 
