@@ -41,6 +41,7 @@ EXTRA_DIST = \
 		eventmap2code.pl \
 		snmp_bc_event.map \
 		snmp_bc.h \
+		snmp_bc_annunciator.h \
 		snmp_bc_control.h \
 		snmp_bc_discover.h \
 		snmp_bc_event.h \
@@ -63,6 +64,7 @@ libsnmp_bc_la_SOURCES = \
 			$(GENERATED_EVENT_CODE) \
 			sim_init.c \
 			snmp_bc.c \
+			snmp_bc_annunciator.c \
 			snmp_bc_control.c \
 			snmp_bc_discover.c \
 			snmp_bc_discover_bc.c \

@@ -24,6 +24,7 @@ GENERATED_CODE = $(GENERATED_EVENT_HEADER_FILES) $(GENERATED_EVENT_XML_MAP) $(GE
 REMOTE_SIM_SOURCES = \
 		$(GENERATED_EVENT_CODE) \
 		snmp_bc.c \
+		snmp_bc_annunciator.c \
 		snmp_bc_control.c \
 	     	snmp_bc_discover.c \
 		snmp_bc_discover_bc.c \
