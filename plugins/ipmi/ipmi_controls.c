@@ -28,27 +28,68 @@ static void get_control_state(ipmi_control_t	*control,
 
 
 }
-
-int ohoi_get_control_state(ipmi_control_id_t	control_id,
-			   SaHpiCtrlStateT	*state)
-{
-	int rv;
-
-	rv = ipmi_control_pointer_cb(control_id, get_control_state, state);
-
-	if (rv) {
-		dbg("Unable to retrieve control state");
-		return SA_ERR_HPI_ERROR;
-	}
-	return 0;
-}
 #endif
+
+struct ohoi_control_read_info {
+        int done;
+        SaHpiCtrlStateT *state;
+};
+
+static void __get_control_state(ipmi_control_t *control,
+                                int            err,
+                                int            *val,
+                                void           *cb_data)
+{
+        struct ohoi_control_read_info *info = cb_data;
+
+        info->done = 1;
+        if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
+                dbg("IPMI plug-in only support OEM control now");
+                return;
+        }
+        
+        info->state->StateUnion.Oem.BodyLength 
+                = ipmi_control_get_num_vals(control);
+        memcpy(&info->state->StateUnion.Oem.Body[0],
+               val,
+               info->state->StateUnion.Oem.BodyLength);
+}
+
+static void _get_control_state(ipmi_control_t *control,
+                                void           *cb_data)
+{
+        ipmi_control_get_val(control, __get_control_state, cb_data);
+}
 
 SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
                                 SaHpiCtrlStateT *state)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+        struct ohoi_control_read_info info;
+	SaErrorT         rv;
+	ipmi_control_id_t *ctrl;
+
+        rv = ohoi_get_rdr_data(hnd, id, SAHPI_CTRL_RDR, num, (void *)&ctrl);
+        if (rv!=SA_OK)
+                return rv;
+
+	memset(state, 0, sizeof(*state));
+	
+        info.done  = 0;
+        info.state = state;
+        info.state->Type = SAHPI_CTRL_TYPE_OEM;
+        
+        rv = ipmi_control_pointer_cb(*ctrl, _get_control_state, &info);
+	if (rv) {
+		dbg("Unable to retrieve control state");
+		return SA_ERR_HPI_ERROR;
+	}
+
+        ohoi_loop(&info.done, ipmi_handler);
+
+	return SA_OK;
 }
 
 SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,

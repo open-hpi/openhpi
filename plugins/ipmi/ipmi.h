@@ -158,7 +158,7 @@ void ohoi_entity_event(enum ipmi_update_e       op,
                        ipmi_entity_t            *entity,
                        void                     *cb_data);
 
-int ohoi_loop(int *done_flag, void *cb_data);
+int ohoi_loop(int *done_flag, struct ohoi_handler *ipmi_handler);
 /**
  * loop_indicator_cb:
  * @cb_data: callback data
@@ -170,8 +170,13 @@ int ohoi_loop(int *done_flag, void *cb_data);
  * end.
  **/
 typedef int (*loop_indicator_cb)(const void *cb_data);
-int ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int timeout, void *cb_data2); 
+int ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int timeout, struct ohoi_handler *ipmi_handler); 
 
+SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
+                           SaHpiResourceIdT              id,
+                           SaHpiRdrTypeT                 type,
+                           SaHpiUint8T                   num,
+                           void                          **pdata);
 /*
  * ABI stub functions
  */ 

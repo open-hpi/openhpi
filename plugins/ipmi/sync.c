@@ -15,9 +15,8 @@
 
 #include "ipmi.h"
 
-SaErrorT ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int to, void *cb_data2) 
+SaErrorT ohoi_loop_until(loop_indicator_cb indicator, const void *cb_data, int to, struct ohoi_handler *ipmi_handler) 
 {
-		struct ohoi_handler *ipmi_handler = cb_data2;
 		struct timeval tv1, tv2, tv3; 
 		
         /* Wait 5 seconds for result */
@@ -44,9 +43,7 @@ static int simple_indicator(const void *cb_data)
         return (*(const int *)cb_data);
 }
 
-SaErrorT ohoi_loop(int *done, void *cb_data)
+SaErrorT ohoi_loop(int *done, struct ohoi_handler *ipmi_handler)
 {
-		struct ohoi_handler *ipmi_plugin = cb_data;
-
-        return (ohoi_loop_until(simple_indicator, done, IPMI_DATA_WAIT, ipmi_plugin));
+        return (ohoi_loop_until(simple_indicator, done, IPMI_DATA_WAIT, ipmi_handler));
 }
