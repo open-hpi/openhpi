@@ -435,7 +435,6 @@ int oh_load_config (char *filename)
         int num_tokens = sizeof(oh_conf_tokens) / sizeof(oh_conf_tokens[0]);
 
         init_plugin();
-        add_domain(SAHPI_DEFAULT_DOMAIN_ID);    
         
         oh_scanner = g_scanner_new(&oh_scanner_config);
         if(!oh_scanner) {
