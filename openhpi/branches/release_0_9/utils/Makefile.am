@@ -47,7 +47,6 @@ pkgconfig_DATA          = openhpiutils.pc
 lib_LTLIBRARIES		= libopenhpiutils.la
 
 libopenhpiutils_la_SOURCES = \
-			   debug.c \
 			   rpt_utils.c \
                            epath_utils.c \
 			   sel_utils.c \
