@@ -1,5 +1,19 @@
 #!/usr/bin/perl
 
+#       $Id$
+ 
+#  (C) Copyright IBM Corp. 2004
+ 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+#  file and program are licensed under a BSD style license.  See
+#  the Copying file included with the OpenHPI distribution for
+#  full licensing terms.
+ 
+#  Authors:
+#      Sean Dague <http://dague.net/sean>
+
 use strict;
 
 my @dirs = qw(src);
@@ -19,3 +33,6 @@ foreach my $dir (@dirs) {
     }
     closedir(DIR);
 }
+
+system("./generate_index.pl $outdir > $outdir/index.html");
+

@@ -29,8 +29,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
 
+REPORTDIR = report_html
+SERVER = shell1.sf.net
+RDIR = /home/groups/o/op/openhpi/htdocs/coverage_report
 
-MAINTAINERCLEANFILES 	= Makefile.in report_html @TEST_CLEAN@
+MAINTAINERCLEANFILES 	= Makefile.in @TEST_CLEAN@
+
 EXTRA_DIST              = testcoverage.pl \
 	coverage_report.pl \
 	gcov2html.pl \
@@ -46,8 +50,17 @@ EXTRA_DIST              = testcoverage.pl \
 
 #lib_LTLIBRARIES		= libopenhpi.la
 
+clean-local:
+	rm -rf $(REPORTDIR)
+
 report:
 	./testcoverage.pl
 	./coverage_report.pl
 
-publish-report:
+publish-report: report
+	-chmod a+x $(shell echo $(REPORTDIR)/*html)
+	-echo "XBitHack on" > $(REPORTDIR)/.htaccess
+	-echo "Options +Indexes" >> $(REPORTDIR)/.htaccess 
+	-rsync -e ssh -rP --delete $(REPORTDIR)/ $(SERVER):$(RDIR)
+	-ssh $(SERVER) "find $(RDIR) -user `whoami` -exec chmod g+w {} \;"
+	-ssh $(SERVER) "find $(RDIR) -user `whoami` -type d -exec chmod g+s {} \;"
