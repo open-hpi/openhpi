@@ -9,7 +9,7 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Authors:  David Judkovics
  *     
  *     
  *     
@@ -87,7 +87,7 @@ typedef struct {
         NETWORK_HDR_STR header;
         int error;
         int num_resource_events;
-        struct oh_event oh_event_arry[2];
+        struct oh_event oh_event_arry[3];
 } DISCOVER_RESOURCES_MSG_STR;
 
 typedef struct {
