@@ -23,7 +23,26 @@
 
 static void process_session_event(struct oh_event *e)
 {
-	dbg("Not implemented!");
+	struct oh_resource *res;
+	int i;
+	
+	res = get_res_by_oid(e->u.res_event.id);
+	if (!res) {
+		dbg("No the resource");
+	}
+
+	for (i=0; i<g_slist_length(res->domain_list); i++) {
+		SaHpiDomainIdT domain_id;
+		int j;
+
+		domain_id = GPOINTER_TO_UINT(g_slist_nth_data(res->domain_list, i));
+		for (j=0; j<g_slist_length(global_session_list); j++) {
+			struct oh_session *session;
+			session = g_slist_nth_data(global_session_list, j);
+			if (domain_id == session->domain_id)
+				session_push_event(session, e);
+		}
+	}
 }
 
 static void process_internal_event(struct oh_handler *h, struct oh_event *e)

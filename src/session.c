@@ -72,14 +72,23 @@ int session_del(struct oh_session *session)
 }
 
 /*
- * session_push_event pushs and event into a session.  I don't think
- * that we need to do any memory allocation here, as we should
- * already have a valid session and event
+ * session_push_event pushs and event into a session.
+ * We store a copy of event so that caller of the function
+ * needn't care about ref counter of the event.
 */
 
 int session_push_event(struct oh_session *s, struct oh_event *e)
 {
-        s->eventq = g_slist_append(s->eventq, (gpointer *) e);
+	struct oh_event *e1;
+
+	e1 = malloc(sizeof(*e1));
+	if (!e1) {
+		dbg("Out of memory!");
+		return -1;
+	}
+	memcpy(e1, e, sizeof(*e));
+
+        s->eventq = g_slist_append(s->eventq, (gpointer *) e1);
         return 0;
 }
 
