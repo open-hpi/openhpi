@@ -28,6 +28,7 @@
 #include <snmp_client.h>
 #include <snmp_client_res.h>
 #include <snmp_client_utils.h>
+#include <oh_utils.h>
 
 #include <netinet/in.h>
 

@@ -28,6 +28,7 @@
 #include <snmp_client.h>
 #include <snmp_client_res.h>
 #include <snmp_client_utils.h>
+#include <oh_utils.h>
 #include <sc_sensor_data.h>
 
 #include <netinet/in.h>
@@ -2616,6 +2617,7 @@ SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 		memset(&set_value, 0, sizeof(set_value));
 		set_value.integer = (SaHpiUint32T)writing->Raw;
 		set_value.type = ASN_UNSIGNED;
+		set_value.str_len = sizeof(unsigned int);
 		
 		build_res_oid(anOID, 
 			      oid_ptr[THOLD_RAW], 
