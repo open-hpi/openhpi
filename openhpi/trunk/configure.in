@@ -121,8 +121,7 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
 	-Wwrite-strings \
-	-Wcast-qual -Wcast-align \
-	-Werror"
+	-Wcast-qual -Wcast-align"
 
 CFLAGS="$CFLAGS $CC_WARNINGS"
 
