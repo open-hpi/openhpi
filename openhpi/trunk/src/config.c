@@ -47,12 +47,20 @@ enum {
         HPI_CONF_TOKEN_PLUGIN
 } hpiConfType;
 
-static struct {
+struct tokens {
         gchar *name;
         guint token;
-} oh_conf_tokens[] = {
-        { "handler", HPI_CONF_TOKEN_HANDLER },
-        { "plugin", HPI_CONF_TOKEN_PLUGIN }
+};
+struct tokens oh_conf_tokens[] = {
+	  {
+		.name = "handler", 
+		.token = HPI_CONF_TOKEN_HANDLER
+	  },
+	  { 
+		.name = "plugin", 
+		.token = HPI_CONF_TOKEN_PLUGIN 
+	  }
+
 };
 
 /*******************************************************************************
