@@ -83,10 +83,33 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	entry->ResourceInfo.AuxFirmwareRev = 0;
 	entry->ResourceEntity.Entry[0].EntityType 
                 = ipmi_entity_get_entity_id(entity);
+	printf("**Entity type: %d\n", ipmi_entity_get_entity_id(entity));
 	entry->ResourceEntity.Entry[0].EntityLocation 
                 = ipmi_entity_get_entity_instance(entity);
 	entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
 	entry->ResourceEntity.Entry[1].EntityLocation = 0;
+	
+	/* AdvancedTCA fixe-up */
+
+	if (ipmi_entity_get_entity_instance(entity) >= 96) {
+			entry->ResourceEntity.Entry[0].EntityLocation -= 96
+				|ipmi_entity_get_device_channel(entity)
+				|ipmi_entity_get_device_address(entity);
+	}
+
+	if ((ipmi_entity_get_entity_id(entity) == 160) &&
+			(ipmi_entity_get_entity_instance(entity) == 96)) {
+		dbg("SBC_Blade");
+	       entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SBC_BLADE;
+	}
+	
+	if ((ipmi_entity_get_entity_id(entity) == 160) &&
+			(ipmi_entity_get_entity_instance(entity) == 102)) {
+		dbg("DISK Blade");
+	       entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_DISK_BLADE;
+	}
+	
+	/* End AdvancedTCA Fix-ups */
 	
 	/* let's append entity_root from config */
 
