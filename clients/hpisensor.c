@@ -293,7 +293,8 @@ int main(int argc, char **argv)
 						rdr.RdrTypeUnion.SensorRec.Ignore != TRUE) {
                                                 ShowSensor(sessionid,resourceid,
                                                            &rdr.RdrTypeUnion.SensorRec);
-                                        } else {
+                                        } else if (rdr.RdrType == SAHPI_SENSOR_RDR &&
+						   rdr.RdrTypeUnion.SensorRec.Ignore == TRUE) {
 						printf("Sensor ignored probably due to Resource not present\n");
 					}
 
