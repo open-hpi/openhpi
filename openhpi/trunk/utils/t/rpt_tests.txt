@@ -101,3 +101,6 @@ The negative tests:
         - rdrid == last rdr (060)
     oh_flush_rpt
     	- RPTable == NULL (061)
+
+Speed Tests:
+    - Add 10,000 resources. Time how long it takes to fetch last one. (1000)
