@@ -25,8 +25,9 @@
 #include <bc_str2event.h>
 #include <snmp_bc_event.h>
 
+
 int is_simulator(void);
-int sim_banner(void);
+int sim_banner(struct snmp_bc_hnd *);
 int sim_init(void);
 int sim_close(void);
 
@@ -42,6 +43,7 @@ void *snmp_bc_open(GHashTable *handler_config)
         struct snmp_bc_hnd *custom_handle;
         char *hostname, *version, *sec_level, *authtype, *user, *pass, *community;
         char *root_tuple;
+	SaErrorT rc;
 
         root_tuple = (char *)g_hash_table_lookup(handler_config, "entity_root");
         if(!root_tuple) {
@@ -203,34 +205,32 @@ void *snmp_bc_open(GHashTable *handler_config)
 	{
 		struct snmp_value get_value;
 
-		snmp_get(custom_handle->ss,SNMP_BC_TIME_DST,&get_value); 
-		strcpy(custom_handle->handler_timezone, get_value.string);
+		if (snmp_get(custom_handle->ss,SNMP_BC_TIME_DST,&get_value) == SA_OK) 
+			strcpy(custom_handle->handler_timezone, get_value.string);
+		else { 
+		
+			dbg("SNMP could not read BC DST %s; Type=%d.\n", 
+			    SNMP_BC_TIME_DST, get_value.type);
+			return NULL;
+		}
+		
+		rc = snmp_get(custom_handle->ss, BC_TELCO_SYSTEM_HEALTH_STAT_OID, &get_value); 
+		if (rc == SA_OK) {
+			strcpy(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT);
+		} else if (( rc == SA_SNMP_NOSUCHOBJECT) || (rc == SA_SNMP_NOSUCHINSTANCE)) { 
+			strcpy(custom_handle->bc_type, SNMP_BC_PLATFORM_BC);
+		} else {		 
 
-		if ((snmp_get(custom_handle->ss, SNMP_BC_BLADECENTER_TYPE, &get_value) != 0) ||
-		    (get_value.type != ASN_OCTET_STR)) {
 			dbg("SNMP could not read %s; Type=%d.\n", 
 			    SNMP_BC_BLADECENTER_TYPE, get_value.type);
 			return NULL;
 		}
 
-		if (!strcmp(get_value.string, SNMP_BC_BCE_MODEL)) {
-			strcpy(bc_type, SNMP_BC_PLATFORM_BC);
-		}
-		else if (!strcmp(get_value.string, SNMP_BC_BCT_MODEL_AC)) {
-			strcpy(bc_type, SNMP_BC_PLATFORM_BCT);
-		}
-		else if (!strcmp(get_value.string, SNMP_BC_BCT_MODEL_DC)) {
-			strcpy(bc_type, SNMP_BC_PLATFORM_BCT);
-		}
-		else {
-			dbg("Unrecognized BladeCenter Type=%s.\n", get_value.string);
-			return NULL;
-		}
 	}
 
-	if (is_simulator) {
-		sim_banner();
-	}
+	if (is_simulator) 
+		sim_banner(custom_handle);
+	
 
         return handle;
 }

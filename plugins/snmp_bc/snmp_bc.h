@@ -25,6 +25,7 @@ struct snmp_bc_hnd {
         struct snmp_session session;
         struct snmp_session *ss; 	/* SNMP Session pointer */
 	GHashTable *event2hpi_hash_ptr; /* Global BC Event Number to HPI Event Hash Table */
+	char    bc_type[4];
 	char handler_timezone[10];
 };
 
