@@ -99,8 +99,10 @@ public:
 class cIpmiDomain
 {
 public:
-  unsigned int m_con_timeout;
+  unsigned int m_con_ipmi_timeout;
   unsigned int m_con_atca_timeout;
+
+  unsigned int m_max_outstanding; // 0 => use default
 
 protected:
   // ipmi connection
@@ -147,15 +149,16 @@ public:
 protected:
   // global lock for reading/writing:
   //   mcs, entities, sensors, frus, sels
-  cThreadLockRw m_lock;
+  //cThreadLockRw m_lock;
 
   GList        *m_mcs; // list of all MCs
 
 public:
-  void ReadLock()    { m_lock.ReadLock(); }
-  void ReadUnlock()  { m_lock.ReadUnlock(); }
-  void WriteLock()   { m_lock.WriteLock(); }
-  void WriteUnlock() { m_lock.WriteUnlock(); }
+  void ReadLock()    { /*m_lock.ReadLock();*/ }
+  void ReadUnlock()  { /*m_lock.ReadUnlock();*/ }
+  void WriteLock()   { /*m_lock.WriteLock();*/ }
+  void WriteUnlock() { /*m_lock.WriteUnlock();*/ }
+  bool CheckLock()   { return true; /*m_lock.CheckLock();*/ }
 
   // lock m_initial_discover
   cThreadLock m_initial_discover_lock;

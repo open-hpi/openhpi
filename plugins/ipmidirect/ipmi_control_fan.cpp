@@ -58,18 +58,6 @@ cIpmiControlFan::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 }
 
 
-/*
-void
-cIpmiControlFan::Log()
-{
-  cIpmiControl::Log();
-  stdlog << "\tfan min " << m_minimum_speed_level << ", max "
-         << m_maximum_speed_level << ", auto speed "
-         << m_local_control_mode << "\n";
-}
-*/
-
-
 SaErrorT
 cIpmiControlFan::SetState( const SaHpiCtrlStateT &state )
 {

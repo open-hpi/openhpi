@@ -112,8 +112,7 @@ protected:
   int  CreateSession();
 
 public:
-  cIpmiConLan( unsigned int timeout, unsigned int atca_timeout,
-               unsigned int max_outstanding,
+  cIpmiConLan( unsigned int timeout,
                struct in_addr addr, int port,
                tIpmiAuthType auth, tIpmiPrivilege priv,
                char *user, char *passwd );

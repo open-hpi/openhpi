@@ -189,9 +189,8 @@ struct ipmi_timing_parms
 					     struct ipmi_timing_parms)
 
 
-cIpmiConSmi::cIpmiConSmi( unsigned int timeout, unsigned int atca_timeout,
-                          unsigned int max_outstanding, int if_num )
-  : cIpmiCon( timeout, atca_timeout, max_outstanding ), 
+cIpmiConSmi::cIpmiConSmi( unsigned int timeout, int if_num )
+  : cIpmiCon( timeout ), 
     m_if_num( if_num )
 {
 }
@@ -244,7 +243,7 @@ cIpmiConSmi::IfOpen()
 
   if ( fd < 0 )
        return fd;
-  
+
   struct ipmi_timing_parms parms;
   int                      rv;
 

@@ -344,6 +344,18 @@ cThreadLockRw::TimedWriteLock( unsigned int timeout )
 }
 
 
+bool
+cThreadLockRw::CheckLock()
+{
+  bool rv = TryWriteLock();
+  
+  if ( rv )
+       WriteUnlock();
+
+  return rv;
+}
+
+
 //////////////////////////////////////////////////
 //                  cThreadCond
 //////////////////////////////////////////////////

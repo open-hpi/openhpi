@@ -25,19 +25,13 @@
 #include "ipmi_con.h"
 
 
-cIpmiCon::cIpmiCon( unsigned int ipmi_timeout, unsigned int atca_timeout,
-                    unsigned int max_outstanding )
+cIpmiCon::cIpmiCon( unsigned int timeout )
   : m_is_open( false ), m_fd( -1 ), m_slave_addr( 0x20 ),
-    m_max_outstanding( max_outstanding ), m_queue( 0 ),
+    m_max_outstanding( 1 ), m_queue( 0 ),
     m_num_outstanding( 0 ), m_current_seq( 0 ),
     m_exit( false ),
-    m_default_ipmi_timeout( ipmi_timeout ),
-    m_default_atca_timeout( atca_timeout ),
-    m_timeout( ipmi_timeout ), m_check_connection( false )
+    m_timeout( timeout ), m_check_connection( false )
 {
-  assert( m_max_outstanding > 0 );
-  assert( m_max_outstanding <= dMaxSeq );
-
   for( int i = 0; i < dMaxSeq; i++ )
        m_outstanding[i] = 0;
 

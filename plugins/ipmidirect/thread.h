@@ -122,6 +122,9 @@ public:
   virtual void WriteUnlock();
   virtual bool TryWriteLock();
   virtual bool TimedWriteLock( unsigned int timeout );
+
+  // true => no lock held
+  bool CheckLock();
 };
 
 

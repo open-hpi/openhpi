@@ -102,7 +102,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
        case SAHPI_HS_STATE_ACTIVE_HEALTHY:
             if (    current == SAHPI_HS_STATE_INSERTION_PENDING 
                  || current == SAHPI_HS_STATE_EXTRACTION_PENDING )
-                 msg.m_data[2] = dIpmiDeactivateFru;
+                 msg.m_data[2] = dIpmiActivateFru;
             else
                {
                  stdlog << "FRU state is not SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_EXTRACTION_PENDING: "
@@ -114,7 +114,7 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
 
        case SAHPI_HS_STATE_INACTIVE:
             if ( current == SAHPI_HS_STATE_ACTIVE_HEALTHY )
-                 msg.m_data[2] = dIpmiActivateFru;
+                 msg.m_data[2] = dIpmiDeactivateFru;
             else
               {
                  stdlog << "FRU state is not SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_EXTRACTION_PENDING: "
