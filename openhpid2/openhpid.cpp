@@ -135,7 +135,7 @@ int main (int argc, char *argv[])
 
         /* get the command line options */
         while (1) {
-                c = getopt_long(argc, argv, "c:p:f:v:s:t:n", long_options,
+                c = getopt_long(argc, argv, "nvc:p:f:s:t:", long_options,
                                 &option_index);
                 /* detect when done scanning options */
                 if (c == -1) {
