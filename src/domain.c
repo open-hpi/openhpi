@@ -110,6 +110,7 @@ int add_domain(SaHpiDomainIdT did)
         d = malloc(sizeof(*d));
         if (!d) {
                 dbg("Out of memory");
+                data_access_unlock();
                 return -1;
         }
         
