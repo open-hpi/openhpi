@@ -56,16 +56,12 @@ static SaErrorT oh_text_buffer_append(SaHpiTextBufferT *text, char * from, size_
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
         
-        dbg("Appending text %s, %u to buff of %u", from, size,  text->DataLength);
         
         /* we can't trust NULLs to be right, so use a targetted strncpy instead */
         p = text->Data;
-        dbg("P = %p, D = %u", p, text->DataLength);
         p += text->DataLength;
-        dbg("P = %p, D = %u", p, text->DataLength);
         strncpy(p, from, size);
         text->DataLength += size;
-        dbg("P = %p, D = %u", p, text->DataLength);
         
         // fprint_text_buffer(stderr, text);
         return SA_OK;
