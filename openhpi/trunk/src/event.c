@@ -77,12 +77,16 @@ static void process_internal_event(struct oh_handler *h, struct oh_event *e)
 		/*Assume all resources blongs to DEFAULT_DOMAIN*/
 		res->domain_list = g_slist_append(res->domain_list, 
 				GUINT_TO_POINTER(SAHPI_DEFAULT_DOMAIN_ID));
-		/* resource with domain cap needs openhpi to call abi->open_domain
-		 * to extend the domain into global domain table.
-		 */
-		if (res->entry.ResourceCapabilities & SAHPI_CAPABILITY_DOMAIN) {
-			dbg("FIXME: can not process domain capability now");
-		}
+		break;
+
+	case OH_ET_DOMAIN:
+		res = get_res_by_oid(e->u.domain_event.id);
+		if (!res) {
+			dbg("Cannot find corresponding resource");
+			break;
+		}		
+		res->domain_list = g_slist_append(res->domain_list, 
+						  GUINT_TO_POINTER(e->u.domain_event.domain));
 		break;
 
 	case OH_ET_RDR:

@@ -53,6 +53,15 @@ struct oh_resource_event {
 	SaHpiRptEntryT		entry;
 };
 
+/*
+ * The event is used for plugin to report that a given resource
+ * is a member of a specific domain.
+ */
+struct oh_domain_event {
+	struct oh_resource_id	id;
+	SaHpiDomainIdT domain;
+};
+
 /* 
  * The event is used for plugin to report its RDRs in resource.
  */
@@ -86,11 +95,13 @@ struct oh_hpi_event {
 struct oh_event {
 	enum {
 		OH_ET_RESOURCE,
+		OH_ET_DOMAIN,
 		OH_ET_RDR,
 		OH_ET_HPI
 	}type;
 	union {
 		struct oh_resource_event res_event;
+		struct oh_domain_event   domain_event;
 		struct oh_rdr_event	 rdr_event;
 		struct oh_hpi_event	 hpi_event;
 	} u;		    
