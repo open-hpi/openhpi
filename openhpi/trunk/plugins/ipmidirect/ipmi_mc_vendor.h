@@ -30,6 +30,11 @@
 #include "ipmi_msg.h"
 #endif
 
+#ifndef dIpmiFruInfo_h
+#include "ipmi_fru_info.h"
+#endif
+
+
 class cIpmiMc;
 
 
@@ -100,7 +105,7 @@ public:
 
 protected:
   virtual bool CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
-                                   unsigned int mc_type );
+                                   tIpmiAtcaSiteType type );
   virtual bool CreateControlAtcaFan( cIpmiDomain *domain, cIpmiResource *res, cIpmiSdrs *sdrs );
 
 public:

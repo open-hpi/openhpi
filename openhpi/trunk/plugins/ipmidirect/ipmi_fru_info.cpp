@@ -17,12 +17,39 @@
 #include "ipmi_fru_info.h"
 
 
+SaHpiEntityTypeT
+MapAtcaSiteTypeToEntity( tIpmiAtcaSiteType type )
+{
+  static SaHpiEntityTypeT et[] = 
+  {
+    SAHPI_ENT_SYSTEM_BOARD,
+    SAHPI_ENT_POWER_UNIT,
+    SAHPI_ENT_EXTERNAL_ENVIRONMENT,
+    (SaHpiEntityTypeT)0xf0, // ATCA ShMc
+    SAHPI_ENT_COOLING_UNIT,
+    SAHPI_ENT_CHASSIS_SPECIFIC,
+    (SaHpiEntityTypeT)(SAHPI_ENT_CHASSIS_SPECIFIC+1),
+    (SaHpiEntityTypeT)(SAHPI_ENT_CHASSIS_SPECIFIC+2),
+    (SaHpiEntityTypeT)(SAHPI_ENT_CHASSIS_SPECIFIC+3),
+    (SaHpiEntityTypeT)(SAHPI_ENT_CHASSIS_SPECIFIC+4)
+  };
+
+  if ( type > eIpmiAtcaSiteTypeRearTransitionModule )
+     {
+       assert( 0 );
+       return SAHPI_ENT_UNKNOWN;
+     }
+ 
+  return et[type];
+}
+
+
 cIpmiFruInfo::cIpmiFruInfo( unsigned int addr, unsigned int fru_id,
-			    unsigned int slot, SaHpiEntityTypeT entity,
-			    tIpmiAtcaSiteType site )
+			    SaHpiEntityTypeT entity, unsigned int slot,
+			    tIpmiAtcaSiteType site, unsigned int properties )
   : m_addr( addr ), m_fru_id( fru_id ),
     m_slot( slot ), m_entity( entity ),
-    m_site( site )
+    m_site( site ), m_properties( properties )
 {
   assert( fru_id == 0 );
 }
@@ -68,14 +95,14 @@ cIpmiFruInfoContainer::~cIpmiFruInfoContainer()
 
 
 cIpmiFruInfo *
-cIpmiFruInfoContainer::FindFruInfo( unsigned int addr, unsigned int fru_id )
+cIpmiFruInfoContainer::FindFruInfo( unsigned int addr, unsigned int fru_id ) const
 {
   GList *list = m_fru_info;
 
   while( list )
      {
        cIpmiFruInfo *fi = (cIpmiFruInfo *)m_fru_info->data;
-       
+
        if ( fi->Address() == addr 
 	    && fi->FruId() == fru_id )
 	    return fi;
@@ -130,11 +157,17 @@ cIpmiFruInfoContainer::RemFruInfo( cIpmiFruInfo *fru_info )
 
 cIpmiFruInfo *
 cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id,
-				   unsigned int slot, SaHpiEntityTypeT entity )
+				   SaHpiEntityTypeT entity, unsigned int slot,
+                                   tIpmiAtcaSiteType site, unsigned int properties )
 {
-  cIpmiFruInfo *fi = new cIpmiFruInfo( addr, fru_id, slot, entity );
-  
-  if ( AddFruInfo( fi ) )
+  cIpmiFruInfo *fi = FindFruInfo( addr, fru_id );
+
+  if ( fi )
+       return fi;
+
+  fi = new cIpmiFruInfo( addr, fru_id, entity, slot, site, properties );
+
+  if ( !AddFruInfo( fi ) )
      {
        assert( 0 );
        delete fi;
@@ -143,4 +176,24 @@ cIpmiFruInfoContainer::NewFruInfo( unsigned int addr, unsigned int fru_id,
      }
 
   return fi;
+}
+
+
+unsigned int
+cIpmiFruInfoContainer::GetFreeSlotForOther( unsigned int addr )
+{
+  unsigned int slot = 0;
+
+  for( GList *list = m_fru_info; list; list = g_list_next( list ) )
+     {
+       cIpmiFruInfo *fi = (cIpmiFruInfo *)m_fru_info->data;
+
+       if ( fi->Address() != addr || fi->Entity() )
+            continue;
+
+       if ( slot < fi->Slot() )
+            slot = fi->Slot();
+     }
+
+  return slot + 1;
 }

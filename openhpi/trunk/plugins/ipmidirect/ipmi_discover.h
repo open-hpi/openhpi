@@ -22,6 +22,7 @@ class cIpmiMcThread;
 class cIpmiMcTask;
 
 
+/*
 enum tIpmiMcType
 {
   eIpmiMcTypeBoard,
@@ -35,6 +36,7 @@ enum tIpmiMcType
 #define dIpmiMcTypeBitPower (1<<eIpmiMcTypePower)
 #define dIpmiMcTypeBitFan   (1<<eIpmiMcTypeFan)
 #define dIpmiMcTypeBitAll   0xffffffff
+*/
 
 
 // cIpmiMcThread::m_properties
@@ -51,16 +53,16 @@ class cIpmiMcThread : public cThread
 private:
   cIpmiDomain  *m_domain;
   unsigned char m_addr;
-  unsigned int  m_type; // dIpmiMcTypeBitXXXX
-  int           m_slot;
+  //  unsigned int  m_type; // dIpmiMcTypeBitXXXX
+  //int           m_slot;
   cIpmiMc      *m_mc;
 
   // properties
   unsigned int m_properties; // dIpmiMcThreadXXXX
 
 public:
-  unsigned int Type() { return m_type; }
-  int          Slot() { return m_slot; }
+  //unsigned int Type() { return m_type; }
+  //int          Slot() { return m_slot; }
   cIpmiMc     *Mc()   { return m_mc; }
 
 protected:
@@ -72,9 +74,9 @@ public:
 
   cIpmiMcThread( cIpmiDomain  *domain,
                  unsigned char addr,
-                 unsigned int  properties,
+                 unsigned int  properties /*,
                  unsigned int  mc_type,
-                 int           slot );
+                 int           slot */ );
 
   ~cIpmiMcThread();
 

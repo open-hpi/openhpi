@@ -178,7 +178,7 @@ cIpmiLog::Output( const char *str )
 void
 cIpmiLog::Start()
 {
-  Lock();
+  //Lock();
 
   if ( m_nl )
      {
@@ -201,9 +201,9 @@ cIpmiLog &
 cIpmiLog::operator<<( bool b )
 {
   Start();
-  
+
   Output( b ? "true" : "false" );
-  
+
   return *this;
 }
 
@@ -215,9 +215,9 @@ cIpmiLog::operator<<( unsigned char c )
 
   char b[5];
   sprintf( b, "0x%02x", c );
-  
+
   Output( b );
-  
+
   return *this;
 }
 
@@ -324,16 +324,16 @@ cIpmiLog::Log( const char *fmt, ... )
   if ( m_nl )
      {
        if ( m_fd )
-	    fflush( m_fd );
+            fflush( m_fd );
 
        if ( m_std_out )
-	    fflush( stdout );
+            fflush( stdout );
 
        if ( m_std_err )
-	    fflush( stderr );
+            fflush( stderr );
  
-       while( m_lock_count > 0 )
-	    Unlock();
+       //while( m_lock_count > 0 )
+       //    Unlock();
      }
 }
 

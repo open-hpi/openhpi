@@ -707,8 +707,15 @@ cIpmiMcVendor::CreateControls( cIpmiDomain *domain, cIpmiMc *source_mc,
 
   if ( domain->IsAtca() )
      {
-       unsigned int mc_type = domain->GetMcType( source_mc->GetAddress() );
-       return CreateControlsAtca( domain, source_mc, sdrs, mc_type );
+       cIpmiFruInfo *fi= domain->FindFruInfo( source_mc->GetAddress(), 0 );
+       
+       if ( fi == 0 )
+          {
+            assert( 0 );
+            return true;
+          }
+
+       return CreateControlsAtca( domain, source_mc, sdrs, fi->Site() );
      }
 
   return true;
@@ -717,12 +724,12 @@ cIpmiMcVendor::CreateControls( cIpmiDomain *domain, cIpmiMc *source_mc,
 
 bool
 cIpmiMcVendor::CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
-                                   unsigned int mc_type )
+                                   tIpmiAtcaSiteType type )
 {
   // TODO: check if there is already a fan control
 
   // can only create fan controls
-  if ( (mc_type & dIpmiMcTypeBitFan) == 0 )
+  if ( type != eIpmiAtcaSiteTypeFanTray )
        return true;
 
   // find the mcdlr
@@ -743,11 +750,8 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *
        return true;
 
   // create ATCA fan
-  if ( mc_type & dIpmiMcTypeBitFan )
-     {
-       if ( CreateControlAtcaFan( domain, res, sdrs ) == false )
-            return false;
-     }
+  if ( CreateControlAtcaFan( domain, res, sdrs ) == false )
+       return false;
 
   return true;
 }

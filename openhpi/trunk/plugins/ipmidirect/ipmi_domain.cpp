@@ -39,18 +39,18 @@ cIpmiDomain::cIpmiDomain()
 
   for( int i = 0; i < 256; i++ )
      {
-       m_mc_to_check[i] = 0;
-       m_mc_type[i]     = 0;
-       m_mc_slot[i]     = 0;
+       //m_mc_to_check[i] = 0;
+       //m_mc_type[i]     = 0;
+       //m_mc_slot[i]     = 0;
        m_mc_thread[i]   = 0;
-       m_atca_site_property[i].m_property = 0;
+       m_atca_site_property[i].m_property    = 0;
        m_atca_site_property[i].m_max_side_id = 0;
-       m_atca_site_property[i].m_mc_type = 0;
+       m_atca_site_property[i].m_mc_type     = 0;
      }
 
-  // scan at least at 0x20
-  AddMcToScan( 0x20, dIpmiMcThreadInitialDiscover|dIpmiMcThreadPollAliveMc,
-               0, 0 );
+  // scan at least at 0x20 (ShMc entity is 0xf0)
+  NewFruInfo( 0x20, 0, (SaHpiEntityTypeT)0xf0, 0,
+              eIpmiAtcaSiteTypeDedicatedShMc, dIpmiMcThreadInitialDiscover|dIpmiMcThreadPollAliveMc );
 
   // default site type properties
   unsigned int prop =   dIpmiMcThreadInitialDiscover
@@ -58,31 +58,31 @@ cIpmiDomain::cIpmiDomain()
                       | dIpmiMcThreadCreateM0;
 
   // atca board
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeAtcaBoard, prop, 32, dIpmiMcTypeBitBoard );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeAtcaBoard, prop, 32 );
 
   // power
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypePowerEntryModule, prop, 8, dIpmiMcTypeBitPower );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypePowerEntryModule, prop, 8 );
 
   // shelf fru information
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeShelfFruInformation, prop, 4, 0 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeShelfFruInformation, prop, 4 );
 
   // dedicated ShMc
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeDedicatedShMc, prop, 2, 0 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeDedicatedShMc, prop, 2 );
 
   // fan tray
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeFanTray, prop, 8, dIpmiMcTypeBitFan );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeFanTray, prop, 8 );
 
   // fan filter tray
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeFanFilterTray, prop, 8, 0 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeFanFilterTray, prop, 8 );
 
   // alarm
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeAtcaModule, prop, 32, 0 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeAtcaModule, prop, 32 );
 
   // atca module
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypePMC, prop, 32, 0 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypePMC, prop, 32 );
 
   // rear transition module
-  SetAtcaSiteProperty( eIpmiAtcaSiteTypeRearTransitionModule, prop, 4, 0 );
+  SetAtcaSiteProperty( eIpmiAtcaSiteTypeRearTransitionModule, prop, 4 );
 }
 
 
@@ -230,15 +230,15 @@ cIpmiDomain::Init( cIpmiCon *con )
 
                  unsigned char addr = sdr->m_data[5];
 
-                 // already set by openhpi.conf
-                 if ( m_mc_to_check[addr] )
-                      continue;
+                 cIpmiFruInfo *fi = FindFruInfo( addr, 0 );
 
-                 AddMcToScan( addr,   dIpmiMcThreadInitialDiscover
-                                    | dIpmiMcThreadPollDeadMc
-                                    | dIpmiMcThreadPollAliveMc,
-                              m_mc_type[addr],
-                              m_mc_slot[addr] );
+                 if ( fi == 0 )
+                      NewFruInfo( addr, 0,
+                                  SAHPI_ENT_OTHER, GetFreeSlotForOther( addr ),
+                                  eIpmiAtcaSiteTypeUnknown,
+                                    dIpmiMcThreadInitialDiscover
+                                  | dIpmiMcThreadPollDeadMc
+                                  | dIpmiMcThreadPollAliveMc );
                }
           }
      }
@@ -253,27 +253,32 @@ cIpmiDomain::Init( cIpmiCon *con )
   m_initial_discover = 0;
   m_num_mc_threads   = 0;
 
-  for( int i = 0; i < 256; i++ )
+  for( GList *list = GetFruInfoList(); list; list = g_list_next( list ) )
      {
-       assert( m_mc_thread[i] == 0 );
+       cIpmiFruInfo *fi = (cIpmiFruInfo *)list->data;
 
-       if ( m_mc_to_check[i] == 0 )
+       if ( fi->FruId() != 0 )
             continue;
 
-       m_mc_thread[i] = new cIpmiMcThread( this, i, m_mc_to_check[i],
-                                           m_mc_type[i], m_mc_slot[i] );
+       int addr = fi->Address();
+       
+       assert( m_mc_thread[addr] == 0 );
+
+       m_mc_thread[addr] = new cIpmiMcThread( this, addr, fi->Properties()
+                                           /*, m_mc_to_check[i],
+                                             m_mc_type[i], m_mc_slot[i] */ );
 
        // Count MC thread with initial discover.
        // This counter is used in cIpmi::IfDiscoverResources
        // to wait until discover is done
-       if ( m_mc_to_check[i] & dIpmiMcThreadInitialDiscover )
+       if ( fi->Properties() & dIpmiMcThreadInitialDiscover )
           {
             m_initial_discover_lock.Lock();
             m_initial_discover++;
             m_initial_discover_lock.Unlock();
           }
 
-       m_mc_thread[i]->Start();
+       m_mc_thread[addr]->Start();
      }
 
   return true;
@@ -480,6 +485,8 @@ cIpmiDomain::CheckAtca()
        else
             stdlog << "checking for " << (unsigned char)i << ".\n";
 
+       SaHpiEntityTypeT entity = MapAtcaSiteTypeToEntity( (tIpmiAtcaSiteType)i );
+
        for( int j = 0; j < m_atca_site_property[i].m_max_side_id; j++ )
           {
             msg.m_data[3] = j + 1;
@@ -502,9 +509,8 @@ cIpmiDomain::CheckAtca()
                  stdlog << "\tfound " << (unsigned char)i << " at " <<  rsp.m_data[3] << ".\n";
 
             // add slot for initial scan
-            AddMcToScan( rsp.m_data[3], m_atca_site_property[i].m_property,
-                         m_atca_site_property[i].m_mc_type,
-                         j + 1 );
+            NewFruInfo( rsp.m_data[3], rsp.m_data[5], entity, j + 1, 
+                        (tIpmiAtcaSiteType)i, m_atca_site_property[i].m_property );
           }
      }
 
@@ -654,14 +660,15 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
   // if there is no MC thread => create MC thread
   if ( m_mc_thread[a] == 0 )
      {
-       // start MC thread
-       m_mc_thread[a] = new cIpmiMcThread( this, a,
-                                             dIpmiMcThreadInitialDiscover
-                                           | hotswap ? (   dIpmiMcThreadPollAliveMc
-                                                         | dIpmiMcThreadCreateM0) : 0,
-                                           dIpmiMcTypeBitAll,
-                                           m_mc_slot[a] );
+       int slot = GetFreeSlotForOther( a );
 
+       cIpmiFruInfo *fi = NewFruInfo( a, 0, SAHPI_ENT_OTHER, slot,
+                                      eIpmiAtcaSiteTypeUnknown, 
+                                        dIpmiMcThreadInitialDiscover
+                                      | hotswap ? (   dIpmiMcThreadPollAliveMc
+                                                    | dIpmiMcThreadCreateM0) : 0 );
+
+       m_mc_thread[a] = new cIpmiMcThread( this, a, fi->Properties() );
        m_mc_thread[a]->Start();
      }
 
@@ -779,34 +786,60 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
   // sim
   dump.Begin( "Sim", "Dump" );
 
-  // address info
-  for( int i = 0; i < 256; i++ )
+  for( GList *list = GetFruInfoList(); list; list = g_list_next( list ) )
      {
-       if ( m_mc_thread[i] == 0 )
-	    continue;
+       cIpmiFruInfo *fi = (cIpmiFruInfo *)list->data;
+       const char *site = 0;
 
-       if ( i == 0x20 )
-	    dump.Entry( "ShMc" ) << "0, 0x20;\n";
-       else
-	  {
-            if ( m_mc_thread[i]->Type() == 0 )
-                 continue;
+       switch( fi->Site() )
+          {
+            case eIpmiAtcaSiteTypeAtcaBoard:
+                 site = "AtcaBoard";
+                 break;
 
-	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
-		 dump.Entry( "AtcaBoard" );
-	    else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
-		 dump.Entry( "PowerUnit" );
-	    else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
-		 dump.Entry( "FanTray" );
-	    else
-               {
-		 assert( 0 );
-                 continue;
-               }
+            case eIpmiAtcaSiteTypePowerEntryModule:
+                 site = "PowerUnit";
+                 break;
 
-	    dump << m_mc_thread[i]->Slot() << ", "
-		 << (unsigned char)i << ";\n";
-	  }
+            case eIpmiAtcaSiteTypeShelfFruInformation:
+                 site = "ShelfFruInformation";
+                 break;
+
+            case eIpmiAtcaSiteTypeDedicatedShMc:
+                 site = "Fan";
+                 break;
+
+            case eIpmiAtcaSiteTypeFanTray:
+                 site = "FanTray";
+                 break;
+
+            case eIpmiAtcaSiteTypeFanFilterTray:
+                 site = "FanFilterTray";
+                 break;
+
+            case eIpmiAtcaSiteTypeAlarm:
+                 site = "Alarm";
+                 break;
+
+            case eIpmiAtcaSiteTypeAtcaModule:
+                 site = "AtcaModule";
+                 break;
+
+            case eIpmiAtcaSiteTypePMC:
+                 site = "PMC";
+                 break;
+
+            case eIpmiAtcaSiteTypeRearTransitionModule:
+                 site = "RearTransitionModule";
+                 break;
+
+            default:
+                 assert( 0 );
+                 site = "Unknown";
+                 break;
+          }
+
+       dump.Entry( site ) << fi->Slot() << ", " << (unsigned char)fi->Address() << ";\n";
      }
 
   if ( dump.IsRecursive() )
@@ -822,31 +855,31 @@ cIpmiDomain::Dump( cIpmiLog &dump ) const
 		    || m_mc_thread[i]->Mc() == 0 )
 		 continue;
 
+            cIpmiFruInfo *fi = FindFruInfo( i, 0 );
+
+            if ( fi == 0 )
+               {
+                 assert( 0 );
+                 continue;
+               }
+
+            const char *type = 0;
+            
+            if ( fi->Site() == eIpmiAtcaSiteTypeAtcaBoard )
+                 type = "AtcaBoard";
+            else if ( fi->Site() == eIpmiAtcaSiteTypePowerEntryModule )
+                 type = "PowerUnit";
+            else if ( fi->Site() == eIpmiAtcaSiteTypeFanTray )
+                 type = "FanTray";
+            else
+               {
+                 continue;
+                 assert( 0 );
+               }
+
 	    char str[30];
 	    sprintf( str, "Mc%02x", i );
-
-	    if ( i == 0x20 )
-	       {
-		 dump.Entry( "Mc" ) << str << ", " << "ShMc";
-	       }
-	    else
-	       {
-		 if ( m_mc_thread[i]->Type() == 0 )
-		      continue;
-
-		 dump.Entry( "Mc" ) << str << ", ";
-
-		 if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
-		      dump << "AtcaBoard";
-		 else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
-		      dump << "PowerUnit";
-		 else if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
-		      dump << "FanTray";
-		 else
-		      assert( 0 );
-	       }
-
-	    dump << ", " << m_mc_thread[i]->Slot() << ";\n";
+            dump.Entry( "Mc" ) << str << ", " << type << ", " << fi->Slot() << ";\n";
 	  }
      }
 

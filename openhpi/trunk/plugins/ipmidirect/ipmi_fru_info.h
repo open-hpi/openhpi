@@ -39,6 +39,9 @@ enum tIpmiAtcaSiteType
 };
 
 
+SaHpiEntityTypeT MapAtcaSiteTypeToEntity( tIpmiAtcaSiteType type );
+
+
 class cIpmiFruInfo
 {
   unsigned int     m_addr;
@@ -49,17 +52,29 @@ class cIpmiFruInfo
 
   tIpmiAtcaSiteType m_site;
 
+  // only valid if m_fru_id == 0 
+  // dIpmiMcThreadXXXX properties
+  unsigned int m_properties; 
+
 public:
   cIpmiFruInfo( unsigned int addr, unsigned int fru_id,
-		unsigned int slot, SaHpiEntityTypeT entity,
-		tIpmiAtcaSiteType site = eIpmiAtcaSiteTypeUnknown );
+		SaHpiEntityTypeT entity, unsigned int slot,
+		tIpmiAtcaSiteType site,
+                unsigned int properties );
   virtual ~cIpmiFruInfo();
 
   unsigned int Address() { return m_addr; }
   unsigned int FruId()   { return m_fru_id; }
+  SaHpiEntityTypeT Entity() { return m_entity; }
   unsigned int Slot()    { return m_slot; }
   tIpmiAtcaSiteType Site() { return m_site; }
+  unsigned int Properties()
+  {
+    assert( m_fru_id == 0 );
+    return m_properties;
+  }
 
+  
   virtual cIpmiEntityPath CreateEntityPath( const cIpmiEntityPath &top,
 					    const cIpmiEntityPath &bottom );
 };
@@ -73,12 +88,17 @@ public:
   cIpmiFruInfoContainer();
   ~cIpmiFruInfoContainer();
 
-  cIpmiFruInfo *FindFruInfo( unsigned int addr, unsigned int fru_id );
+  cIpmiFruInfo *FindFruInfo( unsigned int addr, unsigned int fru_id ) const;
   bool          AddFruInfo( cIpmiFruInfo *fru_info );
   bool          RemFruInfo( cIpmiFruInfo *fru_info );
 
   cIpmiFruInfo *NewFruInfo( unsigned int addr, unsigned int fru_id,
-			    unsigned int slot, SaHpiEntityTypeT entity );
+			    SaHpiEntityTypeT entity, unsigned int slot,
+                            tIpmiAtcaSiteType site, unsigned int properties );
+
+  unsigned int GetFreeSlotForOther( unsigned int addr );
+
+  GList *GetFruInfoList() const { return m_fru_info; }
 };
 
 
