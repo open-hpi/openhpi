@@ -35,6 +35,7 @@ SaErrorT oh_encode_eventstate(SaHpiTextBufferT *buffer,
 SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			       SaHpiEventCategoryT event_cat);
 
+SaErrorT oh_valid_addevent(SaHpiEventT *event);
 
 #ifdef __cplusplus
 }

@@ -60,25 +60,30 @@ SaErrorT oh_decode_sensorreading(SaHpiSensorReadingT reading,
 SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 				 SaHpiSensorReadingTypeT type,
 				 SaHpiSensorReadingT *reading);
-SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities,
-		               SaHpiTextBufferT *buffer);
+SaErrorT oh_decode_capabilities(SaHpiCapabilitiesT ResourceCapabilities,
+				SaHpiTextBufferT *buffer);
+
+SaErrorT oh_decode_hscapabilities(SaHpiHsCapabilitiesT HsCapabilities,
+				  SaHpiTextBufferT *buffer);
 
 SaErrorT oh_decode_sensoroptionaldata(SaHpiSensorOptionalDataT sensor_opt_data,
 				      SaHpiTextBufferT *buffer);
 
-#if 0
-/* FIXME:: Add this one */
-SaErrorT oh_decode_ctrlstate(SaHpiCtrlStateT control_state,
-			     SaHpiTextBufferT *buffer);
-#endif
+SaErrorT oh_decode_sensorenableoptdata(SaHpiSensorEnableOptDataT sensor_enable_opt_data,
+				       SaHpiTextBufferT *buffer);
 
 /************************* 
  * Validate HPI structures
  *************************/
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer);
+
 SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
 			     SaHpiSensorDataFormatT *format,
 			     SaHpiSensorThdMaskT writable_thds);
+
+SaErrorT oh_valid_ctrl_state_mode(SaHpiCtrlRecT *ctrl_rdr,
+				  SaHpiCtrlModeT mode,
+				  SaHpiCtrlStateT *state);
 
 /************************ 
  * Compare HPI structures
@@ -130,13 +135,6 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 
 #define oh_print_ctrlstate(ctrlstate_ptr, offsets) oh_fprint_ctrlstate(stdout, ctrlstate_ptr, offsets)
 SaErrorT oh_fprint_ctrlstate(FILE *stream, const SaHpiCtrlStateT *thisctrlstate, int offsets);
-
-#if 0
-/* FIXME:: Do we need these ???? */
-SaHpiBoolT oh_valid_time(SaHpiTimeT time); - move to sahpi_time_utils.c/h
-/* For EventAdd and EventLogAdd ??? */
-SaHpiBoolT oh_valid_event(SaHpiEventT event); - move to sahpi_event_utils.c/h
-#endif
 
 #ifdef __cplusplus
 }

@@ -94,6 +94,7 @@ int main(int argc, char **argv)
 	{
 		SaHpiSensorDataFormatT format_default, format_test;
 		SaHpiSensorReadingT reading_default, reading_test, encode_reading;
+		memset(&format_default, 0, sizeof(SaHpiSensorDataFormatT));
 		memset(&reading_default, 0, sizeof(SaHpiSensorReadingT));
 
 		reading_default.IsSupported = SAHPI_TRUE;
@@ -774,6 +775,8 @@ int main(int argc, char **argv)
          ******************************/	
 	{
 		SaHpiSensorRecT sensor, default_sensor;
+		memset(&sensor, 0, sizeof(SaHpiSensorRecT));
+		memset(&default_sensor, 0, sizeof(SaHpiSensorRecT));
 		
 		sensor.Num = 1;
 		sensor.Type = SAHPI_VOLTAGE;
@@ -883,7 +886,9 @@ int main(int argc, char **argv)
          **************************/	
 	{
 		SaHpiEventT sensor_event, default_event;
-		
+		memset(&sensor_event, 0, sizeof(SaHpiEventT));
+		memset(&default_event, 0, sizeof(SaHpiEventT));
+
 		sensor_event.Source = 1;
 		sensor_event.EventType = SAHPI_ET_SENSOR;
 		sensor_event.Severity = SAHPI_CRITICAL;
@@ -948,6 +953,404 @@ int main(int argc, char **argv)
 			printf("  Received error=%d\n", err);
 			return -1;
 		}
+
+		/*****************
+		 * Resource events
+		 *****************/
+		{
+			SaHpiEventT default_resource_event;
+			memset(&default_resource_event, 0, sizeof(SaHpiEventT));
+
+			default_resource_event.Source = 1;
+			default_resource_event.EventType = SAHPI_ET_RESOURCE;
+			default_resource_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero resource event testcase */
+			printf("Default Resource Event - no data\n");
+			err = oh_print_event(&default_resource_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal resource event testcase */
+			default_resource_event.EventDataUnion.ResourceEvent.ResourceEventType = SAHPI_RESE_RESOURCE_RESTORED;
+			printf("Normal Resource Event\n");
+			err = oh_print_event(&default_resource_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+
+		/***************
+		 * Domain events
+		 ***************/
+		{
+			SaHpiEventT default_domain_event;
+			memset(&default_domain_event, 0, sizeof(SaHpiEventT));
+
+			default_domain_event.Source = 1;
+			default_domain_event.EventType = SAHPI_ET_DOMAIN;
+			default_domain_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero domain event testcase */
+			printf("Default Domain Event - no data\n");
+			err = oh_print_event(&default_domain_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal domain event testcase */
+			default_domain_event.EventDataUnion.DomainEvent.Type = SAHPI_DOMAIN_REF_ADDED;
+			default_domain_event.EventDataUnion.DomainEvent.DomainId = 1;
+			printf("Normal Domain Event\n");
+			err = oh_print_event(&default_domain_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+
+		/*****************************
+		 * Sensor Enable Change events
+		 *****************************/
+		{
+			SaHpiEventT default_sensor_enable_event;
+			memset(&default_sensor_enable_event, 0, sizeof(SaHpiEventT));
+
+			default_sensor_enable_event.Source = 1;
+			default_sensor_enable_event.EventType = SAHPI_ET_SENSOR_ENABLE_CHANGE;
+			default_sensor_enable_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero sensor enable event testcase */
+			printf("Default Sensor Enable Event - no data\n");
+			err = oh_print_event(&default_sensor_enable_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal sensor enable event testcase */
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.SensorNum = 1;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.SensorType = SAHPI_FAN;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.EventCategory = SAHPI_EC_THRESHOLD;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.SensorEnable = SAHPI_TRUE;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.SensorEventEnable = SAHPI_TRUE;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.AssertEventMask =
+				SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.DeassertEventMask =
+				SAHPI_ES_UPPER_CRIT | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_MINOR;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.OptionalDataPresent = SAHPI_SEOD_CURRENT_STATE;
+			default_sensor_enable_event.EventDataUnion.SensorEnableChangeEvent.CurrentState = SAHPI_ES_LOWER_MINOR;
+
+			printf("Normal sensor enable Event\n");
+			err = oh_print_event(&default_sensor_enable_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+
+		/****************
+		 * Hotswap events
+		 ****************/
+		{
+			SaHpiEventT default_hotswap_event;
+			memset(&default_hotswap_event, 0, sizeof(SaHpiEventT));
+
+			default_hotswap_event.Source = 1;
+			default_hotswap_event.EventType = SAHPI_ET_HOTSWAP;
+			default_hotswap_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero hotswap event testcase */
+			printf("Default Hotswap Event - no data\n");
+			err = oh_print_event(&default_hotswap_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal hotswap event testcase */
+			default_hotswap_event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
+			default_hotswap_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_INSERTION_PENDING;
+
+			printf("Normal Hotswap Event\n");
+			err = oh_print_event(&default_hotswap_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+
+		/*****************
+		 * Watchdog events
+		 *****************/
+		{
+			SaHpiEventT default_watchdog_event;
+			memset(&default_watchdog_event, 0, sizeof(SaHpiEventT));
+
+			default_watchdog_event.Source = 1;
+			default_watchdog_event.EventType = SAHPI_ET_WATCHDOG;
+			default_watchdog_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero watchdog event testcase */
+			printf("Default Watchdog Event - no data\n");
+			err = oh_print_event(&default_watchdog_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal watchdog event testcase */
+			default_watchdog_event.EventDataUnion.WatchdogEvent.WatchdogNum = 1;
+			default_watchdog_event.EventDataUnion.WatchdogEvent.WatchdogAction = SAHPI_WAE_POWER_DOWN;
+			default_watchdog_event.EventDataUnion.WatchdogEvent.WatchdogPreTimerAction = SAHPI_WPI_NMI;
+			default_watchdog_event.EventDataUnion.WatchdogEvent.WatchdogUse = SAHPI_WTU_OEM;
+
+			printf("Normal Watchdog Event\n");
+			err = oh_print_event(&default_watchdog_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+
+		/***************
+		 * HPI SW events
+		 ***************/
+		{
+			SaHpiEventT default_hpisw_event;
+			memset(&default_hpisw_event, 0, sizeof(SaHpiEventT));
+
+			default_hpisw_event.Source = 1;
+			default_hpisw_event.EventType = SAHPI_ET_HPI_SW;
+			default_hpisw_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero HPI software event testcase */
+			printf("Default HPI Software Event - no data\n");
+			err = oh_print_event(&default_hpisw_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal HPI software event testcase */
+			default_hpisw_event.EventDataUnion.HpiSwEvent.MId = 1;
+			default_hpisw_event.EventDataUnion.HpiSwEvent.Type = SAHPI_HPIE_AUDIT;
+			default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.DataType = SAHPI_TL_TYPE_TEXT;
+			default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.Language = SAHPI_LANG_URDU;
+			default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.DataLength = sizeof("HPI software event");
+			strncpy(default_hpisw_event.EventDataUnion.HpiSwEvent.EventData.Data, "HPI software event",
+				strlen("HPI software event"));
+
+			printf("Normal HPI Sotware Event\n");
+			err = oh_print_event(&default_hpisw_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+
+		/****************
+		 * HPI OEM events
+		 ****************/
+		{
+			SaHpiEventT default_oem_event;
+			memset(&default_oem_event, 0, sizeof(SaHpiEventT));
+
+			default_oem_event.Source = 1;
+			default_oem_event.EventType = SAHPI_ET_OEM;
+			default_oem_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero OEM event testcase */
+			printf("Default OEM Event - no data\n");
+			err = oh_print_event(&default_oem_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal OEM event testcase */
+			default_oem_event.EventDataUnion.OemEvent.MId = 1;
+			default_oem_event.EventDataUnion.OemEvent.OemEventData.DataType = SAHPI_TL_TYPE_TEXT;
+			default_oem_event.EventDataUnion.OemEvent.OemEventData.Language = SAHPI_LANG_URDU;
+			default_oem_event.EventDataUnion.OemEvent.OemEventData.DataLength = sizeof("OEM Event");
+			strncpy(default_oem_event.EventDataUnion.OemEvent.OemEventData.Data, "OEM Event",
+				strlen("OEM Event"));
+
+			printf("Normal OEM Event\n");
+			err = oh_print_event(&default_oem_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+
+		/*****************
+		 * HPI User events
+		 *****************/
+		{
+			SaHpiEventT default_user_event;
+			memset(&default_user_event, 0, sizeof(SaHpiEventT));
+
+			default_user_event.Source = 1;
+			default_user_event.EventType = SAHPI_ET_USER;
+			default_user_event.Severity = SAHPI_CRITICAL;
+
+			/*  oh_print_event: Zero User event testcase */
+			printf("Default User Event - no data\n");
+			err = oh_print_event(&default_user_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+			
+			/* oh_print_event: Normal User event testcase */
+			default_user_event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_TEXT;
+			default_user_event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_URDU;
+			default_user_event.EventDataUnion.UserEvent.UserEventData.DataLength = sizeof("User Event");
+			strncpy(default_user_event.EventDataUnion.UserEvent.UserEventData.Data, "User Event",
+				strlen("User Event"));
+
+			printf("Normal User Event\n");
+			err = oh_print_event(&default_user_event, 1);
+			if (err) {
+				printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+				printf("  Received error=%d\n", err);
+				return -1;
+			}
+		}
+	}
+
+	/****************************
+	 * oh_print_ctrlrec testcases
+         ****************************/
+	SaHpiCtrlRecT control;
+	memset(&control, 0, sizeof(SaHpiCtrlRecT));
+
+	/* oh_print_ctrlrec: Default testcase */
+	printf("Print control - default case\n");
+	err = oh_print_ctrlrec(&control, 1);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%d\n", err);
+		return -1;
+	}
+	
+	control.Num = 1;
+	control.OutputType = SAHPI_CTRL_LED;
+	control.DefaultMode.Mode = SAHPI_CTRL_MODE_AUTO;
+	control.DefaultMode.ReadOnly = SAHPI_TRUE;
+	control.WriteOnly = SAHPI_TRUE;
+	control.Oem = 0;
+	     
+	/* oh_print_ctrlrec: Normal digital testcase */
+	control.Type = SAHPI_CTRL_TYPE_DIGITAL;
+	control.TypeUnion.Digital.Default = SAHPI_CTRL_STATE_PULSE_ON;
+
+	printf("Print control - normal digital case\n");
+	err = oh_print_ctrlrec(&control, 1);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%d\n", err);
+		return -1;
+	}
+
+	/* oh_print_ctrlrec: Normal discrete testcase */
+	control.Type = SAHPI_CTRL_TYPE_DISCRETE;
+	control.TypeUnion.Discrete.Default = 2;
+
+	printf("Print control - normal discrete case\n");
+	err = oh_print_ctrlrec(&control, 1);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%d\n", err);
+		return -1;
+	}
+
+	/* oh_print_ctrlrec: Normal analog testcase */
+	control.Type = SAHPI_CTRL_TYPE_ANALOG;
+	control.TypeUnion.Analog.Min = 1;
+	control.TypeUnion.Analog.Max = 10;
+	control.TypeUnion.Analog.Default = 5;
+	
+	printf("Print control - normal analog case\n");
+	err = oh_print_ctrlrec(&control, 1);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%d\n", err);
+		return -1;
+	}
+
+	/* oh_print_ctrlrec: Normal stream testcase */
+	control.Type = SAHPI_CTRL_TYPE_STREAM;
+	control.TypeUnion.Stream.Default.Repeat = SAHPI_TRUE;
+	control.TypeUnion.Stream.Default.StreamLength = strlen("Stream Data");
+	memset(&control.TypeUnion.Stream.Default.Stream, 0, sizeof(SAHPI_CTRL_MAX_STREAM_LENGTH));
+        strncpy(control.TypeUnion.Stream.Default.Stream, "Stream Data" , strlen("Stream Data"));
+	
+	printf("Print control - normal stream case\n");
+	err = oh_print_ctrlrec(&control, 1);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%d\n", err);
+		return -1;
+	}
+
+	/* oh_print_ctrlrec: Normal text testcase */
+	control.Type = SAHPI_CTRL_TYPE_TEXT;
+	control.TypeUnion.Text.MaxChars = 10;
+	control.TypeUnion.Text.MaxLines = 100;
+	control.TypeUnion.Text.Language = SAHPI_LANG_ENGLISH;
+	control.TypeUnion.Text.DataType = SAHPI_TL_TYPE_TEXT;
+	control.TypeUnion.Text.Default.Line = 1;
+	control.TypeUnion.Text.Default.Text.DataType = SAHPI_TL_TYPE_TEXT;
+	control.TypeUnion.Text.Default.Text.Language = SAHPI_LANG_ENGLISH;
+	memset(&control.TypeUnion.Text.Default.Text.Data, 0, sizeof(SAHPI_MAX_TEXT_BUFFER_LENGTH));
+	control.TypeUnion.Text.Default.Text.DataLength = strlen("Text Data");
+        strncpy(control.TypeUnion.Text.Default.Text.Data, "Text Data" , strlen("Text Data"));
+	
+	printf("Print control - normal text case\n");
+	err = oh_print_ctrlrec(&control, 1);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%d\n", err);
+		return -1;
+	}
+
+	/* oh_print_ctrlrec: Normal oem testcase */
+	control.Type = SAHPI_CTRL_TYPE_OEM;
+	control.TypeUnion.Oem.MId = 1;
+	memset(&control.TypeUnion.Oem.ConfigData, 0, SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
+	strncpy(control.TypeUnion.Oem.ConfigData, "Config Data", strlen("Config Data"));
+	control.TypeUnion.Oem.Default.MId = 1;
+	control.TypeUnion.Oem.Default.BodyLength = strlen("Config Default");
+	memset(&control.TypeUnion.Oem.Default.Body, 0, SAHPI_CTRL_MAX_OEM_BODY_LENGTH);
+	strncpy(control.TypeUnion.Oem.Default.Body, "Config Default", strlen("Config Default")); 
+	
+	printf("Print control - normal OEM case\n");
+	err = oh_print_ctrlrec(&control, 1);
+	if (err) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%d\n", err);
+		return -1;
 	}
 
 	/*******************************
@@ -1424,6 +1827,153 @@ int main(int argc, char **argv)
 		if (rtn != expected_rtn) {	
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received return code=%d\n", rtn);
+			return -1;
+		}
+	}
+
+	/************************************
+	 * oh_valid_ctrl_state_mode testcases
+         ************************************/
+	{
+		SaHpiCtrlModeT default_mode, mode;
+		SaHpiCtrlStateT default_state, state;
+		SaHpiCtrlRecT default_rdr, rdr;
+
+		memset(&default_mode, 0, sizeof(SaHpiCtrlModeT));
+		memset(&default_state, 0, sizeof(SaHpiCtrlStateT));
+		memset(&default_rdr, 0, sizeof(SaHpiCtrlRecT));
+		
+		default_mode = SAHPI_CTRL_MODE_AUTO;
+		default_state.Type = SAHPI_CTRL_TYPE_DIGITAL;
+		default_state.StateUnion.Digital = SAHPI_CTRL_STATE_OFF;
+		default_rdr.Num = 1;
+		default_rdr.OutputType = SAHPI_CTRL_LED;
+		default_rdr.Type = SAHPI_CTRL_TYPE_DIGITAL;
+		default_rdr.TypeUnion.Digital.Default = SAHPI_CTRL_STATE_OFF;
+		default_rdr.DefaultMode.Mode = SAHPI_CTRL_MODE_AUTO;
+		default_rdr.DefaultMode.ReadOnly = SAHPI_TRUE;
+		default_rdr.WriteOnly = SAHPI_TRUE;
+		default_rdr.Oem = 0;
+
+		/* oh_valid_ctrl_state_mode: Normal testcase */
+		mode = default_mode;
+		state = default_state;
+		rdr = default_rdr;
+		expected_err = SA_OK;
+
+		err = oh_valid_ctrl_state_mode(&rdr, mode, &state);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+		
+		/* oh_valid_ctrl_state_mode: Bad mode testcase */
+		mode = BAD_TYPE;
+		state = default_state;
+		rdr = default_rdr;
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_valid_ctrl_state_mode(&rdr, mode, &state);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_ctrl_state_mode: Write read-only control testcase */
+		mode = SAHPI_CTRL_MODE_MANUAL;
+		state = default_state;
+		rdr = default_rdr;
+		expected_err = SA_ERR_HPI_READ_ONLY;
+
+		err = oh_valid_ctrl_state_mode(&rdr, mode, &state);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_ctrl_state_mode: Bad analog testcase */
+		mode = SAHPI_CTRL_MODE_MANUAL;
+		state = default_state;
+		rdr = default_rdr;
+		state.Type = SAHPI_CTRL_TYPE_ANALOG;
+		state.StateUnion.Analog = 50;
+		rdr.DefaultMode.ReadOnly = SAHPI_FALSE;
+		rdr.Type = SAHPI_CTRL_TYPE_ANALOG;
+		rdr.TypeUnion.Analog.Max = 49;
+		expected_err = SA_ERR_HPI_INVALID_DATA;
+
+		err = oh_valid_ctrl_state_mode(&rdr, mode, &state);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_ctrl_state_mode: Bad stream testcase */
+		mode = SAHPI_CTRL_MODE_MANUAL;
+		state = default_state;
+		rdr = default_rdr;
+		state.Type = SAHPI_CTRL_TYPE_STREAM;
+		state.StateUnion.Stream.StreamLength = SAHPI_CTRL_MAX_STREAM_LENGTH + 1;
+		rdr.DefaultMode.ReadOnly = SAHPI_FALSE;
+		rdr.Type = SAHPI_CTRL_TYPE_STREAM;
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_valid_ctrl_state_mode(&rdr, mode, &state);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_ctrl_state_mode: Bad overflow testcase */
+		mode = SAHPI_CTRL_MODE_MANUAL;
+		state = default_state;
+		rdr = default_rdr;
+		state.Type = SAHPI_CTRL_TYPE_TEXT;
+		state.StateUnion.Text.Line = 10;
+		state.StateUnion.Text.Text.DataType = SAHPI_TL_TYPE_TEXT;
+		state.StateUnion.Text.Text.Language = SAHPI_LANG_ENGLISH;
+		state.StateUnion.Text.Text.DataLength = 11;
+		rdr.DefaultMode.ReadOnly = SAHPI_FALSE;
+		rdr.Type = SAHPI_CTRL_TYPE_TEXT;
+		rdr.TypeUnion.Text.MaxChars = 10;
+		rdr.TypeUnion.Text.MaxLines = 10;
+		rdr.TypeUnion.Text.Language = SAHPI_LANG_ENGLISH;
+		rdr.TypeUnion.Text.DataType = SAHPI_TL_TYPE_TEXT;
+		expected_err = SA_ERR_HPI_INVALID_DATA;
+
+		err = oh_valid_ctrl_state_mode(&rdr, mode, &state);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
+			return -1;
+		}
+
+		/* oh_valid_ctrl_state_mode: Bad overflow all lines testcase */
+		mode = SAHPI_CTRL_MODE_MANUAL;
+		state = default_state;
+		rdr = default_rdr;
+		state.Type = SAHPI_CTRL_TYPE_TEXT;
+		state.StateUnion.Text.Line = SAHPI_TLN_ALL_LINES;
+		state.StateUnion.Text.Text.DataType = SAHPI_TL_TYPE_TEXT;
+		state.StateUnion.Text.Text.Language = SAHPI_LANG_ENGLISH;
+		state.StateUnion.Text.Text.DataLength = 101;
+		rdr.DefaultMode.ReadOnly = SAHPI_FALSE;
+		rdr.Type = SAHPI_CTRL_TYPE_TEXT;
+		rdr.TypeUnion.Text.MaxChars = 10;
+		rdr.TypeUnion.Text.MaxLines = 10;
+		rdr.TypeUnion.Text.Language = SAHPI_LANG_ENGLISH;
+		rdr.TypeUnion.Text.DataType = SAHPI_TL_TYPE_TEXT;
+		expected_err = SA_ERR_HPI_INVALID_DATA;
+
+		err = oh_valid_ctrl_state_mode(&rdr, mode, &state);
+		if (err != expected_err) {	
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 	}

@@ -274,8 +274,6 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 			}
 		}
 		
-		/* FIXME:: This let's things that have both upper and lower
-		   thresholds set thru - is this valid? */
 		return(SAHPI_TRUE);
 
 	case SAHPI_EC_USAGE:
@@ -501,4 +499,32 @@ SaHpiBoolT oh_valid_eventstate(SaHpiEventStateT event_state,
 	default:
 		return(SAHPI_FALSE);
 	}
+}
+
+/**
+ * oh_valid_addevent:
+ * @event: Pointer to add event.
+ * 
+ * Validates @event is a valid event for SaHpiEventAdd. This routines makes 
+ * all the checks specified in the HPI spec to see if @event is valid.
+ * 
+ * Returns:
+ * SA_OK - Normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - See HPI spec.
+ **/
+SaErrorT oh_valid_addevent(SaHpiEventT *event)
+{
+	if (!event) return(SA_ERR_HPI_INVALID_PARAMS);
+	
+	if (event->Source != SAHPI_UNSPECIFIED_RESOURCE_ID ||
+	    event->EventType != SAHPI_ET_USER ||
+	    NULL == oh_lookup_severity(event->Severity) ||
+	    !oh_valid_textbuffer(&(event->EventDataUnion.UserEvent.UserEventData))) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	/* No check for implementation-specific restriction on to how much data may 
+           be provided in the SAHPI_ET_USER event */
+   
+	return(SA_OK);
 }
