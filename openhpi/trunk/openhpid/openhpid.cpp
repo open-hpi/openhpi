@@ -34,9 +34,8 @@
 cConnection::cConnection( cServerConnection *con )
   : m_con( con ), m_sessions( 0 ), m_outstanding_pings( 0 )
 {
-  SaHpiTimeT now;
-  gettimeofday1( &now );
-  now += dPingTimeout;
+  gettimeofday1( &m_ping_timer );
+  m_ping_timer += dPingTimeout;
 }
 
 
@@ -621,7 +620,7 @@ cOpenHpiDaemon::Idle()
 
 		 // set ping timer
 		 SaHpiTimeT ti;
-		 
+
 		 gettimeofday1( &ti );
 		 ti += dPingTimeout;
 
@@ -862,7 +861,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	    {
 	      SaHpiSessionIdT session_id;
               SaHpiEntryIdT   entry_id;
-              SaHpiEntryIdT   next_entry_id;
+              SaHpiEntryIdT   next_entry_id = 0; // for valgring
               SaHpiRptEntryT  rpt_entry;
 
 	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
@@ -884,7 +883,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiResourceIdT resource_id;
 	      SaHpiRptEntryT   rpt_entry;
-	      
+
 	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
 				   &session_id, &resource_id ) < 0 )
 		   return eResultError;
@@ -1554,7 +1553,7 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
   		   reply[2] = &SaHpiInventoryDataType, // inventory data
 		   reply[3] = 0;		   
 
-		   params[2] = buffer;		   
+		   params[2] = buffer;
 		 }
 
 	      rh.m_len = MarshalArray( reply, params, rd );
