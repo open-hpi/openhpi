@@ -214,7 +214,7 @@ void *snmp_rsa_open(GHashTable *handler_config)
 	}
 		
 
-	if (is_simulator) {
+	if (is_simulator()) {
 		sim_banner();
 	}
 
