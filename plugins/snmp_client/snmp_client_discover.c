@@ -248,7 +248,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 				memcpy(ep, vars->val.string, vars->val_len);
 				if(string2entitypath(ep, &rpt_cache[i].ResourceEntity))
 					dbg("something terrible happened with SA_HPI_RESOURCE_ENTITY_PATH");
-				free(ep);				
+				g_free(ep);				
 			}
 			else
 				dbg("SA_HPI_RESOURCE_ENTITY_PATH:something terrible has happened");			
