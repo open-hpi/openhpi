@@ -217,3 +217,41 @@ struct oh_event * snmp_rsa_discover_sensors(struct snmp_session *ss,
 	return e;
 }
 
+
+struct oh_event * snmp_rsa_discover_fan(SaHpiEntityPathT *ep, int fannum)
+{
+	int len;
+        struct oh_event working;
+        struct oh_event *e = NULL;
+
+        memset(&working, 0, sizeof(struct oh_event));
+
+        working.type = OH_ET_RESOURCE;
+        working.u.res_event.entry = snmp_rpt_array[RSA_RPT_ENTRY_FAN].rpt;
+
+	working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
+	working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
+	len = strlen(snmp_rpt_array[RSA_RPT_ENTRY_FAN].comment);
+	if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+		working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
+		strcpy(working.u.res_event.entry.ResourceTag.Data,
+		       snmp_rpt_array[RSA_RPT_ENTRY_FAN].comment);
+	} else {
+		dbg("Comment string too long - %s\n",snmp_rpt_array[RSA_RPT_ENTRY_FAN].comment);
+	}
+
+        ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
+
+        set_epath_instance(&(working.u.res_event.entry.ResourceEntity),
+                           SAHPI_ENT_FAN,fannum+RSA_HPI_INSTANCE_BASE);
+        working.u.res_event.entry.ResourceId =
+                oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
+        e = eventdup(&working);
+
+//	find_res_events(&working.u.res_event.entry.ResourceEntity, 
+//			&snmp_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info);
+
+	return e;
+}
+
+

@@ -49,7 +49,8 @@
 typedef enum {
 	RSA_RPT_ENTRY_CHASSIS = 0,
 	RSA_RPT_ENTRY_CPU,
-	RSA_RPT_ENTRY_DASD
+	RSA_RPT_ENTRY_DASD,
+	RSA_RPT_ENTRY_FAN
 } RSARptEntryT;
 
 /* Start HPI Instance numbers from 1 */
@@ -165,6 +166,7 @@ struct snmp_rsa_sensor {
 extern struct snmp_rsa_sensor snmp_rsa_chassis_sensors[];
 extern struct snmp_rsa_sensor snmp_rsa_cpu_thermal_sensors[];
 extern struct snmp_rsa_sensor snmp_rsa_dasd_thermal_sensors[];
+extern struct snmp_rsa_sensor snmp_rsa_fan_sensors[];
 
 /*************************************************************************
  *                   Control Definitions
