@@ -155,53 +155,14 @@ public:
   int m_initial_discover;
 
 protected:
-  // m_mc_to_check[addr] = properties
-  // (dIpmiMcThreadXXXX)
-  // of thread to handle mc
-  //unsigned int m_mc_to_check[256];
-
-  // slot id for ATCA
-  //int m_mc_slot[256];
-
-  // possible mc types like board, power unit, fan
-  // (dIpmiMcTypeBitXXX ipmi_discover.cpp)
-  //unsigned int m_mc_type[256];
-
   // array of mc threads
   cIpmiMcThread *m_mc_thread[256];
 
 public:
-/*
-  unsigned int GetMcType( int slave_addr )
-  {
-    if ( slave_addr < 0 || slave_addr > 0xff )
-       {
-         assert( 0 );
-         return 0;
-       }
-
-    return m_mc_type[slave_addr];
-  }
-*/
-
   int           m_num_mc_threads;
   cThreadLock   m_mc_thread_lock;
 
 public:
-/*
-  void AddMcToScan( unsigned int addr,
-                    unsigned int properties,
-                    unsigned mc_type,
-                    int slot )
-  {
-    assert( addr < 256 );
-
-    m_mc_to_check[addr] = properties;
-    m_mc_type[addr]    |= mc_type;
-    m_mc_slot[addr]     = slot;
-  }
-*/
-
   // time between mc poll in ms
   unsigned int m_mc_poll_interval;
 
@@ -251,7 +212,7 @@ public:
   // set initial hotswap state
   void IfHotswapSetInitialState( cIpmiResource *res, cIpmiSensorHotswap *sensor );
 
-  virtual const char *EntityRoot() = 0;
+  virtual const cIpmiEntityPath &EntityRoot() = 0;
   virtual oh_handler_state *GetHandler() = 0;
 
   virtual SaHpiRptEntryT *FindResource( SaHpiResourceIdT id ) = 0;

@@ -37,7 +37,6 @@ cIpmiRdr::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   rdr.RecordId = m_record_id;
   rdr.RdrType  = m_type;
   rdr.Entity   = resource.ResourceEntity;
-  //  rdr.Entity   = m_entity_path;
   rdr.IdString = m_id_string;
 
   return true;

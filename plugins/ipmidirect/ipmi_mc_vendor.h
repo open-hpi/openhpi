@@ -40,6 +40,8 @@ class cIpmiMc;
 
 class cIpmiMcVendor
 {
+  static SaHpiEntityInstanceT m_unique_instance;
+
 public:
   unsigned int m_manufacturer_id;
   unsigned int m_product_id;
@@ -50,6 +52,11 @@ public:
                  const char *desc );
 
   virtual ~cIpmiMcVendor();
+
+  SaHpiEntityInstanceT GetUniqueInstance()
+  {
+    return m_unique_instance++;
+  }
 
   // a new MC is found
   virtual bool InitMc( cIpmiMc *mc, const cIpmiMsg &devid );
@@ -71,8 +78,9 @@ protected:
   // create a new entity
   virtual cIpmiResource *CreateResource( cIpmiDomain *domain, cIpmiMc *mc, unsigned int fru_id,
 					 cIpmiSdr *sdr, cIpmiSdrs *sdrs );
-  virtual bool CreateResourceEntityPath( cIpmiResource *res, cIpmiSdr *sdr,
-					 cIpmiSdrs *sdrs );
+  cIpmiEntityPath CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr,
+                                    unsigned int fru_id, SaHpiEntityTypeT type,
+                                    SaHpiEntityInstanceT instance, cIpmiSdrs *sdrs );
 
 public:
   // create sensors
@@ -95,6 +103,10 @@ protected:
                                        cIpmiSdr *sdr , cIpmiSdrs *sdrs);
   virtual GList *CreateSensorDefault( cIpmiDomain *domain, cIpmiMc *mc,
                                       cIpmiSdr *sdr, cIpmiSdrs *sdrs );
+
+  void CreateSensorEntityPath( cIpmiDomain *domain, cIpmiSensor *s, 
+                               cIpmiMc *source_mc,
+                               cIpmiSdr *sdr, cIpmiSdrs *sdrs ); 
 
   virtual cIpmiMc *FindMcBySdr( cIpmiDomain *domain, cIpmiSdr *sdr );
 
