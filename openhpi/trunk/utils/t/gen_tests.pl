@@ -74,9 +74,6 @@ sub gen_epath_test {
  * This test tests whether an entity path string is converted into
  * an entity path properly.  
  *
- * TODO: a more extensive set of tests would be nice, might need to create a
- * perl program to generate that code
- * 
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv) 
