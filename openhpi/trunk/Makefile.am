@@ -69,7 +69,8 @@ include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
-	$(mkinstalldirs) -m 777 $(DESTDIR)$(VARPATH)
+	$(mkinstalldirs) $(DESTDIR)$(VARPATH)
+	chmod 777 $(DESTDIR)$(VARPATH)
 
 uninstall-local:
 	rm -f $(DESTDIR)$(libdir)/pkgconfig/openhpi.pc
