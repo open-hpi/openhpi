@@ -106,7 +106,19 @@ int main(int argc, char **argv)
         if(oh_valid_textbuffer(&buffer)) {
                 failed(9);
         }
-        
+
+        // Test 10 - invalid type 
+        fill_text_buffer(buffer, BINARYT + 70, "1234");
+        if(oh_valid_textbuffer(&buffer)) {
+                failed(10);
+        }
+        // Test 11 - invalid lang
+        fill_text_buffer(buffer, TEXTT, "1234");
+        buffer.Language = SAHPI_LANG_ENGLISH + 250;
+        if(oh_valid_textbuffer(&buffer)) {
+                failed(11);
+        }
+
         if(failcount) {
                 return -1;
         }
