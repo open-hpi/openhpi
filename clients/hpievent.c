@@ -127,7 +127,7 @@ void DoEvent(
    SaHpiSensorThresholdsT senstbuff1;
    SaHpiSensorThresholdsT senstbuff2;
 
-   SaHpiTimeoutT timeout = (SaHpiInt64T)(12 * HPI_NSEC_PER_SEC); /* 12 seconds */
+   SaHpiTimeoutT timeout = (SaHpiInt64T)(120 * HPI_NSEC_PER_SEC); /* 120 seconds */
    SaHpiEventT event;
    SaHpiRptEntryT rptentry;
    SaHpiRdrT rdr;
