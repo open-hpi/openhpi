@@ -6,7 +6,7 @@ COMMONLIBS		= $(top_builddir)/src/libopenhpi.la
 
 AM_CFLAGS 		= @CFLAGS@
 
-bin_PROGRAMS		= list_resources @LIST_RESOURCES_THREADED@
+noinst_PROGRAMS		= list_resources @LIST_RESOURCES_THREADED@
 EXTRA_PROGRAMS          = list_resources_threaded
 
 include_HEADERS		= 
