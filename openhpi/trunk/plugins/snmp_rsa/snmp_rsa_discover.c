@@ -319,3 +319,55 @@ struct oh_event * snmp_rsa_discover_inventories(struct oh_handler_state *handle,
         g_free(oid);
         return e;
 }
+
+/**
+ * snmp_rsa_discover_controls: Discover all available controls for a resource
+ * @ss: handle to snmp connection for this instance
+ * @parent_ep: Entity path of RDR's parent resource
+ * @parent_id: ID of RDR's parent resource
+ * @control: Pointer to RDR's static control definition (SaHpiCtrlRecT)
+ * Return value: Pointer to Plugin Event, if success, NULL, if error or control does not exist
+ **/
+
+struct oh_event * snmp_rsa_discover_controls(struct oh_handler_state *handle,
+					     SaHpiEntityPathT parent_ep,
+					     const struct snmp_rsa_control *control)
+{
+	gchar *oid;
+	int len;
+        struct oh_event working;
+        struct oh_event *e = NULL;
+	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
+
+        memset(&working, 0, sizeof(struct oh_event));
+
+	oid = snmp_derive_objid(parent_ep, control->rsa_control_info.mib.oid);
+	if (oid == NULL) {
+		dbg("NULL SNMP OID returned\n");
+		return e;
+	}
+
+	if (rdr_exists(ss, oid, control->rsa_control_info.mib.not_avail_indicator_num,control->rsa_control_info.mib.write_only)) {
+		working.type = OH_ET_RDR;
+		working.u.rdr_event.rdr.RdrType = SAHPI_CTRL_RDR;
+		working.u.rdr_event.rdr.Entity = parent_ep;
+		working.u.rdr_event.rdr.RdrTypeUnion.CtrlRec = control->control;
+
+		working.u.rdr_event.rdr.IdString.DataType = SAHPI_TL_TYPE_LANGUAGE;
+		working.u.rdr_event.rdr.IdString.Language = SAHPI_LANG_ENGLISH;
+		len = strlen(control->comment);
+		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+			working.u.rdr_event.rdr.IdString.DataLength = (SaHpiUint8T)len;
+			strcpy(working.u.rdr_event.rdr.IdString.Data,control->comment);
+		} else {
+			dbg("Comment string too long - %s\n",control->comment);
+		}
+
+		e = eventdup(&working);
+	}
+
+	g_free(oid);
+	return e;
+}
+
