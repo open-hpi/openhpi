@@ -1,3 +1,5 @@
+%define prefix /usr
+
 Name: @HPI_PKG@
 Summary: @HPI_PKG@ - implementation of SAForum Hardware Platform Interface 
 Version: @VERSION@
@@ -17,11 +19,6 @@ Group: Utilities
 Summary: Development files for HPI
 Group: Utilities
 
-%package examples
-Summary: HPI example applications
-Group: Utilities
-Requires: openhpi
-
 %package clients
 Summary: HPI command line applications
 Group: Utilities
@@ -29,15 +26,14 @@ Requires: openhpi
 
 %description 
 This package contains an implementation of Service Availability Forum's 
-HPI specification.
+HPI specification.  It includes support for multiple different types of
+hardware including: IPMI, IBM Blade Center (via SNMP), Linux Watchdog devices,
+and Sysfs based systems.
 
 %description devel
 Contains additional files need for a developer to create applications
 and/or middleware that depends uses the Service Availability Forum's
 HPI specification
-
-%description examples
-This package contains simple example applications that utilize OpenHPI
 
 %description clients
 This package contains hpi command line utilities 
@@ -53,9 +49,10 @@ This package contains hpi command line utilities
 ###################################################
 %build
 ###################################################
-./configure @ac_configure_args@
+./configure @ac_configure_args@ --prefix=%{prefix}
 make
-make hpi_examples
+make -C docs/hld pdf
+make -C docs/hld openhpi-manual/book1.html
 
 ###################################################
 %install
@@ -66,36 +63,36 @@ then
   rm -rf $RPM_BUILD_ROOT
 fi
 make DESTDIR=$RPM_BUILD_ROOT install
-mkdir -p $RPM_BUILD_ROOT/etc/openhpi
-cp examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/openhpi/openhpi.conf.example
+mkdir -p $RPM_BUILD_ROOT/etc/@HPI_PKG@
+mkdir -p $RPM_BUILD_ROOT/var/lib/@HPI_PKG@
+install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
 
 %post
-if [ ! -d /var/lib/openhpi ] ; then
-    mkdir -p /var/lib/openhpi
-fi
-
 
 ###################################################
 %files
 ###################################################
 %defattr(-,root,root)
+%doc README COPYING ChangeLog
+%doc docs/hld/*pdf
+%doc docs/hld/openhpi-manual
+%config /etc/@HPI_PKG@/*
+%dir /var/lib/@HPI_PKG@
 @libdir@/
-/etc
 
 ###################################################
 %files devel
 ###################################################
 %defattr(-,root,root)
-%dir @includedir@/openhpi
-@includedir@/openhpi
+%dir %{prefix}/include/@HPI_PKG@
+%{prefix}/include/@HPI_PKG@/*h
 
 ###################################################
-%files examples
+%files clients
 ###################################################
 %defattr(-,root,root)
-%dir @bindir@
-@bindir@/
-
+%{prefix}/bin/hpi*
+%{prefix}/bin/list*
 
 ###################################################
 %clean

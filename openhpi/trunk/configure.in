@@ -5,7 +5,7 @@ dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
 AC_PREREQ(2.50)
 AC_INIT(openhpi.spec.in)
-AM_INIT_AUTOMAKE(openhpi, 0.2)
+AM_INIT_AUTOMAKE(openhpi, 0.3)
 
 AM_CONFIG_HEADER(config.h)
 
@@ -15,7 +15,7 @@ AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
-HPI_LIB_VERSION=0:2:0
+HPI_LIB_VERSION=2:0:0
 HPI_PKG=openhpi
 AC_SUBST(HPI_PKG)
 AC_SUBST(HPI_LIB_VERSION)
@@ -118,13 +118,13 @@ AC_ARG_ENABLE([dummy],
     [AC_SUBST(DUMMY,dummy)])
     
 AC_ARG_ENABLE([watchdog],
-    [  --enable-watchdog       build watchdog plugin [default=no]],
+    [  --enable-watchdog       build watchdog plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(WATCHDOG,watchdog)
     else
         AC_SUBST(WATCHDOG,"")
     fi],
-    [AC_SUBST(WATCHDOG,"")])
+    [AC_SUBST(WATCHDOG,watchdog)])
 
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI

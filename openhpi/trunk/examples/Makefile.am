@@ -19,9 +19,9 @@ list_resources_threaded_SOURCES = list_resources_threaded.c
 list_resources_threaded_LDADD   = $(COMMONLIBS) 
 list_resources_threaded_LDFLAGS = 
 
-
-pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
-pkgsysconf_DATA = openhpi.conf.example
+# comment out for now, we do install in rpm
+#pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+#pkgsysconf_DATA = openhpi.conf.example
 
 EXTRA_DIST = openhpi.conf.example
 
