@@ -32,6 +32,11 @@ have_uuid=no
 have_openipmi=no
 have_sysfs=no
 
+AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
+
+if test "x$found_pkg_config" != "xyes"; then
+    OH_CHECK_FAIL(pkg-config,pkg-config)
+fi
 
 AC_CHECK_LIB([glib], [g_slist_alloc], 
     [
@@ -51,19 +56,7 @@ AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
 
 AC_CHECK_LIB([sysfs], [sysfs_get_mnt_path], [have_sysfs=yes])
 
-AC_TRY_LINK(
-    [
-        #include <net-snmp/net-snmp-config.h>
-        #include <net-snmp/net-snmp-includes.h>
-    ],
-    [
-        struct snmp_session session
-    ],
-    [
-        have_netsnmp=yes
-        SNMPFLAGS=`net-snmp-config --cflags`
-    ],
-    [AC_MSG_RESULT("No Net-SNMP found.  No SNMP based plugins can be built")])
+OH_CHECK_NETSNMP
 
 AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     OH_CHECK_FAIL(libuuid,e2fsprogs-devel)
