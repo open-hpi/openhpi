@@ -22,6 +22,8 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
+#include <unistd.h>
+
 #define HPI_NSEC_PER_SEC 1000000000LL
 
 char progver[] = "0.1";
@@ -32,8 +34,10 @@ int main(int argc, char **argv)
 {
 	int c, wait = 0;
 	SaErrorT rv;
+
 	/*SaHpiVersionT hpiVer;*/
 	SaHpiSessionIdT sessionid;
+
 	/*SaHpiRptInfoT rptinfo;*/
 	SaHpiRptEntryT rptentry;
 	SaHpiEntryIdT rptentryid;
@@ -45,7 +49,7 @@ int main(int argc, char **argv)
 	SaHpiEventT event;
         
 	printf("%s: version %s\n",argv[0],progver); 
-        
+
         while ( (c = getopt( argc, argv,"t:x?")) != EOF )
                 switch(c) {
 			case 't':
@@ -62,9 +66,11 @@ int main(int argc, char **argv)
 
 
 	if (ftimer) 
-		timeout = (SaHpiInt64T)(wait * HPI_NSEC_PER_SEC);  
+		timeout = (SaHpiTimeoutT)(wait * HPI_NSEC_PER_SEC);  
 	else
-		timeout = (SaHpiInt64T) SAHPI_TIMEOUT_IMMEDIATE;
+		timeout = (SaHpiTimeoutT) SAHPI_TIMEOUT_IMMEDIATE;
+
+printf("************** timeout:[%lld] ****************\n", timeout);	
 
 	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID,&sessionid,NULL);
         if (rv != SA_OK) {
@@ -133,16 +139,15 @@ int main(int argc, char **argv)
 		}
      	}
 
-	
-	
 	/* Unsubscribe to future events */
 	printf( "Unsubscribe\n");
 	rv = saHpiUnsubscribe( sessionid );
 
 	rv = saHpiSessionClose(sessionid);
+
+	printf("HPIGETEVENT END\n");
         
         exit(0);
-        return(0);
 }
  
 /* end hpigetevents.c */
