@@ -49,7 +49,7 @@ show_wdt(SaHpiWatchdogNumT  wdnum, SaHpiWatchdogT *wdt)
 int
 main(int argc, char **argv)
 {
-  char c;
+  int c;
   SaErrorT rv;
   SaHpiVersionT hpiVer;
   SaHpiSessionIdT sessionid;
