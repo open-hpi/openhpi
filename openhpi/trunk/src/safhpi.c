@@ -1490,6 +1490,7 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
         SaErrorT (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT,
                               SaHpiSensorThresholdsT *);
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1506,6 +1507,18 @@ SaErrorT SAHPI_API saHpiSensorThresholdsGet (
                     ResourceId, did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
+                                     ResourceId, 
+                                     SAHPI_SENSOR_RDR, 
+                                     SensorNum);
+
+        if (rdr_cur == NULL) {
+                dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
+                    did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
@@ -1639,6 +1652,7 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
                                       SaHpiBoolT *enable);
 
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1655,6 +1669,18 @@ SaErrorT SAHPI_API saHpiSensorEnableGet (
                     ResourceId, did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
+                                     ResourceId, 
+                                     SAHPI_SENSOR_RDR, 
+                                     SensorNum);
+
+        if (rdr_cur == NULL) {
+                dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
+                    did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
@@ -1680,6 +1706,7 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
                                       SaHpiSensorNumT,
                                       SaHpiBoolT enable);
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1696,6 +1723,18 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
+                                     ResourceId, 
+                                     SAHPI_SENSOR_RDR, 
+                                     SensorNum);
+
+        if (rdr_cur == NULL) {
+                dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
+                    did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -1725,6 +1764,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
                                              SaHpiBoolT *enables);
 
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1741,6 +1781,18 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
                     ResourceId, did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
+        }
+        
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
+                                     ResourceId, 
+                                     SAHPI_SENSOR_RDR, 
+                                     SensorNum);
+
+        if (rdr_cur == NULL) {
+                dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
+                    did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
@@ -1767,6 +1819,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
                                              SaHpiSensorNumT,
                                              const SaHpiBoolT enables);
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1783,6 +1836,18 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
+                                     ResourceId, 
+                                     SAHPI_SENSOR_RDR, 
+                                     SensorNum);
+
+        if (rdr_cur == NULL) {
+                dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
+                    did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -1814,6 +1879,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
                                            SaHpiEventStateT   *AssertEventMask,
                                            SaHpiEventStateT   *DeassertEventMask);
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1834,6 +1900,18 @@ SaErrorT SAHPI_API saHpiSensorEventMasksGet (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
+                                     ResourceId, 
+                                     SAHPI_SENSOR_RDR, 
+                                     SensorNum);
+
+        if (rdr_cur == NULL) {
+                dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
+                    did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+        
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -1862,6 +1940,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
                                            SaHpiEventStateT   AssertEventMask,
                                            SaHpiEventStateT   DeassertEventMask);
         SaHpiRptEntryT *res;
+        SaHpiRdrT *rdr_cur;
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
@@ -1876,6 +1955,18 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
                     ResourceId, did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
+        }
+
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), 
+                                     ResourceId, 
+                                     SAHPI_SENSOR_RDR, 
+                                     SensorNum);
+
+        if (rdr_cur == NULL) {
+                dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
+                    did, ResourceId, SAHPI_SENSOR_RDR, SensorNum);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
         OH_HANDLER_GET(d, ResourceId, h);
