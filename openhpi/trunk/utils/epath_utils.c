@@ -507,7 +507,7 @@ static int entitytype2index(unsigned int i)
         return -1;
 }
 
-int prt_ep(SaHpiEntityPathT *ep) 
+int prt_ep(const SaHpiEntityPathT *ep) 
 {
         gchar epstr[512];
 	int len;
@@ -527,7 +527,7 @@ int prt_ep(SaHpiEntityPathT *ep)
 	return 0;
 } 
 
-int ep_cmp(SaHpiEntityPathT *ep1, SaHpiEntityPathT *ep2)
+int ep_cmp(const SaHpiEntityPathT *ep1, const SaHpiEntityPathT *ep2)
 {
         unsigned int i, j;
         int mydebug = 0;
