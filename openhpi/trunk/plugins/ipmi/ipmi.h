@@ -164,7 +164,14 @@ SaHpiRdrT *ohoi_get_rdr_by_data(RPTable *table,
 void ohoi_sensor_event(enum ipmi_update_e op,
                        ipmi_entity_t      *ent,
                        ipmi_sensor_t      *sensor,
-                       void               *cb_data);
+                       void               *cb_data);       
+/*
+ * This is used to help saHpiEventLogEntryGet()
+ * to convert sensor ipmi event to hpi event
+ */
+struct oh_event *ohoi_sensor_ipmi_event_to_hpi_event(ipmi_sensor_id_t	sid,
+			ipmi_event_t	*event, ipmi_entity_t **entity);
+
 
 /* This is used for OpenIPMI to notice control change */
 void ohoi_control_event(enum ipmi_update_e op,

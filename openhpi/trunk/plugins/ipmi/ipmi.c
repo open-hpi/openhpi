@@ -510,6 +510,11 @@ static int ipmi_del_sel_entry(void      *hnd,
 }
 #endif
 
+
+
+
+
+
 /**
  * ipmi_get_el_entry: get IPMI SEL entry
  * @hnd: pointer to handler instance
@@ -523,7 +528,7 @@ static int ipmi_del_sel_entry(void      *hnd,
  * one at a time by the record id starting with HPI's
  * SAHPI_OLDEST_ENTRY or SAHPI_NEWEST_ENTRY.
  *
- * Return value: 0 for success -1 for failure
+ * Return value: SA_OK for success -1 for failure
  **/
 static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 				SaHpiEventLogEntryIdT current,
@@ -535,20 +540,23 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 {
         struct ohoi_resource_info *ohoi_res_info;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        ipmi_event_t *event;
-	SaHpiRptEntryT *rpt;
+        ipmi_event_t		*event;
+	SaHpiRptEntryT	*myrpt;
+	SaHpiRdrT		*myrdr;
+	SaHpiEventTypeT	event_type;
+	struct oh_event	*e;
+	char				*Data;
+	int				data_len;
+	ipmi_sensor_id_t	sid;
+	ipmi_mcid_t		mc;
+	ipmi_entity_id_t	et;
+	ipmi_entity_t		*entity;
 
-        ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
+	ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
                 dbg("BUG: try to get sel in unsupported resource");
                 return SA_ERR_HPI_INVALID_CMD;
         }
-
-	rpt = oh_get_resource_by_id(handler->rptcache, id);
-	if (!rpt) {
-		dbg("no rpt:%d",(int) id);
-		return SA_ERR_HPI_INVALID_CMD;
-	}
 	
 	if (rdr)
 		rdr->RdrType = SAHPI_NO_RECORD;
@@ -559,11 +567,13 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 	
 	switch (current) {
 		case SAHPI_OLDEST_ENTRY:
-			ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
+			ohoi_get_sel_first_entry(
+				ohoi_res_info->u.mc_id, &event);
 			if (!event)
 				return SA_ERR_HPI_NOT_PRESENT;
 
-			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id,
+						event, next);
 
 			*prev = SAHPI_NO_MORE_ENTRIES;
 
@@ -571,13 +581,15 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
 		case SAHPI_NEWEST_ENTRY:
 
-			ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
+			ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id,
+					&event);
 			if (!event)
 				return SA_ERR_HPI_NOT_PRESENT;
 
 			*next = SAHPI_NO_MORE_ENTRIES;
 
-			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id,
+						event, prev);
 
 			break;
 
@@ -588,36 +600,112 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
 		default:                		
 			/* get the entry requested by id */
-			ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
+			ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id,
+						*next, &event);
 			if (!event)
 				return SA_ERR_HPI_NOT_PRESENT;
-			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
+			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id,
+						event, next);
 
-			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
+			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id,
+						event, prev);
 
 			break; 
 
 	}
-	if (!event)
-		return SA_ERR_HPI_NOT_PRESENT;
+
+
+	entry->EntryId = ipmi_event_get_record_id(event);
+	event_type = ipmi_event_get_type(event);
+	Data = ipmi_event_get_data_ptr(event);
+	data_len = ipmi_event_get_data_len(event);	
+
+	if (event_type == 0x02) {   // sensor event
+		do {
+
+			mc = ipmi_event_get_mcid(event);
+			sid.mcid = mc;
+			sid.lun = Data[5] & 0x3;
+			sid.sensor_num = Data[8];
+
+			e = ohoi_sensor_ipmi_event_to_hpi_event(sid,
+							event, &entity);
+			if (e == NULL) {
+				break;
+			}
+			if (entity != NULL) {
+				et = ipmi_entity_convert_to_id(entity);
+				myrpt = ohoi_get_resource_by_entityid(
+					handler->rptcache, &et);
+				myrdr = ohoi_get_rdr_by_data(handler->rptcache,
+			              myrpt->ResourceId, SAHPI_SENSOR_RDR,
+				      &sid);
+				e->u.hpi_event.event.EventDataUnion.
+					SensorEvent.SensorNum =
+					       myrdr->RdrTypeUnion.SensorRec.Num;
+				if (rptentry) {
+					memcpy(rptentry, myrpt, sizeof (*myrpt));
+				}
+				if (rdr) {
+					memcpy(rdr, myrdr, sizeof (myrdr));
+				}
+			}
+			memcpy(&entry->Event, &e->u.hpi_event.event,
+			                           sizeof (SaHpiEventT));
+			free(e);
+			entry->Event.EventType = SAHPI_ET_SENSOR;
+			entry->Timestamp =
+					ipmi_event_get_timestamp(event);
+			return SA_OK;
+		} while(0);
+		// if we are here we will handle sensor event as user
+		// event
+	}
+	
 
 	entry->Event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
-        entry->Event.EventType = SAHPI_ET_USER;
-
-	/* get the event time */
-	entry->Event.Timestamp = ipmi_event_get_timestamp(event);
+	if (data_len != 13) {
+		dbg("Strange data len in ipmi event: %d instead of 13\n",
+		                  data_len);
+		return SA_ERR_HPI_ERROR;
+	}
 	
-	/* get record id */
-	entry->EntryId = ipmi_event_get_record_id(event);
-        entry->Event.EventDataUnion.UserEvent.UserEventData.DataType = SAHPI_TL_TYPE_BINARY;
-        entry->Event.EventDataUnion.UserEvent.UserEventData.Language = SAHPI_LANG_UNDEF;
-        entry->Event.EventDataUnion.UserEvent.UserEventData.DataLength = ipmi_event_get_data_len(event);
+	if ((event_type >= 0xC0) && (event_type <= 0xDF)) {
+		// OEM timestamp event type
+		entry->Timestamp = ipmi_event_get_timestamp(event);
+		entry->Event.EventType = SAHPI_ET_OEM;
+		entry->Event.Timestamp = entry->Timestamp;
+		entry->Event.EventDataUnion.OemEvent.MId = Data[4] |
+		                                     (Data[5] << 8) |
+						     (Data[6] << 16);
+		entry->Event.Severity = SAHPI_DEBUG; // FIX ME
+		entry->Event.EventDataUnion.OemEvent.
+		       OemEventData.DataLength = 6;
+		memcpy(entry->Event.EventDataUnion.OemEvent.
+		     OemEventData.Data, Data + 7, data_len);
+		entry->Event.EventDataUnion.OemEvent.OemEventData.
+		      DataType = SAHPI_TL_TYPE_BINARY;
+		entry->Event.EventDataUnion.OemEvent.OemEventData.
+		      Language = SAHPI_LANG_UNDEF;
+		return SA_OK;
+	};
+	
+	entry->Event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
+	entry->Event.EventType = SAHPI_ET_USER;
+	entry->Event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+	entry->Event.Severity = SAHPI_DEBUG; // FIX ME
+	entry->Event.EventDataUnion.UserEvent.UserEventData.DataType = 
+	                        SAHPI_TL_TYPE_BINARY;
+	entry->Event.EventDataUnion.UserEvent.UserEventData.Language =
+	                        SAHPI_LANG_UNDEF;
+	entry->Event.EventDataUnion.UserEvent.UserEventData.DataLength = 
+	                       ipmi_event_get_data_len(event);
         memcpy(entry->Event.EventDataUnion.UserEvent.UserEventData.Data,
                ipmi_event_get_data_ptr(event), 
-               ipmi_event_get_data_len(event));	
-		
-	return 0;		
+               ipmi_event_get_data_len(event));		
+	return SA_OK;
 }
+
 
 static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 {
