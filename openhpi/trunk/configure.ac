@@ -417,7 +417,7 @@ AC_SUBST(SNMPLIBS)
 AC_SUBST(SNMPDIR)
 
 dnl
-dnl defines OH_DEFAULT_CONF and CONFPATH
+dnl defines CONFPATH, OH_DEFAULT_CONF and OH_CLIENT_DEFAULT_CONF
 dnl
 
 CONFPATH=${CONFPATH:=/etc/openhpi}
@@ -429,11 +429,13 @@ AC_ARG_WITH(confpath,
 dnl substitute @CONFPATH@ in all Makefiles
 AC_SUBST(CONFPATH)
 
-dnl create the #define CONFPATH and #define OH_DEFAULT_CONF in config.h
+dnl create the #define in config.h
 AC_DEFINE_UNQUOTED(CONFPATH, "$CONFPATH",
                    [openhpi specific config path])
 AC_DEFINE_UNQUOTED(OH_DEFAULT_CONF,"$CONFPATH/openhpi.conf",
                    [default configfile])
+AC_DEFINE_UNQUOTED(OH_CLIENT_DEFAULT_CONF,"$CONFPATH/openhpiclient.conf",
+                   [default client configfile])
 
 
 dnl defines OH_DEFAULT_UID_MAP and VARPATH
