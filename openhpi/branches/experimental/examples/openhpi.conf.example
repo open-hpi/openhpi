@@ -57,5 +57,5 @@ handler	libdummy {
 #handler libsnmp_bc {
 #        host = "bc.ibm.com"
 #        community = "community"
-#        entity_root = "{SYSTEM_CHASSIS,0}"
+#        entity_root = "{SYSTEM_CHASSIS,1}"
 #}
