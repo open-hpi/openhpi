@@ -56,10 +56,19 @@ static void entity_presence(ipmi_entity_t	*entity,
 #endif
 }
 
+static void get_indicator(ipmi_entity_t *ent, int err, int val, void *data)
+{
+	int *d = (int *)data;
+	*d = 1;
+	return;
+}
+
 static void get_entity_event(ipmi_entity_t	*entity,
 			     SaHpiRptEntryT	*entry, void *cb_data)
 {
 	SaHpiEntityPathT entity_ep;
+	int er;
+	int data = 0;
 
 	struct ohoi_handler *ipmi_handler = cb_data;
 
@@ -98,7 +107,12 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	if(ipmi_entity_get_is_fru(entity)) {
 			entry->ResourceCapabilities |= SAHPI_CAPABILITY_FRU | SAHPI_CAPABILITY_INVENTORY_DATA;
 	}
-				
+
+	entry->HotSwapCapabilities = 0;
+	er = ipmi_entity_get_hot_swap_indicator(entity, get_indicator, &data);
+	if (data == 1) {
+		entry->HotSwapCapabilities |= SAHPI_HS_CAPABILITY_INDICATOR_SUPPORTED;
+	}
 	entry->ResourceSeverity = SAHPI_OK;
 	entry->ResourceTag.DataType = SAHPI_TL_TYPE_ASCII6;
 	
