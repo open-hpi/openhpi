@@ -23,6 +23,13 @@ struct ohoi_control_info {
         SaHpiCtrlStateT *state;
 };
 
+/* struct for getting power state */
+struct ohoi_power_info {
+	int done;
+	SaHpiPowerStateT *state;
+};
+
+
 static void __get_control_state(ipmi_control_t *control,
                                 int            err,
                                 int            *val,
@@ -30,7 +37,6 @@ static void __get_control_state(ipmi_control_t *control,
 {
         struct ohoi_control_info *info = cb_data;
 
-        info->done = 1;
         if (info->state->Type != SAHPI_CTRL_TYPE_OEM) {
                 dbg("IPMI plug-in only support OEM control now");
                 return;
@@ -41,6 +47,7 @@ static void __get_control_state(ipmi_control_t *control,
         memcpy(&info->state->StateUnion.Oem.Body[0],
                val,
                info->state->StateUnion.Oem.BodyLength);
+        info->done = 1;
 }
 
 static void _get_control_state(ipmi_control_t *control,
@@ -235,24 +242,26 @@ static void power_done (ipmi_control_t *ipmi_control,
                         int err,
                         void *cb_data)
 {
-        int *power_flag = cb_data;
-        *power_flag = 1;
+	
+	struct ohoi_power_info *power_info = cb_data;
+
+	power_info->done = 1;
 }
 
 static void set_power_state_on(ipmi_control_t *control,
                             void           *cb_data)
 {
-        int *val = cb_data;
+	struct ohoi_power_info *power_info = cb_data;
 
-        ipmi_control_set_val(control, val, power_done, &val);
+        ipmi_control_set_val(control, (int *)power_info->state, power_done, cb_data);
 }
 
 static void set_power_state_off(ipmi_control_t *control,
                             void           *cb_data)
 {
-        int *val = cb_data;
+	struct ohoi_power_info *power_info = cb_data;
 
-        ipmi_control_set_val(control, val, power_done, &val);
+        ipmi_control_set_val(control, (int *)power_info->state, power_done, cb_data);
 }
 
 SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id, 
@@ -262,58 +271,108 @@ SaErrorT ohoi_set_power_state(void *hnd, SaHpiResourceIdT id,
 
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	struct ohoi_power_info power_info;
 
         int rv;
-        int power_flag = 0;
-        
+	power_info.done = 0;
+	power_info.state = &state;
+
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Not support power in MC");
                 return SA_ERR_HPI_INVALID_CMD;
         }
+	
+	switch (state) {
+		case SAHPI_POWER_ON:
+			rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
+						    set_power_state_on, &power_info);
+			if (rv) {
+				dbg("set_power_state_on failed");
+				return SA_ERR_HPI_INVALID_CMD;
+			}
+			break;
+		case SAHPI_POWER_OFF:
+			rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
+                                                    set_power_state_off, &power_info);
+	                if (rv) {
+        	            dbg("set_power_state_off failed");
+                	    return SA_ERR_HPI_INVALID_CMD;
+                	}
+			break;
+		default:
+			dbg("Invalid power state requested");
+			return SA_ERR_HPI_INVALID_PARAMS;
+	}
 
-        if (state == SAHPI_POWER_ON) {
-                rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
-                                             set_power_state_on, &state);
-
-                if (rv) {
-                    dbg("Not support power in the entity");
-                    return SA_ERR_HPI_INVALID_CMD;
-                }
-        }
-
-        if (state == SAHPI_POWER_OFF) {
-                rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl, 
-                                             set_power_state_off, &state);
-
-                if (rv) {
-                    dbg("Not support power in the entity");
-                    return SA_ERR_HPI_INVALID_CMD;
-                }
-        }
-        
-
-        ohoi_loop(&power_flag, ipmi_handler);
+        ohoi_loop(&power_info.done, ipmi_handler);
         
         return SA_OK;
 }
 
-#if 0
+static void get_power_control_val (ipmi_control_t *control,
+			     int err,
+			     int *val,
+			     void *cb_data)
+{
+	struct ohoi_power_info *info = cb_data;
+
+	if (*val == 0) {
+		dbg("Power Control Value: %d", *val);
+		*info->state = SAHPI_POWER_OFF;
+	} else if (*val == 1) {
+		dbg("Power Control Value: %d", *val);
+		*info->state = SAHPI_POWER_ON;
+	} else {
+		dbg("invalid power state");
+	}
+	info->done = 1;
+
+}
+
+static void get_power_state (ipmi_control_t *ipmi_control,
+			     void *cb_data)
+{
+	int rv;
+
+	rv = ipmi_control_get_val(ipmi_control, get_power_control_val, cb_data);
+
+	if(rv) {
+		dbg("reading ipmi control value failed");
+	}
+	
+
+}
+
 SaErrorT ohoi_get_power_state (void *hnd,
-                               ipmi_control_t	*control,
-                               void		*cb_data)
+                               SaHpiResourceIdT	id,
+                               SaHpiPowerStateT *state)
 {
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-        struct ohoi_handler *ipmi_handler = (struct ohoi_handler
-                                             *)handler->data;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
         struct ohoi_resource_info *ohoi_res_info;
+	struct ohoi_power_info power_state;
 
+	int rv;
+
+	power_state.done = 0;
+	power_state.state = state;
+	
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_ENTITY) {
                 dbg("Not support power in MC");
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
+	rv = ipmi_control_pointer_cb(ohoi_res_info->power_ctrl,
+					get_power_state, &power_state);
+	if (rv) {
+		dbg("get_power_state failed");
+		return SA_ERR_HPI_INVALID_CMD;
+	}
+
+	dbg("waiting for OIPMI to return");
+	ohoi_loop(&power_state.done, ipmi_handler);
+				     
         return SA_OK;
 }
-#endif

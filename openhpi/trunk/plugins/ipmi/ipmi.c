@@ -1072,7 +1072,7 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.set_indicator_state            = ohoi_set_indicator_state,
         
 	/* power support */
-	.get_power_state                = NULL,
+	.get_power_state                = ohoi_get_power_state,
 	.set_power_state                = ohoi_set_power_state,
 	
 	/* reset support */
