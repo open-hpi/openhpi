@@ -25,16 +25,34 @@
     rest, but will be updated constantly.
   </para>
   <sect1>
-    <title>Initializing OpenHPI</title>
-  <para>
-    As previously explained, OpenHPI breaks down into two basic
-    layers, the infrastructure (or core library), and plugins.  Most
-    of the real work 
+    <title>OpenHPI Plugins</title>
+    <para>
+      OpenHPI has two major parts, the core library (infrastructure),
+      and the plugins.  The plugin mechanism allows OpenHPI to support
+      numerous hardware types without requiring any core changes to
+      the library.
     </para>
     <sect2>
-      <title>Plugins</title>
+      <title>Plugin ABI</title>
       <para>
-        In or
+        Every plugin is a libtool dynamic library.  The
+        <literal>lt_dlopenext</literal> call is used to open and load
+        the symbols from the plugin.
+      </para>
+      <para>
+        Every plugin must include a <literal>get_interface</literal>
+        function which populates an oh_abi_v1 structure.  This
+        structure contains 35 function pointers, and is loaded only
+        once per plugin.  Many of the functions in the plugin ABI map
+        very closely to those in the SA HPI, however they are named
+        with more Linux friendly naming convention (i.e. add_sel_entry
+        vs. saHpiEventLogEntryAdd).
+      </para>
+      <para>
+        The plugin ABI should not yet be considered stabalized, as
+        there haven't been enough fully functional plugins to ensure
+        that it can fulfill every possible type of plugin for the HPI
+        1.0 interface.
       </para>
     </sect2>
   </sect1>
