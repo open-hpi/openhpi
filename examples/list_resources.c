@@ -365,6 +365,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			}
 
 			if (rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
+                                memset(&thres, 0, sizeof(SaHpiSensorThresholdsT));
 				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num, &thres);
 				if (err != SA_OK) {
 					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num);
@@ -456,7 +457,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 					printf("Invalid control type=%d from saHpiControlStateGet\n", 
 					       state.Type);
 			}
-	}
+                }
                 printf("\tEntity: \n");
                 entitypath2string(&rdr.Entity, tmp_epath, sizeof(tmp_epath));
                 printf("\t\t%s\n", tmp_epath);

@@ -216,9 +216,8 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
                         epathptr->Entry[i].EntityInstance = 
                                 ((SaHpiEntityT *)(lst->data))->EntityInstance;
                 }
-                epath_list = g_slist_remove_link(epath_list,lst);
                 g_free(lst->data);
-                g_free(lst);
+                epath_list = g_slist_remove(epath_list,lst);                
 	}
         
 	if (num_valid_entities > SAHPI_MAX_ENTITY_PATH) { 
@@ -226,10 +225,10 @@ int string2entitypath(const gchar *epathstr, SaHpiEntityPathT *epathptr)
 	}
    
  CLEANUP:
-	if (gstr) g_free(gstr);
-	if (epathdefs) g_strfreev(epathdefs);
-	if (epathvalues) g_strfreev(epathvalues);
-	if (epath_list) g_slist_free(epath_list);
+	g_free(gstr);
+	g_strfreev(epathdefs);
+	g_strfreev(epathvalues);
+	g_slist_free(epath_list);
 
 	return(rtncode);
 } /* End string2entitypath */
@@ -315,8 +314,8 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
 	strcpy(epathstr, tmpstr);
 
  CLEANUP:
-	if (instance_str) g_free(instance_str);
-	if (tmpstr) g_free(tmpstr);
+	g_free(instance_str);
+	g_free(tmpstr);
 
 	return(rtncode);
 } /* End entitypath2string */
