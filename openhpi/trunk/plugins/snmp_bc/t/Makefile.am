@@ -96,18 +96,17 @@ TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/u
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
-TESTS = 
-#	tevent \
-#	tcontrol_parms
-#	tset_resource_tag \
-#	tset_resource_sev \
-#	tsnmp_bc_getset \
-#	tsnmp_bc_get_guid \
-#	tsensorget001 \
-#	tsensorget002 \
-#	tsensorget003 \
-#	tsensorget004 \
-#	tsensorget005 \
+TESTS = \
+	tevent \
+	tcontrol_parms \
+	tset_resource_tag \
+	tset_resource_sev \
+	tsnmp_bc_getset \
+	tsensorget001 \
+	tsensorget002 \
+	tsensorget003 \
+	tsensorget004 \
+	tsensorget005 
 #	tsensorget006 \
 #	tsensorget008 \
 #	tsensorget010 \
@@ -177,6 +176,7 @@ TESTS =
 #	tsptime002    \
 #	tdiscover001  \
 #	tdiscover002
+#	tsnmp_bc_get_guid
 #	testxml
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
@@ -185,70 +185,64 @@ TESTS =
 check_PROGRAMS = $(TESTS)
 
 # Unit test using normal IF calls and simulation library
-#tevent_SOURCES = tevent.c
-#tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+tevent_SOURCES = tevent.c
+tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit test using normal IF calls and simulation library
-#tcontrol_parms_SOURCES = tcontrol_parms.c
-#tcontrol_parms_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tcontrol_parms_SOURCES = tcontrol_parms.c
+tcontrol_parms_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # Unit test using normal IF calls and simulation library
-#tset_resource_tag_SOURCES = tset_resource_tag.c
-#tset_resource_tag_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tset_resource_tag_SOURCES = tset_resource_tag.c
+tset_resource_tag_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # Unit test using normal IF calls and simulation library
-#tset_resource_sev_SOURCES = tset_resource_sev.c
-#tset_resource_sev_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tset_resource_sev_SOURCES = tset_resource_sev.c
+tset_resource_sev_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # Unit test using normal IF calls and simulation library
-#tsnmp_bc_getset_SOURCES = tsnmp_bc_getset.c
-#tsnmp_bc_getset_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
-
-# Unit test using normal IF calls and simulation library
-#tsnmp_bc_get_guid_SOURCES = tsnmp_bc_get_guid.c
-#tsnmp_bc_get_guid_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tsnmp_bc_getset_SOURCES = tsnmp_bc_getset.c
+tsnmp_bc_getset_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tsensorget001_SOURCES = tsensorget001.c
-#tsensorget001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tsensorget001_SOURCES = tsensorget001.c
+tsensorget001_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tsensorget002_SOURCES = tsensorget002.c
-#tsensorget002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tsensorget002_SOURCES = tsensorget002.c
+tsensorget002_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tsensorget003_SOURCES = tsensorget003.c
-#tsensorget003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tsensorget003_SOURCES = tsensorget003.c
+tsensorget003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tsensorget004_SOURCES = tsensorget004.c
-#tsensorget004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tsensorget004_SOURCES = tsensorget004.c
+tsensorget004_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
-#tsensorget005_SOURCES = tsensorget005.c
-#tsensorget005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
-#		 $(top_builddir)/src/libopenhpi.la \
-#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+tsensorget005_SOURCES = tsensorget005.c
+tsensorget005_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
 # 
 #tsensorget006_SOURCES = tsensorget006.c
@@ -681,6 +675,12 @@ check_PROGRAMS = $(TESTS)
 #tcontrol003_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 #		 $(top_builddir)/src/libopenhpi.la \
 #		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
+
+# Unit test using normal IF calls and simulation library
+#tsnmp_bc_get_guid_SOURCES = tsnmp_bc_get_guid.c
+#tsnmp_bc_get_guid_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+#		 $(top_builddir)/src/libopenhpi.la \
+#		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
  
 # Unit tests with IF and snmp calls stubbed out
 #testxml_SOURCES = testxml.c
