@@ -24,10 +24,7 @@
 
 #include <SaHpi.h>
 #include <openhpi.h>
-#include <rpt_utils.h>
-#include <printevent_utils.h>
-#include <epath_utils.h>
-
+#include <oh_utils.h>
 
 void process_hotswap_policy(struct oh_handler *handler)
 {

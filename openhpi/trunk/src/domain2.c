@@ -17,7 +17,7 @@
 #include <oh_domain.h>
 #include <oh_session.h>
 #include <oh_error.h>
-#include <el_utils.h>
+#include <oh_utils.h>
 #include <string.h>
 
 struct oh_domain_table oh_domains = {        

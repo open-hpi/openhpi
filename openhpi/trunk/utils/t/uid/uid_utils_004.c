@@ -11,13 +11,12 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
- *
  */
 
-#include <SaHpi.h>
 #include <glib.h>
-#include <uid_utils.h>
-#include <epath_utils.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 
 /**
  * main: Get 10 new unique ids. Remove two. Look up removed ids by ep.
