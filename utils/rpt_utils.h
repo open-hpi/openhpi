@@ -32,12 +32,8 @@ extern "C" {
 #endif 
 
 typedef struct {
-        SaHpiUint32T UpdateCount;     
-        SaHpiTimeT   UpdateTimestamp; 
-} SaHpiRptInfoT;
-
-typedef struct {
-        SaHpiRptInfoT rpt_info;
+        SaHpiDomainInfoT *info;
+        SaHpiDomainInfoT local_info;
         /* The structure to hold this is subject to change. */
         /* No one should touch this. */
         GSList *rptlist; /* Contains RPTEntrys for sequence lookups */
@@ -60,15 +56,19 @@ typedef struct {
 
 
 /* General RPT calls */
-void oh_flush_rpt(RPTable *table);
+SaErrorT oh_init_rpt(RPTable *table, SaHpiDomainInfoT *info);
+SaErrorT oh_flush_rpt(RPTable *table);
 void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
               GSList **res_new, GSList **rdr_new,
               GSList **res_gone, GSList **rdr_gone);
+SaErrorT oh_get_rpt_info(RPTable *table,
+                         SaHpiUint32T *update_count,
+                         SaHpiTimeT *update_timestamp);
 
 /* Resource calls */
-int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata);
+SaErrorT oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data, int owndata);
 
-int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid);
+SaErrorT oh_remove_resource(RPTable *table, SaHpiResourceIdT rid);
 
 void *oh_get_resource_data(RPTable *table, SaHpiResourceIdT rid);
 SaHpiRptEntryT *oh_get_resource_by_id(RPTable *table, SaHpiResourceIdT rid);
@@ -76,9 +76,9 @@ SaHpiRptEntryT *oh_get_resource_by_ep(RPTable *table, SaHpiEntityPathT *ep);
 SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev);
 
 /* RDR calls */
-int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data, int owndata);
+SaErrorT oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data, int owndata);
 
-int oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
+SaErrorT oh_remove_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
 
 void *oh_get_rdr_data(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);
 SaHpiRdrT *oh_get_rdr_by_id(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid);

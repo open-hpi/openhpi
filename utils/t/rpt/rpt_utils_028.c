@@ -31,6 +31,7 @@
 int main(int argc, char **argv)
 {
         RPTable *rptable = (RPTable *)g_malloc0(sizeof(RPTable));
+        oh_init_rpt(rptable, NULL);
         gchar *data1 = "My data 1";
         gchar *data2 = "My data 2";
 
