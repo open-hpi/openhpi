@@ -49,7 +49,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 			*state = SAHPI_HS_STATE_ACTIVE;
 		}
 		else { 
-			*state = SAHPI_HS_STATE_INACTIVE;
+			*state = SAHPI_HS_STATE_NOT_PRESENT;
 		}
         } else {
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",oid,get_value.type);
