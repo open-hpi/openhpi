@@ -527,7 +527,9 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   sensor->Resource()->FruState() = current_state;
   sensor->HandleEvent( event );
 
-  if ( current_state == eIpmiFruStateNotInstalled )
+  // We care only if it's the MC itself
+  if (( current_state == eIpmiFruStateNotInstalled )
+      && ( sensor->Resource()->FruId() == 0 ))
      {
        // remove mc
        WriteLock();
