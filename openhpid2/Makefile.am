@@ -36,14 +36,14 @@ client_SOURCES        = \
 
 # this is defined with ./configure --enable-daemon=static 
 #if OPENHPID_STATIC
-openhpid_LDADD          = $(top_builddir)/marshal/libohtcpconnx.la
+#openhpid_LDADD = $(top_builddir)/marshal/libohtcpconnx.la
 #openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
-openhpid_LDFLAGS        = -static
+#openhpid_LDFLAGS        = -static
 client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la
 #client_LDADD            = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
-client_LDFLAGS          = -static
+#client_LDFLAGS          = -static
 #else
-openhpid_LDADD          = $(top_builddir)/marshal/libohtcpconnx.la
+openhpid_LDADD = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
 #openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libopenhpimarshal.la
 openhpid_LDFLAGS        =
 client_LDADD            = $(top_builddir)/marshal/libohtcpconnx.la

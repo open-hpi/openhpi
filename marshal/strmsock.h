@@ -30,64 +30,96 @@
 #define FALSE 0
 #endif
 
+ // current version
+#define dMhVersion 1
+
+#define dMhGetVersion(flags) (((flags)>>4) & 0x7)
+
+// message flags
+#define dMhEndianBit	1
+
+// max message length including header
+#define dMaxMessageLength 0xffff
+
+// cMessageHeader::m_type
+typedef enum
+{
+	eMhPing    = 1,
+	eMhMsg     = 2,
+} tMessageType;
+
+typedef struct
+{
+	unsigned char	m_type;
+	unsigned char	m_flags; // bit 0-3 flags, bit 4-7 version
+	unsigned int	m_id;
+	unsigned int	m_len;
+} cMessageHeader;
 
 // The Stream Sockets class
 class strmsock
-   {
-   protected:
-   int            s;                  // the client socket handle
-   unsigned long  ulBufSize;          // the read buffer size
-   void          *pBuf;               // the read buffer
-   int            domain;             // the socket domain
-   int            type;               // the socket type
-   int            protocol;           // the socket protocol
-   int            errcode;            // errno contents      
-   bool           fOpen;              // open connection indicator
+{
+	protected:
+	int			s;		 // the client socket handle
+	unsigned long		ulBufSize;	// the read buffer size
+	void			*pBuf;		// the read buffer
+	cMessageHeader		header;		// the message header
+	int			domain;		// the socket domain
+	int			type;		// the socket type
+	int			protocol;		// the socket protocol
+	int			errcode;		// errno contents
+	bool			fOpen;		// open connection indicator
 
-   public:
-   virtual ~strmsock               () { };
-   virtual void  Close             (void);
-   virtual int   GetErrcode        (void);
-   virtual char *Read              (void);
-   virtual void  SetBufferSize     (unsigned long);
-   virtual void  SetDomain         (int);
-   virtual void  SetProtocol       (int);
-   virtual void  SetType           (int);
-   virtual void  WriteBin          (const void *, int);
-   virtual void  WriteStr          (const char *);
-   };
+	public:
+	virtual		~strmsock		() { };
+	virtual void	Close			(void);
+	virtual int	GetErrcode		(void);
+	virtual void	SetBufferSize		(unsigned long);
+	virtual void	SetDomain		(int);
+	virtual void	SetProtocol		(int);
+	virtual void	SetType			(int);
+	virtual void	MessageHeaderInit	(tMessageType, unsigned char,
+		   				 unsigned char, unsigned int, unsigned int);
+	virtual cMessageHeader	*GetHeader	(void);
+	virtual void	ConWriteMsg		(const void *);
+	virtual void	*ConReadMsg		(void);
+//	virtual int	ConHandleMsg		(void);
+};
 typedef strmsock *pstrmsock;
 
 // the Client Stream Sockets class
 class cstrmsock : public strmsock
-   {
-   public:
-   cstrmsock                       ();
-   ~cstrmsock                      ();
-   bool          Open              (const char *, int);
-   };
+{
+	public:
+	cstrmsock		();
+	~cstrmsock		();
+	bool Open		(const char *, int);
+	void    ClientWriteMsg	(const void *);
+	void    *ClientReadMsg	(void);
+};
 typedef cstrmsock *pcstrmsock;
 
 // the Server Stream Sockets class
 class sstrmsock : public strmsock
-   {
-   protected:
-   char          acHostName[256];    // host name
-   int           ss;                 // the server socket handle
-   int           backlog;            // listen queue size
-   struct        sockaddr_in addr;   // address structure
-   bool          fOpenS;             // TRUE = valid server socket
+{
+	protected:
+	char	acHostName[256];	 // host name
+	int	ss;			// the server socket handle
+	int	backlog;			// listen queue size
+	struct	sockaddr_in addr;		// address structure
+	bool	fOpenS;		 	// TRUE = valid server socket
 
-   public:
-   sstrmsock                       ();
-   sstrmsock                       (const sstrmsock&);
-   ~sstrmsock                      ();
-   void          CloseSrv          (void);
-   bool          Create            (int);
-   bool          Accept            (void);
-   };
+	public:
+	sstrmsock		();
+	sstrmsock		(const sstrmsock&);
+	~sstrmsock		();
+	void    CloseSrv		(void);
+	bool    Create		(int);
+	bool    Accept		(void);
+	void    ServerWriteMsg	(const void *);
+	void    *ServerReadMsg	(void);
+};
 typedef sstrmsock *psstrmsock;
 
 
 #endif  // STRMSOCK_H_INCLUDED__
-

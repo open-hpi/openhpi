@@ -681,7 +681,6 @@ static cMarshalType SaHpiWatchdogEventElements[] =
 
 cMarshalType SaHpiWatchdogEventType = dStruct( SaHpiWatchdogEventT, SaHpiWatchdogEventElements );
 
-
 static cMarshalType SaHpiSwEventTypeUnionElements[] = 
 {                
   dUnionElement( SAHPI_HPIE_AUDIT, SaHpiUint32Type ),
@@ -728,7 +727,7 @@ static cMarshalType SaHpiEventUnionElements[] =
   dUnionElement( SAHPI_ET_SENSOR_ENABLE_CHANGE, SaHpiSensorEnableChangeEventType ),
   dUnionElement( SAHPI_ET_HOTSWAP, SaHpiHotSwapEventType ),
   dUnionElement( SAHPI_ET_WATCHDOG, SaHpiWatchdogEventType ),
-  dUnionElement( SAHPI_ET_HPI_SW, SaHpiSwEventType ),
+  dUnionElement( SAHPI_ET_HPI_SW, SaHpiHpiSwEventType ),
   dUnionElement( SAHPI_ET_OEM, SaHpiOemEventType ),
   dUnionElement( SAHPI_ET_USER, SaHpiUserEventType ),
   dUnionElementEnd()
