@@ -1,0 +1,506 @@
+                       Simulator Plugin High Level Design
+
+1  Requirements
+  OpenHPI should provide an HPI-enabled hardware simulator to accelerate HPI 
+application development for coming hardware such as ATCA. Current dummy plug-in 
+is treated as the prove-of-concept, and a fresh, flexible simulator plug-in is 
+developed to fulfill the requirements.
+
+1.1  Comprehensive
+1.1.1 The plug-in should support all interface functions for sensor, control, 
+FRU, SEL, inventory, watchdog, hotswap, power, indicator, param, reset.
+1.1.2 The plug-in should utilize all types of events defined in oh_plugin.h.
+1.1.3 The plug-in should emulate all kinds of HPI events listed in SA HPI 
+specification '7.3' and '7.15'.
+
+1.2  Flexibility
+1.2.1 The plug-in should be able to emulate variants of hardware including CPCI,
+ATCA.
+1.2.2 The plug-in should be able to change configuration of hardware dynamically
+(i.e. emulate adding/removing ATCA frame/baldes), and deliver corresponding 
+events to upper layer. 
+
+1.3  Maintainability
+1.3.1 For easy debugging, user should be able to read emulated h/w configuration
+directly. User can compare the information from HPI and from direct way to 
+identity bugs.
+1.3.2 For easy configuring, user should be able to maintain emulated h/w 
+directly. User can estimate if the event which upper layer receives is right.
+
+2  Software Architeture
+   The software architecture is demonstrated as the following diagram:
+
++-----------------+      hpi-sim.conf
+|   Application   |           |
++-----------------+           V
+|  OpenHPI Infra  |    +--------------+
++-----------------+    |  hpi-simtools|
+|   Sim Plug-in   |    +--------------+
++-----------------+           |
+           Y                  |
+           |         create/maintain/report
+           \                 /
+            \               /
+           +-----------------+
+           |  File Hierarchy |
+           |    Structure    |
+           +-----------------+
+           
+   Application: OpenHPI Application
+   OpenHPI Infra: OpenHPI Infrastructure
+   Sim Plug-in: the plugin implements openhpi abi and simulates various types of
+      hardware
+   hpi-simtools: the tools create, maintain File Hierarchy Structure
+   FHS(File Hierarchy Structure): the emualted h/w is represented as a 
+      hiberarchy of directory in filesystem. Each function (such as sensor) in 
+      HPI has its attribute files in corresponding directory. The plug-in 
+      monitors the directory and reacts any changes as if they are happened on 
+      real h/w. Beacuse emualted h/w exists in directory of filesystem, user can
+      access all these information easily.
+
+3  FHS
+
+3.1  Domain(TBD)
+   Domain is a concept under discussion. We should clarify who/where/how 
+declare/assign domain firstly.
+
+3.2  Entity
+   According to HPI spec, entity is referred by resource. In FHS, a seperate 
+hierarchy represents entities. The root of hierarchy is a directory named 
+'entity'. Any entity should occupy one directory in the hierarchy. Entity can 
+include another sub-entity under its own directory. There are two important 
+attribute file, one is 'type' file and the other is 'instance' file. The 'type'
+file stores the type value according to SaHpiEntityTypeT in HPI spec (i.e. 
+string 'SAHPI_ENT_FAN' means fan entity). The 'instance' file stores the 
+instance number. Users must make sure that entity hasn't the same type and 
+instance with the others' in the same directory. 
+
+3.3  Resource
+   Resources are all under 'resource' directory of root directory with flat 
+hierarchy. Other sub-component such as sensor should be contained under
+resourcedirectory. Every resource is presented as a directory. The resource
+directory name contains 8 characters which are '0'-'9' or 'A'-'F'. The name 
+means resourceindex instead of resource id.
+   Every resource may contain RDR(Resource Data Record), sensor, control, 
+inventory, watchdog, eventlog, hotswap and reset. If the resource has not such 
+capability or feature,the corresponding file or directory doesn't exist. Sensor,
+control, inventory and watchdog and its corresponding RDR is under the 
+directory whose namecontains 8 '0'-'9' or 'A'-'F' characters. The dirctory
+name means the RDR index. The detailed structure is showed as 3.4 Example.
+   The OEM or user event is simulated through writing event under the related
+resource directory. If the event is received by plugin, the file is removed.
+
+3.3.1 Rpt_entry
+      Rpt_entry file is under the directory of corresponding resource.
+
+      entity = entity_value
+      capability = capability_value
+      severity = severity_value
+      tag = tag_value
+      info = {
+          resource_rev = resource_rev_value
+          spcific_ver = spcific_ver_value
+          device_support = device_support_value
+          manufacturer_id = manufacturer_id_value
+          product_id = product_id_value
+          firmware_major_rev = firmware_major_rev_value
+          firmware_minor_rev = firmware_minor_rev_value
+          aux_firmware_rev = aux_firmware_rev_value
+      }
+
+3.3.2 Resource Data Record
+      Each resource has several RDR(Resource Data Records). Each RDR entry 
+occupies one directory under the corresponding resource directory. The entry 
+directory is denoted by 32-bit hex digit string. Five types of RDR includes no 
+record RDR, sensor RDR, control RDR, inventory RDR and watchdog RDR.
+
+3.3.2.1  No Record 
+         rdr_type = SAHPI_NO_RECORD
+         id_string = id_string_value
+3.3.2.2  Control RDR
+3.3.2.2.1 Digital Control
+          rdr_type = SAHPI_CTRL_RDR
+          entity = entity_value
+          id_string = id_string_value
+          num = num_value
+          ignore = ignore_value
+          output_type = output_type_value
+          oem = oem_value
+          ctrl_type = ctrl_type_value
+          default = default_value
+3.3.2.2.2 Discret Control
+          rdr_type = SAHPI_CTRL_RDR
+          entity = entity_value
+          id_string = id_string_value
+          num = num_value
+          ignore = ignore_value
+          output_type = output_type_value
+          oem = oem_value
+          ctrl_type = ctrl_type_value
+          default = default_value
+3.3.2.2.3 Analog Control
+          rdr_type = SAHPI_CTRL_RDR
+          entity = entity_value
+          id_string = id_string_value
+          num = num_value
+          ignore = ignore_value
+          output_type = output_type_value
+          oem = oem_value
+          ctrl_type = ctrl_type_value          
+          min = min_value
+          max = max_value
+          default = default_value
+3.3.2.2.4 Stream Control
+          rdr_type = SAHPI_CTRL_RDR
+          entity = entity_value
+          id_string = id_string_value
+          num = num_value
+          ignore = ignore_value
+          output_type = output_type_value
+          oem = oem_value
+          ctrl_type = ctrl_type_value
+          repeat = repeat_value
+          length = length_value
+          stream = {stream1, stream2, ..., streamn}
+3.3.2.2.5 Text Control
+          rdr_type = SAHPI_CTRL_RDR
+          entity = entity_value
+          id_string = id_string_value
+          num = num_value
+          ignore = ignore_value
+          output_type = output_type_value
+          oem = oem_value
+          ctrl_type = ctrl_type_value
+          max_chars = max_chars_value
+          max_lines = max_lines_value
+          language = language_value
+          data_type = data_type_value
+          default = default_value      
+3.3.2.2.6 OEM Control
+          rdr_type = SAHPI_CTRL_RDR
+          entity = entity_value
+          id_string = id_string_value
+          num = num_value
+          ignore = ignore_value
+          output_type = output_type_value
+          oem = oem_value
+          mid = mid_value
+          config_data = {config_data1, config_data2, ..., config_datan}
+          default = default_data         
+3.3.2.3  Sensor RDR
+         rdr_type = SAHPI_SENSOR_RDR
+         entity = entity_value
+         id_string = id_string_value
+         num = num_value
+         sensor_type = type_value
+         category = category_value
+         event_ctrl = event_ctrl_value
+         events = events_value
+         ignore = ignore_value
+         reading_formats = reading_formats
+         is_numeric = is_numeric_value
+         sign_format = sign_format_value
+         base_units  = base_units_value
+         modifier_units = modifier_units_value
+         modifier_use = modifier_use_value
+         factors_static = factors_static_value
+         factors = factors_value
+         percentage = percentage_value
+         range = range_value   
+         is_threshold = is_threshold_value
+         thold_capabilities = thold_capabilities_value
+         read_thold = read_thold_value
+         write_thold = write_thold_value 
+         fixed_thold =  fixed_thold_value
+         oem = oem_value    
+        
+3.3.2.4  Inventory RDR
+         rdr_type = SAHPI_INVENTORY_RDR
+         entity = entity_value
+         id_string = id_string_value
+         num = num_value
+         oem = oem_value
+
+3.3.2.5  Watchdog RDR
+         rdr_type = SAHPI_WATCHDOG_RDR
+         entity = entity_value
+         id_string = id_string_value
+         num = num_value
+         oem = oem_value
+
+3.3.3  Sensor
+3.3.3.1  Reading
+         value_present = value_present_value
+         raw = raw_value
+         interpreted_type = interpreted_type_value
+         interpreted_digit = interpreted_digit_value
+         interpreted_buffer = {buffer1, buffer2, ..., buffern}
+         event_status = event_status_value
+3.3.3.2  Thresholds
+         low_critical = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         }
+         low_major = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         }
+         low_minor = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         }
+         up_critical = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         }
+         up_major = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         }
+         up_minor = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         }
+         pos_thd = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         } 
+         neg_thd = {
+            value_present = value_present_value
+            raw = raw_value
+            interpreted_type = interpreted_type_value
+            interpreted_digit = interpreted_digit_value
+            interpreted_buffer = {buffer1, buffer2, ..., buffern}
+            event_status = event_status_value
+         }
+3.3.3.3  Enables
+         sensor_status = sensor_status_value
+         assert_events = assert_events_value
+         deassert_events = deassert_events_value
+
+3.3.4  Control
+3.3.4.1  Digital Control
+         type = type_value
+         state = state_value
+3.3.4.2  Discrete Control
+         type = type_value
+         state = state_value
+3.3.4.3  Analog Control
+         type = type_value
+         state = state_value
+3.3.4.4  Stream Control
+         type = type_value
+         repeat = repeat_value
+         length = length_value
+         stream = {stream1, stream2, ..., streamn} 
+3.3.4.5  Text Control
+         type = type_value
+         line = line_value
+         text = text_value
+3.3.4.6  OEM control
+         type = type_value
+         mid = mid_value
+         length = length_value
+         body = {body1, body2, ..., bodyn}
+
+3.3.5 Inventory
+3.3.5.1 Internal Use Data
+        record_type = record_type_value
+        data = {data1, data2, ..., datan}
+3.3.5.2 Chassis Data
+        record_type = record_type_value
+        chassis_type = chassis_type_value
+        mfg_date_time = mfg_date_time_value
+        manufacturer = manufacturer_value
+        product_name = product_name
+        product_version = product_version
+        model_number = model_number
+        serial_number serial_number_value
+        part_number = part_number_value
+        file_id = file_id_value
+        asset_tag = asset_tag_value
+        custom_field = {custom_field1, custom_field2, ..., custom_fieldn}
+3.3.5.3 General Data
+        record_type = record_type_value
+        mfg_date_time = mfg_date_time_value
+        manufacturer = manufacturer_value
+        product_name = product_name
+        product_version = product_version
+        model_number = model_number
+        serial_number serial_number_value
+        part_number = part_number_value
+        file_id = file_id_value
+        asset_tag = asset_tag_value
+        custom_field = {custom_field1, custom_field2, ..., custom_fieldn}
+3.3.5.4 OEM Data
+        record_type = record_type_value
+        mid = mid_value
+        data = {data1, data2, ..., datan}
+
+3.3.6 Watchdog
+      log = log_value
+      running = running_value
+      timer_use = timer_use_value
+      timer_action = timer_action_value
+      pre_timer_interrupt = pre_timer_interrupt_value
+      pre_timeout_interval = pre_timeout_interval_value
+      timer_use_exp_flags = timer_use_exp_flags_value
+      initial_count = initial_count_value
+
+3.3.7 Event
+3.3.7.1 Sensor Event
+        Modification of the sensor reading or thresholds may trigger the sensor
+event. 
+        event = {
+            event_type = SAHPI_ET_SENSOR
+            time_stamp = time_stamp_value
+            severity  = severity_value
+            sensor_num = sensor_num_value
+            sensor_type = sensor_type_value
+            event_category = event_category_value
+            assertion = assertion_value
+            event_state = event_state
+            optional_data_present = optional_data_present_value
+            trigger_reading = trigger_reading_value
+            trigger_threshold = trigger_threshold_value
+            previous_state = previous_state_value
+            oem = oem_value
+            sensor_specific = sensor_specific_value
+       }
+       For trigger_reading and trigger_threshold, refer to reading and
+threshold structure respectively.
+3.3.7.2 Hotswap Event
+        Adding or removing the corresponding resource directory generates 
+hotswap event. 
+        event = {
+            event_type = SAHPI_ET_HOTSWAP
+            time_stamp = time_stamp_value
+            severity  = severity_value
+            hotswap_state = hotswap_state_value
+            previous_hotswap_state = previous_hotswap_state_value
+       }
+3.3.7.3 Watchdog Event
+        event = {
+            event_type = SAHPI_ET_WATCHDOG
+            time_stamp = time_stamp_value
+            severity  = severity_value
+            watchdog_num = watchdog_num_value
+            watchdog_action = watchdog_action_value
+            watchdog_pretimer_action = watchdog_pretimer_action_value
+            watchdog_use = watchdog_use_value
+        }
+3.3.7.4  OEM Event
+         Writing an OEM event in the event file in the corresponding resource 
+directory generates OEM event.
+         event = {
+            event_type = SAHPI_ET_OEM
+            time_stamp = time_stamp_value
+            severity  = severity_value
+            mid = mid_value
+            oem_event_data = {data1, data2, ..., datan}
+         }
+3.3.7.5 User Event
+        Writing a user event in the event file in the corresponding resource 
+        directory generates user event.
+         
+        event = {
+            event_type = SAHPI_ET_USER
+            time_stamp = time_stamp_value
+            severity  = severity_value
+            event_data = {value0, value1, value2, ..., valuen}
+        }
+
+3.3.8  Eventlog
+3.3.8.1  Info
+         entries = entries_value
+         size = size_value
+         update_timestamp = update_timestamp_value
+         time_gap = time_gap_value
+         enabled = enabled_value
+         overflow_action = overflow_action_value
+Comments: time_gap is equal to current time minus real time due to continuous 
+change of time.
+3.3.8.2  Event Log Entry
+       Each file represents one SEL entry. The file name stands for entry id.
+       timestamp = timestamp_value
+       event = event_value
+       For event, refer to Event structure.
+
+3.3.9  Hotswap
+       control_request = control_request_value
+       auto_insert_timeout = auto_insert_timeout_value
+       auto_extract_timeout = auto_extract_timeout_value
+       hs_state = hs_state_value
+       power_state = power_state_value
+       indicator_state = indicator_state_value
+
+3.3.10  Configuration(TBD)
+
+3.3.11  Reset
+        state = state_value
+     
+
+3.4 FHS Example
+    The root directory of FHS has two subdirectories, entity directory and 
+resource directory.       
+        root -- entity -- rack -- type 'SAHPI_ENT_RACK'
+            |                  +- instance '1'
+            |                  +- subrack -- type 'SAHPI_ENT_SUBRACK'
+            |                             +- instance '1'
+            |                             +- power_supply -- type 'SAHPI_ENT'
+            |                                             +- instance '1'
+            |
+            +- resource  -- 00000001-- rpt_entry
+                         |         |
+                         |         +-- 00000001 -- rdr
+                         |         |            +- sensor -- reading
+                         |         |                      +- thresholds
+                         |         |                      +- enables  
+                         |         |
+                         |         +-- 00000002 -- rdr
+                         |         |            +- control
+                         |         |
+                         |         +-- 00000003 -- rdr
+                         |         |            +- inventory
+                         |         |  
+                         |         +-- 00000004 -- rdr
+                         |         |            +- watchdog
+                         |         |  
+                         |         +-- eventlog -- info
+                         |         |            +- 00000001
+                         |         |            +- 00000002
+                         |         +-- hotswap
+                         |         |
+                         |         +-- reset
+                         |         |
+                         |         +-- event(only for OEM and user event)
+                         |
+                         +--  00000002(...)
