@@ -336,6 +336,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
         SaErrorT error = SA_OK;
+	SaHpiRptEntryT	*rptentry;
 
         OH_CHECK_INIT_STATE(SessionId);
 
@@ -370,7 +371,16 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         /* to get rpt entry into infrastructure */
-        oh_get_events();
+        OH_GET_DOMAIN(did, d); /* Lock domain */
+        rptentry = oh_get_resource_by_id(&(d->rpt), ResourceId);
+        if (!rptentry) {
+                dbg("Tag set failed: No Resource %d in Domain %d",
+                    ResourceId, did);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+	rptentry->ResourceSeverity = Severity;
+        oh_release_domain(d); /* Unlock domain */
 
         return error;
 }
