@@ -169,4 +169,129 @@ handler libsnmp_bc {
       </para>
     </sect2>
   </sect1>
+  <sect1>
+    <title>Watchdog Timer Plugin</title>
+    <para>
+      The watchdog timer plugin provides OpenHPI access to the software
+      watchdog timer "softdog" in the Linux kernel.
+    </para>
+    <para>
+      The watchdog plugin follows the standard plugin naming conventions.  It
+      is called <literal>watchdog</literal> in the OpenHPI tree and should
+      be referenced using <literal>libwatchdog</literal> in OpenHPI configuration
+      files.
+    </para>
+    <para>
+      The watchdog plugin code can be tested using <literal>examples/list_resources.c
+      </literal> as well as <literal>examples/test_watchdog.c</literal> run as root.
+    </para>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+        As with other plugins, the watchdog plugin needs to be enabled during
+        the OpenHPI build process via the configure flag <literal>
+        --enable-watchdog</literal> when running ./configure.
+      </para>
+      <para>
+        The watchdog plugin relies on the softdog functionality, which must be
+        compiled as a module in the Linux kernel (tested with 2.6 kernel).
+      </para>
+      <para>
+        After the watchdog is compiled, it needs to be inserted using <literal>
+        insmod softdog [soft_noboot=1]</literal> as root.  The <literal>
+        soft_noboot=1<literal> option can be used during testing so that the
+        meachine does not reboot.
+      </para>
+      <para>
+	The watchdog module should be created using <literal>mknod /dev/watchdog 
+        c 10 130</literal> as root.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+        Below is an example configuration stanza:
+      </para>
+      <para>
+        <literal>
+          <literallayout>
+plugin libwatchdog
+
+handler libwatchdog {
+          name="0"
+          addr="/dev/watchdog"
+}
+          </literallayout>
+        </literal>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>Sysfs Plugin</title>
+    <para>
+      The sysfs plugin provides access to the devices on the i2c bus that are
+      exposed by sysfs.  This plugin uses libsysfs to access the sysfs data.
+    </para>
+    <para>
+      The sysfs plugin follows the standard plugin naming conventions.  It
+      is called <literal>sysfs</literal> in the OpenHPI tree and should
+      be referenced using <literal>libsysfs</literal> in OpenHPI configuration
+      files.
+    </para>
+    <para>
+      The sysfs plugin code can be tested using <literal>examples/list_resources.c.
+    </para>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+        As with other plugins, the sysfs plugin needs to be enabled during
+        the OpenHPI build process via the configure flag <literal>
+        --enable-sysfs</literal> when running ./configure.
+      </para>
+      <para>
+        The sysfs plugin relies on libsysfs 0.2.0* (found in sysutils 0.2.0)
+        <ulink
+          url="http://linux-diag.sourceforge.net/Sysfsutils.html"
+          >on the Linux Diagnostic Tools project page</ulink>.
+        The 0.2.0 release has a bug that needs to be fixed before using this
+        plugin.  Applying the following patch will fix this bug (or you may
+        take the latest code from the libsysfs repository):
+        <literal>
+          <literallayout>
+--- sysfsutils-0_2_0/lib/sysfs_device.c.orig    2003-10-17 11:25:37.000000000 -0
+700
++++ sysfsutils-0_2_0/lib/sysfs_device.c 2003-10-20 12:41:59.000000000 -0700
+@@ -80,6 +80,7 @@
+                errno = EINVAL;
+                return NULL;
+        }
++       strcpy(attrname, name);
+        dlist_for_each_data(dev->directory->attributes, cur,
+          </literallayout>
+        </literal>
+      </para>
+      <para>
+        Follow the libsysfs instructions for installing libsysfs and also copy
+        libsysfs.h and dlist.h to /usr/include.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+        Below is an example configuration stanza:
+      </para>
+      <para>
+        <literal>
+          <literallayout>
+plugin libsysfs
+
+handler libsysfs {
+          name="0"
+          addr="0"
+}
+          </literallayout>
+        </literal>
+      </para>
+    </sect2>
+  </sect1>
 </chapter>
