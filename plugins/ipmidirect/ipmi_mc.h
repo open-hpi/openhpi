@@ -83,7 +83,7 @@ protected:
   cIpmiSdrs     *m_sdrs;
 
   // The sensors that came from the device SDR on this MC.
-  GList *m_sensors_in_my_sdr;
+  GList         *m_sensors_in_my_sdr;
 
   // The system event log, for querying and storing events.
   cIpmiSel      *m_sel;
@@ -188,12 +188,12 @@ public:
     m_sensors_in_my_sdr = sensors;
   }
 
-  bool ProvidesDeviceSdrs() { return m_provides_device_sdrs; }
+  bool ProvidesDeviceSdrs() const { return m_provides_device_sdrs; }
 
   bool &SdrRepositorySupport() { return m_sdr_repository_support; }
   bool SelDeviceSupport() const { return m_sel_device_support; }
 
-  cIpmiSel *Sel() { return m_sel; }
+  cIpmiSel *Sel() const { return m_sel; }
 
   bool Cleanup(); // true => it is safe to destroy mc
 
@@ -204,8 +204,8 @@ public:
   int      SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
                         unsigned int lun = 0, int retries = dIpmiDefaultRetries );
 
-  unsigned int GetChannel();
-  unsigned int GetAddress();
+  unsigned int GetChannel() const;
+  unsigned int GetAddress() const;
   void         SetActive();
   cIpmiSensor *FindSensor( unsigned int lun, unsigned int sensor_id );
 
@@ -219,7 +219,12 @@ public:
 
   cIpmiMcVendor *GetVendor()  { return m_vendor; }
 
-  void Dump( cIpmiLog &dump, const char *name );
+protected:
+  bool DumpFrus( cIpmiLog &dump, const char *name ) const;
+  bool DumpControls( cIpmiLog &dump, const char *name ) const;
+
+public:
+  void Dump( cIpmiLog &dump, const char *name ) const;
 };
 
 

@@ -114,35 +114,34 @@ cIpmiFruItem::~cIpmiFruItem()
 }
 
 
-/*
 void
-cIpmiFruItem::Log()
+cIpmiFruItem::Dump( cIpmiLog &dump ) const
 {
   switch( m_type )
      {
        case eIpmiFruItemTypeTextBuffer:
             {
               char str[256] = "";
-              m_u.m_text_buffer.GetAscii( str, 256 );
-              str[255] = 0;
+              cIpmiTextBuffer tb = m_u.m_text_buffer;
+              tb.GetAscii( str, 256 );
 
-              stdlog << "\t" << m_name << "\t\t" << str << "\n";
+              dump.Entry( m_name ) << "\"" << str << "\";\n";
             }
             break;
 
        case eIpmiFruItemTypeInt:
-            stdlog << "\t" << m_name << "\t\t" << m_u.m_int << " ";
-            stdlog.Hex( true );
-            stdlog << m_u.m_int << "\n";
-            stdlog.Hex( false );
+            dump.Entry( m_name ) << m_u.m_int << "; // ";
+            dump.Hex();
+            dump << m_u.m_int << "\n";
+            dump.Hex( false );
             break;
 
        default:
-            stdlog << "\t" << m_name << "\t\tunknown\n";
+            dump << "// ";
+            dump.Entry( m_name ) << "\n";
             break;
      }
 }
-*/
 
 
 //////////////////////////////////////////////////
@@ -346,14 +345,16 @@ cIpmiFruRecord::ProductInfoAreaRecord( SaHpiInventGeneralDataT *r )
 }
 
 
-/*
 void
-cIpmiFruRecord::Log()
+cIpmiFruRecord::Dump( cIpmiLog &dump, const char *name ) const
 {
+  dump.Begin( m_name, name );
+
   for( int i = 0; i < m_num; i++ )
-       m_array[i]->Log();
+       m_array[i]->Dump( dump );
+
+  dump.End();
 }
-*/
 
 
 //////////////////////////////////////////////////
@@ -362,7 +363,7 @@ cIpmiFruRecord::Log()
 
 cIpmiFru::cIpmiFru( cIpmiMc *mc, unsigned int fru_device_id )
   : cIpmiRdr( mc, SAHPI_INVENTORY_RDR ), m_fru_device_id( fru_device_id ),
-    m_size( 0 ), m_access( eFruAccessModeByte ),
+    m_access( eFruAccessModeByte ), m_size( 0 ),
     m_array( 0 ), m_num( 0 ),
     m_oem( 0 ), m_inventory_size( 0 )
 {
@@ -747,7 +748,7 @@ cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc,
      }
 
   Add( r );
-  // r->Log();
+  r->Dump( stdlog, "" );
 
   return 0;
 }
@@ -848,7 +849,7 @@ cIpmiFru::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 
 
 unsigned int
-cIpmiFru::GetInventoryInfo( SaHpiInventoryDataT &data )
+cIpmiFru::GetInventoryInfo( SaHpiInventoryDataT &data ) const
 {
   int size = sizeof( SaHpiInventoryDataT )
     + NumRecords() * sizeof( SaHpiInventDataRecordT * );
@@ -933,7 +934,7 @@ cIpmiFru::CalcSize()
   unsigned int s = GetInventoryInfo( *d );
 
   assert( s == m_inventory_size );
-  
+
   b = buffer + m_inventory_size;
 
   for( i = 0; i < n; i++, b++ )
@@ -946,4 +947,44 @@ cIpmiFru::CalcSize()
 #endif
 
   return m_inventory_size;
+}
+
+
+void
+cIpmiFru::Dump( cIpmiLog &dump, const char *name ) const
+{
+  int i;
+  char str[80];
+  sprintf( str, "FruRecord%02x_%d_", Mc()->GetAddress(), m_fru_device_id );
+
+  for( i = 0; i < NumRecords(); i++ )
+     {
+       cIpmiFruRecord *fr = GetRecord( i );
+       char s[80];
+       sprintf( s, "%s%d", str, i );
+
+       fr->Dump( dump, s );
+     }
+
+  dump.Begin( "FruDevice", name );
+
+  dump.Entry( "DeviceId" ) << (int)m_fru_device_id << ";\n";
+  dump.Entry( "Access" ) << ( ( m_access == eFruAccessModeWord )
+                              ? "dFruAccessWord" : "dFruAccessByte" ) << ";\n";
+
+  if ( NumRecords() )
+       dump.Entry( "FruRecords" );
+
+  for( i = 0; i < NumRecords(); i++ )
+     {
+       if ( i != 0 )
+            dump << ", ";
+
+       dump << str << i;
+     }
+
+  if ( NumRecords() )
+       dump << ";\n";
+
+  dump.End();
 }

@@ -97,7 +97,7 @@ Bit( unsigned char v, int bit )
 
 
 void 
-cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
+cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
 {
   char str[80];
 
@@ -166,8 +166,8 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
             strcat( str, "0" );
 
        dump.Entry( "AssertionEventMask" ) << str << ";\n";
-       
-       sprintf( str, "0x%02", em >> 12 );
+
+       sprintf( str, "0x%04x", em >> 12 );
        dump.Entry( "LowerThresholdReadingMask" ) << str << ";\n";
 
        // deassertion
@@ -176,10 +176,10 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
 
        if ( str[0] == 0 )
             strcat( str, "0" );
-       
+
        dump.Entry( "DeassertionEventMask" ) << str << ";\n";
-       
-       sprintf( str, "0x%02", em >> 12 );
+
+       sprintf( str, "0x%04x", em >> 12 );
        dump.Entry( "UpperThresholdReadingMask" ) << str << ";\n";
 
        // settable threshold
@@ -289,7 +289,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
 
 
 void
-cIpmiSdr::DumpFruDeviceLocator( cIpmiLog &dump )
+cIpmiSdr::DumpFruDeviceLocator( cIpmiLog &dump ) const
 {
   dump.Entry( "DeviceAccessAddress" ) << m_data[5] << ";\n";
 
@@ -331,7 +331,7 @@ cIpmiSdr::DumpFruDeviceLocator( cIpmiLog &dump )
 
 
 void 
-cIpmiSdr::DumpMcDeviceLocator( cIpmiLog &dump )
+cIpmiSdr::DumpMcDeviceLocator( cIpmiLog &dump ) const
 {
   dump.Entry( "SlaveAddress" ) << m_data[5] << ";\n";
   dump.Entry( "Channel" ) << (int)(m_data[6] & 0x0f) << ";\n";
@@ -372,7 +372,7 @@ cIpmiSdr::DumpMcDeviceLocator( cIpmiLog &dump )
 
 
 void
-cIpmiSdr::Dump( cIpmiLog &dump, const char *name )
+cIpmiSdr::Dump( cIpmiLog &dump, const char *name ) const
 {
   char str[80];
   sprintf( str, "%sRecord", IpmiSdrTypeToName( m_type ) );
@@ -401,118 +401,6 @@ cIpmiSdr::Dump( cIpmiLog &dump, const char *name )
   dump.End();
 }
 
-/*
-static const char *
-Bit( unsigned char byte, int bit )
-{
-  return ((byte >> bit) & 1) ? "yes" : "no";
-}
-*/
-
-/*
-void
-cIpmiSdr::Log()
-{
-  IpmiLog( "SDR: recordid %d, version %d.%d, type 0x%02x (%s)\n",
-           m_record_id, m_major_version, m_minor_version,
-           m_type, IpmiSdrTypeToName( m_type ) );
-
-  switch( m_type )
-     {
-       case eSdrTypeFullSensorRecord:
-            {
-              char name[80];
-              Name( name, 80 );
-
-              IpmiLog( "\tname '%s', owner id 0x%02x, num %d,\n",
-                       name, m_data[5] & 0xf7, m_data[7] );
-              IpmiLog( "\tentity id 0x%02x, entity instance %d, type 0x%02x, event reading type %s\n",
-                       m_data[8], m_data[9], m_data[12], IpmiEventReadingTypeToString( (tIpmiEventReadingType)m_data[13] ) );
-              IpmiLog( "\tinit scanning %s, init events %s, init thresholds %s, init hysteresis %s, init sensor type %s,\n",
-                       Bit( m_data[10], 6 ), Bit( m_data[10], 5 ), Bit( m_data[10], 4 ), Bit( m_data[10], 3 ), Bit( m_data[10], 2 ) );
-              IpmiLog( "\tignore sensor %s, rearm sensor %s, hysteresis support %s, thresholds access %s, event message control %s.\n",
-                       Bit( m_data[11], 7 ), Bit( m_data[11], 6 ),
-                       IpmiHysteresisSupportToString( (tIpmiHysteresisSupport)((m_data[11] >> 4) & 3 ) ),
-                       IpmiThresholdAccessSupportToString( (tIpmiThresholdAccessSuport)((m_data[11] >> 2) & 3 ) ),
-                       IpmiEventSupportToString( (tIpmiEventSupport)(m_data[11] & 3) ) );
-
-              if ( m_data[13] == eIpmiEventReadingTypeThreshold )
-                 {
-                   unsigned short aem = IpmiGetUint16( m_data + 14 );
-                   unsigned short dem = IpmiGetUint16( m_data + 16 );
-                   char astr[1024];
-                   char dstr[1024];
-
-                   IpmiThresholdEventMaskToString( aem, astr );
-                   IpmiThresholdEventMaskToString( dem, dstr );
-
-                   IpmiLog( "\t  assertion %s\n\tdeassertion %s\n", astr, dstr );
-                 }
-            }
-
-            break;
-
-       case eSdrTypeCompactSensorRecord:
-            {
-              char name[80];
-              Name( name, 80 );
-
-              IpmiLog( "\tname '%s', owner id 0x%02x, num %d,\n",
-                       name, m_data[5] & 0xf7, m_data[7] );
-              IpmiLog( "\tentity id 0x%02x, entity instance %d, type 0x%02x\n",
-                       m_data[8], m_data[9], m_data[12] );
-            }
-
-            break;
-
-       case eSdrTypeEntityAssociationRecord:
-            break;
-
-       case eSdrTypeDeviceRelativeEntityAssociationRecord:
-            break;
-
-       case eSdrTypeGenericDeviceLocatorRecord:
-            break;
-
-       case eSdrTypeFruDeviceLocatorRecord:
-            {
-              char name[80];
-              Name( name, 80 );
-
-              IpmiLog( "\tname '%s', slave addr 0x%02x, fru id %d,\n",
-                       name, m_data[5], m_data[6] );
-              IpmiLog( "\tentity id 0x%02x, entity instance %d\n",
-                       m_data[12], m_data[13] );
-            }
-            break;
-
-       case eSdrTypeMcDeviceLocatorRecord:
-            {
-              char name[80];
-              Name( name, 80 );
-
-              IpmiLog( "\tname '%s', slave addr 0x%02x,\n",
-                       name, m_data[5] );
-              IpmiLog( "\tentity id 0x%02x, entity instance %d\n",
-                       m_data[12], m_data[13] );
-            }
-            break;
-
-       case eSdrTypeMcConfirmationRecord:
-            break;
-
-       case eSdrTypeBmcMessageChannelInfoRecord:
-            break;
-
-       case eSdrTypeOemRecord:
-            break;
-
-       default:
-            assert( 0 );
-            break;
-     }
-}
-*/
 
 static void
 IpmiSdrDestroyRecords( cIpmiSdr **&sdr, unsigned int &n )
@@ -1071,7 +959,7 @@ cIpmiSdrs::Fetch()
 
 
 void
-cIpmiSdrs::Dump( cIpmiLog &dump, const char *name )
+cIpmiSdrs::Dump( cIpmiLog &dump, const char *name ) const
 {
   unsigned int i;
   char str[80];

@@ -99,7 +99,7 @@ cIpmiEvent::Cmp( const cIpmiEvent &event2 ) const
 
 
 void
-cIpmiEvent::Dump( cIpmiLog &dump, const char *name )
+cIpmiEvent::Dump( cIpmiLog &dump, const char *name ) const
 {
   dump.Begin( "Event", name );
   dump.Entry( "RecordId" ) << m_record_id << ";\n";

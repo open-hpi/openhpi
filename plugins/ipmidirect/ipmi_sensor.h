@@ -220,7 +220,7 @@ public:
 
   bool Ignore();
 
-  virtual void Log();
+  virtual void Dump( cIpmiLog &dump ) const;
 
   // read sensor parameter from Full Sensor Record
   virtual bool GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr );

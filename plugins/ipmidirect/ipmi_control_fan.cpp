@@ -129,3 +129,20 @@ cIpmiControlFan::GetState( SaHpiCtrlStateT &state )
 
   return SA_OK;
 }
+
+
+void
+cIpmiControlFan::Dump( cIpmiLog &dump, const char *name ) const
+{
+  dump.Begin( "FanControl", name );
+
+  dump.Entry( "ControlNum" ) << m_num << ";\n";
+  dump.Entry( "Oem" ) << m_oem << ";\n";
+  dump.Entry( "Ignore" ) << m_ignore << ";\n";
+  dump.Entry( "MinimumSpeedLevel" ) << m_minimum_speed_level << ";\n";
+  dump.Entry( "MaximumSpeedLevel" ) << m_maximum_speed_level << ";\n";
+  dump.Entry( "DefaultSpeedLevel" ) << m_default_speed_level << ";\n";
+  dump.Entry( "LocalControlMode" ) << m_local_control_mode << ";\n";
+
+  dump.End();
+}

@@ -717,7 +717,7 @@ cIpmiDomain::VerifyFru( cIpmiFru *f )
 
 
 void 
-cIpmiDomain::Dump( cIpmiLog &dump )
+cIpmiDomain::Dump( cIpmiLog &dump ) const
 {
   if ( dump.IsRecursive() )
      {

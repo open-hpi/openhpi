@@ -115,7 +115,7 @@ public:
     cIpmiFruRecord  *m_record;
   } m_u;
 
-  // void Log();
+  void Dump( cIpmiLog &dump ) const;
 };
 
 
@@ -152,7 +152,7 @@ public:
   int BoradInfoAreaRecord( SaHpiInventGeneralDataT *r );
   int ProductInfoAreaRecord( SaHpiInventGeneralDataT *r );
 
-  // void Log();
+  void Dump( cIpmiLog &dump, const char *name ) const;
 };
 
 
@@ -170,8 +170,8 @@ class cIpmiFru : public cIpmiRdr
 {
 protected:
   unsigned char  m_fru_device_id; // fru device id
-  unsigned int   m_size;
   tFruAccessMode m_access;
+  unsigned int   m_size;
   bool           m_fetched;
 
   int GetFruInventoryAreaInfo( unsigned int &size, tFruAccessMode &byte_access );
@@ -205,8 +205,8 @@ public:
 
   cIpmiFruRecord *Find( const char *name );
 
-  int NumRecords() { return m_num; }
-  cIpmiFruRecord *GetRecord( int idx )
+  int NumRecords() const { return m_num; }
+  cIpmiFruRecord *GetRecord( int idx ) const
   {
     assert( idx >= 0 && idx < m_num );
     return m_array[idx];
@@ -221,9 +221,11 @@ protected:
 public:
   // calulate the size of inventory data
   unsigned int CalcSize();
-  unsigned int GetInventorySize() { return m_inventory_size; }
+  unsigned int GetInventorySize() const { return m_inventory_size; }
 
-  unsigned int GetInventoryInfo( SaHpiInventoryDataT &data );
+  unsigned int GetInventoryInfo( SaHpiInventoryDataT &data ) const;
+
+  void Dump( cIpmiLog &dump, const char *name ) const;
 };
 
 

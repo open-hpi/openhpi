@@ -18,6 +18,7 @@
 #ifndef dIpmiControlFan_h
 #define dIpmiControlFan_h
 
+
 #ifndef dIpmiControl_h
 #include "ipmi_control.h"
 #endif
@@ -47,7 +48,9 @@ public:
   // virtual void Log();
 
   virtual SaErrorT SetState( const SaHpiCtrlStateT &state );
-  virtual SaErrorT GetState( SaHpiCtrlStateT &state );  
+  virtual SaErrorT GetState( SaHpiCtrlStateT &state );
+
+  virtual void Dump( cIpmiLog &dump, const char *name ) const;
 };
 
 

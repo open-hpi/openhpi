@@ -71,12 +71,12 @@ public:
   unsigned char  m_length;
   unsigned char  m_data[dMaxSdrData];
 
-  void Dump( cIpmiLog &dump, const char *name );
+  void Dump( cIpmiLog &dump, const char *name ) const;
 
 protected:
-  void DumpFullSensor( cIpmiLog &dump );
-  void DumpFruDeviceLocator( cIpmiLog &dump );
-  void DumpMcDeviceLocator( cIpmiLog &dump );
+  void DumpFullSensor( cIpmiLog &dump ) const;
+  void DumpFruDeviceLocator( cIpmiLog &dump ) const;
+  void DumpMcDeviceLocator( cIpmiLog &dump ) const;
 };
 
 
@@ -149,7 +149,7 @@ public:
   cIpmiSdrs( cIpmiMc *mc, unsigned int lun, bool device_sdr );
   ~cIpmiSdrs();
 
-  unsigned int NumSdrs() { return m_num_sdrs; }
+  unsigned int NumSdrs() const { return m_num_sdrs; }
   cIpmiSdr     *Sdr( unsigned int i )
   {
     assert( i < m_num_sdrs );
@@ -158,7 +158,7 @@ public:
 
   int Fetch();
 
-  void Dump( cIpmiLog &dump, const char *name );
+  void Dump( cIpmiLog &dump, const char *name ) const;
 };
 
 

@@ -273,7 +273,7 @@ public:
 
   virtual SaHpiRptEntryT *FindResource( SaHpiResourceIdT id ) = 0;
 
-  void Dump( cIpmiLog &dump );
+  void Dump( cIpmiLog &dump ) const;
 };
 
 
