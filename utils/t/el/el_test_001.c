@@ -11,7 +11,7 @@
  * full licensing terms.
  *
  * Authors:
- *      David Ashley<dashley@us.ibm.com>
+ *      Christina Hernandez<hernanc@us.ibm.com>
  */
 
 #include <stdio.h>

@@ -68,11 +68,11 @@
                      return 1;
             }
  
-		    /* Get ready for next iteration */
+	    /* Get ready for next iteration */
 	    entry1->event.EntryId = next1;
 	    entry2->event.EntryId = next2;
 
-        } while (next1 != SAHPI_LAST_ENTRY);
+        } while (next1 != SAHPI_NO_MORE_ENTRIES);
 
         return 0;
 }

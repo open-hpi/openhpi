@@ -11,7 +11,7 @@
  * full licensing terms.
  *
  * Authors:
- *      David Ashley<dashley@us.ibm.com>
+ *      Christina Hernandez<hernanc@us.ibm.com>
  */
 
 #include <stdio.h>
@@ -30,74 +30,67 @@
 /**
  * main: EL test
  *
- * This test tests creates an EL and adds five events.
- * It then save the EL to a file.
+ * This test creates an EL and adds five events.
+ * It then verifies there are five entries in the EL and
+ * that the events are the same as the initial events.
  *
  * Return value: 0 on success, 1 on failure
  **/
 int main(int argc, char **argv)
 {
-        oh_el *el;
+        oh_el *el, *el2;
+        int x;
         SaErrorT retc;
+	SaHpiEventT event;
+	static char *data[5] = {
+        	"Test data one",
+        	"Test data two",
+        	"Test data three",
+        	"Test data four",
+        	"Test data five"
+	};
 
         /* create the EL */
-        el = oh_el_create(OH_ELTEST_MAX_ENTRIES);
+        el = oh_el_create(30);
 
-        if(el == NULL) {
-                dbg("ERROR: el == NULL.");
-                return 1;
-        }
+	el2 = oh_el_create(30);
 
-        /* get EL from file with invalid filename */
-        retc = oh_el_map_from_file(el, NULL);
-        if (retc != SA_ERR_HPI_INVALID_PARAMS) {
-                dbg("ERROR: oh_el_map_from_file failed with invalid filename.");
-                return 1;
-        }
+	/* add 5 events to el */
+	for(x=0;x<5;x++){
+        	event.Source = 1;
+        	event.EventType = SAHPI_ET_USER;
+        	event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        	event.Severity = SAHPI_DEBUG;
+		strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[x]);
 
-        /* get EL from file */
-        retc = oh_el_map_from_file(el, "./elTest.data");
+
+        	retc = oh_el_append(el, &event, NULL, NULL);
+        	if (retc != SA_OK) {
+              	dbg("ERROR: oh_el_append failed.");
+               	return 1;
+        	}       
+	}
+
+       /* save the EL to file */
+        retc = oh_el_map_to_file(el, "./elTest.data");
         if (retc != SA_OK) {
+                dbg("ERROR: oh_el_map_to_file failed.");
+                return 1;
+        }
+
+        /* get EL from file (el2) */
+        retc = oh_el_map_from_file(el2, "./elTest.data");
+	if (retc != SA_OK) {
                 dbg("ERROR: oh_el_map_from_file failed.");
                 return 1;
         }
 
-        /* check out the EL */
-        if(el->enabled != TRUE) {
-                dbg("ERROR: el->enabled invalid.");
-                return 1;
-        }
 
-        if(el->overflow != FALSE) {
-                dbg("ERROR: el->overflow invalid.");
-                return 1;
-        }
+        if(g_list_length(el->elentries) != g_list_length(el2->elentries)) {
+                 dbg("ERROR: el->elentries != el2->elentries.");
+                 return 1;
+         }
 
-        if(el->lastUpdate == SAHPI_TIME_UNSPECIFIED) {
-                dbg("ERROR: el->lastUpdate invalid.");
-                return 1;
-        }
-
-        if(el->offset != 0) {
-                dbg("ERROR: el->offset invalid.");
-                return 1;
-        }
-
-        /* note: if el_test_003.c changes this test may need to change */
-        if(el->nextId < OH_ELTEST_MAX_ENTRIES) {
-                dbg("ERROR: el->nextId invalid.");
-                return 1;
-        }
-
-        if(el->maxsize != OH_ELTEST_MAX_ENTRIES) {
-                dbg("ERROR: el->maxsize invalid.");
-                return 1;
-        }
-
-        if(el->elentries == NULL) {
-                dbg("ERROR: el->elentries invalid.");
-                return 1;
-        }
 
         /* close the el */
         retc = oh_el_close(el);

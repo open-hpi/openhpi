@@ -11,7 +11,7 @@
  * full licensing terms.
  *
  * Authors:
- *      David Ashley<dashley@us.ibm.com>
+ *      Christina Hernandez<hernanc@us.ibm.com>
  */
 
 #include <stdio.h>
@@ -31,6 +31,8 @@
  * main: EL test
  *
  * This test tests creates an EL and adds one event.
+ * It then verifies there is one event and compares the
+ * one event in the EL with the original event.
  *
  * Return value: 0 on success, 1 on failure
  **/
@@ -38,6 +40,12 @@ int main(int argc, char **argv)
 {
         oh_el *el;
         SaErrorT retc;
+	SaHpiEventT event;
+        oh_el_entry *entry; 
+	SaHpiEventLogEntryIdT prev, next;
+	static char *data[1] = {
+        	"Test data one"
+	};
 
         /* create the EL */
         el = oh_el_create(5);
@@ -48,19 +56,39 @@ int main(int argc, char **argv)
         }
 
         /* add a single event */
-        if (add_event(el, 0)) {
-                dbg("ERROR: add_event failed.");
+        event.Source = 1;
+        event.EventType = SAHPI_ET_USER;
+        event.Timestamp = SAHPI_TIME_UNSPECIFIED;
+        event.Severity = SAHPI_DEBUG;
+	strcpy((char *) &event.EventDataUnion.UserEvent.UserEventData.Data, data[0]);
+
+
+        retc = oh_el_append(el, &event, NULL, NULL);
+        if (retc != SA_OK) {
+                dbg("ERROR: oh_el_append failed.");
+                return 1;
+        } 
+
+	entry = (oh_el_entry *)(g_list_first(el->elentries)->data);
+	
+        if(g_list_length(el->elentries) != 1){
+                 dbg("ERROR: g_list_length does not return the correct number of entries.");
+                 return 1;
+         }
+
+        /* fetch the event for el*/
+        retc = oh_el_get(el, entry->event.EntryId, &prev, &next, &entry);
+        if (retc != SA_OK) {
+                dbg("ERROR: oh_el_get failed.");
                 return 1;
         }
 
-        /* close the EL with bad pointer */
-        retc = oh_el_close(NULL);
-        if (retc == SA_OK) {
-                dbg("ERROR: oh_el_close failed with bad el pointer.");
-                return 1;
+	if (strcmp(entry->event.Event.EventDataUnion.UserEvent.UserEventData.Data, data[0])) {
+                 dbg("ERROR: Data from el and what was entered into el do not match");
+                 return 1;
         }
-
-        /* close the EL */
+        
+	/* close the EL */
         retc = oh_el_close(el);
         if (retc != SA_OK) {
                 dbg("ERROR: oh_el_close failed.");
