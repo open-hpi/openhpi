@@ -265,8 +265,17 @@ AC_ARG_ENABLE([ipmi],
             AC_SUBST(IPMI,ipmi)
         else
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
-                         Can not build IPMI support without OpenIPMI >= 1.2.19)
+                         Can not build IPMI support without OpenIPMI >= 1.3.5)
         fi
+    elif test "x$enableval" = "xstatic"; then
+        if test "x$have_openipmi" = "xyes"; then
+            AC_SUBST(IPMI,ipmi)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmi"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS"
+        else
+            OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
+                         Can not build IPMI support without OpenIPMI >= 1.3.5)
+        fi        
     fi],
     [if test "x$have_openipmi" = "xyes"; then
             AC_SUBST(IPMI,ipmi)

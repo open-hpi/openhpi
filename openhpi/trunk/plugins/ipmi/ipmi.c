@@ -673,7 +673,8 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
         .set_indicator_state            = ohoi_set_indicator_state
 };
 
-int get_interface(void **pp, const uuid_t uuid)
+int ipmi_get_interface(void **pp, const uuid_t uuid);
+int ipmi_get_interface(void **pp, const uuid_t uuid)
 {
 	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
 		*pp = &oh_ipmi_plugin;
@@ -683,3 +684,5 @@ int get_interface(void **pp, const uuid_t uuid)
 	*pp = NULL;
 	return -1;
 }
+
+int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("ipmi_get_interface")));
