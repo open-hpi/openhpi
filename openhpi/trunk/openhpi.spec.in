@@ -57,7 +57,7 @@ This package contains hpi command line utilities
 ###################################################
 ./configure @ac_configure_args@ --prefix=%{prefix}
 make
-make -C docs/hld pdf
+make -C docs/hld pdf-am
 make -C docs/hld openhpi-manual/book1.html
 
 ###################################################
