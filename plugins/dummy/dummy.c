@@ -62,7 +62,7 @@ gpointer event_thread(gpointer data);
         {                                                       \
                 .DataType = SAHPI_TL_TYPE_TEXT,                 \
                         .Language = SAHPI_LANG_ENGLISH,         \
-                        .DataLength = strlen(string),           \
+                        .DataLength = sizeof(string),           \
                         .Data = string                          \
         }
 
