@@ -22,6 +22,17 @@
 #include <SaHpi.h>
 
 /* 
+ * struct oh_domain_id is filled by plugin.
+ * Open HPI uses it to identy different domain by the id.
+ * Open HPI never assume any detail in 'ptr' field so plugin 
+ * can store any data pointer in ptr member so that it can map 
+ * id back to solid data
+ */
+struct oh_domain_id {
+	void *ptr;
+};
+
+/* 
  * struct oh_resource_id is filled by plugin.
  * Open HPI uses it to identy different resource by the id.
  * Open HPI never assume any detail in 'ptr' field so plugin 
@@ -56,6 +67,11 @@ struct oh_sel_id {
 struct oh_resource_event {
 	struct oh_resource_id	id;
 	
+	/* Report domain which belongs to the resource
+	 * Valid if the resource is CAPABILITY_DOMAIN 
+	 */
+	struct oh_domain_id	domain_id;
+	
 	/* XXX: upper layer will fill some fields which does not 
 	 * owned by plugins (such as domain Id)
 	 */
@@ -67,8 +83,8 @@ struct oh_resource_event {
  * is a member of a specific domain.
  */
 struct oh_domain_event {
-	struct oh_resource_id	id;
-	SaHpiDomainIdT domain;
+	struct oh_resource_id	res_id;
+	struct oh_domain_id	domain_id;
 };
 
 /* 
