@@ -38,6 +38,10 @@
 #define NETSNMP_INLINE
 #define RETSIGTYPE void
 #define NET_SNMP_CONFIG_H
+/* Added this to avoid redefinition conflict
+ * in opteron based platforms between the linux headers
+ * and the net-snmp headers. -- Renier 9/27/04
+ */
 #ifdef __ssize_t_defined
 #define HAVE_SSIZE_T 1
 #endif
