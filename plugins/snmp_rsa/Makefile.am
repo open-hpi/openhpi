@@ -10,14 +10,16 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in
 
+MOSTLYCLEANFILES	= @TEST_CLEAN@
+
 SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
 SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 
-# SUBDIRS 		= t
+SUBDIRS 		= t
 
 INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/utils -I$(SNMPUTILSDIR)
 
-AM_CFLAGS		= @CFLAGS@ @SNMPFLAGS@ -DDEBUG
+AM_CFLAGS		= @CFLAGS@ @SNMPFLAGS@
 
 pkglib_LTLIBRARIES	= libsnmp_rsa.la
 
