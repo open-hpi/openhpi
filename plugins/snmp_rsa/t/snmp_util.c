@@ -32,7 +32,8 @@ int snmp_get(struct snmp_session *ss, const char *objid, struct snmp_value *valu
 			if (value->integer == SNMP_FORCE_ERROR) { return -1; }
 			break;
 		case ASN_OCTET_STR:
-			strcpy(value->string, hash_data->value.string); 
+			strcpy(value->string, hash_data->value.string);
+			value->str_len = strlen(hash_data->value.string);
 			break;
 		default:
 			dbg("Unknown SNMP type=%d for oid=%s\n", value->type, objid);
