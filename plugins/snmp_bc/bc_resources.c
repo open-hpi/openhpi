@@ -274,7 +274,6 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 }
                         },
                         .ResourceCapabilities = SAHPI_CAPABILITY_EVT_DEASSERTS |
-                                                SAHPI_CAPABILITY_INVENTORY_DATA |
                                                 SAHPI_CAPABILITY_RDR |
                                                 SAHPI_CAPABILITY_RESOURCE,
                         .ResourceSeverity = SAHPI_MAJOR,
@@ -3942,34 +3941,6 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
  **************************/
 
 struct snmp_bc_inventory snmp_bc_blade_addin_inventories[] = {
-        {
-                .inventory = {
-                        .EirId = 7,
-                        .Oem = 0,
-                },
-                .bc_inventory_info = {
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = 0,
-                                .inventory_type = SAHPI_INVENT_RECTYPE_BOARD_INFO,
-                                .chassis_type = SAHPI_INVENT_CTYP_RACKMOUNT,
-                                .oid = {
-                                        .OidMfgDateTime = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.27.x",   /* Set to SAHPI_TIME_UNSPECIFIED */
-                                        .OidManufacturer = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.x",
-                                        /*.OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.20.x",*/ /* Type */
-                                        .OidProductName = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.25.x", /* Type */
-                                        .OidProductVersion = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.23.x",
-                                        .OidModelNumber = '\0',
-                                        .OidSerialNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.24.x",
-                                        .OidPartNumber = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.22.x",
-                                        .OidFileId = '\0',
-                                        .OidAssetTag = '\0',
-                                        /* UUID .1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.13.x*/
-                                }
-                        },
-                },
-                .comment = "Blade Expansion Card VPD",
-        },
 
         {} /* Terminate array with a null element */
 };
