@@ -25,6 +25,18 @@
 #ifndef dOpenHpiClientFunction
 #define dOpenHpiClientFunction(name) saHpi##name
 #define dOpenHpiClientParam(...) (__VA_ARGS__)
+#else
+SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
+	dOpenHpiClientParam(SAHPI_IN SaHpiDomainIdT DomainId,
+			    SAHPI_OUT SaHpiSessionIdT *SessionId,
+			    SAHPI_IN  void *SecurityParams);
+
+SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
+	dOpenHpiClientParam(SAHPI_IN SaHpiSessionIdT SessionId);
+
+SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
+	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT SessionId); 
+
 #endif
 
 #endif

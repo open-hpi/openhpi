@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <errno.h>
 
+
 #include "marshal_hpi.h"
 #include "client.h"
 
@@ -38,6 +39,26 @@
 #else
 #define cdebug_err(cmd, str)	fprintf(stderr, "%s: %s\n", cmd, str);
 #endif
+
+#define SendRecv() \
+	if (pinst->WriteMsg(request, NULL)) { \
+		cdebug_err(cmd, "WriteMsg failed"); \
+		if(request) \
+			free(request); \
+		CleanupClient(); \
+		return SA_ERR_HPI_NO_RESPONSE; \
+	} \
+	 \
+        if (pinst->ReadMsg() == NULL) { \
+		cdebug_err(cmd, "ReadMsg failed"); \
+		if (request) \
+			free(request); \
+		CleanupClient(); \
+		return SA_ERR_HPI_NO_RESPONSE; \
+	} \
+	reply = (char *)request + (sizeof(cMessageHeader) * 2) + \
+	pinst->reqheader.m_len;
+
 
 // note: doing it this way means the client is NOT thread safe!
 static pcstrmsock pinst = NULL;
@@ -71,7 +92,8 @@ InitClient(void)
                 port =  atoi(portstr);
         }
 
-	pinst = new cstrmsock;
+	if (!pinst)
+		pinst = new cstrmsock;
 	if (pinst->Open(host, port)) {
 		cdebug_err("InitClient", "Could not open client socket");
 		CleanupClient();
@@ -94,7 +116,7 @@ CleanupClient(void)
 	pinst->Close();
 	cdebug_out("CleanupClient", "Client socket closed");
 	delete pinst;
-        pinst = NULL;
+	pinst = NULL;
 }
 
 
@@ -104,49 +126,50 @@ CleanupClient(void)
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 	dOpenHpiClientParam(SAHPI_IN SaHpiDomainIdT DomainId,
-		SAHPI_OUT SaHpiSessionIdT *SessionId,
-		SAHPI_IN  void *SecurityParams) {
-        void *request;
-        void *reply;  
-        SaErrorT err; 
+			    SAHPI_OUT SaHpiSessionIdT *SessionId,
+			    SAHPI_IN  void *SecurityParams)
+{
+	void				*request;
+	void				*reply;  
+	SaErrorT			err; 
 
-	cdebug_out("saHpiSessionOpen", "start");
+	char				cmd[] = "saHpiSessionOpen";
 
-	if (SessionId == 0 || SecurityParams != 0)
+	cdebug_out(cmd, "start");
+
+	if (SessionId == 0 || SecurityParams != 0) {
+		cdebug_err(cmd, "invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
-	if (InitClient())
+	};
+	if (InitClient()) {
+		cdebug_err(cmd, "client initialization failed");
 		return SA_ERR_HPI_NO_RESPONSE;
+	}
 
-	cdebug_out("saHpiSessionOpen", "calling HpiMarshalFind");
-        cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionOpen);
-	cdebug_out("saHpiSessionOpen", "initializing message headers");
-        pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionOpen, hm->m_request_len);
-        pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionOpen, 0);
-        request = malloc(hm->m_request_len);
+	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionOpen);
 
-	cdebug_out("saHpiSessionOpen", "marshaling request");
-        pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &DomainId);
+	pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionOpen,
+				    hm->m_request_len);
+	pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionOpen, 0);
+	request = malloc(hm->m_request_len);
 
-	cdebug_out("saHpiSessionOpen", "write request");
-        pinst->WriteMsg(request, NULL);
-	cdebug_out("saHpiSessionOpen", "read reply");
-        pinst->ReadMsg();
-        reply = (char *)request + (sizeof(cMessageHeader) * 2) + pinst->reqheader.m_len;
+	pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &DomainId);
 
-	cdebug_out("saHpiSessionOpen", "demarshaling reply");
-        int mr = HpiDemarshalReply1(pinst->repheader.m_flags & dMhEndianBit, hm, reply, &err, SessionId);
+	SendRecv();
 
-	cdebug_out("saHpiSessionOpen", "cleanup");
+	int mr = HpiDemarshalReply1(pinst->repheader.m_flags & dMhEndianBit,
+				    hm, reply, &err, SessionId);
+
+	cdebug_out(cmd, "end");
+
 	if (err != SA_OK)
 		CleanupClient();
-        if (request)
-             free(request);
-        if (mr < 0)
-             return SA_ERR_HPI_INVALID_PARAMS;
+	if (request)
+		free(request);
+	if (mr < 0)
+		return SA_ERR_HPI_INVALID_PARAMS;
 
-	cdebug_out("saHpiSessionOpen", "end");
-
-        return err;
+	return err;
 }
 
 
@@ -157,35 +180,38 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 	dOpenHpiClientParam(SAHPI_IN SaHpiSessionIdT SessionId)
 {
-        void *request;
-        void *reply;  
-        SaErrorT err; 
+	void				*request;
+	void				*reply;  
+	SaErrorT			err; 
 
-        if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
-	if (pinst == NULL) {
+	char				cmd[] = "saHpiSessionClose";
+
+	cdebug_out(cmd, "start");
+
+	if (SessionId < 0 || pinst == NULL ) {
+		cdebug_err(cmd, "invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionClose);
-        pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose, hm->m_request_len);
-        pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose, 0);
-        request = malloc(hm->m_request_len);
+	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionClose);
+	pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose,
+				    hm->m_request_len);
+	pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose, 0);
+	request = malloc(hm->m_request_len);
 
-        pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+	pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-        pinst->WriteMsg(request, NULL);
-        pinst->ReadMsg();
-        reply = (char *)request + (sizeof(cMessageHeader) * 2) + pinst->reqheader.m_len;
+	SendRecv();
 
-        int mr = HpiDemarshalReply0(pinst->repheader.m_flags & dMhEndianBit, hm, reply, &err);
+	int mr = HpiDemarshalReply0(pinst->repheader.m_flags & dMhEndianBit,
+				    hm, reply, &err);
 
-	if (err == SA_OK)
-		CleanupClient();
-        if (request)
-             free(request);
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
+	cdebug_out(cmd, "end");
+
+	if (request)
+		free(request);
+	if (mr < 0)
+		return SA_ERR_HPI_INVALID_PARAMS;
 
 	return err;
 }
@@ -198,35 +224,40 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 	dOpenHpiClientParam (SAHPI_IN SaHpiSessionIdT SessionId)
 {
-        void *request;
-        void *reply;  
-        SaErrorT err; 
+	void				*request;
+	void				*reply;  
+	SaErrorT			err; 
 
-        if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
-	if (pinst == NULL) {
+	char				cmd[] = "sHpiDiscover";
+
+	cdebug_out(cmd, "start");
+
+	if (SessionId < 0 || pinst == NULL) {
+		cdebug_err(cmd, "invalid parameters");
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
 
-        cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiDiscover);
-        pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover, hm->m_request_len);
-        pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover, 0);
-        request = malloc(hm->m_request_len);
+	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiDiscover);
+	pinst->ReqMessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover,
+				    hm->m_request_len);
+	pinst->RepMessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover, 0);
+	request = malloc(hm->m_request_len);
 
-        pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &SessionId);
+	pinst->reqheader.m_len = HpiMarshalRequest1(hm, request, &SessionId);
 
-        pinst->WriteMsg(request, NULL);
-        pinst->ReadMsg();
-        reply = (char *)request + (sizeof(cMessageHeader) * 2) + pinst->reqheader.m_len;
+	SendRecv();
 
-        int mr = HpiDemarshalReply0(pinst->repheader.m_flags & dMhEndianBit, hm, reply, &err);
+	int mr = HpiDemarshalReply0(pinst->repheader.m_flags & dMhEndianBit,
+				    hm, reply, &err);
 
-        if (pinst->repheader.m_type == eMhError)
-                return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
-        if (mr < 0)
-                return SA_ERR_HPI_INVALID_PARAMS;
+	cdebug_out(cmd, "end");
+
+	if (pinst->repheader.m_type == eMhError)
+		return SA_ERR_HPI_INVALID_PARAMS;
+	if (request)
+		free(request);
+	if (mr < 0)
+		return SA_ERR_HPI_INVALID_PARAMS;
 
 	return err;
 }

@@ -27,7 +27,7 @@
 #include <glib.h>
 
 #include "strmsock.h"
-#include "openhpi.h"
+//#include "openhpi.h"
 #include "marshal_hpi.h"
 
 
