@@ -63,6 +63,7 @@ static void _get_control_state(ipmi_control_t *control,
 
 SaErrorT ohoi_get_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
+                                SaHpiCtrlModeT *mode,
                                 SaHpiCtrlStateT *state)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -117,6 +118,7 @@ static void _set_control_state(ipmi_control_t *control,
 
 SaErrorT ohoi_set_control_state(void *hnd, SaHpiResourceIdT id,
                                 SaHpiCtrlNumT num,
+                                SaHpiCtrlModeT *mode,
                                 SaHpiCtrlStateT *state)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
