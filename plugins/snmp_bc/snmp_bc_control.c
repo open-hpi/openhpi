@@ -185,6 +185,7 @@ SaErrorT snmp_bc_set_control_state(void *hnd, SaHpiResourceIdT id,
 		}
 
 		set_value.type = ASN_INTEGER;
+		set_value.str_len = 1;
 		set_value.integer = value;
 
 		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {

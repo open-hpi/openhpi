@@ -133,6 +133,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		}
 		
 		set_value.type = ASN_INTEGER;
+		set_value.str_len = 1;
 		set_value.integer = 1;
 		
 		if((snmp_set(custom_handle->ss, oid, set_value) != 0)) {
@@ -228,6 +229,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 	}
 
 	set_value.type = ASN_INTEGER;
+	set_value.str_len = 1;
 	switch (state) {
 	case SAHPI_HS_POWER_OFF:
 		set_value.integer = 0;
