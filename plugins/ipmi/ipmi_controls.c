@@ -507,8 +507,13 @@ static void get_reset_control_val (ipmi_control_t *control,
 		*info->state = SAHPI_RESET_ASSERT;
 		info->err = SA_OK;
 	} else {
-		dbg("invalid power state");
-		info->err = SA_ERR_HPI_INTERNAL_ERROR;
+	  	/* Note: IPMI platfroms don't hold reset state
+		 * so we'll always return SAHPI_RESET_DEASSER
+		 * this code is here just in case ;-)
+		 */
+		dbg("System does not support holding ResetState");
+		*info->state = SAHPI_RESET_DEASSERT;
+		info->err = SA_OK;
 	}
 	info->done = 1;
 }
