@@ -25,7 +25,8 @@ REMOTE_SIM_SOURCES 	= bc_resources.c \
 			  snmp_bc_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
-			  $(REMOTE_SIM_SOURCES) 
+			  $(REMOTE_SIM_SOURCES) \
+			  uid_map
 
 SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
 
@@ -60,7 +61,7 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 # Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
 TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
-#TESTS_ENVIRONMENT += PLUGIN_ROOT=$(shell pwd)/../../../plugins
+TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
 TESTS = tevent \
