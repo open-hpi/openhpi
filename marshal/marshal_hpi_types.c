@@ -61,33 +61,22 @@ cMarshalType SaHpiEntityPathType = dStruct( SaHpiEntityPathT, SaHpiEntityPathEle
 
 // sensors
 static cMarshalType SaHpiSensorInterpretedUnionBufferArray = dArray( SaHpiUint8Type, SAHPI_SENSOR_BUFFER_LENGTH );
-static cMarshalType SaHpiSensorInterpretedUnionElements[] =
+
+static cMarshalType SaHpiSensorReadingUnionElements[] =
 {
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_UINT8  , SaHpiUint8Type ),
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_UINT16 , SaHpiUint16Type ),
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_UINT32 , SaHpiUint32Type ),
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_INT8   , SaHpiInt8Type ),
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_INT16  , SaHpiInt16Type ),
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_INT32  , SaHpiInt32Type ),
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_FLOAT32, SaHpiFloat32Type ),
-  dUnionElement( SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER , SaHpiSensorInterpretedUnionBufferArray ),
+  dUnionElement( SAHPI_SENSOR_READING_TYPE_INT64,   SaHpiInt64Type ),
+  dUnionElement( SAHPI_SENSOR_READING_TYPE_UINT64,  SaHpiUint64Type ),
+  dUnionElement( SAHPI_SENSOR_READING_TYPE_FLOAT64, SaHpiFloat64Type ),
+  dUnionElement( SAHPI_SENSOR_READING_TYPE_BUFFER , SaHpiSensorInterpretedUnionBufferArray ),
   dUnionElementEnd()
 };
 
-static cMarshalType SaHpiSensorInterpretedUnionType = dUnion( 0, SaHpiSensorInterpretedUnionT, 
-                                                              SaHpiSensorInterpretedUnionElements );
-
-static cMarshalType SaHpiSensorInterpretedElements[] =
-{
-  dStructElement( SaHpiSensorInterpretedT, Type, SaHpiSensorInterpretedTypeType ),
-  dStructElement( SaHpiSensorInterpretedT, Value, SaHpiSensorInterpretedUnionType ),
-  dStructElementEnd()
-};
-
-cMarshalType SaHpiSensorInterpretedType = dStruct( SaHpiSensorInterpretedT, SaHpiSensorInterpretedElements );
-
+static cMarshalType SaHpiSensorReadingUnionType = dUnion( 0, 
+							  SaHpiSensorReadingUnionT, 
+                                                          SaHpiSensorReadingUnionElements );
 
 // sensor status
+#if 0
 static cMarshalType SaHpiSensorEvtStatusElements[] =
 {
   dStructElement( SaHpiSensorEvtStatusT, SensorStatus, SaHpiSensorStatusType ),
@@ -95,9 +84,8 @@ static cMarshalType SaHpiSensorEvtStatusElements[] =
   dStructElementEnd()
 };
 
-
 cMarshalType SaHpiSensorEvtStatusType = dStruct( SaHpiSensorEvtStatusT, SaHpiSensorEvtStatusElements );
-
+#endif
 
 static cMarshalType SaHpiSensorEvtEnablesElements[] =
 {
@@ -113,10 +101,9 @@ cMarshalType SaHpiSensorEvtEnablesType = dStruct( SaHpiSensorEvtEnablesT, SaHpiS
 // sensor reading
 static cMarshalType SaHpiSensorReadingElements[] =
 {
-  dStructElement( SaHpiSensorReadingT, ValuesPresent, SaHpiSensorReadingFormatsType ),
-  dStructElement( SaHpiSensorReadingT, Raw, SaHpiUint32Type ),
-  dStructElement( SaHpiSensorReadingT, Interpreted, SaHpiSensorInterpretedType ),
-  dStructElement( SaHpiSensorReadingT, EventStatus, SaHpiSensorEvtStatusType ),
+  dStructElement( SaHpiSensorReadingT, IsSupported, SaHpiBoolType ),
+  dStructElement( SaHpiSensorReadingT, Type, SaHpiSensorReadingTypeType ),
+  dStructElement( SaHpiSensorReadingT, Value, SaHpiSensorReadingUnionType ),
   dStructElementEnd()
 };
 
@@ -172,17 +159,18 @@ cMarshalType SaHpiSensorRangeType = dStruct( SaHpiSensorRangeT, SaHpiSensorRange
 
 static cMarshalType SaHpiSensorDataFormatElements[] =
 {
-  dStructElement( SaHpiSensorDataFormatT, ReadingFormats, SaHpiSensorReadingFormatsType ),
-  dStructElement( SaHpiSensorDataFormatT, IsNumeric, SaHpiBoolType ),
-  dStructElement( SaHpiSensorDataFormatT, SignFormat, SaHpiSensorSignFormatType ),
-  dStructElement( SaHpiSensorDataFormatT, BaseUnits, SaHpiSensorUnitsType ),
-  dStructElement( SaHpiSensorDataFormatT, ModifierUnits, SaHpiSensorUnitsType ),
-  dStructElement( SaHpiSensorDataFormatT, ModifierUse, SaHpiSensorModUnitUseType ),
-  dStructElement( SaHpiSensorDataFormatT, FactorsStatic, SaHpiBoolType ),
-  dStructElement( SaHpiSensorDataFormatT, Factors, SaHpiSensorFactorsType ),
-  dStructElement( SaHpiSensorDataFormatT, Percentage, SaHpiBoolType ),
-  dStructElement( SaHpiSensorDataFormatT, Range, SaHpiSensorRangeType ),
-  dStructElementEnd()
+	dStructElement( SaHpiSensorDataFormatT, IsSupported, SaHpiBoolType ),
+
+	dStructElement( SaHpiSensorDataFormatT, ReadingType, SaHpiReadingTypeType ),
+
+   	dStructElement( SaHpiSensorDataFormatT, BaseUnits, SaHpiSensorUnitsType ),
+	dStructElement( SaHpiSensorDataFormatT, ModifierUnits, SaHpiSensorUnitsType ),
+	dStructElement( SaHpiSensorDataFormatT, ModifierUse, SaHpiSensorModUnitUseType ),
+	dStructElement( SaHpiSensorDataFormatT, Percentage, SaHpiBoolType ),
+        dStructElement( SaHpiSensorDataFormatT, Range, SaHpiSensorRangeType ),
+        dStructElement( SaHpiSensorDataFormatT, AccuracyFactor,SaHpiFloat64Type ),
+
+	dStructElementEnd()
 };
 
 cMarshalType SaHpiSensorDataFormatType = dStruct( SaHpiSensorDataFormatT, SaHpiSensorDataFormatElements );
@@ -190,11 +178,10 @@ cMarshalType SaHpiSensorDataFormatType = dStruct( SaHpiSensorDataFormatT, SaHpiS
 
 static cMarshalType SaHpiSensorThdDefnElements[] =
 {
-  dStructElement( SaHpiSensorThdDefnT, IsThreshold, SaHpiBoolType ),
-  dStructElement( SaHpiSensorThdDefnT, TholdCapabilities, SaHpiSensorThdCapType ),
+  dStructElement( SaHpiSensorThdDefnT, IsAccessible, SaHpiBoolType ),
   dStructElement( SaHpiSensorThdDefnT, ReadThold, SaHpiSensorThdMaskType ),
   dStructElement( SaHpiSensorThdDefnT, WriteThold, SaHpiSensorThdMaskType ),
-  dStructElement( SaHpiSensorThdDefnT, FixedThold, SaHpiSensorThdMaskType ),
+  dStructElement( SaHpiSensorThdDefnT, Nonlinear, SaHpiSensorThdMaskType ),
   dStructElementEnd()
 };
 
@@ -203,16 +190,19 @@ cMarshalType SaHpiSensorThdDefnType = dStruct( SaHpiSensorThdDefnT, SaHpiSensorT
 
 static cMarshalType SaHpiSensorRecElements[] =
 {
-  dStructElement( SaHpiSensorRecT, Num, SaHpiSensorNumType ),
-  dStructElement( SaHpiSensorRecT, Type, SaHpiSensorTypeType ),
-  dStructElement( SaHpiSensorRecT, Category, SaHpiEventCategoryType ),
-  dStructElement( SaHpiSensorRecT, EventCtrl, SaHpiSensorEventCtrlType ),
-  dStructElement( SaHpiSensorRecT, Events, SaHpiEventStateType ),
-  dStructElement( SaHpiSensorRecT, Ignore, SaHpiBoolType ),
-  dStructElement( SaHpiSensorRecT, DataFormat, SaHpiSensorDataFormatType ),
-  dStructElement( SaHpiSensorRecT, ThresholdDefn, SaHpiSensorThdDefnType ),
-  dStructElement( SaHpiSensorRecT, Oem, SaHpiUint32Type ),
-  dStructElementEnd()
+	dStructElement( SaHpiSensorRecT, Num, SaHpiSensorNumType ),
+	dStructElement( SaHpiSensorRecT, Type, SaHpiSensorTypeType ),
+	dStructElement( SaHpiSensorRecT, Category, SaHpiEventCategoryType ),
+	dStructElement( SaHpiSensorRecT, EnableCtrl,SaHpiBoolType ),
+	
+	dStructElement( SaHpiSensorRecT, EventCtrl, SaHpiSensorEventCtrlType ),
+	dStructElement( SaHpiSensorRecT, Events, SaHpiEventStateType ),
+
+	dStructElement( SaHpiSensorRecT, DataFormat, SaHpiSensorDataFormatType ),
+	dStructElement( SaHpiSensorRecT, ThresholdDefn, SaHpiSensorThdDefnType ),
+	dStructElement( SaHpiSensorRecT, Oem, SaHpiUint32Type ),
+	  
+	dStructElementEnd()
 };
 
 cMarshalType SaHpiSensorRecType = dStruct( SaHpiSensorRecT, SaHpiSensorRecElements );

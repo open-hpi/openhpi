@@ -44,6 +44,7 @@ extern "C" {
 #define SaHpiInt16Type   Int16Type
 #define SaHpiInt32Type   Int32Type
 #define SaHpiInt64Type   Int64Type
+#define SaHpiUint64Type  Uint64Type
 #define SaHpiFloat32Type Float32Type
 #define SaHpiFloat64Type Float64Type
 
@@ -75,10 +76,11 @@ extern cMarshalType SaHpiEntityPathType;
 #define SaHpiEventStateType SaHpiUint16Type
 
 // sensors
-#define SaHpiSensorNumType SaHpiUint8Type
+#define SaHpiSensorNumType SaHpiUint32Type
 #define SaHpiSensorTypeType SaHpiUint32Type
-#define SaHpiSensorInterpretedTypeType SaHpiUint32Type
-extern cMarshalType SaHpiSensorInterpretedType;
+#define SaHpiSensorReadingTypeType SaHpiUint32Type 
+//#define SaHpiSensorInterpretedTypeType SaHpiUint32Type
+//extern cMarshalType SaHpiSensorInterpretedType;
 
 // sensor status
 #define SaHpiSensorStatusType SaHpiUint8Type
@@ -100,12 +102,13 @@ extern cMarshalType SaHpiSensorRangeType;
 
 #define SaHpiSensorUnitsType SaHpiUint32Type
 #define SaHpiSensorModUnitUseType SaHpiUint32Type
-#define SaHpiSensorSignFormatType SaHpiUint32Type
+#define SaHpiReadingTypeType SaHpiUint32Type
+//#define SaHpiSensorSignFormatType SaHpiUint32Type
 extern cMarshalType SaHpiSensorDataFormatType;
 
 // threshold support
 #define SaHpiSensorThdMaskType SaHpiUint8Type
-#define SaHpiSensorThdCapType SaHpiUint8Type
+//#define SaHpiSensorThdCapType SaHpiUint8Type
 extern cMarshalType SaHpiSensorThdDefnType;
 
 // event control
