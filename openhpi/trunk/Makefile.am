@@ -72,6 +72,10 @@ install-data-local: openhpi.pc
 	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
 	$(mkinstalldirs) -m 777 $(DESTDIR)$(VARPATH)
 
+uninstall-local:
+	rm -f $(DESTDIR)$(libdir)/pkgconfig/openhpi.pc
+
+
 rpm: dist
 	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
 

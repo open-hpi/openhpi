@@ -163,7 +163,7 @@ SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
+        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600 );
         if (file < 0) {
                 dbg("SEL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
