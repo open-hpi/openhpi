@@ -447,10 +447,11 @@ int main(int argc, char **argv)
                         rv = saHpiEventLogInfoGet(sessionid,resourceid,&info);
                         if (fdebug) printf("saHpiEventLogInfoGet %s\n",decode_error(rv));
                         if (rv == SA_OK) {
-                                /* This data isn't reliable yet with Spi beta2 implementation */
-                                /* Use the entryid instead to calculate log size below. */
                                 printf("EventLog entries=%d, size=%d, enabled=%d\n",
                                        info.Entries,info.Size,info.Enabled);
+                                printf("UpdateTime = %lx, CurrentTime = %lx\n",
+                                       (unsigned long)info.UpdateTimestamp, 
+                                       (unsigned long)info.CurrentTime);
                         }
                         
                         entryid = SAHPI_OLDEST_ENTRY;
