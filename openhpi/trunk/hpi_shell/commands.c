@@ -366,6 +366,31 @@ static int sa_set_thres(int argc, char *argv[])
 	return SA_OK;
 }
 
+static int sa_show_hs_ind(SaHpiResourceIdT resourceid)
+{
+	SaErrorT rv;
+	SaHpiHsIndicatorStateT state;
+
+	rv = saHpiHotSwapIndicatorStateGet(sessionid, resourceid, &state);
+	if (rv != SA_OK) { 
+		printf("saHpiHotSwapStateGet error %d\n",rv);
+		return -1;
+	}
+
+	printf("Current HS Indicator for resource %d is:", resourceid);
+	switch(state) {
+		case SAHPI_HS_INDICATOR_OFF:
+			printf(" OFF.\n");
+			break;
+		case SAHPI_HS_INDICATOR_ON:
+			printf(" ON.\n");
+			break;
+		default:
+			printf(" Unknown.\n");
+	}
+	return SA_OK;
+}
+	
 static int sa_hotswap_stat(SaHpiResourceIdT resourceid)
 {
 	SaErrorT rv;
@@ -903,6 +928,13 @@ static int sen_evt_set(int argc, char *argv[])
                                 (SaHpiSensorNumT)atoi(argv[2]));
 }
 
+static int show_hs_ind(int argc, char *argv[])
+{
+	if (argc < 2)
+		return HPI_SHELL_PARM_ERROR;
+
+	return sa_show_hs_ind((SaHpiResourceIdT)atoi(argv[1]));
+}
 static int hotswap_stat(int argc, char *argv[])
 {
 	if (argc < 2)
@@ -1064,6 +1096,7 @@ struct command commands[] = {
     { "showrdr",	show_rdr,		showrdrhelp },
     { "showrpt",	show_rpt,		showrpthelp },
     { "showsensor",	show_sensor,		showsorhelp },
+    { "hotswap_ind",	show_hs_ind,		NULL },
     { "?",		help,			helphelp },
     { NULL,		NULL,			NULL }
 };
