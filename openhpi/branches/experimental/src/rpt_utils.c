@@ -25,7 +25,7 @@ RPTable *default_rpt = NULL;
 /* declare hotswap state list */
 GSList *managed_hs_resources = NULL;
 
-static inline RPTEntry *get_rptentry_by_rid( RPTable *table, SaHpiResourceIdT rid)
+static inline RPTEntry *get_rptentry_by_rid(RPTable *table, SaHpiResourceIdT rid)
 {
         RPTEntry *rptentry = NULL;
         GSList *node;
@@ -106,6 +106,22 @@ static inline int check_ep(SaHpiEntityPathT ep)
         return check;
 }
 
+static inline void update_rptable(RPTable *table, guint modifier) {
+        struct timeval tv;
+        SaHpiTimeT time;
+
+        gettimeofday(&tv, NULL);
+        time = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;
+
+        table->rpt_info.UpdateTimestamp = time;
+
+        if (modifier == RPT_INCREMENT) {
+                table->rpt_info.UpdateCount = table->rpt_info.UpdateCount + 1;
+        } else {
+                table->rpt_info.UpdateCount = table->rpt_info.UpdateCount - 1;
+        }
+}
+
 /**
  * Resource interface functions
  */
@@ -158,7 +174,9 @@ int oh_add_resource(RPTable *table, SaHpiRptEntryT entry, void *data)
         /* Else, modify existing RPTEntry */
         rptentry->data = data;
         rptentry->rpt_entry = entry;
-        rptentry->rpt_entry.EntryId = entry.ResourceId; /** Is this ok? */
+        rptentry->rpt_entry.EntryId = entry.ResourceId;
+
+        update_rptable(table, RPT_INCREMENT);
                        
         return 0; 
 }
@@ -184,6 +202,8 @@ int oh_remove_resource(RPTable *table, SaHpiResourceIdT rid)
                 return -1;
         }
         else table->rptable = g_slist_remove(table->rptable, (gpointer)rptentry);
+
+        update_rptable(table, RPT_DECREMENT);
 
         return 0;
 }

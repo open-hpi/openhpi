@@ -21,6 +21,8 @@
 
 #define RPT_ENTRY_BEGIN 0
 #define RDR_BEGIN 0
+#define RPT_INCREMENT 2
+#define RPT_DECREMENT 1
 
 extern GSList *managed_hs_resources;
 /* a simple typedef to store a state flag with a resource
