@@ -55,6 +55,9 @@ struct ohoi_resource_id {
                 ipmi_entity_id_t entity_id;
                 ipmi_mcid_t      mc_id;
         } u;
+        
+        ipmi_control_id_t reset_ctrl;
+        ipmi_control_id_t power_ctrl;
 };
 
 
@@ -166,6 +169,8 @@ SaErrorT ohoi_get_indicator_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT ohoi_set_indicator_state(void *hnd, SaHpiResourceIdT id, 
 				  SaHpiHsIndicatorStateT state);
 
+SaErrorT ohoi_set_reset_state(void *hnd, SaHpiResourceIdT id, 
+		              SaHpiResetActionT act);
 /* misc macros for debug */
 #define dump_entity_id(s, x) \
         do { \
