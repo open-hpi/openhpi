@@ -96,11 +96,11 @@ typedef struct tag_DST_ENTRY {
  * Function Prototyping
  */
  
-int set_bc_dst(struct snmp_session *, struct tm *);
+int set_bc_dst(struct oh_handler_state *, struct tm *);
 gboolean is_dst_in_effect(struct tm *, gchar **);
 gboolean is_leap_year(guchar );
 guchar   get_day_of_month(guchar, guchar, guchar, guchar);
 int set_bc_sp_time(struct snmp_session *, struct tm *);
-int get_bc_sp_time(struct snmp_session *, struct tm *);
+int get_bc_sp_time(struct oh_handler_state *, struct tm *);
 
 #endif

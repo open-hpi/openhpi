@@ -264,52 +264,48 @@ gboolean is_dst_in_effect(struct tm *time, gchar **zone_token) {
 
 	return(rc);
 }
-int set_bc_dst(struct snmp_session *ss, struct tm *time) {
+int set_bc_dst(struct oh_handler_state *handle, struct tm *time) {
 
-        struct snmp_value get_value;
-	int rc = 0;
 	gchar **zone_token;
+	struct snmp_bc_hnd *custom_handle = handle->data;
 
-        snmp_get(ss,SNMP_BC_TIME_DST,&get_value);
 
-	if (get_value.type == ASN_OCTET_STR)  {
-		zone_token = g_strsplit(get_value.string, ",", 3);
-		if (zone_token[1] == NULL) {
+	zone_token = g_strsplit(custom_handle->handler_timezone, ",", 3);
+	if (zone_token[1] == NULL) {
 			/* Daylight Saving Time info is not provided */
-			time->tm_isdst = -1;		
-		} else {
-			if (strcmp(zone_token[1],"yes") == 0) {
-				/* Does the timestamp of this particular log */
-				/* fall within the observes DST period for this timezone? */
-				if (is_dst_in_effect(time, zone_token) == TRUE) 
-					time->tm_isdst = 1;
-				else 
-					time->tm_isdst = 0;
-			} else { 
-				/* Daylight Saving Time info is not observed */
-				/* Assuming "Not Observed" == "Not In DST"   */
-				time->tm_isdst = 0;		
-			}
-		}
-		g_strfreev(zone_token);
-		rc = 0;
+		time->tm_isdst = -1;		
 	} else {
-                dbg("Couldn't fetch Date/Time from Blade Center SP");
-                rc = -1;		
+		if (strcmp(zone_token[1],"yes") == 0) {
+			/* Does the timestamp of this particular log */
+			/* fall within the observes DST period for this timezone? */
+			if (is_dst_in_effect(time, zone_token) == TRUE) 
+				time->tm_isdst = 1;
+			else 
+				time->tm_isdst = 0;
+		} else { 
+			/* Daylight Saving Time info is not observed */
+			/* Assuming "Not Observed" == "Not In DST"   */
+			time->tm_isdst = 0;		
+		}
 	}
-	return rc;
+	g_strfreev(zone_token);
+	return 0; 
 }
 
-int get_bc_sp_time(struct snmp_session *ss, struct tm *time) {
+int get_bc_sp_time(struct oh_handler_state *handle, struct tm *time)
+{
         struct snmp_value get_value;
         struct tm tmptime;
 
-        snmp_get(ss,BC_DATETIME_OID,&get_value);
+        struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
+        
+	snmp_get(ss,BC_DATETIME_OID,&get_value);
         if(get_value.type == ASN_OCTET_STR) {
                 if(sscanf(get_value.string,"%2d/%2d/%4d,%2d:%2d:%2d",
                           &tmptime.tm_mon, &tmptime.tm_mday, &tmptime.tm_year, 
                           &tmptime.tm_hour, &tmptime.tm_min, &tmptime.tm_sec)) {
-			set_bc_dst(ss, &tmptime);
+			set_bc_dst(handle, &tmptime);
                         tmptime.tm_mon--;
                         tmptime.tm_year -= 1900;
                 } else {
