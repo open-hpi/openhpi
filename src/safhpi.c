@@ -2273,8 +2273,10 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
+#if 0
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
                 return SA_ERR_HPI_INVALID;
+#endif
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
