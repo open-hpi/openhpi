@@ -1262,7 +1262,7 @@ static const cMarshalType *saHpiResourcePowerStateSetOut[] =
 
 static const cMarshalType *oHpiPluginLoadIn[] =
 {
-  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  &oHpiTextBufferType, // plugin name
   0
 };
 
@@ -1275,7 +1275,7 @@ static const cMarshalType *oHpiPluginLoadOut[] =
 
 static const cMarshalType *oHpiPluginUnloadIn[] =
 {
-  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  &oHpiTextBufferType, // plugin name
   0
 };
 
@@ -1288,7 +1288,7 @@ static const cMarshalType *oHpiPluginUnloadOut[] =
 
 static const cMarshalType *oHpiPluginInfoIn[] =
 {
-  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  &oHpiTextBufferType, // plugin name
   0
 };
 
@@ -1302,14 +1302,14 @@ static const cMarshalType *oHpiPluginInfoOut[] =
 
 static const cMarshalType *oHpiPluginGetNextIn[] =
 {
-  &SaHpiTextBufferType, // plugin name (SaHpiTextBufferT)
+  &oHpiTextBufferType, // plugin name
   0
 };
 
 static const cMarshalType *oHpiPluginGetNextOut[] =
 {
   &SaErrorType, // result (SaErrorT)
-  &SaHpiTextBufferType, // next plugin name (SaHpiTextBufferT)
+  &oHpiTextBufferType, // next plugin name (SaHpiTextBufferT)
   0
 };
 
@@ -1329,8 +1329,8 @@ static const cMarshalType *oHpiHandlerCreateInitOut[] =
 
 static const cMarshalType *oHpiHandlerCreateAddTEntryIn[] =
 {
-  &SaHpiTextBufferType, // namd (SaHpiTextBufferT)
-  &SaHpiTextBufferType, // value (SaHpiTextBufferT)
+  &oHpiTextBufferType, // name
+  &oHpiTextBufferType, // value
   0
 };
 
