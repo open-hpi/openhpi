@@ -288,6 +288,10 @@ SendMsg( cOpenHpiClientConf *c, cMessageHeader *request_header,
 {
   *reply = 0;
 
+  // check for marshal error
+  if ( request_header->m_len < 0 )
+       return SA_ERR_HPI_INVALID_PARAMS;
+
   pthread_cond_t  cond = PTHREAD_COND_INITIALIZER;
   pthread_mutex_t lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
@@ -527,7 +531,10 @@ ReadResponse( cOpenHpiClientConf *c )
 
 #define PostMarshal() \
   if ( reply )        \
-       free( reply )
+       free( reply ); \
+                      \
+  if ( mr < 0 )       \
+       return SA_ERR_HPI_INVALID_PARAMS
 
 
 SaErrorT SAHPI_API dOpenHpiClientFunction(
@@ -584,7 +591,7 @@ SessionOpen)dOpenHpiClientParam( SAHPI_IN  SaHpiDomainIdT   DomainId,
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, SessionId );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, SessionId );
 
   PostMarshal();
 
@@ -615,7 +622,7 @@ SessionClose)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
 
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -646,7 +653,7 @@ ResourcesDiscover)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
 
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -668,7 +675,7 @@ RptInfoGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId,
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, RptInfo );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, RptInfo );
 
   PostMarshal();
 
@@ -692,7 +699,7 @@ RptEntryGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT SessionId,
 
   Send();
 
-  HpiDemarshalReply2( reply_header.m_flags & dMhEndianBit, hm, reply,
+  int mr = HpiDemarshalReply2( reply_header.m_flags & dMhEndianBit, hm, reply,
                       &err, NextEntryId, RptEntry );
 
   PostMarshal();
@@ -717,7 +724,7 @@ RptEntryGetByResourceId)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionI
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, RptEntry );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, RptEntry );
 
   PostMarshal();
 
@@ -738,7 +745,7 @@ ResourceSeveritySet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -762,7 +769,7 @@ ResourceTagSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -785,7 +792,7 @@ ResourceIdGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT    SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, ResourceId );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, ResourceId );
 
   PostMarshal();
 
@@ -808,7 +815,7 @@ EntitySchemaGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT SessionId,
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, SchemaId );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, SchemaId );
 
   PostMarshal();
 
@@ -832,7 +839,7 @@ EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Info );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Info );
 
   PostMarshal();
 
@@ -868,9 +875,9 @@ EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT   SessionId,
   SaHpiRdrT rdr;
   SaHpiRptEntryT rpt_entry;
 
-  HpiDemarshalReply5( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		     PrevEntryId, NextEntryId, EventLogEntry, 
-		     &rdr, &rpt_entry );
+  int mr = HpiDemarshalReply5( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       PrevEntryId, NextEntryId, EventLogEntry, 
+			       &rdr, &rpt_entry );
 
   if ( Rdr )
        *Rdr = rdr;
@@ -900,7 +907,7 @@ EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, EvtEntry );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, EvtEntry );
 
   PostMarshal();
 
@@ -921,7 +928,7 @@ EventLogEntryDelete)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -941,7 +948,7 @@ EventLogClear)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -965,7 +972,7 @@ EventLogTimeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Time );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Time );
 
   PostMarshal();
 
@@ -986,7 +993,7 @@ EventLogTimeSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1010,7 +1017,7 @@ EventLogStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Enable );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Enable );
 
   PostMarshal();
 
@@ -1031,7 +1038,7 @@ EventLogStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1051,7 +1058,7 @@ Subscribe)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId,
 
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1070,7 +1077,7 @@ Unsubscribe)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId )
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1105,8 +1112,8 @@ EventGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT SessionId,
   if ( RptEntry == 0 )
        RptEntry = &rpt_entry;
 
-  HpiDemarshalReply3( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      Event, &Rdr, &RptEntry );
+  int mr = HpiDemarshalReply3( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Event, &Rdr, &RptEntry );
 
   PostMarshal();
 
@@ -1132,8 +1139,8 @@ RdrGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply2( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      NextEntryId, Rdr );
+  int mr = HpiDemarshalReply2( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       NextEntryId, Rdr );
 
   PostMarshal();
 
@@ -1158,8 +1165,8 @@ SensorReadingGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		     Reading);
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Reading);
 
   PostMarshal();
 
@@ -1186,8 +1193,8 @@ SensorReadingConvert)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      Session
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      ConvertedReading );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       ConvertedReading );
 
   PostMarshal();
 
@@ -1215,8 +1222,8 @@ SensorThresholdsGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT         Sessi
   // this is to pass test sf_202.test of hpitest
   memset( SensorThresholds, 0, sizeof( SaHpiSensorThresholdsT ) );
   
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      SensorThresholds );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       SensorThresholds );
 
   PostMarshal();
 
@@ -1241,7 +1248,7 @@ SensorThresholdsSet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT         Sessi
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1267,8 +1274,8 @@ SensorTypeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      SessionId,
   
   Send();
 
-  HpiDemarshalReply2( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      Type, Category );
+  int mr = HpiDemarshalReply2( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Type, Category );
 
   PostMarshal();
 
@@ -1293,8 +1300,8 @@ SensorEventEnablesGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT         Ses
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, 
-		      Enables );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, 
+			       Enables );
 
   PostMarshal();
 
@@ -1319,8 +1326,8 @@ SensorEventEnablesSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT         Sess
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      Enables );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Enables );
 
   PostMarshal();
 
@@ -1345,8 +1352,8 @@ ControlTypeGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		     Type );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Type );
 
   PostMarshal();
 
@@ -1371,8 +1378,8 @@ ControlStateGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT  SessionId,
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      CtrlState);
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       CtrlState );
 
   PostMarshal();
 
@@ -1397,7 +1404,7 @@ ControlStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1433,7 +1440,15 @@ EntityInventoryDataRead)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      Sess
   params[0] = &err;
   params[1] = ActualSize;
 
-  DemarshalArray( reply_header.m_flags & dMhEndianBit, types, params, reply );
+  int mr = DemarshalArray( reply_header.m_flags & dMhEndianBit, types, params, reply );
+
+  if ( mr < 0 )
+     {
+       if ( reply )
+	    free( reply );
+       
+       return SA_ERR_HPI_INVALID_PARAMS;
+     }
 
   if ( err == SA_OK && InventData )
      {
@@ -1441,7 +1456,7 @@ EntityInventoryDataRead)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT      Sess
        types[3] = 0;
        params[2] = InventData;
 
-       DemarshalArray( reply_header.m_flags & dMhEndianBit, types, params, reply );
+       mr = DemarshalArray( reply_header.m_flags & dMhEndianBit, types, params, reply );
      }
 
   PostMarshal();
@@ -1467,7 +1482,7 @@ EntityInventoryDataWrite)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT      Sess
 
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1492,8 +1507,8 @@ WatchdogTimerGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT    SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      Watchdog );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Watchdog );
 
   PostMarshal();
 
@@ -1518,8 +1533,8 @@ WatchdogTimerSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      Watchdog );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       Watchdog );
 
   PostMarshal();
 
@@ -1540,7 +1555,7 @@ WatchdogTimerReset)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1560,7 +1575,7 @@ HotSwapControlRequest)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1580,7 +1595,7 @@ ResourceActiveSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1600,7 +1615,7 @@ ResourceInactiveSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1623,8 +1638,8 @@ AutoInsertTimeoutGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT SessionId,
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, 
-		      Timeout );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, 
+			       Timeout );
 
   PostMarshal();
 
@@ -1644,7 +1659,7 @@ AutoInsertTimeoutSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1668,7 +1683,7 @@ AutoExtractTimeoutGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Timeout );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err, Timeout );
 
   PostMarshal();
 
@@ -1689,7 +1704,7 @@ AutoExtractTimeoutSet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1713,8 +1728,8 @@ HotSwapStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      State );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       State );
 
   PostMarshal();
 
@@ -1735,7 +1750,7 @@ HotSwapActionRequest)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1759,8 +1774,8 @@ ResourcePowerStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT     Session
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      State );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       State );
 
   PostMarshal();
 
@@ -1781,7 +1796,7 @@ ResourcePowerStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT    SessionId
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1805,8 +1820,8 @@ HotSwapIndicatorStateGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT         
   
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      State );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       State );
 
   PostMarshal();
 
@@ -1827,7 +1842,7 @@ HotSwapIndicatorStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT        Se
 
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1848,7 +1863,7 @@ ParmControl)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 
@@ -1872,8 +1887,8 @@ ResourceResetStateGet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT     SessionI
 
   Send();
 
-  HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
-		      ResetAction );
+  int mr = HpiDemarshalReply1( reply_header.m_flags & dMhEndianBit, hm, reply, &err,
+			       ResetAction );
 
   PostMarshal();
 
@@ -1894,7 +1909,7 @@ ResourceResetStateSet)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT   SessionId,
   
   Send();
 
-  HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
+  int mr = HpiDemarshalReply0( reply_header.m_flags & dMhEndianBit, hm, reply, &err );
 
   PostMarshal();
 

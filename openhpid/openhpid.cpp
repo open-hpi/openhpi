@@ -638,7 +638,7 @@ cOpenHpiDaemon::Idle()
 
 	    // check for event
 	    ret = saHpiEventGet( s->SessionId(), SAHPI_TIMEOUT_IMMEDIATE,
-					  &event, &rdr, &rpt_entry );
+				 &event, &rdr, &rpt_entry );
 
 	    if (    ret == SA_ERR_HPI_TIMEOUT
 		 && now < s->Timeout() )
@@ -666,13 +666,18 @@ cOpenHpiDaemon::Idle()
 
 	    rh.m_len = HpiMarshalReply3( hm, rd, &ret, &event, &rdr, &rpt_entry );
 
-	    int rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
+	    assert( rh.m_len >= 0 );
+
+	    int rv = 0;
+
+	    if ( rh.m_len >= 0 )
+		 rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
 
 	    if ( rd )
 		 free( rd );
 
 	    // cannot send message => close connection
-	    if ( rv )
+	    if ( rv || rh.m_len < 0 )
 		 CloseConnection( i );
 	  }
      }
@@ -711,6 +716,9 @@ cOpenHpiDaemon::HandleData( cConnection *c )
   if ( data )
        free( data );
 
+  // marshal error ?
+  if ( rh.m_len < 0 )
+       rv = 1;
   if ( r == eResultReply )
        rv = ConnectionWriteMsg( c->Fd(), &rh, rd );
   else if ( r == eResultError )
@@ -782,7 +790,8 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiDomainIdT domain_id;
 	      SaHpiSessionIdT session_id = 0;
 
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, (void *)&domain_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, (void *)&domain_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSessionOpen( domain_id, &session_id, 0 );
 
@@ -801,7 +810,8 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	    {
 	      SaHpiSessionIdT session_id;
 
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, &session_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSessionClose( session_id );
 
@@ -819,7 +829,8 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	    {
 	      SaHpiSessionIdT session_id;
 
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, &session_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourcesDiscover( session_id );
 
@@ -835,7 +846,8 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
               SaHpiRptInfoT rpt_info;
 
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, &session_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data, &session_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiRptInfoGet( session_id, &rpt_info );
 
@@ -853,8 +865,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
               SaHpiEntryIdT   next_entry_id;
               SaHpiRptEntryT  rpt_entry;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-                                    &session_id, &entry_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+                                    &session_id, &entry_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiRptEntryGet( session_id, entry_id, &next_entry_id, &rpt_entry );
 
@@ -872,8 +885,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiRptEntryT   rpt_entry;
 	      
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiRptEntryGetByResourceId( session_id, resource_id, &rpt_entry );
 
@@ -891,8 +905,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiSeverityT   severity;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &severity );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &severity ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourceSeveritySet( session_id,
 					      resource_id, severity );
@@ -911,8 +926,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiTextBufferT resource_tag;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &resource_tag );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &resource_tag ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourceTagSet( session_id, resource_id,
 					 &resource_tag );
@@ -930,8 +946,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiResourceIdT resource_id = 0;
 
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourceIdGet( session_id, &resource_id );
 
@@ -948,8 +965,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiUint32T    schema_id = 0;
 
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEntitySchemaGet( session_id, &schema_id );
 	      
@@ -967,8 +985,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiSelInfoT    info;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogInfoGet( session_id, resource_id, &info );
 
@@ -994,8 +1013,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      memset( &rdr, 0, sizeof( SaHpiRdrT ) );
 	      memset( &rpt_entry, 0, sizeof( SaHpiRptEntryT ) );
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &entry_id );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &entry_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogEntryGet( session_id, resource_id, entry_id,
 					   &prev_entry_id, &next_entry_id,
@@ -1016,8 +1036,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiSelEntryT   evt_entry;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &evt_entry );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &evt_entry ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogEntryAdd( session_id, resource_id,
 					   &evt_entry );
@@ -1036,8 +1057,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiSelEntryIdT entry_id;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &entry_id );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &entry_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogEntryDelete( session_id, resource_id, entry_id );
 
@@ -1054,8 +1076,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiResourceIdT resource_id;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogClear( session_id, resource_id );
 
@@ -1073,8 +1096,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiTimeT       ti;
 	      
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogTimeGet( session_id, resource_id, &ti );
 
@@ -1092,8 +1116,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiTimeT       ti;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id , &ti );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id , &ti ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogTimeSet( session_id, resource_id, ti );
  
@@ -1111,8 +1136,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiBoolT       enable;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogStateGet( session_id, resource_id, &enable );
 
@@ -1130,8 +1156,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiBoolT       enable;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &enable );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &enable ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEventLogStateSet( session_id, resource_id, enable );
 	      
@@ -1148,8 +1175,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiBoolT      provide_active_alarms;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &provide_active_alarms );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &provide_active_alarms ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSubscribe( session_id, provide_active_alarms );
 
@@ -1166,8 +1194,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	    {
 	      SaHpiSessionIdT session_id;
 
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiUnsubscribe( session_id );
 
@@ -1187,8 +1216,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiRdrT       rdr;
 	      SaHpiRptEntryT  rpt_entry;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &timeout );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &timeout ) < 0 )
+		   return eResultError;
 
 	      if ( timeout == 0 )
 		 {
@@ -1241,8 +1271,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiEntryIdT    next_entry_id;
 	      SaHpiRdrT        rdr;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &entry_id );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &entry_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiRdrGet( session_id, resource_id, entry_id,
 				 &next_entry_id, &rdr );
@@ -1262,8 +1293,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSensorNumT  sensor_num;
 	      SaHpiSensorReadingT reading;
 	      
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &sensor_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &sensor_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSensorReadingGet( session_id, resource_id,
 					   sensor_num, &reading );
@@ -1284,9 +1316,10 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSensorReadingT reading_input;
 	      SaHpiSensorReadingT converted_reading;
 
-	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+	      if ( HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
 				    &session_id, &resource_id, &sensor_num,
-				    &reading_input );
+				    &reading_input ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSensorReadingConvert( session_id,
 					       resource_id, sensor_num,
@@ -1308,8 +1341,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSensorNumT  sensor_num;
 	      SaHpiSensorThresholdsT sensor_thresholds;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &sensor_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &sensor_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSensorThresholdsGet( session_id,
 					      resource_id, sensor_num,
@@ -1330,9 +1364,10 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSensorNumT  sensor_num;
 	      SaHpiSensorThresholdsT sensor_thresholds;
 
-	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+	      if ( HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
 				   &session_id, &resource_id, &sensor_num,
-				   &sensor_thresholds );
+				   &sensor_thresholds ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSensorThresholdsSet( session_id, resource_id,
 					      sensor_num,
@@ -1354,8 +1389,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSensorTypeT type;
 	      SaHpiEventCategoryT category;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &sensor_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &sensor_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSensorTypeGet( session_id, resource_id,
 					sensor_num, &type, &category );
@@ -1375,8 +1411,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSensorNumT        sensor_num;
 	      SaHpiSensorEvtEnablesT enables;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &sensor_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &sensor_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSensorEventEnablesGet( session_id, resource_id,
 						sensor_num, &enables );
@@ -1396,9 +1433,10 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSensorNumT  sensor_num;
 	      SaHpiSensorEvtEnablesT enables;
 
-	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+	      if ( HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
 				    &session_id, &resource_id, &sensor_num,
-				    &enables );
+				    &enables ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiSensorEventEnablesSet( session_id, resource_id,
 						sensor_num, &enables );
@@ -1418,8 +1456,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiCtrlNumT    ctrl_num;
 	      SaHpiCtrlTypeT   type;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &ctrl_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &ctrl_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiControlTypeGet( session_id, resource_id, ctrl_num,
 					 &type );
@@ -1439,8 +1478,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiCtrlNumT    ctrl_num;
 	      SaHpiCtrlStateT  ctrl_state;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &ctrl_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &ctrl_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiControlStateGet( session_id, resource_id,
 					  ctrl_num, &ctrl_state );
@@ -1460,9 +1500,10 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiCtrlNumT    ctrl_num;
 	      SaHpiCtrlStateT  ctrl_state;
 
-	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+	      if ( HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
 				    &session_id, &resource_id, &ctrl_num,
-				    &ctrl_state );
+				    &ctrl_state ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiControlStateSet( session_id, resource_id,
 					  ctrl_num, &ctrl_state );
@@ -1484,8 +1525,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      unsigned char   *buffer = 0;
 	      SaHpiUint32T     actual_size;
 
-	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &eir_id, &buffer_size );
+	      if ( HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &eir_id, &buffer_size ) < 0 )
+		   return eResultError;
 
 	      if ( buffer_size )
 		   buffer = new unsigned char [buffer_size];
@@ -1530,8 +1572,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiEirIdT      eir_id;
 	      unsigned char    buffer[10240];
 
-	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &eir_id, buffer );
+	      if ( HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &eir_id, buffer ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiEntityInventoryDataWrite( session_id, resource_id, eir_id,
 						   (SaHpiInventoryDataT *)(void *)buffer );
@@ -1550,8 +1593,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiWatchdogNumT watchdog_num;
 	      SaHpiWatchdogT    watchdog;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &watchdog_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &watchdog_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiWatchdogTimerGet( session_id, resource_id,
 					   watchdog_num, &watchdog );
@@ -1571,9 +1615,10 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiWatchdogNumT watchdog_num;
 	      SaHpiWatchdogT    watchdog;
 
-	      HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
+	      if ( HpiDemarshalRequest4( header.m_flags & dMhEndianBit, hm, data,
 				    &session_id, &resource_id, &watchdog_num,
-				    &watchdog );
+				    &watchdog ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiWatchdogTimerSet( session_id, resource_id,
 					   watchdog_num, &watchdog );
@@ -1592,8 +1637,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT  resource_id;
 	      SaHpiWatchdogNumT watchdog_num;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &watchdog_num );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &watchdog_num ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiWatchdogTimerReset( session_id, resource_id,
 					     watchdog_num );
@@ -1611,8 +1657,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiResourceIdT resource_id;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiHotSwapControlRequest( session_id, resource_id );
 
@@ -1628,8 +1675,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	    {
 	      SaHpiSessionIdT session_id;
 	      SaHpiResourceIdT resource_id;
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourceActiveSet( session_id, resource_id );
 	      
@@ -1645,8 +1693,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	    {
 	      SaHpiSessionIdT session_id;
 	      SaHpiResourceIdT resource_id;
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourceInactiveSet( session_id, resource_id );
 
@@ -1663,8 +1712,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiTimeoutT   timeout;
 	      
-	      HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id );
+	      if ( HpiDemarshalRequest1( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiAutoInsertTimeoutGet( session_id, &timeout );
 	      
@@ -1681,8 +1731,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiSessionIdT session_id;
 	      SaHpiTimeoutT   timeout;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &timeout );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &timeout ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiAutoInsertTimeoutSet( session_id, timeout );
 	      
@@ -1700,8 +1751,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiTimeoutT    timeout;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiAutoExtractTimeoutGet( session_id, resource_id, &timeout );
 
@@ -1719,8 +1771,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiTimeoutT    timeout;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &timeout );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &timeout ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiAutoExtractTimeoutSet( session_id, resource_id, timeout );
 
@@ -1738,8 +1791,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiHsStateT    state;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiHotSwapStateGet( session_id, resource_id, &state );
 
@@ -1757,8 +1811,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiHsActionT   action;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &action );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &action ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiHotSwapActionRequest( session_id, resource_id, action );
 
@@ -1776,8 +1831,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT   resource_id;
 	      SaHpiHsPowerStateT state;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourcePowerStateGet( session_id, resource_id, &state );
 	      
@@ -1795,8 +1851,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT   resource_id;
 	      SaHpiHsPowerStateT state;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id, &state  );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id, &state  ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourcePowerStateSet( session_id, resource_id, state );
 
@@ -1814,8 +1871,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT       resource_id;
 	      SaHpiHsIndicatorStateT state;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				   &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				   &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiHotSwapIndicatorStateGet( session_id, resource_id, &state );
 
@@ -1833,8 +1891,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT       resource_id;
 	      SaHpiHsIndicatorStateT state;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &state );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &state ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiHotSwapIndicatorStateSet( session_id, resource_id, state );
 
@@ -1852,8 +1911,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT resource_id;
 	      SaHpiParmActionT action;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &action );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &action ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiParmControl( session_id, resource_id, action );
 
@@ -1871,8 +1931,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT  resource_id;
 	      SaHpiResetActionT reset_action;
 
-	      HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id );
+	      if ( HpiDemarshalRequest2( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourceResetStateGet( session_id, resource_id,
 						&reset_action );
@@ -1891,8 +1952,9 @@ cOpenHpiDaemon::HandleMsg( cConnection *c,
 	      SaHpiResourceIdT  resource_id;
 	      SaHpiResetActionT reset_action;
 
-	      HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
-				    &session_id, &resource_id, &reset_action );
+	      if ( HpiDemarshalRequest3( header.m_flags & dMhEndianBit, hm, data,
+				    &session_id, &resource_id, &reset_action ) < 0 )
+		   return eResultError;
 
 	      ret = saHpiResourceResetStateSet( session_id, resource_id, reset_action );
 
