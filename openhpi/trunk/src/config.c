@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003-2004
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,7 +14,6 @@
  *     Sean Dague <http://dague.net/sean>
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  *     David Judkovics <djudkovi@us.ibm.com>
- * Contributors:
  *     Thomas Kangieser <Thomas.Kanngieser@fci.com>
  *     Renier Morales <renierm@users.sf.net>
  */
@@ -23,13 +22,19 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <oh_config.h>
+#include <oh_plugin.h>
 #include <oh_error.h>
 #include <oh_lock.h>
 
 /*
- * Global Parameters Table 
+ * Global Parameters Table
  */
-GHashTable *global_params = NULL;
+static GHashTable *global_params = NULL;
+
+static const char *known_globals[] = {
+        "OPENHPI_LOG_SEV",
+        "OPENHPI_ON_EP"
+};
 
 /*
  * List of plugin names specified in configuration file.
@@ -207,7 +212,7 @@ static int process_handler_token (GScanner* oh_scanner, int is_global)
         data_access_lock();
 
         if (is_global) {
-                THIS_TOKEN = HPI_CONF_TOKEN_GLOBAL;                
+                THIS_TOKEN = HPI_CONF_TOKEN_GLOBAL;
         } else THIS_TOKEN = HPI_CONF_TOKEN_HANDLER;
 
         if (g_scanner_get_next_token(oh_scanner) != THIS_TOKEN) {
@@ -365,6 +370,22 @@ static void scanner_msg_handler (GScanner *scanner, gchar *message, gboolean is_
       scanner->line, is_error ? "error: " : "", message );
 }
 
+/* Read in globals from environment and replace in table for globals */
+static void read_globals_from_env(void)
+{
+        int known_globals_total = sizeof(known_globals)/sizeof(known_globals[0]);
+        int i;
+
+        for (i = 0; i < known_globals_total; i++) {
+                char *g = getenv(known_globals[i]);
+                if (g) {
+                        if (!oh_set_global_param(known_globals[i], g))
+                                trace("Set global param %s from environment.",
+                                      known_globals[i]);
+                }
+        }
+}
+
 /**
  * oh_load_config:
  * @filename:
@@ -451,9 +472,10 @@ int oh_load_config (char *filename, struct oh_parsed_config *config)
         done = oh_scanner->parse_errors;
 
         g_scanner_destroy(oh_scanner);
-        
+
         trace("Done processing conf file.\nNumber of parse errors:%d", done);
 
+        read_globals_from_env();
         config->plugin_names = plugin_names;
         config->handler_configs = handler_configs;
 
@@ -464,12 +486,58 @@ void oh_clean_config()
 {
         /* Free list of plugin names read from configuration file. */
         g_slist_free(plugin_names);
-        
-        /* Free list of handler configuration blocks */        
+
+        /* Free list of handler configuration blocks */
         g_slist_free(handler_configs);
 }
 
 void oh_unload_config()
 {
         g_hash_table_destroy(global_params);
+}
+
+/**
+ * oh_lookup_global_param
+ * @param
+ * @value
+ * @size
+ *
+ * Returns: 0 on Success.
+ **/
+int oh_lookup_global_param(char *param, char *value, int size)
+{
+        char *v = NULL;
+
+        if (!param || !value) {
+                dbg("ERROR. Invalid parameters.");
+                return -1;
+        }
+
+        data_access_lock();
+        v = (char *)g_hash_table_lookup(global_params, param);
+        strncpy(value, v, size);
+        data_access_unlock();
+
+        return (v) ? 0 : -1;
+}
+
+int oh_set_global_param(const char *param, char *value)
+{
+        char c;
+
+        if (!oh_lookup_next_plugin_name(NULL, &c, sizeof(c))) {
+                dbg("ERROR. Cannot set global params. Plugins already loaded.");
+                return -1;
+        }
+
+        if (!param || !value) {
+                dbg("ERROR. Invalid parameters.");
+                return -1;
+        }
+
+        data_access_lock();
+        g_hash_table_replace(global_params, g_strdup(param), g_strdup(value));
+        data_access_unlock();
+
+        return 0;
 }

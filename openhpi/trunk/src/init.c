@@ -47,7 +47,7 @@ SaErrorT oh_initialize()
         struct oh_parsed_config config;
         char *openhpi_conf;
         int rval;
-        unsigned int i;
+        unsigned int u;
 
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
         SaHpiTextBufferT tag;
@@ -84,7 +84,7 @@ SaErrorT oh_initialize()
                 dbg("uid_intialization failed");
                 data_access_unlock();
                 return(rval);
-        }        
+        }
         trace("Initialized UID");
 
         oh_init_ltdl(); /* Must initialize ltdl before loading plugins */
@@ -97,7 +97,7 @@ SaErrorT oh_initialize()
                         dbg("Couldn't load plugin %s", plugin_name);
                         g_free(plugin_name);
                 }
-        }        
+        }
 
         /* Initialize handlers */
         oh_init_handler_table();
@@ -120,13 +120,13 @@ SaErrorT oh_initialize()
         oh_clean_config();
 
         /* Check if we have at least one handler */
-        oh_lookup_next_handler_id(0, &i);
-        if (!i) {
+        oh_lookup_next_handler_id(0, &u);
+        if (!u) {
                 /* there is no handler => this can not work */
                 dbg("No handler found. please check %s!", openhpi_conf);
                 data_access_unlock();
                 return SA_ERR_HPI_NOT_PRESENT;
-        }        
+        }
 
         /* Initialize domain table */
         oh_domains.table = g_hash_table_new(g_int_hash, g_int_equal);
@@ -137,16 +137,16 @@ SaErrorT oh_initialize()
         tag.Language = SAHPI_LANG_ENGLISH;
         strcpy(tag.Data, "First Domain");
         if (!oh_create_domain(capabilities, SAHPI_FALSE, &tag)) {
-		data_access_unlock();
+                data_access_unlock();
                 dbg("Could not create first domain!");
-                return SA_ERR_HPI_ERROR;		
-        }        
+                return SA_ERR_HPI_ERROR;
+        }
         trace("Created first domain");
 
-        /* Initialize session table */        
+        /* Initialize session table */
         oh_sessions.table = g_hash_table_new(g_int_hash, g_int_equal);
-        trace("Initialized session table");        
-        
+        trace("Initialized session table");
+
         oh_init_state = INIT;
         trace("Set init state");
 

@@ -108,7 +108,7 @@ SaErrorT SAHPI_API saHpiDiscover(
                 return SA_ERR_HPI_UNKNOWN;
         }
 
-        rv = oh_get_events();      
+        rv = oh_get_events();
 
         if (rv < 0) {
                 dbg("Error attempting to process resources in Domain %d",did);
@@ -144,7 +144,7 @@ SaErrorT SAHPI_API saHpiDomainInfoGet (
         DomainInfo->RptUpdateCount = d->rpt.update_count;
         DomainInfo->RptUpdateTimestamp = d->rpt.update_timestamp;
         memcpy(DomainInfo->Guid, d->guid, sizeof(SaHpiGuidT));
-        DomainInfo->DomainTag = d->tag;        
+        DomainInfo->DomainTag = d->tag;
         oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
@@ -317,7 +317,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         /* to get rpt entry into infrastructure */
-        oh_get_events();        
+        oh_get_events();
 
         return SA_OK;
 }
@@ -357,8 +357,8 @@ SaErrorT SAHPI_API saHpiResourceTagSet(
         }
 
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        rptentry = oh_get_resource_by_id(&(d->rpt), ResourceId);        
-        if (!rptentry) {                
+        rptentry = oh_get_resource_by_id(&(d->rpt), ResourceId);
+        if (!rptentry) {
                 dbg("Tag set failed: No Resource %d in Domain %d",
                     ResourceId, did);
                 oh_release_domain(d); /* Unlock domain */
@@ -378,12 +378,15 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
         struct oh_domain *d = NULL;
         SaHpiEntityPathT ep;
         SaHpiRptEntryT *rptentry;
-        char *on_entitypath = (char *)g_hash_table_lookup(global_params, "OPENHPI_ON_EP");
+        char on_entitypath[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
-        if (!on_entitypath) {
+
+        if (oh_lookup_global_param("OPENHPI_ON_EP",
+                                   on_entitypath,
+                                   SAHPI_MAX_TEXT_BUFFER_LENGTH)) {
                 return SA_ERR_HPI_UNKNOWN;
         }
 
@@ -454,7 +457,7 @@ SaErrorT SAHPI_API saHpiEventLogInfoGet (
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = get_func(h->hnd, ResourceId, Info);        
+        rv = get_func(h->hnd, ResourceId, Info);
 
         if (rv != SA_OK) {
                 dbg("EL info get failed");
@@ -583,7 +586,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
-        OH_GET_DOMAIN(did, d); /* Lock domain */        
+        OH_GET_DOMAIN(did, d); /* Lock domain */
 
         /* test for special domain case */
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID) {
@@ -592,7 +595,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
                 return rv;
         }
 
-        OH_RESOURCE_GET(d, ResourceId, res);        
+        OH_RESOURCE_GET(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
                 dbg("Resource %d in Domain %d does not have EL.",ResourceId,did);
@@ -897,31 +900,31 @@ SaErrorT SAHPI_API saHpiEventGet (
         if (session_state != OH_SUBSCRIBED) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
-	
-	if ( !oh_run_threaded() ) {
-		error = oh_get_events();       
-		if (error < 0) return SA_ERR_HPI_UNKNOWN;
-	}
+
+        if ( !oh_run_threaded() ) {
+                error = oh_get_events();
+                if (error < 0) return SA_ERR_HPI_UNKNOWN;
+        }
 
         error = oh_dequeue_session_event(SessionId, Timeout, &e);
         if (error) return error;
 
         /* Return event, resource and rdr */
         *Event = e.u.hpi_event.event;
-        
+
         /* EventQueueStatus may be NULL if you don't care */
         if(EventQueueStatus) {
                 *EventQueueStatus = 0x0000;
         }
-        
+
         if (RptEntry && e.u.hpi_event.res.ResourceId != 0) {
                 *RptEntry = e.u.hpi_event.res;
         }
-        
+
         if (Rdr && e.u.hpi_event.rdr.RecordId != 0) {
                 *Rdr = e.u.hpi_event.rdr;
         }
-        
+
         return SA_OK;
 }
 
@@ -1097,7 +1100,7 @@ SaErrorT SAHPI_API saHpiRdrGetByInstrumentId (
                 return SA_ERR_HPI_CAPABILITY;
         }
 
-        rdr_cur = oh_get_rdr_by_type(&(d->rpt), ResourceId, RdrType, InstrumentId);        
+        rdr_cur = oh_get_rdr_by_type(&(d->rpt), ResourceId, RdrType, InstrumentId);
 
         if (rdr_cur == NULL) {
                 dbg("Requested RDR, Domain[%d]->Resource[%d]->RDR[%d,%d], is not present",
@@ -1754,7 +1757,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->get_idr_info;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
@@ -1764,7 +1767,7 @@ SaErrorT SAHPI_API saHpiIdrInfoGet(
         /* Access Inventory Info from plugin */
         dbg("Access IdrInfo from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, IdrInfo);
-        
+
         return rv;
 }
 
@@ -1809,10 +1812,10 @@ SaErrorT SAHPI_API saHpiIdrAreaHeaderGet(
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
-        
+
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->get_idr_area_header;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
@@ -1850,7 +1853,7 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
                 dbg("Invalid Parameters");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-                                
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
@@ -1862,11 +1865,11 @@ SaErrorT SAHPI_API saHpiIdrAreaAdd(
                     ResourceId,did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
-        }        
+        }
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->add_idr_area;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
@@ -1909,17 +1912,17 @@ SaErrorT SAHPI_API saHpiIdrAreaDelete(
                     ResourceId,did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
-        }        
+        }
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->del_idr_area;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
+
         /* Access Inventory Info from plugin */
         dbg("Access IdrAreaDelete from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, AreaId);
@@ -1967,11 +1970,11 @@ SaErrorT SAHPI_API saHpiIdrFieldGet(
                     ResourceId,did);
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
-        }        
+        }
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->get_idr_field;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
@@ -2023,7 +2026,7 @@ SaErrorT SAHPI_API saHpiIdrFieldAdd(
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->add_idr_field;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
@@ -2073,7 +2076,7 @@ SaErrorT SAHPI_API saHpiIdrFieldSet(
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->set_idr_field;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
@@ -2121,13 +2124,13 @@ SaErrorT SAHPI_API saHpiIdrFieldDelete(
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_func = h->abi->del_idr_field;
         if (!set_func) {
                 dbg("Plugin does not have this function in jump table.");
                 return SA_ERR_HPI_INVALID_CMD;
         }
-        
+
         /* Access Inventory Info from plugin */
         dbg("Access saHpiIdrFieldDelete from plugin.");
         rv = set_func(h->hnd, ResourceId, IdrId, AreaId, FieldId);
@@ -2238,7 +2241,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
         SaHpiRptEntryT *res;
         struct oh_handler *h;
         struct oh_domain *d = NULL;
-        SaHpiDomainIdT did;        
+        SaHpiDomainIdT did;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2344,7 +2347,7 @@ SaErrorT SAHPI_API saHpiAnnunciatorModeSet(
  *  Hotswap Functions
  *
  ******************************************************************************/
- 
+
 SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         SAHPI_IN SaHpiSessionIdT  SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId)
@@ -2375,7 +2378,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
-                
+
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
                 dbg( "Can't find resource data for Resource %d in Domain %d",ResourceId,did);
@@ -2393,11 +2396,11 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
-        
+
         set_hotswap_state = h->abi->set_hotswap_state;
         if (!set_hotswap_state) {
                 return SA_ERR_HPI_INVALID_CMD;
-        }       
+        }
 
         rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE);
 
@@ -2426,7 +2429,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
-        }        
+        }
 
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
         if (!rd) {
@@ -2448,7 +2451,7 @@ SaErrorT SAHPI_API saHpiResourceInactiveSet (
         set_hotswap_state = h->abi->set_hotswap_state;
         if (!set_hotswap_state) {
                 return SA_ERR_HPI_INVALID_CMD;
-        }       
+        }
 
         rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_INACTIVE);
 
