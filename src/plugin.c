@@ -317,7 +317,7 @@ int oh_load_plugin(char *plugin_name)
 
         err = get_interface(&plugin->abi, UUID_OH_ABI_V2);
         if (err < 0 || !plugin->abi || !plugin->abi->open) {
-                dbg("Can not get ABI V1");
+                dbg("Can not get ABI V2");
                 goto err1;
         }
         plugin_list = g_slist_append(plugin_list, plugin);
