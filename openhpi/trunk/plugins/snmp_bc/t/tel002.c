@@ -41,22 +41,6 @@ int main(int argc, char **argv)
 		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 	}
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_CONTROL, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
-	if (err != SA_OK) {
-		printf("Can not find a control resource for test environment\n");
-		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
-		err = tcleanup(&sessionid);
-		return SA_OK;
-	}
-	
-	id = rptentry.ResourceId;
-
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! Can not open session for test environment\n");
-		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
-		return -1;
-	}
 	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_EVENT_LOG, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
 		printf("Can not find a control resource for test environment\n");

@@ -110,8 +110,9 @@ SaErrorT tfind_resource(SaHpiSessionIdT *sessionid_ptr,
 		}
 		rptentryid = nextrptentryid;
 	} while ((rvRptGet == SA_OK) && (rptentryid != SAHPI_LAST_ENTRY));
-		        
-	return(rvRptGet);
+		  
+	if (rptentryid != SAHPI_LAST_ENTRY) return(SA_OK);
+	return(SA_ERR_HPI_NOT_PRESENT);
 }
 
 

@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
+	SaHpiRptEntryT rptentry;				
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
 	SaHpiIdrIdT       idrId = 0;
@@ -35,61 +35,63 @@ int main(int argc, char **argv)
 	SaHpiEntryIdT     fieldId = 0;
 	SaHpiIdrFieldT    field; 
 	memset (&field, 0, sizeof(SaHpiIdrFieldT));	
-        /* *************************************                 
-	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
+	
+	struct oh_handler_state l_handle;
+	memset(&l_handle, 0, sizeof(struct oh_handler_state));
 
+	/* *************************************	 	 
+	 * Find a resource with inventory capability
+	 * ************************************* */
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 	}
 
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_INVENTORY_DATA, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_INVENTORY_DATA, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Can not find an Inventory resource for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
+		return SA_OK;
 	}
-
+	
 	id = rptentry.ResourceId;
 	/************************** 
-	 * Test :
+	 * Test: Add to a read-only Idr Area
 	 **************************/
 	expected_err = SA_ERR_HPI_READ_ONLY;                   
-	err = snmp_bc_add_idr_area((void *)h->hnd, id, idrId, SAHPI_IDR_AREATYPE_UNSPECIFIED, &areaId);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiIdrAreaAdd(sessionid, id, idrId, SAHPI_IDR_AREATYPE_UNSPECIFIED, &areaId);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test :
+	 * Test: Add to a read-only Idr Field
 	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
 	 **************************/
-	err = snmp_bc_add_idr_field((void *)h->hnd, id, idrId, &field);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiIdrFieldAdd(sessionid, id, idrId, &field);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test :
+	 * Test: Del a read-only Idr Area
 	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
 	 **************************/
-	err = snmp_bc_del_idr_area((void *)h->hnd, id, idrId, areaId);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiIdrAreaDelete(sessionid, id, idrId, areaId);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test :
+	 * Test: Del a read-only Idr Field
 	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
 	 **************************/
-	err = snmp_bc_del_idr_field((void *)h->hnd, id, idrId, areaId, fieldId);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiIdrFieldDelete(sessionid, id, idrId, areaId, fieldId);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test :
+	 * Test: Set a read-only Idr Field
 	 * expected_err = SA_ERR_HPI_READ_ONLY;                   
 	 **************************/
-	err = snmp_bc_set_idr_field((void *)h->hnd, id, idrId, &field); 
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiIdrFieldSet(sessionid, id, idrId, &field); 
+	checkstatus(err, expected_err, testfail);
 
 	/**************************&*
 	 * Cleanup after all tests

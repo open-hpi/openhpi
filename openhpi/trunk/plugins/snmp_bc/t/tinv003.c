@@ -27,72 +27,88 @@ int main(int argc, char **argv)
 	int testfail = 0;
 	SaErrorT          err;
 	SaErrorT expected_err;
-					
+	SaHpiRptEntryT rptentry;
+	SaHpiRdrT	rdr;			
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
-	SaHpiIdrIdT       idrId = 0;
+	SaHpiIdrIdT        idrId= 0;
 	SaHpiEntryIdT     areaId = 0;
 	/* SaHpiIdrAreaTypeT areatype; */
 	SaHpiEntryIdT     nextAreaId;
 	SaHpiIdrAreaHeaderT header;
-        /* *************************************                 
-	 * Find a resource with Sensor type rdr
-	 * * ************************************* */
-	struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-	SaHpiRptEntryT rptentry;
-	SaHpiRdrT	*rdrptr;
 
+	/* *************************************	 	 
+	 * Find a resource with inventory capability
+	 * ************************************* */
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 	}
 
-	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_INVENTORY_DATA, h, &rptentry);
+	err = tfind_resource(&sessionid, SAHPI_CAPABILITY_INVENTORY_DATA, SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! can not setup test environment\n");
+		printf("Can not find an Inventory resource for test environment\n");
+		printf("       File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
-		return -1;
-	}
-
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
+		return SA_OK;
+	}	
 	id = rptentry.ResourceId;
-        idrId  = 0;
-	do {
-		idrId++;
-		rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_INVENTORY_RDR, idrId);
-		if (rdrptr != NULL) break;
-	} while ((rdrptr == NULL) && (idrId < 128));
 
-        if (rdrptr == NULL) testfail = -1;
+	/************************** 
+	 * Test: find an Inventory RDR
+	 **************************/
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundControl = SAHPI_FALSE;			
+	do {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if (rdr.RdrType == SAHPI_INVENTORY_RDR) 
+			{
+				foundControl = SAHPI_TRUE;
+				break;
+														
+			}
+			entryid = nextentryid;
+		}
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
+
+	if (!foundControl) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		idrId = rdr.RdrTypeUnion.InventoryRec.IdrId; 
+	}	
 		
 	/************************** 
-	 * Test :
+	 * Test: Invalid IdrId
 	 **************************/
 	expected_err = SA_ERR_HPI_NOT_PRESENT;                   
-	err = snmp_bc_get_idr_area_header(handle , id, 5000,
+	err = saHpiIdrAreaHeaderGet(sessionid , id, 5000,
 		       			SAHPI_IDR_AREATYPE_UNSPECIFIED,
 				       	areaId, &nextAreaId, &header);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 		
 	/************************** 
-	 * Test :
+	 * Test: Invalid AreaType
 	 **************************/
 	expected_err = SA_OK;                   
-	err = snmp_bc_get_idr_area_header(handle , id, idrId,
+	err = saHpiIdrAreaHeaderGet(sessionid , id, idrId,
 		       			SAHPI_IDR_AREATYPE_UNSPECIFIED,
 				       	areaId, &nextAreaId, &header);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 		
 	/************************** 
-	 * Test :
-	 **************************/
+	 * Test: Normal code path
+ 	 **************************/
 	expected_err = SA_OK;                   
-	err = snmp_bc_get_idr_area_header(handle , id, idrId,
+	err = saHpiIdrAreaHeaderGet(sessionid , id, idrId,
 		       			SAHPI_IDR_AREATYPE_UNSPECIFIED,
 				       	SAHPI_FIRST_ENTRY, &nextAreaId, &header);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/**************************&*
 	 * Cleanup after all tests
