@@ -5847,7 +5847,11 @@ struct snmp_bc_sensor snmp_bc_switch_sensors[] = {
  * Chassis Controls
  ******************/
 
-struct snmp_bc_control snmp_bc_chassis_controls[] = {
+/* Currently BC and BCT chassis controls are exclusive; if in the future
+   there are common chassis controls; change snmp_bc_discover_bc.c to 
+   discover the common controls */
+
+struct snmp_bc_control snmp_bc_chassis_controls_bc[] = {
         /* Front Panel Information R/W LED - System updates; user can clear */
         {
                 .control = {
@@ -5907,6 +5911,37 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
                 },
                 .comment = "Front Panel Identify LED"
         },
+
+        {} /* Terminate array with a null element */
+};
+
+struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
+        /* Front Panel Identify R/W LED. User controlled. */
+  	/* 0 is Off; 1 is solid on; 2 is blinking */
+	{
+                .control = {
+                        .Num = 2,
+                        .OutputType = SAHPI_CTRL_LED,
+                        .Type = SAHPI_CTRL_TYPE_DISCRETE,
+                        .TypeUnion.Discrete.Default = 0,
+			.DefaultMode = {
+				.Mode = SAHPI_CTRL_MODE_MANUAL,
+				.ReadOnly = SAHPI_TRUE,
+			},
+			.WriteOnly = SAHPI_FALSE,
+                        .Oem = 0,
+                },
+                .control_info = {
+                        .mib = {
+                                .not_avail_indicator_num = 3,
+                                .write_only = SAHPI_FALSE,
+                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.3.4.0",
+                        },
+			.cur_mode = SAHPI_CTRL_MODE_MANUAL,
+                },
+                .comment = "Front Panel Identify LED"
+        },
+
         {} /* Terminate array with a null element */
 };
 
@@ -5917,7 +5952,6 @@ struct snmp_bc_control snmp_bc_chassis_controls[] = {
 #define LAST_COMMON_BLADE_CONTROL_NUM 2
 
 struct snmp_bc_control snmp_bc_blade_controls[] = {
-
         /* Blade Information R/W LED - System updates; user can clear */
         {
                 .control = {
@@ -5956,7 +5990,7 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
 	/* 0 is Off; 1 is solid on; 2 is blinking */
         {
                 .control = {
-                        .Num = 2,
+                        .Num = LAST_COMMON_BLADE_CONTROL_NUM,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,
                         .TypeUnion.Discrete.Default = 0,
@@ -6289,362 +6323,3 @@ struct snmp_bc_inventory snmp_bc_power_inventories[] = {
 
         {} /* Terminate array with a null element */
 };
-
-#if 0
-        /* System Error LED on chassis */
-        {
-                .sensor = {
-                        .Num = 1,
-                        .Type = SAHPI_PLATFORM_VIOLATION,
-                        .Category = SAHPI_EC_SEVERITY,
-                        .EnableCtrl = SAHPI_FALSE,
-			.EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_CRITICAL,
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_OK,
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .sensor_info = {
-                        .sensor_enabled = SAHPI_TRUE,
-                        .cur_state = SAHPI_ES_OK,
-                        .events_enabled = SAHPI_TRUE,
-                        .sensor_evt_enablement = {
-                                .SensorStatus  = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .deassert_mask = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.1.0",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Front Panel LED - System Error"
-        },
-        /* Temperature LED on the chassis */
-        {
-                .sensor = {
-                        .Num = 2,
-                        .Type = SAHPI_TEMPERATURE,
-                        .Category = SAHPI_EC_SEVERITY,
-                        .EnableCtrl = SAHPI_FALSE,
-			.EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_CRITICAL
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_OK
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .sensor_info = {
-                        .sensor_enabled = SAHPI_TRUE,
-                        .cur_state = SAHPI_ES_OK,
-                        .events_enabled = SAHPI_TRUE,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .deassert_mask = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.1.3.0",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Front Panel LED - Temperature"
-        },
-        /* Blade Error LED */
-        {
-                .sensor = {
-                        .Num = 1,
-                        .Type = SAHPI_PLATFORM_VIOLATION,
-                        .Category = SAHPI_EC_SEVERITY,
-                        .EnableCtrl = SAHPI_FALSE,
-			.EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_CRITICAL,
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_OK,
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .sensor_info = {
-                        .sensor_enabled = SAHPI_TRUE,
-                        .cur_state = SAHPI_ES_OK,
-                        .events_enabled = SAHPI_TRUE,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .assert_mask   = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                                .deassert_mask = SAHPI_ES_OK | SAHPI_ES_CRITICAL,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.7.x",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Blade LED - Error"
-        },
-        /*  Blade KVM Usage LED */
-        {
-                .sensor = {
-                        .Num = 2,
-                        .Type = SAHPI_BUTTON,
-                        .Category = SAHPI_EC_USAGE,
-                        .EnableCtrl = SAHPI_FALSE,
-			.EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL |SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 2,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_BUSY
-                                                }
-                                        },
-                                        .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_ACTIVE
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_IDLE
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .sensor_info = {
-                        .sensor_enabled = SAHPI_TRUE,
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .events_enabled = SAHPI_TRUE,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .assert_mask   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                                .deassert_mask = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.9.x",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Blade LED - KVM usage"
-        },
-        /*  Blade Media Tray Usage LED */
-        {
-                .sensor = {
-                        .Num = 3,
-                        .Type = SAHPI_BUTTON,
-                        .Category = SAHPI_EC_USAGE,
-                        .EnableCtrl = SAHPI_FALSE,
-			.EventCtrl = SAHPI_SEC_NO_EVENTS,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        .Ignore = SAHPI_FALSE,
-                        .DataFormat = {
-                                .ReadingFormats = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                .IsNumeric = SAHPI_TRUE,
-                                .SignFormat = SAHPI_SDF_UNSIGNED,
-                                .BaseUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUnits = SAHPI_SU_UNSPECIFIED,
-                                .ModifierUse = SAHPI_SMUU_NONE,
-                                .FactorsStatic = SAHPI_TRUE,
-                                .Factors = {
-                                        .M_Factor = 1,
-                                        .Linearization = SAHPI_SL_NONLINEAR,
-                                },
-                                .Percentage = SAHPI_FALSE,
-                                .Range = {
-                                        .Flags = SAHPI_SRF_MIN | SAHPI_SRF_NOMINAL |SAHPI_SRF_MAX,
-                                        .Max = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 2,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_BUSY
-                                                }
-                                        },
-                                        .Nominal = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 1,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_ACTIVE
-                                                }
-                                        },
-                                        .Min = {
-                                                .ValuesPresent = SAHPI_SRF_EVENT_STATE | SAHPI_SRF_RAW,
-                                                .Raw = 0,
-                                                .EventStatus = {
-                                                        .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                                        .EventStatus = SAHPI_ES_IDLE
-                                                }
-                                        }
-                                }
-                        },
-                        .ThresholdDefn = {
-                                .IsThreshold = SAHPI_FALSE
-                        },
-                        .Oem = 0
-                },
-                .sensor_info = {
-                        .sensor_enabled = SAHPI_TRUE,
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
-                        .events_enabled = SAHPI_TRUE,
-                        .sensor_evt_enablement = {
-                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .assert_mask   = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                                .deassert_mask = SAHPI_ES_IDLE | SAHPI_ES_ACTIVE | SAHPI_ES_BUSY,
-                        },
-                        .mib = {
-                                .not_avail_indicator_num = 0,
-                                .write_only = SAHPI_FALSE,
-                                .oid = ".1.3.6.1.4.1.2.3.51.2.2.8.2.1.1.10.x",
-                        },
-                        .event_array = {
-                                {},
-                        },
-                },
-                .comment = "Blade LED - Media Tray usage"
-        },
-#endif
