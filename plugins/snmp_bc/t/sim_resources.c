@@ -468,6 +468,188 @@ struct snmp_bc_data sim_resource_array[] = {
 		},
 	},
 #endif
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 1 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.1",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 1,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 2 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.2",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 2,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 3 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.3",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 3,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 4 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.4",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 4,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 5 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.5",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 5,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 6 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.6",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 6,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 7 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.7",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 7,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 8 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.8",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 8,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 9 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.9",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 9,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 10 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.10",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 10,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 11 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.11",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 11,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 12 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.12",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 12,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 13 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.13",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 13,
+			},
+		},
+	},
+        {
+		/* BCT ONLY (BC will add on its next release)
+		 *  
+		 * Blade 14 Number of reboots - bootCountPowerOnTimeBoots
+		 */
+		.oid = ".1.3.6.1.4.1.2.3.51.1.10.1.3.14",
+		.mib = {
+			.type = ASN_INTEGER,
+			.value = {
+				.integer = 14,
+			},
+		},
+	},
 	{
 		/* Blade Health - Blade 1 */	
 		.oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.1.1.5.1",
