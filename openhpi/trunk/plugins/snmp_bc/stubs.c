@@ -2,51 +2,6 @@
 
 #include <snmp_bc_plugin.h>
 
-#if 0
-SaErrorT oh_print_event(SaHpiEventT *event)
-{
-  printf("Need to implement this\n");
-  return(SA_OK);
-}
-#endif
-
-SaErrorT snmp_bc_get_sel_info(void *hnd, 
-			       SaHpiResourceIdT id, 
-			       SaHpiEventLogInfoT *info)
-{
-  return(SA_ERR_HPI_UNSUPPORTED_API);
-}
-
-SaErrorT snmp_bc_set_sel_time(void *hnd, 
-			      SaHpiResourceIdT id, 
-			      SaHpiTimeT time)
-{
-  return(SA_ERR_HPI_UNSUPPORTED_API);
-}
-
-SaErrorT snmp_bc_add_sel_entry(void *hnd, 
-			       SaHpiResourceIdT id, 
-			       const SaHpiEventT *Event)
-{
-  return(SA_ERR_HPI_UNSUPPORTED_API);
-}
-
-SaErrorT snmp_bc_get_sel_entry(void *hnd, 
-			       SaHpiResourceIdT id, 
-			       SaHpiEventLogEntryIdT current,
-			       SaHpiEventLogEntryIdT *prev, 
-			       SaHpiEventLogEntryIdT *next,
-			       SaHpiEventLogEntryT *entry)
-{
-  return(SA_ERR_HPI_UNSUPPORTED_API);
-}
-
-SaErrorT snmp_bc_clear_sel(void *hnd, 
-			   SaHpiResourceIdT id)
-{
-  return(SA_ERR_HPI_UNSUPPORTED_API);
-}
-
 SaErrorT snmp_bc_get_sensor_data(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiSensorNumT num,

@@ -30,29 +30,34 @@ typedef struct {
 } bc_sel_entry;
 
 
-/* 
- * Function Prototyping
- */
-
-/* FIXME:: All of these should return SaErrorT */
+/* Function Prototyping */
 SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle,
 				 char *logstr,
 				 bc_sel_entry *sel);
 
-int snmp_bc_get_sel_entry(void *hnd,
-			  SaHpiResourceIdT id,
-			  SaHpiEventLogEntryIdT current,
-                          SaHpiEventLogEntryIdT *prev,
-			  SaHpiEventLogEntryIdT *next,
-                          SaHpiEventLogEntryT *entry);
+SaErrorT snmp_bc_get_sel_entry(void *hnd,
+			       SaHpiResourceIdT id,
+			       SaHpiEventLogEntryIdT current,
+			       SaHpiEventLogEntryIdT *prev,
+			       SaHpiEventLogEntryIdT *next,
+			       SaHpiEventLogEntryT *entry);
 
-int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
-int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
-int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event);
-int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId);
-int snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id);
-int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
-int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId);
+SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
+SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
+SaErrorT snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event);
 SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id);
 
+SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
+				SaHpiResourceIdT id,
+				SaHpiEventLogEntryIdT entryId);
+
+SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceIdT id);
+
+SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
+			       SaHpiResourceIdT id,
+			       SaHpiEventLogEntryIdT sid);
+
+SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
+			       SaHpiResourceIdT id,
+			       SaHpiEventLogEntryIdT entryId);
 #endif

@@ -44,7 +44,7 @@ EXTRA_DIST		=	bc_errorlog.h \
 
 # Generated files (e.g.bc_xmlevents.c rsa_xmlevents.c) must be listed first
 libsnmp_bc_la_SOURCES	= \
-                                bc_xmlevents \
+				bc_xmlevents.c \
                                 rsa_xmlevents.c \
                                 com_xml2event.c \
                                 bc_resources.c \
@@ -63,7 +63,6 @@ libsnmp_bc_la_SOURCES	= \
 #				snmp_bc_control.c \
 #				snmp_bc_hotswap.c \
 #				snmp_bc_sensor.c \
-#				snmp_bc_inventory.c \
 #				snmp_bc_watchdog.c
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la

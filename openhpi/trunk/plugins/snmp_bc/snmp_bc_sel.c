@@ -20,379 +20,504 @@
 
 #include <snmp_bc_plugin.h>
 
-#if 0
-oh_sel *bc_selcache = NULL;
+oh_el *bc_selcache = NULL;
 
 /**
- * get_bc_sel_size:
- * @hnd: 
- * @id: 
+ * snmp_bc_get_sel_size:
+ * @handle: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log.
  * 
- * Return value: Number of event log entries
+ * Get size of event log. 
+ *
+ * Return values:
+ * Number of event log entries - normal case.
  **/
-static int get_bc_sel_size(void *hnd, SaHpiResourceIdT id)
+static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceIdT id)
 {
-
-        int i = 1;
-        struct oh_handler_state *handle = hnd;
+        int i=1;
 	
-	/*
-	 * Go synchronize cache and hardware copy of the SEL
-	*/
-        snmp_bc_check_selcache(hnd, id, SAHPI_NEWEST_ENTRY);
+	/* Go synchronize cache and hardware copy of the SEL */
+        snmp_bc_check_selcache(handle, id, SAHPI_NEWEST_ENTRY);
 	
-	/* Return the entry count    */
-        i = g_list_length(handle->selcache->selentries);
+	/* Return the entry count */
+        i = g_list_length(handle->elcache->elentries);
         return i;
-
 }
 
 /**
- * get_bc_sel_size_from_hardware:
- * @ss: 
+ * snmp_bc_get_sel_size_from_hardware:
+ * @ss: Pointer to SNMP session data.
  * 
- * 
- * Return value:  Number of event log entries read from Blade Center 
+ * Unfortunately, BladeCenter SNMP support does not provide access to the number 
+ * of entries in the event log. This routine finds the number by sequentially 
+ * reading the entire log and counting the number of entries.
+ *
+ * Notice that this routine always reads one past the max event number's OID. 
+ * It relies on a non-zero return code from SNMP to determine when there are 
+ * no more entries.
+ *
+ * Return values:
+ * Number of event log entries - normal case.
  **/
-static int get_bc_sel_size_from_hardware(struct snmp_session *ss)
+static int snmp_bc_get_sel_size_from_hardware(struct snmp_session *ss)
 {
         struct snmp_value run_value;
-        char oid[50];
+        char oid[SNMP_BC_MAX_OID_LENGTH];
         int i = 1;
 
-        /*
-          Since Blade Center snmp agent does not provide this count,
-          this is the only way to figure out how entries there are
-	  in Blade Center SEL.
-        */
         do {
-                sprintf(oid, "%s.%d", BC_SEL_INDEX_OID, i);
+		snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_INDEX_OID, i);
                 i++;
-        } while(snmp_get(ss,oid,&run_value) == 0);
+        } while(snmp_get(ss, oid, &run_value) == 0);
         
-        /* think about it, and it makes sense */
+        /* Think about it, and it makes sense */
         i -= 2;
         return i;
 }
 
 /**
- * snmp_bc_get_sel_entry:
- * @hnd: 
- * @id: 
- * @info: 
+ * snmp_bc_get_sel_info:
+ * @hnd: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log.
+ * @info: Location to store Event Log information.
+ *
+ * Returns SaHpiEventLogInfoT information about Event Log.
  * 
- * Return value: 0 on success, < 0 on error
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Any pointer parameter is NULL.
  **/
-int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info) 
+SaErrorT snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info) 
 {
+        char oid[SNMP_BC_MAX_OID_LENGTH];
+        int i=1;
+	SaErrorT err;
         struct snmp_value first_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-        bc_sel_entry sel_entry;
         struct tm curtime;
-        char oid[50];
-        int i = 1;
-        
+        bc_sel_entry sel_entry;
+
+        /* FIXME:: Make sure all these are right */
         SaHpiEventLogInfoT sel = {
                 .Size = 512, /* this is clearly a guess but looks about right 
                               * from the 75% full errors I've seen */
+		.UserEventMaxSize = SAHPI_MAX_TEXT_BUFFER_LENGTH,
                 .Enabled = SAHPI_TRUE,
                 .OverflowFlag = SAHPI_FALSE,
-                .OverflowAction = SAHPI_SEL_OVERFLOW_DROP,
-                .DeleteEntrySupported = SAHPI_FALSE
+		.OverflowResetable = SAHPI_FALSE,
+                .OverflowAction = SAHPI_EL_OVERFLOW_DROP,
         };
         
-        sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, i);
-        /* we need first value to figure out what our update time is */
-        snmp_get(custom_handle->ss,oid,&first_value);
-        
-        if(first_value.type == ASN_OCTET_STR) {
-                if(snmp_bc_parse_sel_entry(handle,first_value.string, &sel_entry) < 0) {
-                        dbg("Couldn't get first date");
+	if (!hnd || !info) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+        snprintf(oid, SNMP_BC_MAX_OID_LENGTH,"%s.%d", SNMP_BC_SEL_ENTRY_OID, i);
+        /* Need first value to figure out what update time is */
+        err = snmp_get(custom_handle->ss, oid, &first_value);
+        /* FIXME:: Need to return error code here ??? */
+
+        if (first_value.type == ASN_OCTET_STR) {
+		err = snmp_bc_parse_sel_entry(handle, first_value.string, &sel_entry);
+                if (err) {
+                        dbg("Cannot get first date");
+			/* FIXME:: Return an error code here ???? */
                 } else {
-                        sel.UpdateTimestamp = 
-                                (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
+                        sel.UpdateTimestamp = (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
                 }
         }
         
-        if(get_bc_sp_time(handle,&curtime) == 0) {
-                sel.CurrentTime = 
-                        (SaHpiTimeT) mktime(&curtime) * 1000000000;
+        if (get_bc_sp_time(handle, &curtime) == 0) {
+                sel.CurrentTime = (SaHpiTimeT) mktime(&curtime) * 1000000000;
         }
-        
-        sel.Entries = get_bc_sel_size(hnd, id);
+        /* FIXME:: Check for error here???? */
+
+        sel.Entries = snmp_bc_get_sel_size(handle, id);
         *info = sel;
         
-        return 0;
+        return(SA_OK);
 }
 
 /**
  * snmp_bc_get_sel_entry:
- * @hnd: 
- * @id: 
- * @current: 
- * @prev: 
- * @next: 
- * @entry: 
+ * @hnd: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log.
+ * @current: Current event's ID.
+ * @prev: Location to store previous event's ID.
+ * @next: Location to store next event's ID.
+ * @entry: Location to store retrieved event.
+ *
+ * Gets an entry from the system Event Log.
  * 
- * See saHpiEventLogEntryGet for params
- * 
- * Return value: 0 on success, < 0 on error
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - Any pointer parameter is NULL.
  **/
-int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
-                          SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
-                          SaHpiEventLogEntryT *entry)
+SaErrorT snmp_bc_get_sel_entry(void *hnd,
+			       SaHpiResourceIdT id,
+			       SaHpiEventLogEntryIdT current,
+			       SaHpiEventLogEntryIdT *prev,
+			       SaHpiEventLogEntryIdT *next,
+			       SaHpiEventLogEntryT *entry)
 {
-        SaHpiEventLogEntryT tmpentry, *tmpentryptr;
+
+	/* FIXME:: should the last parameter (entry) be a oh_el_entry instead??? */
+	/* Why do we need tmpentry ??? don't do this below in snmp_bc_selcache_sync?? */
+        oh_el_entry tmpentry, *tmpentryptr;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 	tmpentryptr = &tmpentry; 
-	SaErrorT rc;
+	SaErrorT err = SA_OK;
 
-	rc = snmp_bc_check_selcache(hnd, id, current);
-	if (handle->selcache != NULL) {
-		rc = oh_sel_get(handle->selcache, current, prev, next, &tmpentryptr);
-		if (rc != SA_OK) {
-			dbg("Error fetching entry number %d from cache, errnum %d  >>>\n", current, rc);
+	if (!hnd || !prev || !next || !entry) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = snmp_bc_check_selcache(handle, id, current);
+	if (err) {
+		dbg("Event Log cache check failed.");
+		return(err);
+	}
+	
+	if (handle->elcache != NULL) {
+		err = oh_el_get(handle->elcache, current, prev, next, &tmpentryptr);
+		if (err) {
+			dbg("Getting Event Log entry=%d from cache failed. Error=%s.", 
+			    current, oh_lookup_error(err));
+			return(err);
 		} else {
-			memcpy(entry, tmpentryptr, sizeof(SaHpiEventLogEntryT));
+			memcpy(entry, &(tmpentryptr->event), sizeof(SaHpiEventLogEntryT));
 		}
 	} else {
-		dbg("Missing handle->selcache");
+		dbg("Missing handle->elcache");
+		/* FIXME: Is this an error? What error code??? */
+		/* return(SA_ERR_HPI_INTERNAL_ERROR); ??? */
 	}
 		
-        return rc;
+        return(SA_OK);
 }
 
 /**
  * snmp_bc_build_selcache
- * @hnd: 
- * @id: 
+ * @handle: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log. 
  * 
+ * Builds internal event log cache.
  * 
- * Return value: 0 on success, < 0 on error
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @handle is NULL.
  **/
-SaErrorT snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id)
+SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceIdT id)
 {
 	int current;
-	SaErrorT rv;
-	struct oh_handler_state *handle = hnd;
+	SaErrorT err;
 	struct snmp_bc_hnd *custom_handle = handle->data;
 	
-	current = get_bc_sel_size_from_hardware(custom_handle->ss);
-	if (current != 0) {
+	if (!handle) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	current = snmp_bc_get_sel_size_from_hardware(custom_handle->ss);
+	if (current) {
 		do {
-			rv = snmp_bc_sel_read_add (hnd, id, current); 
+			err = snmp_bc_sel_read_add(handle, id, current);
+			/* FIXME:: What do we do on error - break or just record ???*/
 			current--;
 		} while(current > 0);
 	}
-	return SA_OK;
+
+	return(SA_OK);
 }
 
 /**
- * snmp_bc_check_selcache
- * @hnd: 
- * @id: 
- * @entryId: 
+ * snmp_bc_check_selcache:
+ * @handle: Pointer to handler's data.
+ * @id: Resource ID that owns Event Log.
+ * @entryId: Event Log entry ID.
  * 
+ * Sync Event Log's cache. If this is first entry, then create the
+ * event log cache.
  * 
- * Return value: 0 on success, < 0 on error
- **/
-int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
+ * Return values:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @handler is NULL.
+**/
+SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
+				SaHpiResourceIdT id,
+				SaHpiEventLogEntryIdT entryId)
 {
-        struct oh_handler_state *handle = hnd;
-	SaErrorT rv;
+	SaErrorT err;
 
-	if (g_list_length(handle->selcache->selentries) == 0) {
-		rv = snmp_bc_build_selcache(hnd, id);
-	} else {
-		rv = snmp_bc_selcache_sync(hnd, id, entryId);
+	if (!handle) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
-	return rv;
+
+	if (g_list_length(handle->elcache->elentries) == 0) {
+		err = snmp_bc_build_selcache(handle, id);
+	} else {
+		err = snmp_bc_selcache_sync(handle, id, entryId);
+	}
+	
+	if (err) {
+		dbg("Event Log cache build/sync failed. Error=%s", oh_lookup_error(err));
+		return(err);
+	}
+
+	return(SA_OK);
 }
 
 /**
  * snmp_bc_selcache_sync
- * @hnd: 
- * @id: 
- * @entryId: 
+ * @handle: Pointer to handler's data.
+ * @id: Resource ID that owns Event Log.
+ * @entryId: Event Log entry ID.
  * 
+ * Synchronizes interal event log cache. 
  * 
- * Return value: 0 on success, < 0 on error
+ * Return values:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @handle is NULL.
  **/
-int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId)
+SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
+			       SaHpiResourceIdT id,
+			       SaHpiEventLogEntryIdT entryId)
 {
 	SaHpiEventLogEntryIdT current;
 	SaHpiEventLogEntryIdT prev;
 	SaHpiEventLogEntryIdT next;
         struct snmp_value get_value;
-        struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
         bc_sel_entry sel_entry;
-        SaHpiEventLogEntryT  *fetchentry;
+        oh_el_entry *fetchentry;
         SaHpiTimeT new_timestamp;
-	char oid[50];
-	SaErrorT rv;
-	int rc, cacheupdate = 0;
+	char oid[SNMP_BC_MAX_OID_LENGTH];
+	SaErrorT err;
+	int cacheupdate = 0;
 
-	rv = oh_sel_get(handle->selcache, SAHPI_NEWEST_ENTRY, &prev, &next, &fetchentry);
-	if (rv != SA_OK)
-		fetchentry = NULL;
+	if (!handle) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = oh_el_get(handle->elcache, SAHPI_NEWEST_ENTRY, &prev, &next, &fetchentry);
+	if (err) fetchentry = NULL;
 		
 	current = 1;
-	sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-       	rc = snmp_get(custom_handle->ss,oid,&get_value);
-       	if (rc != 0) 
-	{
-		/* 
-		 * snmp_get() returns -1 if snmp agent does not respond *or*
+	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
+       	err = snmp_get(custom_handle->ss, oid, &get_value);
+       	if (err) {
+		/* snmp_get() returns -1 if snmp agent does not respond *or*
 		 * snmp log entry does not exist. 
-		 *
-		 * For now, assuming the best i.e. snmp log is empty. 
-		 */
-		dbg("snmp log is empty.\n");
-		rv = oh_sel_clear(handle->selcache);
-	
-	} else {
-		if (fetchentry == NULL) {
-			rv = snmp_bc_build_selcache(hnd, id);
-			return SA_OK;
-		}
-		
-		if(snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
-			dbg("Couldn't parse SEL Entry");
-       			return -1;
-		}
+		 * For now, assuming the best i.e. snmp log is empty. */
 
-		new_timestamp = (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000;
-		if (fetchentry->Event.Timestamp != new_timestamp)
-		{
-			while (1) {
-				current++;
-               			sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-               			rv = snmp_get(custom_handle->ss,oid,&get_value);
-				if (rv == 0) {
-               				if(snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
-               					dbg("Couldn't parse SEL Entry");
-                       				return -1;
-					}
+		/* FIXME:: Can't we distinguish between the 2 conditions above now??? */
+		dbg("SNMP log is empty.");
+		err = oh_el_clear(handle->elcache);
+		return(err);
+	}
 
-					if ((fetchentry->Event.Timestamp == 
-						 (SaHpiTimeT) mktime(&sel_entry.time) * 1000000000)) 
-					{
-						current--;
-						cacheupdate = 1;	
-						break;
-					}
-               			} else {
-					dbg("Old entry not found and end of snmp log reached.\n");
-					break;
+	if (fetchentry == NULL) {
+		err = snmp_bc_build_selcache(handle, id);
+		return(err);
+	}
+
+	if (snmp_bc_parse_sel_entry(handle, get_value.string, &sel_entry) < 0) {
+		dbg("Cannot parse Event Log entry");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+	new_timestamp = (SaHpiTimeT)mktime(&sel_entry.time) * 1000000000;
+	if (fetchentry->event.Event.Timestamp != new_timestamp) {
+		while (1) {
+			current++;
+			snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
+			err = snmp_get(custom_handle->ss,oid,&get_value);
+			if (err == 0) {
+				if (snmp_bc_parse_sel_entry(handle, get_value.string, &sel_entry) < 0) {
+					dbg("Cannot parse SEL entry.");
+					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
 				
-			}
-
-			if (cacheupdate) {
-	        		do {
-					rv = snmp_bc_sel_read_add (hnd, id, current); 
-                       			current--;
-               			} while(current > 0);
+				if ((fetchentry->event.Event.Timestamp == 
+				     (SaHpiTimeT)mktime(&sel_entry.time) * 1000000000)) {
+					current--;
+					cacheupdate = 1;	
+					break;
+				}
 			} else {
-				rv = oh_sel_clear(handle->selcache);
-				snmp_bc_build_selcache(hnd, id);				
+				dbg("Old entry not found and end of SNMP log reached.");
+				break;
 			}
-		} else {
-			; /* dbg("There are no new entry indicated.\n"); */
 		}
+		
+		if (cacheupdate) {
+			do {
+				err = snmp_bc_sel_read_add (handle, id, current);
+				/* FIXME:: What if err ??? */
+				current--;
+			} while(current > 0);
+		} else {
+			err = oh_el_clear(handle->elcache);
+			/* FIXME:: What if err ??? */
+			err =snmp_bc_build_selcache(handle, id);
+			/* FIXME:: What if err ??? */
+		}
+	} else {
+		; /* dbg("There are no new entry indicated.\n"); */
 	}
-	return SA_OK;  
+	
+	return(SA_OK);  
 }
 
 /**
  * snmp_bc_set_sel_time:
- * @hnd: 
- * @id: 
- * @time: 
+ * @hnd: Pointer to handler's data. 
+ * @id: Resource's ID that owns Event Log.
+ * @time: HPI time.
  * 
+ * Set Event Log's time.
  * 
- * 
- * Return value: 
+ * Return values: 
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
  **/
-int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
+SaErrorT snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 {
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
         struct tm tv;
         time_t tt;
-        SaErrorT returncode;
+        SaErrorT err;
+
+	if (!hnd) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);    
+	}
 
         tt = time / 1000000000;
-        
         localtime_r(&tt, &tv);
+	
+	err = set_bc_sp_time(custom_handle->ss, &tv);
+        if (err) {
+		dbg("Cannot set time. Error=%s.", oh_lookup_error(err));
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
 
-        if (set_bc_sp_time(custom_handle->ss,&tv) == 0)
-                returncode = SA_OK;
-        else
-                returncode = SA_ERR_HPI_ERROR;
-                 
-        return returncode;
+        return(SA_OK);
 }
 
 /**
  * snmp_bc_add_sel_entry:
- * @hnd: 
- * @id: 
- * @Event: 
+ * @hnd: Pointer to handler's data. 
+ * @id: Resource's ID that owns Event Log.
+ * @Event: Location of event to be added. 
  * 
- * Add is not supported with tihs hardware, so -1 is always returned
+ * Add is not supported by the hardware.
  * 
- * Return value: -1
+ * Return values:
+ * SA_ERR_HPI_INVALID_CMD - normal operation.
  **/
-int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
+SaErrorT snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventT *Event)
 {
-        return SA_ERR_HPI_INVALID_CMD;
+        return(SA_ERR_HPI_INVALID_CMD);
 }
 
 /**
  * snmp_bc_sel_read_add:
- * @hnd: 
- * @id: 
- * @current: 
+ * @hnd: Pointer to handler's data. 
+ * @id: Resource's ID that owns Event Log.
+ * @current: Current Event Log entry ID.
  * 
+ *  Add event to Event Log.
  * 
- * Return value: -1 if fails. 0 SA_OK
+ * Return values:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
  **/
-int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current)
+SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
+			       SaHpiResourceIdT id, 
+			       SaHpiEventLogEntryIdT current)
 {
-        struct snmp_value get_value;
-        struct oh_handler_state *handle = hnd;
-        struct snmp_bc_hnd *custom_handle = handle->data;
+        char oid[SNMP_BC_MAX_OID_LENGTH];
+	int isdst=0;
+	SaErrorT err;
         SaHpiEventT tmpevent;
-        char oid[50];
-        SaErrorT rv;
-	int isdst = 0;
+	SaHpiRdrT *rdr_ptr=NULL; 
+	SaHpiEntryIdT rdrid=0;
+        struct snmp_value get_value;
+        struct snmp_bc_hnd *custom_handle = handle->data;
 
-	sprintf(oid, "%s.%d", BC_SEL_ENTRY_OID, current);
-	snmp_get(custom_handle->ss,oid,&get_value);
-
-	if(get_value.type == ASN_OCTET_STR) {
-		int event_enabled;
-
-		/*snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry);*/
-		/* isdst = sel_entry.time.tm_isdst;*/
-                snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst, &event_enabled);
-                handle->selcache->nextId = current;                
-                rv = oh_sel_add(handle->selcache, &tmpevent);
-		
-		if (event_enabled) {
-			rv = snmp_bc_add_to_eventq(handle, &tmpentry.Event);
-		}
-	} else {
-		dbg("Couldn't fetch SEL Entry from BladeCenter snmp");
-		return -1;
+	if (!handle) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
-        return SA_OK;
+	snprintf(oid, SNMP_BC_MAX_OID_LENGTH, "%s.%d", SNMP_BC_SEL_ENTRY_OID, current);
+	err = snmp_get(custom_handle->ss, oid, &get_value);
+	/* FIXME:: Check errors???? */
+
+	if (get_value.type == ASN_OCTET_STR) {
+		int event_enabled;
+
+		/* snmp_bc_parse_sel_entry(handle,get_value.string, &sel_entry); */
+		/* isdst = sel_entry.time.tm_isdst; */
+
+		/* FIXME:: Just passing 0 for isdst - this is correct?? */
+                snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst, &event_enabled);
+                handle->elcache->nextId = current;
+		
+/* FIXME:: Nice to have an event to rdr pointer function - this same code appears in snmp_bc_event.c */
+/* in rpt_utils.c ??? */		
+/* FIXME:: Add B.1.1. types */		
+		switch (tmpevent.EventType) {
+		case SAHPI_ET_OEM:
+		case SAHPI_ET_HOTSWAP:
+		case SAHPI_ET_USER:
+			/* FIXME:: Why do this - just set rdr_ptr = NULL ??? */
+			/* rdr storage is temporary */
+			#if 0
+			rdr.RecordId = 0; /* There is no RDR associated to OEM event */
+                                          /* Set RDR ID to invalid value of 0        */
+			#endif
+			rdr_ptr = NULL;
+			break;		  
+		case SAHPI_ET_SENSOR:
+			rdrid = get_rdr_uid(SAHPI_SENSOR_RDR,
+					    tmpevent.EventDataUnion.SensorEvent.SensorNum); 
+			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent.Source, rdrid);
+			break;
+		case SAHPI_ET_WATCHDOG:
+			rdrid = get_rdr_uid(SAHPI_WATCHDOG_RDR,
+					    tmpevent.EventDataUnion.WatchdogEvent.WatchdogNum);
+			rdr_ptr = oh_get_rdr_by_id(handle->rptcache, tmpevent.Source, rdrid);
+			break;
+		default:
+			dbg("Unrecognized Event Type=%d.", tmpevent.EventType);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+			break;
+		} 
+
+		/* FIXME:: Do we need to set up memory for RDR and RES or just use pointers returned
+                   by oh_get_xxx rotuines ??? */
+		err = oh_el_append(handle->elcache, &tmpevent,
+				   rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
+		
+		if (event_enabled) {
+			err = snmp_bc_add_to_eventq(handle, &tmpevent);
+			/* FIXME:: Check errors???? */
+		}
+	} else {
+		dbg("Cannot get SEL entry");
+		return(SA_ERR_HPI_INTERNAL_ERROR);
+	}
+
+        return(SA_OK);
 }
-#endif
 
 /**
  * snmp_bc_parse_sel_entry:
@@ -491,38 +616,43 @@ SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, 
         return(SA_OK);
 }
 
-#if 0
 /**
  * snmp_bc_clear_sel:
- * @hnd: 
- * @id: 
- * @info: 
+ * @hnd: Pointer to handler's data.
+ * @id: Resource ID that owns the Event Log.
  * 
- * Return value: 0 on success, < 0 on error
+ * Clears the system event log.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_PARAMS - @hnd is NULL.
  **/
-SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id) 
+SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 {
-        char oid[50];
-	int retcode;
 	struct snmp_value set_value;
         struct oh_handler_state *handle = hnd;
         struct snmp_bc_hnd *custom_handle = handle->data;
-	SaErrorT rv;
-		
-	rv = oh_sel_clear(handle->selcache);
+	SaErrorT err;
 
-	sprintf(oid, "%s", BC_CLEAR_SEL_OID);
+	if (!hnd) {
+		dbg("Invalid parameters.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+		
+	err = oh_el_clear(handle->elcache);
+	if (err) {
+		dbg("Cannot clear system Event Log. Error=%s.", oh_lookup_error(err));
+		return(err);
+	}
+
 	set_value.type = ASN_INTEGER;
 	set_value.str_len = 1;
 	set_value.integer = (long) clearEventLogExecute;
-	retcode = snmp_set(custom_handle->ss, oid, set_value);
-	
-	if (retcode != 0)
-		rv = SA_ERR_HPI_ERROR;
-	else 
-		rv = SA_OK;
+	err = snmp_set(custom_handle->ss, SNMP_BC_CLEAR_SEL_OID, set_value);
+	if (err) {
+		dbg("SNMP set failed. Error=%s.", oh_lookup_error(err));
+		return(err);
+	}
 		
-	return rv;
-
+	return(SA_OK);
 }
-#endif
