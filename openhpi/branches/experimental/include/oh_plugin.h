@@ -106,7 +106,7 @@ struct oh_rdr_event {
  */
 struct oh_hpi_event {
 	/*This is resource id which the event belongs to */
-        struct oh_resource_id parent;
+        SaHpiResourceIdT parent;
         /* struct oh_resource_id	parent; */
 	/*This is rdr id which the event relates*/
         SaHpiEntryIdT id;
