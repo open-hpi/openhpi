@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 	 * TestCase - Blade Duplicate Event ( EN_PFA_HI_FAULT_3_35V)
          * Same as previous testcase only for the blade not chassis
 	 *************************************************************/
-	logstr = "Severity:INFO  Source:BLADE_10  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
+	logstr = "Severity:INFO  Source:BLADE_11  Name:WMN315702424  Date:10/11/03  Time:09:09:46  Text:System over recommended voltage on +3.3v. Read value 3.5 Threshold value 3.4";
 	memset(&logentry, 0 , sizeof(SaHpiSelEntryT));
 	strcpy(hash_value->value.string, logstr);
 	g_hash_table_insert(sim_hash, hash_key, hash_value);
