@@ -44,8 +44,6 @@ int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curre
 int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
 int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
 int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
-int set_bc_sp_time(struct snmp_session *, struct tm *);
-int get_bc_sp_time(struct snmp_session *, struct tm *);
 int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId);
 int snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id);
 int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
