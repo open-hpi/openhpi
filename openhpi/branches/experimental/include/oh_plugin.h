@@ -274,54 +274,65 @@ struct oh_abi_v1 {
 	 * get control info
 	 */
 	int (*get_control_info)(void *hnd, SaHpiResourceIdT id,
-				SaHpiCtrlTypeT *type);
+                            SaHpiCtrlNumT num,
+                            SaHpiCtrlTypeT *type);
 
 	/**
 	 * get control state
 	 */
 	int (*get_control_state)(void *hnd, SaHpiResourceIdT id,
-				 SaHpiCtrlStateT *state);
+                             SaHpiCtrlNumT num,
+                             SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
 	int (*set_control_state)(void *hnd, SaHpiResourceIdT id,
-				 SaHpiCtrlStateT *state);
+                             SaHpiCtrlNumT num,
+                             SaHpiCtrlStateT *state);
 	
 	/**
 	 * set inventory state
 	 */
-	int (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
-				  size_t *size);
+        int (*get_inventory_size)(void *hnd, SaHpiResourceIdT id,
+                                  SaHpiEirIdT num, /* yes, they don't call it a
+                                                    * num, but it still is one
+                                                    */
+                                  size_t *size);
 
 	/**
 	 * get inventory state
 	 */
-	int (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
-				  SaHpiInventoryDataT *data);
+        int (*get_inventory_info)(void *hnd, SaHpiResourceIdT id,
+                                  SaHpiEirIdT num,
+                                  SaHpiInventoryDataT *data);
 
 	/**
 	 * set inventory state
 	 */
-	int (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
-				  const SaHpiInventoryDataT *data);
+        int (*set_inventory_info)(void *hnd, SaHpiResourceIdT id,
+                                  SaHpiEirIdT num,
+                                  const SaHpiInventoryDataT *data);
 
 	/**
 	 * get watchdog timer info
 	 */
 	int (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
-				 SaHpiWatchdogT *wdt);
+                             SaHpiWatchdogNumT num,
+                             SaHpiWatchdogT *wdt);
 
 	/** 
 	 * set watchdog timer info
 	 */
 	int (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
-				 SaHpiWatchdogT *wdt);
+                             SaHpiWatchdogNumT num,
+                             SaHpiWatchdogT *wdt);
 
 	/**
 	 * reset watchdog timer info
 	 */
-	int (*reset_watchdog)(void *hnd, SaHpiResourceIdT id);
+        int (*reset_watchdog)(void *hnd, SaHpiResourceIdT id,
+                              SaHpiWatchdogNumT num);
 
 	/**
 	 * get hotswap state
