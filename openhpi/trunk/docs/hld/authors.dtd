@@ -12,12 +12,6 @@
         marks of others.
 -->
 
-<!ENTITY andrea-brugger "
-<author>
-  <firstname>Andrea</firstname>
-  <surname>Brugger</surname>
-</author>
-">
 <!ENTITY sean-dague "
 <author>
   <firstname>Sean</firstname>
@@ -48,13 +42,19 @@
   <surname>Zhuang</surname>
 </author>
 ">
+<!ENTITY tariq-shureih "
+<author>
+  <firstname>Tariq</firstname>
+  <surname>Shureih</surname>
+</author>
+">
 <!ENTITY openhpi-authors "
 <authorgroup>
-  &andrea-brugger;
   &sean-dague;
   &kevin-gao;
   &david-judkovics;
   &rusty-lynch;
   &louis-zhuang;
+  &tariq-shureih;
 </authorgroup>
 ">
