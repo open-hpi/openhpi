@@ -69,6 +69,8 @@ int main(int arc, const char *argv[])
                 warn("an error was encountered, results may be incomplete");
         }
 
+        saHpiSessionClose(session_id);
+
         err = saHpiFinalize();
         if (SA_OK != err) {
                 error("saHpiFinalize", err);
