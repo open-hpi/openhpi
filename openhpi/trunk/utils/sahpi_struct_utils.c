@@ -680,7 +680,7 @@ static SaErrorT oh_build_sensorrec(oh_big_textbuffer *buffer, const SaHpiSensorR
 		oh_append_offset(buffer, offsets);
 	        oh_append_bigtext(buffer, "Events: ");
 		err = oh_decode_eventstate(sensor->Events, sensor->Category, &evt_buffer);
-		if (err != SA_OK) { return(err); }
+		if (err != SA_OK) {oh_append_bigtext(buffer, "\n"); return(err); }
 		oh_append_bigtext(buffer, evt_buffer.Data);
 		oh_append_bigtext(buffer, "\n");
 	}
