@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2003 Intel Corporation
+# Copyright (c) 2003, Intel Corporation
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or
@@ -30,50 +30,6 @@
 #
 
 
-MAINTAINERCLEANFILES    = Makefile.in
 
-SAHPIFILES = sahpi_enum_utils.c sahpi_enum_utils.h 
+EXTRA_DIST              = SaHpi2code.pl text2cstr.pl
 
-EXTRA_DIST		= \
-					el_utils.h \
-					epath_utils.h \
-					event_utils.h \
-					oh_utils.h \
-					rpt_utils.h \
-					sahpi_event_encode.h \
-					sahpi_event_utils.h \
-					sahpi_struct_utils.h \
-					sahpi_time_utils.h \
-					uid_utils.h 
-
-
-MOSTLYCLEANFILES        = @TEST_CLEAN@
-
-INCLUDES                = -I$(top_srcdir)/include
-
-SUBDIRS                 = t
-DIST_SUBDIRS            = t
-
-AM_CFLAGS               = @CFLAGS@
-
-pkgconfigdir            = $(libdir)/pkgconfig
-pkgconfig_DATA          = openhpiutils.pc
-
-lib_LTLIBRARIES         = libopenhpiutils.la
-
-# Generated files (e.g.sahpi_enum_utils.c) must be listed first
-libopenhpiutils_la_SOURCES = \
-			sahpi_enum_utils.c \
-			sahpi_event_encode.c \
-			el_utils.c \
-			epath_utils.c \
-			rpt_utils.c \
-			sahpi_event_utils.c \
-			sahpi_struct_utils.c \
-			sahpi_time_utils.c \
-			uid_utils.c
-
-libopenhpiutils_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
-
-$(SAHPIFILES): $(top_srcdir)/include/SaHpi.h $(top_srcdir)/scripts/SaHpi2code.pl
-	$(top_srcdir)/scripts/SaHpi2code.pl -ifile $(top_srcdir)/include/SaHpi.h

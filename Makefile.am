@@ -51,7 +51,7 @@ MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub
 MOSTLYCLEANFILES	= tags
 
 SUBDIRS			= utils @SNMPDIR@ @MARSHALDIR@ plugins src docs @ENABLED_DIRS@ test
-DIST_SUBDIRS 		= utils snmp marshal plugins src docs openhpid examples clients test
+DIST_SUBDIRS 		= utils snmp marshal plugins src docs openhpid examples clients test scripts
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
@@ -72,6 +72,9 @@ include_HEADERS	= $(top_srcdir)/include/SaHpi.h \
 		  $(top_srcdir)/utils/sahpi_time_utils.h \
 		  $(top_srcdir)/utils/rpt_utils.h \
 		  $(top_srcdir)/utils/uid_utils.h
+
+$(top_srcdir)/utils/sahpi_enum_utils.h:
+	make -C $(top_builddir)/utils sahpi_enum_utils.h
 
 install-data-local: openhpi.pc
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
