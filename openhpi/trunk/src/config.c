@@ -21,54 +21,84 @@
 #include <glib.h>
 
 struct oh_handler_config *new_handler_config(char *, char *, char *);
+struct oh_plugin_config *new_plugin_config(char *);
 
 /*
   load_config will actually get out to a config file soon enough based
   on DomainId mapping.  For now this just defines the interface.
 */
 
-int load_domain_config (struct oh_domain_config **config, SaHpiDomainIdT DomainId) 
+int oh_load_config (struct oh_config *config) 
 {
-        char dn[] = "default_domain";
         char p1[] = "libdummy";
         char p2[] = "libwatchdog";
-	
-	if (DomainId != DEFAULT_DOMAIN_ID)
-		return -1;
-
-        (*config)->domain_name = calloc(1,sizeof(dn));
-        strcpy((*config)->domain_name,dn);
-        (*config)->plugins = NULL;
         
-        (*config)->plugins = g_slist_append(
-                (*config)->plugins, 
-                (gpointer *) new_handler_config(p1, NULL, NULL)
+        config->plugins = NULL;
+        config->handlers = NULL;
+        
+        config->plugins = g_slist_append(
+                config->plugins, 
+                (gpointer *) new_plugin_config(p1)
+                );
+        config->plugins = g_slist_append(
+                config->plugins, 
+                (gpointer *) new_plugin_config(p2)
                 );
         
-        (*config)->plugins = g_slist_append(
-                (*config)->plugins, 
+        config->handlers = g_slist_append(
+                config->handlers, 
+                (gpointer *) new_handler_config(p1, NULL, NULL)
+                );
+        config->handlers = g_slist_append(
+                config->handlers, 
                 (gpointer *) new_handler_config(p2, NULL, NULL)
                 );
         return 0;
 }
 
-void free_domain_config(struct oh_domain_config *dconf) 
+void oh_free_config(struct oh_config *dconf) 
 {
         int i;
         struct oh_handler_config *temp;
+        struct oh_plugin_config *temp2;
 
         for(i = 0; i < g_slist_length(dconf->plugins); i++) {
-                temp = (struct oh_handler_config *) g_slist_nth_data(
+                temp2 = (struct oh_plugin_config *) g_slist_nth_data(
                         dconf->plugins, i);
+                free(temp2->name);
+        }
+        for(i = 0; i < g_slist_length(dconf->handlers); i++) {
+                temp = (struct oh_handler_config *) g_slist_nth_data(
+                        dconf->handlers, i);
                 free(temp->plugin);
                 free(temp->name);
                 free(temp->address);
         }
+        g_slist_free(dconf->handlers);
         g_slist_free(dconf->plugins);
-        free(dconf->domain_name);
+        
         free(dconf);
         return;
 }
+
+struct oh_plugin_config *new_plugin_config (char *plugin) 
+{
+        struct oh_plugin_config *pc;
+
+        pc = calloc(1,sizeof(*pc));
+        if(pc == NULL) {
+                dbg("Couldn't allocate memory for handler_config");
+                return pc;
+        }
+        
+        if(plugin != NULL) {
+                pc->name = calloc(strlen(plugin)+1, sizeof(char));
+                strcpy(pc->name,plugin);
+        }
+        
+        return pc;
+}
+
 
 struct oh_handler_config *new_handler_config (char *plugin, char *name, char *address) 
 {
@@ -81,15 +111,15 @@ struct oh_handler_config *new_handler_config (char *plugin, char *name, char *ad
         }
 
         if(plugin != NULL) {
-                (*hc).plugin = calloc(strlen(plugin)+1, sizeof(char));
+                hc->plugin = calloc(strlen(plugin)+1, sizeof(char));
                 strcpy(hc->plugin,plugin);
         }
         if(name != NULL) {
-                (*hc).name = calloc(strlen(name)+1, sizeof(char));
+                hc->name = calloc(strlen(name)+1, sizeof(char));
                 strcpy(hc->name,name);
         }
         if(name != NULL) {
-                (*hc).address = calloc(strlen(address)+1, sizeof(char));
+                hc->address = calloc(strlen(address)+1, sizeof(char));
                 strcpy(hc->address,address);
         }
         return hc;
