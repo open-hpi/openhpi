@@ -190,6 +190,29 @@ struct oh_handler {
 };
 
 /*
+ * Representation of additional resource data
+ * stored in the data field rpt_utils for each
+ * resource
+ */
+
+struct oh_resource_data
+{
+        /*
+           The handler of the resource
+        */
+        struct oh_handler *handler;
+
+        /*
+         * The two fields are valid when resource is 
+         * CAPABILITY_HOTSWAP
+         */
+
+        int                controlled;
+        SaHpiTimeoutT      auto_extract_timeout;
+};
+
+
+/*
  * Representation of an HPI resource
  */
 struct oh_resource {
@@ -354,6 +377,8 @@ int hotswap_pop_event(struct oh_hpi_event *e);
 int hotswap_has_event(void);
 SaHpiTimeoutT get_hotswap_auto_insert_timeout(void);
 void set_hotswap_auto_insert_timeout(SaHpiTimeoutT);
+SaHpiTimeoutT get_default_hotswap_auto_extract_timeout(void);
+void set_default_hotswap_auto_extract_timeout(SaHpiTimeoutT to);
 
 
 /* sensor value conversion */

@@ -95,9 +95,11 @@ SaHpiRdrT *oh_get_rdr_by_type(RPTable *table, SaHpiResourceIdT rid,
 SaHpiRdrT *oh_get_rdr_next(RPTable *table, SaHpiResourceIdT rid, SaHpiEntryIdT rdrid_prev);
 SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num);
 
+#if 0
 /* Other state information about managed resources */
 guint32 oh_is_resource_managed(SaHpiResourceIdT rid);
 int oh_set_resource_managed(SaHpiResourceIdT rid, guint32 i);
+#endif
 
 #ifdef __cplusplus
 }
