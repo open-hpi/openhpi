@@ -411,9 +411,11 @@ static inline void gettimeofday1(SaHpiTimeT *t)
 #ifdef HAVE_THREAD_SAFE
 void data_access_lock(void);
 void data_access_unlock(void);
+int data_access_block_times(void); 
 #else
 static inline void data_access_lock(void) {};
 static inline void data_access_unlock(void) {};
+static inline int data_access_block_times(void){};
 #endif
 
 #define dbg(format, ...)                                      \
