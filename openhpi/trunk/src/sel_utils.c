@@ -68,7 +68,7 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
         GList *temp;
 
         /* check for valid sel params and state */
-        if (sel == NULL) {
+        if (sel == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         if (sel->enabled == FALSE) {
@@ -136,7 +136,7 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
         GList *sellist;
         SaHpiSelEntryIdT srchentryid, firstid, lastid;
 
-        if (sel == NULL) {
+        if (sel == NULL || prev == NULL || next == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -192,6 +192,10 @@ SaErrorT oh_sel_info(oh_sel *sel, SaHpiSelInfoT *info)
 {
         time_t tt1;
 
+        if (sel == NULL || info == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         info->Entries = g_list_length(sel->selentries);
         info->Size = sel->maxsize;
         info->UpdateTimestamp = sel->lastUpdate;
@@ -211,7 +215,7 @@ SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
         int file;
         GList *sellist;
 
-        if (sel == NULL) {
+        if (sel == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
@@ -244,7 +248,7 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
         SaErrorT retc;
 
         /* check sel params and state */
-        if (sel == NULL) {
+        if (sel == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
         if (sel->enabled == FALSE) {
