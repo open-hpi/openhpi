@@ -14,8 +14,8 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  */
 
-#ifndef OH_LOCK_H
-#define OH_LOCK_H
+#ifndef __OH_LOCK_H
+#define __OH_LOCK_H
 
 #include <config.h>
 
@@ -64,6 +64,6 @@ extern GStaticRecMutex oh_main_lock;
 #define data_access_lock()
 #define data_access_unlock()
 
-#endif/*HAVE_THREAD_SAFE*/
+#endif /*HAVE_THREAD_SAFE*/
 
-#endif
+#endif /* __OH_LOCK_H */

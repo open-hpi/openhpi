@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef OH_SESSION_H
-#define OH_SESSION_H
+#ifndef __OH_SESSION_H
+#define __OH_SESSION_H
 
 #include <SaHpi.h>
 #include <oh_event.h>
@@ -76,5 +76,5 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
                                   struct oh_event *event);
 SaErrorT oh_destroy_session(SaHpiDomainIdT sid);
 
-#endif /* OH_SESSION_H */
+#endif /* __OH_SESSION_H */
 

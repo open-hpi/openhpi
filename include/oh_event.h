@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef OH_EVENT_H
-#define OH_EVENT_H
+#ifndef __OH_EVENT_H
+#define __OH_EVENT_H
 
 #include <SaHpi.h>
 #include <oh_utils.h>
@@ -96,7 +96,7 @@ extern GAsyncQueue *oh_process_q;
 /* function definitions */
 int oh_event_init(void);
 int oh_event_final(void);
-unsigned int get_log_severity(char *);
+unsigned int get_log_severity(char *severity);
 SaErrorT get_events(RPTable *rpt);
 SaErrorT harvest_events(void);
 SaErrorT process_events(RPTable *rpt);
@@ -105,5 +105,5 @@ SaErrorT process_events(RPTable *rpt);
 /*}*/
 #endif
         
-#endif /* OH_EVENT_H */
+#endif /* __OH_EVENT_H */
 

@@ -17,14 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <glib.h>
-#include <oh_init.h>
-#include <oh_lock.h>
-#include <oh_error.h>
-#include <oh_config.h>
-#include <oh_domain.h>
-#include <oh_session.h>
-#include <uid_utils.h>
-#include <oh_event.h>
+#include <openhpi.h>
 
 static enum {
         UNINIT,
