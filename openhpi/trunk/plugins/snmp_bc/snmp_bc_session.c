@@ -62,6 +62,7 @@ void *snmp_bc_open(GHashTable *handler_config)
  
         /* Initialize SEL cache */
         handle->selcache =  oh_sel_create(OH_SEL_MAX_SIZE);
+	handle->selcache->gentimestamp = FALSE;
 
 	/* Initialize String-to-Event hash table */
 	if (str2event_hash_init()) {
