@@ -3132,6 +3132,8 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
 {
         SaHpiRptEntryT *res;
         SaHpiDomainIdT did;
+        SaHpiHsStateT currentstate;
+        SaErrorT rv;
         struct oh_domain *d = NULL;
         struct oh_resource_data *rd;
 
@@ -3143,6 +3145,20 @@ SaErrorT SAHPI_API saHpiHotSwapPolicyCancel (
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
+        }
+
+        /* per spec, we only allow a cancel from certain states */
+        rv = saHpiHotSwapStateGet(SessionId, ResourceId, &currentstate);
+        if(rv != SA_OK) {
+                dbg("Failed to determine current HS state of Resource %d", ResourceId);
+                oh_release_domain(d); /* Unlock domain */
+                return rv;
+        }
+        if((currentstate != SAHPI_HS_STATE_INSERTION_PENDING) &&
+           (currentstate != SAHPI_HS_STATE_EXTRACTION_PENDING)) {
+                dbg("Invalid cancel from state %s",oh_lookup_hsstate(currentstate));
+                oh_release_domain(d);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
 
         rd = oh_get_resource_data(&(d->rpt), ResourceId);
