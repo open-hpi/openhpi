@@ -67,6 +67,7 @@ int main (int argc, char *argv[])
 	GThreadPool *thrdpool;
         int port;
         char *portstr;
+        char * configfile = NULL;
 
         // use config file given by the command line
         if (argc > 1) {
@@ -74,10 +75,28 @@ int main (int argc, char *argv[])
                 setenv("OPENHPI_CONF", argv[1], 1);
         }
 
+        // see if we have a valid configuration file
+        char *cfgfile = getenv("OPENHPI_CONF");
+        if (cfgfile == NULL) {
+                printf("Error: Configuration file not specified in the environment.\n");
+                printf("       Aborting execution.\n");
+                exit(-1);
+        }
+        if (!g_file_test(cfgfile, G_FILE_TEST_EXISTS)) {
+                printf("Error: Configuration file does not exist.\n");
+                printf("       Aborting execution.\n");
+                exit(-1);
+        }
+        configfile = (char *) malloc(strlen(cfgfile) + 1);
+        strcpy(configfile, cfgfile);
+
         // become a daemon
 	if (!morph2daemon(FALSE)) {	// this is an error condition
 		exit(8);
 	}
+
+        // as a daemon we do NOT inherit the environment!
+        setenv("OPENHPI_CONF", configfile, 1);
 
         // create the thread pool
 	g_thread_init(NULL);
@@ -336,7 +355,6 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                                          hm, pReq, &session_id, &entry_id ) < 0 )
                    return eResultError;
 
-              printf("sessionid = %d, entryid = %d\n", session_id, entry_id);
               ret = saHpiDrtEntryGet( session_id, entry_id, &next_entry_id,
                                       &drt_entry );
 
@@ -346,7 +364,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
 
        case eFsaHpiDomainTagSet: {
               SaHpiSessionIdT  session_id;
-              SaHpiTextBufferT *domain_tag;
+              SaHpiTextBufferT domain_tag;
 
               printf("Processing saHpiDomainTagSet.\n");
 
@@ -859,9 +877,9 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
        break;
 
        case eFsaHpiSensorThresholdsSet: {
-              SaHpiSessionIdT session_id;
-              SaHpiResourceIdT resource_id;
-              SaHpiSensorNumT  sensor_num;
+              SaHpiSessionIdT        session_id;
+              SaHpiResourceIdT       resource_id;
+              SaHpiSensorNumT        sensor_num;
               SaHpiSensorThresholdsT sensor_thresholds;
 
               printf("Processing saHpiSensorThresholdsSet.\n");
@@ -904,7 +922,7 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               SaHpiSessionIdT  session_id;
               SaHpiResourceIdT resource_id;
               SaHpiSensorNumT  sensor_num;
-              SaHpiBoolT       enables;
+              SaHpiBoolT       enabled;
 
               printf("Processing saHpiSensorEnableGet.\n");
 
@@ -914,9 +932,9 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
                    return eResultError;
 
               ret = saHpiSensorEnableGet( session_id, resource_id,
-                                          sensor_num, &enables );
+                                          sensor_num, &enabled );
 
-              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enables );
+              thrdinst->header.m_len = HpiMarshalReply1( hm, pReq, &ret, &enabled );
        }
        break;
 
@@ -924,17 +942,17 @@ static tResult HandleMsg(psstrmsock thrdinst, char *data)
               SaHpiSessionIdT  session_id;
               SaHpiResourceIdT resource_id;
               SaHpiSensorNumT  sensor_num;
-              SaHpiBoolT       enables;
+              SaHpiBoolT       enabled;
 
               printf("Processing saHpiSensorEnableSet.\n");
 
               if ( HpiDemarshalRequest4( thrdinst->header.m_flags & dMhEndianBit,
                                          hm, pReq, &session_id, &resource_id,
-                                         &sensor_num, &enables ) < 0 )
+                                         &sensor_num, &enabled ) < 0 )
                    return eResultError;
 
               ret = saHpiSensorEnableSet( session_id, resource_id,
-                                          sensor_num, enables );
+                                          sensor_num, enabled );
 
               thrdinst->header.m_len = HpiMarshalReply0( hm, pReq, &ret );
        }

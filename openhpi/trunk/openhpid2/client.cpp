@@ -68,6 +68,249 @@ CleanupClient(void);
 
 
 /*----------------------------------------------------------------------------*/
+/* Utility routines                                                           */
+/*----------------------------------------------------------------------------*/
+
+static const char * oh_lookup_severity(SaHpiSeverityT value)
+{
+        switch (value) {
+        case SAHPI_CRITICAL:
+                return "CRITICAL";
+        case SAHPI_MAJOR:
+                return "MAJOR";
+        case SAHPI_MINOR:
+                return "MINOR";
+        case SAHPI_INFORMATIONAL:
+                return "INFORMATIONAL";
+        case SAHPI_OK:
+                return "OK";
+        case SAHPI_DEBUG:
+                return "DEBUG";
+        case SAHPI_ALL_SEVERITIES:
+                return "ALL_SEVERITIES";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_rdrtype(SaHpiRdrTypeT value)
+{
+        switch (value) {
+        case SAHPI_NO_RECORD:
+                return "NO_RECORD";
+        case SAHPI_CTRL_RDR:
+                return "CTRL_RDR";
+        case SAHPI_SENSOR_RDR:
+                return "SENSOR_RDR";
+        case SAHPI_INVENTORY_RDR:
+                return "INVENTORY_RDR";
+        case SAHPI_WATCHDOG_RDR:
+                return "WATCHDOG_RDR";
+        case SAHPI_ANNUNCIATOR_RDR:
+                return "ANNUNCIATOR_RDR";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_ctrlmode(SaHpiCtrlModeT value)
+{
+        switch (value) {
+        case SAHPI_CTRL_MODE_AUTO:
+                return "AUTO";
+        case SAHPI_CTRL_MODE_MANUAL:
+                return "MANUAL";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_ctrlstatedigital(SaHpiCtrlStateDigitalT value)
+{
+        switch (value) {
+        case SAHPI_CTRL_STATE_OFF:
+                return "OFF";
+        case SAHPI_CTRL_STATE_ON:
+                return "ON";
+        case SAHPI_CTRL_STATE_PULSE_OFF:
+                return "PULSE_OFF";
+        case SAHPI_CTRL_STATE_PULSE_ON:
+                return "PULSE_ON";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_watchdogaction(SaHpiWatchdogActionT value)
+{
+        switch (value) {
+        case SAHPI_WA_NO_ACTION:
+                return "NO_ACTION";
+        case SAHPI_WA_RESET:
+                return "RESET";
+        case SAHPI_WA_POWER_DOWN:
+                return "POWER_DOWN";
+        case SAHPI_WA_POWER_CYCLE:
+                return "POWER_CYCLE";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_watchdogpretimerinterrupt(SaHpiWatchdogPretimerInterruptT value)
+{
+        switch (value) {
+        case SAHPI_WPI_NONE:
+                return "NONE";
+        case SAHPI_WPI_SMI:
+                return "SMI";
+        case SAHPI_WPI_NMI:
+                return "NMI";
+        case SAHPI_WPI_MESSAGE_INTERRUPT:
+                return "MESSAGE_INTERRUPT";
+        case SAHPI_WPI_OEM:
+                return "OEM";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_watchdogtimeruse(SaHpiWatchdogTimerUseT value)
+{
+        switch (value) {
+        case SAHPI_WTU_NONE:
+                return "NONE";
+        case SAHPI_WTU_BIOS_FRB2:
+                return "BIOS_FRB2";
+        case SAHPI_WTU_BIOS_POST:
+                return "BIOS_POST";
+        case SAHPI_WTU_OS_LOAD:
+                return "OS_LOAD";
+        case SAHPI_WTU_SMS_OS:
+                return "SMS_OS";
+        case SAHPI_WTU_OEM:
+                return "OEM";
+        case SAHPI_WTU_UNSPECIFIED:
+                return "UNSPECIFIED";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_annunciatormode(SaHpiAnnunciatorModeT value)
+{
+        switch (value) {
+        case SAHPI_ANNUNCIATOR_MODE_AUTO:
+                return "AUTO";
+        case SAHPI_ANNUNCIATOR_MODE_USER:
+                return "USER";
+        case SAHPI_ANNUNCIATOR_MODE_SHARED:
+                return "SHARED";
+        default:
+                return NULL;
+        }
+}
+
+static const char * oh_lookup_hsaction(SaHpiHsActionT value)
+{
+        switch (value) {
+        case SAHPI_HS_ACTION_INSERTION:
+                return "INSERTION";
+        case SAHPI_HS_ACTION_EXTRACTION:
+                return "EXTRACTION";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_hsindicatorstate(SaHpiHsIndicatorStateT value)
+{
+        switch (value) {
+        case SAHPI_HS_INDICATOR_OFF:
+                return "OFF";
+        case SAHPI_HS_INDICATOR_ON:
+                return "ON";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_parmaction(SaHpiParmActionT value)
+{
+        switch (value) {
+        case SAHPI_DEFAULT_PARM:
+                return "DEFAULT_PARM";
+        case SAHPI_SAVE_PARM:
+                return "SAVE_PARM";
+        case SAHPI_RESTORE_PARM:
+                return "RESTORE_PARM";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_resetaction(SaHpiResetActionT value)
+{
+        switch (value) {
+        case SAHPI_COLD_RESET:
+                return "COLD_RESET";
+        case SAHPI_WARM_RESET:
+                return "WARM_RESET";
+        case SAHPI_RESET_ASSERT:
+                return "RESET_ASSERT";
+        case SAHPI_RESET_DEASSERT:
+                return "RESET_DEASSERT";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_powerstate(SaHpiPowerStateT value)
+{
+        switch (value) {
+        case SAHPI_POWER_OFF:
+                return "OFF";
+        case SAHPI_POWER_ON:
+                return "ON";
+        case SAHPI_POWER_CYCLE:
+                return "CYCLE";
+        default:
+                return NULL;
+        }
+}
+
+
+static const char * oh_lookup_texttype(SaHpiTextTypeT value)
+{
+        switch (value) {
+        case SAHPI_TL_TYPE_UNICODE:
+                return "UNICODE";
+        case SAHPI_TL_TYPE_BCDPLUS:
+                return "BCDPLUS";
+        case SAHPI_TL_TYPE_ASCII6:
+                return "ASCII6";
+        case SAHPI_TL_TYPE_TEXT:
+                return "TEXT";
+        case SAHPI_TL_TYPE_BINARY:
+                return "BINARY";
+        default:
+                return NULL;
+        }
+}
+
+
+/*----------------------------------------------------------------------------*/
 /* InitClient                                                                 */
 /*----------------------------------------------------------------------------*/
 
@@ -131,7 +374,7 @@ SaHpiVersionT SAHPI_API dOpenHpiClientFunction(VersionGet)
 
         if (pinst == NULL) {
                 if (InitClient()) {
-                        cdebug_err(cmd, "client initialization failed");
+                        cdebug_err(cmd, "Client initialization failed");
                         return SA_ERR_HPI_NO_RESPONSE;
                 }
         }
@@ -166,13 +409,12 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 	SaErrorT err; 
 	char cmd[] = "saHpiSessionOpen";
 
-	if (SecurityParams != 0) {
-		cdebug_err(cmd, "invalid parameters");
+        if (SessionId == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
+	if (SecurityParams != NULL)
 		return SA_ERR_HPI_INVALID_PARAMS;
-	};
         if (pinst == NULL) {
                 if (InitClient()) {
-                        cdebug_err(cmd, "client initialization failed");
                         return SA_ERR_HPI_NO_RESPONSE;
                 }
         }
@@ -190,10 +432,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionOpen)
 	int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err, SessionId);
 
-	if (err != SA_OK)
-		CleanupClient();
 	if (request)
 		free(request);
+	if (err != SA_OK)
+		CleanupClient();
 	if (mr < 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -213,10 +455,8 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 	SaErrorT err; 
 	char cmd[] = "saHpiSessionClose";
 
-	if (SessionId < 0 || pinst == NULL ) {
-		cdebug_err(cmd, "invalid parameters");
+	if (SessionId < 0 || pinst == NULL )
 		return SA_ERR_HPI_INVALID_PARAMS;
-	}
 
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionClose);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiSessionClose,
@@ -251,10 +491,8 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 	SaErrorT err; 
 	char cmd[] = "saHpiDiscover";
 
-	if (SessionId < 0 || pinst == NULL) {
-		cdebug_err(cmd, "invalid parameters");
+	if (SessionId < 0 || pinst == NULL)
 		return SA_ERR_HPI_INVALID_PARAMS;
-	}
 
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiDiscover);
 	pinst->MessageHeaderInit(eMhMsg, 0, eFsaHpiDiscover,
@@ -268,10 +506,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 	int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit,
 				    hm, reply + sizeof(cMessageHeader), &err);
 
-	if (pinst->header.m_type == eMhError)
-		return SA_ERR_HPI_INVALID_PARAMS;
 	if (request)
 		free(request);
+	if (pinst->header.m_type == eMhError)
+		return SA_ERR_HPI_INVALID_PARAMS;
 	if (mr < 0)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -293,7 +531,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainInfoGet)
 	char cmd[] = "saHpiDomainInfoGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!DomainInfo)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -308,10 +548,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainInfoGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, DomainInfo);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -335,7 +575,12 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DrtEntryGet)
 	char cmd[] = "saHpiDrtEntryGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if((DrtEntry == NULL) || 
+           (NextEntryId == NULL) || 
+           (EntryId == SAHPI_LAST_ENTRY)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -350,10 +595,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DrtEntryGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, DrtEntry);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -375,7 +620,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainTagSet)
 	char cmd[] = "saHpiDomainTagSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!DomainTag)
+                return SA_ERR_HPI_INVALID_PARAMS;
+	if (!oh_lookup_texttype(DomainTag->DataType))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -390,10 +639,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainTagSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -417,7 +666,13 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGet)
 	char cmd[] = "saHpiRptEntryGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if ((NextEntryId == NULL) || (RptEntry == NULL)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (EntryId == SAHPI_LAST_ENTRY) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -432,10 +687,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, RptEntry);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -458,7 +713,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGetByResourceId)
 	char cmd[] = "saHpiRptEntryGetByResourceId";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID ||
+            RptEntry == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -473,10 +732,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGetByResourceId)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, RptEntry);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -499,7 +758,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceSeveritySet)
 	char cmd[] = "saHpiResourceSeveritySet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -514,10 +777,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceSeveritySet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -540,7 +803,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceTagSet)
 	char cmd[] = "saHpiResourceTagSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (ResourceTag == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -555,10 +820,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceTagSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -580,7 +845,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceIdGet)
 	char cmd[] = "saHpiResourceIdGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (ResourceId == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -595,10 +862,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceIdGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, ResourceId);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -621,7 +888,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogInfoGet)
 	char cmd[] = "saHpiEventLogInfoGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Info == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -636,10 +905,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogInfoGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Info);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -667,7 +936,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
 	char cmd[] = "saHpiEventLogEntryGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!PrevEntryId || !EventLogEntry || !NextEntryId ||
+            EntryId == SAHPI_NO_MORE_ENTRIES) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -682,10 +955,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
 
         int mr = HpiDemarshalReply5(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, PrevEntryId, NextEntryId, EventLogEntry, Rdr, RptEntry);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -708,7 +981,16 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
 	char cmd[] = "saHpiEventLogEntryAdd";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (EvtEntry == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (EvtEntry->EventType != SAHPI_ET_USER ||
+            EvtEntry->Source != SAHPI_UNSPECIFIED_RESOURCE_ID) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (!oh_lookup_severity(EvtEntry->Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -723,10 +1005,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -748,7 +1030,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogClear)
 	char cmd[] = "saHpiEventLogClear";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -763,10 +1045,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogClear)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -789,7 +1071,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeGet)
 	char cmd[] = "saHpiEventLogTimeGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Time == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -804,10 +1088,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Time);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -830,7 +1114,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeSet)
 	char cmd[] = "saHpiEventLogTimeSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -845,10 +1129,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -871,7 +1155,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateGet)
 	char cmd[] = "saHpiEventLogStateGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (EnableState == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -886,10 +1172,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, EnableState);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -912,7 +1198,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateSet)
 	char cmd[] = "saHpiEventLogStateSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -927,10 +1213,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -952,7 +1238,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogOverflowReset)
 	char cmd[] = "saHpiEventLogOverflowReset";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -967,10 +1253,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogOverflowReset)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -991,7 +1277,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Subscribe)
 	char cmd[] = "saHpiSubscribe";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1006,10 +1292,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Subscribe)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1030,7 +1316,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Unsubscribe)
 	char cmd[] = "saHpiUnsubscribe";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1045,10 +1331,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Unsubscribe)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1074,7 +1360,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventGet)
 	char cmd[] = "saHpiEventGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1089,10 +1377,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventGet)
 
         int mr = HpiDemarshalReply4(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Event, Rdr, RptEntry, EventQueueStatus);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1114,7 +1402,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventAdd)
 	char cmd[] = "saHpiEventAdd";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Event)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1129,10 +1419,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventAdd)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1156,7 +1446,13 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGetNext)
 	char cmd[] = "saHpiAlarmGetNext";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Alarm)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Alarm->AlarmId == SAHPI_LAST_ENTRY)
+                return SA_ERR_HPI_NOT_PRESENT;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1171,10 +1467,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGetNext)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1197,7 +1493,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGet)
 	char cmd[] = "saHpiAlarmGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Alarm)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1212,10 +1510,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1238,7 +1536,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAcknowledge)
 	char cmd[] = "saHpiAlarmAcknowledge";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
+            !oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1253,10 +1554,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAcknowledge)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1278,7 +1579,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
 	char cmd[] = "saHpiAlarmAdd";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Alarm ||
+            !oh_lookup_severity(Alarm->Severity) ||
+            Alarm->AlarmCond.Type != SAHPI_STATUS_COND_TYPE_USER)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1293,10 +1598,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Alarm);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1319,7 +1624,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmDelete)
 	char cmd[] = "saHpiAlarmDelete";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
+            !oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1334,10 +1642,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmDelete)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1362,7 +1670,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGet)
 	char cmd[] = "saHpiRdrGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (EntryId == SAHPI_LAST_ENTRY || !Rdr || !NextEntryId)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1377,10 +1687,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextEntryId, Rdr);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1405,7 +1715,12 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGetByInstrumentId)
 	char cmd[] = "saHpiRdrGetByInstrumentId";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_rdrtype(RdrType) ||
+            RdrType == SAHPI_NO_RECORD || !Rdr)
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1420,10 +1735,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGetByInstrumentId)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Rdr);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1448,7 +1763,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorReadingGet)
 	char cmd[] = "saHpiSensorReadingGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1463,10 +1778,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorReadingGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Reading, EventState);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1490,7 +1805,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsGet)
 	char cmd[] = "saHpiSensorThresholdsGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Thresholds)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1505,10 +1822,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Thresholds);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1532,7 +1849,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
 	char cmd[] = "saHpiSensorThresholdsSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Thresholds)
+                return SA_ERR_HPI_INVALID_DATA;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1547,10 +1866,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1575,7 +1894,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorTypeGet)
 	char cmd[] = "saHpiSensorTypeGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Type || !Category)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1590,10 +1911,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorTypeGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Type, Category);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1617,7 +1938,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableGet)
 	char cmd[] = "saHpiSensorEnableGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Enabled)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1632,10 +1955,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Enabled);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1659,7 +1982,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableSet)
 	char cmd[] = "saHpiSensorEnableSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1674,10 +1997,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1701,7 +2024,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableGet)
 	char cmd[] = "saHpiSensorEventEnableGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Enabled)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1716,10 +2041,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Enabled);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1743,7 +2068,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableSet)
 	char cmd[] = "saHpiSensorEventEnableSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1758,10 +2083,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1786,7 +2111,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksGet)
 	char cmd[] = "saHpiSensorEventMasksGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Assert)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Deassert)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1801,10 +2130,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Assert, Deassert);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1830,7 +2159,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksSet)
 	char cmd[] = "saHpiSensorEventMasksSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1845,10 +2174,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1872,7 +2201,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlTypeGet)
 	char cmd[] = "saHpiControlTypeGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Type)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1887,10 +2218,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlTypeGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Type);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1915,7 +2246,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
 	char cmd[] = "saHpiControlGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1930,10 +2261,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Mode, State);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -1958,7 +2289,14 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
 	char cmd[] = "saHpiControlSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_ctrlmode(Mode) ||
+            (Mode != SAHPI_CTRL_MODE_AUTO && !State) ||
+            (State && State->Type == SAHPI_CTRL_TYPE_DIGITAL &&
+             !oh_lookup_ctrlstatedigital(State->StateUnion.Digital)) ||
+            (State && State->Type == SAHPI_CTRL_TYPE_STREAM &&
+             State->StateUnion.Stream.StreamLength > SAHPI_CTRL_MAX_STREAM_LENGTH))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -1973,10 +2311,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2000,7 +2338,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrInfoGet)
 	char cmd[] = "saHpiIdrInfoGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Info == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2015,10 +2355,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrInfoGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Info);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2045,7 +2385,15 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaHeaderGet)
 	char cmd[] = "saHpiIdrAreaHeaderGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
+             ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
+             (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
+             (AreaType != SAHPI_IDR_AREATYPE_OEM)) ||
+             (AreaId == SAHPI_LAST_ENTRY)||
+             (NextAreaId == NULL) ||
+             (Header == NULL)))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2060,10 +2408,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaHeaderGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextAreaId, Header);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2088,7 +2436,13 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaAdd)
 	char cmd[] = "saHpiIdrAreaAdd";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
+             ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
+             (AreaType != SAHPI_IDR_AREATYPE_UNSPECIFIED)  &&
+             (AreaType != SAHPI_IDR_AREATYPE_OEM)) ||
+             (AreaId == NULL)))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2103,10 +2457,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaAdd)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, AreaId);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2130,7 +2484,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaDelete)
 	char cmd[] = "saHpiIdrAreaDelete";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (AreaId == SAHPI_LAST_ENTRY)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2145,10 +2501,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaDelete)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2176,7 +2532,14 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldGet)
 	char cmd[] = "saHpiIdrFieldGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if ((((FieldType > SAHPI_IDR_FIELDTYPE_CUSTOM) &&
+             (FieldType != SAHPI_IDR_FIELDTYPE_UNSPECIFIED)) ||
+             (AreaId == SAHPI_LAST_ENTRY) ||
+             (FieldId == SAHPI_LAST_ENTRY) ||
+             (NextId == NULL) ||
+             (Field == NULL)))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2191,10 +2554,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldGet)
 
         int mr = HpiDemarshalReply2(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, NextId, Field);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2218,7 +2581,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldAdd)
 	char cmd[] = "saHpiIdrFieldAdd";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Field)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2233,10 +2600,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldAdd)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Field);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2260,7 +2627,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldSet)
 	char cmd[] = "saHpiIdrFieldSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Field)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Field->Type > SAHPI_IDR_FIELDTYPE_CUSTOM)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2275,10 +2646,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2303,7 +2674,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldDelete)
 	char cmd[] = "saHpiIdrFieldDelete";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (FieldId == SAHPI_LAST_ENTRY || AreaId == SAHPI_LAST_ENTRY)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2318,10 +2691,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldDelete)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2345,7 +2718,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerGet)
 	char cmd[] = "saHpiWatchdogTimerGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Watchdog)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2360,10 +2735,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Watchdog);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2387,7 +2762,13 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerSet)
 	char cmd[] = "saHpiWatchdogTimerSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Watchdog ||
+            (Watchdog && (!oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
+                          !oh_lookup_watchdogaction(Watchdog->TimerAction) ||
+                          !oh_lookup_watchdogpretimerinterrupt(Watchdog->PretimerInterrupt)))) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2402,10 +2783,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2443,10 +2824,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerReset)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2472,7 +2853,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGetNext)
 	char cmd[] = "saHpiAnnunciatorGetNext";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Announcement == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2487,10 +2872,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGetNext)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2515,7 +2900,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGet)
 	char cmd[] = "saHpiAnnunciatorGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Announcement == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2530,10 +2917,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2558,7 +2945,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAcknowledge)
 	char cmd[] = "saHpiAnnunciatorAcknowledge";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (EntryId == SAHPI_ENTRY_UNSPECIFIED)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2573,10 +2964,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAcknowledge)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2600,7 +2991,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAdd)
 	char cmd[] = "saHpiAnnunciatorAdd";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if(Announcement == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2615,10 +3008,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAdd)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Announcement);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2643,7 +3036,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorDelete)
 	char cmd[] = "saHpiAnnunciatorDelete";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (EntryId == SAHPI_ENTRY_UNSPECIFIED)
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_severity(Severity))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2658,10 +3055,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorDelete)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2685,7 +3082,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeGet)
 	char cmd[] = "saHpiAnnunciatorModeGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Mode == NULL)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2700,10 +3099,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Mode);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2727,7 +3126,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeSet)
 	char cmd[] = "saHpiAnnunciatorModeSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_annunciatormode(Mode))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2742,10 +3143,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2767,7 +3168,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapPolicyCancel)
 	char cmd[] = "saHpiHotSwapPolicyCancel";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2782,10 +3183,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapPolicyCancel)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2822,10 +3223,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceActiveSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2847,7 +3248,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceInactiveSet)
 	char cmd[] = "saHpiResourceInactiveSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2862,10 +3263,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceInactiveSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2887,7 +3288,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutGet)
 	char cmd[] = "saHpiAutoInsertTimeoutGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2902,10 +3303,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Timeout);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2927,7 +3328,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutSet)
 	char cmd[] = "saHpiAutoInsertTimeoutSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
+            Timeout != SAHPI_TIMEOUT_BLOCK &&
+            Timeout < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2942,10 +3347,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -2968,7 +3373,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutGet)
 	char cmd[] = "saHpiAutoExtractTimeoutGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Timeout) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -2983,10 +3391,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Timeout);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3009,7 +3417,11 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutSet)
 	char cmd[] = "saHpiAutoExtractTimeoutSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
+            Timeout != SAHPI_TIMEOUT_BLOCK &&
+            Timeout < 0)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3024,10 +3436,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3050,7 +3462,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapStateGet)
 	char cmd[] = "saHpiHotSwapStateGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!State)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3065,10 +3479,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapStateGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, State);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3091,7 +3505,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapActionRequest)
 	char cmd[] = "saHpiHotSwapActionRequest";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_hsaction(Action))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3106,10 +3522,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapActionRequest)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3132,7 +3548,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateGet)
 	char cmd[] = "saHpiHotSwapIndicatorStateGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!State)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3147,10 +3565,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, State);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3173,7 +3591,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateSet)
 	char cmd[] = "saHpiHotSwapIndicatorStateSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_hsindicatorstate(State))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3188,10 +3608,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3214,7 +3634,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ParmControl)
 	char cmd[] = "saHpiParmControl";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_parmaction(Action))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3229,10 +3651,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ParmControl)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3255,7 +3677,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateGet)
 	char cmd[] = "saHpiResourceResetStateGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!Action)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3270,10 +3694,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, Action);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3296,7 +3720,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateSet)
 	char cmd[] = "saHpiResourceResetStateSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_resetaction(Action))
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3311,10 +3737,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3337,7 +3763,9 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateGet)
 	char cmd[] = "saHpiResourcePowerStateGet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!State)
+                return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3352,10 +3780,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateGet)
 
         int mr = HpiDemarshalReply1(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err, State);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -3378,7 +3806,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateSet)
 	char cmd[] = "saHpiResourcePowerStateSet";
 
         if (SessionId < 0 )
-             return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;
+        if (!oh_lookup_powerstate(State)) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
 	}
@@ -3393,10 +3824,10 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateSet)
 
         int mr = HpiDemarshalReply0(pinst->header.m_flags & dMhEndianBit, hm, reply + sizeof(cMessageHeader), &err);
 
+        if (request)
+                free(request);
         if (pinst->header.m_type == eMhError)
                 return SA_ERR_HPI_INVALID_PARAMS;
-        if (request)
-             free(request);
         if (mr < 0)
                 return SA_ERR_HPI_INVALID_PARAMS;
 

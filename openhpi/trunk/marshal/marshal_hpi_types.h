@@ -114,6 +114,7 @@ extern cMarshalType SaHpiSensorRecType;
 #define SaHpiCtrlStateDiscreteType SaHpiUint32Type
 #define SaHpiCtrlStateAnalogType SaHpiInt32Type
 extern cMarshalType SaHpiCtrlStateStreamType;
+#define SaHpiCtrlModeType SaHpiUint32Type
 
 // control text controls
 #define SaHpiTxtLineNumType SaHpiUint8Type
@@ -129,7 +130,6 @@ extern cMarshalType SaHpiCtrlRecAnalogType;
 extern cMarshalType SaHpiCtrlRecStreamType;
 extern cMarshalType SaHpiCtrlRecTextType;
 extern cMarshalType SaHpiCtrlRecOemType;
-#define SaHpiCtrlModeType SaHpiInt32Type
 extern cMarshalType SaHpiCtrlDefaultModeType;
 extern cMarshalType SaHpiCtrlRecType;
 
