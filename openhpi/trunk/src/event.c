@@ -84,7 +84,6 @@ static int process_resource_event(struct oh_handler *h, RPTable *rpt, struct oh_
         if (e->type == OH_ET_RESOURCE_DEL) {
                 rv = oh_remove_resource(rpt,e->u.res_del_event.resource_id);
         } else {
-                dbg("Add resource here!");
                 rv = oh_add_resource(rpt,&(e->u.res_event.entry),h);                
         }        
                 
