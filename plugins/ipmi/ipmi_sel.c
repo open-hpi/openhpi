@@ -249,7 +249,7 @@ static void clear_sel(ipmi_mc_t *mc, void *cb_data)
 
 SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id, void *cb_data)
 {
-        char support_del;
+        char support_del = 0;
         int rv;
 
 	struct ohoi_handler *ipmi_handler = cb_data;
