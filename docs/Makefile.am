@@ -32,4 +32,4 @@
 
 MAINTAINERCLEANFILES 	= Makefile.in 
 
-SUBDIRS			= hld test_specification 
+SUBDIRS			= hld 

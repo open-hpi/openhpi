@@ -132,7 +132,6 @@ AC_OUTPUT(openhpi.spec 		         \
 	src/plugins/Makefile             \
 	docs/Makefile		         \
 	docs/hld/Makefile	         \
-        docs/test_specification/Makefile \
 	examples/Makefile                \
 )
 
