@@ -42,7 +42,7 @@ libremote_client_la_SOURCES= \
 	client_config.h \
 	remote_client.cpp
 
-libremote_client_la_LIBADD = $(top_builddir)/marshal/libmarshal.a -luuid
+libremote_client_la_LIBADD = $(top_builddir)/marshal/libopenhpimarshal.la -luuid
 libremote_client_la_LDFLAGS= -version-info @HPI_LIB_VERSION@
 
 openhpiclient.cpp:

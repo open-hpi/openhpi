@@ -363,7 +363,7 @@ AC_ARG_ENABLE([remote_client],
      elif test "x$enableval" = "xstatic"; then
             AC_SUBST(REMOTE_CLIENT,remote_client)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
-            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libmarshal.a -luuid"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libopenhpimarshal.la -luuid"
             NEED_MARSHAL="yes"
      fi],
     [AC_SUBST(REMOTE_CLIENT,remote_client)
