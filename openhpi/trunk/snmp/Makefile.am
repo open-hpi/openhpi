@@ -20,7 +20,9 @@ lib_LTLIBRARIES		= libopenhpi_snmp.la
 
 EXTRA_DIST = snmp_util.h 
 
-libopenhpi_snmp_la_SOURCES = snmp_util.c 
+libopenhpi_snmp_la_SOURCES = \
+			     snmp_util.c \
+			     snmp_derive_oid.c
 
 libopenhpi_snmp_la_LIBADD  = -luuid @SNMPLIBS@
 libopenhpi_snmp_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
