@@ -167,11 +167,11 @@ GArray *oh_list_sessions(SaHpiDomainIdT did)
  *
  * Returns:
  **/
-SaErrorT oh_get_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT *state)
+SaErrorT oh_get_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT *state)
 {
         struct oh_session *session = NULL;
 
-        if (sid < 1 || !state) return SA_ERR_HPI_INVALID_PARAMS;
+        if (sid < 1 || (state == NULL)) return SA_ERR_HPI_INVALID_PARAMS;
 
         g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
         session = g_hash_table_lookup(oh_sessions.table, &sid);
@@ -194,7 +194,7 @@ SaErrorT oh_get_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT *state)
  *
  * Returns:
  **/
-SaErrorT oh_set_session_subscription(SaHpiDomainIdT sid, SaHpiBoolT state)
+SaErrorT oh_set_session_subscription(SaHpiSessionIdT sid, SaHpiBoolT state)
 {
        struct oh_session *session = NULL;
 
