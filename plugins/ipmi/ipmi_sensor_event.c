@@ -273,6 +273,7 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
 
 	set_thresholds_sensor_misc_event
 		(event, &e->u.hpi_event.event.EventDataUnion.SensorEvent);
+        handler->eventq = g_slist_append(handler->eventq, e);
 
 }
 
