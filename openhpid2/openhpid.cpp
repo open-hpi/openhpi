@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
 
         /* get the command line options */
         while (1) {
-                c = getopt_long(argc, argv, "c:p:", long_options, &option_index);
+                c = getopt_long(argc, argv, "c:p:f:v", long_options, &option_index);
                 /* detect when done scanning options */
                 if (c == -1) {
                         break;
