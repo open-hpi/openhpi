@@ -56,11 +56,12 @@ libopenhpi_la_SOURCES	= \
                            lock.c \
                            plugin.c \
                            plugin_static.c \
-                           resource.c \
                            safhpi.c \
                            session.c \
 			   uid_utils.c \
 			   sel_utils.c
+
+#                           resource.c \
  
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ -lltdl
 libopenhpi_la_LDFLAGS	= -version-info @HPI_LIB_VERSION@
