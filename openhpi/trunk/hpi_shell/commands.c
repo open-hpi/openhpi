@@ -151,6 +151,27 @@ static int sa_event(int argc, char *argv[])
 	return SA_OK;
 }
 
+static int debugset(int argc, char *argv[])
+{
+	char	*val;
+
+	if (argc == 1) {
+		val = getenv("OPENHPI_DEBUG");
+		if (val == (char *)NULL) val = "NO";
+		printf("OPENHPI_DEBUG=%s\n", val);
+		return(SA_OK);
+	};
+	if (strcmp(argv[1], "on") == 0)
+		val = "YES";
+	else if (strcmp(argv[1], "off") == 0)
+		val = "NO";
+	else
+		return HPI_SHELL_PARM_ERROR;
+	setenv("OPENHPI_DEBUG", val, 1);
+
+	return SA_OK;
+}
+
 static void Set_thres_value(SaHpiSensorReadingT *item, double value)
 {
 	item->IsSupported = 1;
@@ -1335,6 +1356,8 @@ const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"    \
 			"Usage: clearevtlog [<resource id>]";
 const char dathelp[] = "dat: domain alarm table list\n"
 			"Usage: dat";
+const char debughelp[] = "debug: set or unset OPENHPI_DEBUG environment\n"
+			"Usage: debug [ on | off]";
 const char dscvhelp[] = "dscv: discovery resources\n"                      \
 			"Usage: dscv ";
 const char eventhelp[] = "event: enable or disable event display on screen\n" \
@@ -1383,6 +1406,7 @@ const char showrpthelp[] = "showrpt: show resource information\n"
 struct command commands[] = {
     { "clearevtlog",	clear_evtlog,		clearevtloghelp },
     { "dat",		dat_list,		dathelp },
+    { "debug",		debugset,		debughelp },
     { "dscv",		discovery,		dscvhelp },
     { "event",		event,			eventhelp },
     { "evtlogtime",	evtlog_time,		evtlogtimehelp },

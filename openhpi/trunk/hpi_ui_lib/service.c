@@ -62,7 +62,7 @@ attr_t	Def_rpt[] = {
 	{ "Capabilities",	DECODE1_TYPE,	CAPAB_PROC, { .d = 0} },	//  4
 	{ "HotSwapCapabilities",DECODE1_TYPE,	HSCAPAB_PROC, { .d = 0} },	//  5
 	{ "ResourceSeverity",	LOOKUP_TYPE,	SEVERITY_PROC, { .d = 0} },	//  6
-	{ "ResourceFailed",	INT_TYPE,	0, { .d = 0} },	//  7
+	{ "ResourceFailed",	BOOL_TYPE,	0, { .d = 0} },	//  7
 	{ "Tag",		STR_TYPE,	0, { .d = 0} },	//  8
 	{ "TagLength",		INT_TYPE,	0, { .d = 0} },	//  9
 	{ "TagType",		LOOKUP_TYPE,	TAGTYPE_PROC,	{ .d = 0} },	// 10
@@ -319,7 +319,7 @@ attr_t	Def_common_rdr[] = {
 	{ "RecordId",		INT_TYPE,	0, { .d = 0} },	//  0
 	{ "RdrType",		LOOKUP_TYPE,	RDRTYPE_PROC, { .d = 0} },	//  1
 	{ "EntityPath",		DECODE_TYPE,	EPATH_PROC, { .d = 0} },	//  2
-	{ "IsFru",		INT_TYPE,	0, { .d = 0} },	//  3
+	{ "IsFru",		BOOL_TYPE,	0, { .d = 0} },	//  3
 	{ "Record",		STRUCT_TYPE,	0, { .d = 0} },	//  4
 	{ "IdString",		STR_TYPE,	0, { .d = 0} },	//  5
 	{ "IdStringLength",	INT_TYPE,	0, { .d = 0} },	//  6
@@ -333,7 +333,7 @@ attr_t	Def_sensor_rdr[] = {
 	{ "Num",		INT_TYPE,	0, { .d = 0} },	//  0
 	{ "Type",		LOOKUP_TYPE,	SENTYPE_PROC, { .d = 0} },  //  1
 	{ "Category",		LOOKUP_TYPE,	CATEGORY_PROC, { .d = 0} }, //  2
-	{ "EnableCtrl",		INT_TYPE,	0, { .d = 0} },	//  3
+	{ "EnableCtrl",		BOOL_TYPE,	0, { .d = 0} },	//  3
 	{ "EventCtrl",		INT_TYPE,	0, { .d = 0} },	//  4
 	{ "Events",		INT_TYPE,	0, { .d = 0} },	//  5
 	{ "DataFormat",		STRUCT_TYPE,	0, { .d = 0} },	//  6
@@ -344,12 +344,12 @@ attr_t	Def_sensor_rdr[] = {
 #define ATTRS_SENSOR_DATAFORMAT	8
 
 attr_t	DataForm_rdr[] = {
-	{ "IsSupported",	INT_TYPE,	0, { .d = 0} },	//  0
+	{ "IsSupported",	BOOL_TYPE,	0, { .d = 0} },	//  0
 	{ "ReadingType",	LOOKUP_TYPE,	SENREADT_PROC, { .d = 0} }, //  1
 	{ "BaseUnits",		LOOKUP_TYPE,	SENUNIT_PROC, { .d = 0} },  //  2
 	{ "ModifierUnits",	LOOKUP_TYPE,	SENUNIT_PROC, { .d = 0} },  //  3
 	{ "ModifierUse",	LOOKUP_TYPE,	SENMODU_PROC, { .d = 0} },  //  4
-	{ "Percentage",		INT_TYPE,	0, { .d = 0} },	//  5
+	{ "Percentage",		BOOL_TYPE,	0, { .d = 0} },	//  5
 	{ "Range",		STRUCT_TYPE,	0, { .d = 0} },	//  6
 	{ "AccuracyFactor",	FLOAT_TYPE,	0, { .d = 0} }	//  7
 };
@@ -357,10 +357,10 @@ attr_t	DataForm_rdr[] = {
 #define ATTRS_SENSOR_THDDEF	4
 
 attr_t	ThresDef_rdr[] = {
-	{ "IsAccessible",	INT_TYPE,	0, { .d = 0} },	//  0
+	{ "IsAccessible",	BOOL_TYPE,	0, { .d = 0} },	//  0
 	{ "ReadMask",		DECODE1_TYPE,	THDMASK_PROC, { .d = 0} },	//  1
 	{ "WriteMask",		DECODE1_TYPE,	THDMASK_PROC, { .d = 0} }, 	//  2
-	{ "Nonlinear",		INT_TYPE,	0, { .d = 0} }	//  3
+	{ "Nonlinear",		BOOL_TYPE,	0, { .d = 0} }	//  3
 };
 
 #define ATTRS_SENSOR_RANGE	6
@@ -442,7 +442,7 @@ attr_t	Def_ctrl_rdr[] = {
 	{ "OutputType",		LOOKUP_TYPE,	CTRLOUTPUT_PROC, { .d = 0} }, //  2
 	{ "TypeUnion",		STRUCT_TYPE,	0, { .d = 0} },	//  3
 	{ "DefaultMode",	STRUCT_TYPE,	0, { .d = 0} },	//  4
-	{ "WriteOnly",		INT_TYPE,	0, { .d = 0} },	//  5
+	{ "WriteOnly",		BOOL_TYPE,	0, { .d = 0} },	//  5
 	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  6
 };
 
@@ -450,7 +450,7 @@ attr_t	Def_ctrl_rdr[] = {
 
 attr_t	Def_ctrl_mode[] = {
 	{ "Mode",		LOOKUP_TYPE,	CTRLMODE_PROC, { .d = 0} },	//  0
-	{ "ReadOnly",		INT_TYPE,	0, { .d = 0} } //  1
+	{ "ReadOnly",		BOOL_TYPE,	0, { .d = 0} } //  1
 };
 
 #define ATTRS_CTRL_DIGITAL	1
@@ -476,7 +476,7 @@ attr_t	Def_ctrl_analog[] = {
 #define ATTRS_CTRL_STREAM	3
 
 attr_t	Def_ctrl_stream[] = {
-	{ "Repeat",		INT_TYPE,	0, { .d = 0} },	//  0
+	{ "Repeat",		BOOL_TYPE,	0, { .d = 0} },	//  0
 	{ "Length",		INT_TYPE,	0, { .d = 0} },	//  1
 	{ "Stream",		STR_TYPE,	0, { .d = 0} }  //  2
 };
@@ -600,7 +600,7 @@ static Attributes_t *make_attrs_ctrl(SaHpiCtrlRecT *ctrl)
 
 attr_t	Def_inv_rdr[] = {
 	{ "IdrId",		INT_TYPE,	0, { .d = 0} },	//  0
-	{ "Persistent",		INT_TYPE,	0, { .d = 0} }, //  1
+	{ "Persistent",		BOOL_TYPE,	0, { .d = 0} }, //  1
 	{ "Oem",		INT_TYPE,	0, { .d = 0} }	//  2
 };
 
@@ -754,13 +754,19 @@ int get_attr_type(Attributes_t *Attrs, int num)
 
 SaErrorT get_value_as_string(Attributes_t *Attrs, int num, char *val, int len)
 {
-	int	type;
+	int		type;
+	SaHpiBoolT	b;
 
 	if ((num < 0) || (num >= Attrs->n_attrs) || (val == (char *)NULL) || (len == 0))
 		return SA_ERR_HPI_INVALID_PARAMS;
 
 	type = Attrs->Attrs[num].type;
 	switch (type) {
+		case BOOL_TYPE:
+			b = Attrs->Attrs[num].value.i;
+			if (b) snprintf(val, len, "%s", "TRUE");
+			else   snprintf(val, len, "%s", "FALSE");
+			break;
 		case INT_TYPE:
 			snprintf(val, len, "%d", Attrs->Attrs[num].value.i);
 			break;
