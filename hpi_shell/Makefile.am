@@ -41,7 +41,7 @@ NHS_SOURCES = ${HS_SOURCES}
 endif
 hpi_cmd_SOURCES = ${NHS_SOURCES}
 hpi_cmd_LDADD        = $(COMMONLIBS)
-hpi_cmd_LDFLAGS      = 
+hpi_cmd_LDFLAGS      = -shared
 	
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
