@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 						else rptptr = NULL;
 						
 						
-					printf("rdrptr %p, rptptr %p\n", rdrptr, rptptr);
+					if(fdebug) printf("rdrptr %p, rptptr %p\n", rdrptr, rptptr);
 					rv = saHpiEventLogEntryGet(sessionid,resourceid,
 								entryid,&preventryid,
 								&nextentryid, &el,rdrptr,rptptr);
