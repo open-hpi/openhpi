@@ -470,6 +470,7 @@ SaErrorT show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid
 			len = rdr.IdString.DataLength;
 			if (len > 0) {
 				rdr.IdString.Data[len] = 0;
+printf("TYPE = %d\n", rdr.IdString.DataType);
 				strcat(buf, " Tag: ");
 				strcat(buf, rdr.IdString.Data);
 			};
@@ -856,16 +857,18 @@ SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 				SAHPI_IDR_FIELDTYPE_UNSPECIFIED, fentryid,
 				&nextfentryid, &field);
 			if (rv != SA_OK) {
-				proc("ERROR!!! saHpiIdrAreaHeaderGet\n");
+				proc("ERROR!!! saHpiIdrFieldGet\n");
 				return(-1);
 			};
 			str = oh_lookup_idrfieldtype(field.Type);
 			if (str == NULL) str = "Unknown";
 			if (field.Field.DataLength > 0) str1 = field.Field.Data;
 			else str1 = "";
-			snprintf(buf, SHOW_BUF_SZ, "        Field: %d   Type: %s   Read Only: %d (%s)\n",
-				field.FieldId, str, field.ReadOnly, str1);
+			snprintf(buf, SHOW_BUF_SZ, "        Field: %d   Type: %s   Read Only: %d (",
+				field.FieldId, str, field.ReadOnly);
 			if (proc(buf) != 0) return(SA_OK);
+			if (print_text_buffer("", &(field.Field), 1, 1, 1, proc) != 0) return(SA_OK);
+			if (proc(")\n") != 0) return(SA_OK);
 			fentryid = nextfentryid;
 		}
 	};

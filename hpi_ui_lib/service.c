@@ -903,3 +903,122 @@ SaErrorT find_rdr_by_num(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	};
 	return(-1);
 }
+
+static char *hex_codes = "0123456789ABCDEF";
+static char *bcdplus_codes = "0123456789 -.???";
+
+static char ascii6_codes[64] = {
+	' ', '!', '"', '#', '$',  '%', '&', '\'',
+	'(', ')', '*', '+', ',',  '-', '.', '/', 
+	'0', '1', '2', '3', '4',  '5', '6', '7',
+	'8', '9', ':', ';', '<',  '=', '>', '?',
+	'&', 'A', 'B', 'C', 'D',  'E', 'F', 'G',
+	'H', 'I', 'J', 'K', 'L',  'M', 'N', 'O', 
+	'P', 'Q', 'R', 'S', 'T',  'U', 'V', 'W',
+	'X', 'Y', 'Z', '[', '\\', ']', '^', '_' };
+
+static int ascii6tostring(char *ascii, int n_ascii, char *str, int n)
+{
+	int	ascii_ind = 0, ascii_len, i;
+	int	res = 0;
+	char	byte = 0;
+
+	ascii_len = n_ascii * 8 / 6;
+	memset(str, 0, n);
+	if (ascii_len > n) ascii_len = n;
+	for (i = 0; i < ascii_len; i++) {
+		switch (i % 4) {
+			case 0:
+				byte = ascii[ascii_ind++];
+				res = byte & 0x3F;
+				break;
+			case 1:
+				res = (byte & 0xC0) >> 6;
+				byte = ascii[ascii_ind++];
+				res += (byte & 0x0F) << 2;
+				break;
+			case 2:
+				res = (byte & 0xF0) >> 4;
+				byte = ascii[ascii_ind++];
+				res += (byte & 0x03) << 4;
+				break;
+			case 3:
+				res = byte & 0xFC;
+				res >>= 2;
+				break;
+		};
+		str[i] = ascii6_codes[res];
+	};
+	return(ascii_len);
+}
+
+int print_text_buffer(char *mes, SaHpiTextBufferT *buf, int show_type,
+	int show_length, int show_lenguage, hpi_ui_print_cb_t proc)
+{
+	int	i, c, tmp_ind, len;
+	char	*tmp, len_buf[32];
+
+	if (proc(mes) != 0) return(1);
+	if (buf->DataLength < 2) return(0);
+	switch (buf->DataType) {
+		case SAHPI_TL_TYPE_UNICODE:
+			proc("Not implemented UNICODE");
+			break;
+		case SAHPI_TL_TYPE_BCDPLUS:
+			if (show_type && (proc("BCDPLUS: ") != 0)) return(1);
+			len = buf->DataLength * 2 + 1;
+			tmp = malloc(len);
+			memset(tmp, 0, len);
+			tmp_ind = 0;
+			memset(tmp, 0, len);
+			for (i = 0; i < buf->DataLength; i++) {
+				c = (buf->Data[i] & 0xF0) >> 4;
+				tmp[tmp_ind++] = bcdplus_codes[c];
+				c = buf->Data[i] & 0x0F;
+				tmp[tmp_ind++] = bcdplus_codes[c];
+			};
+			i = proc(tmp);
+			free(tmp);
+			if (i != 0) return(1);
+			break;
+		case SAHPI_TL_TYPE_ASCII6:
+			if (show_type && (proc("ASCII6: ") != 0)) return(1);
+			len = buf->DataLength * 8 / 6;
+			tmp = malloc(len + 1);
+			memset(tmp, 0, len + 1);
+			i = ascii6tostring(buf->Data, buf->DataLength, tmp, len);
+			if (i == 0) break;
+			i = proc(tmp);
+			free(tmp);
+			if (i != 0) return(1);
+			break;
+		case SAHPI_TL_TYPE_TEXT:
+			if (show_type && (proc("TEXT: ") != 0)) return(1);
+			if (proc(buf->Data) != 0) return(1);
+			break;
+		case SAHPI_TL_TYPE_BINARY:
+			if (show_type && (proc("BIN: ") != 0)) return(1);
+			len = buf->DataLength * 2 + 1;
+			tmp = malloc(len);
+			memset(tmp, 0, len);
+			tmp_ind = 0;
+			memset(tmp, 0, len);
+			for (i = 0; i < buf->DataLength; i++) {
+				c = (buf->Data[i] & 0xF0) >> 4;
+				tmp[tmp_ind++] = hex_codes[c];
+				c = buf->Data[i] & 0x0F;
+				tmp[tmp_ind++] = hex_codes[c];
+			};
+			i = proc(tmp);
+			free(tmp);
+			if (i != 0) return(1);
+			break;
+	};
+	if (show_length) {
+		snprintf(len_buf, 31, " (len=%d)", buf->DataLength);
+		if (proc(len_buf) != 0) return(1);
+	};
+	return(0);
+}
+
+
