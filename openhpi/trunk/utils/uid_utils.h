@@ -15,10 +15,10 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
-#ifndef UID_UTILS_H
-#define UID_UTILS_H
+#ifndef __UID_UTILS_H
+#define __UID_UTILS_H
 
-#ifndef OH_UTILS_H
+#ifndef __OH_UTILS_H
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 

@@ -14,8 +14,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef OH_UTILS_H
-#define OH_UTILS_H
+#ifndef __OH_UTILS_H
+#define __OH_UTILS_H
 
 #include <oh_error.h>
 

@@ -14,10 +14,10 @@
  *      Renier Morales <renierm@users.sf.net>
  */
 
-#ifndef EL_UTILS_H
-#define EL_UTILS_H
+#ifndef __EL_UTILS_H
+#define __EL_UTILS_H
 
-#ifndef OH_UTILS_H
+#ifndef __OH_UTILS_H
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 

@@ -16,7 +16,7 @@
 #ifndef SAHPI_EVENT_UTILS_H
 #define SAHPI_EVENT_UTILS_H
 
-#ifndef OH_UTILS_H
+#ifndef __OH_UTILS_H
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 
