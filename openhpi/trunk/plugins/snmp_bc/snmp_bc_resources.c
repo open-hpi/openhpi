@@ -5920,7 +5920,7 @@ struct snmp_bc_control snmp_bc_chassis_controls_bct[] = {
   	/* 0 is Off; 1 is solid on; 2 is blinking */
 	{
                 .control = {
-                        .Num = 2,
+                        .Num = 1,
                         .OutputType = SAHPI_CTRL_LED,
                         .Type = SAHPI_CTRL_TYPE_DISCRETE,
                         .TypeUnion.Discrete.Default = 0,
@@ -6015,7 +6015,8 @@ struct snmp_bc_control snmp_bc_blade_controls[] = {
         {} /* Terminate array with a null element */
 };
 
-struct snmp_bc_control snmp_bct_blade_controls[] = {
+struct snmp_bc_control snmp_bc_blade_controls_bct[] = {
+#if 0
         /* Blade's number of restarts counter - System sets; User clears */
         {
                 .control = {
@@ -6040,6 +6041,7 @@ struct snmp_bc_control snmp_bct_blade_controls[] = {
                 },
                .comment = "Blade restart counter"
         },
+#endif
 
         {} /* Terminate array with a null element */
 };

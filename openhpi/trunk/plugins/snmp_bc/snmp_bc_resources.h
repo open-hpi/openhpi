@@ -303,7 +303,7 @@ struct snmp_bc_control {
 extern struct snmp_bc_control snmp_bc_chassis_controls_bc[];
 extern struct snmp_bc_control snmp_bc_chassis_controls_bct[];
 extern struct snmp_bc_control snmp_bc_blade_controls[];
-extern struct snmp_bc_control snmp_bct_blade_controls[];
+extern struct snmp_bc_control snmp_bc_blade_controls_bct[];
 extern struct snmp_bc_control snmp_bc_blade_addin_controls[];
 extern struct snmp_bc_control snmp_bc_mgmnt_controls[];
 extern struct snmp_bc_control snmp_bc_mediatray_controls[];

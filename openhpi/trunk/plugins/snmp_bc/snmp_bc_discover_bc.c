@@ -446,9 +446,6 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors, e);
 	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 		snmp_bc_discover_sensors(handle, snmp_bc_chassis_sensors_bct, e);
-	}
-
-	if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
 		snmp_bc_discover_controls(handle, snmp_bc_chassis_controls_bct, e);
 	}
 	else {
@@ -510,7 +507,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			snmp_bc_discover_ipmi_sensors(handle, snmp_bc_blade_ipmi_sensors, e);
 			snmp_bc_discover_controls(handle, snmp_bc_blade_controls, e);
 			if (custom_handle->platform == SNMP_BC_PLATFORM_BCT) {
-				snmp_bc_discover_controls(handle, snmp_bct_blade_controls, e);
+				snmp_bc_discover_controls(handle, snmp_bc_blade_controls_bct, e);
 			}
 			snmp_bc_discover_inventories(handle, snmp_bc_blade_inventories, e);
 			
@@ -950,6 +947,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 					   &(res_oh_event->u.res_event.entry.ResourceEntity),
 					   snmp_bc_ipmi_sensors[i].oid, &get_value, SAHPI_FALSE);
 
+#if 0
 		/* Work around for BC/BCT problem of timing out for each generic IPMI Voltage OID
                    after the last real one */
 		if (err) {
@@ -957,6 +955,7 @@ static SaErrorT snmp_bc_discover_ipmi_sensors(struct oh_handler_state *handle,
 			    oh_lookup_error(err), snmp_bc_ipmi_sensors[i].oid);
 			break;
 		}
+#endif
 
 		if (!err) {
 			char *hash_existing_key, *hash_value;

@@ -329,6 +329,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 		if (valid_control) {
 			e->type = OH_ET_RDR;
 			e->did = oh_get_default_domain_id();
+			e->u.rdr_event.parent = res_oh_event->u.res_event.entry.ResourceId;
 			e->u.rdr_event.rdr.RdrType = SAHPI_CTRL_RDR;
 			e->u.rdr_event.rdr.Entity = res_oh_event->u.res_event.entry.ResourceEntity;
 			e->u.rdr_event.rdr.RdrTypeUnion.CtrlRec = control_array[i].control;
