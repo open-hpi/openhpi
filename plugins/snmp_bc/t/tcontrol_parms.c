@@ -15,7 +15,6 @@
 
 
 #include <snmp_bc_plugin.h>
-#include <sahpimacros.h>
 #include <tsetup.h>
 
 int main(int argc, char **argv) 
@@ -29,8 +28,6 @@ int main(int argc, char **argv)
 	SaHpiParmActionT  act;
 	SaErrorT          err;
 	SaErrorT expected_err;
-        SaHpiDomainIdT did;
-        struct oh_domain *d;					
 
         SaHpiSessionIdT sessionid;
 	 
@@ -80,11 +77,8 @@ int main(int argc, char **argv)
 	/************************** 
 	 * Test 3: 
 	 *************************/
-        OH_GET_DID(sessionid, did);
-	OH_GET_DOMAIN(did, d); /* Lock domain */
 	rptentry.ResourceCapabilities |= SAHPI_CAPABILITY_CONFIGURATION;  
 	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
-	oh_release_domain(d); /* Unlock domain */
 	
 	expected_err = SA_ERR_HPI_INTERNAL_ERROR;
 
@@ -95,10 +89,8 @@ int main(int argc, char **argv)
 	 * Test 4: 
 	 **************************/
 
-	OH_GET_DOMAIN(did, d); /* Lock domain */
 	rptentry.ResourceCapabilities &=  !SAHPI_CAPABILITY_CONFIGURATION;
 	oh_add_resource(handle->rptcache, &rptentry, NULL, 0);
-	oh_release_domain(d); /* Unlock domain */
 
 	expected_err = SA_ERR_HPI_CAPABILITY;
 
