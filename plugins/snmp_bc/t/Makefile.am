@@ -22,7 +22,6 @@ REMOTE_SIM_SOURCES 	= bc_resources.c \
 #	     		  snmp_bc_sel.c \
 #			  snmp_bc_sensor.c \
 #			  snmp_bc_time.c \
-#			  snmp_bc_utils.c \
 #			  snmp_bc_watchdog.c
 
 MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
@@ -92,37 +91,37 @@ tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 
 # Unit tests with IF and snmp calls stubbed out
 tsensor_SOURCES = tsensor.c
-tsensor_LDADD   = snmp_bc_sensor.o snmp_bc_utils.o
+tsensor_LDADD   = snmp_bc_sensor.o 
 
 thotswap_state_SOURCES = thotswap_state.c
-thotswap_state_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_state_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_state_err_SOURCES = thotswap_state_err.c
-thotswap_state_err_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_state_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_reset_SOURCES = thotswap_reset.c
-thotswap_reset_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_reset_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_reset_err_SOURCES = thotswap_reset_err.c
-thotswap_reset_err_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_reset_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_reset_set_SOURCES = thotswap_reset_set.c
-thotswap_reset_set_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_reset_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_reset_set_err_SOURCES = thotswap_reset_set_err.c
-thotswap_reset_set_err_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_reset_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_power_SOURCES = thotswap_power.c
-thotswap_power_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_power_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_power_err_SOURCES = thotswap_power_err.c
-thotswap_power_err_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_power_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_power_set_SOURCES = thotswap_power_set.c
-thotswap_power_set_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_power_set_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_power_set_err_SOURCES = thotswap_power_set_err.c
-thotswap_power_set_err_LDADD   = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_power_set_err_LDADD   = snmp_bc_hotswap.o @SNMPLIBS@
 
 thotswap_unsupported_SOURCES = thotswap_unsupported.c
-thotswap_unsupported_LDADD = snmp_bc_hotswap.o snmp_bc_utils.o
+thotswap_unsupported_LDADD = snmp_bc_hotswap.o @SNMPLIBS@

@@ -23,7 +23,6 @@
 #include <snmp_util.h>
 #include <snmp_bc.h>
 #include <bc_resources.h>
-#include <snmp_bc_utils.h>
 #include <snmp_bc_hotswap.h>
 
 #include <tstubs_res.h>
