@@ -570,10 +570,19 @@ void saftime2str(SaHpiTimeT time, char * str, size_t size)
 	time_t tt;
 	
 	if (!str) return;
-	
-	tt = time / 1000000000;
-	localtime_r(&tt, &t);
-	strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
+
+        if (time > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
+                tt = time / 1000000000;
+                strftime(str, size, "%F %T", localtime(&tt));
+        } else if (time ==  SAHPI_TIME_UNSPECIFIED) { 
+                strcpy(str,"SAHPI_TIME_UNSPECIFIED     ");
+        } else if (time > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
+                strcpy(str,"invalid time     ");
+        } else {   /*relative time*/
+		tt = time / 1000000000;
+		localtime_r(&tt, &t);
+		strftime(str, size, "%b %d, %Y - %H:%M:%S", &t);
+	}
 }
 
 void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
@@ -602,13 +611,15 @@ void ShowSel( SaHpiSelEntryT  *sel, SaHpiRdrT *rdr,
         if (sel->Event.Timestamp > SAHPI_TIME_MAX_RELATIVE) { /*absolute time*/
                 tt1 = sel->Event.Timestamp / 1000000000;
                 strftime(timestr,sizeof(timestr),"%F %T", localtime(&tt1));
+        } else if (sel->Event.Timestamp ==  SAHPI_TIME_UNSPECIFIED) { 
+                strcpy(timestr,"SAHPI_TIME_UNSPECIFIED     ");
         } else if (sel->Event.Timestamp > SAHPI_TIME_UNSPECIFIED) { /*invalid time*/
                 strcpy(timestr,"invalid time     ");
         } else {   /*relative time*/
                 tt1 = sel->Event.Timestamp / 1000000000;
                 sprintf(timestr,"rel(%lx)", (unsigned long)tt1);
+        } 
 
-        }
         if (rptentry->ResourceId == sel->Event.Source)
                 srctag = rptentry->ResourceTag.Data;
         else
