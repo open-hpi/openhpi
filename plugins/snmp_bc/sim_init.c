@@ -14,7 +14,7 @@
  */
 
 #include <openhpi.h>
-#include <snmp_util.h>
+#include <snmp_utils.h>
 #include <snmp_bc_plugin.h>
 #include <sim_init.h>
 

@@ -41,19 +41,19 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 	/* Find root Entity Path */
 	root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
         if (root_tuple == NULL) {
-                error("Cannot find configuration parameter.");
+                dbg("Cannot find configuration parameter.");
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
         err = string2entitypath(root_tuple, &ep_root);
         if (err) {
-                error("Cannot convert entity path to string. Error=%s.", oh_lookup_error(err));
+                dbg("Cannot convert entity path to string. Error=%s.", oh_lookup_error(err));
                 return(err);
         }
 
 	/* Allocate space for temporary RPT cache */
 	custom_handle->tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
 	if (custom_handle->tmpcache == NULL) {
-		error("Out of memory.");
+		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
@@ -68,7 +68,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		err = snmp_bc_discover(handle, &ep_root);
 	}
  	if (err) {
-		error("Discovery failed. Error=%s.", oh_lookup_error(err));
+		dbg("Discovery failed. Error=%s.", oh_lookup_error(err));
 		goto CLEANUP;
 	}
 
@@ -87,8 +87,8 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         GSList *node = NULL;
         
        	rpt_diff(handle->rptcache, custom_handle->tmpcache, &res_new, &rdr_new, &res_gone, &rdr_gone);
-	info("%d resources have gone away.", g_slist_length(res_gone));
-	info("%d resources are new or have changed", g_slist_length(res_new));
+	trace("%d resources have gone away.", g_slist_length(res_gone));
+	trace("%d resources are new or have changed", g_slist_length(res_new));
 
         for (node = rdr_gone; node != NULL; node = node->next) {
                 SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
@@ -102,11 +102,11 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 			memcpy(&(e->u.rdr_event.rdr), rdr, sizeof(SaHpiRdrT));
                         handle->eventq = g_slist_append(handle->eventq, e);
                 } 
-		else { error("Out of memory."); }
+		else { dbg("Out of memory."); }
                 /* Remove RDR from plugin's RPT cache */
                 if (rdr && res)
                         oh_remove_rdr(handle->rptcache, res->ResourceId, rdr->RecordId);
-                else { error("No valid resource or rdr at hand. Could not remove rdr."); }
+                else { dbg("No valid resource or rdr at hand. Could not remove rdr."); }
         }
 
         g_slist_free(rdr_gone);
@@ -121,7 +121,7 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 
                         e->u.res_event.entry.ResourceId = res->ResourceId;
                         handle->eventq = g_slist_append(handle->eventq, e);
-                } else { error("Out of memory."); }
+                } else { dbg("Out of memory."); }
 		/* Remove resource from plugin's RPT cache */
                 if (res)
                         oh_remove_resource(handle->rptcache, res->ResourceId);
@@ -220,7 +220,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 	for (i=0; sensor_array[i].sensor.Num != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
-			error("Out of memory.");
+			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
@@ -236,7 +236,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
 							sensor_array[i].bc_sensor_info.mib.oid);
 				if (oid == NULL) {
-					error("Cannot derive OID=%s.", sensor_array[i].bc_sensor_info.mib.oid);
+					dbg("Cannot derive OID=%s.", sensor_array[i].bc_sensor_info.mib.oid);
 					g_free(e);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
@@ -246,7 +246,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				g_free(oid);
 			}
 			else {
-				error("Sensor %s cannot be read.", sensor_array[i].comment);
+				dbg("Sensor %s cannot be read.", sensor_array[i].comment);
 				g_free(e);
 				return(SA_ERR_HPI_INTERNAL_ERROR);
 			}
@@ -272,7 +272,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 					 &(e->u.rdr_event.rdr),
 					 sensor_info_ptr, 0);
 			if (err) {
-				error("Cannot add RDR. Error=%s.", oh_lookup_error(err));
+				dbg("Cannot add RDR. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 			}
 			else {
@@ -319,14 +319,14 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 	for (i=0; control_array[i].control.Num != 0; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
-			error("Out of memory.");
+			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
 		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity,
 					control_array[i].bc_control_info.mib.oid);
 		if (oid == NULL) {
-			error("Cannot derive OID=%s.", control_array[i].bc_control_info.mib.oid);
+			dbg("Cannot derive OID=%s.", control_array[i].bc_control_info.mib.oid);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
@@ -355,7 +355,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 					 &(e->u.rdr_event.rdr),
 					 control_info_ptr, 0);
 			if (err) {
-				error("Cannot add RDR. Error=%s.", oh_lookup_error(err));
+				dbg("Cannot add RDR. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 			}
 			else {
@@ -399,14 +399,14 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 	for (i=0; inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer != NULL; i++) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
-			error("Out of memory.");
+			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
 		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
 					inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
 		if (oid == NULL) {
-			error("Cannot derive OID=%s.", 
+			dbg("Cannot derive OID=%s.", 
 			      inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
@@ -434,7 +434,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 					 &(e->u.rdr_event.rdr),
 					 inventory_info_ptr, 0);
 			if (err) {
-				error("Cannot add RDR. Error=%s.", oh_lookup_error(err));
+				dbg("Cannot add RDR. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 			}
 			else {
@@ -480,7 +480,7 @@ SaErrorT snmp_bc_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, S
 
 	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
 	if (locstr == NULL) {
-		error("Out of memory.");
+		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 	snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);

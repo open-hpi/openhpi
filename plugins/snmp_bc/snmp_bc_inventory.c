@@ -16,14 +16,7 @@
  *	07/19/04 HPI-B Inventory   
  */
 
-#include <SaHpi.h>
-
-#include <openhpi.h>
-#include <snmp_util.h>
-#include <bc_resources.h>
-#include <snmp_bc.h>
-#include <snmp_bc_discover.h>
-#include <snmp_bc_inventory.h>
+#include <snmp_bc_plugin.h>
 
 /************************************************************************/
 /* Inventory functions   						*/

@@ -30,7 +30,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         /* Discover Chassis, Blades, Expansion Cards */
 	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_BLADE_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
-		error("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_BLADE_VECTOR, get_value.type, oh_lookup_error(err));
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -41,7 +41,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 ******************/
 	e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) {
-		error("Out of memory.");
+		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
@@ -84,7 +84,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			      &(e->u.res_event.entry), 
 			      res_info_ptr, 0);
 	if (err) {
-		error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+		dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 		g_free(e);
 		return(err);
 	}
@@ -104,7 +104,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
-				error("Out of memory.");
+				dbg("Out of memory.");
 				return(SA_ERR_HPI_OUT_OF_SPACE);
 			}
 
@@ -132,7 +132,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					      &(e->u.res_event.entry),
 					      res_info_ptr, 0);
 			if (err) {
-				error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+				dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 				return(err);
 			}
@@ -163,7 +163,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 				oid = snmp_derive_objid(ep, SNMP_BC_BLADE_ADDIN_VECTOR);
 				if (oid == NULL) {
-					error("Cannot derive OID=%s.", SNMP_BC_BLADE_ADDIN_VECTOR);
+					dbg("Cannot derive OID=%s.", SNMP_BC_BLADE_ADDIN_VECTOR);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
 
@@ -175,7 +175,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					/* Found an expansion card */
 					e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 					if (e == NULL) {
-						error("Out of memory.");
+						dbg("Out of memory.");
 						return(SA_ERR_HPI_OUT_OF_SPACE);
 					}
 	
@@ -200,7 +200,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 							      &(e->u.res_event.entry),
 							      res_info_ptr, 0);
 					if (err) {
-						error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+						dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 						g_free(e);
 						return(err);
 					}
@@ -221,7 +221,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 ***************/
 	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_FAN_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
-		error("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_FAN_VECTOR, get_value.type, oh_lookup_error(err));
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -231,7 +231,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		if (get_value.string[i] == '1') {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
-				error("Out of memory.");
+				dbg("Out of memory.");
 				return(SA_ERR_HPI_OUT_OF_SPACE);
 			}
 
@@ -259,7 +259,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					      &(e->u.res_event.entry),
 					      res_info_ptr, 0);
 			if (err) {
-				error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+				dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 				return(err);
 			}
@@ -278,7 +278,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 ************************/
 	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_POWER_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
-		error("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_POWER_VECTOR, get_value.type, oh_lookup_error(err));
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -288,7 +288,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		if (get_value.string[i] == '1') {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
-				error("Out of memory.");
+				dbg("Out of memory.");
 				return(SA_ERR_HPI_OUT_OF_SPACE);
 			}
 
@@ -316,7 +316,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					      &(e->u.res_event.entry),
 					      res_info_ptr, 0);
 			if (err) {
-				error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+				dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 				return(err);
 			}
@@ -335,7 +335,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 *******************/
 	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_SWITCH_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
-		error("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_SWITCH_VECTOR, get_value.type, oh_lookup_error(err));
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -345,7 +345,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		if (get_value.string[i] == '1') {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
-				error("Out of memory.");
+				dbg("Out of memory.");
 				return(SA_ERR_HPI_OUT_OF_SPACE);
 			}
 
@@ -373,7 +373,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					      &(e->u.res_event.entry),
 					      res_info_ptr, 0);
 			if (err) {
-				error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+				dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 				return(err);
 			}
@@ -392,7 +392,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 *********************/
 	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_MEDIATRAY_EXISTS, &get_value);
         if (err || get_value.type != ASN_INTEGER) {
-		error("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_MEDIATRAY_EXISTS, get_value.type, oh_lookup_error(err));
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -401,7 +401,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	if (get_value.integer) {
 		e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 		if (e == NULL) {
-			error("Out of memory.");
+			dbg("Out of memory.");
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
@@ -429,7 +429,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 				      &(e->u.res_event.entry),
 				      res_info_ptr, 0);
 		if (err) {
-			error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+			dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 			g_free(e);
 			return(err);
 		}
@@ -447,7 +447,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	 *****************************/
 	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_MGMNT_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
-		error("Cannot get OID=%s; Received Type=%d; Error=%s.",
+		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_MGMNT_VECTOR, get_value.type, oh_lookup_error(err));
 		if (err) { return(err); }
 		else { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -456,7 +456,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	for (i=0; i < strlen(get_value.string); i++) {
 		err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_MGMNT_ACTIVE, &get_active);
 		if (err || get_active.type != ASN_INTEGER) {
-			error("Cannot get OID=%s; Received Type=%d; Error=%s.",
+			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 			      SNMP_BC_MGMNT_ACTIVE, get_active.type, oh_lookup_error(err));
 			if (err) { return(err); }
 			else { return(SA_ERR_HPI_INTERNAL_ERROR); }
@@ -466,7 +466,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		if (get_active.integer == i+1) {
 			e = (struct oh_event *)g_malloc0(sizeof(struct oh_event));
 			if (e == NULL) {
-				error("Out of memory.");
+				dbg("Out of memory.");
 				return(SA_ERR_HPI_OUT_OF_SPACE);
 			}
 
@@ -494,7 +494,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					      &(e->u.res_event.entry),
 					      res_info_ptr, 0);
 			if (err) {
-				error("Failed to add resource. Error=%s.", oh_lookup_error(err));
+				dbg("Failed to add resource. Error=%s.", oh_lookup_error(err));
 				g_free(e);
 				return(err);
 			}
