@@ -726,7 +726,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
                                   SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
         struct oh_session *s = NULL;
         RPTable *rpt = NULL;
-	SaHpiRptEntryT *res = NULL;
+	SaHpiRptEntryT *res = NULL, *elog_res = NULL;
         struct oh_handler *h = NULL;
         struct oh_domain *d = NULL;
         SaHpiSelEntryT *selentry = NULL;
@@ -734,10 +734,13 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
         
         /* Test pointer parameters for invalid pointers */
         if (EventLogEntry == NULL)
-        {
                 return SA_ERR_HPI_INVALID_PARAMS;
-        }
+		
+	if (RptEntry != NULL)
+		RptEntry->ResourceCapabilities = 0;
 
+	if (Rdr != NULL)
+		Rdr->RdrType = SAHPI_NO_RECORD;
 
         data_access_lock();
 
@@ -755,66 +758,69 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 
                 memcpy(EventLogEntry, selentry, sizeof(SaHpiSelEntryT));
                 data_access_unlock();
-                return SA_OK;
-        }
+                rv = SA_OK;
+        } else {
 
-        OH_SESSION_SETUP(SessionId,s);
+		OH_SESSION_SETUP(SessionId,s);
+	
+		OH_RPT_GET(SessionId, rpt);
+	
+		OH_RESOURCE_GET(rpt, ResourceId, res);
+	
+		if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+			dbg("Resource %d does not have SEL", ResourceId);
+			data_access_unlock();
+			return SA_ERR_HPI_INVALID_CMD;
+		}
+	
+		OH_HANDLER_GET(rpt, ResourceId, h);
+	
+		get_sel_entry = h->abi->get_sel_entry;
+	
+		if (!get_sel_entry) {
+			dbg("This api is not supported");
+			data_access_unlock();
+			return SA_ERR_HPI_UNSUPPORTED_API;
+		}
+	
+		rv = get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
+				NextEntryId, EventLogEntry);
+	
+		if (rv != SA_OK) {
+			dbg("SEL entry get failed");
+		}
+	}
 
-        OH_RPT_GET(SessionId, rpt);
+	if (rv == SA_OK) {
+		if (EventLogEntry->Event.Source)
+		        elog_res = oh_get_resource_by_id(rpt, EventLogEntry->Event.Source);
+		
+		if (elog_res != NULL && RptEntry != NULL)
+			*RptEntry = *elog_res;
+	}
 
-        OH_RESOURCE_GET(rpt, ResourceId, res);
-
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
-                dbg("Resource %d does not have SEL", ResourceId);
-                data_access_unlock();
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-
-        OH_HANDLER_GET(rpt, ResourceId, h);
-
-        get_sel_entry = h->abi->get_sel_entry;
-
-        if (!get_sel_entry) {
-                dbg("This api is not supported");
-                data_access_unlock();
-                return SA_ERR_HPI_UNSUPPORTED_API;
-        }
-
-        rv = get_sel_entry(h->hnd, ResourceId, EntryId, PrevEntryId,
-                           NextEntryId, EventLogEntry);
-
-        if (rv != SA_OK) {
-                dbg("SEL entry get failed");
-        }
-
-        res = NULL;
-	if ((RptEntry != NULL) && 
-            (EventLogEntry != NULL)) {
-		if (EventLogEntry->Event.Source)	
-	                res = oh_get_resource_by_id(rpt, EventLogEntry->Event.Source);
-
-                if (res != NULL) *RptEntry = *res;
-        }
-
-        if ((EventLogEntry != NULL) &&
-            (res != NULL) &&
-            (Rdr != NULL)) {
+        if (elog_res != NULL && Rdr != NULL) {
                 SaHpiRdrT *tmprdr = NULL;
-                SaHpiUint8T num;
-                switch (EventLogEntry->Event.EventType) {
-                        case SAHPI_ET_SENSOR:
-                                num = EventLogEntry->Event.EventDataUnion.SensorEvent.SensorNum;
-                                tmprdr = oh_get_rdr_by_type(rpt,res->ResourceId,SAHPI_SENSOR_RDR,num);
-                                break;
-                        case SAHPI_ET_WATCHDOG:
-                                num = EventLogEntry->Event.EventDataUnion.WatchdogEvent.WatchdogNum;
-                                tmprdr = oh_get_rdr_by_type(rpt,res->ResourceId,SAHPI_WATCHDOG_RDR,num);
-                                break;
+       	        SaHpiUint8T num;
+		SaHpiEventUnionT *u = &(EventLogEntry->Event.EventDataUnion);
+
+               	switch (EventLogEntry->Event.EventType) {
+                       	case SAHPI_ET_SENSOR:
+                               	num = u->SensorEvent.SensorNum;
+                               	tmprdr = oh_get_rdr_by_type(rpt,elog_res->ResourceId,
+							    SAHPI_SENSOR_RDR,num);
+                               	break;				
+	                case SAHPI_ET_WATCHDOG:
+                               	num = u->WatchdogEvent.WatchdogNum;
+                               	tmprdr = oh_get_rdr_by_type(rpt,elog_res->ResourceId,
+							    SAHPI_WATCHDOG_RDR,num);
+                               	break;
                         default:
                                 ;
-                }
-                if (tmprdr) memcpy(Rdr,tmprdr,sizeof(SaHpiRdrT));
-                else dbg("saHpiEventLogEntryGet: Could not find rdr.");
+               	}
+
+	        if (tmprdr != NULL)
+			*Rdr = *tmprdr;
         }
 
         data_access_unlock();
