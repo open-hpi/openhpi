@@ -912,17 +912,28 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 	struct ohoi_sensor_info *sensor_info;
-
+	SaHpiEventStateT t_assert;
+	SaHpiEventStateT t_deassert;
+	
 	SENSOR_CHECK(handler, sensor_info, id, num);
 	
+	if (act == SAHPI_SENS_ADD_EVENTS_TO_MASKS) {
+		t_assert = assert | sensor_info->assert;
+		t_deassert = deassert | sensor_info->deassert;
+	} else if (act == SAHPI_SENS_REMOVE_EVENTS_FROM_MASKS) {
+		t_assert = (assert ^ 0xffff) & sensor_info->assert;
+		t_deassert = (deassert ^ 0xffff) & sensor_info->deassert;
+	} else 
+		return SA_ERR_HPI_INVALID_PARAMS;	
+	
 	rv = ohoi_set_sensor_event_enable_masks(sensor_info->sensor_id,
-						sensor_info->enable, assert,
-						deassert, ipmi_handler);
+						sensor_info->enable, t_assert,
+						t_deassert, ipmi_handler);
 	if (rv)
 		return rv;
 
-	sensor_info->enable = assert;
-	sensor_info->deassert = deassert;
+	sensor_info->assert = t_assert;
+	sensor_info->deassert = t_deassert;
 
 	return SA_OK;
 }
