@@ -141,6 +141,7 @@ static void event_start_element(GMarkupParseContext *context,
 	ErrLog2EventInfoT *xmlinfo, working;
 	struct errlog2event_hash_info *hash_info;
 
+	memset(&working, 0, sizeof(ErrLog2EventInfoT));
 	hash_info = (struct errlog2event_hash_info *)user_data;
  
         /* Ignore all XML elements except the event tag */
@@ -158,16 +159,13 @@ static void event_start_element(GMarkupParseContext *context,
 			/* See if event is for this platform */
 			switch (hash_info->platform) {
 			case SNMP_BC_PLATFORM_BCT:
-				if (!(strcmp(attribute_values[i], "BCT") == 0 ||
-				      strcmp(attribute_values[i], "ALL") == 0)) return;
+				if (!(strcmp(attribute_values[i], "BCT") == 0)) return;
 				break;
 			case SNMP_BC_PLATFORM_BC:
-				if (!(strcmp(attribute_values[i], "BC") == 0 ||
-				      strcmp(attribute_values[i], "ALL") == 0)) return;
+				if (!(strcmp(attribute_values[i], "BC") == 0)) return;
 				break;
 			case SNMP_BC_PLATFORM_RSA:
-				if (!(strcmp(attribute_values[i], "RSA") == 0 ||
-				      strcmp(attribute_values[i], "ALL") == 0)) return;
+				if (!(strcmp(attribute_values[i], "RSA") == 0)) return;
 				break;
 			default:
 				return;
@@ -253,7 +251,9 @@ static void event_start_element(GMarkupParseContext *context,
 
 	/* Insert event into hash table */
         g_hash_table_insert(hash_info->hashtable, key, xmlinfo);
-	trace("Inserted event=%s into hash table.", xmlinfo->event);
+	trace("Inserted event=%s into hash table. Sev=%s, OVR=%x, Dup=%d",
+	      xmlinfo->event, oh_lookup_severity(xmlinfo->event_sev),
+	      xmlinfo->event_ovr, xmlinfo->event_dup);
 
         return;
 }
