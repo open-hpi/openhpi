@@ -122,23 +122,6 @@ out:
         return ret_id;
 }
 
-#if 0
-int sim_util_get_rdr_by_sensornum(RPTable *table,
-                                  SaHpiResourceIdT res_id,
-                                  SaHpiSensorNumT num,
-                                  SaHpiEntryIdT *eid)
-{  
-        SaHpiRdrT *rdr;
-
-        rdr = oh_get_rdr_by_type(table, res_id, SAHPI_SENSOR_RDR, num);
-
-        if (rdr == NULL) 
-        return -1;
-        *eid = rdr->RecordId;
-        return 0;
-}
-#endif
-
 int sim_util_get_res_id(RPTable *table, char *filename, SaHpiResourceIdT *rid)
 {
         SaHpiRptEntryT *entry;
@@ -197,7 +180,7 @@ char * fun_name(struct oh_handler_state *inst,                     \
                                                                    \
         pthread_mutex_lock(&util_mutext);                          \
                                                                    \
-        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);                \
+        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);                  \
         sid = oh_get_rdr_data(inst->rptcache, rid, eid);           \
                                                                    \
         str1 = g_hash_table_lookup(inst->config, "root_path");     \
@@ -211,7 +194,7 @@ char * fun_name(struct oh_handler_state *inst,                     \
                 goto out;                                          \
                                                                    \
         sprintf(str, str_x, str1, str2, sid->index);               \
-        trace(str_x"\n", str1, str2, sid->index);                \
+        trace(str_x"\n", str1, str2, sid->index);                  \
                                                                    \
 out:                                                               \
         pthread_mutex_unlock(&util_mutext);                        \
@@ -223,194 +206,6 @@ SIM_UTIL_GET_SENSOR_FILE(sim_util_get_sensor_thres_file,
                          "%s/%s/%x/sensor/thres")
 SIM_UTIL_GET_SENSOR_FILE(sim_util_get_sensor_enables_file,
                          "%s/%s/%x/sensor/enables")
-
-#if 0
-
-fun_name(sim_util_get_sensor_reading_file)
-
-
-
-
-char *sim_util_get_sensor_reading_file(struct oh_handler_state *inst, 
-                                       SaHpiResourceIdT rid,
-                                       SaHpiSensorNumT num)
-{
-        char *str1, *str2, *str = NULL;
-        SaHpiEntryIdT eid;
-        sim_util_id_t *sid;
-
-        pthread_mutex_lock(&util_mutext);
-
-        eid = get_ddrdr_uid(SAHPI_SENSOR_RDR, num);
-        sid = oh_get_rdr_data(inst->rptcache, rid, eid);
-        
-        str1 = g_hash_table_lookup(inst->config, "root_path");
-        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
-        
-        if (!str1 || !str2 || !sid)
-                goto out;
-
-        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
-        if (!str)
-                goto out;
-
-        sprintf(str, "%s/%s/%x/sensor/reading", str1, str2, sid->index);
-        trace("%s/%s/%x/sensor/reading", str1, str2, sid->index);
-
-out:
-        pthread_mutex_unlock(&util_mutext);
-        return str;
-}
-
-char *sim_util_get_sensor_thres_file(struct oh_handler_state *inst,
-                                     SaHpiResourceIdT rid,
-                                     SaHpiSensorNumT num)
-{   
-
-        char *str1, *str2, *str = NULL;
-        SaHpiEntryIdT eid;
-        sim_util_id_t *sid;
-
-        pthread_mutex_lock(&util_mutext);
-
-        eid = get_ddrdr_uid(SAHPI_SENSOR_RDR, num);
-        sid = oh_get_rdr_data(inst->rptcache, rid, eid);
-
-        str1 = g_hash_table_lookup(inst->config, "root_path");
-        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
-
-        if (!str1 || !str2 || !sid)
-                goto out;
-
-        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
-        if (!str)
-                goto out;
-
-        sprintf(str, "%s/%s/%x/sensor/thres", str1, str2, sid->index);
-        trace("%s/%s/%x/sensor/thres", str1, str2, sid->index);
-
-out:
-        pthread_mutex_unlock(&util_mutext);
-        return str;
-
-
-
-
-
-
-
-
-
-
-        char *str1, *str2, *str = NULL;
-        SaHpiEntryIdT eid;
-
-
-        pthread_mutex_lock(&util_mutext);
-
-        str1 = g_hash_table_lookup(inst->config, "root_path");
-        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
-
-        if (!str1 || !str2)
-                goto out;
-
-        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
-        if (!str)
-                goto out;
-
-        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);
-        sprintf(str, "%s/%s/%x/sensor/thres", str1, str2, eid);
-        trace("%s/%s/%x/sensor/thres\n", str1, str2, eid);
-out:
-        pthread_mutex_unlock(&util_mutext);
-        return str;
-}
-
-char *sim_util_get_sensor_enables_file(struct oh_handler_state *inst,
-                                       SaHpiResourceIdT rid,
-                                       SaHpiSensorNumT num)
-{
-        char *str1, *str2, *str = NULL;
-        SaHpiEntryIdT eid;
-
-
-        pthread_mutex_lock(&util_mutext);
-        str1 = g_hash_table_lookup(inst->config, "root_path");
-        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
-
-        if (!str1 || !str2)
-                goto out;
-
-        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
-        if (!str)
-                goto out;
-
-        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);
-        sprintf(str, "%s/%s/%x/sensor/enables", str1, str2, eid);
-        trace("%s/%s/%x/sensor/enables\n", str1, str2, eid);
-out:        
-        pthread_mutex_unlock(&util_mutext);
-        return str;
-}
-#endif
-#if 0
-
-
-
-
-
-
-
-
-char* sim_util_get_sensor_thres(struct oh_handler_state *inst,
-                           SaHpiResourceIdT res_id,
-                           SaHpiEntryIdT rd_id)
-{
-        char *str1, *str2, *str;
-        SaHpiEntryIdT eid;
-
-        str1 = g_hash_table_lookup(inst->config, "root_path");
-        str2 = (char*) oh_get_resource_data(inst->rptcache, rid);
-
-        if (!str1 || !str2)
-                return NULL;
-
-        str = (char *)g_malloc0(strlen(str1) + strlen(str2) + 30);
-        if (!str)
-                return NULL;
-
-        eid = get_rdr_uid(SAHPI_SENSOR_RDR, num);
-        sprintf(str, "%s/%s/%x/sensor/thres", str1, eid);
-        return str;
-}
-
-
-char *sim_util_get_res_dir(struct oh_handler_state *inst, SaHpiResourceIdT res_id)
-{
-        GHashTable *handler_config;
-        char *str1, *str2, *str;
-        int len1, len2;
-
-        handler_config = inst->config;
-        str1 = g_hash_table_lookup(handler_config, "root_path");
-        if (str1 == NULL)
-        return NULL;
-        len1 = strlen(str1);
-
-        str2 = (char*) oh_get_resource_data(inst->rptcache, res_id);
-        if (str2 == NULL) return NULL;
-        len2 = strlen(str2);
-
-        str = (char *)g_malloc0(len1 + len2 + 20);
-        if (str == NULL)
-                return NULL;
-
-        sprintf(str, "%s/%s/", str1, str2);
-        return str;
-}
-
-#endif
-
 
 
 int sim_util_insert_event(GSList **eventq, struct oh_event *event)
