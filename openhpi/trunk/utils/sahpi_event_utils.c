@@ -100,10 +100,10 @@ SaErrorT oh_decode_eventstate(SaHpiEventStateT event_state,
 		for (i=0; i<OH_ENCODE_DELIMITER_LENGTH + 1; i++) {
 			working.Data[working.DataLength - i] = 0x00;
 		}
+		working.DataLength = working.DataLength - (i+1);
 	}
 
 	err = oh_copy_textbuffer(buffer, &working);
-	if (err != SA_OK) { return(err); }
 
 	return(SA_OK);
 }

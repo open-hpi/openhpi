@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 		expected_str = "UNSPECIFIED Manufacturer";
 		mid = SAHPI_MANUFACTURER_ID_UNSPECIFIED;
 
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, &buffer); 
 		
                 if (strcmp(expected_str, buffer.Data) || err) {
@@ -53,6 +54,7 @@ int main(int argc, char **argv)
 		expected_str = "IBM";
 		mid = 2;
 
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, &buffer); 
 		
                 if (strcmp(expected_str, buffer.Data) || err) {
@@ -65,6 +67,7 @@ int main(int argc, char **argv)
 		expected_str = "Unknown Manufacturer";
 		mid = UNDEFINED_MANUFACTURER;
 
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, &buffer);
 		
                 if (strcmp(expected_str, buffer.Data) || err) {
@@ -77,6 +80,7 @@ int main(int argc, char **argv)
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 		mid = UNDEFINED_MANUFACTURER;
 
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_manufacturerid(mid, 0);
 		
                 if (err != expected_err) {
@@ -107,6 +111,7 @@ int main(int argc, char **argv)
 		/* oh_sensorreading: NULL buffer testcase */
 		expected_err = SA_ERR_HPI_INVALID_PARAMS;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_default, format_default, 0);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: NULL buffer testcase failed\n");
@@ -119,7 +124,8 @@ int main(int argc, char **argv)
 		reading_test = reading_default;
 		format_test = format_default;
 		format_test.IsSupported = SAHPI_FALSE;
-		
+	
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: IsSupported == FALSE testcase failed\n");
@@ -134,6 +140,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = BAD_TYPE;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: Bad SaHpiSensorModifierUseT testcase failed\n");
@@ -148,6 +155,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = BAD_TYPE;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: Bad SaHpiSensorReadingT testcase failed\n");
@@ -161,6 +169,7 @@ int main(int argc, char **argv)
 		format_test = format_default;
 		format_test.ReadingType = format_default.ReadingType + 1;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != expected_err) {
 			printf("Error! oh_sensorreading: Reading Types not equal testcase failed\n");
@@ -169,10 +178,11 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase */
-		expected_str = "20 Volts";
+		expected_str = "20 VOLTS";
 		reading_test = reading_default;
 		format_test = format_default;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase failed\n");
@@ -187,12 +197,13 @@ int main(int argc, char **argv)
                 }
 		
 		/* oh_sensorreading: SAHPI_SMUU_BASIC_OVER_MODIFIER testcase */
-		expected_str = "20 Volts / Week";
+		expected_str = "20 VOLTS / WEEK";
 		reading_test = reading_default;
 		format_test = format_default;
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_OVER_MODIFIER;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_OVER_MODIFIER failed\n");
@@ -207,12 +218,13 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SMUU_BASIC_TIMES_MODIFIER testcase */
-		expected_str = "20 Volts * Week";
+		expected_str = "20 VOLTS * WEEK";
 		reading_test = reading_default;
 		format_test = format_default;
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: testcase SAHPI_SMUU_BASIC_TIMES_MODIFIER failed\n");
@@ -234,6 +246,7 @@ int main(int argc, char **argv)
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
 		format_test.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: testcase Percentage failed\n");
@@ -248,13 +261,14 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase */
-		expected_str = "20 Volts";
+		expected_str = "20 VOLTS";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
 		reading_test.Value.SensorUint64 = 20;
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_UINT64;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase failed\n");
@@ -269,13 +283,14 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase */
-		expected_str = "2.020000e+01 Volts";
+		expected_str = "2.020000e+01 VOLTS";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		reading_test.Value.SensorFloat64 = 20.2;
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase failed\n");
@@ -290,13 +305,14 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase */
-		expected_str = "22222222222222222222222222222222 Volts";
+		expected_str = "22222222222222222222222222222222 VOLTS";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		memset(reading_test.Value.SensorBuffer, 0x32, SAHPI_SENSOR_BUFFER_LENGTH);
 		format_test = format_default;
 		format_test.ReadingType = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		
+		oh_init_textbuffer(&buffer);
 		err = oh_decode_sensorreading(reading_test, format_test, &buffer);
 		if (err != SA_OK) {
 			printf("Error! oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase failed\n");
@@ -518,6 +534,74 @@ int main(int argc, char **argv)
 
 			unlink(name);
 			unlink(big_name);
+		}
+	}
+
+	/****************************** 
+	 * oh_print_sensorrec testcases
+         ******************************/	
+	{
+		SaHpiSensorRecT sensor, default_sensor;
+		
+		sensor.Num = 1;
+		sensor.Type = SAHPI_VOLTAGE;
+		sensor.Category = SAHPI_EC_THRESHOLD;
+		sensor.Events = SAHPI_ES_LOWER_MAJOR | SAHPI_ES_LOWER_MINOR;
+		sensor.EventCtrl = SAHPI_SEC_READ_ONLY;
+		sensor.DataFormat.IsSupported = SAHPI_TRUE;
+		sensor.DataFormat.ReadingType = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor.DataFormat.BaseUnits = SAHPI_SU_VOLTS;
+		sensor.DataFormat.ModifierUnits = SAHPI_SU_SECOND;
+		sensor.DataFormat.ModifierUse = SAHPI_SMUU_BASIC_TIMES_MODIFIER;
+		sensor.DataFormat.Percentage = SAHPI_FALSE;
+		sensor.DataFormat.Range.Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX | SAHPI_SRF_NOMINAL |
+			                        SAHPI_SRF_NORMAL_MIN | SAHPI_SRF_NORMAL_MAX;
+		sensor.DataFormat.Range.Min.IsSupported = SAHPI_TRUE;
+		sensor.DataFormat.Range.Min.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor.DataFormat.Range.Min.Value.SensorInt64 = 0;
+		sensor.DataFormat.Range.Max.IsSupported = SAHPI_TRUE;
+		sensor.DataFormat.Range.Max.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor.DataFormat.Range.Max.Value.SensorInt64 = 100;
+		sensor.DataFormat.Range.Nominal.IsSupported = SAHPI_TRUE;
+		sensor.DataFormat.Range.Nominal.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor.DataFormat.Range.Nominal.Value.SensorInt64 = 50;
+		sensor.DataFormat.Range.NormalMax.IsSupported = SAHPI_TRUE;
+		sensor.DataFormat.Range.NormalMax.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor.DataFormat.Range.NormalMax.Value.SensorInt64 = 75;
+		sensor.DataFormat.Range.NormalMin.IsSupported = SAHPI_TRUE;
+		sensor.DataFormat.Range.NormalMin.Type = SAHPI_SENSOR_READING_TYPE_INT64;
+		sensor.DataFormat.Range.NormalMin.Value.SensorInt64 = 25;
+		sensor.DataFormat.AccuracyFactor = 0x1234;
+		sensor.Oem = 0xFF;
+		sensor.ThresholdDefn.IsAccessible = SAHPI_TRUE;
+		sensor.ThresholdDefn.ReadThold = SAHPI_STM_LOW_MINOR | SAHPI_STM_LOW_MAJOR | SAHPI_STM_LOW_CRIT | SAHPI_STM_LOW_HYSTERESIS;
+		sensor.ThresholdDefn.WriteThold = SAHPI_STM_UP_MINOR | SAHPI_STM_UP_MAJOR | SAHPI_STM_UP_CRIT | SAHPI_STM_UP_HYSTERESIS; 
+		sensor.ThresholdDefn.Nonlinear = SAHPI_TRUE;
+			
+		/* oh_print_sensorrec: Bad parameter testcase */
+		expected_err = SA_ERR_HPI_INVALID_PARAMS;
+
+		err = oh_print_sensorrec(0);
+		if (err != expected_err) {
+			printf("Error! oh_print_sensorrec: Bad parameter testcase failed\n");
+			printf("Received error=%d; Expected error=%d\n", err, expected_err);
+			return -1;
+		}
+
+		/* oh_print_sensorrec: Default sensor testcase */
+		err = oh_print_sensorrec(&default_sensor);
+		if (err != SA_OK) {
+			printf("Error!oh_print_sensorrec: Default sensor testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
+		}
+
+		/* oh_print_sensorrec: Normal sensor testcase */
+		err = oh_print_sensorrec(&sensor);
+		if (err != SA_OK) {
+			printf("Error! oh_print_sensorrec: Normal sensor testcase failed\n");
+			printf("Received error=%d\n", err);
+			return -1;
 		}
 	}
 
