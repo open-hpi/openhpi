@@ -268,6 +268,16 @@ AC_ARG_ENABLE([ipmidirect],
      fi],
     [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
+AC_ARG_ENABLE([simulator],
+    [  --enable-simulator       build simulator plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        AC_SUBST(SIMULATOR,simulator)
+    else
+        AC_SUBST(SIMULATOR,"")
+    fi],
+    [AC_SUBST(SIMULATOR,simulator)])
+
+
 dnl
 dnl create static plugin config
 dnl
@@ -392,6 +402,7 @@ AC_CONFIG_FILES([openhpi.spec
         src/plugins/snmp_bc/t/Makefile
         src/plugins/sysfs/Makefile
         src/plugins/ipmidirect/Makefile
+        src/plugins/simulator/Makefile
         docs/Makefile
         docs/hld/Makefile
         examples/Makefile
