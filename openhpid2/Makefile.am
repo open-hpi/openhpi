@@ -33,10 +33,12 @@ openhpid_SOURCES        = \
 
 # this is defined with ./configure --enable-daemon=static
 if OPENHPID_STATIC
-openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
+#openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la $(top_builddir)/marshal/libopenhpimarshal.la $(top_builddir)/utils/libopenhpiutils.la
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
 openhpid_LDFLAGS        = -static
 else
-openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la $(top_builddir)/marshal/libopenhpimarshal.la
+#openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la $(top_builddir)/marshal/libopenhpimarshal.la
+openhpid_LDADD          = $(top_builddir)/src/libopenhpi.la $(top_builddir)/marshal/libohtcpconnx.la
 openhpid_LDFLAGS        =
 endif
 
