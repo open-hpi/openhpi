@@ -30,7 +30,7 @@ handler	libdummy {
 
 #handler libipmi {
 #	name = lan
-#	addr = "10.10.208.223"
+#	addr = "x.x.x.x" 	#ipaddress
 #	port = "999"
 #	auth_type = straight
 #	auth_level= user
