@@ -10,23 +10,21 @@ Packager: Andrea Brugger <andrea.l.brugger@intel.com>
 Source: @HPI_PKG@-@VERSION@.tar.gz
 Buildroot: /var/tmp/@HPI_PKG@-root
 
-%package lib
 Summary: Library that provides SAForum's HPI
 Group: Utilities
 
-#%package devel
-#Summary: development tools for HPI
-#Group: Utilities
+%package dev
+Summary: Development files for HPI
+Group: Utilities
 
 %description 
-This package contains an implementation of Service Availability Forum's HPI specification
-and a sample application.
+This package contains an implementation of Service Availability Forum's 
+HPI specification.
 
-%description lib
-This library is an implementation of the Service Availability Forum's HPI specification.
-
-#%description devel
-#Contains the development files for HPI.
+%description dev
+Contains additional files need for a developer to create applications
+and/or middleware that depends uses the Service Availability Forum's
+HPI specification
 
 ###################################################
 %prep
@@ -52,24 +50,18 @@ then
 fi
 make DESTDIR=$RPM_BUILD_ROOT install
 
-# install -m 644 ....
-
 ###################################################
-%files lib
+%files
 ###################################################
 %defattr(-,root,root)
-@libdir@/libopenhpi.*
+@libdir@/
+
+###################################################
+%files dev
+###################################################
+%defattr(-,root,root)
 %dir @includedir@/openhpi
 @includedir@/openhpi
-
-#%doc @mandir@/man8/hpi.8
-
-###################################################
-#%files devel
-###################################################
-%defattr(-,root,root)
-#%dir @includedir@/openhpi
-#@includedir@/openhpi
 
 ###################################################
 %clean
