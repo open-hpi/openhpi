@@ -153,7 +153,7 @@ public:
 
     if ( rv != SA_OK )
        {
-	 dbg( "cannot SaHpiRptInfoGet: !", rv );
+	 dbg( "cannot SaHpiRptInfoGet: %d!", rv );
 	 return;
        }
 
