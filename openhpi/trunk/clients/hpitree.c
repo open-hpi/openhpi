@@ -448,7 +448,7 @@ SaErrorT list_sens(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
 								 	"\nSensor for %s, ResourceId: %d\n",
 										rptentry.ResourceTag.Data,l_resourceid);
 							oh_print_text(&working);
-							oh_print_sensorrec(&rdr.RdrTypeUnion.SensorRec);
+							oh_print_sensorrec(&rdr.RdrTypeUnion.SensorRec, 0);
 						} 
 					}
 					entryid = nextentryid;
@@ -576,7 +576,7 @@ SaErrorT list_ctrl(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
 								 	"\nControl for %s, ResourceId: %d\n",
 										rptentry.ResourceTag.Data,l_resourceid);
 							oh_print_text(&working);
-							oh_print_ctrlrec(&rdr.RdrTypeUnion.CtrlRec);
+							oh_print_ctrlrec(&rdr.RdrTypeUnion.CtrlRec, 4);
 						} 
 					}
 					entryid = nextentryid;
@@ -641,7 +641,7 @@ SaErrorT list_wdog(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid)
 								 	"\nWatchdog for %s, ResourceId: %d\n",
 										rptentry.ResourceTag.Data,l_resourceid);
 							oh_print_text(&working);
-							oh_print_ctrlrec(&rdr.RdrTypeUnion.CtrlRec);
+							oh_print_watchdogrec(&rdr.RdrTypeUnion.WatchdogRec, 4);
 						} 
 					}
 					entryid = nextentryid;
