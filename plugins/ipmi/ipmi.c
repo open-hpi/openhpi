@@ -867,6 +867,23 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 #endif
 	return SA_OK;
 }
+static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
+				       SaHpiSensorNumT  num,
+				       SaHpiEventStateT *AssertEventMask,
+				       SaHpiEventStateT *DeassertEventMask)
+{
+	return SA_OK;
+
+}
+
+static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
+   			  	       SaHpiSensorNumT num,
+			 	       SaHpiEventStateT  AssertEventMask,
+				       SaHpiEventStateT  DeassertEventMask)
+{
+
+	return SA_OK;
+}
 
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
@@ -893,6 +910,8 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.set_sensor_enable		= ipmi_set_sensor_enable,
 	.get_sensor_event_enables       = ipmi_get_sensor_event_enable,
 	.set_sensor_event_enables       = ipmi_set_sensor_event_enable,
+	.get_sensor_event_masks		= ipmi_get_sensor_event_masks,
+	.set_sensor_event_masks		= ipmi_set_sensor_event_masks,
 	
 	/* Inventory support */
 	.get_idr_info			= ohoi_get_idr_info,
