@@ -55,7 +55,8 @@ This package contains hpi command line utilities
 ###################################################
 %build
 ###################################################
-./configure @ac_configure_args@ --prefix=%{prefix}
+./configure @ac_configure_args@ --sysconfdir=/etc \
+    --localstatedir=/var --prefix=%{prefix}
 make
 make -C docs/hld pdf-am
 make -C docs/hld openhpi-manual/book1.html
@@ -110,9 +111,9 @@ install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@H
 %clean
 ###################################################
 if
-  [ -z "${RPM_BUILD_ROOT}"  -a "${RPM_BUILD_ROOT}" != "/" ]
+    [ -z "${RPM_BUILD_ROOT}"  -a "${RPM_BUILD_ROOT}" != "/" ]
 then
-  rm -rf $RPM_BUILD_ROOT
+    rm -rf $RPM_BUILD_ROOT
 fi
 rm -rf $RPM_BUILD_DIR/@HPI_PKG@-@VERSION@
 

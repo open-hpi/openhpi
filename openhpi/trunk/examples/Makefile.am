@@ -19,6 +19,10 @@ list_resources_threaded_SOURCES = list_resources_threaded.c
 list_resources_threaded_LDADD   = $(COMMONLIBS) 
 list_resources_threaded_LDFLAGS = 
 
+install-data-local: openhpi.conf.example
+	$(mkinstalldirs) $(DESTDIR)/etc/$(PACKAGE)
+	$(INSTALL_DATA) openhpi.conf.example $(DESTDIR)/etc/$(PACKAGE)/openhpi.conf
+
 # comment out for now, we do install in rpm
 #pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
 #pkgsysconf_DATA = openhpi.conf.example
