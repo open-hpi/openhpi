@@ -378,8 +378,10 @@ int entitypath2string(const SaHpiEntityPathT *epathptr, gchar *epathstr, const g
  * @append: IN Right-hand entity path. Pointer entity path to be appended.
  *
  * 'dest' is assumed to be the least significant entity path in the operation.
+ * append will be truncated into dest, if it doesn't fit completely in the space
+ * that dest has available relative to SAHPI_MAX_ENTITY_PATH.
  *
- * Returns value: 0 on Success, Negative number on Failure.
+ * Return value: 0 on Success, -1 if dest is NULL.
  **/
 int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
 {
@@ -404,10 +406,21 @@ int ep_concat(SaHpiEntityPathT *dest, const SaHpiEntityPathT *append)
         return 0;
 }
 
+/**
+ * set_epath_instance: Set an instance number in the entity path given at the first
+ * position (from least significant to most) the specified entity type is found.
+ * @ep: Pointer to entity path to work on
+ * @et: entity type to look for
+ * @ei: entity instance to set when entity type is found
+ *
+ * Return value: 0 on Success, -1 if the entity type was not found.
+ **/
 int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityInstanceT ei)
 {
         int i;
         int retval = -1;
+
+	if (!ep) return retval;
 
         for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                 if(ep->Entry[i].EntityType == et) {
@@ -426,25 +439,25 @@ int set_epath_instance(SaHpiEntityPathT *ep, SaHpiEntityTypeT et, SaHpiEntityIns
  * If an entity path already has a root element, the function returns without
  * making any changes and reporting success.
  *
- * Returns value: 0 on Success, Negative number on Failure.
+ * Returns value: 0 on Success, -1 if ep is NULL.
  **/
 int append_root(SaHpiEntityPathT *ep)
 {
         unsigned int i;
         int rc = -1;
 
+	if (!ep) return rc;
+
         for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-                if (ep->Entry[i].EntityType == 0 &&
-                    ep->Entry[i-1].EntityType != SAHPI_ENT_ROOT) {
-                        ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
+		if (ep->Entry[i].EntityType == SAHPI_ENT_ROOT) {
+			rc = 0;
+			break;
+		} else if (ep->Entry[i].EntityType == 0) {
+		        ep->Entry[i].EntityType = SAHPI_ENT_ROOT;
                         ep->Entry[i].EntityInstance = 0;
-                        rc = 0;
-                        break;
-                } else if (ep->Entry[i].EntityType == 0 &&
-                           ep->Entry[i-1].EntityType == SAHPI_ENT_ROOT) {
-                        rc = 0;
-                        break;
-                }
+			rc = 0;
+			break;
+		}
         }
 
         return rc;
