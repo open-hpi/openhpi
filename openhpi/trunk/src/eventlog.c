@@ -21,7 +21,7 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
-static inline int sel_add(GSList **sel_list, 
+static inline int __dsel_add(GSList **sel_list, 
 		const SaHpiSelEntryT *entry, int counter)
 {
 	struct oh_sel *sel;
@@ -140,8 +140,7 @@ int dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry)
 	}
 
 	d->sel_counter++;
-	sel_add(&d->sel_list, entry, d->sel_counter);
-	return 0;
+	return __dsel_add(&d->sel_list, entry, d->sel_counter);
 }
 
 int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
