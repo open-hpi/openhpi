@@ -33,7 +33,7 @@
 SaErrorT snmp_bc_discover_resources(void *hnd)
 {
         char *root_tuple;
-	SaErrorT err = SA_OK;
+	SaErrorT err = SA_OK, err1 = SA_OK;
         SaHpiEntityPathT ep_root;
 
 	if (!hnd) {
@@ -189,8 +189,16 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
         }        
         g_slist_free(rdr_new);
 
-	/* Build cache copy of SEL */
-	snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
+	/* Build cache copy of SEL. RID == 1 (2nd parm) is a dummy id */
+	err1 = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
+	if (err1) {
+		/* --------------------------------------------------------------- */
+		/* If an error is encounterred during building of snmp_bc elcache, */
+		/* only log the error.  Do not do any recovery because log entries */
+		/* are still kept in bc mm.  We'll pick them up during synch.      */
+		/* --------------------------------------------------------------- */
+		dbg("snmp_bc_discover, Error %s when building elcache.\n", oh_lookup_error(err1));
+	}
 
  CLEANUP:        
         g_slist_free(custom_handle->tmpqueue);

@@ -57,7 +57,8 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 
 SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 			       SaHpiResourceIdT id,
-			       SaHpiEventLogEntryIdT sid);
+			       SaHpiEventLogEntryIdT sid, 
+			       SaHpiBoolT prepend);
 
 SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 			       SaHpiResourceIdT id,

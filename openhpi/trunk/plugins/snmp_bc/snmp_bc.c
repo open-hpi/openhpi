@@ -117,9 +117,13 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 	}
 
 	err = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
+	
+	/* If err is encounterred during el cache sync, */
+	/* log error but take no corrected action.      */
+	/* New entry will still be there next time      */
 	if (err) {
 		dbg("Event Log cache build/sync failed. Error=%s", oh_lookup_error(err));
-		return(err);
+		/* return(err); */
 	}
 
         if (g_slist_length(handle->eventq) > 0) {

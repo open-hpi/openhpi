@@ -573,7 +573,7 @@ SaErrorT snmp_bc_log2event(struct oh_handler_state *handle,
 							dbg("Out of memory.");
 							return(SA_ERR_HPI_OUT_OF_SPACE);
 						}
-						
+						e->did = oh_get_default_domain_id();						
 						e->type = OH_ET_RESOURCE;
 						e->u.res_event.entry = *rpt;
 						handle->eventq = g_slist_append(handle->eventq, e);
