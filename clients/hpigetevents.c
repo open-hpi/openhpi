@@ -50,6 +50,8 @@ int main(int argc, char **argv)
 	SaHpiRdrT rdr;
 	SaHpiTimeoutT timeout; 
 	SaHpiEventT event;
+
+	memset(&rptentry, 0, sizeof(rptentry));
         
 	printf("%s: version %s\n",argv[0],progver); 
 
@@ -154,6 +156,7 @@ int main(int argc, char **argv)
 	  			break;
 			}
 		} else {
+#if 0
                         printf("Received Event of Type: %s\n", 
                                oh_lookup_eventtype(event.EventType));
                         if(event.EventType == SAHPI_ET_RESOURCE) {
@@ -162,7 +165,7 @@ int main(int argc, char **argv)
                                                event.EventDataUnion.ResourceEvent.ResourceEventType)
                                         );
                         }
-
+#endif
 		}
      	}
 
