@@ -55,7 +55,7 @@ struct oh_hpi_event {
 
 /* 
  * This is the main event structure. It is used for plugin report
- * its discovery about new resource/rdr or what happend on resource
+ * its discovery about new resource/rdr or what happened on resource
  */
 
 typedef enum {
