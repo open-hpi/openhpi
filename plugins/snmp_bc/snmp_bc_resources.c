@@ -659,12 +659,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.8.0",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
-                                                .OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
-                                                .OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
-                                        },
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.6",
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.6",
+					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.6",
+					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.6",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -764,12 +762,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.6.0",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
-                                                .OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
-                                                .OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
-                                        },
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.5",
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.5",
+					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.5",
+					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.5",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -869,12 +865,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
-                                                .OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
-                                                .OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
-                                        },
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
+					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.2",
+					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.2",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -973,12 +967,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.1.0",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
-                                                .OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
-                                                .OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
-                                        },
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.1",
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.1",
+					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.1",
+					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.1",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1078,12 +1070,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.5.0",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
-                                                .OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
-                                                .OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
-                                        },
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.4",
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.4",
+					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.4",
+					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.4",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1183,12 +1173,10 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.3.0",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
-                                                .OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
-                                                .OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
-                                        },
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.3",
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.3",
+					.OidUpHysteresis  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.7.3",
+					.OidLowHysteresis = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.11.3",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1391,10 +1379,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.6.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpCrit   = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
-                                        },
+					.OidUpCrit   = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.6.x",
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.7.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1481,10 +1467,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.7.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.9.x",
-                                                .OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.x",
-                                        },
+					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.9.x",
+					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.10.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1574,10 +1558,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.8.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.x",
-                                                .OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.x",
-                                        },
+					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.12.x",
+					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.13.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1664,10 +1646,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.9.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.x",
-                                                .OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.x",
-                                        },
+					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.15.x",
+					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.16.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1763,10 +1743,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.12.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.x",
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.x",
-                                        },
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.18.x",
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.19.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1852,10 +1830,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.11.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.x",
-                                        },
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.16.x",
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.17.x",
                                 }
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -1953,10 +1929,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.10.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.x",
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.x",
-                                        },
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.14.x",
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.15.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -2054,10 +2028,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.7.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.x",
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.x",
-                                        },
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.8.x",
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.9.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -2155,10 +2127,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.6.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.x",
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.x",
-                                        },
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.6.x",
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.7.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -2256,10 +2226,8 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.5.1.8.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.x",
-                                                .OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.x",
-                                        },
+					.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.10.x",
+					.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.6.1.11.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,
@@ -2525,10 +2493,8 @@ struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
                                 .convert_snmpstr = SAHPI_SENSOR_READING_TYPE_FLOAT64,
                                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x",
                                 .threshold_oids = {
-                                        .InterpretedThresholds = {
-                                                .OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
-                                                .OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
-                                        },
+					.OidUpCrit  = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.x",
+					.OidUpMajor = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.x",
                                 },
                         },
                         .sensor_enabled = SAHPI_TRUE,

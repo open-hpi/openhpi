@@ -170,10 +170,10 @@ SaErrorT snmp_bc_determine_sensor_eventstates(void *hnd,
 #define get_interpreted_thresholds(thdmask, thdoid, thdname) \
 do { \
         if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold & thdmask) { \
-	        if(s->mib.threshold_oids.InterpretedThresholds.thdoid != NULL && s->mib.threshold_oids.InterpretedThresholds.thdoid[0] != '\0') { \
-		        oid = snmp_derive_objid(rdr->Entity,s->mib.threshold_oids.InterpretedThresholds.thdoid); \
+	        if(s->mib.threshold_oids.thdoid != NULL && s->mib.threshold_oids.thdoid[0] != '\0') { \
+		        oid = snmp_derive_objid(rdr->Entity,s->mib.threshold_oids.thdoid); \
                         if(oid == NULL) { \
-                                dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.InterpretedThresholds.thdoid); \
+                                dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.thdoid); \
                                 return SA_ERR_HPI_INTERNAL_ERROR; \
                         } \
 	         	if((snmp_get(custom_handle->ss, oid, &get_value) != 0) | \
@@ -206,7 +206,7 @@ do { \
 		        } \
                         g_free(oid); \
 	        } else { \
-		        dbg("Interpreted threshold defined as readable but no OID defined\n"); \
+		        dbg("Threshold defined as readable but no OID defined\n"); \
 	        } \
         } \
 } while(0)

@@ -143,7 +143,7 @@ extern struct snmp_rpt snmp_rpt_array[];
  *                      Sensor Definitions
  ******************************************************************************/
 
-struct SNMPInterpretedThresholdsOIDs {
+struct SnmpSensorThresholdOids {
         const char *OidLowMinor;
         const char *OidLowMajor;
         const char *OidLowCrit;
@@ -154,14 +154,10 @@ struct SNMPInterpretedThresholdsOIDs {
         const char *OidUpHysteresis;
 };
 
-struct SnmpSensorThresholdOids {
-        struct SNMPInterpretedThresholdsOIDs InterpretedThresholds;
-};
-
 struct SensorMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
-        int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorInterpretedTypeT values */
+        int convert_snmpstr; /* -1 no conversion; else use SaHpiSensorReadingTypeT values */
         const char *oid;
         struct SnmpSensorThresholdOids threshold_oids;
 };
