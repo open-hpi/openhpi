@@ -297,7 +297,7 @@ SaErrorT oh_encode_sensorreading(SaHpiTextBufferT *buffer,
 	
 	/* Skip any characters before an '=' sign */
 	char *skipstr = strchr(buffer->Data, '=');
-	if (skipstr) skip = (int)skipstr - (int)(buffer->Data) + 1;
+	if (skipstr) skip = (long int)skipstr - (long int)(buffer->Data) + 1;
 	else skip = 0;
 
 	j = found_sign = in_number = found_number = found_float = 0;
