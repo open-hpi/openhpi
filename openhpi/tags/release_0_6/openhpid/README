@@ -1,0 +1,19 @@
+This directory contains the openhpi daemon and client library.
+
+connection.c        - socket handling
+marshal.c           - general mashaling code
+marshal_hpi.c       - marshaling of HPI functions
+marshal_hpi_types.c - mashaling of HPI types and structures
+openhpiclient.c     - open HPI client code
+openhpiclient.conf  - sample configuration for the client library
+openhpid.cpp        - the daemon
+simple_config.c     - general config file reading code
+
+To run type:
+openhpid -d 7
+This enables debug messages of the daemon.
+
+To use the daemon link you HPI application with -lopenhpiclient
+not -lopenhpi. To run hpitest with the daemon/client library just
+change hpitest/v1/1.0/LDFLAGS. One of the event tests will hang.
+Be aware, hpitest will run in unexpected high speed.

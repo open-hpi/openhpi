@@ -1,0 +1,103 @@
+Unit tests we should have for rpt_utils.
+_____________________________________________________
+Note:
+To find the file where the test is implemented,
+find its number and prepend it with "rpt_utils_"
+and append it with ".c" so that it looks somthing
+like "rpt_utils_024.c".
+_____________________________________________________
+
+The possitive tests:
+Start with empty RPTable
+    - add 1 resource
+          - fetch by id, compare (000)
+          - fetch by ep, compare (001)
+    - add 1 resource w/data, fetch data, compare (002)
+    - add 10 resources, in random order
+          - fetch by id, compare (003)
+          - fetch by ep, compare (004)
+    - add 10 resources w/data, fetch data in random order, compare (005)
+    - add 10 resources, start at beginning, call next on each one, compare ResourceId (006)
+    - add 10 resources, start at beginning, call next on each one, compare RPTentry (007)
+    - add 10 resources, start at random resource, call next to get to the end, compare ResourceId (008)
+    
+Start with 10 resources
+    - add 1 rdr to first resource
+          - fetch by id, compare (009)
+          - fetch by type, compare (010)
+    - add 5 rdrs to first resource, in random order
+          - fetch by id, compare (011)
+          - fetch by type, compare (012)
+          - fetch by next, compare (013)
+
+Start with 10 resources, multiple rdrs on some resources
+    - remove resource
+             - search for resource by id (014)
+             - search for resource by ep (015)
+             - call next through chain, make sure things are right (016)
+    - remove rdr
+             - search for rdr by id (017)
+             - search for rdr by type (018)
+             - call next through chain, make sure things are right (019)
+    - flush rpt - check to see if there are no resources left in the table (062)    
+
+The negative tests:
+    oh_add_resource
+        - RPTable == NULL (020)
+        - resource == NULL (021)
+        - rid == special value (like SAHPI_FIRST_ENTRY = 0) (022)
+        - rid == special value (like SAHPI_DOMAIN_CONTROLLER_ID) (066)
+        - both == NULL (023)
+        - epath not valid (need to sanity check epath) (036)
+    oh_remove_resource
+        - RPTable == NULL (024)
+        - rid not there (025)
+        - rid == special value (026)
+    oh_resource_get_data
+        - RPTable == NULL (027)
+        - rid not there (028)
+        - rid == special value (029)
+        - data == NULL (030)
+    oh_get_resource_by_id
+        - RPTable == NULL (031)
+        - rid not there (032)
+        - rid == special value (033)
+    oh_get_resource_by_ep
+        - RPTable == NULL (034)
+        - epath not there (035)        
+    oh_get_resource_next
+        - RPTable == NULL (037)
+        - rid not there (038)
+        - rid == special value (039)
+        - rid == last RPTenty (040)
+    oh_add_rdr
+        - RPTable == NULL (041)
+        - rid not there (042)
+        - rdr == NULL (043)
+        - RPTable == rdr == NULL (044)
+    oh_remove_rdr 
+        - RPTable == NULL (045)
+        - rid not there (046)
+        - rdrid not there (047)
+        - rdrid == special value (063)
+    oh_get_rdr_data
+        - RPTable == NULL (048)
+        - rid not there (049)
+        - rdrid not there (050)
+        - rdrid == special value (064)
+    oh_get_rdr_by_id
+        - RPTable == NULL (051)
+        - rid not there (052)
+        - rdrid not there (053)
+        - rdrid == special value (065)
+    oh_get_rdr_by_type
+        - RPTable == NULL (054)
+        - rid not there (055)        
+    oh_get_rdr_next
+        - RPTable == NULL (056)
+        - rid not there (057)
+        - rdrid not there (058)
+        - rdrid == special value (059)
+        - rdrid == last rdr (060)
+    oh_flush_rpt
+    	- RPTable == NULL (061)
