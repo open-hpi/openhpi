@@ -574,7 +574,7 @@ EOF
 ########################################
 # Beautify function name from SaHpi type
 ########################################
-sub beautify_func_name($type) {
+sub beautify_func_name($) {
     my ($name) = @_;
     $name =~ s/Sa//;    # Strip off beginning Sa - for SaErrorT
     $name =~ s/Hpi//;   # Strip off beginning Hpi - for rest of SaHpi types
@@ -630,7 +630,7 @@ EOF
 # Beautify enum string from SaHpi definition
 # This is highly SaHpi.h dependent.
 ############################################
-sub beautify_enum_name($type, $enum) {
+sub beautify_enum_name($$) {
     my ($enum_type, $enum_name) = @_;
     if ($debug) { print("TYPE=$enum_type: ENUM=$enum_name: "); }
 
