@@ -94,6 +94,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 
 	int er, i;
 	int rv;
+	const char *str;
 
 	g_static_rec_mutex_lock(&ipmi_handler->ohoih_lock);	
 
@@ -113,7 +114,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
                 = ipmi_entity_get_entity_id(entity);
 	entry->ResourceEntity.Entry[0].EntityLocation 
                 = ipmi_entity_get_entity_instance(entity);
-	if(ipmi_entity_get_entity_instance(entity) == 96) {
+	if(ipmi_entity_get_entity_instance(entity) >= 96) {
 		entry->ResourceEntity.Entry[0].EntityLocation 
                 	= ipmi_entity_get_entity_instance(entity)- 96;
 	}
@@ -163,7 +164,10 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	
 	entry->ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
-	ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	//ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	str = ipmi_entity_get_entity_id_string(entity);
+	memcpy(entry->ResourceTag.Data,str, strlen(str) +1);
+#if 0
 	if ((strlen(entry->ResourceTag.Data) == 0)
 	    || (!strcmp(entry->ResourceTag.Data, "invalid"))
 	    || ((ipmi_entity_get_entity_id(entity) == 7 || 15))) {
@@ -191,6 +195,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	/* AdvancedTCA fix-up */
 
 	/* Here we start dealing with device relative entities */
+#endif
 
 #if 0
         if (ipmi_entity_get_entity_instance(entity) >= 96) {
@@ -222,7 +227,7 @@ static void get_entity_event(ipmi_entity_t	*entity,
 	*/
 		
         if ((ipmi_entity_get_entity_id(entity) == 160) &&
-                        (ipmi_entity_get_entity_instance(entity) == 96)) {
+                        (ipmi_entity_get_entity_instance(entity) >= 96)) {
                 dbg("SBC Blade");
 		const char sbc_tag[] = "SBC Blade";
 		memcpy(entry->ResourceTag.Data, sbc_tag, strlen(sbc_tag) + 1);
@@ -279,16 +284,17 @@ static void get_entity_event(ipmi_entity_t	*entity,
         if ((ipmi_entity_get_entity_id(entity) == 30)) {
                        
                 dbg("Cooling Device");
-		const char disk_tag[] = "Cooling Device";
-		memcpy(entry->ResourceTag.Data, disk_tag, strlen(disk_tag) + 1);
+		//const char disk_tag[] = "Cooling Unit";
+		//memcpy(entry->ResourceTag.Data, disk_tag, strlen(disk_tag) + 1);
                entry->ResourceEntity.Entry[0].EntityLocation =
 		       ipmi_entity_get_entity_instance(entity) - 96;
-               entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_COOLING_DEVICE;
-	       
-	       //entry->ResourceEntity.Entry[1].EntityType =
-		       	//SAHPI_ENT_COOLING_UNIT;
+               entry->ResourceEntity.Entry[0].EntityType = ipmi_entity_get_entity_id(entity);
         }
 	
+	/* this is here for Force-made Storage blades
+	 * until we have access to latest hardware
+	 * DO NOT CHANGE
+	*/
         if ((ipmi_entity_get_entity_id(entity) == 160) &&
                         (ipmi_entity_get_entity_instance(entity) == 102)) {
                 dbg("DISK Blade");
@@ -387,7 +393,7 @@ add_processor_event(ipmi_entity_t *entity,
 	unsigned int parent_location;
 	int inst;	/* instance */
 
-	const char *str;
+	const char tag[] = "Processor";
 	char *str2;
 	
 	res_info = g_malloc0(sizeof(*res_info));
@@ -447,11 +453,11 @@ add_processor_event(ipmi_entity_t *entity,
 	entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
 
 	//ipmi_entity_get_id(entity, entry->ResourceTag.Data, SAHPI_MAX_TEXT_BUFFER_LENGTH);
-	str = ipmi_entity_get_entity_id_string(entity);
+	//str = ipmi_entity_get_entity_id_string(entity);
 
 	/* Let's identify the entity-instance in the ResourceTag */
-	str2 = (char *)calloc(strlen(str) + 3, sizeof(char));
-	snprintf(str2, strlen(str) + 3, "%s-%d",str, inst);
+	str2 = (char *)calloc(strlen(tag) + 3, sizeof(char));
+	snprintf(str2, strlen(tag) + 3, "%s-%d",tag, inst);
 	memcpy(entry.ResourceTag.Data, str2, strlen(str2) + 1);
 	dbg("ProcessorTag: %s", entry.ResourceTag.Data);
 
