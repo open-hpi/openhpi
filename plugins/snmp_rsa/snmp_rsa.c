@@ -21,8 +21,7 @@
 #include <openhpi.h>
 #include <oh_plugin.h>
 #include <snmp_util.h>
-#include <rpt_utils.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 
 #include <rsa_resources.h>
 #include <snmp_rsa_control.h>

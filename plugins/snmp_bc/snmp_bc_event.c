@@ -23,9 +23,7 @@
 
 #include <openhpi.h>
 #include <oh_plugin.h>
-#include <rpt_utils.h>
-#include <uid_utils.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 #include <bc_resources.h>
 #include <bc_str2event.h>
 #include <bc_errorlog.h>

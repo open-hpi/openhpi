@@ -20,8 +20,7 @@
 #include <openhpi.h>
 #include <oh_plugin.h>
 #include <snmp_util.h>
-#include <rpt_utils.h>
-#include <epath_utils.h>
+#include <oh_utils.h>
 #include <bc_resources.h>
 #include <snmp_bc_control.h>
 #include <snmp_bc_discover.h>
