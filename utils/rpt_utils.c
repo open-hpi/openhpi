@@ -14,7 +14,6 @@
  *
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <epath_utils.h>
@@ -522,7 +521,6 @@ SaHpiRptEntryT *oh_get_resource_next(RPTable *table, SaHpiResourceIdT rid_prev)
  * -1 - table pointer is NULL.
  * -2 - Failure. RDR is NULL.
  * -3 - Failure. RPT entry for that @rid was not found.
- * -4 - Failure. RDR entity path is different from parent RPT entry.
  * -5 - Failure. Could not allocate enough memory to position the new RDR in the RDR
  * repository.
  **/ 
@@ -544,11 +542,6 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT *rdr, void *data,
         if (!rptentry){
                 dbg("Failed to add RDR. Parent RPT entry was not found in table.");
                 return -3;
-        }
-
-        if (memcmp(&(rptentry->rpt_entry.ResourceEntity), &(rdr->Entity), sizeof(SaHpiEntityPathT))) {
-                dbg("Failed to add RDR. Entity path is different from parent RPT entry.");
-                return -4;
         }
 
         type_num = get_rdr_type_num(rdr);
