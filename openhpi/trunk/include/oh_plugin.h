@@ -25,6 +25,10 @@
 #include <SaHpi.h>
 #include <rpt_utils.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 /* 
  * struct oh_domain_id is filled by plugin.
  * Open HPI uses it to identy different domain by the id.
@@ -465,5 +469,9 @@ struct oh_static_plugin
         char           *name;
         get_interface_t get_interface;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif/*__OH_PLUGIN_H*/

@@ -25,6 +25,10 @@
 #define RPT_INCREMENT   2
 #define RPT_DECREMENT   1
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+
 extern GSList *managed_hs_resources;
 /* a simple typedef to store a state flag with a resource
    as a bundle */
@@ -54,7 +58,7 @@ typedef struct {
 
 /* General RPT calls */
 void oh_flush_rpt(RPTable *table);
-void rpt_diff(RPTable *current, RPTable *new,
+void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
               GSList *res_new, GSList *rdr_new,
               GSList *res_gone, GSList *rdr_gone);
 
@@ -83,5 +87,9 @@ SaHpiUint32T get_rdr_uid(SaHpiRdrTypeT type, SaHpiUint32T num);
 /* Other state information about managed resources */
 guint32 oh_is_resource_managed(SaHpiResourceIdT rid);
 int oh_set_resource_managed(SaHpiResourceIdT rid, guint32 i);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
