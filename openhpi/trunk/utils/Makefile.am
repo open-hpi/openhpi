@@ -46,13 +46,14 @@ pkgconfig_DATA          = openhpiutils.pc
 
 lib_LTLIBRARIES         = libopenhpiutils.la
 
+# Generated files (e.g.sahpi_enum_utils.c) must be listed first
 libopenhpiutils_la_SOURCES = \
+			sahpi_enum_utils.c \
+			sahpi_event_encode.c \
 			el_utils.c \
 			epath_utils.c \
 			rpt_utils.c \
 			printevent_utils.c \
-			sahpi_enum_utils.c \
-			sahpi_event_encode.c \
 			sahpi_event_utils.c \
 			sahpi_struct_utils.c \
 			sahpi_time_utils.c \
