@@ -132,7 +132,7 @@ static int snmp_bc_discover_resources(void *hnd)
                         struct BC_ResourceInfo *bc_data =
                                 g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].bc_res_info),
                                          sizeof(struct BC_ResourceInfo));
-			bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+			bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                         tmpqueue = g_slist_append(tmpqueue, e);
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -148,7 +148,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
-				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -169,7 +169,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
-				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
 				tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -196,7 +196,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
-				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -222,7 +222,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
-				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -248,7 +248,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                 struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
-				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+				bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                                 oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
                                 tmpqueue = g_slist_append(tmpqueue, e);
                                 SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -273,7 +273,7 @@ static int snmp_bc_discover_resources(void *hnd)
                         struct BC_ResourceInfo *bc_data =
                                         g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].bc_res_info),
                                                  sizeof(struct BC_ResourceInfo));
-			bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+			bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                         oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
 			tmpqueue = g_slist_append(tmpqueue, e);
                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -301,7 +301,7 @@ static int snmp_bc_discover_resources(void *hnd)
                                         struct BC_ResourceInfo *bc_data =
                                             g_memdup(&(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].bc_res_info),
                                                      sizeof(struct BC_ResourceInfo));
-					bc_data->cur_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
+					bc_data->cur_state = SAHPI_HS_STATE_ACTIVE;
                                         oh_add_resource(tmpcache,&(e->u.res_event.entry),bc_data,0);
 					tmpqueue = g_slist_append(tmpqueue, e);
                                         SaHpiResourceIdT rid = e->u.res_event.entry.ResourceId;
@@ -339,7 +339,7 @@ static int snmp_bc_discover_resources(void *hnd)
        	rpt_diff(handle->rptcache, tmpcache, &res_new, &rdr_new, &res_gone, &rdr_gone);
 	dbg("%d resources have gone away.", g_slist_length(res_gone));
 	dbg("%d resources are new or have changed", g_slist_length(res_new));
-
+#if 0
         for (node = rdr_gone; node != NULL; node = node->next) {
                 SaHpiRdrT *rdr = (SaHpiRdrT *)node->data;
                 SaHpiRptEntryT *res = oh_get_resource_by_ep(handle->rptcache, &(rdr->Entity));
@@ -357,8 +357,9 @@ static int snmp_bc_discover_resources(void *hnd)
                 else dbg("No valid resource or rdr at hand. Could not remove rdr.");
                 
         }
+#endif
         g_slist_free(rdr_gone);
-
+#if 0
         for (node = res_gone; node != NULL; node = node->next) {
                 SaHpiRptEntryT *res = (SaHpiRptEntryT *)node->data;
 		/* Create remove resource event and add to event queue */
@@ -373,6 +374,8 @@ static int snmp_bc_discover_resources(void *hnd)
                         oh_remove_resource(handle->rptcache, res->ResourceId);
                 else dbg("No valid resource at hand. Could not remove resource.");
         }
+#endif
+
         g_slist_free(res_gone);
 
         for (node = res_new; node != NULL; node = node->next) {
@@ -515,23 +518,26 @@ struct oh_abi_v2 oh_snmp_bc_plugin = {
         .discover_resources     	= snmp_bc_discover_resources,
         .set_resource_tag               = snmp_bc_set_resource_tag,
         .set_resource_severity          = snmp_bc_set_resource_severity,
-        .get_sel_info			= snmp_bc_get_sel_info,
-        .set_sel_time			= snmp_bc_set_sel_time,
-        .add_sel_entry			= snmp_bc_add_sel_entry,
-        .get_sel_entry			= snmp_bc_get_sel_entry,
-	.clear_sel			= snmp_bc_clear_sel,
+        .get_el_info			= snmp_bc_get_sel_info,
+        .set_el_time			= snmp_bc_set_sel_time,
+        .add_el_entry			= snmp_bc_add_sel_entry,
+        .get_el_entry			= snmp_bc_get_sel_entry,
+	.clear_el			= snmp_bc_clear_sel,
         .get_sensor_data		= snmp_bc_get_sensor_data,
         .get_sensor_thresholds		= snmp_bc_get_sensor_thresholds,
         .set_sensor_thresholds		= snmp_bc_set_sensor_thresholds,
         .get_sensor_event_enables	= snmp_bc_get_sensor_event_enables,
-        .set_sensor_event_enables	= snmp_bc_set_sensor_event_enables,
+/*       .set_sensor_event_enables	= snmp_bc_set_sensor_event_enables, */
         .get_control_state		= snmp_bc_get_control_state,
-        .set_control_state		= snmp_bc_set_control_state,
-        .get_inventory_size		= snmp_bc_get_inventory_size,
-        .get_inventory_info		= snmp_bc_get_inventory_info,
-        .set_inventory_info		= snmp_bc_set_inventory_info,
-        .get_watchdog_info		= snmp_bc_get_watchdog_info,
-        .set_watchdog_info		= snmp_bc_set_watchdog_info,
+/*        .set_control_state		= snmp_bc_set_control_state,       */
+	.get_idr_info			= snmp_bc_get_idr_info,
+	.get_idr_area_header		= snmp_bc_get_idr_area_header,
+	.add_idr_area			= snmp_bc_add_idr_area,
+	.del_idr_area			= snmp_bc_del_idr_area,
+	.get_idr_field			= snmp_bc_get_idr_field,
+	.add_idr_field			= snmp_bc_add_idr_field,
+	.set_idr_field			= snmp_bc_set_idr_field,
+	.del_idr_field			= snmp_bc_del_idr_field,
         .reset_watchdog			= snmp_bc_reset_watchdog,
         .get_hotswap_state		= snmp_bc_get_hotswap_state,
         .set_hotswap_state		= snmp_bc_set_hotswap_state,
