@@ -656,25 +656,25 @@ static int ipmi_get_sensor_data(void 			*hnd,
 	SaErrorT         rv;
 	ipmi_sensor_id_t *sensor;
 
-SaHpiRdrT *rdr;
+	SaHpiRdrT *rdr;
 
-rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-if (!rdr) {
-dbg("no rdr");
-return SA_ERR_HPI_NOT_PRESENT;
-}
-/* Fix Me */
-/* No Ignore field in HPI B 1.1 */
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+	/* Fix Me */
+	/* No Ignore field in HPI B 1.1 */
 # if 0
-if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
-dbg("sensor is not present");
-return SA_ERR_HPI_NOT_PRESENT;
-}
+	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
+		dbg("sensor is not present");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
 #endif 
 
-rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
-if (rv!=SA_OK)
-return rv;
+	rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
 
 	memset(data, 0, sizeof(*data));
 	return ohoi_get_sensor_data(*sensor, data, ipmi_handler);
@@ -756,12 +756,12 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 	return ohoi_set_sensor_thresholds(*sensor, thres, ipmi_handler);	
 }
 
-#if 0
 
-static int ipmi_get_sensor_event_enables(void			*hnd, 
-					 SaHpiResourceIdT	id,
-					 SaHpiSensorNumT	num,
-					 SaHpiSensorEvtEnablesT	*enables)
+static int ipmi_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
+					 SaHpiSensorNumT num,
+					 SaHpiBoolT *enables)
+
+
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
@@ -787,13 +787,16 @@ static int ipmi_get_sensor_event_enables(void			*hnd,
 	if (rv!=SA_OK)
 		return rv;
 	return ohoi_get_sensor_event_enables(*sensor, enables, ipmi_handler);
+
+	return SA_OK;
 }
 
-static int ipmi_set_sensor_event_enables(void 			  *hnd,
-			      		SaHpiResourceIdT  id,
-					SaHpiSensorNumT	num,
-				     const SaHpiSensorEvtEnablesT *enables)
+static int ipmi_set_sensor_event_enables(void *hnd,
+					 SaHpiResourceIdT id,
+					 SaHpiSensorNumT num,
+					 const SaHpiBoolT enables)
 {
+#if 0
 	
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
@@ -820,8 +823,10 @@ static int ipmi_set_sensor_event_enables(void 			  *hnd,
 	if (rv!=SA_OK)
 		return rv;
 	return ohoi_set_sensor_event_enables(*sensor, enables, ipmi_handler);
-}
 #endif
+	return SA_OK;
+}
+
 
 static struct oh_abi_v2 oh_ipmi_plugin = {
 		
@@ -843,9 +848,9 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.get_sensor_data		= ipmi_get_sensor_data,
 	.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
 	.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
-	//.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
-	//.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
-		
+	.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
+	.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
+	
 	/* Inventory support */
 	.get_idr_info			= ohoi_get_idr_info,
 	.get_idr_area_header		= ohoi_get_idr_area_header,
