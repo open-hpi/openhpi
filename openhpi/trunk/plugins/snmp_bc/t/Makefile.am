@@ -59,7 +59,6 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 
 
 # Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
-TESTS_ENVIRONMENT = "OPENHPI_PATH=$(shell pwd)"
 TESTS = thotswap_state \
 	thotswap_state_err \
 	thotswap_reset \
@@ -74,10 +73,6 @@ TESTS = thotswap_state \
 	tsensor \
 	tutils_conv \
 	tutils_oid
-
-echo:
-	@echo "TESTS_ENVIRONMENT = $(TESTS_ENVIRONMENT)"
-	@echo "OPENHPI_PATH = $(OPENHPI_PATH)"
 
 # XFAIL_TESTS = thotswap_reset
 
