@@ -206,10 +206,12 @@ void *snmp_bc_open(GHashTable *handler_config)
 		else {
 			err = snmp_get(custom_handle->ss, SNMP_BC_PLATFORM_OID_BCT, &get_value);
 			if (err == SA_OK) {
+				trace("Found BC-T\n");
 				custom_handle->platform = SNMP_BC_PLATFORM_BCT;
 			}
 			else {
-				if ((err == SA_ERR_SNMP_NOSUCHOBJECT) || (err == SA_ERR_SNMP_NOSUCHINSTANCE)) {
+				if (err ==  SA_ERR_HPI_NOT_PRESENT) {
+					trace("Found BC-E\n");
 					custom_handle->platform = SNMP_BC_PLATFORM_BC;
 				}
 				else {
