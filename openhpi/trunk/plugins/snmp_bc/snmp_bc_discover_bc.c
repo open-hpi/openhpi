@@ -20,12 +20,15 @@
 SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 			  SaHpiEntityPathT *ep_root)
 {
+
+	if (!handle || !ep_root)
+		return SA_ERR_HPI_INVALID_PARAMS;
 	int i;
 	SaErrorT err;
         struct oh_event *e;
-	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 	struct snmp_value get_value, get_active;
 	struct ResourceInfo *res_info_ptr;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
         /* Discover Chassis, Blades, Expansion Cards */
 	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value);
