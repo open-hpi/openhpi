@@ -698,12 +698,12 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 		case SAHPI_NO_MORE_ENTRIES:
 			dbg("SEL is empty!");
 			if (!event)
-				return SA_ERR_HPI_NOT_PRESENT;
+				return SA_ERR_HPI_INVALID_PARAMS;
 
 		default:                		
 			/* get the entry requested by id */
 			ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id,
-						*next, &event);
+						current, &event);
 			if (!event)
 				return SA_ERR_HPI_NOT_PRESENT;
 			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id,
@@ -1528,9 +1528,11 @@ int ipmi_get_interface(void **pp, const uuid_t uuid)
 		*pp = &oh_ipmi_plugin;
 		return 0;
 	}
-printf("uuid_compare false\n");
 	*pp = NULL;
 	return -1;
 }
 
 int get_interface(void **pp, const uuid_t uuid) __attribute__ ((weak, alias("ipmi_get_interface")));
+
+
+
