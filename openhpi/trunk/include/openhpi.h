@@ -1,6 +1,16 @@
-/* BSD License
- * Copyright (C) by Intel Crop.
- * Author: Louis Zhuang <louis.zhuang@linux.intel.com>
+/*      -*- linux-c -*-
+ *
+ * Copyright (c) 2003 by Intel Corp.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+ * file and program are licensed under a BSD style license.  See
+ * the Copying file included with the OpenHPI distribution for
+ * full licensing terms.
+ *
+ * Authors:
+ *     Louis Zhuang <louis.zhuang@linux.intel.com>
  */
 
 #ifndef __OPENHPI_H
@@ -101,10 +111,10 @@ int present_entity(struct oh_domain *d, struct oh_id *oid);
 int init_plugin(void);
 int uninit_plugin(void);
 
-#define dbg(format, ...)                                     \
-        do {							\
-		fprintf(stderr, "%s:%d: " format "\n",		\
-			__FUNCTION__, __LINE__, ## __VA_ARGS__);	\
+#define dbg(format, ...)                                      \
+        do {							                      \
+		fprintf(stderr, "%s:%d: ", __FUNCTION__, __LINE__);   \
+                fprintf(stderr, format "\n", ## __VA_ARGS__); \
         } while(0)
 
 #endif/*__OPENHPI_H*/
