@@ -369,7 +369,6 @@ static int uid_map_from_file(void)
 {
         char *uid_map_file;
         int file;
-//        int map_len;
         int rval;
 
          /* initialize uid map file */
@@ -381,7 +380,9 @@ static int uid_map_from_file(void)
          if(file < 0) {
                  /* create map file with resource id initial value */
                  dbg("Configuration file '%s' does not exist, initializing", uid_map_file);
-                 file = open(uid_map_file,O_RDWR | O_CREAT | O_TRUNC);
+                 file = open(uid_map_file,
+			     O_RDWR | O_CREAT | O_TRUNC, 
+			     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH );
                  if(file < 0) {
                          dbg("Could not initialize uid map file, %s", uid_map_file );
                                          return(-1);
