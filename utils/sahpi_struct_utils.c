@@ -2667,3 +2667,194 @@ SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT *buffer)
 
 	return(SAHPI_TRUE);
 }
+
+#define validate_threshold(thdname, thdmask) \
+do { \
+if (thds->thdname.IsSupported) { \
+	if (!(writable_thds & thdmask)) return(SA_ERR_HPI_INVALID_CMD); \
+	if (format->ReadingType != thds->thdname.Type) return(SA_ERR_HPI_INVALID_CMD); \
+	switch (format->ReadingType) { \
+	case SAHPI_SENSOR_READING_TYPE_INT64: \
+		if (format->Range.Flags & SAHPI_SRF_MAX) { \
+			if (thds->thdname.Value.SensorInt64 > format->Range.Max.Value.SensorInt64) \
+                                return(SA_ERR_HPI_INVALID_CMD); \
+		} \
+		if (format->Range.Flags & SAHPI_SRF_MIN) { \
+			if (thds->thdname.Value.SensorInt64 < format->Range.Min.Value.SensorInt64) \
+				return(SA_ERR_HPI_INVALID_CMD); \
+		} \
+		if (thds->PosThdHysteresis.IsSupported) { \
+			if (thds->PosThdHysteresis.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+		} \
+		if (thds->NegThdHysteresis.IsSupported) { \
+			if (thds->NegThdHysteresis.Value.SensorInt64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+		} \
+		break; \
+	case SAHPI_SENSOR_READING_TYPE_FLOAT64: \
+		if (format->Range.Flags & SAHPI_SRF_MAX) { \
+			if (thds->thdname.Value.SensorFloat64 > format->Range.Max.Value.SensorFloat64) \
+				return(SA_ERR_HPI_INVALID_CMD); \
+		} \
+		if (format->Range.Flags & SAHPI_SRF_MIN) { \
+			if (thds->thdname.Value.SensorFloat64 < format->Range.Min.Value.SensorFloat64) \
+				return(SA_ERR_HPI_INVALID_CMD); \
+		} \
+		if (thds->PosThdHysteresis.IsSupported) { \
+			if (thds->PosThdHysteresis.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+		} \
+		if (thds->NegThdHysteresis.IsSupported) { \
+			if (thds->NegThdHysteresis.Value.SensorFloat64 < 0) return(SA_ERR_HPI_INVALID_DATA); \
+		} \
+		break; \
+	case SAHPI_SENSOR_READING_TYPE_UINT64: \
+		if (format->Range.Flags & SAHPI_SRF_MAX) { \
+			if (thds->thdname.Value.SensorUint64 > format->Range.Max.Value.SensorUint64) \
+				return(SA_ERR_HPI_INVALID_CMD); \
+		} \
+		if (format->Range.Flags & SAHPI_SRF_MIN) { \
+			if (thds->thdname.Value.SensorUint64 < format->Range.Min.Value.SensorUint64) \
+				return(SA_ERR_HPI_INVALID_CMD); \
+		} \
+		break; \
+	case SAHPI_SENSOR_READING_TYPE_BUFFER: \
+	default: \
+		dbg("Invalid threshold reading type."); \
+		return(SA_ERR_HPI_INVALID_CMD); \
+	} \
+} \
+} while(0)
+
+#define validate_threshold_order(thdtype) \
+do { \
+if (thds->UpCritical.IsSupported == SAHPI_TRUE) { \
+	if (thds->UpMajor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpCritical.Value.thdtype < thds->UpMajor.Value.thdtype) \
+                        return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->UpMinor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpCritical.Value.thdtype < thds->UpMinor.Value.thdtype) \
+                        return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowMinor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpCritical.Value.thdtype < thds->LowMinor.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowMajor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpCritical.Value.thdtype < thds->LowMajor.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowCritical.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpCritical.Value.thdtype < thds->LowCritical.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+} \
+if (thds->UpMajor.IsSupported == SAHPI_TRUE) { \
+	if (thds->UpMinor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpMajor.Value.thdtype < thds->UpMinor.Value.thdtype) \
+                               return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowMinor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpMajor.Value.thdtype < thds->LowMinor.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowMajor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpMajor.Value.thdtype < thds->LowMajor.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowCritical.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpMajor.Value.thdtype < thds->LowCritical.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+} \
+if (thds->UpMinor.IsSupported == SAHPI_TRUE) { \
+	if (thds->LowMinor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpMinor.Value.thdtype < thds->LowMinor.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowMajor.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpMinor.Value.thdtype < thds->LowMajor.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowCritical.IsSupported == SAHPI_TRUE) { \
+		if (thds->UpMinor.Value.thdtype < thds->LowCritical.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+} \
+if (thds->LowMinor.IsSupported == SAHPI_TRUE) { \
+	if (thds->LowMajor.IsSupported == SAHPI_TRUE) { \
+		if (thds->LowMinor.Value.thdtype < thds->LowMajor.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+	if (thds->LowCritical.IsSupported == SAHPI_TRUE) { \
+		if (thds->LowMinor.Value.thdtype < thds->LowCritical.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+} \
+if (thds->LowMajor.IsSupported == SAHPI_TRUE) { \
+	if (thds->LowCritical.IsSupported == SAHPI_TRUE) { \
+		if (thds->LowMajor.Value.thdtype < thds->LowCritical.Value.thdtype) \
+			return(SA_ERR_HPI_INVALID_DATA); \
+	} \
+} \
+} while(0)
+ 
+/**
+ * oh_valid_thresholds:
+ * @thds: Location of threshold definitions to verify.
+ * @format: Location of sensor's data format structure.
+ * @writable_thds: List of sensor's writeable thresholds.
+ *
+ * Validates that the threshold values defined in @thds are valid for a sensor with
+ * a data format described in @format. Callers to this routine still need to
+ * verify that the sensor has a category of SAHPI_EC_THRESHOLD and has writable thresholds
+ * (ThresholdDefn.IsAccessible and ThresholdDefn.WriteThold non-zero). 
+ *
+ * In addition, the caller may need to read the sensor's existing sensors first, since
+ * @thds may only contain a subset of the possible writable thresholds.
+ *
+ * Return values:
+ * SA_OK - normal case.
+ * SA_ERR_HPI_INVALID_CMD - Non-writable thresholds, invalid thresholds values, or invalid data type.
+ * SA_ERR_HPI_INVALID_DATA - if threshold values out of order; negative hysteresis.
+ * SA_ERR_HPI_INVALID_PARAMS - if @thds or @format is NULL.
+ **/
+SaErrorT oh_valid_thresholds(SaHpiSensorThresholdsT *thds,
+			     SaHpiSensorDataFormatT *format,
+			     SaHpiSensorThdMaskT writable_thds)
+{
+	if (!thds || !format) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	validate_threshold(LowCritical, SAHPI_STM_LOW_CRIT);
+	validate_threshold(LowMajor, SAHPI_STM_LOW_MAJOR);
+	validate_threshold(LowMinor, SAHPI_STM_LOW_MINOR);
+	validate_threshold(UpCritical, SAHPI_STM_UP_CRIT);
+	validate_threshold(UpMajor, SAHPI_STM_UP_MAJOR);
+	validate_threshold(UpMinor, SAHPI_STM_UP_MINOR);
+	validate_threshold(PosThdHysteresis, SAHPI_STM_UP_HYSTERESIS);
+	validate_threshold(NegThdHysteresis, SAHPI_STM_LOW_HYSTERESIS);
+
+        /* Validate defined thresholds are in order:
+	 * upper critical >= upper major >= upper minor >= 
+	 * lower minor >= lower major >= lower critical
+	 */
+	switch (format->ReadingType) {
+	case SAHPI_SENSOR_READING_TYPE_INT64:
+		validate_threshold_order(SensorInt64);
+		break;
+	case SAHPI_SENSOR_READING_TYPE_FLOAT64:
+		validate_threshold_order(SensorFloat64);
+		break;
+	case SAHPI_SENSOR_READING_TYPE_UINT64:
+		validate_threshold_order(SensorUint64);
+		break;
+	case SAHPI_SENSOR_READING_TYPE_BUFFER:
+	default:
+		dbg("Invalid threshold reading type.");
+		return(SA_ERR_HPI_INVALID_CMD);
+	}
+
+	return(SA_OK);
+}
