@@ -31,6 +31,7 @@ typedef struct {
         SaHpiBoolT       enabled; // log enabled?
         SaHpiBoolT       overflow; // log overflowed?
         SaHpiBoolT       deletesupported; // delete operation supported?
+        SaHpiBoolT       gentimestamp; // generate timestamp?
         SaHpiTimeT       lastUpdate; // last entry's timestamp
         SaHpiTimeT       offset; // offset to be added when generating a timestamp
         SaHpiUint32T     maxsize; //max number of entries supported
@@ -50,6 +51,7 @@ SaErrorT oh_sel_info(oh_sel *sel, SaHpiSelInfoT *info);
 SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename);
 SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename);
 SaErrorT oh_sel_timeset(oh_sel *sel, SaHpiTimeT timestamp);
+SaErrorT oh_sel_setgentimestampflag(oh_sel *sel, SaHpiBoolT flag);
 
 
 #ifdef __cplusplus
