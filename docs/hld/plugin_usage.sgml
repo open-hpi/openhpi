@@ -1,0 +1,111 @@
+<!-- ...................................................................... -->
+<!-- $Id$ ........................................ -->
+<!-- 
+        (C) Copyright IBM Corp. 2003
+ 
+        Authors:
+            Sean Dague
+
+        This material may be distributed only subject to the terms and 
+        conditions set forth in the Open Publication License, v1.0 or later 
+        (the latest version is currently available at 
+        http://www.opencontent.org/openpub/).  Distribution of substantively 
+        modified version of this document is prohibited without the explicit 
+        permission of the copyright holder.
+
+        Other company, product, or service names may be trademarks or service 
+        marks of others.
+-->
+
+  <chapter>
+  <title>OpenHPI Plugin Usage</title>
+  <para>
+    This chapter is an overview of the existing plugins for OpenHPI,
+    and how one needs to configured them for usage.  It is expected
+    that this will grow over time as new plugins are added.
+  </para>
+  <sect1>
+    <title>General Configuration</title>
+    <para>
+      To add a plugin for usage by OpenHPI one has to add at least 2
+      stanzas to the <literal>/etc/openhpi/openhpi.conf</literal>
+      file.  These are a <literal>plugin</literal> and
+      <literal>handler</literal> stanza.
+    </para>
+  </sect1>
+  <sect1>
+    <title>Dummy Plugin</title>
+    <para>
+      The Dummy Plugin is a test plugin that was first used to test
+      the infrastructure.  It is still useful for testing a new
+      feature in the infrastructure without having hardware supported
+      by OpenHPI.
+    </para>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+        None.  The dummy plugin consists of static data specified
+        within the plugin.  It requires no special hardware or
+        software to run.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+        There is no required configuration for the dummy plugin (I
+        know this isn't true, but I'll leave this for someone else to write).
+      </para>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>SNMP Blade Center Plugin</title>
+    <para>
+      The SNMP Blade Center plugin is an SNMP based interface to IBM's
+      Blade Center hardware.  Technical information about Blade Center
+      is best found at http://www-1.ibm.com/servers/eserver/bladecenter/.
+    </para>
+    <para>
+      This plugin is called <literal>snmp_bc</literal> in the OpenHPI tree, and will be
+      referenced by the name <literal>libsnmp_bc</literal> in all
+      OpenHPI configuration files.
+    </para>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+        The snmp_bc plugin is not currently built by default in the
+        OpenHPI build process.  In order to enable the building of the
+        snmp_bc module one must add the configure flag
+        <literal>--enable-snmp_bc</literal> during the configure
+        process.
+      </para>
+      <para>
+        snmp_bc relies on Net-SNMP >= 5.0.  most testing has
+        been done with >= 5.0.7 so the latest version available for
+        your distribution is recommended.
+      </para>
+      <para>
+        The Blade Center hardware must also be SNMP enabled to
+        interface with this plugin properly.  This requires that the
+        Management Module firmware be >= 1.0.4.  As of the time of
+        this writing 1.0.6 is available and can be found at
+        http://www-3.ibm.com/pc/support/site.wss/document.do?lndocid=MIGR-45487.
+        Instructions are included there for upgrading the firmware.
+      </para>
+      <para>
+        Once the firmware is updated, one must use the Management
+        Module web interface to enable SNMP access.  This is found
+        under the Networking options in the web interface.  There is a
+        field to both set the community string (i.e. password) and up
+        to 3 allowed hosts to connect to the Management Module.
+        Ensure that what host will be running OpenHPI is in that list
+        of allowed hosts.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+        TBD
+      </para>
+    </sect2>
+  </sect1>
+</chapter>
