@@ -189,8 +189,8 @@ struct ipmi_timing_parms
 					     struct ipmi_timing_parms)
 
 
-cIpmiConSmi::cIpmiConSmi( unsigned int timeout, int if_num )
-  : cIpmiCon( timeout ), 
+cIpmiConSmi::cIpmiConSmi( unsigned int timeout, int log_level, int if_num )
+  : cIpmiCon( timeout, log_level ), 
     m_if_num( if_num )
 {
 }

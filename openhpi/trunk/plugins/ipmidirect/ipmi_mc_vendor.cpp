@@ -57,7 +57,8 @@ cIpmiMcVendorFactory::InitFactory()
        m_factory = new cIpmiMcVendorFactory;
 
        // register vendor mc here.
-       m_factory->Register( new cIpmiMcVendorForceShMc );
+       m_factory->Register( new cIpmiMcVendorForceShMc( 0x1011 ) );
+       m_factory->Register( new cIpmiMcVendorForceShMc( 0x1080 ) );
      }
 
   use_count++;
@@ -177,6 +178,13 @@ cIpmiMcVendor::InitMc( cIpmiMc * /*mc*/, const cIpmiMsg & /*devid*/ )
 void
 cIpmiMcVendor::CleanupMc( cIpmiMc * /*mc*/ )
 {
+}
+
+
+bool
+cIpmiMcVendor::ProcessSdr( cIpmiDomain * /*domain*/, cIpmiMc * /*mc*/, cIpmiSdrs * /*sdrs*/ )
+{
+  return true;
 }
 
 

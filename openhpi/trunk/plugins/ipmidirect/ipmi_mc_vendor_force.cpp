@@ -21,8 +21,8 @@
 #include <errno.h>
 
 
-cIpmiMcVendorForceShMc::cIpmiMcVendorForceShMc()
-  : cIpmiMcVendor( 0x000e48, 0x1011, "Force ShMc" )
+cIpmiMcVendorForceShMc::cIpmiMcVendorForceShMc( unsigned int product_id )
+  : cIpmiMcVendor( 0x000e48, product_id, "Force ShMc" )
 {
 }
 
@@ -66,70 +66,70 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
             stdlog << "cannot go into BMC mode: " << rsp.m_data[0] << " !\n";
             return false;
           }
-     }
 
-  // check if there is a repository SDR
-  if ( devid.m_data[6] & 2 )
-     {
-       stdlog << "clear repository SDR.\n";
-
-       // clear repository SDR
-
-       // get a reservation
-       cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdReserveSdrRepository );
-       msg.m_data_len = 0;
-       cIpmiMsg rsp;
-       
-       SaErrorT rv = mc->SendCommand( msg, rsp );
-
-       if ( rv != SA_OK )
+       // check if there is a repository SDR
+       if ( devid.m_data[6] & 2 )
           {
-            stdlog << "cannot send reserve reposotory SDR: " << rv << " !\n";
-            return false;
-          }
+            stdlog << "clear repository SDR.\n";
 
-       if ( rsp.m_data_len != 3 || rsp.m_data[0] != eIpmiCcOk )
-          {
-            stdlog << "cannot reserve repository SDR: " << rsp.m_data[0] << " !\n";
+            // clear repository SDR
 
-            return false;
-          }
-
-       unsigned short reservation = IpmiGetUint16( rsp.m_data + 1 );
-
-       // create repository SDR and wait until erase completed
-       bool first = true;
-
-       msg.m_netfn = eIpmiNetfnStorage;
-       msg.m_cmd   = eIpmiCmdClearSdrRepository;
-       IpmiSetUint16( msg.m_data, reservation );
-       msg.m_data[2] = 'C';
-       msg.m_data[3] = 'L';
-       msg.m_data[4] = 'R';
-       msg.m_data_len = 6;
-
-       do
-          {
-            msg.m_data[5] = first ? 0xaa : 0; // initiate erase/ erase status
-            first = false;
+            // get a reservation
+            msg.m_netfn = eIpmiNetfnStorage;
+            msg.m_cmd = eIpmiCmdReserveSdrRepository;
+            msg.m_data_len = 0;
 
             rv = mc->SendCommand( msg, rsp );
 
             if ( rv != SA_OK )
                {
-                 stdlog << "cannot send clear SDR reposotory: " << rv << " !\n";
-                 return false;
+                 stdlog << "cannot send reserve reposotory SDR: " << rv << " !\n";
+                 return true;
                }
 
-            if ( rsp.m_data_len != 2 || rsp.m_data[0] != eIpmiCcOk )
+            if ( rsp.m_data_len != 3 || rsp.m_data[0] != eIpmiCcOk )
                {
                  stdlog << "cannot reserve repository SDR: " << rsp.m_data[0] << " !\n";
 
-                 return false;
+                 return true;
                }
+
+            unsigned short reservation = IpmiGetUint16( rsp.m_data + 1 );
+
+            // create repository SDR and wait until erase completed
+            bool first = true;
+
+            msg.m_netfn = eIpmiNetfnStorage;
+            msg.m_cmd   = eIpmiCmdClearSdrRepository;
+            IpmiSetUint16( msg.m_data, reservation );
+            msg.m_data[2] = 'C';
+            msg.m_data[3] = 'L';
+            msg.m_data[4] = 'R';
+            msg.m_data_len = 6;
+
+            do
+               {
+                 msg.m_data[5] = first ? 0xaa : 0; // initiate erase/ erase status
+                 first = false;
+
+                 rv = mc->SendCommand( msg, rsp );
+
+                 if ( rv != SA_OK )
+                    {
+                      stdlog << "cannot send clear SDR reposotory: " << rv << " !\n";
+                      return true;
+                    }
+
+                 if ( rsp.m_data_len != 2 || rsp.m_data[0] != eIpmiCcOk )
+                    {
+                      stdlog << "cannot reserve repository SDR: " << rsp.m_data[0] << " !\n";
+
+                      return true;
+                    }
+               }
+            // wait until erase is complete
+            while( (rsp.m_data[1] & 0x7) != 0x1 );
           }
-       // wait until erase is complete
-       while( (rsp.m_data[1] & 0x7) != 0x1 );
      }
 
   // this is for debugging only
@@ -147,14 +147,14 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
        if ( rv != SA_OK )
           {
             stdlog << "cannot send reserve SEL: " << rv << " !\n";
-            return false;
+            return true;
           }
 
        if ( rsp.m_data_len != 3 || rsp.m_data[0] != eIpmiCcOk )
           {
             stdlog << "cannot reserve SEL: " << rsp.m_data[0] << " !\n";
        
-            return false;
+            return true;
           }
 
        unsigned short reservation = IpmiGetUint16( rsp.m_data + 1 );
@@ -180,18 +180,45 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
             if ( rv != SA_OK )
                {
                  stdlog << "cannot send clear SDR reposotory: " << rv << " !\n";
-                 return false;
+                 return true;
                }
 
             if ( rsp.m_data_len != 2 || rsp.m_data[0] != eIpmiCcOk )
                {
                  stdlog << "cannot reserve repository SDR: " << rsp.m_data[0] << " !\n";
 
-                 return false;
+                 return true;
                }
           }
        // wait until erase is complete
        while( (rsp.m_data[1] & 0x7) != 0x1 );
+     }
+
+  return true;
+}
+
+
+bool
+cIpmiMcVendorForceShMc::ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs )
+{
+  if ( mc->GetAddress() != 0x20 )
+       return true;
+
+  // fix slave addr of ShMc at 0x20
+  // create one resource per mcdlr and fdlr
+  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
+     {
+       cIpmiSdr *sdr = sdrs->Sdr( i );
+
+       switch( sdr->m_type )
+          {
+            case eSdrTypeMcDeviceLocatorRecord:
+                 sdr->m_data[5] = 0x20;
+                 break;
+
+            default:
+                 break;
+          }
      }
 
   return true;

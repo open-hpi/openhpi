@@ -492,7 +492,7 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   tIpmiFruState current_state = (tIpmiFruState)(event->m_data[10] & 0x0f);
   tIpmiFruState prev_state    = (tIpmiFruState)(event->m_data[11] & 0x0f);
 
-  stdlog << "hot swap event M" << (int)prev_state << " -> M" 
+  stdlog << "hot swap event at MC " << m_addr << " M" << (int)prev_state << " -> M" 
          << (int)current_state << ".\n";
 
   if ( current_state == eIpmiFruStateActivationInProgress )
@@ -527,10 +527,8 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
             stdlog << "power fru.\n";
      }
 
+  sensor->Resource()->FruState() = current_state;
   sensor->HandleEvent( event );
-
-  if ( m_mc )
-       m_mc->FruState() = current_state;
 
   if ( current_state == eIpmiFruStateNotInstalled )
      {
@@ -575,16 +573,15 @@ cIpmiMcThread::PollAddr( void *userdata )
 {
   cIpmiMc *mc = (cIpmiMc *)userdata;
 
-  stdlog << "poll MC at " << m_addr << ".\n";
+  if ( m_domain->ConLogLevel( dIpmiConLogCmd ) )
+       stdlog << "poll MC at " << m_addr << ".\n";
 
   // send a get device id
   cIpmiAddr addr( eIpmiAddrTypeIpmb, 0, 0, m_addr );
   cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdGetDeviceId );
   cIpmiMsg rsp;
 
-  // because this command is send periodical 
-  // retries is set to 1.
-  SaErrorT rv = m_domain->SendCommand( addr, msg, rsp, 1 );
+  SaErrorT rv = m_domain->SendCommand( addr, msg, rsp, 3 );
 
   if ( rv != SA_OK )
      {
@@ -613,9 +610,9 @@ cIpmiMcThread::PollAddr( void *userdata )
                       event->m_data[8]  = hs->Num();
                       event->m_data[9]  = 0; // assertion
                       event->m_data[10] = 0; // M0
-                      event->m_data[11] = m_mc->FruState() | (7 << 4); // communication lost
+                      event->m_data[11] = hs->Resource()->FruState() | (7 << 4); // communication lost
                       event->m_data[12] = 0;
-                      
+
                       // this is because HandleHotswapEvent first removes the PollAddr task
                       if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
                               || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
@@ -654,7 +651,9 @@ cIpmiMcThread::PollAddr( void *userdata )
   if (    ( m_mc  && (m_properties & dIpmiMcThreadPollAliveMc ) )
        || ( !m_mc && (m_properties & dIpmiMcThreadPollDeadMc ) ) )
      {
-       stdlog << "addr " << m_addr << ": add poll. cIpmiMcThread::PollAddr\n";
+       if ( m_domain->ConLogLevel( dIpmiConLogCmd ) )
+	    stdlog << "addr " << m_addr << ": add poll. cIpmiMcThread::PollAddr\n";
+
        AddMcTask( &cIpmiMcThread::PollAddr, m_domain->m_mc_poll_interval, m_mc );
      }
 }
@@ -670,7 +669,8 @@ cIpmiMcThread::ReadSel( void *userdata )
 
   m_domain->ReadUnlock();
 
-  stdlog << "addr " << m_addr << ": add sel reading. cIpmiMcThread::ReadSel\n";
+  if ( m_domain->ConLogLevel( dIpmiConLogCmd ) )
+       stdlog << "addr " << m_addr << ": add sel reading. cIpmiMcThread::ReadSel\n";
 
   // add myself to task list
   AddMcTask( &cIpmiMcThread::ReadSel, m_domain->m_sel_rescan_interval,

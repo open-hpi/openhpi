@@ -27,7 +27,9 @@
 
 cIpmiResource::cIpmiResource( cIpmiMc *mc, unsigned int fru_id )
   : m_mc( mc ), m_fru_id( fru_id ),
-    m_hotswap_sensor( 0 ), m_oem( 0 )
+    m_hotswap_sensor( 0 ),
+    m_fru_state( eIpmiFruStateNotInstalled ),
+    m_oem( 0 )
 {
   for( int i = 0; i < 256; i++ )
        m_sensor_num[i] = -1;
@@ -105,11 +107,11 @@ cIpmiResource::Destroy()
 
   // remove sensors
   while( m_rdrs )
-       Rem( (cIpmiRdr *)m_rdrs->data );
-
-  // remove resource from local cache
-  int rv = oh_remove_resource( Domain()->GetHandler()->rptcache, m_resource_id );
-  assert( rv == 0 );
+     {
+       cIpmiRdr *rdr = (cIpmiRdr *)m_rdrs->data;
+       Rem( rdr );
+       delete rdr;
+     }
 
   // create remove event
   oh_event *e = (oh_event *)g_malloc0( sizeof( oh_event ) );
@@ -122,8 +124,12 @@ cIpmiResource::Destroy()
 
   memset( e, 0, sizeof( struct oh_event ) );
   e->type = oh_event::OH_ET_RESOURCE_DEL;
-  e->u.res_event.entry.ResourceId = m_resource_id;
+  e->u.res_del_event.resource_id = m_resource_id;
   Domain()->AddHpiEvent( e );
+
+  // remove resource from local cache
+  int rv = oh_remove_resource( Domain()->GetHandler()->rptcache, m_resource_id );
+  assert( rv == 0 );
 
   m_mc->RemResource( this );
 

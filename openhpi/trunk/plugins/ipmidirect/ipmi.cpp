@@ -977,11 +977,11 @@ class cIpmiConLanDomain : public cIpmiConLan
 
 public:
   cIpmiConLanDomain( cIpmiDomain *domain, 
-                     unsigned int timeout,
+                     unsigned int timeout, int log_level,
                      struct in_addr addr, int port,
                      tIpmiAuthType auth, tIpmiPrivilege priv, 
                      char *user, char *passwd )
-    : cIpmiConLan( timeout, addr, port, auth, priv, 
+    : cIpmiConLan( timeout, log_level, addr, port, auth, priv, 
                    user, passwd ),
       m_domain( domain )
   {
@@ -1005,8 +1005,8 @@ class cIpmiConSmiDomain : public cIpmiConSmi
 
 public:
   cIpmiConSmiDomain( cIpmiDomain *domain, 
-                     unsigned int timeout, int if_num )
-    : cIpmiConSmi( timeout, if_num ), m_domain( domain )
+                     unsigned int timeout, int log_level, int if_num )
+    : cIpmiConSmi( timeout, log_level, if_num ), m_domain( domain )
   {
   }
 
@@ -1169,7 +1169,8 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        stdlog << "IpmiAllocConnection: password = " << user << ".\n";
 
-       return new cIpmiConLanDomain( this, m_con_ipmi_timeout, lan_addr, lan_port, auth, priv,
+       return new cIpmiConLanDomain( this, m_con_ipmi_timeout, dIpmiConLogAll,
+				     lan_addr, lan_port, auth, priv,
                                      user, passwd );
      }
   else if ( !strcmp( name, "smi" ) )
@@ -1183,20 +1184,8 @@ cIpmi::AllocConnection( GHashTable *handler_config )
 
        stdlog << "IpmiAllocConnection: interface number = " << if_num << ".\n";
 
-       return new cIpmiConSmiDomain( this, m_con_ipmi_timeout, if_num );
+       return new cIpmiConSmiDomain( this, dIpmiConLogAll, m_con_ipmi_timeout, if_num );
      }
-/*
-  else if ( !strcmp( name, "file" ) )
-     {
-       // filename
-       char *file = (char *)g_hash_table_lookup( handler_config, "file");
-
-       stdlog << "IpmiAllocConnection: file = %s.\n", file ? file : dIpmiConFileDefault );
-
-       // if file == 0 => use default file
-       return new cIpmiConFile( timeout, atca_timeout, file );
-     }
-*/
 
   stdlog << "Unknown connection type: " << name << " !\n";
 
@@ -1211,6 +1200,51 @@ cIpmi::AddHpiEvent( oh_event *event )
 
   assert( m_handler );
   m_handler->eventq = g_slist_append( m_handler->eventq, event );
+
+/*
+  stdlog << "event ";
+
+  switch( event->type )
+     {
+       case oh_event::OH_ET_RESOURCE:
+	    {
+	      SaHpiRptEntryT *entry = &event->u.res_event.entry;
+	      stdlog << "resource: " << entry->ResourceId << " ";
+
+	      char tmp_epath[128];
+	      entitypath2string( &entry->ResourceEntity, tmp_epath, sizeof( tmp_epath ) );
+	      printf( "\t%s\n", tmp_epath );
+	    }
+
+	    break;
+
+       case oh_event::OH_ET_RESOURCE_DEL:
+	    {
+	      stdlog << "resource del: " << event->u.res_del_event.resource_id << " ";
+	      SaHpiRptEntryT *entry = oh_get_resource_by_id( GetHandler()->rptcache,
+							     event->u.res_del_event.resource_id );
+	      assert( entry );
+
+	      char tmp_epath[128];
+	      entitypath2string( &entry->ResourceEntity, tmp_epath, sizeof( tmp_epath ) );
+	      printf("\t%s\n", tmp_epath);
+	    }
+
+	    break;
+
+       case oh_event::OH_ET_RDR:
+	    stdlog << "rdr: \n";
+	    break;
+
+       case oh_event::OH_ET_RDR_DEL:
+	    stdlog << "rdr del: \n";
+	    break;
+
+       case oh_event::OH_ET_HPI:
+	    stdlog << "hpi: \n";
+	    break;
+     }
+*/
 
   m_event_lock.Unlock();
 }

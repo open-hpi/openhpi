@@ -112,7 +112,7 @@ protected:
   SaErrorT CreateSession();
 
 public:
-  cIpmiConLan( unsigned int timeout,
+  cIpmiConLan( unsigned int timeout, int log_level,
                struct in_addr addr, int port,
                tIpmiAuthType auth, tIpmiPrivilege priv,
                char *user, char *passwd );

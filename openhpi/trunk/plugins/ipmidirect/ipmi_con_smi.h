@@ -35,7 +35,7 @@ class cIpmiConSmi : public cIpmiCon
   int OpenSmiFd( int if_num );
 
 public:
-  cIpmiConSmi( unsigned int timeout, int if_num );
+  cIpmiConSmi( unsigned int timeout, int log_level, int if_num );
   virtual ~cIpmiConSmi();
 
 protected:

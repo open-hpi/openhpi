@@ -15,6 +15,7 @@
  */
 
 #include "ipmi_inventory_parser.h"
+#include "ipmi_utils.h"
 #include <string.h>
 
 
@@ -892,7 +893,8 @@ cIpmiInventoryRecordProduct::HpiSize( int record_id ) const
   if ( m_fru_file_id.DataLength() )
        size += sizeof( SaHpiTextBufferT );
 
-  size += Num() * ( sizeof( SaHpiTextBufferT * ) + sizeof( SaHpiTextBufferT ) );
+  size += Num() * (   sizeof( SaHpiTextBufferT * )
+                    + sizeof( SaHpiTextBufferT ) );
 
   return size;
 }
@@ -913,10 +915,11 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
   data += sizeof( SaHpiInventGeneralDataT );
   data += Num() * sizeof( SaHpiTextBufferT * );
 
-  r->RecordType = SAHPI_INVENT_RECTYPE_CHASSIS_INFO;
+  r->RecordType = SAHPI_INVENT_RECTYPE_PRODUCT_INFO;
 
   r->DataLength =   sizeof( SaHpiInventGeneralDataT )
-                  + Num() * ( sizeof( SaHpiTextBufferT * ) + sizeof( SaHpiTextBufferT ) );
+                  + Num() * (   sizeof( SaHpiTextBufferT * )
+                              + sizeof( SaHpiTextBufferT ) );
 
   SaHpiInventGeneralDataT &gd = r->RecordData.BoardInfo;
   gd.MfgDateTime = SAHPI_TIME_UNSPECIFIED;
@@ -997,7 +1000,7 @@ cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r )
 
 
 void
-cIpmiInventoryRecordProduct::HpiWrite( int record_id, SaHpiInventDataRecordT * /*r*/ )
+cIpmiInventoryRecordProduct::HpiWrite( int record_id, SaHpiInventDataRecordT *r )
 {
   if ( record_id != 0 )
      {
@@ -1052,9 +1055,272 @@ cIpmiInventoryRecordProduct::Dump( cIpmiLog &dump,
 
 
 ////////////////////////////////////////////////////////////
-//                  cIpmiInventoryRecordMultiRecord
+//                  cIpmiInventoryBackplanePointToPointConnectivity
 ////////////////////////////////////////////////////////////
 
+cIpmiInventoryBackplanePointToPointConnectivity::cIpmiInventoryBackplanePointToPointConnectivity()
+  : cIpmiInventoryMultiRecord( tIpmiMultiRecordTypeBackplanePointToPointConnectivity )
+{
+}
+
+
+cIpmiInventoryBackplanePointToPointConnectivity::~cIpmiInventoryBackplanePointToPointConnectivity()
+{
+}
+
+
+SaErrorT
+cIpmiInventoryBackplanePointToPointConnectivity::IpmiRead( const unsigned char *data, unsigned int size )
+{
+  assert( 0 );
+
+  return SA_OK;
+}
+
+
+unsigned int
+cIpmiInventoryBackplanePointToPointConnectivity::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryBackplanePointToPointConnectivity::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryBackplanePointToPointConnectivity::HpiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryBackplanePointToPointConnectivity::HpiRead( SaHpiInventDataRecordT *r ) const
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryBackplanePointToPointConnectivity::HpiWrite( SaHpiInventDataRecordT *r )
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryBackplanePointToPointConnectivity::Dump( cIpmiLog &dump, const char *name ) const
+{
+  assert( 0 );
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryShelfPowerDistribution
+////////////////////////////////////////////////////////////
+
+cIpmiInventoryShelfPowerDistribution::cIpmiInventoryShelfPowerDistribution()
+  : cIpmiInventoryMultiRecord( tIpmiMultiRecordTypeShelfPowerDistribution )
+{
+}
+
+
+cIpmiInventoryShelfPowerDistribution::~cIpmiInventoryShelfPowerDistribution()
+{
+}
+
+
+SaErrorT
+cIpmiInventoryShelfPowerDistribution::IpmiRead( const unsigned char *data, unsigned int size )
+{
+  unsigned char n = data[10];
+  data += 11;
+  size -= 11;
+
+  for( unsigned char i = 0; i < n; i++ )
+     {
+       cIpmiInventoryPowerMap *p = new cIpmiInventoryPowerMap;
+       Add( p );
+
+       p->m_maximum_external_current = IpmiGetUint16( data );
+       p->m_maximum_internal_current = IpmiGetUint16( data+2 );
+       p->m_minimum_expected_voltage = data[4];
+
+       unsigned char m = data[5];
+
+       data += 6;
+       size -= 6;
+
+       for( unsigned char j = 0; j < m; j++ )
+	  {
+	    cIpmiInventoryFeedToFru *f = new cIpmiInventoryFeedToFru;
+	    p->Add( f );
+
+	    f->m_hardware_address = data[0];
+	    f->m_fru_device_id = data[1];
+
+	    data += 2;
+	    size -= 2;
+	  }
+     }
+
+  return SA_OK;
+}
+
+
+unsigned int
+cIpmiInventoryShelfPowerDistribution::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryShelfPowerDistribution::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int 
+cIpmiInventoryShelfPowerDistribution::HpiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryShelfPowerDistribution::HpiRead( SaHpiInventDataRecordT *r ) const
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfPowerDistribution::HpiWrite( SaHpiInventDataRecordT *r )
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfPowerDistribution::Dump( cIpmiLog &dump, const char *name ) const
+{
+  assert( 0 );
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryShelfActivationAndPower
+////////////////////////////////////////////////////////////
+
+cIpmiInventoryShelfActivationAndPower::cIpmiInventoryShelfActivationAndPower()
+  : cIpmiInventoryMultiRecord( tIpmiMultiRecordTypeShelfActivationAndPowerManagement )
+{
+}
+
+
+cIpmiInventoryShelfActivationAndPower::~cIpmiInventoryShelfActivationAndPower()
+{
+}
+
+
+SaErrorT
+cIpmiInventoryShelfActivationAndPower::IpmiRead( const unsigned char *data, unsigned int size )
+{
+  m_allowance = data[10];
+
+  unsigned char n = data[11];
+
+  data += 12;
+  size -= 12;
+
+  for( int i = 0; i < n; i++ )
+     {
+       cIpmiInventoryActivationAndPower *a = new cIpmiInventoryActivationAndPower;
+       Add( a );
+
+       a->m_hardware_address = data[0];
+       a->m_fru_device_id = data[1];
+       a->m_maximum_fru_power = IpmiGetUint16( data + 2 );
+       a->m_activation = data[4] & 0x40; 
+       a->m_delay = data[4] & 0x3f;
+       data += 5;
+       size -= 5;
+     }
+
+  return SA_OK;
+}
+
+
+unsigned int
+cIpmiInventoryShelfActivationAndPower::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryShelfActivationAndPower::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int 
+cIpmiInventoryShelfActivationAndPower::HpiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryShelfActivationAndPower::HpiRead( SaHpiInventDataRecordT *r ) const
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfActivationAndPower::HpiWrite( SaHpiInventDataRecordT *r )
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfActivationAndPower::Dump( cIpmiLog &dump, const char *name ) const
+{
+  assert( 0 );
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryRecordMultiRecord
+////////////////////////////////////////////////////////////
 
 cIpmiInventoryRecordMultiRecord::cIpmiInventoryRecordMultiRecord()
   : cIpmiInventoryRecord( eIpmiInventoryRecordTypeMultiRecord )
@@ -1067,9 +1333,124 @@ cIpmiInventoryRecordMultiRecord::~cIpmiInventoryRecordMultiRecord()
 }
 
 
+cIpmiInventoryMultiRecord *
+cIpmiInventoryRecordMultiRecord::GetRecord( tIpmiMultiRecordType type ) const  
+{
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiInventoryMultiRecord *mr = operator[]( i );
+
+       if ( mr->Type() == type )
+	    return mr;
+     }
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::SetRecord( tIpmiMultiRecordType type, cIpmiInventoryMultiRecord *record )
+{
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiInventoryMultiRecord *mr = operator[]( i );
+
+       if ( mr->Type() == type )
+	  {
+	    delete mr;
+
+	    if ( record )
+		 operator[]( i ) = record;
+	    else
+		 Rem( i );
+
+	    return;
+	  }
+     }
+
+  if ( record )
+       Add( record );
+}
+
+
+cIpmiInventoryMultiRecord *
+cIpmiInventoryRecordMultiRecord::AllocRecord( tIpmiMultiRecordType type )
+{
+  switch( type )
+     {
+       case tIpmiMultiRecordTypeBackplanePointToPointConnectivity:
+	    return new cIpmiInventoryBackplanePointToPointConnectivity;
+
+       case tIpmiMultiRecordTypeShelfPowerDistribution:
+	    return new cIpmiInventoryShelfPowerDistribution;
+
+       case tIpmiMultiRecordTypeShelfActivationAndPowerManagement:
+	    return new cIpmiInventoryShelfActivationAndPower;
+     }
+
+  assert( 0 );
+
+  return 0;
+}
+
+
 SaErrorT
 cIpmiInventoryRecordMultiRecord::IpmiRead( const unsigned char *data, unsigned int size )  
 {
+  return SA_OK;
+
+  while( size >= 5 )
+     {
+       // check header checksum
+       unsigned char cs = IpmiChecksum( data, 5 );
+
+       if ( cs != 0 )
+	  {
+	    stdlog << "wrong header checksum multi record !\n";
+	    return SA_ERR_HPI_INVALID_DATA_FIELD;
+	  }
+
+       // data checksum
+       cs = IpmiChecksum( data + 5, data[2] );
+
+       if ( cs != data[4] )
+	  {
+	    stdlog << "wrong data checksum in multirecord !\n";
+	    return SA_ERR_HPI_INVALID_DATA_FIELD;
+	  }
+
+       if ( data[0] == 0xc0 )
+	  {
+	    cIpmiInventoryMultiRecord *mr = AllocRecord( (tIpmiMultiRecordType)data[8] );
+
+	    if ( mr )
+	       {
+		 mr->Version() = data[1] & 0x0f;
+		 SaErrorT rv = mr->IpmiRead( data, data[2] );
+
+		 if ( rv != SA_OK )
+		    {
+		      delete mr;
+		      return rv;
+		    }
+
+		 SetRecord( mr->Type(), mr );
+	       }
+	    else
+		 stdlog << "unknown PICMG multirecord " << data[8] << ".\n";
+	  }
+       else
+	    stdlog << "unknown multirecord type " << data[0] << ".\n";
+
+       size -= data[2] + 5;
+
+       if ( data[1] & 0x80 )
+	    break;
+
+       // next record
+       data += data[2] + 5;
+     }
+
   return SA_OK;
 }
 
@@ -1092,11 +1473,59 @@ cIpmiInventoryRecordMultiRecord::IpmiWrite( unsigned char *data, unsigned int si
 }
 
 
-void
-cIpmiInventoryRecordMultiRecord::Dump( cIpmiLog & /*dump*/,
-                                       int /*record_id*/, 
-                                       const char * /*name*/ ) const
+unsigned int
+cIpmiInventoryRecordMultiRecord::HpiSize( int record_id ) const
 {
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return 0;
+     }
+
+  return operator[]( record_id )->HpiSize();
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::HpiRead( int record_id,
+					  SaHpiInventDataRecordT *r ) const
+{
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return;
+     }
+
+  return operator[]( record_id )->HpiRead( r );
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::HpiWrite( int record_id,
+					   SaHpiInventDataRecordT *r )
+{
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return;
+     }
+
+  operator[]( record_id )->HpiWrite( r );
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::Dump( cIpmiLog &dump,
+                                       int record_id, 
+                                       const char *name ) const
+{
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return;
+     }
+
+  operator[]( record_id )->Dump( dump, name );
 }
 
 
@@ -1267,7 +1696,7 @@ cIpmiInventoryParser::HpiSize() const
 	  }
      }
 
-#if 1
+#ifndef NDEBUG
   // overwrite check
   size += 256;
 #endif
@@ -1282,7 +1711,7 @@ cIpmiInventoryParser::HpiRead( SaHpiInventoryDataT &data ) const
   unsigned char *d = (unsigned char *)&data;
   unsigned s = HpiSize();
 
-#if 1
+#ifndef NDEBUG
   int l;
 
   memset( d, 0, s+256 );
@@ -1322,7 +1751,7 @@ cIpmiInventoryParser::HpiRead( SaHpiInventoryDataT &data ) const
 	  }
      }
 
-#if 1
+#ifndef NDEBUG
   // check for overwrite
   d = (unsigned char *)&data;
 

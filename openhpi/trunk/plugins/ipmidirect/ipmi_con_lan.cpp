@@ -35,10 +35,10 @@
 #define dIpmiMaxLanLen (dIpmiMaxMsgLength + 42)
 
 
-cIpmiConLan::cIpmiConLan( unsigned int timeout, struct in_addr addr, int port,
+cIpmiConLan::cIpmiConLan( unsigned int timeout, int log_level, struct in_addr addr, int port,
                           tIpmiAuthType auth, tIpmiPrivilege priv,
                           char *user, char *passwd )
-  : cIpmiCon( timeout ),
+  : cIpmiCon( timeout, log_level ),
     m_port( port ), m_auth( auth ), m_priv( priv ), m_auth_method( 0 ),
     m_session_id( 0 ), m_working_auth( eIpmiAuthTypeNone ),
     m_ping_count( 0 ),

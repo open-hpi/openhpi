@@ -25,13 +25,15 @@
 #include "ipmi_con.h"
 
 
-cIpmiCon::cIpmiCon( unsigned int timeout )
+cIpmiCon::cIpmiCon( unsigned int timeout, int log_level )
   : m_is_open( false ), m_fd( -1 ), m_slave_addr( 0x20 ),
     m_max_outstanding( 1 ), m_queue( 0 ),
     m_num_outstanding( 0 ), m_current_seq( 0 ),
-    m_exit( false ),
+    m_exit( false ), m_log_level( log_level ),
     m_timeout( timeout ), m_check_connection( false )
 {
+  // m_log_level = dIpmiConLogEvent;
+
   for( int i = 0; i < dMaxSeq; i++ )
        m_outstanding[i] = 0;
 
@@ -177,13 +179,16 @@ cIpmiCon::SendCmd( cIpmiRequest *request )
 
   int seq = AddOutstanding( request );
 
-  m_log_lock.Lock();
+  if ( m_log_level & dIpmiConLogCmd )
+     {
+       m_log_lock.Lock();
 
-  stdlog <<  ">cmd " << (unsigned char)seq << "  ";
-  IpmiLogDataMsg( request->m_addr, request->m_msg );
-  stdlog << "\n";
+       stdlog <<  ">cmd " << (unsigned char)seq << "  ";
+       IpmiLogDataMsg( request->m_addr, request->m_msg );
+       stdlog << "\n";
 
-  m_log_lock.Unlock();
+       m_log_lock.Unlock();
+     }
 
   // message timeout
   request->m_timeout = cTime::Now();
@@ -321,21 +326,6 @@ void
 cIpmiCon::IfClose()
 {
 }
-
-/*
-cIpmiRequest *
-cIpmiCon::IfAllocRequest( const cIpmiAddr &addr, const cIpmiMsg &msg )
-{
-  return new cIpmiRequest( addr, msg );
-}
-
-
-void 
-cIpmiCon::IfDestroyRequest( cIpmiRequest *r )
-{
-  delete r;
-}
-*/
 
 
 void
@@ -542,13 +532,16 @@ cIpmiCon::HandleResponse( int seq, const cIpmiAddr &addr, const cIpmiMsg &msg )
   cIpmiRequest *r = m_outstanding[seq];
   assert( r->m_seq == seq );
 
-  m_log_lock.Lock();
+  if ( m_log_level & dIpmiConLogCmd )
+     {
+       m_log_lock.Lock();
 
-  stdlog << "<rsp " << (unsigned char)r->m_seq << "  ";
-  IpmiLogDataMsg( addr, msg );
-  stdlog << "\n";
+       stdlog << "<rsp " << (unsigned char)r->m_seq << "  ";
+       IpmiLogDataMsg( addr, msg );
+       stdlog << "\n";
 
-  m_log_lock.Unlock();
+       m_log_lock.Unlock();
+     }
 
   RemOutstanding( seq );
 
@@ -575,13 +568,16 @@ cIpmiCon::HandleEvent( const cIpmiAddr &addr, const cIpmiMsg &msg )
 {
   m_last_receive_timestamp = cTime::Now();
 
-  m_log_lock.Lock();
+  if ( m_log_level & dIpmiConLogEvent )
+     {
+       m_log_lock.Lock();
 
-  stdlog << ">evt ";
-  IpmiLogDataMsg( addr, msg );
-  stdlog << "\n";
+       stdlog << ">evt ";
+       IpmiLogDataMsg( addr, msg );
+       stdlog << "\n";
 
-  m_log_lock.Unlock();
+       m_log_lock.Unlock();
+     }
 
   HandleAsyncEvent( addr, msg );
 }

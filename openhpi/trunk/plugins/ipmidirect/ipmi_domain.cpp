@@ -47,7 +47,10 @@ cIpmiDomain::cIpmiDomain()
 
   // scan at least at 0x20 (ShMc entity is 0xf0)
   NewFruInfo( 0x20, 0, (SaHpiEntityTypeT)0xf0, 0,
-              eIpmiAtcaSiteTypeDedicatedShMc, dIpmiMcThreadInitialDiscover|dIpmiMcThreadPollAliveMc );
+              eIpmiAtcaSiteTypeDedicatedShMc,
+	        dIpmiMcThreadInitialDiscover
+	      | dIpmiMcThreadPollDeadMc
+	      | dIpmiMcThreadPollAliveMc );
 
   // default site type properties
   unsigned int prop =   dIpmiMcThreadInitialDiscover
@@ -258,7 +261,7 @@ cIpmiDomain::Init( cIpmiCon *con )
             continue;
 
        int addr = fi->Address();
-       
+
        assert( m_mc_thread[addr] == 0 );
 
        m_mc_thread[addr] = new cIpmiMcThread( this, addr, fi->Properties()
@@ -679,9 +682,7 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
 cIpmiResource *
 cIpmiDomain::VerifyResource( cIpmiResource *res )
 {
-  GList *list = m_mcs;
-
-  while( list )
+  for( GList *list = m_mcs; list; list = g_list_next( list ) )
      {
        cIpmiMc *mc = (cIpmiMc *)list->data;
 

@@ -26,10 +26,11 @@
 class cIpmiMcVendorForceShMc : public cIpmiMcVendor
 {
 public:
-  cIpmiMcVendorForceShMc();
+  cIpmiMcVendorForceShMc( unsigned int product_id );
   virtual ~cIpmiMcVendorForceShMc();
-  
+
   virtual bool InitMc( cIpmiMc *mc, const cIpmiMsg &devid );
+  bool ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
 };
 
 

@@ -64,6 +64,9 @@ public:
   // cleanup code for an MC
   virtual void CleanupMc( cIpmiMc *mc );
 
+  // give vendors a chance to modify the sdrs
+  virtual bool ProcessSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
+
   // called after reading an SDR to create sensors, controls, frus, sel
   virtual bool CreateRdrs( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
 
