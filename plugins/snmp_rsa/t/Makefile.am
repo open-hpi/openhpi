@@ -56,9 +56,14 @@ libsnmp_rsa_la_LDFLAGS	= -module -avoid-version
 libsnmp_rsa.la: $(libsnmp_rsa_la_OBJECTS) $(libsnmp_rsa_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_rsa_la_LDFLAGS) $(libsnmp_rsa_la_OBJECTS) $(libsnmp_rsa_la_LIBADD) $(LIBS)
 
-# Need to put expected test failures in BOTH TESTS and XFAIL_TESTS
+# Setup environment variables for TESTS programs
 TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
-TESTS = tutils_conv
+TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
+TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
+TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
+
+TESTS = tutils_conv \
+	tutils_oid
 
 # XFAIL_TESTS = thotswap_reset
 
@@ -71,3 +76,6 @@ check_PROGRAMS = $(TESTS)
 
 tutils_conv_SOURCES = tutils_conv.c
 tutils_conv_LDADD   = snmp_rsa_utils.o
+
+tutils_oid_SOURCES = tutils_oid.c
+tutils_oid_LDADD   = snmp_rsa_utils.o
