@@ -1164,12 +1164,23 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
                 SAHPI_OUT SaHpiCtrlTypeT *Type)
 {
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+        
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
+                dbg("Resource %d doesn't have controls",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
+        }
         
         rdr = oh_get_rdr_by_type(rpt, ResourceId, SAHPI_CTRL_RDR, CtrlNum);
         if (!rdr)
-                return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_REQUEST;
 
         if (!memcpy(Type, &(rdr->RdrTypeUnion.CtrlRec.Type), 
                     sizeof(SaHpiCtrlTypeT)))
@@ -1185,15 +1196,22 @@ SaErrorT SAHPI_API saHpiControlStateGet (
                 SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
 {
         int (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
+        
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        h = oh_get_resource_data(rpt, ResourceId);
-        
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
+                dbg("Resource %d doesn't have controls",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
         get_func = h->abi->get_control_state;
         if (!get_func)          
@@ -1212,15 +1230,22 @@ SaErrorT SAHPI_API saHpiControlStateSet (
                 SAHPI_IN SaHpiCtrlStateT *CtrlState)
 {
         int (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
+
+        struct oh_session *s;
         RPTable *rpt = default_rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+                
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
         
-        h = oh_get_resource_data(rpt, ResourceId);
-        
-        if(!h) {
-                dbg("Can't find handler for ResourceId %d",ResourceId);
-                return SA_ERR_HPI_INVALID_PARAMS;
+        if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
+                dbg("Resource %d doesn't have controls",ResourceId);
+                return SA_ERR_HPI_INVALID_REQUEST;
         }
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
         set_func = h->abi->set_control_state;
         if (!set_func)          
