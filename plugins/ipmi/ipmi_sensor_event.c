@@ -549,6 +549,21 @@ static void add_sensor_event_rdr(ipmi_sensor_t		*sensor,
 	rdr->IdString.Language = SAHPI_LANG_ENGLISH;
 	rdr->IdString.DataLength = 32;
 
+	switch ( ipmi_sensor_get_event_support(sensor) ) {
+		case IPMI_EVENT_SUPPORT_PER_STATE:
+			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_PER_EVENT;
+			break;
+		case IPMI_EVENT_SUPPORT_ENTIRE_SENSOR:
+		 	rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_ENTIRE_SENSOR;
+			break;
+		case IPMI_EVENT_SUPPORT_GLOBAL_ENABLE:
+			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_GLOBAL_DISABLE;
+			break;
+		case IPMI_EVENT_SUPPORT_NONE:
+			rdr->RdrTypeUnion.SensorRec.EventCtrl = SAHPI_SEC_NO_EVENTS;
+			break;
+	}
+	
 	memcpy(rdr->IdString.Data,name, strlen(name) + 1);
 }
 
