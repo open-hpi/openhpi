@@ -368,7 +368,7 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num, &thres);
 				if (err != SA_OK) {
 					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num);
-					break;
+					continue;
 				}
 				
 				if (thres.LowCritical.ValuesPresent) {
@@ -412,14 +412,14 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 			err = saHpiControlTypeGet(session_id, resource_id, ctrl_num, &ctrl_type);
 			if (err != SA_OK) {
 				printf("Error=%d reading control type {control, %d}\n", err, ctrl_num);
-				break;
+				continue;
 			}
 			printf("\tControl num: %i\n\tType: %s\n", ctrl_num, get_control_type(ctrl_type)); 
 		
 			err = saHpiControlStateGet(session_id, resource_id, ctrl_num, &state);
 			if (err != SA_OK) {
 				printf("Error=%d reading control state {control, %d}\n", err, ctrl_num);
-				break;
+				continue;
 			}
 			if (ctrl_type != state.Type) {
 				printf("Control Type mismatch between saHpiControlTypeGet=%d and saHpiControlStateGet = %d\n", 
