@@ -57,6 +57,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 {
 	SaErrorT  rv = SA_OK;
 	struct bc_inventory_record *i_record;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
 	if (!hnd || !IdrInfo)
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -67,6 +68,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
@@ -77,6 +79,7 @@ SaErrorT snmp_bc_get_idr_info( void *hnd,
 	}
 
 	g_free(i_record);
+	g_static_rec_mutex_unlock(&handle->handler_lock);
 	return rv;
 }
 
@@ -117,6 +120,7 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 
 	SaErrorT rv = SA_OK;
 	struct bc_inventory_record *i_record;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
 	if (!hnd || !NextAreaId || !Header)
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -128,6 +132,7 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
@@ -147,6 +152,7 @@ SaErrorT snmp_bc_get_idr_area_header( void *hnd,
 		}
 	}
 	g_free(i_record);
+	g_static_rec_mutex_unlock(&handle->handler_lock);
 	return (rv);
 
 }
@@ -227,6 +233,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 	struct bc_inventory_record *i_record;
 	int i;
 	SaHpiBoolT foundit = SAHPI_FALSE;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
 	if (!hnd || !NextFieldId || !Field)
 		return(SA_ERR_HPI_INVALID_PARAMS);
@@ -238,6 +245,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 		return(SA_ERR_HPI_OUT_OF_MEMORY);
 	}
 	
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	rv = snmp_bc_build_idr(hnd, ResourceId, IdrId, i_record);
 		
 	if (rv == SA_OK) {
@@ -277,6 +285,7 @@ SaErrorT snmp_bc_get_idr_field( void *hnd,
 	}
 
 	g_free(i_record);
+	g_static_rec_mutex_unlock(&handle->handler_lock);
 	return rv;
 }
 

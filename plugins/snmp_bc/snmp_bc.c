@@ -165,14 +165,17 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
-                dbg("No RID.");
+		g_static_rec_mutex_unlock(&handle->handler_lock);
+		dbg("No RID.");
                 return(SA_ERR_HPI_INVALID_RESOURCE);
         }
 
 	err = oh_copy_textbuffer(&(rpt->ResourceTag), tag);
 	if (err) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("Cannot copy textbuffer");
 		return(err);
 	}
@@ -180,6 +183,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
         /* Add changed resource to event queue */
         e = g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
@@ -187,7 +191,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
         e->type = OH_ET_RESOURCE;
         e->u.res_event.entry = *rpt;
         handle->eventq = g_slist_append(handle->eventq, e);
-        
+        g_static_rec_mutex_unlock(&handle->handler_lock);
         return(SA_OK);
 }
 
@@ -215,8 +219,10 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
                 dbg("No RID.");
                 return(SA_ERR_HPI_INVALID_RESOURCE);
         }
@@ -226,6 +232,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
         /* Add changed resource to event queue */
         e = g_malloc0(sizeof(struct oh_event));
 	if (e == NULL) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		dbg("Out of memory.");
 		return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
@@ -233,6 +240,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
         e->type = OH_ET_RESOURCE;
         e->u.res_event.entry = *rpt;
         handle->eventq = g_slist_append(handle->eventq, e);
+	g_static_rec_mutex_unlock(&handle->handler_lock);
 
         return(SA_OK);
 }
@@ -260,17 +268,21 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
 	if (!rpt) {
                 dbg("No RID.");
+		g_static_rec_mutex_unlock(&handle->handler_lock);
                 return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 
 	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
 		dbg("Resource configuration saving not supported.");
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 	else {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_CAPABILITY);
 	}
 }

@@ -50,18 +50,28 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	/* Check if resource exists and has power capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
-        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
-        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) return(SA_ERR_HPI_CAPABILITY);
+        if (!rpt) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
+		return(SA_ERR_HPI_INVALID_RESOURCE);
+	}
+	
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
+		return(SA_ERR_HPI_CAPABILITY);
+	}
 
 	resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, rid);
  	if (resinfo == NULL) {
 		dbg("No resource data. Resource=%s", rpt->ResourceTag.Data);
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	if (resinfo->mib.OidPowerState == NULL) {
 		dbg("No Power OID.");
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -84,6 +94,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd,
 		dbg("Cannot read SNMP OID=%s; Type=%d.", resinfo->mib.OidPowerState, get_value.type);
 	}
 
+	g_static_rec_mutex_unlock(&handle->handler_lock);
         return(err);
 }
 
@@ -122,18 +133,28 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
 
+	g_static_rec_mutex_lock(&handle->handler_lock);
 	/* Check if resource exists and has power capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
-        if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
-        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) return(SA_ERR_HPI_CAPABILITY);
+        if (!rpt) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
+		return(SA_ERR_HPI_INVALID_RESOURCE);
+	}
+	
+        if (!(rpt->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) {
+		g_static_rec_mutex_unlock(&handle->handler_lock);
+		return(SA_ERR_HPI_CAPABILITY);
+	}
 
 	resinfo = (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, rid);
  	if (resinfo == NULL) {
 		dbg("No resource data. Resource=%s", rpt->ResourceTag.Data);
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}       
 	if (resinfo->mib.OidPowerOnOff == NULL) {
 		dbg("No Power OnOff OID.");
+		g_static_rec_mutex_unlock(&handle->handler_lock);
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
@@ -173,5 +194,6 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 		err = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
+	g_static_rec_mutex_unlock(&handle->handler_lock);
         return(err);
 }
