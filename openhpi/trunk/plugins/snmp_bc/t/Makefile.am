@@ -54,7 +54,7 @@ $(REMOTE_SIM_SOURCES):
 
 libsnmp_bc_la_SOURCES	= sim_init.c \
 			  sim_resources.c \
-			  snmp_util.c \
+			  snmp_utils.c \
 			  $(REMOTE_SIM_SOURCES)
 
 libsnmp_bc_la_LIBADD	= $(top_srcdir)/snmp/snmp_derive_oid.o -luuid @SNMPLIBS@
