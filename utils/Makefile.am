@@ -45,7 +45,6 @@ EXTRA_DIST = \
 		$(GENERATED_HEADER_FILES) \
 		el_utils.h \
 		epath_utils.h \
-		event_utils.h \
 		oh_utils.h \
 		rpt_utils.h \
 		sahpi_event_utils.h \
