@@ -68,7 +68,7 @@ SaErrorT snmp_get(struct snmp_session *ss, const char *objid,
                 	if (vars->next_variable != NULL) {
                 		/* There are more values, set return type to null. */
                         	value->type = ASN_NULL;
-			} else if ( !CHECK_END(vars->type)) {
+			} else if ( !(CHECK_END(vars->type)) ) {
 				/* This is one of the exception condition */
 				returncode = SA_ERR_HPI_NOT_PRESENT;
 				dbg("snmp exception %d \n",vars->type);
@@ -239,7 +239,7 @@ SaErrorT snmp_get2(struct snmp_session *ss,
 	                if (vars->next_variable != NULL) {
 				/* If there are more values, set return type to null. */
        	                 	value->type = ASN_NULL;
-			} else if ( !CHECK_END(vars->type)) {
+			} else if ( !(CHECK_END(vars->type)) ) {
 				/* This is one of the exception condition */
 				returncode = SA_ERR_HPI_NOT_PRESENT;
 				dbg("snmp exception %d \n",vars->type);
@@ -381,7 +381,7 @@ SaErrorT snmp_set2(struct snmp_session *ss,
 						fprintf(stderr, "snmp_set2(): No idea.\n");
 				fprintf(stderr, "********************************************************\n");
 #endif
-				if (!CHECK_END(response->variables->type)) {
+				if (!(CHECK_END(response->variables->type)) ) {
                                 	/* This is one of the exception condition */
 				        rtncode = SA_ERR_HPI_NOT_PRESENT;
                                 	dbg("snmp exception %d \n",vars->type);
