@@ -18,7 +18,7 @@ static void init_res(struct oh_resource *res)
 	return;
 }
 
-static struct oh_resource *add_res(struct oh_domain *d, struct oh_id *oid)
+static struct oh_resource *add_res(struct oh_domain *d, struct oh_resource_id oid)
 {
 	struct oh_resource *r;
 	
@@ -29,7 +29,7 @@ static struct oh_resource *add_res(struct oh_domain *d, struct oh_id *oid)
 	}
 	init_res(r);
 	
-	memcpy(&r->oid, oid, sizeof(*oid));
+	memcpy(&r->oid, &oid, sizeof(oid));
 
 	d->update_counter++;
 	gettimeofday(&d->update_time, NULL);
@@ -38,20 +38,20 @@ static struct oh_resource *add_res(struct oh_domain *d, struct oh_id *oid)
 	return r;
 }
 
-struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_id *oid)
+struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_resource_id oid)
 {
 	struct list_head *i;
 	
 	list_for_each(i, &d->res_list) {
 		struct oh_resource *r;
 		r = list_container(i, struct oh_resource, node);
-		if (memcmp(&r->oid, oid, sizeof(*oid))==0)
+		if (memcmp(&r->oid, &oid, sizeof(oid))==0)
 			return r;
 	}
 	return NULL;
 }
 
-struct oh_resource *insert_resource(struct oh_domain *d, struct oh_id *oid)
+struct oh_resource *insert_resource(struct oh_domain *d, struct oh_resource_id oid)
 {
 	struct oh_resource *res;
 
@@ -85,7 +85,7 @@ static void init_rdr(struct oh_rdr *rdr)
 	return;
 }
 
-static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_id *oid)
+static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_rdr_id oid)
 {
 	struct oh_rdr *rdr;
 	
@@ -95,23 +95,26 @@ static struct oh_rdr *add_rdr(struct oh_resource *res, struct oh_id *oid)
 		return NULL;
 	}
 	init_rdr(rdr);
+	
+	memcpy(&rdr->oid, &oid, sizeof(oid));
+	
 	list_add(&rdr->node, &res->rdr_list);
 	return rdr;
 }
 
-static struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_id *oid)
+static struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid)
 {
 	struct list_head *i;
 	list_for_each(i, &res->rdr_list) {
 		struct oh_rdr *rdr;
 		rdr = list_container(i, struct oh_rdr, node);
-		if (memcmp(&rdr->oid, oid, sizeof(*oid))==0)
+		if (memcmp(&rdr->oid, &oid, sizeof(oid))==0)
 			return rdr;
 	}
 	return NULL;
 }
 
-struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_id *oid)
+struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_rdr_id oid)
 {
 	struct oh_rdr *rdr;
 	

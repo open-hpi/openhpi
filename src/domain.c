@@ -75,7 +75,7 @@ int domain_process_event(struct oh_domain *d, struct oh_event *e)
 
 	switch (e->type) {
 	case OH_ET_RESOURCE:
-		res = insert_resource(d, &e->oid);
+		res = insert_resource(d, e->u.res_event.id);
 		memcpy(&res->entry, &e->u.res_event.entry, sizeof(res->entry));
 		res->entry.ResourceId = d->res_counter++;
 
@@ -89,12 +89,12 @@ int domain_process_event(struct oh_domain *d, struct oh_event *e)
 		break;
 
 	case OH_ET_RDR:
-		res = get_res_by_oid(d, &e->u.rdr_event.parent);
+		res = get_res_by_oid(d, e->u.rdr_event.parent);
 		if (!res) {
 			dbg("Cannot find corresponding resource");
 			break;
 		}
-		rdr = insert_rdr(res, &e->oid);
+		rdr = insert_rdr(res, e->u.rdr_event.id);
 		memcpy(&rdr->rdr, &e->u.rdr_event.rdr, sizeof(rdr->rdr));
 		switch (rdr->rdr.RdrType) {
 		case SAHPI_SENSOR_RDR: 
