@@ -46,12 +46,12 @@ typedef struct
 
 cMarshalType StructElements[] =
 {
-  dStructElement( cTest, m_pad1 , Uint8Type ),
+  dStructElement( cTest, m_pad1 , Marshal_Uint8Type ),
   dStructElement( cTest, m_tb1  , SaHpiTextBufferType ),
-  dStructElement( cTest, m_pad2 , Uint8Type ),
+  dStructElement( cTest, m_pad2 , Marshal_Uint8Type ),
   dStructElement( cTest, m_tb2  , SaHpiTextBufferType ),
   dStructElement( cTest, m_tb3  , SaHpiTextBufferType ),
-  dStructElement( cTest, m_pad3 , Uint8Type ),
+  dStructElement( cTest, m_pad3 , Marshal_Uint8Type ),
   dStructElementEnd()
 };
 
@@ -85,7 +85,7 @@ main( int argc, char *argv[] )
 
   unsigned int s1 = Marshal( &TestType, &value, buffer );
   unsigned int s2 = Demarshal( MarshalByteOrder(), &TestType, &result, buffer );
-  
+
   if ( s1 != s2 )
        return 1;
 

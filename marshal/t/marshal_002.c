@@ -22,17 +22,17 @@ main( int argc, char *argv[] )
   tUint32        result;
   unsigned char  buffer[256];
 
-  unsigned int s1 = Marshal( &Uint32Type, &value, buffer );
+  unsigned int s1 = Marshal( &Marshal_Uint32Type, &value, buffer );
 
   if ( s1 != sizeof( tUint32 ) )
        return 1;
 
   unsigned int s2 = Demarshal( MarshalByteOrder(),
-                               &Uint32Type, &result, buffer );
+                               &Marshal_Uint32Type, &result, buffer );
 
   if ( s2 != sizeof( tUint32 ) )
        return 1;
-  
+
   if ( value != result )
        return 1;
 

@@ -23,14 +23,14 @@ main( int argc, char *argv[] )
   tUint16 swap  = bswap_16( value );
   tUint16 result;
 
-  unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1, 
-                              &Uint16Type, &result, &swap );
+  unsigned int s = Demarshal( MarshalByteOrder() ? 0 : 1,
+                              &Marshal_Uint16Type, &result, &swap );
 
   if ( s != sizeof( tUint16 ) )
        return 1;
 
   if ( value != result )
        return 1;
-  
+
   return 0;
 }

@@ -26,16 +26,16 @@ typedef struct
 } cTest;
 
 
-cMarshalType TestVarArrayType = dVarArray( Int8Type, 1 );
+cMarshalType TestVarArrayType = dVarArray( Marshal_Int8Type, 1 );
 
 
 cMarshalType StructElements[] =
 {
-  dStructElement( cTest, m_pad1 , Uint8Type ),
-  dStructElement( cTest, m_size , Uint8Type ),
-  dStructElement( cTest, m_pad2 , Uint8Type ),
+  dStructElement( cTest, m_pad1 , Marshal_Uint8Type ),
+  dStructElement( cTest, m_size , Marshal_Uint8Type ),
+  dStructElement( cTest, m_pad2 , Marshal_Uint8Type ),
   dStructElement( cTest, m_array, TestVarArrayType ),
-  dStructElement( cTest, m_pad3 , Uint8Type ),
+  dStructElement( cTest, m_pad3 , Marshal_Uint8Type ),
   dStructElementEnd()
 };
 

@@ -22,13 +22,13 @@ main( int argc, char *argv[] )
   tUint16        result;
   unsigned char  buffer[256];
 
-  unsigned int s1 = Marshal( &Uint16Type, &value, buffer );
+  unsigned int s1 = Marshal( &Marshal_Uint16Type, &value, buffer );
 
   if ( s1 != sizeof( tUint16 ) )
        return 1;
-  
-  unsigned int s2 = Demarshal( MarshalByteOrder(), 
-                               &Uint16Type, &result, buffer );
+
+  unsigned int s2 = Demarshal( MarshalByteOrder(),
+                               &Marshal_Uint16Type, &result, buffer );
 
   if ( s2 != sizeof( tUint16 ) )
        return 1;

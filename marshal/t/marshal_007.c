@@ -22,12 +22,12 @@ main( int argc, char *argv[] )
   tInt64        result;
   unsigned char buffer[256];
 
-  unsigned int s1 = Marshal( &Int64Type, &value, buffer );
+  unsigned int s1 = Marshal( &Marshal_Int64Type, &value, buffer );
 
   if ( s1 != sizeof( tInt64 ) )
        return 1;
 
-  unsigned int s2 = Demarshal( MarshalByteOrder(), &Int64Type, &result, buffer );
+  unsigned int s2 = Demarshal( MarshalByteOrder(), &Marshal_Int64Type, &result, buffer );
 
   if ( s2 != sizeof( tInt64 ) )
        return 1;

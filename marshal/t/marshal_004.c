@@ -22,12 +22,12 @@ main( int argc, char *argv[] )
   tInt8         result;
   unsigned char buffer[256];
 
-  unsigned int s1 = Marshal( &Int8Type, &value, buffer );
+  unsigned int s1 = Marshal( &Marshal_Int8Type, &value, buffer );
 
   if ( s1 != sizeof( tInt8 ) )
        return 1;
 
-  unsigned int s2 = Demarshal( MarshalByteOrder(), &Int8Type, &result, buffer );
+  unsigned int s2 = Demarshal( MarshalByteOrder(), &Marshal_Int8Type, &result, buffer );
 
   if ( s2 != sizeof( tInt8 ) )
        return 1;
