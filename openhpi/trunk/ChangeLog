@@ -1,3 +1,41 @@
+2003-07-18  yzhuang  <yzhuang@hawk.sh.intel.com>
+
+	* include/openhpi.h, src/safhpi.c, src/session.c:
+	Fix bug in last refactoring
+
+	* include/openhpi.h, src/event.c, src/hotswap.c, src/session.c:
+	Refactoring a bit: use oh_hpi_event instead of generalized oh_event
+
+	* include/oh_plugin.h, include/openhpi.h, src/event.c, src/eventlog.c:
+	Add resource SEL support in 'get_events'
+
+	* src/eventlog.c: Refactoring eventlog.c
+
+	* src/eventlog.c, src/safhpi.c, include/oh_plugin.h, include/openhpi.h:
+	Add resource SEL support. IN PROGRESS
+
+2003-07-17  rustyl  <rustyl@hawk.sh.intel.com>
+
+	* include/oh_plugin.h, src/event.c:
+	Adding a new type of event that allows plug-ins to add a given resource
+	to a domain.  The way this would work, is after sending an event of type
+	OH_ET_RESOURCE containing the RPT entry, a plug-in would then send an event
+	of type OH_ET_DOMAIN to mark the resource as contained in a given domain.
+
+2003-07-17  yzhuang  <yzhuang@hawk.sh.intel.com>
+
+	* include/openhpi.h, src/event.c, src/eventlog.c, src/safhpi.c:
+	Add resource SEL support, IN PROGRESS
+
+2003-07-15  yzhuang  <yzhuang@hawk.sh.intel.com>
+
+	* ChangeLog: *** empty log message ***
+
+	* include/openhpi.h, src/eventlog.c, src/safhpi.c:
+	Change sel into sel_list in oh_domain
+
+	* include/oh_plugin.h: Change SEL interface a bit
+
 2003-07-15  yzhuang  <yzhuang@hawk.sh.intel.com>
 
 	* include/openhpi.h, src/eventlog.c, src/safhpi.c:
