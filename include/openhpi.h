@@ -262,6 +262,7 @@ struct oh_rdr {
 };
 
 struct oh_sel {
+	struct oh_sel_id oid;
 	struct oh_rdr_id rdr_id;
 	struct oh_resource_id res_id;
 	SaHpiSelEntryT entry;

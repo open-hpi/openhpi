@@ -399,6 +399,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 		SAHPI_INOUT SaHpiRptEntryT *RptEntry)
 {
         struct oh_session *s;
+	GSList *sel_list;
 
         OH_STATE_READY_CHECK;
         
@@ -410,30 +411,45 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 	
 	if (ResourceId==SAHPI_DOMAIN_CONTROLLER_ID) {
 		struct oh_domain *d;
-		struct oh_sel *sel;
-		struct oh_resource *res;
-		struct oh_rdr *rdr;
-		GSList *pi, *i, *ni;
 		
 		d = get_domain_by_id(s->domain_id);
 		if (!d) {
 			dbg("Internal error?!");
-		}
+			sel_list = NULL;
+		} else 
+			sel_list = d->sel_list;
+		
+	} else {
+		struct oh_resource *res;
 
-		if (d->sel_list==NULL) {
+		res = get_resource(ResourceId);
+		if (!res) {
+			dbg("Internal error?!");
+			sel_list = NULL;
+		} else
+			sel_list = res->sel_list;
+	}
+	
+	{
+		struct oh_sel *sel;
+		struct oh_resource *res;
+		struct oh_rdr *rdr;
+		GSList *pi, *i, *ni;
+
+		if (sel_list==NULL) {
 			return SA_ERR_HPI_INVALID;
 		} else if (EntryId==SAHPI_OLDEST_ENTRY) {
 			pi = NULL;
-			i  = g_slist_nth(d->sel_list, 0);
-			ni = g_slist_nth(d->sel_list, 1);
+			i  = g_slist_nth(sel_list, 0);
+			ni = g_slist_nth(sel_list, 1);
 		} else if (EntryId==SAHPI_NEWEST_ENTRY) {
 			int num;
-			num = g_slist_length(d->sel_list);
-			pi  = g_slist_nth(d->sel_list, num-2);
-			i   = g_slist_nth(d->sel_list, num-1);
+			num = g_slist_length(sel_list);
+			pi  = g_slist_nth(sel_list, num-2);
+			i   = g_slist_nth(sel_list, num-1);
 			ni  = NULL;
 		} else {
-			g_slist_for_each(pi, d->sel_list) {
+			g_slist_for_each(pi, sel_list) {
 				i = g_slist_next(pi);
 				ni= g_slist_next(i);
 				if (i && ((struct oh_sel*)(i->data))->entry.EntryId == EntryId)
@@ -480,9 +496,6 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 		
 		return SA_OK;
 	}
-
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryAdd (
@@ -504,9 +517,9 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 		dsel_add(s->domain_id, EvtEntry);
 		return SA_OK;
 	}
-
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	
+	rsel_add(ResourceId, EvtEntry);
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogEntryDelete (
@@ -529,8 +542,8 @@ SaErrorT SAHPI_API saHpiEventLogEntryDelete (
 		return SA_OK;
 	}
 
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	rsel_del(ResourceId, EntryId);
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogClear (
@@ -538,7 +551,7 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 		SAHPI_IN SaHpiResourceIdT ResourceId)
 {
         struct oh_session *s;
-        
+	
         OH_STATE_READY_CHECK;
         
         s = session_get(SessionId);
@@ -552,8 +565,8 @@ SaErrorT SAHPI_API saHpiEventLogClear (
 		return SA_OK;
 	}
 
-	dbg("FIXME: system event log doesn't support");
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	rsel_clr(ResourceId);
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiEventLogTimeGet (

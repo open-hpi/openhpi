@@ -188,6 +188,7 @@ void rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry)
 	memcpy(&sel->entry, entry, sizeof(*entry));
 	sel->entry.EntryId = res->sel_counter++;
 	res->sel_list = g_slist_append(res->sel_list, sel);
+	res->handler->abi->add_sel_entry(res->handler->hnd, res->oid, entry);
 }
 
 void rsel_add2(struct oh_resource *res, struct oh_event *e)
@@ -227,6 +228,8 @@ void rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
 		sel = i->data;
 		if (sel->entry.EntryId == id) {
 			res->sel_list = g_slist_remove_link(res->sel_list, i);
+			res->handler->abi->del_sel_entry(
+					res->handler->hnd, sel->oid);
 			free(sel);
 			break;
 		}
