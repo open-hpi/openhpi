@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <rpt_utils.h>
+#include <openhpi.h>
 
 static inline RPTEntry *get_rptentry_by_rid( RPTable *table, SaHpiResourceIdT rid)
 {
@@ -86,9 +87,10 @@ static inline SaHpiUint8T get_rdr_type_num(SaHpiRdrT rdr)
 
 static inline int check_ep(SaHpiEntityPathT ep)
 {
-        int check = -1, i;
+        int check = -1; 
+	int i;
 
-        for (i = 0; i < SAHPI_MAX_ENTITY_PATH: i++) {
+        for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
                 if (ep.Entry[i].EntityType == SAHPI_ENT_ROOT) {
                         check = 0;
                         break;
@@ -293,7 +295,8 @@ int oh_add_rdr(RPTable *table, SaHpiResourceIdT rid, SaHpiRdrT rdr, void *data)
         rptentry = get_rptentry_by_rid(table, rid);
 
         if (!rptentry) return -1; /* Resource was not fount in table */
-        if (memcmp(rptentry.rpt_entry.ResourceEntity, rdr.Entity, sizeof(SaHpiEntityPathT)))
+dbg("TODO: RENIER check line below");
+//        if (memcmp( &rptentry->rpt_entry.ResourceEntity, &rdrecord->rdr.Entity, sizeof(SaHpiEntityPathT)))
                 return -2; /* RDR entity path is different from parent RPT entry. */
         if (!get_rdr_type_num(rdr)) return -3; /* RDR type number has not been assigned. */
 
