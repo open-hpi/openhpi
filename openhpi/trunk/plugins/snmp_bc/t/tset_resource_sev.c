@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 	 * ***********************/	 
 
 	int testfail = 0;
+	int passed = 0, failed = 0;
 	SaHpiResourceIdT  id;
 	SaErrorT          err;
 	SaErrorT expected_err;
@@ -55,7 +56,7 @@ int main(int argc, char **argv)
 
 	id = rptentry.ResourceId;
 	/************************** 
-	 * Test 1: Invalid Tag 
+	 * Test 1: Invalid severity 
 	 **************************/
 	sev = 0xFE;
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;
@@ -65,7 +66,8 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_set_resource_sev returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 	
 	/************************** 
 	 * Test 2: Invalid ResourceId
@@ -80,7 +82,8 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_set_resource_sev returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 	
 	/************************** 
 	 * Test 3: Valid case
@@ -95,11 +98,13 @@ int main(int argc, char **argv)
 		printf("Error! snmp_bc_set_resource_sev returned err=%s, expected=%s\n",
 				 oh_lookup_error(err), oh_lookup_error(expected_err));
 		testfail = -1;
-	}	
+		failed++;
+	} else passed++;
 
 	/***************************
 	 * Cleanup after all tests
 	 ***************************/
+	 printf("tset_resource_sev: %d passed, %d failed\n", passed, failed);
 	 err = tcleanup(&sessionid);
 	 return testfail;
 

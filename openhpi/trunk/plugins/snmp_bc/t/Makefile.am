@@ -89,7 +89,8 @@ TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 TESTS = tevent \
 	tcontrol_parms \
 	tset_resource_tag \
-	tset_resource_sev
+	tset_resource_sev \
+	tsnmp_bc_getset
 #	thotswap_state \
 #	thotswap_state_err \
 #	thotswap_reset \
@@ -130,6 +131,12 @@ tset_resource_tag_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 # Unit test using normal IF calls and simulation library
 tset_resource_sev_SOURCES = tset_resource_sev.c
 tset_resource_sev_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
+
+# Unit test using normal IF calls and simulation library
+tsnmp_bc_getset_SOURCES = tsnmp_bc_getset.c
+tsnmp_bc_getset_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
 		 $(top_builddir)/src/libopenhpi.la \
 		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la 
 
