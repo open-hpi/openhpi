@@ -85,9 +85,9 @@ extern GAsyncQueue *oh_process_q;
 /* function definitions */
 int oh_event_init(void);
 int oh_event_final(void);
-SaErrorT get_events(void);
-SaErrorT harvest_events(void);
-SaErrorT process_events(void);
+SaErrorT oh_get_events(void);
+SaErrorT oh_harvest_events(void);
+SaErrorT oh_process_events(void);
 
 #ifdef __cplusplus
 }

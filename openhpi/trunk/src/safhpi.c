@@ -104,7 +104,7 @@ SaErrorT SAHPI_API saHpiDiscover(
                 return SA_ERR_HPI_UNKNOWN;
         }
 
-        rv = get_events();      
+        rv = oh_get_events();      
 
         if (rv < 0) {
                 dbg("Error attempting to process resources in Domain %d",did);
@@ -307,7 +307,7 @@ SaErrorT SAHPI_API saHpiResourceSeveritySet(
         }
 
         /* to get rpt entry into infrastructure */
-        get_events();        
+        oh_get_events();        
 
         return SA_OK;
 }
@@ -606,7 +606,7 @@ SaErrorT SAHPI_API saHpiEventLogEntryAdd (
 
 
         /* to get REL entry into infrastructure */
-        rv = get_events();
+        rv = oh_get_events();
         if(rv != SA_OK) {
                 dbg("Event loop failed");
         }
@@ -884,7 +884,7 @@ SaErrorT SAHPI_API saHpiEventGet (
         }
 	
 	if ( !oh_run_threaded() ) {
-		error = get_events();       
+		error = oh_get_events();       
 		if (error < 0) return SA_ERR_HPI_UNKNOWN;
 		if (Timeout != SAHPI_TIMEOUT_IMMEDIATE) {
 			Timeout = SAHPI_TIMEOUT_IMMEDIATE;
@@ -2497,7 +2497,7 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
 
         rv = request_hotswap_action(h->hnd, ResourceId, Action);
 
-        get_events();
+        oh_get_events();
 
         return rv;
 }

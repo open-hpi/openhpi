@@ -41,7 +41,7 @@ static gpointer oh_event_thread_loop(gpointer data) {
         while(oh_run_threaded()) {
                 dbg("About to run through the event loop");
 
-		get_events();
+                oh_get_events();
 
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
@@ -119,7 +119,7 @@ static int harvest_events_for_handler(struct oh_handler *h)
         } while(1);
 }
 
-SaErrorT harvest_events()
+SaErrorT oh_harvest_events()
 {
         GSList *i;
         data_access_lock();
@@ -303,7 +303,7 @@ static int process_rdr_event(struct oh_event *e)
         return rv;
 }
 
-SaErrorT process_events()
+SaErrorT oh_process_events()
 {
         struct oh_event *e;
 
@@ -346,18 +346,18 @@ SaErrorT process_events()
         return SA_OK;
 }
 
-SaErrorT get_events()
+SaErrorT oh_get_events()
 {
 	SaErrorT rv = SA_OK;
         
 	dbg("About to harvest events in the loop");
-        rv = harvest_events();
+        rv = oh_harvest_events();
         if(rv != SA_OK) {
 		dbg("Error on harvest of events, aborting");
                 return rv;
         }
 
-        rv = process_events();
+        rv = oh_process_events();
         if(rv != SA_OK) {
 		dbg("Error on processing of events, aborting");
                 return rv;
