@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+void oh_cond_signal(void); 
+
 /*
  * Common OpenHPI implementation specific definitions
  * --------------------------------------------------
@@ -400,6 +402,8 @@ struct oh_abi_v2 {
          */
         SaErrorT (*set_reset_state)(void *hnd, SaHpiResourceIdT id,
                                SaHpiResetActionT act);
+
+
 
 };
 
