@@ -810,7 +810,10 @@ SaErrorT SAHPI_API saHpiSubscribe (
         OH_GET_DID(SessionId, did);
 
         error = oh_get_session_subscription(SessionId, &session_state);
-        if (error) return error;
+        if (error) {
+                dbg("Error subscribing to SessionId: %d", SessionId);
+                return error;
+        }
 
         if (session_state != OH_UNSUBSCRIBED) {
                 dbg("Cannot subscribe if session is not unsubscribed.");
@@ -828,13 +831,17 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         SaHpiDomainIdT did;
         SaHpiBoolT session_state;
         SaErrorT error;
-        struct oh_event *event = NULL;
+        SaErrorT terror = SA_OK;
+        struct oh_event event;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
         error = oh_get_session_subscription(SessionId, &session_state);
-        if (error) return error;
+        if (error) {
+                dbg("Error reading session subscription from SessionId: %d", SessionId);
+                return error;
+        }
 
         if (session_state == OH_UNSUBSCRIBED) {
                 dbg("Cannot unsubscribe if session is not subscribed.");
@@ -842,18 +849,28 @@ SaErrorT SAHPI_API saHpiUnsubscribe (
         }
 
         error = oh_set_session_subscription(SessionId, SAHPI_FALSE);
-        if (error) return error;
+        if (error) {
+                dbg("Error unsubscribing to SessionId: %d", SessionId);
+                return error;
+        }
 
-        /* Flush session's event queue */
-        error = oh_dequeue_session_event(SessionId,
-                                         SAHPI_TIMEOUT_IMMEDIATE,
-                                         event);
-        if (error) return error;
+        /* Flush session's event queue 
+         * we use a temp error variable as the dequeue loop signals an
+         * end via a TIMEOUT error.  If it is anything else, we assign it
+         * to the return value.
+         */
+        
+        error = SA_OK;
 
-        while (event != NULL && !error) {
-                error = oh_dequeue_session_event(SessionId,
-                                                 SAHPI_TIMEOUT_IMMEDIATE,
-                                                 event);
+        while (terror == SA_OK) {
+                terror = oh_dequeue_session_event(SessionId,
+                                                  SAHPI_TIMEOUT_IMMEDIATE,
+                                                  &event);
+        }
+        
+        if(terror != SA_ERR_HPI_TIMEOUT) {
+                dbg("Unexpected error occured in clearing the event queues");
+                error = terror;
         }
 
         return error;

@@ -260,7 +260,7 @@ SaErrorT oh_dequeue_session_event(SaHpiSessionIdT sid,
        GTimeVal gfinaltime;
        GAsyncQueue *eventq = NULL;
 
-       if (sid < 1 || !event) return SA_ERR_HPI_INVALID_PARAMS;
+       if (sid < 1 || (event == NULL)) return SA_ERR_HPI_INVALID_PARAMS;
 
        g_static_rec_mutex_lock(&oh_sessions.lock); /* Locked session table */
        session = g_hash_table_lookup(oh_sessions.table, &sid);
