@@ -707,10 +707,8 @@ static void add_sensor_event(ipmi_entity_t	*ent,
                 dbg("No info in resource(%d)\n", rid);
                 return;
         }
-        e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num =
-	    				ipmi_sensor_get_num(sensor,
-							    &lun,
-							    &num);
+	ipmi_sensor_get_num(sensor, &lun, &num);
+        e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num;
 
 	rid = oh_uid_lookup(&e->u.rdr_event.rdr.Entity);
 
