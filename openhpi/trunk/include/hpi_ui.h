@@ -108,9 +108,9 @@ extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resou
 			int show_short, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc);
-extern SaErrorT	show_rdr_list(Domain_t *D, SaHpiResourceIdT resourceid,
+extern int	show_rdr_list(Domain_t *D, SaHpiResourceIdT resourceid,
 			SaHpiRdrTypeT passed_type, hpi_ui_print_cb_t proc);
-extern SaErrorT	show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
+extern int	show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
 			hpi_ui_print_cb_t proc);
 extern SaErrorT	show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			hpi_ui_print_cb_t proc);
