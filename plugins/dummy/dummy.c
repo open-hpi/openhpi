@@ -1258,9 +1258,10 @@ static int dummy_get_sel_entry(void *hnd,
 /************************************************************************/
 /* Sensor functions                                                     */
 /************************************************************************/
-static int dummy_get_sensor_data(void *hnd, SaHpiResourceIdT id,
+static int dummy_get_sensor_reading(void *hnd, SaHpiResourceIdT id,
                            SaHpiSensorNumT num,
-                           SaHpiSensorReadingT *data)
+                           SaHpiSensorReadingT *data, 
+			   SaHpiEventStateT    *state)
 {
         int rval = -1;
         struct oh_handler_state *inst = hnd;
@@ -1273,13 +1274,19 @@ static int dummy_get_sensor_data(void *hnd, SaHpiResourceIdT id,
                 rdr = oh_get_rdr_next(inst->rptcache, id, rdr->RecordId);
         }
 
-        if (rdr) {
+	/* NULL is a valid value for data, check before use */
+        if (rdr && data) {
                 memcpy(data,
                        &dummy_sensors[rdr->RdrTypeUnion.SensorRec.Num - 1].reading,
                        sizeof(SaHpiSensorReadingT));
                 rval = 0;
         }
 
+	/* NULL is a valid value for state, check before use */
+	/* Setting it to NOT SUPPORTED (0), for now  */
+	if(state) 
+		memset(state, 0, sizeof(SaHpiEventStateT));
+		
         return(rval);
 }
 
@@ -1969,7 +1976,7 @@ static struct oh_abi_v2 oh_dummy_plugin = {
         .set_el_time            = dummy_set_sel_time,
         .add_el_entry           = dummy_add_sel_entry,  
         .get_el_entry           = dummy_get_sel_entry,
-        .get_sensor_data        = dummy_get_sensor_data,
+        .get_sensor_reading     = dummy_get_sensor_reading,
         .get_sensor_thresholds  = dummy_get_sensor_thresholds,
         .set_sensor_thresholds  = dummy_set_sensor_thresholds,
         .get_sensor_event_enables = dummy_get_sensor_event_enabled,

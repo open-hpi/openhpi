@@ -17,10 +17,11 @@
 #define __SNMP_BC_SENSOR_H
 
 /* FIXME:: ?? Can we pass handle in; instead of hnd - better error checking */
-SaErrorT snmp_bc_get_sensor_data(void *hnd,
+SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiSensorNumT num,
-				 SaHpiSensorReadingT *data);
+				 SaHpiSensorReadingT *data,
+				 SaHpiEventStateT    *state);
 
 SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 				       SaHpiResourceIdT id,

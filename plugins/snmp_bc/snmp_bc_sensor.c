@@ -15,10 +15,11 @@
 
 #include <snmp_bc_plugin.h>
 
-SaErrorT snmp_bc_get_sensor_data(void *hnd,
+SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiSensorNumT num,
-				 SaHpiSensorReadingT *data)
+				 SaHpiSensorReadingT *data,
+				 SaHpiEventStateT    *state)
 {
         gchar *oid=NULL;
 	SaHpiSensorReadingT working;
@@ -33,7 +34,8 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 	struct BC_SensorInfo *s =
                 (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
  	if(s == NULL) {
-		return -1;
+		dbg("Can not retrieve BC_Sensor Info from rptcache.\n");
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}       
 
 	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
@@ -47,7 +49,7 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 		oid = snmp_derive_objid(rdr->Entity, s->mib.oid);
 		if(oid == NULL) {
 			dbg("NULL SNMP OID returned for %s\n",s->mib.oid);
-			return -1;
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
 
 		/* Read the sensor value */
@@ -63,8 +65,8 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 		working.ValuesPresent = rdr->RdrTypeUnion.SensorRec.DataFormat.ReadingFormats;
 		if(working.ValuesPresent & SAHPI_SRF_RAW) {
 			if(get_value.type != ASN_INTEGER) {
-				dbg("Sensor value type mismatches reading format.");
-				return -1;
+				dbg("SNMP Sensor value type does not match the expected datatype for SAHPI_SRF_RAW.\n");
+				return SA_ERR_HPI_INVALID_DATA;
 			} else {
 				working.Raw = (SaHpiUint32T)get_value.integer;
 			}
@@ -91,12 +93,12 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 						
 						if (oh_encode_sensorreading(&buffer, s->mib.convert_snmpstr, &value)) {
 							dbg("Error: oh_encode_sensorreading for %s, (%s)\n",s->mib.oid, buffer.Data;
-							return -1;
+							return SA_ERR_HPI_INTERNAL_ERROR;
 						}
 						working.Interpreted.Value = value;
 					} else {
 						dbg("Sensor %s SNMP string value needs to be converted\n", s->mib.oid);
-						return -1;
+						return SA_ERR_HPI_INVALID_DATA;
 					}
 				}
 			}
@@ -125,7 +127,7 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 					break;
 				default:
 					dbg("Unrecognized Raw values for LED=%s", rdr->IdString.Data);
-					return -1;
+					return SA_ERR_HPI_INVALID_DATA;
 				}
 			}
 			else {
@@ -140,7 +142,7 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
 					break;	
 				default:
 					dbg("Unrecognized Raw values for LED=%s", rdr->IdString.Data);
-					return -1;
+					return SA_ERR_HPI_INVALID_DATA;
 				}
 			}
 		}
@@ -148,8 +150,14 @@ SaErrorT snmp_bc_get_sensor_data(void *hnd,
                         working.EventStatus.EventStatus = s->cur_state;
 		}
         }
-
-	memcpy(data,&working,sizeof(SaHpiSensorReadingT));
+	
+	/* NULL is a valid value for data, need to check before use */
+	if(data)
+		memcpy(data,&working,sizeof(SaHpiSensorReadingT));
+		
+	/* NUL is a valid value for state, need to check before use */
+	if(state)
+		memset(state, 0, sizeof(SaHpiEventStateT));
         
         return SA_OK;
 }
@@ -264,7 +272,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
         struct BC_SensorInfo *s =
                 (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
  	if(s == NULL) {
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
@@ -354,7 +362,7 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			return SA_OK;
 		} else {
 			dbg("No threshold values found\n");
-			return -1;
+			return SA_ERR_HPI_INTERNAL_ERROR;
 		}
         } else {
                 dbg("Thresholds requested, but sensor does not support them.\n");
@@ -388,7 +396,7 @@ SaErrorT snmp_bc_get_sensor_event_enables(void *hnd,
 		((struct oh_handler_state *)hnd)->rptcache, id, rdr->RecordId);
 	if (bc_data == NULL) {
 		dbg("Sensor Data Pointer is NULL; RID=%x; SID=%d", id, num); 
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
 	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {
@@ -420,7 +428,7 @@ SaErrorT snmp_bc_set_sensor_event_enables(void *hnd,
 	gpointer bc_data = oh_get_rdr_data(((struct oh_handler_state *)hnd)->rptcache, id, rdr->RecordId);
 	if (bc_data == NULL) {
 		dbg("Sensor Data Pointer is NULL; RID=%x; SID=%d", id, num); 
-		return -1;
+		return SA_ERR_HPI_INTERNAL_ERROR;
 	}
 		
 	if (rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE) {

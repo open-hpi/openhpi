@@ -2,10 +2,11 @@
 
 #include <snmp_bc_plugin.h>
 
-SaErrorT snmp_bc_get_sensor_data(void *hnd,
+SaErrorT snmp_bc_get_sensor_reading(void *hnd,
 				 SaHpiResourceIdT id,
 				 SaHpiSensorNumT num,
-				 SaHpiSensorReadingT *data)
+				 SaHpiSensorReadingT *data, 
+				 SaHpiEventStateT    *state)
 {
   return(SA_ERR_HPI_UNSUPPORTED_API);
 }
