@@ -154,7 +154,7 @@ struct oh_handler *new_handler(const char *plugin_name, const char *name, const 
            easier to migrate */
         handler->hnd = handler->abi->open(name, addr);
         if (!handler->hnd) {
-                dbg("Bootstrap plugin can not work");
+                dbg("The plugin can not work");
                 goto err1;
         }
         
