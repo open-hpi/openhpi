@@ -72,7 +72,6 @@ make DESTDIR=$RPM_BUILD_ROOT install
 mkdir -p $RPM_BUILD_ROOT/etc/@HPI_PKG@
 mkdir -p $RPM_BUILD_ROOT/var/lib/@HPI_PKG@
 install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
-install -C -D -m 644 @HPI_PKG@.pc $RPM_BUILD_ROOT%{prefix}/lib/pkgconfig/@HPI_PKG@.pc
 
 %post
 

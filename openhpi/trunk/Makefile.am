@@ -55,13 +55,17 @@ DIST_SUBDIRS = src docs examples util
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
-ALL_SOURCES = $(shell \
+ALLSOURCES = $(shell \
 	find . \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS \) -prune -o \
 	-name '*.[chS]' -print )
 
 includedir=$(base_includedir)/openhpi
 
 include_HEADERS	= $(shell find include -name '*.h')
+
+install-data-local: openhpi.pc
+	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
+	$(INSTALL_DATA) openhpi.pc $(DESTDIR)$(libdir)/pkgconfig
 
 rpm: dist
 	$(RPM) $(RPMFLAGS) $(TARFILE) </dev/null;
@@ -74,12 +78,12 @@ clean: am_config_clean
 am_config_clean:
 	rm -fr $(PACKAGE)-*.tar.gz
 
-tags:   $(ALL_SOURCES)
+tags:   $(ALLSOURCES)
 	@echo making tags		
-	@echo $(ALL_SOURCES) | xargs ctags
-TAGS:   $(ALL_SOURCES)
+	@ctags $(ALLSOURCES)
+TAGS:   $(ALLSOURCES)
 	@echo making TAGS
-	@echo $(ALL_SOURCES) | xargs etags
-cscope: $(ALL_SOURCES)
+	@etags $(ALLSOURCES)
+cscope: $(ALLSOURCES)
 	@echo making cscope
-	@echo $(ALL_SOURCES) > cscope.files && cscope -b
+	@echo $(ALLSOURCES) > cscope.files && cscope -b
