@@ -336,52 +336,36 @@ SaErrorT process_events()
 
 SaErrorT get_events()
 {
-        // in a thread world this becomes a noop
-//        if(!oh_run_threaded()) {
-                SaErrorT rv = SA_OK;
-                dbg("About to harvest events in the loop");
-                rv = harvest_events();
-                if(rv != SA_OK) {
-                        dbg("Error on harvest of events, aborting");
-                        return rv;
-                }
-                rv = process_events();
-                if(rv != SA_OK) {
-                        dbg("Error on processing of events, aborting");
-                        return rv;
-                }
+	SaErrorT rv = SA_OK;
+        
+	dbg("About to harvest events in the loop");
+        rv = harvest_events();
+        if(rv != SA_OK) {
+		dbg("Error on harvest of events, aborting");
                 return rv;
-        /*} else {
-                dbg("Running threaded");
-                g_cond_signal(oh_thread_wait);
-                dbg("Signaled thread to process");
-                sleep(1);
-                return SA_OK;
         }
-	*/	
-	
-	
+
+        rv = process_events();
+        if(rv != SA_OK) {
+		dbg("Error on processing of events, aborting");
+                return rv;
+        }
+
+                return rv;
 }
 
 
 gpointer oh_event_thread_loop(gpointer data) {
+
 //        SaErrorT rv = SA_OK;
+
         GTimeVal time;
         
         while(oh_run_threaded()) {
                 dbg("About to run through the event loop");
 
 		get_events();
-/*
-                rv = harvest_events();
-                if(rv != SA_OK) {
-                        dbg("Error on harvest of events %s", oh_lookup_error(rv));
-                }
-                rv = process_events();
-                if(rv != SA_OK) {
-                        dbg("Error on processing of events %s", oh_lookup_error(rv));
-                }
-*/
+
                 g_get_current_time(&time);
                 g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
                 dbg("Going to sleep");
@@ -391,6 +375,8 @@ gpointer oh_event_thread_loop(gpointer data) {
 		else
 			dbg("TIMEOUT: Woke up, am looping again");
         }
+
         g_thread_exit(0);
+
         return 0;
 }
