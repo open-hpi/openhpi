@@ -1,3 +1,8 @@
+2003-12-05  Louis Zhuang  <louis.zhuang@linux.intel.com>
+
+	* src/plugins/ipmi/ipmi.c, src/plugins/ipmi/ipmi_sel.c: Fixed
+	IPMI SEL UpdateTimestamp implementation.
+
 2003-12-04  jnfleisc   <julie.n.fleischer@intel.com>
 	* src/plugins/sysfs/sysfs2hpi.c:
 	Upgraded to work with libsysfs 0.3.0.
