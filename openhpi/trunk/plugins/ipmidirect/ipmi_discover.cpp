@@ -263,7 +263,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
   m_domain->m_initial_discover_lock.Unlock();
 
   if ( need_lock )
-       m_domain->WriteLock();
+       WriteLock();
 
   m_mc = m_domain->FindMcByAddr( addr );
 
@@ -300,7 +300,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             m_mc = 0;
 
 	    if ( need_lock )
-		 m_domain->WriteUnlock();
+		 WriteUnlock();
 
             return;
           }
@@ -316,7 +316,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             m_mc = 0;
 
 	    if ( need_lock )
-		 m_domain->WriteUnlock();
+		 WriteUnlock();
 
             return;
           }
@@ -331,7 +331,7 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             m_mc = 0;
 
 	    if ( need_lock )
-		 m_domain->WriteUnlock();
+		 WriteUnlock();
 
             return;
           }
@@ -359,14 +359,14 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
      }
 
   if ( need_lock )
-       m_domain->WriteUnlock();
+       WriteUnlock();
 }
 
 
 void
 cIpmiMcThread::HandleEvents()
 {
-  m_domain->WriteLock();
+  WriteLock();
 
   bool loop = true;
 
@@ -393,7 +393,7 @@ cIpmiMcThread::HandleEvents()
           }
      }
 
-  m_domain->WriteUnlock();
+  WriteUnlock();
 }
 
 
@@ -533,12 +533,12 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   if ( current_state == eIpmiFruStateNotInstalled )
      {
        // remove mc
-       m_domain->WriteLock();
+       WriteLock();
 
        if ( m_mc )
             m_domain->CleanupMc( m_mc );
 
-       m_domain->WriteUnlock();
+       WriteUnlock();
 
        m_mc = 0;
      }
@@ -662,12 +662,12 @@ cIpmiMcThread::PollAddr( void *userdata )
 void 
 cIpmiMcThread::ReadSel( void *userdata )
 {
-  m_domain->ReadLock();
+  ReadLock();
 
   cIpmiSel *sel = (cIpmiSel *)userdata;
   GList *new_events = sel->GetEvents();
 
-  m_domain->ReadUnlock();
+  ReadUnlock();
 
   if ( m_domain->ConLogLevel( dIpmiConLogCmd ) )
        stdlog << "addr " << m_addr << ": add sel reading. cIpmiMcThread::ReadSel\n";

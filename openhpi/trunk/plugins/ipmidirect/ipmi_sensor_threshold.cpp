@@ -449,7 +449,10 @@ cIpmiSensorThreshold::Cmp( const cIpmiSensor &s2 ) const
   if ( m_modifier_unit      != t->m_modifier_unit )
        return false;
 
-  if ( (bool)m_sensor_factors != (bool)t->m_sensor_factors )
+  bool sf1 = m_sensor_factors ? true : false;
+  bool sf2 = t->m_sensor_factors ? true : false;
+
+  if ( sf1 != sf2 )
        return false;
 
   if ( m_sensor_factors )

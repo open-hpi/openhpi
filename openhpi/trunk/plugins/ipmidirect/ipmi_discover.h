@@ -52,6 +52,12 @@ class cIpmiMcThread : public cThread
 {
 private:
   cIpmiDomain  *m_domain;
+
+  void WriteLock()   { /*m_domain->WriteLock();*/ }
+  void WriteUnlock() { /*m_domain->WriteUnlock();*/ }
+  void ReadLock()    { /*m_domain->ReadLock();*/ }
+  void ReadUnlock()  { /*m_domain->ReadUnlock();*/ }
+  
   unsigned char m_addr;
   //  unsigned int  m_type; // dIpmiMcTypeBitXXXX
   //int           m_slot;
