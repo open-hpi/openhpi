@@ -19,10 +19,10 @@
  */
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
-                          struct snmp_session *ss,
                           const char *objid,
                           struct snmp_value *value) {
 	int err;
+	struct snmp_session *ss = custom_handle->ss;
 	err = snmp_get(ss, objid, value);
 	
 	if (err) { return SA_ERR_HPI_ERROR; }
@@ -31,10 +31,11 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 }
 
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
-                          struct snmp_session *ss,
                           char *objid,
                           struct snmp_value value) {
+			  
 	int err;
+	struct snmp_session *ss = custom_handle->ss;
 	err = snmp_set(ss, objid, value);
 	
 	if (err) { return SA_ERR_HPI_ERROR; }

@@ -172,12 +172,12 @@ static SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT id, SaHpiParmAc
 }
 
 SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
-                          struct snmp_session *ss,
                           const char *objid,
                           struct snmp_value *value)
 {
         SaErrorT status;
-
+        struct snmp_session *ss = custom_handle->ss;
+	
         status = snmp_get(ss, objid, value);
         if (status == SA_ERR_SNMP_TIMEOUT) {
 
@@ -198,11 +198,11 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 }
 
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
-                          struct snmp_session *ss,
                           char *objid,
                           struct snmp_value value)
 {
         SaErrorT status;
+	struct snmp_session *ss = custom_handle->ss;
 
         status = snmp_set(ss, objid, value);
         if (status == SA_ERR_SNMP_TIMEOUT) {

@@ -43,7 +43,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 		return -1;
 	}
 
-	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
+	status = snmp_bc_snmp_get(custom_handle,oid,&get_value);
 	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
 		if(get_value.integer == s->mib.HealthyValue) { 
 			*state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
@@ -129,7 +129,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		set_value.str_len = 1;
 		set_value.integer = 1;
 		
-		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Type=%d.\n",oid,set_value.type);
 			g_free(oid);
@@ -176,7 +176,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 	}
 
 
-	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,oid,&get_value);
+	status = snmp_bc_snmp_get(custom_handle, oid, &get_value);
 	if(( status == SA_OK) && (get_value.type == ASN_INTEGER)) {
 		switch (get_value.integer) {
 		case 0:
@@ -233,7 +233,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 	switch (state) {
 	case SAHPI_HS_POWER_OFF:
 		set_value.integer = 0;
-		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
 			if (status == SA_ERR_HPI_BUSY) return status;
@@ -243,7 +243,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 		
 	case SAHPI_HS_POWER_ON:
 		set_value.integer = 1;
-		status = snmp_bc_snmp_set(custom_handle, custom_handle->ss, oid, set_value);
+		status = snmp_bc_snmp_set(custom_handle, oid, set_value);
 		if (status != SA_OK) {
 			dbg("SNMP could not set %s; Type=%d.\n",s->mib.OidPowerOnOff,set_value.type);
 			if (status == SA_ERR_HPI_BUSY) return status;

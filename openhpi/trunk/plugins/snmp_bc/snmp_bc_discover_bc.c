@@ -28,7 +28,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	struct BC_ResourceInfo *res_info_ptr;
 
         /* Discover Chassis, Blades, Expansion Cards */
-	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_BLADE_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_BLADE_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_BLADE_VECTOR, get_value.type, oh_lookup_error(err));
@@ -168,7 +168,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
 
-				err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, oid, &get_value);
+				err = snmp_bc_snmp_get(custom_handle, oid, &get_value);
 				g_free(oid);
 
 				if (!err && get_value.integer != 0) {
@@ -220,7 +220,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         /*************** 
 	 * Discover Fans
 	 ***************/
-	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_FAN_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_FAN_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_FAN_VECTOR, get_value.type, oh_lookup_error(err));
@@ -277,7 +277,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         /************************
 	 * Discover Power Modules
 	 ************************/
-	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_POWER_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_POWER_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_POWER_VECTOR, get_value.type, oh_lookup_error(err));
@@ -334,7 +334,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/******************* 
 	 * Discover Switches
 	 *******************/
-	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_SWITCH_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_SWITCH_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_SWITCH_VECTOR, get_value.type, oh_lookup_error(err));
@@ -391,7 +391,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 	/********************** 
 	 * Discover Media Tray
 	 *********************/
-	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_MEDIATRAY_EXISTS, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MEDIATRAY_EXISTS, &get_value);
         if (err || get_value.type != ASN_INTEGER) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_MEDIATRAY_EXISTS, get_value.type, oh_lookup_error(err));
@@ -442,11 +442,12 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 		snmp_bc_discover_controls(handle, snmp_bc_mediatray_controls, e);
 		snmp_bc_discover_inventories(handle, snmp_bc_mediatray_inventories, e);
 	}
+	
 
 	/***************************** 
 	 * Discover Management Modules
 	 *****************************/
-	err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_MGMNT_VECTOR, &get_value);
+	err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_VECTOR, &get_value);
         if (err || get_value.type != ASN_OCTET_STR) {
 		dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 		      SNMP_BC_MGMNT_VECTOR, get_value.type, oh_lookup_error(err));
@@ -455,7 +456,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
         }
 
 	for (i=0; i < strlen(get_value.string); i++) {
-		err = snmp_bc_snmp_get(custom_handle, custom_handle->ss, SNMP_BC_MGMNT_ACTIVE, &get_active);
+		err = snmp_bc_snmp_get(custom_handle, SNMP_BC_MGMNT_ACTIVE, &get_active);
 		if (err || get_active.type != ASN_INTEGER) {
 			dbg("Cannot get OID=%s; Received Type=%d; Error=%s.",
 			      SNMP_BC_MGMNT_ACTIVE, get_active.type, oh_lookup_error(err));
