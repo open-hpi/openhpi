@@ -56,6 +56,23 @@ void ohoi_get_sel_count(ipmi_mcid_t mc_id, int *count)
 		dbg("Unable to convert MC id to a pointer");
 }
 
+static void get_sel_size(ipmi_mc_t *mc, void *cb_data)
+{
+	int *size = cb_data;
+	
+	*size = ipmi_mc_sel_get_free_bytes(mc);
+}
+
+void ohoi_get_sel_size(ipmi_mcid_t mc_id, int *size)
+{
+	int rv;	
+
+	*size = -1;
+	rv = ipmi_mc_pointer_cb(mc_id, get_sel_size, size);
+	if (rv<0)
+		dbg("Unable to convert MC id to a pointer");
+}
+
 /**
  * get_sel_time_cb: callback registered by get_sel_time
  * @mc: management controller pointer
@@ -200,21 +217,42 @@ void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_d
 	return;
 }
 
+static void mc_clear_sel_done(ipmi_mc_t *mc, int err, void *cb_data)
+{
+	int *flag = cb_data;
+	*flag = 1;
+
+	dbg("MC sel clear done");
+	return;
+}
+
 static void clear_sel(ipmi_mc_t *mc, void *cb_data)
 {
-        ipmi_event_t *event;
+		struct ohoi_handler *ipmi_handler = cb_data;
       
+		ipmi_event_t *event;
+		int rv;
+
         event = ipmi_mc_first_event(mc);
         while (event) {
                 ipmi_mc_del_event(mc, event, NULL, NULL);
                 event = ipmi_mc_next_event(mc, event);
         }
+
+		/* we're done, now force an sel_reread so
+		   delete takes effect */
+
+		rv = ipmi_mc_reread_sel(mc, mc_clear_sel_done, &ipmi_handler->sel_clear_done);
+		if (rv)
+				dbg("ipmi_mc_reread_sel failed");
 }
 
-SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id)
+SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id, void *cb_data)
 {
         char support_del;
         int rv;
+
+		struct ohoi_handler *ipmi_handler = cb_data;
         
         ohoi_get_sel_support_del(mc_id, &support_del);
         if (!support_del) {
@@ -222,7 +260,7 @@ SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id)
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        rv = ipmi_mc_pointer_cb(mc_id, clear_sel, NULL);
+        rv = ipmi_mc_pointer_cb(mc_id, clear_sel, ipmi_handler);
         if (rv) {
                 dbg("Unable to convert mcid to pointer: %d", rv);
                 return SA_ERR_HPI_INVALID;
@@ -234,43 +272,43 @@ SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id)
 
 static void get_sel_first_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	ipmi_event_t **event = cb_data;
-	
-	*event = ipmi_mc_first_event(mc);
+		ipmi_event_t **event = cb_data;
+
+		*event = ipmi_mc_first_event(mc);
 }
 
 void ohoi_get_sel_first_entry(ipmi_mcid_t mc_id, ipmi_event_t **event)
 {
-	int rv;
-	
-	rv = ipmi_mc_pointer_cb(mc_id, get_sel_first_entry, event);
+		int rv;
 
-	if (rv)
-		dbg("Unable to convert mcid to pointer");
+		rv = ipmi_mc_pointer_cb(mc_id, get_sel_first_entry, event);
+
+		if (rv)
+				dbg("Unable to convert mcid to pointer");
 }
 
 static void get_sel_last_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	ipmi_event_t **event = cb_data;
-	
-	*event = ipmi_mc_last_event(mc);
+		ipmi_event_t **event = cb_data;
+
+		*event = ipmi_mc_last_event(mc);
 }
 
 void ohoi_get_sel_last_entry(ipmi_mcid_t mc_id, ipmi_event_t **event)
 {
-	int rv;
-	
-	rv = ipmi_mc_pointer_cb(mc_id, get_sel_last_entry, event);
+		int rv;
 
-	if (rv)
-		dbg("Unable to convert mcid to pointer");
+		rv = ipmi_mc_pointer_cb(mc_id, get_sel_last_entry, event);
+
+		if (rv)
+				dbg("Unable to convert mcid to pointer");
 }
 
 static void get_sel_next_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	ipmi_event_t **event = cb_data;
+		ipmi_event_t **event = cb_data;
 
-	*event = ipmi_mc_next_event(mc, *event);
+		*event = ipmi_mc_next_event(mc, *event);
 }
 
 void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id, 
@@ -297,28 +335,30 @@ void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id,
 
 static void get_sel_prev_entry(ipmi_mc_t *mc, void *cb_data)
 {
-	ipmi_event_t **event = cb_data;
+		ipmi_event_t **event = cb_data;
 
-	*event = ipmi_mc_prev_event(mc, *event);
+		*event = ipmi_mc_prev_event(mc, *event);
 }
 
 void ohoi_get_sel_prev_recid(ipmi_mcid_t mc_id, 
                              ipmi_event_t *event, 
                              unsigned int *record_id)
 {
-        int rv;
+		int rv;
         ipmi_event_t *te;
 
         te = event;
-	rv = ipmi_mc_pointer_cb(mc_id, get_sel_prev_entry, &te);
-	if (rv) {
-		dbg("unable to convert mcid to pointer");
-                *record_id = SAHPI_NO_MORE_ENTRIES;
+		
+		rv = ipmi_mc_pointer_cb(mc_id, get_sel_prev_entry, &te);
+
+		if (rv) {
+				dbg("unable to convert mcid to pointer");
+				*record_id = SAHPI_NO_MORE_ENTRIES;
                 return;
         }
         
         if (te)
-                *record_id = ipmi_event_get_record_id(te);
+				*record_id = ipmi_event_get_record_id(te);
         else 
                 *record_id = SAHPI_NO_MORE_ENTRIES;                
 }
@@ -330,24 +370,24 @@ struct ohoi_get_event_by_recid_cb_data {
 
 static void get_sel_by_recid(ipmi_mc_t *mc, void *cb_data)
 {
-        struct ohoi_get_event_by_recid_cb_data *data = cb_data; 
-        
-	data->event = ipmi_mc_event_by_recid(mc, data->record_id);
+		struct ohoi_get_event_by_recid_cb_data *data = cb_data; 
+
+		data->event = ipmi_mc_event_by_recid(mc, data->record_id);
 }
 
 void ohoi_get_sel_by_recid(ipmi_mcid_t mc_id, SaHpiSelEntryIdT entry_id, ipmi_event_t **event)
 {
-	int rv;
+		int rv;
         struct ohoi_get_event_by_recid_cb_data data;
         
-	data.record_id  = entry_id;
+		data.record_id  = entry_id;
         data.event      = NULL;
 
-	rv = ipmi_mc_pointer_cb(mc_id, get_sel_by_recid, &data);
-	if(rv) {
-		dbg("failed to convert mc_id to pointer");
-                *event = NULL;
-                return;
+		rv = ipmi_mc_pointer_cb(mc_id, get_sel_by_recid, &data);
+		if(rv) {
+				dbg("failed to convert mc_id to pointer");
+				*event = NULL;
+				return;
         }
 
         *event = data.event;

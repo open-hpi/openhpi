@@ -46,6 +46,7 @@ struct ohoi_handler {
 	int bus_scan_done;
     int SELs_read_done;
 	int mc_count;			/* to keep track of num of mcs to wait on sdrs */
+	int sel_clear_done;		/* we need to wait for mc_sel_reread for clear to succeed */
 
 	ipmi_domain_id_t domain_id;
 
@@ -99,10 +100,11 @@ int ohoi_set_sensor_event_enables(ipmi_sensor_id_t              sensor_id,
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
 void ohoi_get_sel_updatetime(ipmi_mcid_t mc_id, SaHpiTimeT *time);
+void ohoi_get_sel_size(ipmi_mcid_t mc_id, int *size);
 void ohoi_get_sel_count(ipmi_mcid_t mc_id, int *count);
 void ohoi_get_sel_overflow(ipmi_mcid_t mc_id, char *overflow);
 void ohoi_get_sel_support_del(ipmi_mcid_t mc_id, char *support_del);
-SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id);
+SaErrorT ohoi_clear_sel(ipmi_mcid_t mc_id, void *cb_data);
 void ohoi_get_sel_first_entry(ipmi_mcid_t mc_id, ipmi_event_t **event);
 void ohoi_get_sel_last_entry(ipmi_mcid_t mc_id, ipmi_event_t **event);
 void ohoi_get_sel_next_recid(ipmi_mcid_t mc_id, 

@@ -316,6 +316,7 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
                              SaHpiSelInfoT      *info)
 {
         unsigned int count;
+        unsigned int size;
 		int rv;
 
         struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -342,8 +343,14 @@ static SaErrorT ipmi_get_sel_info(void               *hnd,
 	
         ohoi_get_sel_count(ohoi_res_info->u.mc_id, &count);
 	
-        info->Entries           = count;
-        info->Size              = -1; /* FIXME: how to get total size in OpenIPMI? */
+		if (count == 0)
+				info->Entries = 0;
+		else
+				info->Entries = count;
+		dbg("sel count: %d", count);
+
+		ohoi_get_sel_size(ohoi_res_info->u.mc_id, &size);
+        info->Size              = size / 16;
         ohoi_get_sel_updatetime(ohoi_res_info->u.mc_id, &info->UpdateTimestamp);
         ohoi_get_sel_time(ohoi_res_info->u.mc_id, &info->CurrentTime, ipmi_handler);
         info->Enabled           = 1; /* FIXME: how to disable SEL in OpenIPMI */
@@ -504,6 +511,10 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
 
                 ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
                 break;
+
+		case SAHPI_NO_MORE_ENTRIES:
+				dbg("SEL is empty!");
+				goto out;
                 
         default:                		
 		/* get the entry requested by id */
@@ -518,14 +529,18 @@ static int ipmi_get_sel_entry(void *hnd, SaHpiResourceIdT id,
         memcpy(&entry->Event.EventDataUnion.UserEvent.UserEventData[3],
                ipmi_event_get_data_ptr(event), 
                ipmi_event_get_data_len(event));	
-
+out:
+		
 	return 0;		
 }
 
 static SaErrorT ipmi_clear_sel(void *hnd, SaHpiResourceIdT id)
 {
-        struct ohoi_resource_info *ohoi_res_info;
-	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+		struct ohoi_resource_info *ohoi_res_info;
+		struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+
+		int rv;
 
         ohoi_res_info = oh_get_resource_data(handler->rptcache, id);
         if (ohoi_res_info->type != OHOI_RESOURCE_MC) {
@@ -533,7 +548,22 @@ static SaErrorT ipmi_clear_sel(void *hnd, SaHpiResourceIdT id)
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
-        return ohoi_clear_sel(ohoi_res_info->u.mc_id);
+		ipmi_handler->sel_clear_done = 0;
+
+        rv = ohoi_clear_sel(ohoi_res_info->u.mc_id, ipmi_handler);
+
+		if (rv != SA_OK)
+				dbg("Error in attempting to clear sel");
+
+		while (0 == ipmi_handler->sel_clear_done) {
+				rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
+				if (rv<0) {
+						dbg("error on waiting for SEL");
+						return -1;
+				}
+		}
+
+		return SA_OK;
 }
 
 static SaErrorT get_rdr_data(const struct oh_handler_state *handler,

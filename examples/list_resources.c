@@ -639,6 +639,9 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
         printf("\tDeleteEntrySupported: %s\n", info.DeleteEntrySupported ? "true" : "false" );
 
+		if (info.Entries == 0)
+				return;
+		//else 
         // read sel records
         SaHpiSelEntryIdT current = SAHPI_OLDEST_ENTRY;
 
