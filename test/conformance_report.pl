@@ -16,7 +16,7 @@
 
 use strict;
 
-my @dirs = qw(src);
+my @dirs = qw(src utils);
 
 my $outdir = "conform_html";
 
