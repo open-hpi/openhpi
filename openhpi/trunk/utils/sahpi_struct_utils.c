@@ -1143,6 +1143,231 @@ static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBu
 	return(SA_OK);
 }
 
+/**
+ * oh_decode_capability:
+ * @value: enum value of type SaHpiCapabilitiesT.
+ * @buffer:  Location to store the string.
+ *
+ * Converts @value into a string based on @value's enum definition
+ * in http://www.iana.org/assignments/enterprise-numbers.
+ * String is stored in an SaHpiTextBufferT data structure.
+ * 
+ * 
+ * Returns:
+ * SA_OK - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL
+ **/
+SaErrorT oh_decode_capability (SaHpiCapabilitiesT ResourceCapabilities, 
+					 	SaHpiTextBufferT *buffer)
+{
+
+	SaErrorT err = SA_OK;
+	SaHpiTextBufferT working;
+
+	if (!buffer) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = oh_init_textbuffer(&working);
+	if (err) { return(err); }
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_RESOURCE) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_RESOURCE\n",
+					   strlen("\tSAHPI_CAPABILITY_RESOURCE\n"));
+		if (err) { return(err); }
+	}
+
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_EVENT_LOG\n",
+					   strlen("\tSAHPI_CAPABILITY_EVENT_LOG\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_EVT_DEASSERTS) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_EVT_DEASSERTS\n",
+					   strlen("\tSAHPI_CAPABILITY_EVT_DEASSERTS\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_AGGREGATE_STATUS) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n",
+					   strlen("\tSAHPI_CAPABILITY_AGGREGATE_STATUS\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_CONFIGURATION\n",
+					   strlen("\tSAHPI_CAPABILITY_CONFIGURATION\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n",
+					   strlen("\tSAHPI_CAPABILITY_MANAGED_HOTSWAP\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_WATCHDOG) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_WATCHDOG\n",
+					   strlen("\tSAHPI_CAPABILITY_WATCHDOG\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_CONTROL) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_CONTROL\n",
+					   strlen("\tSAHPI_CAPABILITY_CONTROL\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_FRU) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_FRU\n",
+					   strlen("\tSAHPI_CAPABILITY_FRU\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_INVENTORY_DATA\n",
+					   strlen("\tSAHPI_CAPABILITY_INVENTORY_DATA\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_RDR) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_RDR\n",
+					   strlen("\tSAHPI_CAPABILITY_RDR\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_SENSOR) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_SENSOR\n",
+					   strlen("\tSAHPI_CAPABILITY_SENSOR\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_ANNUNCIATOR) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_ANNUNCIATOR\n",
+					   strlen("\tSAHPI_CAPABILITY_ANNUNCIATOR\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_POWER) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_POWER\n",
+					   strlen("\tSAHPI_CAPABILITY_POWER\n"));
+		if (err) { return(err); }
+	}
+
+        if(ResourceCapabilities & SAHPI_CAPABILITY_RESET) {
+		err = oh_append_textbuffer(&working, 
+					   "\tSAHPI_CAPABILITY_RESET\n",
+					   strlen("\tSAHPI_CAPABILITY_RESET\n"));
+		if (err) { return(err); }
+	}
+		
+				
+ 	oh_copy_textbuffer(buffer, &working);
+	return(SA_OK);
+	        
+}
+
+/**
+ * oh_fprint_rptentry:
+ * @stream: File handle.
+ * @rptentry: Pointer to SaHpiRptEntryT to be printed.
+ * @space:  Number of blank space to skip (from column 1) before printing
+ * 
+ * Prints the member data contained in SaHpiRptEntryT struct to a file.
+ * The MACRO oh_print_rptentry(), uses this function to print to STDOUT. 
+ *
+ * Returns:       
+ * SA_OK - normal operation.
+ **/
+SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int space)
+{
+	SaErrorT rv = SA_OK;
+	oh_big_textbuffer mybuf;
+	SaHpiTextBufferT buffer; 
+	char* str = buffer.Data;
+
+	if (!stream || !rptentry) 
+		return(SA_ERR_HPI_INVALID_PARAMS);
+			
+	
+	oh_init_bigtext(&mybuf);
+	oh_append_bigtext(&mybuf, "\nRPT Entry:\n", strlen("\nRPT Entry:\n"));
+	
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EntryId:  \t%d\n",
+							rptentry->EntryId);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, (space));
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceId: %d\n",
+							rptentry->ResourceId);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Entity Path:\n\t");
+	oh_append_bigtext(&mybuf, str, strlen(str));
+        entitypath2string(&rptentry->ResourceEntity, str, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_bigtext(&mybuf, "\n", strlen("\n"));
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Capability:\n");
+	oh_append_bigtext(&mybuf, str, strlen(str));
+	oh_decode_capability(rptentry->ResourceCapabilities, &buffer);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "HotSwap Capability:\t%d\n",
+							rptentry->HotSwapCapabilities);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+				
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceFailed:\t%s\n",
+				(rptentry->ResourceFailed == SAHPI_TRUE) ? "TRUE" : "FALSE" );
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+	oh_append_offset(&mybuf, space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "ResourceTag:\n");
+	oh_append_bigtext(&mybuf, str, strlen(str));
+			
+	oh_append_offset(&mybuf, 4+space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "DataType:\t%s\n",
+					oh_lookup_texttype(rptentry->ResourceTag.DataType));
+	oh_append_bigtext(&mybuf, str, strlen(str));
+						
+	oh_append_offset(&mybuf, 4+space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Language:\t%s\n",
+					oh_lookup_language(rptentry->ResourceTag.Language));
+	oh_append_bigtext(&mybuf, str, strlen(str));
+						
+	oh_append_offset(&mybuf, 4+space);
+	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH,"Content:\t%s\n",
+						rptentry->ResourceTag.Data);
+	oh_append_bigtext(&mybuf, str, strlen(str));
+
+
+	rv = oh_fprint_bigtext(stream, &mybuf); 					
+	return(rv);
+}
+
+
 #if 0
 SaHpiBoolT oh_valid_textbuffer(SaHpiTextBufferT text_buffer) {
 
