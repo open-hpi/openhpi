@@ -19,8 +19,7 @@
 
 #include <SaHpi.h>
 #include <glib.h>
-#include <rpt_utils.h>
-#include <el_utils.h>
+#include <oh_utils.h>
 
 /* Number of pre-alloced session slots for a domain. */
 #define OH_SESSION_PREALLOC 5
