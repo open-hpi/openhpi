@@ -139,8 +139,9 @@ SaErrorT oh_initialize()
         tag.Language = SAHPI_LANG_ENGLISH;
         strcpy(tag.Data, "First Domain");
         if (!oh_create_domain(capabilities, SAHPI_FALSE, &tag)) {
+		data_access_unlock();
                 dbg("Could not create first domain!");
-                return SA_ERR_HPI_ERROR;
+                return SA_ERR_HPI_ERROR;		
         }        
         trace("Created first domain");
 
