@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES 	= Makefile.in *~
 AM_CFLAGS		= @CFLAGS@
 INCLUDES 		= -I $(top_srcdir)/include -I $(top_srcdir)/utils -I $(top_srcdir)/marshal
 # just to clear LIBS
-LIBS			=
+LIBS			= -lpthread
 
 EXTRA_DIST              = README openhpiclient.conf
 
