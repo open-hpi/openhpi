@@ -59,8 +59,8 @@ libsnmp_bc.la: $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_DEPENDENCIES)
 	$(LINK) -rpath $(pkglibdir) $(libsnmp_bc_la_LDFLAGS) $(libsnmp_bc_la_OBJECTS) $(libsnmp_bc_la_LIBADD) $(LIBS)
 
 # Setup environment variables for TESTS programs
-TESTS_ENVIRONMENT = OPENHPI_CONF=$(shell pwd)/openhpi.conf
-TESTS_ENVIRONMENT += LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
+TESTS_ENVIRONMENT  = LD_LIBRARY_PATH=$(shell pwd)/../../../src/.libs:$(shell pwd)/../../../utils/.libs
+TESTS_ENVIRONMENT += OPENHPI_CONF=$(shell pwd)/openhpi.conf
 TESTS_ENVIRONMENT += OPENHPI_UID_MAP=$(shell pwd)/uid_map
 TESTS_ENVIRONMENT += OPENHPI_PATH=$(shell pwd)
 
@@ -87,7 +87,9 @@ check_PROGRAMS = $(TESTS)
 
 # Unit test using normal IF calls and simulation library
 tevent_SOURCES = tevent.c
-tevent_LDADD   = $(top_builddir)/src/libopenhpi.la
+tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_bc/t/libsnmp_bc.la
 
 # Unit tests with IF and snmp calls stubbed out
 tutils_oid_SOURCES = tutils_oid.c
