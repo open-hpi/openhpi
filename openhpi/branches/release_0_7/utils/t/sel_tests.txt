@@ -1,0 +1,97 @@
+Unit tests we should have for sel_utils
+
+The possitive tests:
+Start with no SEL
+   - create a new SEL via oh_sel_create
+      - examine struct
+   - add 1 event
+      - examine total number of entries in struct
+      - fetch by entityid, compare
+   - add 5 events
+      - examine total number of entries in struct
+      - fetch by entityid, compare
+   - save SEL to file
+      - examine total number of entries in struct
+      - examine file
+    
+Start with existing SEL
+   - create a SEL and read entries from file
+      - fetch by entityid, compare
+   - add 5 events to SEL
+      - examine total number of entries in struct
+      - fetch by id, compare
+      - fetch all entries, compare
+   - modify timestamp offset
+      - add a new event, examine timestamp
+   - clear the SEL
+      - examine struct
+
+
+The negative tests:
+   oh_sel_create
+      - oh_sel* == NULL
+   oh_sel_close
+      - SaHpiErrorT != SA_OK
+   oh_sel_add
+      - SaHpiErrorT != SA_OK
+      - entry->EntityId valid
+      - entry->Timestamp valid
+      - sel->nextId incremented by 1
+   oh_sel_delete
+      - SaHpiErrorT == SA_OK
+   oh_sel_clear
+      - SaHpiErrorT != SA_OK
+      - oh_sel->selentries != NULL
+   oh_sel_get
+      - SaHpiErrorT != SA_OK
+      - entry != NULL
+      - entry->EntryId == entryid
+      - prev is valid
+      - next is valid
+   oh_sel_map_to_file
+      - SaHpiErrorT != SA_OK
+      - contents of file valid
+   oh_sel_map_from_file
+      - SaHpiErrorT != SA_OK
+      - sel->selentries != NULL
+      - number of entries correct
+-------------------------------------------------------
+Scenarios for system tests
+
+Case 1. snmp log is non-empty, non-full
+	a. Validate cache build
+	b. Validate cache/snmp log sync
+	c. Add snmp log entries.
+		Validate cache sync only fetches new entries. 
+
+Case 2.	Change log time - later than current
+		Add snmp log entries
+		Validate cache sync only fetches new entries. 
+	
+Case 3. Change log time - earlier than current
+		Add snmp log entries
+		Validate cache sync only fetches new entries. 
+
+Case 4. snmp log is full/cache contains maximum configured 
+	a. Validate cache build
+	b. Validate cache/snmp log sync
+	c. Add snmp log entries.
+		Validate cache sync only fetches new entries. 
+		Validate auto-dropoff
+
+Case 5. snmp log becomes empty/ cache is not empty
+	a. Sync cache and snmp log
+	b. Clear snmp log using wed interface
+	c. Verify cache resync
+
+Case 6. snmp log is not empty/ cache is empty
+	a. Sync cache and snmp log
+	b. Clear cache copy with application 
+	c. Verify cache resync
+
+Case 7. snmp log is completely over-written
+	a. Set cache MAX_ENTRIES to small number. Sync cache and snmp log
+	b. Clear snmp log using web interface
+	c. Generate entries in snmp log.
+	d. Verify that cache got rebuilt with all new entries.
+	
