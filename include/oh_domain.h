@@ -20,6 +20,7 @@
 #include <SaHpi.h>
 #include <glib.h>
 #include <oh_utils.h>
+#include <oh_alarm.h>
 
 /* Number of pre-alloced session slots for a domain. */
 #define OH_SESSION_PREALLOC 5
@@ -48,7 +49,7 @@ struct oh_domain {
         RPTable rpt;
 
         /* Domain Alarm Table */
-        void *dat;
+        struct oh_dat dat;
 
         /* Domain Reference Table */
         void *drt;
