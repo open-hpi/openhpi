@@ -319,6 +319,9 @@ int main(int argc, char **argv)
                                                            &rdr.RdrTypeUnion.SensorRec);
                                         } 
                                         entryid = nextentryid;
+                                } else {
+                                        rv = SA_OK;
+                                        entryid = SAHPI_LAST_ENTRY;
                                 }
                         }
                         rptentryid = nextrptentryid;
