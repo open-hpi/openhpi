@@ -2,7 +2,7 @@
 #
 ./nukem.sh
 ./bootstrap
-./configure --enable-debug --disable-snmp_bc --disable-snmp_rsa --disable-ipmidirect --disable-watchdog --disable-ipmi --disable-snmp_client --disable-remote_client --disable-sysfs --disable-simulator --disable-daemon --disable-examples --sysconfdir=/etc $@
+./configure --disable-snmp_bc --disable-snmp_rsa --disable-ipmidirect --disable-watchdog --disable-ipmi --disable-snmp_client --disable-remote_client --disable-sysfs --disable-simulator --disable-daemon --disable-examples --sysconfdir=/etc $@
 
 #Quick hack to speed up build on SMP machines
 uname -anr | grep SMP > /dev/null
