@@ -216,6 +216,8 @@ static const cMarshalType *saHpiEventLogEntryGetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiEventLogEntryIdType,
+  &SaHpiRdrType,
+  &SaHpiRptEntryType,
   0
 };
 
@@ -364,6 +366,9 @@ static const cMarshalType *saHpiEventGetIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiTimeoutType,
+  &SaHpiRdrType,
+  &SaHpiRptEntryType,
+  &SaHpiEvtQueueStatusType,
   0
 };
 
@@ -397,6 +402,7 @@ static const cMarshalType *saHpiAlarmGetNextIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiSeverityType,
   &SaHpiBoolType,
+  &SaHpiAlarmType,
   0
 };
 
@@ -442,6 +448,7 @@ static const cMarshalType *saHpiAlarmAcknowledgeOut[] =
 static const cMarshalType *saHpiAlarmAddIn[] =
 {
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
+  &SaHpiAlarmType,
   0
 };
 
@@ -507,6 +514,8 @@ static const cMarshalType *saHpiSensorReadingGetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiSensorNumType,
+  &SaHpiSensorReadingType,
+  &SaHpiEventStateType,
   0
 };
 
@@ -637,6 +646,8 @@ static const cMarshalType *saHpiSensorEventMasksGetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiSensorNumType,
+  &SaHpiEventStateType,
+  &SaHpiEventStateType,
   0
 };
 
@@ -688,6 +699,7 @@ static const cMarshalType *saHpiControlGetIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiCtrlNumType,
+  &SaHpiCtrlStateType,
   0
 };
 
@@ -810,6 +822,7 @@ static const cMarshalType *saHpiIdrFieldAddIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiIdrIdType,
+  &SaHpiIdrFieldTypeType,
   0
 };
 
@@ -908,6 +921,7 @@ static const cMarshalType *saHpiAnnunciatorGetNextIn[] =
   &SaHpiAnnunciatorNumType,
   &SaHpiSeverityType,
   &SaHpiBoolType,
+  &SaHpiAnnouncementType,
   0
 };
 
@@ -958,6 +972,7 @@ static const cMarshalType *saHpiAnnunciatorAddIn[] =
   &SaHpiSessionIdType, // session id (SaHpiSessionIdT)
   &SaHpiResourceIdType,
   &SaHpiAnnunciatorNumType,
+  &SaHpiAnnouncementType,
   0
 };
 

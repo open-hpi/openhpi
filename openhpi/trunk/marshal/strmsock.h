@@ -64,6 +64,13 @@ typedef enum
 	eMhError,  // for reply message header only!
 } tMessageType;
 
+// NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+// The following structure definition will need to be changed if all clients
+// and deamons do not have a homogenious word size (all 32-bit or all 64-bit).
+// The fix is to probably define them using GLIB types to force all the
+// structure member values to use a fixed bit size no matter what the
+// architecture word size is.
 typedef struct
 {
 	unsigned char	m_type;
@@ -91,15 +98,11 @@ class strmsock
 	virtual void	SetDomain		(int);
 	virtual void	SetProtocol		(int);
 	virtual void	SetType			(int);
-	virtual void	ReqMessageHeaderInit	(tMessageType, unsigned char,
+	virtual void	MessageHeaderInit	(tMessageType, unsigned char,
 		   				 unsigned int, unsigned int);
-	virtual void	RepMessageHeaderInit	(tMessageType, unsigned char,
-		   				 unsigned int, unsigned int);
-	virtual bool	WriteMsg		(const void *request,
-                                                 const void *reply);
-	virtual void	*ReadMsg		(void);
-        cMessageHeader	reqheader;	// request message header
-        cMessageHeader	repheader;	// reply message header
+        virtual bool	WriteMsg		(const void *request);
+	virtual bool	ReadMsg		        (char *);
+        cMessageHeader	header;	        // message header
 };
 typedef strmsock *pstrmsock;
 

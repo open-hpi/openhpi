@@ -85,11 +85,10 @@ void strmsock::SetType(
 	return;
 }
 
-bool strmsock::WriteMsg(const void *request, const void *reply)
+bool strmsock::WriteMsg(const void *request)
 {
-	char data[dMaxMessageLength];
-	int l = (sizeof(cMessageHeader) * 2) + reqheader.m_len + repheader.m_len;
-        int x = 0;
+	unsigned char data[dMaxMessageLength];
+	int l = sizeof(cMessageHeader) + header.m_len;
 
 	if (!fOpen) {
 		return true;
@@ -99,13 +98,21 @@ bool strmsock::WriteMsg(const void *request, const void *reply)
 		return true;
 	}
 
-	memcpy(&data[x], &reqheader, sizeof(cMessageHeader));
-        x += sizeof(cMessageHeader);
-	memcpy(&data[x], &request, reqheader.m_len);
-        x += reqheader.m_len;
-	memcpy(&data[x], &repheader, sizeof(cMessageHeader));
-        x += sizeof(cMessageHeader);
-	memcpy(&data[x], &reply, repheader.m_len);
+	memcpy(&data[0], &header, sizeof(cMessageHeader));
+        memcpy(&data[sizeof(cMessageHeader)], request, header.m_len);
+//      printf("Size of message header is %d\n", sizeof(cMessageHeader));
+//      printf("Buffer header address is %p\n", &data[0]);
+//      printf("Buffer request address is %p\n", &data[sizeof(cMessageHeader)]);
+//      printf("Write request buffer (%d bytes) is\n", header.m_len);
+//      for (unsigned int i = 0; i < header.m_len; i++) {
+//              printf("%02x ", *((unsigned char *)request + i));
+//      }
+//      printf("\n");
+//      printf("Write buffer (%d bytes) is\n", l);
+//      for (int i = 0; i < l; i++) {
+//              printf("%02x ", (unsigned char)data[i]);
+//      }
+//      printf("\n");
 
 	int rv = write(s, data, l);
 
@@ -116,83 +123,57 @@ bool strmsock::WriteMsg(const void *request, const void *reply)
 	return false;
 }
 
-void *strmsock::ReadMsg(void)
+bool strmsock::ReadMsg(char *data)
 {
-	char *data = (char *)malloc(dMaxMessageLength);
-        int x = 0;
-
 	if (!fOpen) {
-		return NULL;
+		return true;
 	}
 
-	unsigned int len = read( s, data, dMaxMessageLength);
+	int len = read( s, data, dMaxMessageLength);
 
 	if (len < 0) {
-		return NULL;
+		return true;
 	} else if (len == 0) {	//connection has been aborted by the peer
 		Close();
-		return NULL;
-	} else if (len < sizeof(cMessageHeader) * 2) {
-		return NULL;
+		return true;
+	} else if (len < (int)sizeof(cMessageHeader)) {
+		return true;
 	}
-
-	memcpy(&reqheader, &data[x], sizeof(cMessageHeader));
-        x += sizeof(cMessageHeader);
-        // swap id and len if nessesary in the request header
-	if ((reqheader.m_flags & dMhEndianBit) != MarshalByteOrder()) {
-		reqheader.m_id  = bswap_32(reqheader.m_id);
-		reqheader.m_len = bswap_32(reqheader.m_len);
-	}
-        x += reqheader.m_len;
-	memcpy(&repheader, &data[x], sizeof(cMessageHeader));
-        x += sizeof(cMessageHeader);
+	memcpy(&header, &data[0], sizeof(cMessageHeader));
         // swap id and len if nessesary in the reply header
-	if ((repheader.m_flags & dMhEndianBit) != MarshalByteOrder()) {
-		repheader.m_id  = bswap_32(repheader.m_id);
-		repheader.m_len = bswap_32(repheader.m_len);
+	if ((header.m_flags & dMhEndianBit) != MarshalByteOrder()) {
+		header.m_id  = bswap_32(header.m_id);
+		header.m_len = bswap_32(header.m_len);
 	}
 
-	if ( (repheader.m_flags >> 4) != dMhVersion ) {
-		return NULL;
+	if ( (header.m_flags >> 4) != dMhVersion ) {
+		return true;
 	}
+        printf("Read buffer (%d bytes) is\n", len);
+        for (int i = 0; i < len; i++) {
+                printf("%02x ", (unsigned char)data[i]);
+        }
+        printf("\n");
 
-	return (data);
+	return false;
 }
 
-void strmsock::ReqMessageHeaderInit(tMessageType mtype, unsigned char flags,
-		          	    unsigned int id, unsigned int len )
+void strmsock::MessageHeaderInit(tMessageType mtype, unsigned char flags,
+	               	         unsigned int id, unsigned int len )
 {
-	reqheader.m_type    = mtype;
-	reqheader.m_flags   = flags;
+	header.m_type    = mtype;
+	header.m_flags   = flags;
 
         // set version
-	reqheader.m_flags &= 0x0f;
-	reqheader.m_flags |= dMhVersion << 4;
+	header.m_flags &= 0x0f;
+	header.m_flags |= dMhVersion << 4;
 
         // set endian
-	reqheader.m_flags &= ~dMhEndianBit;
-	reqheader.m_flags |= MarshalByteOrder();
+	header.m_flags &= ~dMhEndianBit;
+	header.m_flags |= MarshalByteOrder();
 
-	reqheader.m_id = id;
-	reqheader.m_len = len;
-}
-
-void strmsock::RepMessageHeaderInit(tMessageType mtype, unsigned char flags,
-		          	    unsigned int id, unsigned int len )
-{
-	repheader.m_type    = mtype;
-	repheader.m_flags   = flags;
-
-        // set version
-	repheader.m_flags &= 0x0f;
-	repheader.m_flags |= dMhVersion << 4;
-
-        // set endian
-	repheader.m_flags &= ~dMhEndianBit;
-	repheader.m_flags |= MarshalByteOrder();
-
-	repheader.m_id = id;
-	repheader.m_len = len;
+	header.m_id = id;
+	header.m_len = len;
 }
 
 /*--------------------------------------------------------------------*/
