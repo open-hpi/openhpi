@@ -483,6 +483,9 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
   stdlog << "hot swap event at MC " << m_addr << " M" << (int)prev_state << " -> M" 
          << (int)current_state << ".\n";
 
+  // ShMC takes care of powering up the board
+  // -> Should not be done here
+#if 0
   if ( current_state == eIpmiFruStateActivationInProgress )
      {
        assert( m_mc );
@@ -514,6 +517,7 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
        else
             stdlog << "power fru.\n";
      }
+#endif
 
   sensor->Resource()->FruState() = current_state;
   sensor->HandleEvent( event );

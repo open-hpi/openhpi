@@ -215,6 +215,8 @@ cIpmiSensor::GetDataFromSdr( cIpmiMc *mc, cIpmiSdr *sdr )
   m_event_support           = (tIpmiEventSupport)(sdr->m_data[11] & 3);
   m_sensor_type             = (tIpmiSensorType)sdr->m_data[12];
   m_event_reading_type      = (tIpmiEventReadingType)sdr->m_data[13];
+  if ( m_event_reading_type == eIpmiEventReadingTypeSensorSpecific )
+      m_event_reading_type = (tIpmiEventReadingType)SAHPI_EC_GENERIC;
 
   m_oem                     = sdr->m_data[46];
 
@@ -478,6 +480,9 @@ cIpmiSensor::CreateEvent( cIpmiEvent *event, SaHpiEventT &h )
   s.SensorNum     = m_num;
   s.SensorType    = (SaHpiSensorTypeT)event->m_data[7];
   s.EventCategory = (SaHpiEventCategoryT)event->m_data[9] & 0x7f;
+  if ( s.EventCategory == (SaHpiEventCategoryT)eIpmiEventReadingTypeSensorSpecific )
+      s.EventCategory = SAHPI_EC_GENERIC;
+
 
   return SA_OK;
 }

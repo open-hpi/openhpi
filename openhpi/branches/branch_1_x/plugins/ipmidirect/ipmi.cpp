@@ -1043,6 +1043,18 @@ cIpmi::AllocConnection( GHashTable *handler_config )
   stdlog << "AllocConnection: Max Outstanding IPMI messages "
          << m_max_outstanding << ".\n";
 
+  unsigned int poll_alive = GetIntNotNull( handler_config, "AtcaPollAliveMCs", 0 );
+  if ( poll_alive == 1 )
+     {
+        m_atca_poll_alive_mcs = true;
+        stdlog << "AllocConnection: Poll alive MCs.\n";
+     }
+  else
+     {
+        m_atca_poll_alive_mcs = false;
+        stdlog << "AllocConnection: Don't poll alive MCs.\n";
+     }
+
   const char *name = (const char *)g_hash_table_lookup(handler_config, "name");
 
   if ( !name )
