@@ -381,7 +381,7 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
                                 ent.sev = SAHPI_DEBUG;
                         }
                 } else {
-                        dbg("Couldn't parse Severity from Blade Center Log Entry");
+                        dbg("Couldn't parse Severity from RSA Log Entry");
                         return -1;
                 }
         }
@@ -390,12 +390,21 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
         findit = strstr(text, "Source:");
         if (findit != NULL) {
                 if(!sscanf(findit,"Source:%19s",ent.source)) {
-                        dbg("Couldn't parse Source from Blade Center Log Entry");
+                        dbg("Couldn't parse Source from RSA Log Entry");
                         return -1;
                 }
         } else 
                 return -2;
 
+	findit = strstr(text, "Name:");
+	if (findit != NULL) {
+        	if(!sscanf(findit,"Name:%19s",ent.sname)) {
+                	dbg("Couldn't parse Name from RSA Log Entry");
+                	return -1;
+        	}
+	} else 
+		return -2;
+        
         findit = strstr(text, "Date:");
         if (findit != NULL) {
                 if(sscanf(findit,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
@@ -405,7 +414,7 @@ int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_s
                         ent.time.tm_mon--;
                         ent.time.tm_year += 100;
                 } else {
-                        dbg("Couldn't parse Date/Time from Blade Center Log Entry");
+                        dbg("Couldn't parse Date/Time from RSA Log Entry");
                         return -1;
                 }
         } else
