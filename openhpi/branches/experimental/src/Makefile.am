@@ -54,7 +54,8 @@ libopenhpi_la_SOURCES	= \
                            plugin.c \
                            resource.c \
                            safhpi.c \
-                           session.c
+                           session.c \
+			   uid_utils.c
  
 libopenhpi_la_LIBADD    = -lltdl
 libopenhpi_la_LDFLAGS	= -version-info 0:0:0
