@@ -2,7 +2,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
-INCLUDES 		= -I$(top_srcdir)/include
+INCLUDES 		= -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
 COMMONLIBS		= $(top_builddir)/src/libopenhpi.la @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@
 AM_CFLAGS 		= @CFLAGS@

@@ -28,7 +28,9 @@ MOSTLYCLEANFILES 	= @TEST_CLEAN@ \
 
 SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
 
-INCLUDES                = -I$(top_srcdir)/include -I$(SNMPUTILSDIR) \
+INCLUDES                = -I$(top_srcdir)/include \
+			  -I$(top_srcdir)/utils \
+			  -I$(SNMPUTILSDIR) \
                           -I$(top_srcdir)/plugins/snmp_bc
 
 AM_CFLAGS		= -g @NOCFLAGS@ @SNMPFLAGS@ -ftest-coverage -fprofile-arcs
