@@ -184,8 +184,6 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 {
 	SaErrorT		rv = SA_OK;
 	SaHpiRptEntryT		rptentry;
-	SaHpiEntryIdT		rptentryid;
-	SaHpiEntryIdT		nextrptentryid;
 	SaHpiEventLogInfoT	info;
 	SaHpiEventLogEntryIdT	entryid;
 	SaHpiEventLogEntryIdT	nextentryid;
@@ -195,31 +193,20 @@ SaErrorT show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	char			buf[SHOW_BUF_SZ];
 	char			date[30], date1[30];
 
-	rptentryid = SAHPI_FIRST_ENTRY;
-	while (rptentryid != SAHPI_LAST_ENTRY) {
-		rv = saHpiRptEntryGet(sessionid, rptentryid, &nextrptentryid, &rptentry);
+	if (resourceid != SAHPI_UNSPECIFIED_RESOURCE_ID) {
+		rv = saHpiRptEntryGetByResourceId(sessionid, resourceid, &rptentry);
 		if (rv != SA_OK) {
-			snprintf(buf, SHOW_BUF_SZ, "ERROR: saHpiRptEntryGet error = %s\n",
+			snprintf(buf, SHOW_BUF_SZ,
+				"ERROR: saHpiRptEntryGetByResourceId error = %s\n",
 				oh_lookup_error(rv));
 			proc(buf);
 			return rv;
 		};
-		if (rptentry.ResourceId == resourceid) {
-			if (rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)
-				break;
-			else {
-				proc("ERROR: The designated resource hasn't SEL.\n");
-				return rv;
-			}
-		};
-		rptentryid = nextrptentryid;
-	}
-	if (rptentryid == SAHPI_LAST_ENTRY) {
-		snprintf(buf, SHOW_BUF_SZ, "ERROR: no resource for resourceId = %d\n",
-			resourceid);
-		proc(buf);
-		return rv;
-	}
+		if (!(rptentry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
+			proc("ERROR: The designated resource hasn't SEL.\n");
+			return rv;
+		}
+	};
 
 	rv = saHpiEventLogInfoGet(sessionid, resourceid, &info);
 	if (rv != SA_OK) {
@@ -613,7 +600,7 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 	switch (event->EventType) {
 		case SAHPI_ET_SENSOR:
 			sen = &(event->EventDataUnion.SensorEvent);
-			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s",
+			snprintf(buf, SHOW_BUF_SZ, "%s %d/%d %s %s ",
 				oh_lookup_sensortype(sen->SensorType),
 				event->Source, sen->SensorNum,
 				oh_lookup_severity(event->Severity),
@@ -624,9 +611,9 @@ void show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc)
 			if (rv == SA_OK) {
 				snprintf(buf, SHOW_BUF_SZ, "%s:", tmbuf.Data);
 				if (sen->Assertion == SAHPI_TRUE)
-					strcat(buf, "ASSERTED ");
+					strcat(buf, "ASSERTED");
 				else
-					strcat(buf, "DEASSERTED ");
+					strcat(buf, "DEASSERTED");
 				proc(buf);
 			};
 			break;
