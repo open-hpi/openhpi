@@ -20,12 +20,13 @@ bin_PROGRAMS = \
 	hpireset2 \
 	hpiwdt \
 	hpipower2 \
+	hpievent \
+	hpithres \
+	hpievent \
 	hpisettime
 	
 
-#bin_PROGRAMS           = hpithres \
-#                         hpifru \
-#                         hpievent
+#bin_PROGRAMS           = hpifru
 
 include_HEADERS         =
 
@@ -33,9 +34,9 @@ hpialarmpanel_SOURCES   = hpialarmpanel.c
 hpialarmpanel_LDADD     = $(COMMONLIBS)
 hpialarmpanel_LDFLAGS   =
 
-#hpithres_SOURCES        = hpithres.c
-#hpithres_LDADD          = $(COMMONLIBS)
-#hpithres_LDFLAGS        =
+hpithres_SOURCES        = hpithres.c
+hpithres_LDADD          = $(COMMONLIBS)
+hpithres_LDFLAGS        =
 
 hpifan_SOURCES          = hpifan.c
 hpifan_LDADD            = $(COMMONLIBS)
@@ -85,9 +86,9 @@ hpipower2_SOURCES      = hpipower2.c
 hpipower2_LDADD        = $(COMMONLIBS)
 hpipower2_LDFLAGS      =
 
-#hpievent_SOURCES      = hpievent.c
-#hpievent_LDADD        = $(COMMONLIBS)
-#hpievent_LDFLAGS      =
+hpievent_SOURCES      = hpievent.c
+hpievent_LDADD        = $(COMMONLIBS)
+hpievent_LDFLAGS      =
 
 hpitree_SOURCES      = hpitree.c
 hpitree_LDADD        = $(COMMONLIBS)
