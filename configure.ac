@@ -359,6 +359,9 @@ includedir=`var "$includedir" "$exec_prefix/include"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
 
+TEST_CLEAN='$(shell ls *.bb*) $(shell ls *.da) $(shell ls *.gcov)'
+AC_SUBST(TEST_CLEAN)
+
 AC_C_STRINGIZE
 
 CXXFLAGS=$CFLAGS
@@ -380,7 +383,10 @@ CXX_WARNINGS="-W -Wall -Wmissing-prototypes \
         -Wredundant-decls"
 
 CFLAGS="$CFLAGS $GLIB_CFLAGS $CC_WARNINGS"
+NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
 CXXFLAGS="$CXXFLAGS $GLIB_CFLAGS $CXX_WARNINGS"
+
+AC_SUBST(NOCFLAGS)
 
 if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
