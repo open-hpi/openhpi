@@ -39,21 +39,6 @@ static inline int __dsel_add(GSList **sel_list,
 	return 0;
 }
 
-static inline void sel_del(GSList **sel_list, SaHpiSelEntryIdT id)
-{
-	GSList *i;
-
-	g_slist_for_each(i, *sel_list) {
-		struct oh_sel *sel;
-		sel = i->data;
-		if (sel->entry.EntryId == id) {
-			*sel_list = g_slist_remove_link(*sel_list, i);
-			free(sel);
-			break;
-		}
-	}
-}
-
 static inline void sel_clr(GSList **sel_list) 
 {
 	GSList *i, *i2;
@@ -169,14 +154,29 @@ int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e)
 int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id)
 {
 	struct oh_domain *d;
-	
+	GSList *i;
+
 	d = get_domain_by_id(domain_id);
 	if (!d) {
 		dbg("Invalid domain");
 		return -1;
 	}
 
-	sel_del(&d->sel_list, id);
+	g_slist_for_each(i, d->sel_list) {
+		struct oh_sel *sel;
+		sel = i->data;
+		if (sel->entry.EntryId == id) {
+			d->sel_list = g_slist_remove_link(d->sel_list, i);
+			free(sel);
+			break;
+		}
+	}
+	
+	if (!i) {
+		dbg("No such entry");
+		return -1;
+	}
+	
 	return 0;
 }
 
@@ -242,6 +242,7 @@ int rsel_add2(struct oh_resource *res, struct oh_rsel_event *e)
 int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
 {
 	struct oh_resource *res;
+	GSList *i;
 	
 	res = get_resource(res_id);
 	if (!res) {
@@ -249,7 +250,26 @@ int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id)
 		return -1;
 	}
 
-	sel_del(&res->sel_list, id);
+	g_slist_for_each(i, res->sel_list) {
+		struct oh_rsel *rsel;
+		SaHpiSelEntryT entry;
+		
+		rsel = i->data;
+		res->handler->abi->get_sel_entry(
+				res->handler->hnd,
+				rsel->oid, &entry);
+		if (entry.EntryId == id) {
+			res->sel_list = g_slist_remove_link(res->sel_list, i);
+			free(rsel);
+			break;
+		}
+	}
+	
+	if (!i) {
+		dbg("No such entry");
+		return -1;
+	}
+	
 	return 0;
 }
 
