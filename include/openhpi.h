@@ -259,22 +259,12 @@ struct oh_resource {
 
 struct oh_rdr {
         /*
-          Even though a handler initially instantiates this structure
-          and hands it off to the infrastructure to manage via the global
-          RPT table, the handler only needs a pointer to the oh_rdr_id
-          in order for the plugin implementation to know what device
-          the abi call is referring to.
-        */      
-        struct oh_rdr_id oid;
-        
-        /*
           RDR entry visible by the HPI caller
         */
         SaHpiRdrT        rdr;
 };
 
 struct oh_dsel {
-        struct oh_rdr_id rdr_id;
         SaHpiSelEntryT entry;
 };
 
@@ -337,9 +327,6 @@ SaHpiDomainIdT new_domain(struct oh_domain_id domain_oid);
 
 struct oh_resource *get_resource(SaHpiResourceIdT rid);
 int resource_is_in_domain(struct oh_resource *res, SaHpiDomainIdT sid);
-
-struct oh_rdr *insert_rdr(struct oh_resource *res, struct oh_rdr_id oid);
-struct oh_rdr *get_rdr_by_oid(struct oh_resource *res, struct oh_rdr_id oid);
 
 /* plugin load must be seperate from new_handler call*/
 int init_plugin(void);
