@@ -10,15 +10,12 @@
  * full licensing terms.
  *
  * Author(s):
- *	peter d phan  <pdphan@sourceforge.net>
+ *	Peter Phan  <pdphan@sourceforge.net>
  *      Renier Morales <renierm@users.sf.net>
- *
- *	02/16/2004 pdphan Split from snmp_bc.h for ease of test
- *
  */
 
-#ifndef SNMP_BC_INVENTORY_H
-#define SNMP_BC_INVENTORY_H
+#ifndef __SNMP_BC_INVENTORY_H
+#define __SNMP_BC_INVENTORY_H
 
 #include <snmp_bc.h>
 

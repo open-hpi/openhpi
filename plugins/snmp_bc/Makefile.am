@@ -40,7 +40,7 @@ EXTRA_DIST		=	bc_errorlog.h \
 				snmp_bc_inventory.h \
 				snmp_bc_watchdog.h
 
-#				bc_str2event.h \
+#				bc_str2event.h
 
 # Generated files (e.g.bc_xmlevents.c rsa_xmlevents.c) must be listed first
 libsnmp_bc_la_SOURCES	= \
@@ -53,15 +53,15 @@ libsnmp_bc_la_SOURCES	= \
 	     			snmp_bc_discover.c \
 				snmp_bc_discover_bc.c \
 				snmp_bc_discover_rsa.c \
+				snmp_bc_event.c \
 				snmp_bc_inventory.c \
+	     			snmp_bc_sel.c \
 				snmp_bc_session.c \
 	     			snmp_bc_time.c \
 				stubs.c
 
 #				snmp_bc_control.c \
-#				snmp_bc_event.c \
 #				snmp_bc_hotswap.c \
-#	     			snmp_bc_sel.c \
 #				snmp_bc_sensor.c \
 #				snmp_bc_inventory.c \
 #				snmp_bc_watchdog.c

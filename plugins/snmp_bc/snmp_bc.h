@@ -14,8 +14,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef SNMP_BC_H
-#define SNMP_BC_H
+#ifndef __SNMP_BC_H
+#define __SNMP_BC_H
 
 #define MAX_RETRY_ATTEMPTED  5
 

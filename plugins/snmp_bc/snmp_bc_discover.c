@@ -236,7 +236,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 				oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
 							sensor_array[i].bc_sensor_info.mib.oid);
 				if (oid == NULL) {
-					dbg("Cannot derive OID=%s.", sensor_array[i].bc_sensor_info.mib.oid);
+					dbg("Cannot derive %s.", sensor_array[i].bc_sensor_info.mib.oid);
 					g_free(e);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
@@ -327,7 +327,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity,
 					control_array[i].bc_control_info.mib.oid);
 		if (oid == NULL) {
-			dbg("Cannot derive OID=%s.", control_array[i].bc_control_info.mib.oid);
+			dbg("Cannot derive %s.", control_array[i].bc_control_info.mib.oid);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
@@ -407,7 +407,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 		oid = snmp_derive_objid(res_oh_event->u.res_event.entry.ResourceEntity, 
 					inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
 		if (oid == NULL) {
-			dbg("Cannot derive OID=%s.", 
+			dbg("Cannot derive %s.", 
 			      inventory_array[i].bc_inventory_info.mib.oid.OidManufacturer);
 			g_free(e);
 			return(SA_ERR_HPI_INTERNAL_ERROR);

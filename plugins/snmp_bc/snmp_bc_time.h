@@ -1,7 +1,6 @@
 /*      -*- linux-c -*-
  *
- *
- * (C) Copyright IBM Corp. 2003
+ * (C) Copyright IBM Corp. 2003, 2004
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -10,13 +9,12 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- *
  * Author(s):
  *      Peter Phan  <pdphan@users.sf.net>
  */
 
-#ifndef SNMP_BC_TIME_H
-#define SNMP_BC_TIME_H
+#ifndef __SNMP_BC_TIME_H
+#define __SNMP_BC_TIME_H
 
 /*                                                                 
  * Set timezone constants

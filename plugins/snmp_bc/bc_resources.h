@@ -54,13 +54,8 @@
 
 /* FIXME: Add RSA #defines to this file and change description above */
 
-/* Start HPI Instance numbers from 1 */
-#define BC_HPI_INSTANCE_BASE 1 /* FIXME:: Get rid of this one; use one below */
+/* Start HPI location numbers from 1 */
 #define SNMP_BC_HPI_LOCATION_BASE 1
-
-/* HPI Spec dependencies */
-/* FIXME: Kill this - use OH_MAX_CTRLSTATEDIGITAL from sahpi_enum_utils.h */
-#define ELEMENTS_IN_SaHpiStateDigitalT 5 
 
 /* IBM Manufacturing Number */
 #define IBM_MANUFACTURING_ID 2
@@ -117,8 +112,8 @@ struct BC_ResourceMibInfo {
 	const char *OidUuid;
 };
 
-#define MAX_EVENTS_PER_RESOURCE 10
-#define MAX_RESOURCE_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_RESOURCE + 1)
+#define SNMP_BC_MAX_EVENTS_PER_RESOURCE 10
+#define SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE  (SNMP_BC_MAX_EVENTS_PER_RESOURCE + 1)
                                        /* Includes an ending NULL entry */
 struct res_event_map {
         char *event;
@@ -129,7 +124,7 @@ struct res_event_map {
 struct BC_ResourceInfo {
         struct BC_ResourceMibInfo mib;
         SaHpiHsStateT cur_state;
-        struct res_event_map event_array[MAX_RESOURCE_EVENT_ARRAY_SIZE];
+        struct res_event_map event_array[SNMP_BC_MAX_RESOURCE_EVENT_ARRAY_SIZE];
 };
 
 struct snmp_rpt {
@@ -179,12 +174,13 @@ struct BC_SensorMibInfo {
         struct SnmpSensorThresholdOids threshold_oids;
 };
 
-#define MAX_EVENTS_PER_SENSOR 15
-#define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1)
+#define SNMP_BC_MAX_EVENTS_PER_SENSOR 15
+#define SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE  (SNMP_BC_MAX_EVENTS_PER_SENSOR + 1)
                                      /* Includes an ending NULL entry */
 
 struct sensor_event_map {
         char *event;
+	SaHpiBoolT event_assertion;
         SaHpiEventStateT event_state;
         SaHpiEventStateT recovery_state;
 };
@@ -194,7 +190,7 @@ struct BC_SensorInfo {
         SaHpiEventStateT cur_state;
         SaHpiEventStateT assert_mask;
 	SaHpiEventStateT deassert_mask;
-        struct sensor_event_map event_array[MAX_SENSOR_EVENT_ARRAY_SIZE];
+        struct sensor_event_map event_array[SNMP_BC_MAX_SENSOR_EVENT_ARRAY_SIZE];
 };
 
 struct snmp_bc_sensor {
@@ -219,8 +215,8 @@ struct BC_ControlMibInfo {
         unsigned int not_avail_indicator_num; /* 0 for none, n>0 otherwise */
         int write_only; /* Write-only SNMP command; 0 no; 1 yes  */
         const char *oid;
-        int digitalmap[ELEMENTS_IN_SaHpiStateDigitalT];  /* Readable controls */
-	int digitalwmap[ELEMENTS_IN_SaHpiStateDigitalT]; /* Writable controls */
+        int digitalmap[OH_MAX_CTRLSTATEDIGITAL];  /* Readable controls */
+	int digitalwmap[OH_MAX_CTRLSTATEDIGITAL]; /* Writable controls */
 };
 
 struct BC_ControlInfo {

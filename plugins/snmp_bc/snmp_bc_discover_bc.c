@@ -163,7 +163,7 @@ SaErrorT snmp_bc_discover(struct oh_handler_state *handle,
 
 				oid = snmp_derive_objid(ep, SNMP_BC_BLADE_ADDIN_VECTOR);
 				if (oid == NULL) {
-					dbg("Cannot derive OID=%s.", SNMP_BC_BLADE_ADDIN_VECTOR);
+					dbg("Cannot derive %s.", SNMP_BC_BLADE_ADDIN_VECTOR);
 					return(SA_ERR_HPI_INTERNAL_ERROR);
 				}
 

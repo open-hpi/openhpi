@@ -13,13 +13,15 @@
  *     Steve Sherman <stevees@us.ibm.com>
  */
 
+/* FIXME:: Change references to str2event.c, when xml stuff done */
+
 /**********************************************************************
- * NOTES: 
+ * Notes:
+ *
  * All these test cases depend on values defined in bc_str2event.c and
- * sensor and resource defintions in bc_resources.c.
- * These are real BladeCenter events and sensors, which hopefully 
- * won't change much.
- ***********************************************************************/
+ * sensor and resource definitions in bc_resources.c. These are real 
+ * harwware events and sensors, which hopefully won't change much.
+ **********************************************************************/
 
 #include <glib.h>
 #include <stdio.h>
@@ -27,10 +29,9 @@
 #include <float.h>
 
 #include <snmp_bc_plugin.h>
-
 #include <sim_resources.h>
 
-#define ERROR_LOG_MSG_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.1"
+#define SNMP_BC_ERROR_LOG_MSG_OID ".1.3.6.1.4.1.2.3.51.2.3.4.2.1.2.1"
 
 int main(int argc, char **argv)
 {
@@ -42,40 +43,35 @@ int main(int argc, char **argv)
 	SaHpiEventLogEntryT logentry;
 	SaHpiEventLogEntryIdT prev_logid, next_logid;
         SaHpiSessionIdT sessionid;
-        SaHpiVersionT hpiVer;
 	char *hash_key, *logstr;
 	SnmpMibInfoT *hash_value;
 
-	/* Setup Infra-structure */
-        err = saHpiInitialize(&hpiVer);
+        err = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
         if (err != SA_OK) {
-                printf("Error! saHpiInitialize: err=%d\n", err);
-                return -1;
-        }
-
-        err = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID, &sessionid, NULL);
-        if (err != SA_OK) {
-	  printf("Error! saHpiSessionOpen: err=%d\n", err);
+	  printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+	  printf("  Received error=%s\n", oh_lookup_error(err));
 	  return -1;
         }
  
-        err = saHpiResourcesDiscover(sessionid);
+        err = saHpiDiscover(sessionid);
         if (err != SA_OK) {
-	  printf("Error! saHpiResourcesDiscover: err=%d\n", err);
+	  printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+	  printf("  Received error=%s\n", oh_lookup_error(err));
 	  return -1;
         }
 
-	/* Find first SEL capable Resource - assume its the chassis */
+	/* Find first Event Log capable resource - assume its the chassis */
 	rptid = SAHPI_FIRST_ENTRY;
 	while ((err == SA_OK) && (rptid != SAHPI_LAST_ENTRY))
 	{
 		err = saHpiRptEntryGet(sessionid, rptid, &next_rptid, &rpt);
 		if (err != SA_OK) {
-			printf("Error! saHpiRptEntryGet: err=%d\n", err);
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Received error=%s\n", oh_lookup_error(err));
 			return -1;
 		}
 		
-		if ((rpt.ResourceCapabilities & SAHPI_CAPABILITY_SEL)) {
+		if ((rpt.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)) {
 			chassis_rid = rpt.ResourceId;
 			break;
 		}
@@ -85,39 +81,43 @@ int main(int argc, char **argv)
 		}
 	}
 	if (chassis_rid == 0) {
-		printf("Error! saHpiRptEntryGet couldn't find SEL RID\n");
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Cannot find Chassis RID\n");
 		return -1;
 	}
 
 	/* If test OID not already in sim hash table; create it */
 	if (!g_hash_table_lookup_extended(sim_hash, 
-					  ERROR_LOG_MSG_OID,
+					  SNMP_BC_ERROR_LOG_MSG_OID,
 					  (gpointer)&hash_key, 
 					  (gpointer)&hash_value)) {
 
-		hash_key = g_strdup(ERROR_LOG_MSG_OID);
+		hash_key = g_strdup(SNMP_BC_ERROR_LOG_MSG_OID);
 		if (!hash_key) {
-			printf("Error: Cannot allocate memory for oid key=%s\n", ERROR_LOG_MSG_OID);
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Cannot allocate memory for OID key=%s.\n", SNMP_BC_ERROR_LOG_MSG_OID);
 			return -1;
 		}
 		
 		hash_value = g_malloc0(sizeof(SnmpMibInfoT));
 		if (!hash_value) {
-			printf("Cannot allocate memory for hash value for oid=%s", ERROR_LOG_MSG_OID);
+			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+			printf("  Cannot allocate memory for hash value for OID=%s.\n", SNMP_BC_ERROR_LOG_MSG_OID);
 			return -1;
 		}
 	}
-
+#if 1
 	printf("Calling Clear\n");
-
+#endif
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
+		
 		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
 		return -1;
         }
-
+#if 1
 	printf("Calling EntryGet\n");
-
+#endif
 	/************************************************************
 	 * TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)
          * Event recovered in next testcase
@@ -130,7 +130,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -144,16 +145,18 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
-		printf("Error! TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
-		print_event(&(logentry.Event));
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Mapped Chassis Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -169,7 +172,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -185,16 +189,18 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
-		printf("Error! TestCase - Chassis Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
-		print_event(&(logentry.Event));
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Chassis Recovery Event (EN_CUTOFF_HI_FAULT_3_35V)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -210,7 +216,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -226,16 +233,18 @@ int main(int argc, char **argv)
 	      (!(logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_CRIT)) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState & SAHPI_ES_UPPER_MINOR) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
-		printf("Error! TestCase - Chassis Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
-		print_event(&(logentry.Event));
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Chassis Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -251,7 +260,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -265,16 +275,18 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)3.5) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)3.4))) {
-		printf("Error! TestCase - Blade Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
-		print_event(&(logentry.Event));
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)3.5) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)3.4))) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Blade Duplicate Event ( EN_PFA_HI_FAULT_3_35V)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -289,7 +301,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -297,14 +310,16 @@ int main(int argc, char **argv)
 	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
-		printf("Error! TestCase - Non-mapped Event (Severity=INFO)\n");
-		print_event(&(logentry.Event));
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Non-mapped Event (Severity=INFO)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -319,7 +334,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -333,20 +349,22 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MAJOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_UPPER_MINOR) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_UNSPECIFIED) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Interpreted.Value.SensorFloat32 == (float)87) &&
-	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Interpreted.Value.SensorFloat32 == (float)75))) {
-		printf("Error! TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)\n");
-		print_event(&(logentry.Event));
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerReading.Value.SensorFloat64 == (float)87) &&
+	      (logentry.Event.EventDataUnion.SensorEvent.TriggerThreshold.Value.SensorFloat64 == (float)75))) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Expansion Card Event (EN_PFA_HI_OVER_TEMP_DASD1)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
-	/* Better to test a mapped login event - don't have one yet */
+	/* Better to test a mapped login event - BC doesn't seem to have one defined yet */
 	/*************************************************************
 	 * TestCase - Non-mapped Login Event (Severity=WARN)
 	 *************************************************************/
@@ -358,7 +376,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -366,14 +385,16 @@ int main(int argc, char **argv)
 	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_MINOR))) {
-		printf("Error! TestCase - Non-mapped Login Event (Severity=WARN)\n");
-		print_event(&(logentry.Event));
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Non-mapped Login Event (Severity=WARN)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -388,7 +409,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -400,14 +422,16 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.EventState & SAHPI_ES_CRITICAL) &&
 	      (logentry.Event.EventDataUnion.SensorEvent.PreviousState == SAHPI_ES_OK))) {
-		printf("Error! TestCase - Power over temperature (EN_FAULT_PSx_OVR_TEMP)\n");
-		print_event(&(logentry.Event));
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Power over temperature (EN_FAULT_PSx_OVR_TEMP)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -422,7 +446,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -430,16 +455,18 @@ int main(int argc, char **argv)
 	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
-	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY) && 
-	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY))) {
-		printf("Error! TestCase - Hot-swap switch installed (EN_SWITCH_3_INSTALLED)\n");
-		print_event(&(logentry.Event));
+	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE) && 
+	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE))) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Hot-swap switch installed (EN_SWITCH_3_INSTALLED)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -455,7 +482,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -464,15 +492,17 @@ int main(int argc, char **argv)
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_NOT_PRESENT) && 
-	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY))) {
-		printf("Error! TestCase - Hot-swap Media Tray removal (EN_MEDIA_TRAY_REMOVED)\n");
-		print_event(&(logentry.Event));
+	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_ACTIVE))) {
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Hot-swap Media Tray removal (EN_MEDIA_TRAY_REMOVED)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -488,7 +518,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -496,16 +527,18 @@ int main(int argc, char **argv)
 	if (!((!(logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_HOTSWAP) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL) &&
-	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY) &&
+	      (logentry.Event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE) &&
 	      (logentry.Event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_NOT_PRESENT))) {
-		printf("Error! TestCase - Hot-swap Media Tray recovery (EN_MEDIA_TRAY_REMOVED)\n");
-		print_event(&(logentry.Event));
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Hot-swap Media Tray recovery (EN_MEDIA_TRAY_REMOVED)\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -524,7 +557,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 	
@@ -532,14 +566,16 @@ int main(int argc, char **argv)
 	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
-		printf("Error! TestCase - Bogus threshold strings\n");
-		print_event(&(logentry.Event));
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Bogus threshold strings\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -555,7 +591,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -563,14 +600,16 @@ int main(int argc, char **argv)
 	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
-		printf("Error! TestCase - Recovery string not first character of text string\n");
-		print_event(&(logentry.Event));
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - Recovery string not first character of text string\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -586,7 +625,8 @@ int main(int argc, char **argv)
         err = saHpiEventLogEntryGet(sessionid, chassis_rid, SAHPI_NEWEST_ENTRY,
 				    &prev_logid, &next_logid, &logentry, &rdr, &rpt);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogEntryGet: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
@@ -594,23 +634,19 @@ int main(int argc, char **argv)
 	if (!(((logentry.Event.Source == chassis_rid)) &&
 	      (logentry.Event.EventType == SAHPI_ET_OEM) &&
 	      (logentry.Event.Severity == SAHPI_INFORMATIONAL))) {
-		printf("Error! TestCase - In string table but not mapped\n");
-		print_event(&(logentry.Event));
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  TestCase - In string table but not mapped\n");
+		oh_print_event(&(logentry.Event));
 		return -1;
 	}
 
 	err = saHpiEventLogClear(sessionid, chassis_rid);
 	if (err != SA_OK) {
-		printf("Error! saHpiEventLogClear: line=%d; err=%d\n", __LINE__, err);
+		printf("  Error! Testcase failed. Line=%d\n", __LINE__);
+		printf("  Received error=%s\n", oh_lookup_error(err));
 		return -1;
         }
 
-
-
-
-
-
-	
 	/****************** 
 	 * End of testcases 
          ******************/
@@ -618,12 +654,6 @@ int main(int argc, char **argv)
         err = saHpiSessionClose(sessionid);
         if (err != SA_OK) {
 	  printf("Error! saHpiSessionClose: err=%d\n", err);
-	  return -1;
-        }
-
-        err = saHpiFinalize();
-        if (err != SA_OK) {
-	  printf("Error! saHpiFinalize: err=%d\n", err);
 	  return -1;
         }
 

@@ -13,8 +13,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef SNMP_BC_CONTROL_H
-#define SNMP_BC_CONTROL_H
+#ifndef __SNMP_BC_CONTROL_H
+#define __SNMP_BC_CONTROL_H
 
 SaErrorT snmp_bc_get_control_state(void *hnd,
 				   SaHpiResourceIdT id,

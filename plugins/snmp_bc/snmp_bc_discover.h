@@ -13,8 +13,8 @@
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
-#ifndef SNMP_BC_DISCOVER_H
-#define SNMP_BC_DISCOVER_H
+#ifndef __SNMP_BC_DISCOVER_H
+#define __SNMP_BC_DISCOVER_H
 
 SaErrorT snmp_bc_discover_resources(void *hnd);
 

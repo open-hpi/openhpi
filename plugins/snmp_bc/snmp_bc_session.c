@@ -74,20 +74,18 @@ void *snmp_bc_open(GHashTable *handler_config)
 	/* FIXME:: Add RSA initialization here */
 	if (bc_xml2event_use_count == 0) {
 		if (bc_xml2event_hash_init(&bc_xml2event_hash, bc_eventxml)) {
-			dbg("Cannot initialize str2event hash table.");
+			dbg("Out of memory.");
 			return NULL;
 		}
 	}
 	bc_xml2event_use_count++;
 #endif
 	
-#if 0
 	/* Initialize "Event Number to HPI Event" mapping hash table */
 	if (event2hpi_hash_init(handle)) {
-		dbg("Cannot initialize event2hpi hash table.");
+		dbg("Out of memory.");
 		return NULL;
 	}
-#endif     
   
 	/* Initialize simulator tables */
 	if (is_simulator()) {
@@ -275,10 +273,10 @@ void snmp_bc_close(void *hnd)
 		SOCK_CLEANUP;
 	}
 
-#if 0
 	/* Cleanup event2hpi hash table */
 	event2hpi_hash_free(handle);
 
+#if 0
 	/* Cleanup str2event hash table */
 	/* FIXME:: Add RSA free here */
 	bc_xml2event_use_count--;
