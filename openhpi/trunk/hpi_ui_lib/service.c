@@ -1032,9 +1032,9 @@ int print_text_buffer_text(char *mes, SaHpiTextBufferT *buf, char *meslast,
 			tmp_ind = 0;
 			memset(tmp, 0, len);
 			for (i = 0; i < buf->DataLength; i++) {
-				c = (buf->Data[i] & 0xF0) >> 4;
-				tmp[tmp_ind++] = bcdplus_codes[c];
 				c = buf->Data[i] & 0x0F;
+				tmp[tmp_ind++] = bcdplus_codes[c];
+				c = (buf->Data[i] & 0xF0) >> 4;
 				tmp[tmp_ind++] = bcdplus_codes[c];
 			};
 			i = proc(tmp);
