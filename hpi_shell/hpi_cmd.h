@@ -21,6 +21,7 @@
 #include <glib.h>
 
 #define READ_BUF_SIZE	1024
+#define LINE_BUF_SIZE	4096
 
 typedef enum {
 	HPI_SHELL_OK = 0,
@@ -44,6 +45,7 @@ typedef struct {
 } command_def_t;
 
 typedef enum {
+	CMD_TERM,
 	ITEM_TERM,
 	CMD_END_TERM,
 	EMPTY_TERM
@@ -68,9 +70,11 @@ extern ret_code_t	shell_error;
 extern int		debug_flag;
 
 extern int		add_domain(Domain_t *domain);
-extern ret_code_t	ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type, SaHpiInstrumentIdT *ret);
+extern ret_code_t	ask_rdr(SaHpiResourceIdT rptid, SaHpiRdrTypeT type,
+				SaHpiInstrumentIdT *ret);
 extern ret_code_t	ask_rpt(SaHpiResourceIdT *ret);
 extern int		close_session(void);
+extern void		cmd_parser(char *mes, int as, int new_cmd);
 extern void		cmd_shell(void);
 extern ret_code_t	ctrl_block(void);
 extern void		delete_progress(void);
@@ -82,12 +86,11 @@ extern int		get_new_command(char *mes);
 extern int		get_string_param(char *mes, char *string, int len);
 extern term_def_t	*get_next_term(void);
 extern int		get_sessionId(Domain_t *domain);
-extern ret_code_t	help(int as);
+extern void		help(int as);
 extern ret_code_t	inv_block(void);
 extern ret_code_t	list_sensor(void);
 extern ret_code_t	open_file(char *path);
 extern int		open_session(int eflag);
-extern void		cmd_parser(char *mes, int as);
 extern int		run_command(void);
 extern ret_code_t	sen_block(void);
 extern void		set_Subscribe(Domain_t *domain, int as);

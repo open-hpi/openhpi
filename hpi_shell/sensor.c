@@ -259,7 +259,11 @@ static ret_code_t sensor_command_block(SaHpiResourceIdT rptid, SaHpiInstrumentId
 	show_sensor(Domain->sessionId, rptid, rdrnum, ui_print);
 	for (;;) {
 		block_type = SEN_COM;
-		get_new_command("sensor block ==> ");
+		res = get_new_command("sensor block ==> ");
+		if (res == 2) {
+			unget_term();
+			return HPI_SHELL_OK;
+		};
 		term = get_next_term();
 		if (term == NULL) continue;
 		snprintf(buf, 256, "%s", term->term);
@@ -361,11 +365,6 @@ static ret_code_t sensor_command_block(SaHpiResourceIdT rptid, SaHpiInstrumentId
 				if (read_file) return(HPI_SHELL_PARM_ERROR);
 			};
 			continue;
-		};
-		unget_term();
-		if (run_command() == 2) {
-			unget_term();
-			return(HPI_SHELL_OK);
 		}
 	};
 	return(HPI_SHELL_OK);

@@ -33,7 +33,7 @@ ret_code_t	shell_error = HPI_SHELL_OK;
 /* local variables */
 static char	input_buffer[READ_BUF_SIZE];	// command line buffer
 static char	*input_buf_ptr = input_buffer;	// current pointer in input_buffer
-static char	input_line[READ_BUF_SIZE];	// current input line
+static char	cmd_line[LINE_BUF_SIZE];	// current command line
 static int	max_term_count = 0;
 static int	term_count = 0;
 static int	current_term = 0;
@@ -42,6 +42,7 @@ static void new_command(void)
 {
 	term_count = 0;
 	current_term = 0;
+	*cmd_line = 0;
 }
 
 static void go_to_dialog(void)
@@ -147,20 +148,28 @@ static command_def_t *get_cmd(char *name)
 	return((command_def_t *)NULL);
 }
 
-void cmd_parser(char *mes, int as)
+void cmd_parser(char *mes, int as, int new_cmd)
 // as = 0  - get command
 // as = 1  - may be exit with empty command
+// new_cmd = 1 - new command
+// new_cmd = 0 - get added items
 {
-	char		*cmd, *str, *beg;
+	char	*cmd, *str, *beg;
+	term_t	type;
 
+	if (debug_flag) printf("cmd_parser:\n");
 	for (;;) {
-		new_command();
+		if (new_cmd) {
+			new_command();
+			type = CMD_TERM;
+		} else type = ITEM_TERM;
 		cmd = get_input_line(mes);
 		if (cmd == (char *)NULL) {
 			go_to_dialog();
 			continue;
 		};
-		strcpy(input_line, cmd);
+		snprintf(cmd_line, LINE_BUF_SIZE - strlen(cmd_line),
+			" %s",cmd);
 		str = cmd;
 		while (isspace(*str)) str++;
 		if (strlen(str) == 0) {
@@ -172,8 +181,10 @@ void cmd_parser(char *mes, int as)
 		while (*str != 0) {
 			if (isspace(*str)) {
 				*str++ = 0;
-				if (strlen(beg) > 0)
-					add_term(beg, ITEM_TERM);
+				if (strlen(beg) > 0) {
+					add_term(beg, type);
+					type = ITEM_TERM;
+				};
 				while (isspace(*str)) str++;
 				beg = str;
 				continue;
@@ -182,13 +193,16 @@ void cmd_parser(char *mes, int as)
 				str++;
 				while ((*str != 0) && (*str != '\"')) str ++;
 				if (*str == 0) {
-					add_term(beg, ITEM_TERM);
+					add_term(beg, type);
+					if (read_file)
+						add_term(";", CMD_END_TERM);
 					return;
 				};
 				if (*beg == '\"') {
 					beg++;
 					*str = 0;
-					add_term(beg, ITEM_TERM);
+					add_term(beg, type);
+					type = ITEM_TERM;
 					beg = str + 1;
 				};
 				str++;
@@ -196,20 +210,24 @@ void cmd_parser(char *mes, int as)
 			};
 			if (*str == 0) {
 				if (strlen(beg) > 0)
-					add_term(beg, ITEM_TERM);
+					add_term(beg, type);
+				if (read_file)
+					add_term(";", CMD_END_TERM);
 				return;
 			};
 			if (*str == ';') {
 				*str++ = 0;
 				if (strlen(beg) > 0)
-					add_term(beg, ITEM_TERM);
+					add_term(beg, type);
 				add_term(";", CMD_END_TERM);
 				return;
 			};
 			str++;
 		};
 		if (strlen(beg) > 0)
-			add_term(beg, ITEM_TERM);
+			add_term(beg, type);
+		if (read_file)
+			add_term(";", CMD_END_TERM);
 		return;
 	}
 }
@@ -223,68 +241,71 @@ int run_command(void)
 {
 	term_def_t	*term;
 	command_def_t	*c;
-	int		rv;
+	ret_code_t	rv;
 
 	if (debug_flag) printf("run_command:\n");
 	term = get_next_term();
 	if (term == NULL) return(1);
-	if (term->term_type != ITEM_TERM) return(1);
+	if (term->term_type != CMD_TERM) return(1);
 	c = get_cmd(term->term);
 	if (c == (command_def_t *)NULL) {
-		printf("Invalid command:\n%s\n", input_line);
+		printf("Invalid command:\n%s\n", cmd_line);
 		go_to_dialog();
 		help(0);
 		shell_error = HPI_SHELL_CMD_ERROR;
 		return(-1);
 	};
 	if (c->fun) {
+		if (debug_flag)
+			printf("run_command: c->type = %d\n", c->type);
 		term->term = c->cmd;
 		if ((block_type != c->type) && (c->type != UNDEF_COM)) {
 			block_type = c->type;
+			if (debug_flag) printf("run_command: ret = 2\n");
 			return(2);
 		};
 		rv = c->fun();
 		if (rv == HPI_SHELL_PARM_ERROR) {
-			printf("Invalid parameters:\n%s\n", input_line);
+			printf("Invalid parameters:\n%s\n", cmd_line);
 			printf("%s\n", c->help);
 			go_to_dialog();
 			shell_error = HPI_SHELL_PARM_ERROR;
 			return(3);
 		} else if (rv == HPI_SHELL_CMD_ERROR) {
-			printf("Command failed:\n%s\n", input_line);
+			printf("Command failed:\n%s\n", cmd_line);
 			go_to_dialog();
-			shell_error = HPI_SHELL_CMD_ERROR;
 			return(3);
-		} else if (rv == -1) {
-			printf("Command failed:\n%s\n", input_line);
-			go_to_dialog();
-			shell_error = HPI_SHELL_CMD_ERROR;
-			return(3);
-		}
+		};
+		shell_error = rv;
 	} else {
-		printf("Unimplemented command:\n%s\n", input_line);
+		printf("Unimplemented command:\n%s\n", cmd_line);
 		go_to_dialog();
 		shell_error = HPI_SHELL_CMD_ERROR;
 		return(3);
 	};
-	shell_error = HPI_SHELL_OK;
 	return(0);
 }
 
 int get_new_command(char *mes)
 {
-	cmd_parser(mes, 0);
+	term_def_t	*term;
+
+	if (debug_flag) printf("get_new_command:\n");
+	term = get_next_term();
+	if ((term != NULL) && (term->term_type == CMD_TERM))
+		unget_term();
+	else
+		cmd_parser(mes, 0, 1);
 	return(run_command());
 }
 
 void cmd_shell(void)
 {
-	int	i;
-
 	help(0);
 	for (;;) {
+		if (debug_flag) printf("cmd_shell:\n");
 		shell_error = HPI_SHELL_OK;
-		i = get_new_command((char *)NULL);
+		get_new_command((char *)NULL);
 		if ((shell_error != HPI_SHELL_OK) && read_file) {
 			go_to_dialog();
 		}
@@ -299,7 +320,7 @@ int get_int_param(char *mes, int *val)
 
 	term = get_next_term();
 	if (term == NULL) {
-		cmd_parser(mes, 1);
+		cmd_parser(mes, 1, 0);
 		term = get_next_term();
 	};
 	if (term == NULL) {
@@ -321,7 +342,7 @@ int get_hex_int_param(char *mes, int *val)
 
 	term = get_next_term();
 	if (term == NULL) {
-		cmd_parser(mes, 1);
+		cmd_parser(mes, 1, 0);
 		term = get_next_term();
 	};
 	if (term == NULL) {
@@ -344,7 +365,7 @@ int get_string_param(char *mes, char *val, int len)
 
 	term = get_next_term();
 	if (term == NULL) {
-		cmd_parser(mes, 1);
+		cmd_parser(mes, 1, 0);
 		term = get_next_term();
 	};
 	if (term == NULL) {
@@ -366,11 +387,9 @@ term_def_t *get_next_term(void)
 		return((term_def_t *)NULL);
 	};
 	res = terms + current_term;
-	current_term++;
-	if (res->term_type != ITEM_TERM) {
-		if (debug_flag) printf("get_next_term: type != ITEM_TERM\n");
+	if (read_file && (res->term_type == CMD_END_TERM))
 		return((term_def_t *)NULL);
-	};
+	current_term++;
 	if (debug_flag) printf("get_next_term: term = %s\n", res->term);
 	return(res);
 }
