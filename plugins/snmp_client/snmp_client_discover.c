@@ -180,10 +180,9 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
  	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
 
-
-
+	sc_free_pdu(&response); 
+	
 	/* SA_HPI_ENTRY_ID */
 	build_res_oid(anOID, sa_hpi_domain_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
 	snmp_status = snmp_getn_bulk(custom_handle->ss, 
@@ -207,8 +206,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_RESOURCE_ID */
 	build_res_oid(anOID, sa_hpi_entry_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -233,9 +231,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response);
 
 	/* SA_HPI_RESOURCE_ENTITY_PATH */
 	build_res_oid(anOID, sa_hpi_resource_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -264,9 +260,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_RESOURCE_CAPABILITIES */
 	build_res_oid(anOID, sa_hpi_resource_entity_path, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -291,9 +285,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_RESOURCE_SEVERITY */
 	build_res_oid(anOID, sa_hpi_resource_capabilities, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -318,9 +310,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_RESOURCE_INFO_RESOURCE_REV */
 	build_res_oid(anOID, sa_hpi_resource_severity, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -345,9 +335,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_SPECIFIC_VER */
 	build_res_oid(anOID, sa_hpi_resource_info_resource_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -372,7 +360,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_DEVICE_SUPPORT */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_specific_ver, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -397,9 +385,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_MANUFACTUER_ID */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_device_support, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -424,8 +410,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_PRODUCT_ID */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_manufactuer_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -450,9 +435,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MAJOR_REV */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_product_id, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -477,9 +460,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_FIRMWARE_MINOR_REV */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_firmware_major_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -504,10 +485,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_INFO_AUX_FIRMWARE_REV */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_firmware_minor_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -532,8 +510,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_TYPE */
 	build_res_oid(anOID, sa_hpi_domain_resource_info_aux_firmware_rev, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -558,8 +535,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_TAG_TEXT_LANGUAGE */
 	build_res_oid(anOID, sa_hpi_domain_resource_tag_text_type, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -584,9 +560,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
-
-
+	sc_free_pdu(&response); 
 
 	/* SA_HPI_DOMAIN_RESOURCE_TAG */
 	build_res_oid(anOID, sa_hpi_domain_resource_tag_text_language, SA_HPI_ENTRY_TABLE_VARIABLE_OID_LENGTH, indices, NUM_RES_INDICES); 
@@ -613,7 +587,7 @@ int get_sahpi_table_entries( RPTable *temp_rptable,
 		display_vars(response);
 	} else
 		status = net_snmp_failure(custom_handle, snmp_status, response);
-	if (response) snmp_free_pdu(response);
+	sc_free_pdu(&response); 
        
 	if(status == SA_OK) {
 		/* add the resources to the plugin's primary rptcache, */
