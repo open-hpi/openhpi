@@ -105,10 +105,4 @@ void sc_free_pdu(struct snmp_pdu **p);
 SaErrorT snmpstat2hpi(int snmpstat);
 SaErrorT errstat2hpi(long pdu_errstat);
 
-/* Character for blanking out normalized OID elements */
-#define OID_BLANK_CHAR 'x'
-#define OID_BLANK_STR "x"
-
-gchar * snmp_derive_objid(SaHpiEntityPathT *ep, const gchar *oid);
-
 #endif
