@@ -185,6 +185,39 @@ Commands:
 	showrpt <resourceId>
 		Show resource information.
 
+	wtdget <resourceId> <watchdogNum>
+		Show current watchdog timer settings and configuration.
+
+	wtdset <resourceId> <watchdogNum> <values>
+		Set watchdog timer configuration.
+	    <values> = <Log> <Running> <TimerUse> <TimerAction> <PretimerInterrupt>
+	    	       <TimeOut> <Flags> <InitialCount>
+
+	    <Log> = 0 | 1
+	    		- events will be generated;
+	    
+	    <Running> = 0 | 1
+	    		- Watchdog should be stopped before updating;
+	    
+	    <TimerUse> = none | bios_frb2 | bios_post | os_load | sms_os | oem
+	    		- current use of the timer;
+	    
+	    <TimerAction> = no | reset | pwr_down | pwr_cycle | int
+	    		- what action will be taken when the Watchdog times out;
+	    
+	    <PretimerInterrupt> = no | smi | nmi | mess | oem
+	    		- action for TimeOut;
+	    
+	    <TimeOut> = integer (milliseconds);
+	    
+	    <Flags> = "bios_frb2 | bios_post | os_load | sms_os | oem"
+	    		- Set of five bit flags corresponding to the five TimerUse values;
+	    
+	    <InitialCount> = integer (milliseconds);
+
+	wtdreset <resourceId> <watchdogNum>
+		Reset watchdog timer.
+
 
 
 Packet mode.

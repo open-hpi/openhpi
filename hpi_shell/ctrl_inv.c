@@ -157,7 +157,6 @@ static int set_inventory_field(SaHpiSessionIdT sessionId, SaHpiResourceIdT rptid
 		};
 		field.Type = Field_types[i].val;
 	};
-	printf("Field value: ");
 	i = set_text_buffer(&(field.Field));
 	if (i != 0) {
 		printf("Invalid text\n");

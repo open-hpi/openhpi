@@ -979,14 +979,15 @@ static ret_code_t wtd_set(void)
 	};
 	watchdog.PreTimeoutInterval = res;
 
-	i = get_string_param("Flags(bios_frb2|bios_post|os_load|sms_os|oem): ",
+	i = get_string_param("Flags(\"bios_frb2|bios_post|os_load|sms_os|oem\"): ",
 		tmp, 255);
-	*tmp = 0;
+	if (i != 0) *tmp = 0;
 	flags = 0;
 	str = tmp;
 	while (strlen(str) != 0) {
+		while (isspace(*str)) str++;
 		str1 = str;
-		while ((*str1 != ' ') && (*str1 != 0)) str1++;
+		while ((*str1 != ' ') && (*str1 != 0) && (*str1 != '|')) str1++;
 		if (*str1 != 0) *str1++ = 0;
 		else *str1 = 0;
 		if (strcmp(str, "bios_frb2") == 0)
@@ -1002,19 +1003,13 @@ static ret_code_t wtd_set(void)
 		str = str1;
 	};
 
+	watchdog.TimerUseExpFlags = flags;
 	i = get_int_param("InitialCount: ", &res);
 	if (i != 1) {
 		printf("Invalid InitialCount value\n");
 		return(HPI_SHELL_PARM_ERROR);
 	};
 	watchdog.InitialCount = res;
-
-	i = get_int_param("PresentCount: ", &res);
-	if (i != 1) {
-		printf("Invalid PresentCount value\n");
-		return(HPI_SHELL_PARM_ERROR);
-	};
-	watchdog.PresentCount = res;
 
 	rv = saHpiWatchdogTimerSet(Domain->sessionId, rptid, wtdnum, &watchdog);
 	if (rv != SA_OK) {
