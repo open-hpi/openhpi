@@ -227,24 +227,24 @@ extern cMarshalType Float64Type;
 int MarshalByteOrder( void );
 
 // size in bytes
-unsigned int MarshalSize( const cMarshalType *type );
-unsigned int MarshalSizeArray( const cMarshalType **types );
+int MarshalSize( const cMarshalType *type );
+int MarshalSizeArray( const cMarshalType **types );
 
 // marshal data into buffer
-unsigned int Marshal( const cMarshalType *type, const void *data,
+int Marshal( const cMarshalType *type, const void *data,
 		      void  *buffer );
-unsigned int MarshalArray( const cMarshalType **types, const void **data,
-			   void *buffer );
-unsigned int MarshalSimpleTypes( tMarshalType type, const void *data,
-                                 void  *buffer );
+int MarshalArray( const cMarshalType **types, const void **data,
+		  void *buffer );
+int MarshalSimpleTypes( tMarshalType type, const void *data,
+			void  *buffer );
 
 // demarshal buffer into data
-unsigned int Demarshal( int byte_order, const cMarshalType *type,
-                        void *data, const void *buffer );
-unsigned int DemarshalArray( int byte_order, const cMarshalType **types,
-                             void **data, const void *buffer );
-unsigned int DemarshalSimpleTypes( int byte_order, tMarshalType type, 
-                                   void *data, const void *buffer );
+int Demarshal( int byte_order, const cMarshalType *type,
+	       void *data, const void *buffer );
+int DemarshalArray( int byte_order, const cMarshalType **types,
+		    void **data, const void *buffer );
+int DemarshalSimpleTypes( int byte_order, tMarshalType type, 
+			  void *data, const void *buffer );
 
 #ifdef __cplusplus
 }

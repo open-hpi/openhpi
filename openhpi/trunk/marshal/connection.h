@@ -48,7 +48,7 @@ typedef struct
   unsigned char m_flags;
   unsigned char m_seq;
   unsigned int  m_id;
-  unsigned int  m_len;
+  int           m_len;
 } cMessageHeader;
 
 
