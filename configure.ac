@@ -251,21 +251,16 @@ AC_ARG_ENABLE([watchdog],
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
 dnl
-AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
 
-if test "x$have_openipmi" = "xyes"; then
-    if pkg-config --atleast-version 1.3.16 OpenIPMI; then
-        OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
-        AC_SUBST(OPENIPMI_CFLAGS)
-        OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
-        AC_SUBST(OPENIPMI_LIBS)
-    else
-    	OH_CHECK_FAIL(OpenIPMI, libOpenIPMI-devel, http://openipmi.sf.net is needed)
-    fi
-else
-
-    	OH_CHECK_FAIL(OpenIPMI, libOpenIPMI-devel, http://openipmi.sf.net is needed)
+if pkg-config --atleast-version 1.4.8 OpenIPMI; then
+    have_openipmi=yes
+    AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
+    OPENIPMI_CFLAGS=`pkg-config --cflags OpenIPMI`
+    AC_SUBST(OPENIPMI_CFLAGS)
+    OPENIPMI_LIBS=`pkg-config --libs OpenIPMI`
+    AC_SUBST(OPENIPMI_LIBS)
 fi
+
 
 AC_ARG_ENABLE([ipmi],
     [  --enable-ipmi           build openipmi plugin [default=yes if OpenIPMI exists]],
