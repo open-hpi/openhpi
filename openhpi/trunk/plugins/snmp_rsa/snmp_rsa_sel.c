@@ -26,6 +26,8 @@
 #include <snmp_rsa_event.h>
 
 
+oh_sel *rsa_selcache = NULL;
+
 /**
  * get_rsa_sel_size_from_hardware:
  * @ss: 
@@ -88,8 +90,8 @@ int snmp_rsa_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
  * Return value: 0 on success, < 0 on error
  **/
 int snmp_rsa_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
-                          SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
-                          SaHpiSelEntryT *entry)
+                           SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
+                           SaHpiSelEntryT *entry)
 {
         SaHpiSelEntryT tmpentry, *tmpentryptr;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -207,7 +209,7 @@ int snmp_rsa_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entr
 			return SA_OK;
 		}
 		
-		if(snmp_rsa_parse_sel_entry(custom_handle->ss,get_value.string, &sel_entry) < 0) {
+		if(snmp_rsa_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
 			dbg("Couldn't parse SEL Entry");
        			return -1;
 		}
@@ -220,7 +222,7 @@ int snmp_rsa_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entr
                			sprintf(oid, "%s.%d", RSA_SEL_ENTRY_OID, current);
                			rv = snmp_get(custom_handle->ss,oid,&get_value);
 				if (rv == 0) {
-               				if(snmp_rsa_parse_sel_entry(custom_handle->ss,get_value.string, &sel_entry) < 0) {
+               				if(snmp_rsa_parse_sel_entry(handle,get_value.string, &sel_entry) < 0) {
                					dbg("Couldn't parse SEL Entry");
                        				return -1;
 					}
@@ -318,6 +320,7 @@ int snmp_rsa_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curr
         struct oh_handler_state *handle = hnd;
         struct snmp_rsa_hnd *custom_handle = handle->data;
         SaHpiSelEntryT tmpentry;
+	rsa_sel_entry sel_entry;
         char oid[50];
         SaErrorT rv;
 	int isdst = 0;
@@ -328,6 +331,8 @@ int snmp_rsa_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curr
 	if(get_value.type == ASN_OCTET_STR) {
 		int event_enabled;
 
+		snmp_rsa_parse_sel_entry(handle,get_value.string, &sel_entry);
+		isdst = sel_entry.time.tm_isdst;
                 log2event(hnd, get_value.string, &tmpentry.Event, isdst, &event_enabled);
                 tmpentry.EntryId = current;
                 tmpentry.Timestamp = tmpentry.Event.Timestamp;
@@ -355,7 +360,7 @@ int snmp_rsa_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT curr
  * 
  * Return value: 0 for success, -1 for format error, -2 for premature data termination
  **/
-int snmp_rsa_parse_sel_entry(struct snmp_session *ss, char * text, rsa_sel_entry * sel) 
+int snmp_rsa_parse_sel_entry(struct oh_handler_state *handle, char * text, rsa_sel_entry * sel) 
 {
         rsa_sel_entry ent;
         char level[8];

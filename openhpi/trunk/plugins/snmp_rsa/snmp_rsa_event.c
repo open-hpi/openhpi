@@ -10,6 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
+ *      Steve Sherman <stevees@us.ibm.com>
  *      W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -30,10 +31,13 @@
 #include <rsa_str2event.h>
 #include <rsa_errorlog.h>
 #include <snmp_util.h>
+#include <snmp_rsa.h>
 #include <snmp_rsa_sel.h>
 #include <snmp_rsa_utils.h>
 #include <snmp_rsa_event.h>
 
+unsigned int str2event_use_count = 0; /* It is here for initialization */ 
+ 
 typedef enum {
 	EVENT_NOT_MAPPED,
 	EVENT_NOT_ALERTABLE,
@@ -69,9 +73,13 @@ static Str2EventInfoT *findevent4dupstr(gchar *search_str,
 					LogSource2ResourceT *resinfo);
 
 
-int event2hpi_hash_init()
+int event2hpi_hash_init(struct oh_handler_state *handle)
 {
-	event2hpi_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	
+	GHashTable *event2hpi_hash = g_hash_table_new(g_str_hash, g_str_equal);
+	custom_handle->event2hpi_hash_ptr = event2hpi_hash;
+	
 	if (event2hpi_hash == NULL) {
 		dbg("Cannot allocate event2hpi_hash table");
 		return -1;
@@ -80,8 +88,11 @@ int event2hpi_hash_init()
 	return 0;
 }
 
-int event2hpi_hash_free()
+int event2hpi_hash_free(struct oh_handler_state *handle)
 {
+	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
+	
         g_hash_table_foreach(event2hpi_hash, free_hash_data, NULL);
 	g_hash_table_destroy(event2hpi_hash);
 
@@ -94,7 +105,7 @@ static void free_hash_data(gpointer key, gpointer value, gpointer user_data)
         g_free(value);
 }
 
-int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res_info)
+int find_res_events(struct oh_handler_state *handle, SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res_info)
 {
 	int i;
 	int max = MAX_RESOURCE_EVENT_ARRAY_SIZE;
@@ -102,6 +113,8 @@ int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
 	SaHpiResourceIdT rid = oh_uid_from_entity_path(ep);
+	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 	
 	for (i=0; rsa_res_info->event_array[i].event != NULL && i < max; i++) {
 
@@ -114,9 +127,9 @@ int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res
 		}
 
 		/*  Add to hash; Set HPI values */
-		if (g_hash_table_lookup_extended(event2hpi_hash, normalized_str,
-						 (gpointer)&hash_existing_key,
-						 (gpointer)&hash_value)) {
+		if (!g_hash_table_lookup_extended(event2hpi_hash, normalized_str,
+		         			  (gpointer)&hash_existing_key,
+						  (gpointer)&hash_value)) {
 
 			hpievent = g_malloc0(sizeof(SaHpiEventT));
 			if (!hpievent) {
@@ -136,6 +149,7 @@ int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res
 				rsa_res_info->event_array[i].recovery_state;
 
 			g_hash_table_insert(event2hpi_hash, normalized_str, hpievent);
+			/* normalized_str space is recovered when hash is freed */
 		}
 		else {
 			/* Event already exists */
@@ -146,7 +160,7 @@ int find_res_events(SaHpiEntityPathT *ep, const struct RSA_ResourceInfo *rsa_res
 	return 0;
 }
 
-int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_rsa_sensor *rpt_sensor)
+int find_sensor_events(struct oh_handler_state *handle, SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct snmp_rsa_sensor *rpt_sensor)
 {
 	int i;
 	int max = MAX_SENSOR_EVENT_ARRAY_SIZE;
@@ -154,6 +168,8 @@ int find_sensor_events(SaHpiEntityPathT *ep, SaHpiSensorNumT sid, const struct s
 	char *hash_existing_key, *hash_value;
 	SaHpiEventT *hpievent;
 	SaHpiResourceIdT rid = oh_uid_from_entity_path(ep);
+	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 	
 	for (i=0; rpt_sensor->rsa_sensor_info.event_array[i].event != NULL && i < max; i++) {
 	
@@ -250,6 +266,9 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	SaHpiEventT working, *event_ptr;
 	SaHpiSeverityT severity;
 	Str2EventInfoT *strhash_data;
+	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
+        struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	GHashTable *event2hpi_hash = custom_handle->event2hpi_hash_ptr;
 
 	memset(&working, 0, sizeof(SaHpiEventT));
 	is_recovery_event = is_threshold_event = 0;
@@ -697,9 +716,19 @@ int rsasrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 	g_strfreev(src_parts);
 
 	/* Find rest of Entity Path and calculate RID */
-	ep = snmp_rpt_array[rpt_index].rpt.ResourceEntity;
-	ep_concat(&ep, &ep_root);
-	set_epath_instance(&ep, entity_type, instance);
+	if (ep_concat(&ep, &snmp_rpt_array[rpt_index].rpt.ResourceEntity)) {
+		dbg("ep_concat failed for ep init");
+		return -1;
+	}
+	append_root(&ep);
+	if (ep_concat(&ep, &ep_root)) {
+		dbg("ep_concat failed to append root");
+		return -1;
+	}
+	if (set_epath_instance(&ep, entity_type, instance)) {
+		dbg("set_epath_instance failed. type=%d; instance=%d\n", entity_type, instance);
+		return -1;
+	}
 
 	/* Fill in RID and RPT table info about Error Log's Source */
 	resinfo->rid = oh_uid_from_entity_path(&ep);
@@ -793,8 +822,8 @@ int snmp_rsa_add_to_eventq(void *hnd, SaHpiEventT *thisEvent)
 		case SAHPI_ET_OEM:
 		case SAHPI_ET_HOTSWAP:
 		case SAHPI_ET_USER:
-			working.u.hpi_event.id = 0;	/* There is no rdr associated to OEM event */
-			break;			/* Set rdrid to invalid value of 0         */
+			working.u.hpi_event.id = 0; /* There is no rdr associated to OEM event */
+			break;			    /* Set rdrid to invalid value of 0         */
 		case SAHPI_ET_SENSOR:
 			working.u.hpi_event.id = 
 				get_rdr_uid(SAHPI_SENSOR_RDR,

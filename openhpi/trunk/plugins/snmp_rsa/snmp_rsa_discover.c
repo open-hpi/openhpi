@@ -10,6 +10,9 @@
  * full licensing terms.
  *
  * Author(s):
+ *      Sean Dague <sdague@users.sf.net>
+ *      Renier Morales <renierm@users.sf.net>
+ *      Steve Sherman <stevees@us.ibm.com>
  *      W. David Ashley <dashley@us.ibm.com>
  */
 
@@ -24,6 +27,7 @@
 #include <rsa_resources.h>
 #include <snmp_rsa.h>
 #include <snmp_rsa_utils.h>
+#include <snmp_rsa_event.h>
 #include <snmp_rsa_discover.h>
 #include <string.h>
 
@@ -61,7 +65,7 @@ static inline int rdr_exists(struct snmp_session *ss, const char *oid, unsigned 
 }
 
 
-struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep) 
+struct oh_event * snmp_rsa_discover_chassis(struct oh_handler_state *handle, SaHpiEntityPathT *ep) 
 {
 	int len;
         struct oh_event working;
@@ -87,12 +91,14 @@ struct oh_event * snmp_rsa_discover_chassis(SaHpiEntityPathT *ep)
         working.u.res_event.entry.ResourceEntity = *ep;
 
         e = eventdup(&working);
+
+        find_res_events(handle,ep, &snmp_rpt_array[RSA_RPT_ENTRY_CHASSIS].rsa_res_info);
  
 	return e;
 }
 
 
-struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int num) 
+struct oh_event * snmp_rsa_discover_cpu(struct oh_handler_state *handle, SaHpiEntityPathT *ep, int num) 
 {
 	int len;
         struct oh_event working;
@@ -123,14 +129,13 @@ struct oh_event * snmp_rsa_discover_cpu(SaHpiEntityPathT *ep, int num)
 
         e = eventdup(&working);
 
-//        find_res_events(&working.u.res_event.entry.ResourceEntity, 
-//                        &snmp_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info);
+        find_res_events(handle,ep, &snmp_rpt_array[RSA_RPT_ENTRY_CPU].rsa_res_info);
  
 	return e;
 }
 
 
-struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num) 
+struct oh_event * snmp_rsa_discover_dasd(struct oh_handler_state *handle, SaHpiEntityPathT *ep, int num) 
 {
 	int len;
         struct oh_event working;
@@ -162,8 +167,7 @@ struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num)
 
         e = eventdup(&working);
 
-//      find_res_events(&working.u.res_event.entry.ResourceEntity, 
-//                      &snmp_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info);
+        find_res_events(handle,ep, &snmp_rpt_array[RSA_RPT_ENTRY_DASD].rsa_res_info);
  
 	return e;
 }
@@ -176,24 +180,33 @@ struct oh_event * snmp_rsa_discover_dasd(SaHpiEntityPathT *ep, int num)
  * @control: Pointer to RDR's static control definition (SaHpiSensorRecT)
  * Return value: Pointer to Plugin Event, if success, NULL, if error or sensor does not exist
  **/
-struct oh_event * snmp_rsa_discover_sensors(struct snmp_session *ss,
+struct oh_event * snmp_rsa_discover_sensors(struct oh_handler_state *handle,
                                             SaHpiEntityPathT parent_ep,                                           
                                             const struct snmp_rsa_sensor *sensor)
 {
 	gchar *oid;
-	int len;
+	int len, sensor_event_only=0;
         struct oh_event working;
         struct oh_event *e = NULL;
+	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
 
         memset(&working, 0, sizeof(struct oh_event));
 	
+	/* Check for Event-only sensor - no OID */
+	if ((sensor->rsa_sensor_info.mib.oid == NULL) &&
+	    (sensor->sensor.DataFormat.ReadingFormats & SAHPI_SRF_EVENT_STATE)) {
+		sensor_event_only = 1;
+	}
+
 	oid = snmp_derive_objid(parent_ep, sensor->rsa_sensor_info.mib.oid);
 	if (oid == NULL) {
 		dbg("NULL SNMP OID returned\n");
 		return e;
 	}
 
-	if (rdr_exists(ss, oid, sensor->rsa_sensor_info.mib.not_avail_indicator_num,sensor->rsa_sensor_info.mib.write_only)) {
+	if (sensor_event_only ||
+            rdr_exists(ss, oid, sensor->rsa_sensor_info.mib.not_avail_indicator_num,sensor->rsa_sensor_info.mib.write_only)) {
 		working.type = OH_ET_RDR;
 		working.u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
 		working.u.rdr_event.rdr.Entity = parent_ep;
@@ -210,7 +223,7 @@ struct oh_event * snmp_rsa_discover_sensors(struct snmp_session *ss,
 		}
 		e = eventdup(&working);
 		
-//		find_sensor_events(&parent_ep, sensor->sensor.Num, sensor);
+		find_sensor_events(handle, &parent_ep, sensor->sensor.Num, sensor);
 	}
 
 	g_free(oid);
@@ -218,7 +231,7 @@ struct oh_event * snmp_rsa_discover_sensors(struct snmp_session *ss,
 }
 
 
-struct oh_event * snmp_rsa_discover_fan(SaHpiEntityPathT *ep, int fannum)
+struct oh_event * snmp_rsa_discover_fan(struct oh_handler_state *handle, SaHpiEntityPathT *ep, int fannum)
 {
 	int len;
         struct oh_event working;
@@ -248,8 +261,8 @@ struct oh_event * snmp_rsa_discover_fan(SaHpiEntityPathT *ep, int fannum)
                 oh_uid_from_entity_path(&(working.u.res_event.entry.ResourceEntity));
         e = eventdup(&working);
 
-//	find_res_events(&working.u.res_event.entry.ResourceEntity, 
-//			&snmp_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info);
+        find_res_events(handle, &working.u.res_event.entry.ResourceEntity, 
+                        &snmp_rpt_array[RSA_RPT_ENTRY_FAN].rsa_res_info);
 
 	return e;
 }
@@ -264,7 +277,7 @@ struct oh_event * snmp_rsa_discover_fan(SaHpiEntityPathT *ep, int fannum)
  * Return value: Pointer to Plugin Event, if success, NULL, if error or control does not exist
  **/
 
-struct oh_event * snmp_rsa_discover_inventories(struct snmp_session *ss,
+struct oh_event * snmp_rsa_discover_inventories(struct oh_handler_state *handle, 
                                             SaHpiEntityPathT parent_ep,
                                             const struct snmp_rsa_inventory *inventory)
 {
@@ -272,6 +285,8 @@ struct oh_event * snmp_rsa_discover_inventories(struct snmp_session *ss,
         int len;
         struct oh_event working;
         struct oh_event *e = NULL;
+	struct snmp_rsa_hnd *custom_handle = (struct snmp_rsa_hnd *)handle->data;
+	struct snmp_session *ss = custom_handle->ss;
 
         memset(&working, 0, sizeof(struct oh_event));
 

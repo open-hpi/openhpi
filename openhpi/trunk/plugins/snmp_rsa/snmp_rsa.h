@@ -10,6 +10,7 @@
  * full licensing terms.
  *
  * Author(s):
+ *      Renier Morales <renierm@users.sf.net>
  *      W. David Ashley<dashley@us.ibm.com>
  */
 
@@ -23,7 +24,9 @@
 
 struct snmp_rsa_hnd {
         struct snmp_session session;
-        struct snmp_session *ss; /* SNMP Session pointer */
+        struct snmp_session *ss;        /* SNMP Session pointer */
+	GHashTable *event2hpi_hash_ptr; /* Global RSA Event Number to HPI Event Hash Table */
+	char handler_timezone[10];
 };
 
 #endif
