@@ -82,4 +82,6 @@ tutils_oid_SOURCES = tutils_oid.c
 tutils_oid_LDADD   = snmp_rsa_utils.o
 
 tevent_SOURCES = tevent.c
-tevent_LDADD   = snmp_rsa_utils.o
+tevent_LDADD   = $(top_builddir)/utils/libopenhpiutils.la \
+		 $(top_builddir)/src/libopenhpi.la \
+		 $(top_builddir)/plugins/snmp_rsa/t/libsnmp_rsa.la
