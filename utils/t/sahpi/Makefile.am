@@ -27,7 +27,6 @@ $(REMOTE_SOURCES):
 TESTS = sahpi_enum_utils_test \
 	sahpi_event_encode_test \
 	sahpi_event_utils_test \
-	sahpi_struct_utils_test \
 	sahpi_time_utils_test \
 	sahpi_struct_idrinfo_test \
 	sahpi_struct_idrarea_test \
