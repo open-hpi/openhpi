@@ -118,9 +118,10 @@ extern SaErrorT	show_sensor(SaHpiSessionIdT sessionid, SaHpiResourceIdT resource
 			SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc);
 extern void	show_short_event(SaHpiEventT *event, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_threshold(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
-			SaHpiSensorNumT sensornum, hpi_ui_print_cb_t proc);
-extern int	print_thres_value(SaHpiSensorReadingT *item, char *mes,
+			SaHpiSensorNumT sensornum, SaHpiSensorRecT *sen,
 			hpi_ui_print_cb_t proc);
+extern int	print_thres_value(SaHpiSensorReadingT *item, char *mes,
+			SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc);
 extern SaErrorT	sensor_list(SaHpiSessionIdT sessionid, hpi_ui_print_cb_t proc);
 extern void	time2str(SaHpiTimeT time, char * str, size_t size);
 
