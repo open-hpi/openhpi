@@ -190,12 +190,12 @@ AC_SUBST(ENABLED_DIRS)
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/time.h unistd.h stdarg.h netinet/in.h])
 
 dnl Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([gettimeofday memset])
+AC_CHECK_FUNCS([gettimeofday memset strdup])
 
 dnl Checks for other helper programs
 

@@ -132,10 +132,6 @@ AC_DEFUN(OH_CHECK_NETSNMP,
         SNMPFLAGS=`net-snmp-config --cflags | perl -p -e 's/-O\S*//g'`
         SNMPLIBS=`net-snmp-config --libs`
         SNMPDIR=snmp
-        SNMP_VER=`net-snmp-config --version`
-        if test "$SNMP_VER" = "5.1"; then
-                AC_DEFINE(OH_NETSNMP_51,1,[Net Snmp 5.1 detected])
-        fi
         AC_MSG_RESULT(yes)
     ],
     [AC_MSG_RESULT(no.  No SNMP based plugins can be built!)])
