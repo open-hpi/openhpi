@@ -11,9 +11,6 @@ get_attr_type
 get_value_as_string
 get_rdr_attr_as_string
 init_resources
-check_resources
-check_rpt
-check_rdr
 get_rpt_attr
 get_rpt_attr_as_string
 get_rdr_attr
@@ -25,10 +22,12 @@ get_attr_name
 show_rdr_list
 show_rpt_list
 show_Rpt
-get_rpt
 get_value
 show_Rdr
-get_rdr
 show_short_event
+make_attrs_rpt
+make_attrs_rdr
+free_attrs
+
 
 

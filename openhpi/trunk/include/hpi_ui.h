@@ -20,6 +20,10 @@
 #include <SaHpi.h>
 #include <oh_utils.h>
 
+#define SHOW_ALL_RPT	0
+#define SHOW_ALL_RDR	1
+#define SHOW_RPT_RDR	2
+
 typedef union {
 	int	i;
 	double	d;
@@ -53,37 +57,28 @@ typedef struct {
 } Attributes_t;
 
 typedef struct {
-	SaHpiRdrT	*Rdr;
+	SaHpiRdrT	Record;
 	SaHpiEntryIdT	RecordId;
 	SaHpiRdrTypeT	RdrType;
 	Attributes_t	Attrutes;
-	int		is_inited;
 } Rdr_t;
 
 typedef struct {
-	SaHpiRptEntryT		*Rpt;
+	SaHpiRptEntryT		Table;
 	SaHpiEntryIdT		EntryId;
 	SaHpiResourceIdT	ResourceId;
 	Attributes_t		Attrutes;
-	int			is_inited;
-	int			n_rdrs;
-	Rdr_t			*rdrs;
 } Rpt_t;
 
 typedef struct {
 	SaHpiSessionIdT		sessionId;
 	SaHpiDomainIdT		domainId;
-	int			n_rpts;
-	Rpt_t			*rpts;
 } Domain_t;
 
 typedef int (*hpi_ui_print_cb_t)(char *buf);
 
 extern Domain_t	*init_resources(SaHpiSessionIdT session);	// create resources tree
-extern SaErrorT	check_resources(Domain_t *Domain);	// check resources tree
-extern Rdr_t	*get_rdr(Domain_t *Domain, SaHpiResourceIdT rptId, SaHpiInstrumentIdT num);
-extern Rpt_t	*get_rpt(Domain_t *Domain, SaHpiResourceIdT rptId);
-			// get resources for RPT rptId
+extern void	free_attrs(Attributes_t *At);
 extern SaErrorT	get_rpt_attr(Rpt_t *rpt, char *attr_name, union_type_t *val);
 			// get rpt attribute value
 extern SaErrorT	get_rpt_attr_as_string(Rpt_t *rpt, char *attr_name, char *val, int len);
@@ -100,6 +95,8 @@ extern char	*get_attr_name(Attributes_t *Attrs, int num);
 			// get attribute name
 extern int	get_attr_type(Attributes_t *Attrs, int num);
 			// get attribute type
+extern void	make_attrs_rdr(Rdr_t *Rdr, SaHpiRdrT *rdr_entry);
+extern void	make_attrs_rpt(Rpt_t *Rpt, SaHpiRptEntryT *rptentry);
 
 
 extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
@@ -107,8 +104,10 @@ extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resou
 			int show_short, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rdr(Rdr_t *Rdr, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_Rpt(Rpt_t *Rpt, hpi_ui_print_cb_t proc);
-extern SaErrorT	show_rdr_list(Domain_t *D, SaHpiResourceIdT resourceid, hpi_ui_print_cb_t proc);
-extern SaErrorT	show_rpt_list(Domain_t *D, hpi_ui_print_cb_t proc);
+extern SaErrorT	show_rdr_list(Domain_t *D, SaHpiResourceIdT resourceid, SaHpiRdrTypeT passed_type,
+			hpi_ui_print_cb_t proc);
+extern SaErrorT	show_rpt_list(Domain_t *domain, int as, SaHpiResourceIdT rptid,
+			hpi_ui_print_cb_t proc);
 extern SaErrorT	show_sensor_list(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			hpi_ui_print_cb_t proc);
 extern SaErrorT	show_sensor_status(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
