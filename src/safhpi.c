@@ -1349,7 +1349,7 @@ SaErrorT SAHPI_API saHpiSensorEventEnablesSet (
         RPTable *rpt = default_rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
-        
+
         OH_STATE_READY_CHECK;
         OH_SESSION_SETUP(SessionId, s);
         OH_RESOURCE_GET(rpt, ResourceId, res);
