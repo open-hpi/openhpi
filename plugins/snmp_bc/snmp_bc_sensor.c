@@ -1009,6 +1009,12 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 {
 	struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
 
+	if (!hnd ) {
+		dbg("Invalid parameter.");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+
 	/* Check if resource exists and has sensor capabilities */
 	SaHpiRptEntryT *rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) return(SA_ERR_HPI_INVALID_RESOURCE);
@@ -1019,10 +1025,7 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 	if (rdr == NULL) return(SA_ERR_HPI_NOT_PRESENT);
 	if (rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_PER_EVENT ||
 	    rdr->RdrTypeUnion.SensorRec.EventCtrl == SAHPI_SEC_READ_ONLY_MASKS) {
-#if 1
-		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_event_enable");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-#else /* Not tested */
+		dbg("BladeCenter/RSA do not support snmp_bc_set_sensor_event_enable\n");    
 		struct SensorInfo *sinfo;
 		sinfo = (struct SensorInfo *)oh_get_rdr_data(handle->rptcache, rid, rdr->RecordId);
 		if (sinfo == NULL) {
@@ -1035,7 +1038,6 @@ SaErrorT snmp_bc_set_sensor_event_enable(void *hnd,
 			sinfo->events_enabled = enable;
 			/* FIXME:: Add SAHPI_ET_SENSOR_ENABLE_CHANGE event on IF event Q */
 		}
-#endif
 	}
 	else {
 		return(SA_ERR_HPI_READ_ONLY);
