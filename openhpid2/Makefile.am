@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2004 by IBM Corporation.
+# Copyright (c) 2004,2005 by IBM Corporation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,6 +13,8 @@
 #
 
 pkglibdir = $(libdir)/openhpi/client
+
+EXTRA_DIST = openhpid.sh
 
 .NOTPARALLEL:
 
@@ -56,6 +58,13 @@ libopenhpi_la_SOURCES = \
 
 libopenhpi_la_LDFLAGS = -version-info @HPI_LIB_VERSION@
 libopenhpi_la_LIBADD  = $(top_builddir)/marshal/libohtcpconnx.la -lstdc++
+
+install-exec-local: $(srcdir)/openhpid.sh
+	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
+	$(INSTALL_SCRIPT) $(srcdir)/openhpid.sh $(DESTDIR)$(sysconfdir)/init.d/openhpid
+
+uninstall-local:
+	rm -f $(DESTDIR)$(sysconfdir)/init.d/openhpid
 
 clean-local:
 	rm -f *~ core core.*
