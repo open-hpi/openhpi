@@ -38,6 +38,9 @@ EXTRA_DIST              = plugin_static.c.in hpi.sym
 
 INCLUDES                = -I$(top_srcdir)/include -I$(top_srcdir)/utils
 
+SUBDIRS                 = t
+DIST_SUBDIRS            = t
+
 AM_CFLAGS               = @CFLAGS@
 
 lib_LTLIBRARIES         = libopenhpi.la
