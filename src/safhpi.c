@@ -217,6 +217,8 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 }
         }
 
+        free_domain_config(dconf);
+
 	rv = session_add(d, &s);
 	if (rv<0) {
 		dbg("Out of space");

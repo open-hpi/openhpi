@@ -49,6 +49,24 @@ int load_domain_config (struct oh_domain_config **config, SaHpiDomainIdT DomainI
         return 0;
 }
 
+void free_domain_config(struct oh_domain_config *dconf) 
+{
+        int i;
+        struct oh_handler_config *temp;
+
+        for(i = 0; i < g_slist_length(dconf->plugins); i++) {
+                temp = (struct oh_handler_config *) g_slist_nth_data(
+                        dconf->plugins, i);
+                free(temp->plugin);
+                free(temp->name);
+                free(temp->address);
+        }
+        g_slist_free(dconf->plugins);
+        free(dconf->domain_name);
+        free(dconf);
+        return;
+}
+
 struct oh_handler_config *new_handler_config (char *plugin, char *name, char *address) 
 {
         struct oh_handler_config *hc;

@@ -44,4 +44,6 @@ struct oh_domain_config {
 
 int load_domain_config(struct oh_domain_config**, SaHpiDomainIdT);
 
+void free_domain_config(struct oh_domain_config*);
+
 #endif/*__OH_CONFIG_H*/
