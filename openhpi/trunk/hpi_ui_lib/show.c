@@ -161,6 +161,8 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	char			*str;
 	char			buf[SHOW_BUF_SZ];
 	char			errbuf[SHOW_BUF_SZ];
+	SaHpiCtrlTypeT		type;
+	SaHpiCtrlRecDigitalT	*digit;
 
 	rv = saHpiRdrGetByInstrumentId(sessionid, resourceid, SAHPI_CTRL_RDR, num, &rdr);
 	if (rv != SA_OK) {
@@ -171,10 +173,11 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 		return(rv);
 	};
 	ctrl = &(rdr.RdrTypeUnion.CtrlRec);
+	type = ctrl->Type;
 	if (ctrl->WriteOnly) str = "(Write Only)";
 	else str = " ";
-	snprintf(buf, SHOW_BUF_SZ, "Control(%d/%d) Type: %s  %s  Output: %s",
-		resourceid, num, oh_lookup_ctrltype(ctrl->Type), str,
+	snprintf(buf, SHOW_BUF_SZ, "Control(%d/%d) Type: %s  %s  Output: %s\n",
+		resourceid, num, oh_lookup_ctrltype(type), str,
 		oh_lookup_ctrloutputtype(ctrl->OutputType));
 	if (proc(buf) != 0) return(SA_OK);
 	if (ctrl->DefaultMode.ReadOnly) str = "(Read Only)";
@@ -182,7 +185,21 @@ SaErrorT show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 	snprintf(buf, SHOW_BUF_SZ, "  Mode: %s  %s\n",
 		oh_lookup_ctrlmode(ctrl->DefaultMode.Mode), str);
 
-	if (proc(buf) != 0) return(SA_OK);
+	if (proc("Data:\n") != 0) return(SA_OK);
+	switch (type) {
+		case SAHPI_CTRL_TYPE_DIGITAL:
+			digit = &(ctrl->TypeUnion.Digital);
+			str = oh_lookup_ctrlstatedigital(digit->Default);
+			if (str == (char *)NULL) {
+				snprintf(errbuf, SHOW_BUF_SZ, "Invalid value (0x%x)",
+					digit->Default);
+				str = errbuf;
+			};
+			snprintf(buf, SHOW_BUF_SZ, "\tSTATE: %s\n", str);
+			break;
+		default: strcpy(buf, "Unknown control type\n");
+	};
+	proc(buf);
 	return SA_OK;
 }
 
@@ -689,4 +706,64 @@ SaErrorT show_dat(Domain_t *domain, hpi_ui_print_cb_t proc)
 	if (rv == SA_ERR_HPI_NOT_PRESENT)
 		return(SA_OK);
 	return(rv);
+}
+
+SaErrorT show_inventory(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+			SaHpiIdrIdT IdrId, hpi_ui_print_cb_t proc)
+{
+	SaHpiIdrInfoT		info;
+	SaErrorT		rv;
+	SaHpiEntryIdT		entryid, nextentryid;
+	SaHpiEntryIdT		fentryid, nextfentryid;
+	SaHpiIdrAreaHeaderT	hdr;
+	SaHpiIdrFieldT		field;
+	char			buf[SHOW_BUF_SZ];
+	char			*str, *str1;
+	int			num;
+
+	rv = saHpiIdrInfoGet(sessionid, resourceid, IdrId, &info);
+	if (rv != SA_OK) {
+		snprintf(buf, SHOW_BUF_SZ, "ERROR!!! saHpiIdrInfoGet: %s\n", oh_lookup_error(rv));
+		proc(buf);
+		return(-1);
+	};
+	num = info.NumAreas;
+	snprintf(buf, SHOW_BUF_SZ, "Inventory: %d   Update count: %d   Read only: %d   Areas: %d\n",
+		info.IdrId, info.UpdateCount, info.ReadOnly, num);
+	if (proc(buf) != 0) return(SA_OK);
+	entryid = SAHPI_FIRST_ENTRY;
+	while ((entryid != SAHPI_LAST_ENTRY) && (num > 0)) {
+		rv = saHpiIdrAreaHeaderGet(sessionid, resourceid, IdrId,
+			SAHPI_IDR_AREATYPE_UNSPECIFIED, entryid,
+			&nextentryid, &hdr);
+		if (rv != SA_OK) {
+			proc("ERROR!!! saHpiIdrAreaHeaderGet\n");
+			return(-1);
+		};
+		str = oh_lookup_idrareatype(hdr.Type);
+		if (str == NULL) str = "Unknown";
+		snprintf(buf, SHOW_BUF_SZ, "    Area: %d   Type: %s   Read Only: %d   Fields: %d\n",
+			hdr.AreaId, str, hdr.ReadOnly, hdr.NumFields);
+		if (proc(buf) != 0) return(SA_OK);
+		fentryid = SAHPI_FIRST_ENTRY;
+		entryid = nextentryid;
+		while ((fentryid != SAHPI_LAST_ENTRY) && (hdr.NumFields > 0)) {
+			rv = saHpiIdrFieldGet(sessionid, resourceid, IdrId, hdr.AreaId,
+				SAHPI_IDR_FIELDTYPE_UNSPECIFIED, fentryid,
+				&nextfentryid, &field);
+			if (rv != SA_OK) {
+				proc("ERROR!!! saHpiIdrAreaHeaderGet\n");
+				return(-1);
+			};
+			str = oh_lookup_idrfieldtype(field.Type);
+			if (str == NULL) str = "Unknown";
+			if (field.Field.DataLength > 0) str1 = field.Field.Data;
+			else str1 = "";
+			snprintf(buf, SHOW_BUF_SZ, "        Field: %d   Type: %s   Read Only: %d (%s)\n",
+				field.FieldId, str, field.ReadOnly, str1);
+			if (proc(buf) != 0) return(SA_OK);
+			fentryid = nextfentryid;
+		}
+	};
+	return(SA_OK);
 }
