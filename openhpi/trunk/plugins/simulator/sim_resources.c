@@ -17,6 +17,67 @@
  */
 
 #include <sim_resources.h>
+#include <sim_init.h>
+#include <math.h>
+
+//	/* Find resource's events, sensors, controls, etc. */
+//	dummy_discover_res_events(handle, &(e->u.res_event.entry.ResourceEntity), res_info_ptr);
+//	dummy_discover_sensors(handle, dummy_chassis_sensors, e);
+//	if (custom_handle->platform == DUMMY_PLATFORM_BCT) {
+//		dummy_discover_sensors(handle, dummy_chassis_sensors_bct, e);
+//		dummy_discover_controls(handle, dummy_chassis_controls_bct, e);
+//	}
+//	else {
+//		dummy_discover_controls(handle, dummy_chassis_controls_bc, e);
+//	}
+//
+//	dummy_discover_inventories(handle, dummy_chassis_inventories, e);
+
+/**
+ * dummy_create_resourcetag:
+ * @buffer: Location of Resource Tag buffer.
+ * @str: Resource name.
+ * @location: Resource location.
+ *
+ * Creates a user friendly Resource Tag. Takes the comment found in the 
+ * Resource's static definition, appends a trailing string (can be NULL) 
+ * plus the resource's location.
+ *
+ * Return values:
+ * SaHpiTextBufferT - normal operation.
+ * SA_ERR_HPI_INVALID_PARAMS - @buffer is NULL; or @loc not valid
+ * SA_ERR_HPI_OUT_OF_SPACE - Cannot allocate space for internal memory.
+ **/
+SaErrorT dummy_create_resourcetag(SaHpiTextBufferT *buffer, const char *str, SaHpiEntityLocationT loc)
+{
+	char *locstr;
+	SaErrorT err = SA_OK;
+	SaHpiTextBufferT working;
+
+	if (!buffer || loc < DUMMY_HPI_LOCATION_BASE ||
+	    loc > (pow(10, OH_MAX_LOCATION_DIGITS) - 1)) {
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	err = oh_init_textbuffer(&working);
+	if (err) { return(err); }
+
+	locstr = (gchar *)g_malloc0(OH_MAX_LOCATION_DIGITS + 1);
+	if (locstr == NULL) {
+		dbg("Out of memory.");
+		return(SA_ERR_HPI_OUT_OF_SPACE);
+	}
+	snprintf(locstr, OH_MAX_LOCATION_DIGITS + 1, " %d", loc);
+
+	if (str) { oh_append_textbuffer(&working, str); }
+	err = oh_append_textbuffer(&working, locstr);
+	if (!err) {
+		err = oh_copy_textbuffer(buffer, &working);
+	}
+	g_free(locstr);
+	return(err);
+}
+
 
 /**************************************************************************
  *                        Resource Definitions
@@ -47,6 +108,7 @@ struct dummy_rpt dummy_rpt_array [] = {
 			.ResourceFailed = SAHPI_FALSE,
                 
         	},
+                .comment = "Sim Blade Center"
 	},	
         /* Management module */
 	{ 
@@ -75,6 +137,7 @@ struct dummy_rpt dummy_rpt_array [] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
+                .comment = "Sim Management Module"
 	},
         /* Switch module */
 	{
@@ -103,6 +166,7 @@ struct dummy_rpt dummy_rpt_array [] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
+                .comment = "Sim Network Switch Module"
 	},
         /* Blade */
 	{
@@ -133,6 +197,7 @@ struct dummy_rpt dummy_rpt_array [] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
+                .comment = "Sim Blade"
 	},
         /* Blade expansion (add-in) card */
 	{
@@ -162,6 +227,7 @@ struct dummy_rpt dummy_rpt_array [] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
+                .comment = "Sim Blade Expansion Card"
 	},
         /* Media Tray */
 	{
@@ -187,6 +253,7 @@ struct dummy_rpt dummy_rpt_array [] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                 },
+                .comment = "Sim Control Panel/Media Tray"
 
 	},
         /* Blower module */
@@ -214,6 +281,7 @@ struct dummy_rpt dummy_rpt_array [] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                  },
+                .comment = "Sim Blower Module"
 
 	},
         /* Power module */
@@ -241,9 +309,8 @@ struct dummy_rpt dummy_rpt_array [] = {
                         .ResourceSeverity = SAHPI_MAJOR,
 			.ResourceFailed = SAHPI_FALSE,
                  },
-
+                .comment = "Sim Power Module"
         
 	},
-        {} /* Terminate array with a null element */
 };
 
