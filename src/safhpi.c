@@ -1912,15 +1912,15 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutGet(
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_OUT SaHpiTimeoutT *Timeout)
 {
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_resource_data *rd;
 
-        res = oh_get_resource_by_id(rpt, ResourceId);
-        if(res == NULL) {
-                dbg("No such resouce");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res)
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
@@ -1941,15 +1941,15 @@ SaErrorT SAHPI_API saHpiAutoExtractTimeoutSet(
         SAHPI_IN SaHpiResourceIdT ResourceId,
         SAHPI_IN SaHpiTimeoutT Timeout)
 {
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_resource_data *rd;
 
-        res = oh_get_resource_by_id(rpt, ResourceId);
-        if(res == NULL) {
-                dbg("No such resouce");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res)
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
@@ -1973,20 +1973,20 @@ SaErrorT SAHPI_API saHpiHotSwapStateGet (
         SaErrorT rv;
         SaErrorT (*get_hotswap_state)(void *hnd, SaHpiResourceIdT rid,
                                  SaHpiHsStateT *state);
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
 
-        OH_HANDLER_GET(rpt, ResourceId, h);
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
-        res = oh_get_resource_by_id(rpt, ResourceId);
-        if(res == NULL) {
-                dbg("No such resouce");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
                 return SA_ERR_HPI_INVALID;
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
         get_hotswap_state = h->abi->get_hotswap_state;
         if (!get_hotswap_state) 
@@ -2006,20 +2006,20 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
         SaErrorT (*request_hotswap_action)(void *hnd, SaHpiResourceIdT rid,
                         SaHpiHsActionT act);
         
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
 
-        OH_HANDLER_GET(rpt, ResourceId, h);
-
-        res = oh_get_resource_by_id(rpt, ResourceId);
-        if(res == NULL) {
-                dbg("No such resouce");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
                 return SA_ERR_HPI_INVALID;
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
         request_hotswap_action = h->abi->request_hotswap_action;
         if (!request_hotswap_action)
@@ -2040,8 +2040,18 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         SaErrorT rv;
         SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id,
                                SaHpiHsPowerStateT *state);
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
+                return SA_ERR_HPI_INVALID;
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
@@ -2062,18 +2072,21 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         SaErrorT rv;
         SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id,
                                     SaHpiHsPowerStateT state);
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
 
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
+                return SA_ERR_HPI_INVALID;
+
         OH_HANDLER_GET(rpt, ResourceId, h);
 
-        res = oh_get_resource_by_id(rpt, ResourceId);
-        if(res == NULL) {
-                dbg("No such resouce");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
-        
         set_power_state = h->abi->set_power_state;
         if (!set_power_state) 
                 return SA_ERR_HPI_UNSUPPORTED_API;
@@ -2091,8 +2104,18 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateGet (
         SaErrorT rv;
         SaErrorT (*get_indicator_state)(void *hnd, SaHpiResourceIdT id,
                                         SaHpiHsIndicatorStateT *state);
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+                return SA_ERR_HPI_INVALID;
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
@@ -2113,8 +2136,18 @@ SaErrorT SAHPI_API saHpiHotSwapIndicatorStateSet (
         SaErrorT rv;
         SaErrorT (*set_indicator_state)(void *hnd, SaHpiResourceIdT id,
                                         SaHpiHsIndicatorStateT state);
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+                return SA_ERR_HPI_INVALID;
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
@@ -2134,19 +2167,20 @@ SaErrorT SAHPI_API saHpiParmControl (
 {
         SaErrorT rv;
         SaErrorT (*control_parm)(void *, SaHpiResourceIdT, SaHpiParmActionT);
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
         SaHpiRptEntryT *res;
         struct oh_handler *h;
 
-        OH_HANDLER_GET(rpt, ResourceId, h);
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
 
-        res = oh_get_resource_by_id(rpt, ResourceId);
-        if(res == NULL) {
-                dbg("No such resouce");
-                return SA_ERR_HPI_INVALID_PARAMS;
-        }
         if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION))
                 return SA_ERR_HPI_INVALID;
+
+        OH_HANDLER_GET(rpt, ResourceId, h);
         
         control_parm = h->abi->control_parm;
         if (!control_parm) 
@@ -2165,8 +2199,18 @@ SaErrorT SAHPI_API saHpiResourceResetStateGet (
         SaErrorT rv;
         SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiResetActionT *);
 
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
+                return SA_ERR_HPI_INVALID;
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
@@ -2186,8 +2230,18 @@ SaErrorT SAHPI_API saHpiResourceResetStateSet (
 {
         SaErrorT rv;
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiResetActionT);
-        RPTable *rpt = default_rpt;
+        struct oh_session *s;
+        RPTable *rpt;
+        SaHpiRptEntryT *res;
         struct oh_handler *h;
+
+        OH_STATE_READY_CHECK;
+        OH_SESSION_SETUP(SessionId, s);
+        OH_RPT_GET(SessionId, rpt);
+        OH_RESOURCE_GET(rpt, ResourceId, res);
+
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
+                return SA_ERR_HPI_INVALID;
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
