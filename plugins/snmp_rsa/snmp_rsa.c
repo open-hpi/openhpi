@@ -344,7 +344,7 @@ static int snmp_rsa_discover_resources(void *hnd)
                 for (tmpnode = tmpqueue; tmpnode != NULL; tmpnode = tmpnode->next) {
                         struct oh_event *e = (struct oh_event *)tmpnode->data;
                         if (e->type == OH_ET_RDR &&                            
-                            memcmp(&(e->u.rdr_event.rdr.Entity),&(rdr->Entity),sizeof(SaHpiEntityPathT)) == 0 &&
+                            ep_cmp(&(e->u.rdr_event.rdr.Entity),&(rdr->Entity)) == 0 &&
                             e->u.rdr_event.rdr.RecordId == rdr->RecordId) {
                                 handle->eventq = g_slist_append(handle->eventq, e);
                                 tmpqueue =  g_slist_remove_link(tmpqueue, tmpnode);
