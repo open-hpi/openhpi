@@ -423,10 +423,10 @@ typedef SaHpiUint32T SaHpiEntryIdT;
 typedef SaHpiInt64T SaHpiTimeT;    /* Time in nanoseconds */
 
 /* Unspecified or unknown time */
-#define SAHPI_TIME_UNSPECIFIED     (SaHpiTimeT) 0x8000000000000000
+#define SAHPI_TIME_UNSPECIFIED     ((SaHpiTimeT) 0x8000000000000000LL)
 
 /* Maximum time that can be specified as relative */
-#define SAHPI_TIME_MAX_RELATIVE    (SaHpiTimeT) 0x0C00000000000000
+#define SAHPI_TIME_MAX_RELATIVE    ((SaHpiTimeT) 0x0C00000000000000LL)
 typedef SaHpiInt64T SaHpiTimeoutT; /* Timeout in nanoseconds */
 
 /* Non-blocking call */
@@ -1577,7 +1577,9 @@ typedef struct {
 
 /* Watchdog Number - Identifier for a watchdog timer. */
 typedef SaHpiUint8T SaHpiWatchdogNumT;
-#define SAHPI_DEFAULT_WATCHDOG_NUM (SaHpiWatchdogT)0x00
+/* Using SaHpiWatchdogNumT instead of SaHpiWatchdogT as in spec. */
+/* Spec believed to be in error since SaHpiWatchdogT is a struct. */
+#define SAHPI_DEFAULT_WATCHDOG_NUM (SaHpiWatchdogNumT)0x00
 
 /*
 ** Watchdog Timer Action
@@ -2182,8 +2184,8 @@ typedef enum {
 } SaHpiSelOverflowActionT;
 
 typedef struct {
-    SaHpiUint32T              Entries;        
-    SaHpiUint32T              Size;      
+    SaHpiUint32T              Entries;
+    SaHpiUint32T              Size;
     SaHpiTimeT                UpdateTimestamp;  
     SaHpiTimeT                CurrentTime;
     SaHpiBoolT                Enabled;

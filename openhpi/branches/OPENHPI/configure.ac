@@ -3,9 +3,9 @@ dnl autoconf and automake for openhpi
 dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
 dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
-AC_PREREQ(2.50)
+AC_PREREQ(2.57)
 AC_INIT(openhpi.spec.in)
-AM_INIT_AUTOMAKE(openhpi, 0.4)
+AM_INIT_AUTOMAKE(openhpi, 0.5.0)
 
 AM_CONFIG_HEADER(config.h)
 
@@ -29,6 +29,17 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+
+# die on int != 32bits.  This is too instrumental to our code right now.
+# AC_MSG_CHECKING(int is 4 bytes)
+OH_SET_SIZES
+if test "x$OH_SIZEOF_INT" != "x4"; then
+    AC_MSG_ERROR([
+*** int is not 4 bytes, it is $OH_SIZEOF_INT bytes on this platform
+*** undefined behavior will result
+*** please contact the openhpi development team to fix this
+])
+fi
 
 dnl Check fo libraries
 have_uuid=no
@@ -119,6 +130,7 @@ AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
     OH_CHECK_FAIL(libuuid,e2fsprogs-devel)
     ])
 
+dnl ssl is used for md2/md5 authentification in ipmidirect
 AC_CHECK_LIB([ssl],[MD5_Init],[SSL_LIB=-lssl],[SSL_LIB=])
 AC_SUBST(SSL_LIB)
 AC_CHECK_HEADERS([openssl/md2.h openssl/md5.h])
@@ -176,11 +188,21 @@ STATIC_PLUGIN_EXTRA_LIBS=
 AC_ARG_ENABLE([snmp_client],
     [  --enable-snmp_client          build snmp_client plugin [default=yes]],
     [if test "x$enableval" = "xyes"; then
-        AC_SUBST(SNMP_CLIENT,snmp_client)
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_CLIENT,snmp_client)
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build SNMP client support without net-snmp)
+        fi
      elif test "x$enableval" = "xstatic"; then
-        AC_SUBST(SNMP_CLIENT,snmp_client)
-        STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
-        STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+        if test "x$have_netsnmp" = "xyes"; then
+            AC_SUBST(SNMP_CLIENT,snmp_client)
+            STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST snmp_client"
+            STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS -luuid"
+        else
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build SNMP client support without net-snmp)
+        fi
     fi],
     [if test "x$have_netsnmp" = "xyes"; then
         AC_SUBST(SNMP_CLIENT,snmp_client)
@@ -245,7 +267,6 @@ AC_ARG_ENABLE([snmp_bc],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
-#            CFLAGS="$CFLAGS" $SNMPFLAGS"
         else
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM Blade Center support without net-snmp)
@@ -253,7 +274,6 @@ AC_ARG_ENABLE([snmp_bc],
     fi],
     [if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_BC,snmp_bc)
-#            CFLAGS="$CFLAGS $SNMPFLAGS"
     fi]
     )
 
@@ -267,6 +287,23 @@ AC_ARG_ENABLE([ipmidirect],
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
      fi],
     [AC_SUBST(IPMIDIRECT,ipmidirect)])
+
+dnl ipmidirect needs posix threads
+if test "x$IPMIDIRECT" = "xipmidirect"; then
+        if test "x$THREAD_SAFE" != "xyes" ; then
+                AC_MSG_ERROR("ipmidirect plugin needs thread support (--enable-thread) !") 
+        fi
+fi
+
+AC_ARG_ENABLE([simulator],
+    [  --enable-simulator       build simulator plugin [default=yes]],
+    [if test "x$enableval" = "xyes"; then
+        AC_SUBST(SIMULATOR,simulator)
+    else
+        AC_SUBST(SIMULATOR,"")
+    fi],
+    [AC_SUBST(SIMULATOR,simulator)])
+
 
 dnl
 dnl create static plugin config
@@ -341,39 +378,84 @@ includedir=`var "$includedir" "$exec_prefix/include"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
 
+TEST_CLEAN='$(shell ls *.bb* *.da *.gcov *.summary)'
+AC_SUBST(TEST_CLEAN)
+
 AC_C_STRINGIZE
 
-CXXFLAGS=$CFLAGS
+# getting CFLAGS right takes some effort
+# we start with a good base set that has been built up
+CFLAGS="$CFLAGS $GLIB_CFLAGS" 
 
-CC_WARNINGS="-Wall -Wmissing-prototypes \
+# next we have to do transformations to either turn on
+# test coverage or debug.
+
+AC_ARG_ENABLE([testcover],
+    [  --enable-testcover     build with test coverage support [default=no]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+            CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
+    fi]
+    )
+
+AC_ARG_ENABLE([debug],
+    [  --enable-debug        turn on debug messages [default=no]],
+    [if test "x$enableval" = "xyes"; then
+            CFLAGS="$CFLAGS -DDEBUG"
+    fi]
+    )
+
+# Now we throw in a bunch of warnings.  C and C++ need
+# different sets here
+
+CC_WARNINGS="\
+        -Wall \
+        -Wmissing-prototypes \
 	-Wmissing-declarations \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
-	-Wcast-qual -Wcast-align \
-	-Werror"
+        -Wformat=2 \
+        -Wformat-security \
+        -Wformat-nonliteral \
+	-Werror \
+	-Wcast-qual \
+	-Wcast-align"
 
-CXX_WARNINGS="-W -Wall -Wmissing-prototypes \
-        -Wstrict-prototypes \
-        -Wpointer-arith \
-        -Wcast-qual -Wcast-align \
-        -Werror \
+CXX_WARNINGS="\
+        -Wall \
+        -Wmissing-prototypes \
+	-Wstrict-prototypes \
+	-Wpointer-arith \
+	-Werror \
+	-Wcast-qual \
+	-Wcast-align \
         -Wshadow \
         -Wwrite-strings \
         -Wredundant-decls"
 
-CFLAGS="$CFLAGS $GLIB_CFLAGS $CC_WARNINGS"
-CXXFLAGS="$CXXFLAGS $GLIB_CFLAGS $CXX_WARNINGS"
+# remerge the warnings into the FLAGS
+CXXFLAGS="$CFLAGS $CXX_WARNINGS"
+CFLAGS="$CFLAGS $CC_WARNINGS"
 
+# lastly, we add things if we are thread safe
+# (this could probably happen earlier in this file)
 if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
         CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 fi
 
+# there are certain places we always want to turn off optimization
+# this has to come last
+NOCFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
+AC_SUBST(NOCFLAGS)
+NOCXXFLAGS=`echo $CXXFLAGS | perl -p -e 's/-O\S*//g'`
+AC_SUBST(NOCXXFLAGS)
+
+# Set up libs that will be linked to
 LIBS="$LIBS $GLIB_LIBS -lm"
 if test "x$THREAD_SAFE" = "xyes" ; then
         LIBS="$LIBS -lpthread"
 fi
-
 
 AC_CONFIG_FILES([openhpi.spec
         openhpi.pc
@@ -382,16 +464,22 @@ AC_CONFIG_FILES([openhpi.spec
         src/Makefile
         src/snmp/Makefile
         src/t/Makefile
+	src/t/epath/Makefile
+	src/t/rpt/Makefile
+	src/t/sel/Makefile
         src/plugin_static.c
-        src/plugins/Makefile
-	src/plugins/snmp_client/Makefile
-        src/plugins/dummy/Makefile
-        src/plugins/watchdog/Makefile
-        src/plugins/ipmi/Makefile
-        src/plugins/snmp_bc/Makefile
-        src/plugins/snmp_bc/t/Makefile
-        src/plugins/sysfs/Makefile
-        src/plugins/ipmidirect/Makefile
+        plugins/Makefile
+	plugins/snmp_client/Makefile
+        plugins/dummy/Makefile
+        plugins/watchdog/Makefile
+        plugins/ipmi/Makefile
+        plugins/snmp_bc/Makefile
+        plugins/snmp_bc/t/Makefile
+        plugins/sysfs/Makefile
+        plugins/ipmidirect/Makefile
+        plugins/ipmidirect/t/Makefile
+        plugins/simulator/Makefile
+        test/Makefile
         docs/Makefile
         docs/hld/Makefile
         examples/Makefile

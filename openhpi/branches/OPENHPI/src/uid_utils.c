@@ -15,16 +15,20 @@
  */
  
 #include <stdio.h>
+#include <stdlib.h>
 #include <glib.h>
-#include <uuid.h>
+//#include <uuid.h>
 #include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <SaHpi.h>
+#include <openhpi.h>
 #include <uid_utils.h>
 
 static GHashTable *ep_hash_table;
 static GHashTable *resource_id_hash_table;
-static GSList *ep_slist;
+//static GSList *ep_slist;
 
 guint resource_id;
 
@@ -39,11 +43,11 @@ void write_ep_xref(gpointer key, gpointer value, gpointer file);
 guint oh_entity_path_hash(gconstpointer key);
 gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b);
 
-/**
+/*
  * oh_entity_path_hash: used by g_hash_table_new() 
  * in oh_uid_initialize(). See glib library for
  * further details.
- **/
+ */
 guint oh_entity_path_hash(gconstpointer key)
 {
         const char *p = key;
@@ -58,19 +62,22 @@ guint oh_entity_path_hash(gconstpointer key)
         p += 1;
         
         for( i=0; i<entity_path_len - 1; i++ ){
-                h = (h << 5) - h + *p;
+/*              h = (h << 5) - h + *p; */
+		h = (h * 131) + *p;
                 p++;                          
         }
 
-        return(h);
+/*      return(h); */
+	/* don't change the 1009, its magic */
+    	return( h % 1009 );
 
 }
 
-/**
+/*
  * oh_entity_path_equal: used by g_hash_table_new() 
  * in oh_uid_initialize(). See glib library for
  * further details.
- **/
+ */
 gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
 {
         if (!memcmp(a, b, sizeof(SaHpiEntityPathT))) {
@@ -82,14 +89,15 @@ gboolean oh_entity_path_equal(gconstpointer a, gconstpointer b)
 }
 
 /**
- * oh_uid_initialize: uid utils initialization routine
+ * oh_uid_initialize
  *
+ * UID utils initialization routine
  * This functions must be called before any other uid_utils
  * are made. 
  * 
- * Return value: success 0, failed -1.
+ * Returns: success 0, failure -1.
  **/
-guint oh_uid_initialize(void) 
+SaErrorT oh_uid_initialize(void) 
 {
         static int initialized = FALSE;
 
@@ -103,32 +111,31 @@ guint oh_uid_initialize(void)
 
                 initialized = TRUE;
 
-                resource_id = 0;
+                resource_id = 1;
 
                 /* initialize uid map */
                 rval = uid_map_from_file();
-
-                return(rval);
         }
+	else
+		rval = SA_ERR_HPI_ERROR;
 
-        return(-1);
+        return(rval);
 
 }
 
 /**
- * oh_uid_from_entity_path: returns a unique uid
- * to be used as a resource id based upon an specified
- * entity path.
- * 
- * @id ep value to be removed from used
+ * oh_uid_from_entity_path
+ * @ep: value to be removed from used
  *
+ * Returns a unique uid to be used as a resource id based upon an specified
+ * entity path.
  * This functions returns a unique value to be used as
  * an uid/resourceID base upon a unique entity path specified
- * by *ep.  If the entity path already exists a return code 
+ * by @ep.  If the entity path already exists a return code 
  * of -1 is returned.  Before returning this call updates the
  * uid map file saved on disk.  
  * 
- * Return value: uid, failed -1.
+ * Returns: positive unsigned int, failure is -1.
  **/
 guint oh_uid_from_entity_path(SaHpiEntityPathT *ep) 
 {
@@ -139,19 +146,19 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
         char *uid_map_file;
         int file;
-        int map_len;
-        int rval;
+//        int map_len;
+//        int rval;
 
         /* check for presense of EP and */
         /* previously assigned uid      */
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if (ep_xref) {
                 dbg("Entity Path already assigned uid");
-                return(-1);
+                return(ep_xref->resource_id);
         }
 
         /* allocate storage for EP cross reference data structure*/
-        ep_xref = (EP_XREF *)malloc(sizeof(EP_XREF));
+        ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) { 
                 dbg("malloc fialed");
                 return(-1);
@@ -192,18 +199,17 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 }               
 
 /**
- * oh_uid_remove: removes uid from used
- * 
- * @id uid value to be removed from used
+ * oh_uid_remove 
+ * @uid: value to be removed from used
  *
- * This functions removed the uid/entity path
- * pair from use and removed the use of the uid forever.
+ * This functions removes the uid/entity path
+ * pair from use and removes the use of the uid forever.
  * An new uid may be requested for this entity path
- * in the future.  The function before exist writes
+ * in the future. oh_uid_from_entity_path() writes
  * the entire uid/entity path pairings to file before 
- * returning.
+ * returning. oh_uid_remove() deletes the pairing from file.
  * 
- * Return value: success 0, failed -1.
+ * Returns: success 0, failure -1.
  **/
 guint oh_uid_remove(guint uid)
 {               
@@ -239,13 +245,12 @@ guint oh_uid_remove(guint uid)
 }
 
 /**
- * oh_uid_lookup: fetches resourceID/uid based on entity path in
- * 
- * @ep pointer to entity path used to identify resourceID/uid
+ * oh_uid_lookup
+ * @ep: pointer to entity path used to identify resourceID/uid
  *
- * 
+ * Fetches resourceID/uid based on entity path in @ep.
  *  
- * Return value: success returns resourceID/uid, failed -1.
+ * Returns: success returns resourceID/uid, failure is -1.
  **/
 guint oh_uid_lookup(SaHpiEntityPathT *ep)
 {
@@ -263,15 +268,13 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
 }
 
 /**
- * oh_entity_path_lookup: fetches entity path based upon 
- * resource id, uid
+ * oh_entity_path_lookup
+ * @id: pointer to resource_id/uid indenifying entity path
+ * @ep: pointer to memory to fill in with entity path
  * 
- * @id pointer to resource_id/uid indenifying entity path
- * @ep pointer to memory to fill in with entity path
- * 
- * 
- *  
- * Return value: success 0, failed -1.
+ * Fetches entity path based upon resource id, @id.
+ *
+ * Returns: success 0, failed -1.
  **/
 guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
 {
@@ -292,7 +295,7 @@ guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
 
 } 
 
-/**
+/*
  * oh_uid_map_to_file: saves current uid and entity path mappings
  * to file, first element in file is 4 bytes for resource id,
  * then repeat EP_XREF structures holding uid and entity path pairings
@@ -300,12 +303,12 @@ guint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
  * 
  *  
  * Return value: success 0, failed -1.
- **/
+ */
 guint oh_uid_map_to_file(void)
 {
         char *uid_map_file;
-        int map_len;
-        int i;
+//        int map_len;
+//        int i;
         int file;
 
         uid_map_file = (char *)getenv("UID_MAP");
@@ -335,34 +338,33 @@ guint oh_uid_map_to_file(void)
 }
 
 
-/**
+/*
  * write_ep_xref: called by g_hash_table_foreach(), for each 
  * hash table entry see glib manual for further details 
  * 
  * 
  * 
  * Return value: None (void).
- **/
+ */
 void write_ep_xref(gpointer key, gpointer value, gpointer file)
 {
         write(*(int *)file, value, sizeof(EP_XREF));
 }
 
 
-/**
+/*
  * uid_map_from_file: called from oh_uid_initialize() during intializaion
  * this function if a uid map file exists reads the current value for
  * uid, and intializes the memory resident uid map file from file.
  *
  * 
  * 
- * Return value: None (void).
- **/
+ * Return value: success 0, error -1.
+ */
 static int uid_map_from_file(void)
 {
         char *uid_map_file;
         int file;
-        int map_len;
         int rval;
 
          /* initialize uid map file */
@@ -374,7 +376,9 @@ static int uid_map_from_file(void)
          if(file < 0) {
                  /* create map file with resource id initial value */
                  dbg("Configuration file '%s' does not exist, initializing", uid_map_file);
-                 file = open(uid_map_file,O_RDWR | O_CREAT | O_TRUNC);
+                 file = open(uid_map_file,
+			     O_RDWR | O_CREAT | O_TRUNC, 
+			     S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH );
                  if(file < 0) {
                          dbg("Could not initialize uid map file, %s", uid_map_file );
                                          return(-1);
@@ -409,15 +413,15 @@ static int uid_map_from_file(void)
          return(0);
 
 }
-/**
+/*
  * build_uid_map_data: used by uid_map_from_file(),  recursively 
  * reads map file and builds two hash tables, and EP_XREF data
  * structures
  *
  * @file: key into a GHashTable
  *
- * Return value: None (void).
- **/
+ * Return value: success 0, error -1.
+ */
 static int build_uid_map_data(int file)
 {
         int rval;
@@ -431,7 +435,7 @@ static int build_uid_map_data(int file)
         while ( (rval != EOF) && (rval == sizeof(EP_XREF)) ) {  
 
                 /* copy read record from ep_xref1 to malloc'd ep_xref */
-                ep_xref = (EP_XREF *)malloc(sizeof(EP_XREF));
+                ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
                 if (!ep_xref) 
                         return(-1);
                 memcpy(ep_xref, &ep_xref1, sizeof(EP_XREF));

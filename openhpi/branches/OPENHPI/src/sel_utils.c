@@ -27,7 +27,7 @@
 
 
 /* allocate and initialize an SEL */
-oh_sel *oh_sel_create(void)
+oh_sel *oh_sel_create(SaHpiUint32T size)
 {
         oh_sel *sel;
 
@@ -36,9 +36,11 @@ oh_sel *oh_sel_create(void)
                 sel->enabled = TRUE;
                 sel->overflow = FALSE;
                 sel->deletesupported = FALSE;
+                sel->gentimestamp = TRUE;
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
                 sel->offset = 0;
-                sel->nextId = SAHPI_OLDEST_ENTRY;
+                sel->maxsize = size;
+                sel->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
                 sel->selentries = NULL;
         }
         return sel;
@@ -64,24 +66,38 @@ SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
 {
         SaHpiSelEntryT * myentry;
         time_t tt1;
+        GList *temp;
 
-        if (sel == NULL) {
+        /* check for valid sel params and state */
+        if (sel == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
         if (sel->enabled == FALSE) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
 
+        /* alloc the new entry */
         myentry = (SaHpiSelEntryT *) malloc(sizeof(SaHpiSelEntryT));
         if (myentry == NULL) {
                 sel->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
         }
+
+        /* if necessary, wrap the sel entries */
+        if (sel->maxsize != OH_SEL_MAX_SIZE && g_list_length(sel->selentries) == sel->maxsize) {
+                temp = g_list_first(sel->selentries);
+                sel->selentries = g_list_remove(sel->selentries, temp->data);
+        }
+
+        /* add the new entry */
         entry->EntryId = sel->nextId;
         sel->nextId++;
-        time(&tt1);
-        sel->lastUpdate = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
+        if (sel->gentimestamp) {
+                time(&tt1);
+                sel->lastUpdate = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
+        } else {
+                sel->lastUpdate = entry->Timestamp;
+        }
         entry->Timestamp = sel->lastUpdate;
         memcpy(myentry, entry, sizeof(SaHpiSelEntryT));
         sel->selentries = g_list_append(sel->selentries, myentry);
@@ -109,7 +125,7 @@ SaErrorT oh_sel_clear(oh_sel *sel)
                 sel->enabled = TRUE;
                 sel->overflow = FALSE;
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
-                sel->nextId = SAHPI_OLDEST_ENTRY;
+                sel->nextId = SAHPI_OLDEST_ENTRY + 1; // always start at 1
                 sel->selentries = NULL;
                 return SA_OK;
         }
@@ -118,28 +134,51 @@ SaErrorT oh_sel_clear(oh_sel *sel)
 
 
 /* get an SEL entry */
-SaErrorT oh_sel_get(oh_sel *sel, SaHpiEntryIdT entryid, SaHpiSelEntryIdT *prev,
+SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *prev,
                     SaHpiSelEntryIdT *next, SaHpiSelEntryT **entry)
 {
-        SaHpiSelEntryT * myentry;
+        SaHpiSelEntryT *myentry;
         GList *sellist;
+        SaHpiSelEntryIdT srchentryid, firstid, lastid;
 
-        if (sel == NULL) {
+        if (sel == NULL || prev == NULL || next == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
+        }
+        if (g_list_length(sel->selentries) == 0) {
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+
+        /* get the first and last entry ids for possible translation */
+        sellist = g_list_last(sel->selentries);
+        myentry = (SaHpiSelEntryT *)sellist->data;
+        lastid = myentry->EntryId;
+        sellist = g_list_first(sel->selentries);
+        myentry = (SaHpiSelEntryT *)sellist->data;
+        firstid = myentry->EntryId;
+        if (entryid == SAHPI_NEWEST_ENTRY) {
+                srchentryid = lastid;
+        }
+        else if (entryid == SAHPI_OLDEST_ENTRY) {
+                srchentryid = firstid;
+        }
+        else {
+                srchentryid = entryid;
         }
 
         sellist = g_list_first(sel->selentries);
         while (sellist != NULL) {
                 myentry = (SaHpiSelEntryT *) sellist->data;
-                if (myentry->EntryId == entryid) {
+                if (srchentryid == myentry->EntryId) {
                         *entry = myentry;
-                        if (myentry->EntryId == SAHPI_OLDEST_ENTRY) {
+                        /* is this the first entry? */
+                        if (myentry->EntryId == firstid) {
                                 *prev = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
                                 *prev = myentry->EntryId - 1;
                         }
-                        if (myentry->EntryId == SAHPI_NEWEST_ENTRY) {
+                        /* is this the last entry? */
+                        if (myentry->EntryId == lastid) {
                                 *next = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
@@ -147,9 +186,34 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiEntryIdT entryid, SaHpiSelEntryIdT *prev,
                         }
                         return SA_OK;
                 }
+                else if (entryid < myentry->EntryId) {
+                        return SA_ERR_HPI_NOT_PRESENT;
+                }
                 sellist = g_list_next(sellist);
         }
         return SA_ERR_HPI_NOT_PRESENT;
+}
+
+
+/* get SEL info */
+SaErrorT oh_sel_info(oh_sel *sel, SaHpiSelInfoT *info)
+{
+        time_t tt1;
+
+        if (sel == NULL || info == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        info->Entries = g_list_length(sel->selentries);
+        info->Size = sel->maxsize;
+        info->UpdateTimestamp = sel->lastUpdate;
+        time(&tt1);
+        info->CurrentTime = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
+        info->Enabled = sel->enabled;
+        info->OverflowFlag = sel->overflow;
+        info->OverflowAction = SAHPI_SEL_OVERFLOW_WRAP;
+        info->DeleteEntrySupported = sel->deletesupported;
+        return SA_OK;
 }
 
 
@@ -159,11 +223,11 @@ SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
         int file;
         GList *sellist;
 
-        if (sel == NULL) {
+        if (sel == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC);
+        file = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0660 );
         if (file < 0) {
                 dbg("SEL file '%s' could not be opened", filename);
                 return SA_ERR_HPI_ERROR;
@@ -188,14 +252,13 @@ SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
 SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
 {
         int file;
-        GList * sellist;
         SaHpiSelEntryT entry;
         SaErrorT retc;
 
-        if (sel == NULL) {
+        /* check sel params and state */
+        if (sel == NULL || filename == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-
         if (sel->enabled == FALSE) {
                 return SA_ERR_HPI_INVALID_REQUEST;
         }
@@ -214,6 +277,7 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
                         return retc;
                 }
         }
+        sel->nextId = entry.EntryId + 1;
 
         if(close(file) != 0) {
                 dbg("Couldn't close file '%s'.", filename);
@@ -227,11 +291,24 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
 /* set the SEL timestamp offset */
 SaErrorT oh_sel_timeset(oh_sel *sel, SaHpiTimeT timestamp)
 {
-        if (sel == NULL || timestamp > SAHPI_TIME_MAX_RELATIVE) {
+        if (sel == NULL || timestamp > SAHPI_TIME_MAX_RELATIVE ||
+            timestamp == SAHPI_TIME_UNSPECIFIED) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
         sel->offset = timestamp;
+        return SA_OK;
+}
+
+
+/* set the timestamp generate flag */
+SaErrorT oh_sel_setgentimestampflag(oh_sel *sel, SaHpiBoolT flag)
+{
+        if (sel == NULL) {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
+        sel->gentimestamp = flag;
         return SA_OK;
 }
 

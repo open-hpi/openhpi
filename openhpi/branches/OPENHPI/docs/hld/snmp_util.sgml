@@ -19,11 +19,11 @@
 
 #define     <link linkend="MAX-ASN-STR-LEN-CAPS">MAX_ASN_STR_LEN</link>
 int         <link linkend="snmp-get">snmp_get</link>                        (struct snmp_session *ss,
-                                             const char *objid,
-                                             struct snmp_value *value);
+                                             	const char *objid,
+                                             	struct snmp_value *value);
 int         <link linkend="snmp-set">snmp_set</link>                        (struct snmp_session *ss,
-                                             char *objid,
-                                             struct snmp_value value);
+                                             	char *objid,
+                                             	struct snmp_value value);
 </synopsis>
 </refsynopsisdiv>
 
@@ -45,16 +45,19 @@ logic needed to use straight net-snmp calls from plugin developers.
 <title>Details</title>
 <refsect2>
 <title><anchor id="MAX-ASN-STR-LEN-CAPS">MAX_ASN_STR_LEN</title>
-<programlisting>#define MAX_ASN_STR_LEN 300
+<programlisting>
+#define		MAX_ASN_STR_LEN 300
 </programlisting>
 <para>
 
 </para></refsect2>
 <refsect2>
 <title><anchor id="snmp-get">snmp_get ()</title>
-<programlisting>int         snmp_get                        (struct snmp_session *ss,
-                                             const char *objid,
-                                             struct snmp_value *value);</programlisting>
+<programlisting>
+int	snmp_get	(struct snmp_session *ss,
+			 const char *objid,
+			 struct snmp_value *value);
+</programlisting>
 <para>
 Gets a single value indicated by the objectid using snmp.
 In the case of multiple values being returned, the type in <parameter>value</parameter> will be
@@ -77,9 +80,11 @@ snmp transaction.
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="snmp-set">snmp_set ()</title>
-<programlisting>int         snmp_set                        (struct snmp_session *ss,
-                                             char *objid,
-                                             struct snmp_value value);</programlisting>
+<programlisting>
+int	snmp_set	(struct snmp_session *ss,
+			 char *objid,
+			 struct snmp_value value);
+</programlisting>
 <para>
 Sets a value where indicated by the objectid
 using snmp.</para>

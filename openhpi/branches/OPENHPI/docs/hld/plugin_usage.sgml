@@ -2,9 +2,12 @@
 <!-- $Id$ ........................................ -->
 <!-- 
         (C) Copyright IBM Corp. 2003
+        (C) Copyright FORCE Computers 2004
  
         Authors:
             Sean Dague
+            Thomas Kanngieser
+	    Renier Morales
 
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
@@ -30,7 +33,48 @@
       To add a plugin for usage by OpenHPI one has to add at least 2
       stanzas to the <literal>/etc/openhpi/openhpi.conf</literal>
       file.  These are a <literal>plugin</literal> and
-      <literal>handler</literal> stanza.
+      <literal>handler</literal> stanza.  An example configuration
+      file is shown below.
+    </para>
+    <para>
+  <programlisting role="config">
+# Sample /etc/openhpi/openhpi.conf
+# comments start with # character
+
+plugin libdummy
+
+handler libdummy {
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,2}"
+}          
+
+plugin libsnmp_bc
+
+handler libsnmp_bc {
+          community = "mypass"
+          host = "10.0.0.1"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
+
+handler libsnmp_bc {
+          community = "mypass"
+          host = "10.0.0.21"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,1}"
+}
+  </programlisting>
+    </para>
+    <para>
+      The <literal>plugin</literal> stanza tells OpenHPI that there is
+      a plugin file of the name libsnmp_bc.la in the
+      LTDL_LIBRARY_PATH that it should load on startup.  This path
+      defaults to /usr/lib:/usr/local/lib.
+    </para>
+    <para>
+      The <literal>handler</literal> stanza creates and instance of an
+      OpenHPI plugin.  It includes a block stanza which lets the
+      plugin take those configuration stanzas that it wishes, and use
+      them for instantiation.  At minimum, the entity_root must be
+      specified to instruct OpenHPI where in the Entity hierarchy the
+      entities discovered by the handler should go.
     </para>
   </sect1>
   <sect1>
@@ -62,7 +106,11 @@
     <para>
       The SNMP Blade Center plugin is an SNMP based interface to IBM's
       Blade Center hardware.  Technical information about Blade Center
-      is best found at http://www-1.ibm.com/servers/eserver/bladecenter/.
+      is best found at <ulink
+        url="http://www-1.ibm.com/servers/eserver/bladecenter/"
+        >the Blade Center Home 
+        Page</ulink>.
+      
     </para>
     <para>
       This plugin is called <literal>snmp_bc</literal> in the OpenHPI tree, and will be
@@ -88,7 +136,9 @@
         interface with this plugin properly.  This requires that the
         Management Module firmware be >= 1.0.4.  As of the time of
         this writing 1.0.6 is available and can be found at
-        http://www-3.ibm.com/pc/support/site.wss/document.do?lndocid=MIGR-45487.
+        <ulink
+          url="http://www-3.ibm.com/pc/support/site.wss/document.do?lndocid=MIGR-45487"
+          >the IBM Support Site</ulink>.
         Instructions are included there for upgrading the firmware.
       </para>
       <para>
@@ -104,7 +154,365 @@
     <sect2>
       <title>Configuration</title>
       <para>
-        TBD
+        Below is an example configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libsnmp_bc
+
+handler libsnmp_bc {
+          community = "myc0m"
+          host = "192.168.64.52"
+	  entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
+            </programlisting>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>Watchdog Timer Plugin</title>
+    <para>
+      The watchdog timer plugin provides OpenHPI access to the software
+      watchdog timer "softdog" in the Linux kernel.
+    </para>
+    <para>
+      The watchdog plugin follows the standard plugin naming conventions.  It
+      is called <literal>watchdog</literal> in the OpenHPI tree and should
+      be referenced using <literal>libwatchdog</literal> in OpenHPI configuration
+      files.
+    </para>
+    <para>
+      The watchdog plugin code can be tested using <literal>examples/list_resources.c
+      </literal> as well as <literal>examples/test_watchdog.c</literal> run as root.
+    </para>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+        As with other plugins, the watchdog plugin needs to be enabled during
+        the OpenHPI build process via the configure flag <literal>
+        --enable-watchdog</literal> when running ./configure.
+      </para>
+      <para>
+        The watchdog plugin relies on the softdog functionality, which must be
+        compiled as a module in the Linux kernel (tested with 2.6 kernel).
+      </para>
+      <para>
+        After the watchdog is compiled, it needs to be inserted using <literal>
+        insmod softdog [soft_noboot=1]</literal> as root.  The <literal>
+        soft_noboot=1</literal> option can be used during testing so that the
+        meachine does not reboot.
+      </para>
+      <para>
+	The watchdog module should be created using <literal>mknod /dev/watchdog 
+        c 10 130</literal> as root.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+        Below is an example configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libwatchdog
+
+handler libwatchdog {
+          name="0"
+          addr="/dev/watchdog"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
+        </programlisting>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>Sysfs Plugin</title>
+    <para>
+      The sysfs plugin provides access to the devices on the i2c bus that are
+      exposed by sysfs.  This plugin uses libsysfs to access the sysfs data.
+    </para>
+    <para>
+      The sysfs plugin follows the standard plugin naming conventions.  It
+      is called <literal>sysfs</literal> in the OpenHPI tree and should
+      be referenced using <literal>libsysfs</literal> in OpenHPI configuration
+      files.
+    </para>
+    <para>
+      The sysfs plugin code can be tested using <literal>examples/list_resources.c
+      </literal> and <literal>examples/set_resources.c</literal>.
+    </para>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+        As with other plugins, the sysfs plugin needs to be enabled during
+        the OpenHPI build process via the configure flag <literal>
+        --enable-sysfs</literal> when running ./configure.
+      </para>
+      <para>
+        The sysfs plugin in OpenHPI release 0.4 and later relies on libsysfs 
+        0.3.0 (found in sysutils 0.3.0) 
+        <ulink
+          url="http://linux-diag.sourceforge.net/Sysfsutils.html"
+          >on the Linux Diagnostic Tools project page</ulink>.
+      </para>
+      <para>
+        The sysfs plugin in release 0.3 relies on libsysfs 0.2.0 (found
+        in sysutils 0.2.0) 
+        <ulink
+          url="http://linux-diag.sourceforge.net/Sysfsutils.html"
+          >on the Linux Diagnostic Tools project page</ulink>.
+        Source code for the sysfs plugin that works with libsysfs 0.2.0
+        can be retrieved from OpenHPI cvs using the tag libsysfs0_2_0.
+        libsysfs0.2.0 has two bugs that need to be fixed before using the
+	OpenHPI sysfs plugin.  Applying the two patches below (separate, sorry!)
+	will fix these.  Both issues are fixed in libsysfs 0.3.0.
+	</para>
+        <para>
+        Patch 1:
+        </para>
+        <programlisting role="C">
+--- sysfsutils-0_2_0/lib/sysfs_device.c.orig    2003-10-17 11:25:37.000000000 -0
+700
++++ sysfsutils-0_2_0/lib/sysfs_device.c 2003-10-20 12:41:59.000000000 -0700
+@@ -80,6 +80,7 @@
+                errno = EINVAL;
+                return NULL;
+        }
++       strcpy(attrname, name);
+        dlist_for_each_data(dev->directory->attributes, cur,
+        </programlisting>
+        <para>
+        Patch 2:
+        </para>
+        <programlisting role="C">
+--- sysfs_dir.c.orig    2003-08-29 04:43:27.000000000 -0700
++++ sysfs_dir.c 2003-11-20 11:28:36.000000000 -0800
+@@ -274,6 +274,7 @@
+             errno = EINVAL;
+             return -1;
+        }
++       attr->value = malloc(sizeof(value));
+        strncpy(attr->value,value,sizeof(value));
+        if ((sysfs_write_attribute(attr) != 0 )) {
+             dprintf("Error write to attribute %s\n", attrpath)
+        </programlisting>
+      <para>
+        Follow the libsysfs instructions for installing libsysfs.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+        Below is an example configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libsysfs
+
+handler libsysfs {
+          name="0"
+          addr="0"
+          entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
+        </programlisting>
+      </para>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>IPMI Plugin</title>
+    <para>
+      The IPMI plugin provides access to resources in IPMI capable systems 
+      including Management Controllers (MC), sensors and system event log
+	(SEL).
+    </para>
+    <para>
+	The openHpi plug-in requires OpenIPMI library be installed since it
+	serves as the middle-ware to accessing the IPMI hardware.
+	Currently, we're using the CVS up-to-date code of OpenIPMI.
+    </para>
+    <para>
+	The IPMI plug-in can be tested using the <literal>examples/list_resources</literal>
+	program as well as the HPI utils in the <literal>util</literal> directory.
+	Currently, <literal>GET</literal> functions are enabled and tested for sensors and
+	SEL.
+    </para>
+  <sect2>
+      <title>Prerequisites</title>
+    <para>
+	The IPMI plug-in can be enabled using the <literal>--enable-ipmi</literal> flage 
+	to the <literal>./confiure</literal> script.
+    </para>
+    <para>
+	Before compiling the IPMI plug-in, the OpenIPMI library needs to be installed
+	and available on the system.
+	You can get OpenIPMI from 
+	<ulink 
+		url="http://openipmi.sourceforge.net/"
+	> the OpenIPMI web site.</ulink>  Though, getting the latest code from CVS is advised.
+    </para> 
+   </sect2>
+   <sect2>
+      <title>Configuration</title>
+      <para>
+	  Currently, the OpenHPI IPMI plug-in supports both <literal>"SMI"</literal>
+	  and <literal>"LAN"</literal> access methods to IPMI hardware.
+        Below is an example "SMI" configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libipmi
+
+handler libipmi {
+	name="smi"
+	addr="0"
+	entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+}
+        </programlisting>
+      </para>
+	<para>
+	   And this is an example "LAN" configuration stanza:
+	</para>
+	<para>
+		<programlisting role="config">
+plugin libipmi
+
+handler libipmi {
+	name = lan
+	addr = "IP.ADDRESS.HERE"
+	port = "IPMI LAN PORT NUMBER"
+	auth_type = "STRAIGHT, MD2 or MD5"
+	auth_level= "USER, OPERATOR or ADMIN"
+	username = "YOUR_USER_NAME"
+	password = "YOUR_PASSWORD"
+	entity_root = "{SYSTEM_CHASSIS,0}"
+}
+		</programlisting>
+	</para>
+    </sect2>
+
+  </sect1>
+  <sect1>
+    <title>IPMI Direct Plugin</title>
+    <para>
+      The IPMI Direct plugin provides OpenHPI access to ATCA and
+      IPMI 1.5 systems. The plugin uses multiple threads to
+      communicate to the IPMI hardware. RMCP as well as SMI 
+      (access to IPMI divice driver) are supported for IPMI access.
+      The following features are supported:
+    </para>
+    <itemizedlist mark='opencircle'>
+      <listitem>
+        <para>
+          <emphasis>Sensors</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>FRU inventory data reading</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>ATCA hotswapping</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>System event log</emphasis>
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis>Power and reset states for ATCA</emphasis>
+        </para>
+      </listitem>
+    </itemizedlist>
+    <sect2>
+      <title>Prerequisites</title>
+      <para>
+	The IPMI Direct plugin can be enabled using the <literal>--enable-ipmidirect</literal> flage 
+	to the <literal>./configure</literal> script. It is build by default.
+        A statical linked version of OpenHPI and IPMI Direct can be build with
+        <literal>--enable-ipmidirect=static</literal>.
+      </para>
+      <para>
+        For RMCP password cryption MD2 or MD5 OpenSSL is required.
+        OpenSSL is available at	<ulink url="http://www.openssl.org" </ulink>.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Configuration</title>
+      <para>
+	The IPMI Direct plugin supports <literal>"SMI"</literal>
+	and <literal>"LAN"</literal> access methods to IPMI or ATCA hardware.
+        Below is an example "SMI" configuration stanza:
+      </para>
+      <para>
+        <programlisting role="config">
+plugin libipmidirect
+
+handler libipmidirect {
+	entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+	name="smi"
+	addr="0"
+}
+        </programlisting>
+      </para>
+      <para>
+	The parameter addr is the device number of the IPMI device.
+        For the above example the plugin checks /dev/ipmidev0,
+        /dev/ipmi/0 and /dev/ipmi0 for an IPMI device.
+      </para>
+      <para>
+	And this is an example "LAN" or RMCP configuration stanza:
+      </para>
+      <para>
+		<programlisting role="config">
+plugin libipmidirect
+
+handler libipmidirect {
+	entity_root = "{SYSTEM_CHASSIS,0}"
+	name = lan
+	addr = "IP.ADDRESS.HERE"
+	port = "IPMI LAN PORT NUMBER"
+	auth_type = "NONE STRAIGHT, MD2 or MD5"
+	auth_level= "USER, OPERATOR or ADMIN"
+	username = "YOUR_USER_NAME"
+	password = "YOUR_PASSWORD"
+	IpmiConnectionTimeout = "5000"
+	AtcaConnectionTimeout = "1000"
+	MaxOutstanding = "3"
+	MCC8= "initial_discover poll_alive poll_dead"
+	MCCA= "initial_discover poll_alive poll_dead"
+}
+		</programlisting>
+      </para>
+      <para>
+	ATCA systems are autodetected. The plugin uses different timeouts
+        for IPMI 1.5 and ATCA systems. IpmiConnectionTimeout and AtcaConnectionTimeout
+        are timouts in miliseconds.
+      </para>
+      <para>
+        The plugin uses one thread per Managment Controller (MC). The
+        maximum outstanding IPMI commands can be given by
+        MaxOutstanding. When the plugin has send MaxOutstanding IPMI commands
+        it will block until it receives a reply for an outstanding command
+        or a timeout happens. Then the next command is send.
+      </para>
+      <para>
+        The MCs in ATCA systems are automatic detected.
+        For IPMI 1.5 the plugin needs help by the configuration
+        file. Given the line MCCA="initial_discover poll_alive poll_dead"
+        the plugin checks for an MC at address CA (hexadecimal) at startup.
+        When an MC is found it is alive. poll_alive means that the MC is polled
+        once a second to check if the MC is already there. This is to
+        check for removal of a FRUs. poll_dead is to check insertion of
+        FRUs on IPMI 1.5 systems.
+      </para>
+      <para>
+        More than one handler sections for IPMI Direct plugin are
+        supported. The plugin is known to work on i386 and PPC platforms
+        under linux.
       </para>
     </sect2>
   </sect1>

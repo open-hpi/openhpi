@@ -17,12 +17,12 @@
 #include &lt;glib.h&gt;
 
 
-SaErrorT    <link linkend="oh-uid-initialize">oh_uid_initialize</link>               (void);
-guint       <link linkend="oh-uid-from-entity-path">oh_uid_from_entity_path</link>         (SaHpiEntityPathT *ep);
-guint       <link linkend="oh-uid-remove">oh_uid_remove</link>                   (guint uid);
-guint       <link linkend="oh-uid-lookup">oh_uid_lookup</link>                   (SaHpiEntityPathT *ep);
-guint       <link linkend="oh-entity-path-lookup">oh_entity_path_lookup</link>           (guint *id,
-                                             SaHpiEntityPathT *ep);
+SaErrorT    <link linkend="oh-uid-initialize">oh_uid_initialize</link>			(void);
+guint       <link linkend="oh-uid-from-entity-path">oh_uid_from_entity_path</link>	(SaHpiEntityPathT *ep);
+guint       <link linkend="oh-uid-remove">oh_uid_remove</link>                   	(guint uid);
+guint       <link linkend="oh-uid-lookup">oh_uid_lookup</link>                   	(SaHpiEntityPathT *ep);
+guint       <link linkend="oh-entity-path-lookup">oh_entity_path_lookup</link>          (guint *id,
+                                             	SaHpiEntityPathT *ep);
 </synopsis>
 </refsynopsisdiv>
 
@@ -44,7 +44,9 @@ path provided. You can also look up entity paths by uid and vice versa.
 <title>Details</title>
 <refsect2>
 <title><anchor id="oh-uid-initialize">oh_uid_initialize ()</title>
-<programlisting>SaErrorT    oh_uid_initialize               (void);</programlisting>
+<programlisting>
+SaErrorT	oh_uid_initialize	(void);
+</programlisting>
 <para>
 UID utils initialization routine
 This functions must be called before any other uid_utils
@@ -57,7 +59,9 @@ are made.</para>
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-uid-from-entity-path">oh_uid_from_entity_path ()</title>
-<programlisting>guint       oh_uid_from_entity_path         (SaHpiEntityPathT *ep);</programlisting>
+<programlisting>
+guint		oh_uid_from_entity_path	(SaHpiEntityPathT *ep);
+</programlisting>
 <para>
 Returns a unique uid to be used as a resource id based upon an specified
 entity path.
@@ -77,7 +81,9 @@ uid map file saved on disk.</para>
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-uid-remove">oh_uid_remove ()</title>
-<programlisting>guint       oh_uid_remove                   (guint uid);</programlisting>
+<programlisting>
+guint		oh_uid_remove	(guint uid);
+</programlisting>
 <para>
 This functions removes the uid/entity path
 pair from use and removes the use of the uid forever.
@@ -96,7 +102,9 @@ returning. <link linkend="oh-uid-remove">oh_uid_remove</link>() deletes the pair
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-uid-lookup">oh_uid_lookup ()</title>
-<programlisting>guint       oh_uid_lookup                   (SaHpiEntityPathT *ep);</programlisting>
+<programlisting>
+guint		oh_uid_lookup	(SaHpiEntityPathT *ep);
+</programlisting>
 <para>
 Fetches resourceID/uid based on entity path in <parameter>ep</parameter>.</para>
 <para>
@@ -110,8 +118,10 @@ Fetches resourceID/uid based on entity path in <parameter>ep</parameter>.</para>
 </variablelist></refsect2>
 <refsect2>
 <title><anchor id="oh-entity-path-lookup">oh_entity_path_lookup ()</title>
-<programlisting>guint       oh_entity_path_lookup           (guint *id,
-                                             SaHpiEntityPathT *ep);</programlisting>
+<programlisting>
+guint		oh_entity_path_lookup	(guint *id,
+					 SaHpiEntityPathT *ep);
+</programlisting>
 <para>
 Fetches entity path based upon resource id, <parameter>id</parameter>.</para>
 <para>

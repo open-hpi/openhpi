@@ -1,5 +1,5 @@
 <!-- ...................................................................... -->
-<!-- File bookinfo.dtd .................................................... -->
+<!-- $Id$ .................................................... -->
 <!-- 
         This material may be distributed only subject to the terms and 
         conditions set forth in the Open Publication License, v1.0 or later 
@@ -13,9 +13,10 @@
 -->
 
 <bookinfo>
-  <date>March 18, 2003</date>
-  <title>OpenHPI High-Level Design</title>
-  <subtitle>An Implementation of SAForum's Hardware Platform Interface</subtitle>
+  <date>October 8, 2003</date>
+  <title>OpenHPI Manual</title>
+  <!-- <subtitle>An Open Source Implementation of the Service
+Availability Forum's Hardware Platform Interface</subtitle> -->
     &openhpi-authors;
     &openhpi-copyrights;
     &openhpi-legal-notice;

@@ -12,6 +12,11 @@
  *     Julie Fleischer <julie.n.fleischer@intel.com>
  */
 
+/* set_resources.c - This program was put together from
+ * list_resources.c to test setting thresholds in the
+ * sysfs plugin.  It should be able to work for other plugins
+ * too, but you may want to change the test cases.
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <SaHpi.h>
@@ -213,18 +218,83 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
 	SaHpiSensorReadingT	reading;
 	SaHpiSensorTypeT	sensor_type;
-	SaHpiSensorNumT		sensor_num[20];
+	SaHpiSensorNumT		sensor_num;
 	SaHpiEventCategoryT	category;
 	SaHpiSensorThresholdsT	thres; 
+	
+	int i=0;
+	static int maxtest = 6;
 	static SaHpiSensorThresholdsT	thresset[] = {
+		/* 0 - raw LowCritical and UpCritical readings */
 		{
 			.LowCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 1000
+				.Raw = 10000
 			},
 			.UpCritical = {
 				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 3000
+				.Raw = 30000
+			}
+		},
+		/* 1 - raw LowCritical, interpreted UpCritical */
+		{
+			.LowCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 22000
+			},
+			.UpCritical = {
+				.ValuesPresent = SAHPI_SRF_INTERPRETED,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_UINT32,
+					.Value.SensorUint32 = 50
+				}
+			}
+		},
+		/* 2 - no LowCritical, raw UpCritical */
+		{
+			.UpCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 77000
+			}
+		},
+		/* 3 - interpreted LowCritical, no UpCritical */
+		{
+			.LowCritical = {
+				.ValuesPresent = SAHPI_SRF_INTERPRETED,
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_UINT32,
+					.Value.SensorUint32 = 20
+				}
+			}
+		},
+		/* 4 - no LowCritical, no UpCritical */
+		{
+			.LowMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 81000
+			},
+			.UpMajor = {
+				.ValuesPresent = SAHPI_SRF_RAW,
+				.Raw = 85000
+			}
+		},
+		/* 5 - raw and interpreted LowCritical, raw and interpreted UpCritical */
+		{
+			.LowCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 19000, /* don't make raw/interpreted match for easier validation */
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_UINT32,
+					.Value.SensorUint32 = 20
+				}
+			},
+			.UpCritical = {
+				.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
+				.Raw = 55000, /* don't make raw/interpreted match for easier validation */
+				.Interpreted = {
+					.Type = SAHPI_SENSOR_INTERPRETED_TYPE_UINT32,
+					.Value.SensorUint32 = 50
+				}
 			}
 		}
 	};
@@ -245,25 +315,24 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 
                 printf("\tRecordId: %x\n", rdr.RecordId);
 		
-		int i = 0;
 		if (rdr.RdrType == SAHPI_SENSOR_RDR)
 		{			
 			SaErrorT val;
 			
-			sensor_num[i] = rdr.RdrTypeUnion.SensorRec.Num;
+			sensor_num = rdr.RdrTypeUnion.SensorRec.Num;
 			
 			val = saHpiSensorTypeGet(session_id, resource_id, 
-						 sensor_num[i], &sensor_type, 
+						 sensor_num, &sensor_type, 
 						 &category);
 			
-			printf("\tSensor num: %i\n\tType: %s\n", sensor_num[i], get_sensor_type(sensor_type)); 
+			printf("\tSensor num: %i\n\tType: %s\n", sensor_num, get_sensor_type(sensor_type)); 
 			printf("\tCategory: %s\n", get_sensor_category(category)); 
 
 			memset(&reading, 0, sizeof(SaHpiSensorReadingT));
 
-			err = saHpiSensorReadingGet(session_id, resource_id, sensor_num[i], &reading);
+			err = saHpiSensorReadingGet(session_id, resource_id, sensor_num, &reading);
 			if (err != SA_OK) {
-				printf("Error=%d reading sensor data {sensor, %d}\n", err, sensor_num[i]);
+				printf("Error=%d reading sensor data {sensor, %d}\n", err, sensor_num);
 				continue;
 			}
 
@@ -284,31 +353,32 @@ void list_rdr(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
 			if (rdr.RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
                                 memset(&thres, 0, sizeof(SaHpiSensorThresholdsT));
-				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num[i], &thres);
+				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num, &thres);
 				if (err != SA_OK) {
-					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num[i]);
+					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num);
 					continue;
 				}
 				
 				printf("Threshold data received.\n");
 				printthresholds(thres);
 				printf("Threshold data to set to.\n");
-				printthresholds(thresset[0]);
-				err = saHpiSensorThresholdsSet(session_id, resource_id, sensor_num[i], &thresset[0]);
+				printthresholds(thresset[i]);
+				err = saHpiSensorThresholdsSet(session_id, resource_id, 
+						sensor_num, &thresset[i]);
 				if (err != SA_OK) {
-					printf("Error=%d setting sensor thresholds {sensor, %d}\n", err, sensor_num[i]);
-					continue;
+					printf("Error=%d setting sensor thresholds {sensor, %d}\n", err, sensor_num);
 				}
 				printf("Threshold data received.\n");
-				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num[i], &thres);
+				err = saHpiSensorThresholdsGet(session_id, resource_id, sensor_num, &thres);
 				if (err != SA_OK) {
-					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num[i]);
+					printf("Error=%d reading sensor thresholds {sensor, %d}\n", err, sensor_num);
 					continue;
 				}
 				printthresholds(thres);
 			}
 		}
 		i++;
+		i = (i<maxtest) ? i : maxtest;
 		
                 printf("\n"); /* Produce blank line between rdrs. */
         }while(next_rdr != SAHPI_LAST_ENTRY);

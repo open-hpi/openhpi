@@ -28,28 +28,52 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
- 
+DIAGRAMS = $(shell echo $(srcdir)/images/*png $(srcdir)/images/*gif) 
 
-MAINTAINERCLEANFILES 	= Makefile.in 
+SERVER = shell1.sourceforge.net
+HLDDIR = /home/groups/o/op/openhpi/htdocs/manual
 
-openhpi_docsdir		= $(datadir)/openhpi/docs
+MAINTAINERCLEANFILES 	= Makefile.in  
 
-openhpi_docs_DATA	= \
-				OpenHPI_HLD/book1.html
+openhpi_docsdir		= $(datadir)/openhpi/docs/hld
 
-SGML_FILES		= OpenHPI_HLD.sgml
+#openhpi_docs_DATA	= openhpi-manual/book1.html 
 
-EXTRA_DIST		= implementation_view.png \
-                          physical_view.png       \
-                          domain_view.png	  \
-                          hld_diagram.gif
+SGML_FILES              = $(shell echo $(srcdir)/*.dtd) $(shell echo $(srcdir)/*.sgml)
+
+EXTRA_DIST		= $(DIAGRAMS) $(SGML_FILES)
 
 all:
 
-OpenHPI_HLD/book1.html: $(SGML_FILES)
-	-db2html OpenHPI_HLD.sgml
-	-cp *.png OpenHPI_HLD
-	-cp *.gif OpenHPI_HLD
+pdf-am:
+	@echo we have to do this twice to get the latex refs right
+	db2pdf openhpi-manual.sgml
+	db2pdf openhpi-manual.sgml
+
+ps-am:
+	@echo we have to do this twice to get the latex refs right
+	db2ps openhpi-manual.sgml
+	db2ps openhpi-manual.sgml
+
+#function_docs.sgml:
+#	find $(top_srcdir) -name \*\.c | xargs gnome-doc -docbook > function_docs.sgml
+
+openhpi-manual/book1.html: $(SGML_FILES)
+	-db2html openhpi-manual.sgml
+	-mkdir -p openhpi-manual/images
+	-cp $(DIAGRAMS) openhpi-manual/images
+
+publish: openhpi-manual/book1.html
+	-./htmlfilter.pl $(shell echo $(srcdir)/openhpi-manual/*html)
+	-chmod a+x $(shell echo $(srcdir)/openhpi-manual/*html)
+	if test ! -e openhpi-manual/book1.html; then \
+		ln openhpi-manual/index.html openhpi-manual/book1.html; \
+	fi;
+	-echo "XBitHack on" > openhpi-manual/.htaccess
+	-rsync -e ssh -rP --delete openhpi-manual/ $(SERVER):$(HLDDIR)
+	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -exec chmod g+w {} \;"
+	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -type d -exec chmod g+s {} \;"
 
 clean:
-	rm -fR OpenHPI_HLD
+	rm -fR openhpi-manual
+	rm -f *~ *.tex *.aux *.log *.out

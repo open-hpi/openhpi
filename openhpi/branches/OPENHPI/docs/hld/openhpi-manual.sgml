@@ -32,10 +32,16 @@
 
 <!ENTITY chapter1 SYSTEM "bookinfo.sgml">
 <!ENTITY chapter2 SYSTEM "introduction.sgml">
-<!ENTITY chapter3 SYSTEM "sahpi_breakdown.sgml">
-<!ENTITY chapter4 SYSTEM "openhpi_highlevel.sgml">
-<!ENTITY chapter5 SYSTEM "openhpi_structure.sgml">
-<!ENTITY chapter6 SYSTEM "plugin_usage.sgml">
+<!ENTITY chapter3 SYSTEM "obtaining.sgml">
+<!ENTITY chapter4 SYSTEM "sahpi_breakdown.sgml">
+<!ENTITY chapter5 SYSTEM "openhpi_highlevel.sgml">
+<!ENTITY chapter6 SYSTEM "openhpi_structure.sgml">
+<!ENTITY chapter7 SYSTEM "plugin_usage.sgml">
+<!ENTITY chapter8 SYSTEM "plugin_guide.sgml">
+<!ENTITY snmp_util SYSTEM "snmp_util.sgml">
+<!ENTITY rpt_utils SYSTEM "rpt_utils.sgml">
+<!ENTITY epath_utils SYSTEM "epath_utils.sgml">
+<!ENTITY uid_utils SYSTEM "uid_utils.sgml">
 <!ENTITY appendix SYSTEM "appendix.sgml">
 ]>
 
@@ -51,6 +57,8 @@
         &chapter4;
         &chapter5;
         &chapter6;
+        &chapter7;
+        &chapter8;
         &appendix;
 </book>
       
