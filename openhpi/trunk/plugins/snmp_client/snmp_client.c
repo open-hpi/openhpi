@@ -33,16 +33,10 @@
 #include <snmp_client_utils.h>
 #include <sc_sensor_data.h>
 
-#define DEMO_USE_SNMP_VERSION_3
-//#undef  DEMO_USE_SNMP_VERSION_3
 /**
  * snmp_client_open: open snmp blade center plugin
  * @handler_config: hash table passed by infrastructure
  **/
- 
-//char our_v3_passphrase[] = "openhpiv3";
-char Apsz[] = "my_password";
-char Xpsz[] = "my_password";
 
 static void *snmp_client_open(GHashTable *handler_config)
 {
