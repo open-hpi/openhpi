@@ -169,7 +169,7 @@ int main(int argc, char **argv)
 		}
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_INT64 testcase */
-		expected_str = "20 VOLTS";
+		expected_str = "20 Volts";
 		reading_test = reading_default;
 		format_test = format_default;
 		
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
                 }
 		
 		/* oh_sensorreading: SAHPI_SMUU_BASIC_OVER_MODIFIER testcase */
-		expected_str = "20 VOLTS / WEEK";
+		expected_str = "20 Volts / Week";
 		reading_test = reading_default;
 		format_test = format_default;
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SMUU_BASIC_TIMES_MODIFIER testcase */
-		expected_str = "20 VOLTS * WEEK";
+		expected_str = "20 Volts * Week";
 		reading_test = reading_default;
 		format_test = format_default;
 		format_test.ModifierUnits = SAHPI_SU_WEEK;
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_UINT64 testcase */
-		expected_str = "20 VOLTS";
+		expected_str = "20 Volts";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_UINT64;
 		reading_test.Value.SensorUint64 = 20;
@@ -269,7 +269,7 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_FLOAT64 testcase */
-		expected_str = "2.020000e+01 VOLTS";
+		expected_str = "2.020000e+01 Volts";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_FLOAT64;
 		reading_test.Value.SensorFloat64 = 20.2;
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
                 }
 
 		/* oh_sensorreading: SAHPI_SENSOR_READING_TYPE_BUFFER testcase */
-		expected_str = "22222222222222222222222222222222 VOLTS";
+		expected_str = "22222222222222222222222222222222 Volts";
 		reading_test = reading_default;
 		reading_test.Type = SAHPI_SENSOR_READING_TYPE_BUFFER;
 		memset(reading_test.Value.SensorBuffer, 0x32, SAHPI_SENSOR_BUFFER_LENGTH);
