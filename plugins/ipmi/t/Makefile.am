@@ -34,10 +34,12 @@ noinst_PROGRAMS         = ipmi_thres_test
 INCLUDES                = @OPENHPI_INCLUDES@
 AM_CFLAGS               = -g
 
+LD_DIRS			= -L$(top_builddir)/src -L$(top_builddir)/utils
+
 #noinst_PROGRAMS         = set_thres
 
 ipmi_thres_test_SOURCES	= ipmi_thres_test.c	
-ipmi_thres_test_LDADD	= -luuid -lopenhpiutils -lopenhpi
+ipmi_thres_test_LDADD	= $(LD_DIRS) -luuid -lopenhpiutils -lopenhpi
 
 #set_thres_SOURCES       = set_thres.c
 #set_thres_LDADD        = $(top_builddir)/src/libopenhpi.la
