@@ -112,7 +112,7 @@ int add_domain(SaHpiDomainIdT did)
 }
 
 
-void cleanup_domain(void)
+void oh_cleanup_domain(void)
 {
         data_access_lock();
 

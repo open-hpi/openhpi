@@ -333,7 +333,7 @@ int session_has_event(struct oh_session *s);
 struct oh_domain *get_domain_by_id(SaHpiDomainIdT did);
 int is_in_domain_list(SaHpiDomainIdT domain_id);
 int add_domain(SaHpiDomainIdT domain_id);
-void cleanup_domain(void);
+void oh_cleanup_domain(void);
 
 
 struct oh_resource *get_resource(SaHpiResourceIdT rid);

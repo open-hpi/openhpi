@@ -268,7 +268,7 @@ SaErrorT SAHPI_API saHpiFinalize(void)
         oh_unload_config();
 
         /* free domain list */
-        cleanup_domain();
+        oh_cleanup_domain();
 
         oh_hpi_state = OH_STAT_UNINIT;
 
