@@ -166,6 +166,8 @@ static void add_alarm_rdr(char 				*name,
         rdr->RdrTypeUnion.CtrlRec.Type         = SAHPI_CTRL_TYPE_DIGITAL;
         rdr->RdrTypeUnion.CtrlRec.OutputType   = SAHPI_CTRL_LED; 
         rdr->RdrTypeUnion.CtrlRec.Oem          = OEM_ALARM_BASE + num;
+	/* FIXME: OpenIPMI does not provide a reading */
+        rdr->RdrTypeUnion.CtrlRec.WriteOnly    = SAHPI_FALSE;
 
         oh_add_rdr(handler->rptcache, rptid, rdr, control_id, 1);
 	dbg("add_alarm_rdr: %s\n",name); 
