@@ -27,6 +27,10 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-EXTRA_PROGRAMS = openhpi-switcher
+bin_SCRIPT = openhpi-switcher
+
+install-exec-local: openhpi-switcher
+	$(install_sh_SCRIPT) openhpi-switcher $(DESTDIR)$(bindir)
+
 
 .PHONY: FORCE
