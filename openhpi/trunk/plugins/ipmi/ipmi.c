@@ -638,6 +638,8 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 	switch (current) {
 		case SAHPI_OLDEST_ENTRY:
 			ohoi_get_sel_first_entry(ohoi_res_info->u.mc_id, &event);
+			if (!event)
+				return SA_ERR_HPI_NOT_PRESENT;
 
 			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
@@ -648,6 +650,8 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 		case SAHPI_NEWEST_ENTRY:
 
 			ohoi_get_sel_last_entry(ohoi_res_info->u.mc_id, &event);
+			if (!event)
+				return SA_ERR_HPI_NOT_PRESENT;
 
 			*next = SAHPI_NO_MORE_ENTRIES;
 
@@ -657,12 +661,14 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 
 		case SAHPI_NO_MORE_ENTRIES:
 			dbg("SEL is empty!");
-
-			goto out;
+			if (!event)
+				return SA_ERR_HPI_NOT_PRESENT;
 
 		default:                		
 			/* get the entry requested by id */
 			ohoi_get_sel_by_recid(ohoi_res_info->u.mc_id, *next, &event);
+			if (!event)
+				return SA_ERR_HPI_NOT_PRESENT;
 			ohoi_get_sel_next_recid(ohoi_res_info->u.mc_id, event, next);
 
 			ohoi_get_sel_prev_recid(ohoi_res_info->u.mc_id, event, prev);
@@ -670,6 +676,8 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
 			break; 
 
 	}
+	if (!event)
+		return SA_ERR_HPI_NOT_PRESENT;
 
 	entry->Event.Source = SAHPI_UNSPECIFIED_RESOURCE_ID;
         entry->Event.EventType = SAHPI_ET_USER;
@@ -685,7 +693,6 @@ static int ipmi_get_el_entry(void *hnd, SaHpiResourceIdT id,
         memcpy(entry->Event.EventDataUnion.UserEvent.UserEventData.Data,
                ipmi_event_get_data_ptr(event), 
                ipmi_event_get_data_len(event));	
-out:
 		
 	return 0;		
 }
@@ -708,8 +715,10 @@ static SaErrorT ipmi_clear_el(void *hnd, SaHpiResourceIdT id)
 
         rv = ohoi_clear_sel(ohoi_res_info->u.mc_id, ipmi_handler);
 
-	if (rv != SA_OK)
+	if (rv != SA_OK) {
 		dbg("Error in attempting to clear sel");
+		return rv;
+	}
 
 	while (0 == ipmi_handler->sel_clear_done) {
 		rv = sel_select(ipmi_handler->ohoi_sel, NULL, 0 , NULL, NULL);
