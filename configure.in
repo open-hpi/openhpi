@@ -34,20 +34,83 @@ have_uuid=no
 have_openipmi=no
 have_sysfs=no
 
+dnl Check for GLIB
+
 AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
 
 if test "x$found_pkg_config" != "xyes"; then
     OH_CHECK_FAIL(pkg-config,pkg-config)
 fi
 
-AC_CHECK_LIB([glib], [g_slist_alloc], 
-    [
-     GLIBFLAGS=`pkg-config --cflags glib`
-     GLIBLIBS=`pkg-config --libs glib`
-    ],
-    [
-    OH_CHECK_FAIL(glib,glib-devel)
-    ])
+GLIB_REQUIRED_VERSION=2.0.0
+
+AC_ARG_WITH([glib],
+[[  --with-glib=VERSION     use glib version >= VERSION [default=2.0.0]]],
+[GLIB_REQUIRED_VERSION=$withval], 
+        [if pkg-config --atleast-version 2.0.0 glib-2.0; then
+                GLIB_REQUIRED_VERSION=2.0.0;
+        elif pkg-config --atleast-version 1.0.0 glib; then
+                GLIB_REQUIRED_VERSION=1.0.0;
+        else
+                AC_MSG_ERROR([
+*** GLIB is required. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+        fi])
+
+case "$GLIB_REQUIRED_VERSION" in
+    1*)
+        dnl check for glib >= 1.0
+        AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
+
+        if test "x$found_pkg_config" != "xyes"; then
+            OH_CHECK_FAIL(pkg-config,pkg-config)
+        fi
+
+        AC_MSG_CHECKING(for GLIB - version >= $GLIB_REQUIRED_VERSION)
+
+        if pkg-config --atleast-version $GLIB_REQUIRED_VERSION glib; then
+            exact_version=`pkg-config --modversion glib`;
+            AC_MSG_RESULT(yes (version $exact_version))
+        else
+            AC_MSG_ERROR([
+*** GLIB $GLIB_REQUIRED_VERSION or better is required. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.])
+        fi
+
+        GLIB_CFLAGS=`pkg-config --cflags glib`
+        GLIB_LIBS=`pkg-config --libs glib`
+
+        dnl if the glib is installed on a non standard place
+        dnl like /opt/gnome/lib AC_CHECK_LIB will find the library.
+        old_cflags=$CFLAGS
+        old_libs=$LIBS
+
+        CFLAGS="$CFLAGS $GLIB_CFLAGS"
+        LIBS="$LIBS $GLIB_LIBS"
+
+        AC_CHECK_LIB([glib], [g_slist_alloc], [],
+        [
+        OH_CHECK_FAIL(glib,glib-devel)
+        ])
+
+        CFLAGS=$old_cflags
+        LIBS=$old_libs
+        ;;
+    2*)
+        dnl check for glib >= 2.0
+        AM_PATH_GLIB_2_0($GLIB_REQUIRED_VERSION, :,
+            AC_MSG_ERROR([
+*** GLIB $GLIB_REQUIRED_VERSION or better is required. The latest version of
+*** GLIB is always available from ftp://ftp.gtk.org/.]),
+                         gobject gmodule)
+        ;;
+    *)
+        dnl unknown glib version
+        AC_MSG_ERROR([
+*** unknown GLIB $GLIB_REQUIRED_VERSION version. Try to use glib 1.2 or 2.0.])
+        ;;
+esac
+
 
 AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
     OH_CHECK_FAIL(libltdl,libltdl-devel,,
@@ -231,12 +294,12 @@ CC_WARNINGS="-Wall -Wmissing-prototypes \
 	-Wpointer-arith \
 	-Wcast-qual -Wcast-align \
 	-Werror"
-CFLAGS="$CFLAGS $GLIBFLAGS $CC_WARNINGS"
+CFLAGS="$CFLAGS $GLIB_CFLAGS $CC_WARNINGS"
 if test "x$THREAD_SAFE" = "xyes" ; then
         CFLAGS="$CFLAGS -D_GNU_SOURCE -D_REENTRANT -fexceptions"
 fi
 
-LIBS="$LIBS $GLIBLIBS -lm"
+LIBS="$LIBS $GLIB_LIBS -lm"
 if test "x$THREAD_SAFE" = "xyes" ; then
         LIBS="$LIBS -lpthread"
 fi
