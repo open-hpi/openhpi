@@ -39,7 +39,6 @@ static void close_connection(ipmi_domain_t *domain, void *user_data)
 void ohoi_close_connection(ipmi_domain_id_t domain_id, void *user_data)
 {
 	int rv, close_flag = 0;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)user_data;
 
 	dbg("ohoi_close_connection");
 
@@ -50,7 +49,6 @@ void ohoi_close_connection(ipmi_domain_id_t domain_id, void *user_data)
 		return;
 	}
 
-	while (close_flag != 1) {
-		sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, NULL);
-	}
+	/* Removed while(!close_flag)/sel_select loop, fix for bug 1029028. */
+	sleep(1);   
 }
