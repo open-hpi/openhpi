@@ -16,6 +16,7 @@
  *     Rusty Lynch
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <oh_config.h>
 #include <openhpi.h>
@@ -101,13 +102,20 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         struct oh_handler_config *tmph;
       
         int i;
+	char *openhpi_conf;
         
         if (OH_STAT_UNINIT != oh_hpi_state) {
                 dbg("Cannot initialize twice");
                 return SA_ERR_HPI_DUPLICATE;
         }
        	
-        if (oh_load_config(OH_DEFAULT_CONF)<0) {
+	openhpi_conf = getenv("OPENHPI_CONF");
+        
+	if (openhpi_conf == NULL) {
+		openhpi_conf = g_strdup(OH_DEFAULT_CONF);
+	}	
+	
+        if (oh_load_config(openhpi_conf)<0) {
                 dbg("Can not load config");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
@@ -137,6 +145,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                 }
         }
         
+	free(openhpi_conf);
 	oh_hpi_state = OH_STAT_READY;
         return SA_OK;
 }
