@@ -245,7 +245,11 @@ struct oh_resource {
 	/*
 	  this is counter for rdr
 	 */
-	SaHpiSensorNumT	 sensor_counter; 
+	SaHpiSensorNumT		sensor_counter;
+	SaHpiCtrlNumT		ctrl_counter;
+	SaHpiWatchdogNumT	watchdog_counter;
+	SaHpiEirIdT		inventory_counter;
+
 };
 
 struct oh_rdr {
