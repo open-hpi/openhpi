@@ -25,6 +25,7 @@
 
 void process_hotswap_policy(void)
 {
+#if 0
         SaHpiTimeT cur, est;
         struct oh_hpi_event e;
         struct oh_resource *res;
@@ -38,7 +39,7 @@ void process_hotswap_policy(void)
                         return;
                 }
         
-                res = get_res_by_oid(e.parent);
+                res = oh_get_res_by_oid(e.parent);
                 if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) {
                         dbg("Non-hotswapable resource?!");
                         return;
@@ -72,6 +73,7 @@ void process_hotswap_policy(void)
                         dbg();
                 }
         }
+#endif
 }
 
 static GSList *hs_eq=NULL;

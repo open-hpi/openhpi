@@ -1020,38 +1020,31 @@ SaErrorT SAHPI_API saHpiRdrGet (
                 SAHPI_OUT SaHpiEntryIdT *NextEntryId,
                 SAHPI_OUT SaHpiRdrT *Rdr)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;     
-        unsigned int no;
-        
+        RPTable *rpt = &default_rpt;
+        SaHpiRdrT *rdr_cur;
+        SaHpiRdrT *rdr_next;
+
         data_access_lock();
         
-        OH_GET_RESOURCE;
-
-        switch (EntryId) {
-        case SAHPI_FIRST_ENTRY:
-                no = 0;
-                break;
-        default:
-                no = EntryId - entry_id_offset;
-                break;
+        if(EntryId == SAHPI_FIRST_ENTRY) {
+                rdr_cur = oh_get_rdr_next(rpt, ResourceId, RDR_BEGIN);
+        } else {
+                rdr_cur = oh_get_rdr_by_id(rpt, ResourceId, EntryId);
         }
-        
-        if (no>=g_slist_length(res->rdr_list)) {
-                dbg("Invalid EntryId");
+
+        if(rdr_cur == NULL) {
+                dbg("No RDR available");
                 data_access_unlock();
                 return SA_ERR_HPI_INVALID;
         }
-
-        rdr = g_slist_nth_data(res->rdr_list, no);
-        memcpy(Rdr, &rdr->rdr, sizeof(*Rdr));
         
-        no++;
-                
-        if (no < g_slist_length(res->rdr_list)) {
-                *NextEntryId = no+entry_id_offset;
-        } else {
+        memcpy(Rdr, rdr_cur, sizeof(*Rdr));
+
+        rdr_next = oh_get_rdr_next(rpt, ResourceId, rdr_cur->RecordId);
+        if(rdr_next == NULL) {
                 *NextEntryId = SAHPI_LAST_ENTRY;
+        } else {
+                *NextEntryId = rdr_next->RecordId;
         }
         
         data_access_unlock();
@@ -1067,15 +1060,9 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
                 SAHPI_IN SaHpiSensorNumT SensorNum,
                 SAHPI_OUT SaHpiSensorReadingT *Reading)
 {
-        struct oh_resource *res;
-        struct oh_rdr *rdr;
-
-        int (*get_func) (void *, struct oh_rdr_id, SaHpiSensorReadingT *);
-
-        OH_GET_RESOURCE;
-
-        rdr = get_rdr(res, SAHPI_SENSOR_RDR, SensorNum);
-
+        int (*get_func) (void *, SaHpiResourceIdT, SaHpiSensorNumT, SaHpiSensorReadingT *);
+        
+        
         if (!rdr)
                 return SA_ERR_HPI_INVALID_PARAMS;
 
