@@ -32,6 +32,7 @@ DIAGRAMS = $(shell echo $(srcdir)/images/*png $(srcdir)/images/*gif)
 
 SERVER = shell1.sourceforge.net
 HLDDIR = /home/groups/o/op/openhpi/htdocs/manual
+SFUSER = $(shell if test $(SFUID) != "" > /dev/null 2>&1; then echo $(SFUID); else echo $(USER); fi;)
 
 MAINTAINERCLEANFILES 	= Makefile.in  
 
@@ -59,20 +60,22 @@ ps-am:
 #	find $(top_srcdir) -name \*\.c | xargs gnome-doc -docbook > function_docs.sgml
 
 openhpi-manual/book1.html: $(SGML_FILES)
-	-db2html openhpi-manual.sgml
+	-db2html -o openhpi-manual openhpi-manual.sgml
 	-mkdir -p openhpi-manual/images
 	-cp $(DIAGRAMS) openhpi-manual/images
 
-publish: openhpi-manual/book1.html
+publish-local: clean-local openhpi-manual/book1.html
 	-./htmlfilter.pl $(shell echo $(srcdir)/openhpi-manual/*html)
 	-chmod a+x $(shell echo $(srcdir)/openhpi-manual/*html)
 	if test ! -e openhpi-manual/book1.html; then \
 		ln openhpi-manual/index.html openhpi-manual/book1.html; \
 	fi;
+
+publish: publish-local
 	-echo "XBitHack on" > openhpi-manual/.htaccess
-	-rsync -e ssh -rP --delete openhpi-manual/ $(SERVER):$(HLDDIR)
-	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -exec chmod g+w {} \;"
-	-ssh $(SERVER) "find $(HLDDIR) -user `whoami` -type d -exec chmod g+s {} \;"
+	-rsync -e ssh -rP --delete openhpi-manual/ $(SFUSER)@$(SERVER):$(HLDDIR)
+	-ssh $(SFUSER)@$(SERVER) "find $(HLDDIR) -user $(SFUSER) -exec chmod g+w {} \;"
+	-ssh $(SFUSER)@$(SERVER) "find $(HLDDIR) -user $(SFUSER) -type d -exec chmod g+s {} \;"
 
 clean-local:
 	rm -fR openhpi-manual
