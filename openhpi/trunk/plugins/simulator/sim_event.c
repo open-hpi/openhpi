@@ -75,7 +75,7 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         sprintf(path, "%s/%s", root_path, fe->filename);
         pdir = opendir(path);
         if (!pdir) {
-            printf("%s is not directory\n", path);
+            error("%s is not directory\n", path);
             g_free(path);
             return -1;
         }
@@ -93,7 +93,13 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
         rid = oh_uid_from_entity_path(&rpt->ResourceEntity);
         rpt->ResourceId = rid;
 
-        sim_util_add_resource(feh->ohh->rptcache, rpt, g_strdup(fe->filename));
+        retval = sim_util_add_resource(feh->ohh->rptcache, rpt, g_strdup(fe->filename));
+        if (retval) {
+              g_free(path);
+              g_free(event);
+              return -1;
+        }
+
         sim_util_insert_event(&feh->ohh->eventq, event);
         trace("add resource:%x\n", rid);        
 
@@ -122,12 +128,13 @@ static int fhs_event_add_resource(struct fe_handler *feh, char *res, FAMEvent *f
                         sid = g_malloc0(sizeof(*sid));
                         sid->rid = rid;
                         sid->index = index;
-                        sid->reqnum = fe->fr.reqnum;
-                        trace("monitor sensor:(%x,%s)\n", rid, pd->d_name);
+                        sid->reqnum = fr.reqnum;
+                        trace("monitor sensor:(%x,%s) req:%d\n", rid, pd->d_name, sid->reqnum);
                 }
            
-                sim_util_insert_event(&feh->ohh->eventq, event);
-                sim_util_add_rdr(feh->ohh->rptcache, rid, rdr, sid);
+                retval = sim_util_add_rdr(feh->ohh->rptcache, rid, rdr, sid);
+                if (!retval) 
+                        sim_util_insert_event(&feh->ohh->eventq, event);
         }
         closedir(pdir);
         g_free(path);
@@ -139,7 +146,6 @@ static void fhs_event_remove_resource(struct fe_handler *feh, FAMEvent *fe)
         SaHpiResourceIdT  rid;
         int retval;
     
-        trace("remove file :%s\n", fe->filename);    
         event = g_malloc0(sizeof(*event));
      
         if (event == NULL)
@@ -162,7 +168,6 @@ static void fhs_event_sensor_update(struct fe_handler *feh, FAMEvent *fe)
 {
         sim_rdr_id_t  *sid;
 
-        trace("update sensor :%s\n", fe->filename);
         sid = sim_util_get_rdr_id(feh->ohh->rptcache, fe->fr.reqnum);
         if (sid) {
                 trace("update sensor(%x,%x)\n", sid->rid, sid->eid);  
@@ -203,7 +208,6 @@ static void* fhs_event_process(void *data)
                 if (1 == FAMPending(&fc)) {
                         FAMNextEvent(&fc, &fe);
                 }else  continue; 
-                printf("change file:%s\n", fe.filename);
 
                 if ((fe.userdata == REQ_RES) &&
                     ((fe.code == FAMCreated) || (fe.code == FAMExists))) {
@@ -224,7 +228,6 @@ static void* fhs_event_process(void *data)
         }
            
         FAMClose(&fc);
-        printf("event process finished\n");
         return 0;
 }
 
