@@ -24,8 +24,11 @@
 
 /* sd: I think we need global mappings here, we'll need to 
    address this issue later */
+#if 0
 static SaHpiDomainIdT dcounter = SAHPI_DEFAULT_DOMAIN_ID;
+#endif
 
+#if 0
 int reset_domain_list(void) 
 {
         SaHpiDomainIdT *temp;
@@ -41,6 +44,8 @@ int reset_domain_list(void)
         return 0;
 }
 
+#endif
+
 int domain_exists(SaHpiDomainIdT did) 
 {
         SaHpiDomainIdT *temp;
@@ -48,7 +53,7 @@ int domain_exists(SaHpiDomainIdT did)
         
         for (i = 0; i < g_slist_length(global_domain_list); i++) {
                 temp = (SaHpiDomainIdT*) g_slist_nth_data(global_domain_list, i);
-                if(temp == did) {
+                if(*temp == did) {
                         return 1;
                 }
         }
@@ -59,7 +64,7 @@ int domain_add(SaHpiDomainIdT did)
 {
         SaHpiDomainIdT *temp;
         temp = calloc(1,sizeof(*temp));
-        *temp = did;
+        memcpy(temp, &did, sizeof(did));
         
         if(domain_exists(did) > 0) {
                 dbg("Domain %d exists already, something is fishy", did);
@@ -76,6 +81,7 @@ int domain_del(SaHpiDomainIdT did)
         return 0;
 }
 
+#if 0
 void domain_process_event(struct oh_zone *z, struct oh_event *e)
 {
 	struct oh_resource *res;
@@ -125,3 +131,4 @@ void domain_process_event(struct oh_zone *z, struct oh_event *e)
 		break;
 	}
 }
+#endif
