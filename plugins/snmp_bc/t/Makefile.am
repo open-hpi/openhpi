@@ -60,7 +60,7 @@ noinst_LTLIBRARIES	= libsnmp_bc.la
 
 $(REMOTE_SIM_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		ln -s ../$@; \
+		$(LN_S) $(top_srcdir)/plugins/snmp_bc/$@; \
 	fi
 
 libsnmp_bc_la_SOURCES	= \

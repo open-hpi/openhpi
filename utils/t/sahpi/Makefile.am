@@ -21,7 +21,7 @@ AM_CFLAGS	= @NOCFLAGS@ -ftest-coverage -fprofile-arcs
 
 $(REMOTE_SOURCES):
 	if test ! -f $@ -a ! -L $@; then \
-		ln -sf ../../$@; \
+		$(LN_S) $(top_srcdir)/utils/$@; \
 	fi
 
 TESTS = sahpi_enum_utils_test \

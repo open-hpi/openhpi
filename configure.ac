@@ -17,6 +17,7 @@ AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 AC_PROG_CC
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
+AC_PROG_LN_S
 
 HPI_LIB_VERSION=10:3:9
 HPI_PKG=$PACKAGE_NAME
@@ -477,7 +478,7 @@ AC_ARG_WITH(pluginpath,
 dnl create #define OH_PLUGIN_PATH in config.h
 AC_DEFINE_UNQUOTED(OH_PLUGIN_PATH,"$PLUGINPATH",[openhpi plugin path])
 
-TEST_CLEAN='$(shell ls *.bb* *.da *.gcov *.summary)'
+TEST_CLEAN='$(shell ls *.bb* *.da *.gcov *.gcno *.beam *.gcda *.summary)'
 AC_SUBST(TEST_CLEAN)
 
 AC_C_STRINGIZE

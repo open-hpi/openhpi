@@ -60,5 +60,9 @@ libopenhpi_la_SOURCES   = \
                            oHpi.c
 
 libopenhpi_la_LIBADD    = @STATIC_PLUGIN_LIBS@ @STATIC_PLUGIN_EXTRA_LIBS@ $(top_builddir)/utils/libopenhpiutils.la
-libopenhpi_la_LDFLAGS   = -version-info @HPI_LIB_VERSION@ -export-symbols $(top_srcdir)/src/hpi.sym
+libopenhpi_la_LDFLAGS   = -L$(top_builddir)/utils -version-info @HPI_LIB_VERSION@ -export-symbols $(top_srcdir)/src/hpi.sym
 libopenhpi_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@ $(top_srcdir)/src/hpi.sym
+
+$(top_builddir)/utils/libopenhpiutils.la:
+	make -C $(top_builddir)/utils libopenhpiutils.la
+
