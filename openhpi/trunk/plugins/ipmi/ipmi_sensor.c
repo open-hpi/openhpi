@@ -793,7 +793,7 @@ int ohoi_set_sensor_event_enables(ipmi_sensor_id_t		sensor_id,
 
 {
 	struct ohoi_handler *ipmi_handler = cb_data;
-        struct ohoi_sensor_enables enables_data;
+	struct ohoi_sensor_enables enables_data;
         int rv;
 	SaHpiBoolT  tmp_enables;
 
@@ -810,4 +810,18 @@ int ohoi_set_sensor_event_enables(ipmi_sensor_id_t		sensor_id,
         }
         
         return ohoi_loop(&enables_data.done, ipmi_handler);
+}
+
+int ohoi_get_sensor_enable(ipmi_sensor_id_t sensor_id,
+			   SaHpiBoolT   *enable,
+			   void *cb_data)
+{	
+	return -1;
+}
+
+int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
+			   SaHpiBoolT   enable,
+			   void *cb_data)
+{
+	return -1;
 }

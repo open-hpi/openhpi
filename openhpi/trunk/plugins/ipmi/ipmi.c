@@ -757,11 +757,58 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 	return ohoi_set_sensor_thresholds(*sensor, thres, ipmi_handler);	
 }
 
+static int ipmi_get_sensor_enable(void *hnd, SaHpiResourceIdT id,
+				  SaHpiSensorNumT num,
+				  SaHpiBoolT *enable)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+
+	SaErrorT	 rv;
+	ipmi_sensor_id_t *sensor;
+
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
+	return ohoi_get_sensor_enable(*sensor, enable, ipmi_handler);
+}
+
+
+static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
+				  SaHpiSensorNumT num,
+				  SaHpiBoolT enable)
+{
+	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+
+	SaErrorT         rv;
+	ipmi_sensor_id_t *sensor;
+
+	SaHpiRdrT *rdr;
+
+	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
+	if (!rdr) {
+		dbg("no rdr");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+
+	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor);
+	if (rv!=SA_OK)
+		return rv;
+        return ohoi_set_sensor_enable(*sensor, enable, ipmi_handler);
+}
 
 static int ipmi_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
 					 SaHpiSensorNumT num,
 					 SaHpiBoolT *enables)
-
 
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
@@ -849,6 +896,8 @@ static struct oh_abi_v2 oh_ipmi_plugin = {
 	.get_sensor_data		= ipmi_get_sensor_data,
 	.get_sensor_thresholds		= ipmi_get_sensor_thresholds,
 	.set_sensor_thresholds		= ipmi_set_sensor_thresholds,
+	.get_sensor_enable		= ipmi_get_sensor_enable,
+	.set_sensor_enable		= ipmi_set_sensor_enable,
 	.get_sensor_event_enables       = ipmi_get_sensor_event_enables,
 	.set_sensor_event_enables       = ipmi_set_sensor_event_enables,
 	
