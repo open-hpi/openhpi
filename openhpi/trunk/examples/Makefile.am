@@ -14,6 +14,9 @@ list_resources_SOURCES	= list_resources.c
 list_resources_LDADD	= $(COMMONLIBS)
 list_resources_LDFLAGS	= 
 
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+pkgsysconf_DATA = openhpi.conf
+
 clean:
 	rm -f *~
 
