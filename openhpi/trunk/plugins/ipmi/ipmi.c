@@ -285,8 +285,6 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 	return 0;
 }
 
-extern ipmi_control_t *ipmi_oem_intel_get_alarm(void);  /*OpenIPMI > 1.3.11*/
-
 /*
  * add_alarm_rdr
  */
@@ -329,20 +327,27 @@ static int add_alarm_rdrs(
 	SaHpiResourceIdT   	rid;
         SaHpiEntityPathT        ent;
         ipmi_control_id_t       control_id;
-        ipmi_control_t         *alarm_ctl;
 	static ipmi_control_id_t   alarm_control_id;  /*save this */
 	static int alarms_done = 0;
+        struct ohoi_resource_info *res_info;
+	int rv;
 
 	if (alarms_done) return 0;  /* only do alarms the first time */
 	rid = rpt->ResourceId;
 	ent = rpt->ResourceEntity;
 
-	alarm_ctl = ipmi_oem_intel_get_alarm();
-	if (alarm_ctl == NULL) {
-		dbg("ipmi_oem_intel_get_alarm: no alarm controls");
+        res_info = oh_get_resource_data(handler->rptcache, rid);
+	/* this is an RPT so the type is 0, entity_id */
+	if (res_info->ctrl_count == 0) {
+		dbg("add_alarm_rdrs: no alarm controls");
 		return 0;
 	}
-	control_id = ipmi_control_convert_to_id(alarm_ctl);
+	rv = ipmi_control_find_id( res_info->u.entity_id.domain_id,
+		res_info->u.entity_id.entity_id,
+		res_info->u.entity_id.entity_instance,
+		res_info->u.entity_id.channel,
+		res_info->u.entity_id.address,
+		"", &control_id);
 	alarm_control_id = control_id;  /* must be static */
 
 	rpt->ResourceCapabilities |=  SAHPI_CAPABILITY_RDR;
