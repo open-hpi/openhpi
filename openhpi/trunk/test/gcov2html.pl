@@ -53,7 +53,7 @@ The left column is the number of times the code was executed
 during the unit test suites.
 <p>
 <table class="report">
-<tr><th>Exec</th><th>&nbsp;</th><th>Code</th></tr>
+<tr><th>Exec</th><th>&nbsp;</th><th>Code</th><th>Line #</th></tr>
 END
 }
 
@@ -82,6 +82,7 @@ sub set_status {
 sub make_html_body {
     my $lines = shift;
     my $html;
+    my $linecount = 1;
     foreach my $line (@$lines) {
         my $status = set_status($line->{exec});
         my $exec = ($status eq "na") ? " " : $line->{exec} + 0;
@@ -90,7 +91,8 @@ sub make_html_body {
 	$data =~ s{<(\S+)\@(.*?)\.(net|com)>}{< address removed >}ig; 
 	$data = encode_entities($data);
 
-        $html .= "<tr class='$status'><td align='right'>$exec</td><td>&nbsp;</td><td><pre class='report'>$data</pre></td></tr>\n";
+        $html .= "<tr class='$status'><td align='right'><a name='line$linecount'>$exec</a></td><td>&nbsp;</td><td><pre class='report'>$data</pre></td><td align='right' class='linecount'>$linecount</td></tr>\n";
+        $linecount++;
     }
     return $html;
 }
