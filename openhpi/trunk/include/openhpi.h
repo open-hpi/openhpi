@@ -34,6 +34,7 @@
 #include <rpt_utils.h>
 #include <sel_utils.h>
 #include <oh_lock.h>
+#include <oh_domain.h>
 #include <oh_session.h>
 
 /*
@@ -122,31 +123,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif 
-
-/*
- * Representation of an domain
- */
-struct oh_domain {
-        /* This id is used to app layer
-         * to identy domain
-         */
-        SaHpiDomainIdT domain_id;
-        
-        /* Domain's Resource Presence Table */
-        RPTable rptable;
-
-        /* Domain Alarm Table */
-        void * alarm_table;
-
-        /* Domain Reference Table */
-        void * reference_table;
-
-        /* Domain Information */
-        SaHpiDomainInfoT domain_info;
-        
-        /* Domain Event Log */
-        oh_sel *sel;
-};
 
 /*
  *  Representation of a plugin instance

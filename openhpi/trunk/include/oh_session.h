@@ -21,7 +21,7 @@
 #include <glib.h>
 
 /*
- *  Global table of all active sessions (oh_session).  This list is
+ *  Global table of all active sessions (oh_session).  This table is
  *  populated and depopulated by calls to saHpiSessionOpen() and
  *  saHpiSessionClose()
  */
