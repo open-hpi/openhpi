@@ -104,6 +104,11 @@ Commands:
 		Show Event Log's clock. If parameter is omitted, show the current domain
 		Event Log's clock.
 
+	exec <filename> [<parameters>]
+		Execute external program <filename> with arguments <parameters>.
+		Example:
+			exec ls -l
+
 	help [<command>]
 		Help information about passed command. If <command> is omitted, a command
 		list is printed.

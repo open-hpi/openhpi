@@ -973,6 +973,25 @@ static ret_code_t run(void)
 	return(open_file(path));
 }
 
+static ret_code_t exec_proc(void)
+{
+	term_def_t	*term;
+	char		buf[4096];
+
+	term = get_next_term();
+	if (term == NULL) return(HPI_SHELL_PARM_ERROR);
+	strcpy(buf, term->term);
+	while (term != NULL) {
+		term = get_next_term();
+		if (term == NULL) break;
+		if (term->term_type != ITEM_TERM) break;
+		strcat(buf, " ");
+		strcat(buf, term->term);
+	};
+	system(buf);
+	return(HPI_SHELL_OK);
+}
+
 static ret_code_t echo(void)
 {
 	term_def_t	*term;
@@ -1128,6 +1147,8 @@ const char evtlstatehelp[] = "evtlogstate: show and set the event log state\n"
 			"Usage: evtlogstate [<resource id>] [enable|disable]";
 const char evtlogtimehelp[] = "evtlogtime: show the event log's clock\n"
 			"Usage: evtlogtime [<resource id>]";
+const char exechelp[] = "exec: execute external program\n"
+			"Usage: exec <filename> [parameters]";
 const char helphelp[] = "help: help information for OpenHPI commands\n"
 			"Usage: help [optional commands]";
 const char hsblockhelp[] = "hs: hot swap command block\n"
@@ -1266,6 +1287,7 @@ command_def_t commands[] = {
     { "evtlogtime",	evtlog_time,	evtlogtimehelp,	MAIN_COM },
     { "evtlogreset",	evtlog_reset,	evtlresethelp,	MAIN_COM },
     { "evtlogstate",	evtlog_state,	evtlstatehelp,	MAIN_COM },
+    { "exec",		exec_proc,	exechelp,	UNDEF_COM },
     { "help",		help_cmd,	helphelp,	UNDEF_COM },
     { "hs",		hs_block,	hsblockhelp,	MAIN_COM },
     { "inv",		inv_block,	invhelp,	MAIN_COM },

@@ -676,8 +676,8 @@ int set_text_buffer(SaHpiTextBufferT *buf)
 				for (j = 0; j < 0x0D; j++)
 					if (bcdplus_codes[j] == str[i]) break;
 				if (j >= 0x0D) return(-1);
-				if (i % 2) str1[ind++] += j;
-				else str1[ind] = j << 4;
+				if (i % 2) str1[ind++] += j << 4;
+				else str1[ind] = j;
 			};
 			buf->DataLength = (i + 1)/ 2;
 			break;
