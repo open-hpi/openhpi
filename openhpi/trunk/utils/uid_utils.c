@@ -1,6 +1,6 @@
 /*      -*- linux-c -*-
  *
- * (C) Copyright IBM Corp. 2003,2004
+ * (C) Copyright IBM Corp. 2003, 2004
  * Copyright (c) 2003 by Intel Corp.
  *
  * This program is distributed in the hope that it will be useful,
@@ -10,7 +10,7 @@
  * the Copying file included with the OpenHPI distribution for
  * full licensing terms.
  *
- * Authors:
+ * Author(s):
  *      David Judkovics <djudkovi@us.ibm.com>
  *      Renier Morales <renierm@users.sf.net>
  */
@@ -27,7 +27,6 @@
 #include <oh_error.h>
 #include <epath_utils.h>
 #include <uid_utils.h>
-
 
 static GHashTable *ep_hash_table;
 static GHashTable *resource_id_hash_table;
@@ -106,7 +105,7 @@ SaErrorT oh_uid_initialize(void)
         
         if(!initialized) {
 
-                /* initialize has tables */
+                /* initialize hash tables */
                 ep_hash_table = g_hash_table_new(oh_entity_path_hash, oh_entity_path_equal);
                 resource_id_hash_table = g_hash_table_new(g_int_hash, g_int_equal);
 
@@ -128,12 +127,10 @@ SaErrorT oh_uid_initialize(void)
  * oh_uid_from_entity_path
  * @ep: value to be removed from used
  *
- * Returns a unique uid to be used as a resource id based upon an specified
- * entity path.
- * This functions returns a unique value to be used as
+ * This function returns an unique value to be used as
  * an uid/resourceID base upon a unique entity path specified
- * by @ep.  If the entity path already exists a return code 
- * of -1 is returned.  Before returning this call updates the
+ * by @ep.  If the entity path already exists, a return code 
+ * of -1 is returned.  Before returning, this call updates the
  * uid map file saved on disk.  
  * 
  * Returns: positive unsigned int, failure is 0.
@@ -148,7 +145,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         char *uid_map_file;
         int file;
 
-        /* check for presense of EP and */
+        /* check for presence of EP and */
         /* previously assigned uid      */
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if (ep_xref) {
@@ -159,7 +156,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         /* allocate storage for EP cross reference data structure*/
         ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) { 
-                dbg("malloc fialed");
+                dbg("malloc failed");
                 return 0;
         }
 
@@ -179,7 +176,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         key = (gpointer)&ep_xref->resource_id;
         g_hash_table_insert(resource_id_hash_table, key, value);
 
-        /* save newly created ep xref (iud/resource_id)to map file */
+        /* save newly created ep xref (iud/resource_id) to map file */
         uid_map_file = (char *)getenv("OPENHPI_UID_MAP");
         if (uid_map_file == NULL) {
                 uid_map_file = OH_DEFAULT_UID_MAP;
@@ -199,11 +196,11 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 
 /**
  * oh_uid_remove 
- * @uid: value to be removed from used
+ * @uid: value to be removed
  *
  * This functions removes the uid/entity path
  * pair from use and removes the use of the uid forever.
- * An new uid may be requested for this entity path
+ * A new uid may be requested for this entity path
  * in the future. oh_uid_from_entity_path() writes
  * the entire uid/entity path pairings to file before 
  * returning. oh_uid_remove() deletes the pairing from file.
@@ -267,7 +264,7 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
 
 /**
  * oh_entity_path_lookup
- * @id: pointer to resource_id/uid indenifying entity path
+ * @id: pointer to resource_id/uid identifying entity path
  * @ep: pointer to memory to fill in with entity path
  * 
  * Fetches entity path based upon resource id, @id.
@@ -298,8 +295,6 @@ gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
  * to file, first element in file is 4 bytes for resource id,
  * then repeat EP_XREF structures holding uid and entity path pairings
  *
- * 
- *  
  * Return value: success 0, failed -1.
  */
 gint oh_uid_map_to_file(void)
@@ -338,8 +333,6 @@ gint oh_uid_map_to_file(void)
  * write_ep_xref: called by g_hash_table_foreach(), for each 
  * hash table entry see glib manual for further details 
  * 
- * 
- * 
  * Return value: None (void).
  */
 void write_ep_xref(gpointer key, gpointer value, gpointer file)
@@ -349,11 +342,9 @@ void write_ep_xref(gpointer key, gpointer value, gpointer file)
 
 
 /*
- * uid_map_from_file: called from oh_uid_initialize() during intializaion
- * this function if a uid map file exists reads the current value for
- * uid, and intializes the memory resident uid map file from file.
- *
- * 
+ * uid_map_from_file: called from oh_uid_initialize() during intialization
+ * This function, if a uid map file exists, reads the current value for
+ * uid and intializes the memory resident uid map file from file.
  * 
  * Return value: success 0, error -1.
  */
@@ -411,7 +402,7 @@ static gint uid_map_from_file(void)
 
 /*
  * build_uid_map_data: used by uid_map_from_file(),  recursively 
- * reads map file and builds two hash tables, and EP_XREF data
+ * reads map file and builds two hash tables and EP_XREF data
  * structures
  *
  * @file: key into a GHashTable
