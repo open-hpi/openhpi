@@ -18,7 +18,7 @@ static void init_res(struct oh_resource *res)
 	return;
 }
 
-static struct oh_resource *add_res(struct oh_domain *d, struct oh_resource_id oid)
+static struct oh_resource *add_res(struct oh_zone *z, struct oh_resource_id oid)
 {
 	struct oh_resource *r;
 	
@@ -31,18 +31,18 @@ static struct oh_resource *add_res(struct oh_domain *d, struct oh_resource_id oi
 	
 	memcpy(&r->oid, &oid, sizeof(oid));
 
-	d->update_counter++;
-	gettimeofday(&d->update_time, NULL);
-	list_add(&r->node, &d->res_list);
+	z->domain->update_counter++;
+	gettimeofday(&z->domain->update_time, NULL);
+	list_add(&r->node, &z->res_list);
 	
 	return r;
 }
 
-struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_resource_id oid)
+static struct oh_resource *get_zone_res(struct oh_zone *z, struct oh_resource_id oid)
 {
 	struct list_head *i;
 	
-	list_for_each(i, &d->res_list) {
+	list_for_each(i, &z->res_list) {
 		struct oh_resource *r;
 		r = list_container(i, struct oh_resource, node);
 		if (memcmp(&r->oid, &oid, sizeof(oid))==0)
@@ -51,14 +51,29 @@ struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_resource_id oi
 	return NULL;
 }
 
-struct oh_resource *insert_resource(struct oh_domain *d, struct oh_resource_id oid)
+struct oh_resource *get_res_by_oid(struct oh_domain *d, struct oh_resource_id oid)
+{
+	struct list_head *i;
+	
+	list_for_each(i, &d->zone_list) {
+		struct oh_resource *r;
+		struct oh_zone *z
+			= list_container(i, struct oh_zone, node);
+		
+		r = get_zone_res(z, oid);
+		if (r) return r;
+	}
+	return NULL;
+}
+
+struct oh_resource *insert_resource(struct oh_zone *z, struct oh_resource_id oid)
 {
 	struct oh_resource *res;
 
-	res = get_res_by_oid(d, oid);
+	res = get_zone_res(z, oid);
 	if (!res) {
 		dbg("New entity, add it");
-		res = add_res(d, oid);
+		res = add_res(z, oid);
 	}
 	if (!res) {
 		dbg("Cannot add new entity");
@@ -69,10 +84,14 @@ struct oh_resource *insert_resource(struct oh_domain *d, struct oh_resource_id o
 struct oh_resource *get_resource(struct oh_domain *d, SaHpiResourceIdT rid)
 {
 	struct list_head *i;
-	list_for_each(i, &d->res_list) {
-		struct oh_resource *res;
-		res = list_container(i, struct oh_resource, node);
-		if (res->entry.ResourceId == rid) return res;
+	list_for_each(i, &d->zone_list) {
+		struct oh_zone *z = list_container(i, struct oh_zone, node);
+		struct list_head *j;
+		list_for_each(j, &z->res_list) {
+			struct oh_resource *res;
+			res = list_container(j, struct oh_resource, node);
+			if (res->entry.ResourceId == rid) return res;
+		}
 	}
 
 	return NULL;

@@ -55,6 +55,22 @@ static inline int list_empty(struct list_head *entry)
 	return (entry->next == entry);
 }
 
+static inline struct list_head *list_first(struct list_head *head)
+{
+	if ( head->next!=head ) 
+		return head->next;
+	else
+		return NULL;
+}
+
+static inline struct list_head *list_last(struct list_head *head)
+{
+	if ( head->prev!=head )
+		return head->prev;
+	else
+		return NULL;
+}
+
 #define list_container(entry, type, member) ({ \
 		typeof(((type *)0)->member) *ptr = entry; \
 		const size_t off = (size_t)&(((type *)0)->member); \

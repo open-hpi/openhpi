@@ -57,22 +57,22 @@ err1:
  * Load plugin by name.  This needs to be done before the plugin is used
  */
 
-int load_plugin(const char *plugin_name, const char *name, const char *addr) 
+int load_plugin(struct oh_domain *d, const char *plugin_name, 
+		const char *name, const char *addr) 
 {
-        lt_dlhandle hnd;
-        void *instance;
+        lt_dlhandle h;
         int (*get_interface)(struct oh_abi_v1 **pp, const uuid_t uuid);
         struct oh_abi_v1 *abi;
-        struct oh_domain *domain;
+        void *hnd;
         int err;
         
-        hnd = lt_dlopenext(plugin_name);
-        if (!hnd) {
+        h = lt_dlopenext(plugin_name);
+        if (!h) {
                 dbg("Can not find %s plugin", plugin_name);
                 goto err1;
         }
         
-        get_interface = lt_dlsym(hnd, "get_interface");
+        get_interface = lt_dlsym(h, "get_interface");
         if (!get_interface) {
                 dbg("Can not get 'get_interface' symbol, is it a plugin?!");
                 goto err1;
@@ -85,19 +85,17 @@ int load_plugin(const char *plugin_name, const char *name, const char *addr)
 	}
 
 	/* bootstrap plugin must work without parameter */
-	instance = abi->open(name, addr);
-	if (!instance) {
+	hnd = abi->open(name, addr);
+	if (!hnd) {
 		dbg("Bootstrap plugin can not work");
 		goto err1;
 	}
 
-	domain = domain_add();
-	domain->abi = abi;
-	domain->hnd = instance;
+	domain_add_zone(d, abi, hnd);
 	
 	return 0;
 err1:
-	lt_dlclose(hnd);
+	lt_dlclose(h);
 	return -1;
 }
 

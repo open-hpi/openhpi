@@ -48,7 +48,7 @@ static const int entry_id_offset = 1000;
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
-        const char *plugin_name = "libdummy";
+	struct oh_domain *d;
 
         if (OH_STAT_UNINIT!=oh_hpi_state) {
                 dbg("Cannot initialize twice");
@@ -57,17 +57,33 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         
         init_session();
         init_domain();
+	
         if (init_plugin()<0) {
                 dbg("Can not load/init plugin");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-        if (load_plugin(plugin_name, 
+	
+	d = domain_add();
+	if (!d) {
+		dbg("Can not create DEFAULT DOMAIN");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
+#if 1	
+        if (load_plugin(d, "libdummy", 
                         (const char*) NULL, 
                         (const char*) NULL) < 0 ) {
                 dbg("Can not init dummy");
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-
+#endif
+#if 1
+        if (load_plugin(d, "libwatchdog", 
+                        (const char*) NULL, 
+                        (const char*) NULL) < 0 ) {
+                dbg("Can not init dummy");
+                return SA_ERR_HPI_NOT_PRESENT;
+        }
+#endif
         oh_hpi_state= OH_STAT_READY;
 	return SA_OK;
 }
@@ -84,8 +100,6 @@ SaErrorT SAHPI_API saHpiFinalize(void)
 		return SA_ERR_HPI_UNKNOWN;
 	}
 
-	d->abi->close(d->hnd);
-	
 	uninit_domain();
 	uninit_session();
 
@@ -183,15 +197,23 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
 	return SA_OK;
 }
 
+static inline int is_last_resource_in_domain(struct oh_domain *d, 
+		struct oh_resource *res) 
+{
+	struct oh_zone *lz
+		= list_container(list_last(&d->zone_list), struct oh_zone, node);
+	return (&res->node == list_last(&lz->res_list));
+}
+
 SaErrorT SAHPI_API saHpiRptEntryGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
 		SAHPI_IN SaHpiEntryIdT EntryId,
 		SAHPI_OUT SaHpiEntryIdT *NextEntryId,
 		SAHPI_OUT SaHpiRptEntryT *RptEntry)
 {
-	int n;
-	int i;
-	struct list_head  *tmp;
+	int no;
+	int cur;
+	struct list_head  *i;
 	struct oh_resource *r;
 	struct oh_session *s;
 	struct oh_domain  *d;
@@ -208,23 +230,30 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 	
 	switch (EntryId) {
 	case SAHPI_FIRST_ENTRY:
-		n = 0;
+		no = 0;
 		break;
 	default:
-		n = EntryId - entry_id_offset;
+		no = EntryId - entry_id_offset;
 		break;
 	}
 	
-	i = 0;
+	cur = 0;
 	r = NULL;
-	list_for_each(tmp, &d->res_list) {
-		if (i==n) {
-			r = list_container(tmp, struct oh_resource, node);
-			break;
+	list_for_each(i, &d->zone_list) {
+		struct oh_zone *z 
+			= list_container(i, struct oh_zone, node);
+		struct list_head *j;
+		
+		list_for_each(j, &z->res_list) {
+			if ( cur==no ) {
+				r = list_container(j, struct oh_resource, node);
+				goto exit_for;
+			}
+			cur++;
 		}
-		i++;
 	}
-	
+exit_for:
+
 	if (!r) {
 		dbg("Invalid EntryId");
 		return SA_ERR_HPI_INVALID;
@@ -232,10 +261,10 @@ SaErrorT SAHPI_API saHpiRptEntryGet(
 	
 	memcpy(RptEntry, &r->entry, sizeof(*RptEntry));
 
-	if (r->node.next == &d->res_list) { //last entry
+	if (is_last_resource_in_domain(d, r)) { 
 		*NextEntryId = SAHPI_LAST_ENTRY;
 	} else {
-		*NextEntryId = n+1+entry_id_offset;
+		*NextEntryId = no+1+entry_id_offset;
 	}
 	return SA_OK;
 }
