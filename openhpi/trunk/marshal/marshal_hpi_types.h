@@ -118,6 +118,10 @@ extern cMarshalType SaHpiSensorThdDefnType;
 // record
 extern cMarshalType SaHpiSensorRecType;
 
+// control default mode status
+#define SaHpiCtrlModeType SaHpiInt32Type
+extern cMarshalType SaHpiCtrlDefaultModeType;
+
 // controls
 #define SaHpiCtrlNumType SaHpiUint32Type
 #define SaHpiCtrlTypeType SaHpiUint32Type
@@ -152,7 +156,7 @@ extern cMarshalType SaHpiInventoryDataType;
 extern cMarshalType SaHpiInventoryRecType;
 
 // watchdogs
-#define SaHpiWatchdogNumType SaHpiUint8Type
+#define SaHpiWatchdogNumType SaHpiUint32Type
 #define SaHpiWatchdogActionType SaHpiUint32Type
 #define SaHpiWatchdogActionEventType SaHpiUint32Type
 #define SaHpiWatchdogPretimerInterruptType SaHpiUint32Type
@@ -163,6 +167,15 @@ extern cMarshalType SaHpiWatchdogType;
 // watchdog resource data records
 extern cMarshalType SaHpiWatchdogRecType;
   
+// Annunciators
+#define SaHpiAnnunciatorNumType SaHpiUint32Type 
+#define SaHpiAnnunciatorTypeType SaHpiUint32Type 
+#define SaHpiMaxConditionsType SaHpiUint32Type 
+
+// annunciator resource data records
+extern cMarshalType SaHpiAnnunciatorRecType;
+
+
 // resource data record
 #define SaHpiRdrTypeType SaHpiUint32Type
 extern cMarshalType SaHpiRdrType;
