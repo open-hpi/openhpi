@@ -590,7 +590,7 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 		SAHPI_IN SaHpiSensorNumT SensorNum,
 		SAHPI_OUT SaHpiSensorReadingT *Reading)
 {
-	printf("saHpiSensorReadingGet() called\n");
+	dbg("saHpiSensorReadingGet() called");
 
 	struct oh_resource *res;
 	struct oh_zone *zone;
@@ -611,6 +611,9 @@ SaErrorT SAHPI_API saHpiSensorReadingGet (
 	if (!get_func)
 		return SA_ERR_HPI_UNSUPPORTED_API;
 
+	if (get_func(zone->hnd, &rdr->oid, Reading))
+		return SA_ERR_HPI_UNKNOWN;
+
 	return SA_OK;
 }
 
@@ -621,7 +624,23 @@ SaErrorT SAHPI_API saHpiSensorReadingConvert (
 		SAHPI_IN SaHpiSensorReadingT *ReadingInput,
 		SAHPI_OUT SaHpiSensorReadingT *ConvertedReading)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	if (!SensorNum) {
+		switch (ReadingInput->ValuesPresent) {
+
+			case SAHPI_SRF_INTERPRETED:
+				ConvertedReading->ValuesPresent = SAHPI_SRF_RAW;
+				break;
+			case SAHPI_SRF_RAW:
+				ConvertedReading->ValuesPresent = SAHPI_SRF_INTERPRETED;
+				break;
+			default:
+				return SA_ERR_HPI_INVALID_PARAMS;
+		}
+	} else 
+		return SA_ERR_HPI_NOT_PRESENT;
+	
+
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiSensorThresholdsGet (
