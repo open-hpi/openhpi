@@ -48,7 +48,7 @@ static int snmp_bc_get_sel_size(struct oh_handler_state *handle, SaHpiResourceId
  * snmp_bc_get_sel_size_from_hardware:
  * @ss: Pointer to SNMP session data.
  * 
- * Unfortunately, BladeCenter SNMP support does not provide access to the number 
+ * Unfortunately, hardware SNMP support does not provide access to the number 
  * of entries in the event log. This routine finds the number by sequentially 
  * reading the entire log index and counting the number of entries.
  *
@@ -234,7 +234,10 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
  * @handle: Pointer to handler's data.
  * @id: Resource ID that owns the Event Log. 
  * 
- * Builds internal event log cache.
+ * Builds internal event log cache. Although BladeCenter can read events from 
+ * the hardware in any order;  RSA requires that they be read from first to last.
+ * To support common code, events are read in order and preappended to the
+ * cache log.
  * 
  * Return values:
  * SA_OK - normal case.
@@ -242,7 +245,7 @@ SaErrorT snmp_bc_get_sel_entry(void *hnd,
  **/
 SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceIdT id)
 {
-	int current;
+	int i,current;
 	SaErrorT err;
 	
 	if (!handle) {
@@ -252,22 +255,20 @@ SaErrorT snmp_bc_build_selcache(struct oh_handler_state *handle, SaHpiResourceId
 	struct snmp_bc_hnd *custom_handle = handle->data;
 
 	current = snmp_bc_get_sel_size_from_hardware(custom_handle);
-	if (current) {
-		do {
-			err = snmp_bc_sel_read_add(handle, id, current);
+
+	if (current > 0) {
+		for (i=1; i<=current; i++) {
+			err = snmp_bc_sel_read_add(handle, id, i);
 			if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
-				/* either of these 2 errors prevent us from doing anything meaningful */
-				/* tell user about them                                               */
+				/* Either of these 2 errors prevent us from doing anything meaningful */
 				return(err);
 			} else if (err != SA_OK) {
 				/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
 				/* only this record has problem. record error then go to next */
 				dbg("Error, %s, encountered with EventLog entry %d\n", 
-						oh_lookup_error(err), current);
+				    oh_lookup_error(err), i);
 			}
-			
-			current--;
-		} while(current > 0);
+		}
 	}
 
 	return(SA_OK);
@@ -317,7 +318,10 @@ SaErrorT snmp_bc_check_selcache(struct oh_handler_state *handle,
  * @id: Resource ID that owns Event Log.
  * @entryId: Event Log entry ID.
  * 
- * Synchronizes interal event log cache. 
+ * Synchronizes internal event log cache. Although BladeCenter can read events from 
+ * the hardware in any order;  RSA requires that they be read from first to last.
+ * To support common code, events are read in order and preappended to the
+ * cache log.
  * 
  * Return values:
  * SA_OK - normal operation.
@@ -327,7 +331,6 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 			       SaHpiResourceIdT id,
 			       SaHpiEventLogEntryIdT entryId)
 {
-	SaHpiEventLogEntryIdT current;
 	SaHpiEventLogEntryIdT prev;
 	SaHpiEventLogEntryIdT next;
         struct snmp_value get_value;
@@ -336,7 +339,7 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
         SaHpiTimeT new_timestamp;
 	char oid[SNMP_BC_MAX_OID_LENGTH];
 	SaErrorT err;
-	int cacheupdate = 0;
+	int current, i, cacheupdate = 0;
 
 	if (!handle) {
 		dbg("Invalid parameter.");
@@ -404,20 +407,18 @@ SaErrorT snmp_bc_selcache_sync(struct oh_handler_state *handle,
 		}
 		
 		if (cacheupdate) {
-			do {
-				err = snmp_bc_sel_read_add (handle, id, current);
+			for (i=1; i<=current; i++) {
+				err = snmp_bc_sel_read_add (handle, id, i);
 				if ( (err == SA_ERR_HPI_OUT_OF_SPACE) || (err == SA_ERR_HPI_INVALID_PARAMS)) {
-					/* either of these 2 errors prevent us from doing anything meaningful */
-					/* tell user about them                                               */
+					/* Either of these 2 errors prevent us from doing anything meaningful */
 					return(err);
 				} else if (err != SA_OK) {
 					/* other errors (mainly HPI_INTERNAL_ERROR or HPI_BUSY) means */
 					/* only this record has problem. record error then go to next */
 					dbg("Error, %s, encountered with EventLog entry %d\n", 
-									oh_lookup_error(err), current);
+					    oh_lookup_error(err), i);
 				}
-				current--;
-			} while(current > 0);
+			}
 		} else {
 			err = oh_el_clear(handle->elcache);
 			if (err != SA_OK)
@@ -549,7 +550,7 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	isdst = sel_entry.time.tm_isdst;
 	snmp_bc_log2event(handle, get_value.string, &tmpevent, isdst);
 	
-	/* See feature  1077241 */
+	/* See feature 1077241 */
 	switch (tmpevent.EventType) {
 		case SAHPI_ET_OEM:
 		case SAHPI_ET_HOTSWAP:
@@ -584,8 +585,8 @@ SaErrorT snmp_bc_sel_read_add (struct oh_handler_state *handle,
 	id = tmpevent.Source;
 	if (NULL == oh_get_resource_by_id(handle->rptcache, id))
 					dbg("NULL RPT for rid %d.", id);
-	err = oh_el_append(handle->elcache, &tmpevent,
-			rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
+	err = oh_el_prepend(handle->elcache, &tmpevent,
+			    rdr_ptr, oh_get_resource_by_id(handle->rptcache, id));
 	
 	if (err) dbg("Cannot add entry to elcache. Error=%s.", oh_lookup_error(err));
 		
@@ -612,8 +613,10 @@ SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, 
         sel_entry ent;
         char level[8];
         char *findit;
-	
-	if (!handle || !logstr || !sel) {
+
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
+
+	if (!handle || !logstr || !sel || !custom_handle) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
 	}
@@ -648,33 +651,39 @@ SaErrorT snmp_bc_parse_sel_entry(struct oh_handler_state *handle, char *logstr, 
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
 
-	findit = strstr(logstr, "Name:");
-	if (findit != NULL) {
-        	if(!sscanf(findit,"Name:%19s",ent.sname)) {
-                	dbg("Cannot parse name from log entry.");
+	/* No Name field in RSA event messages */
+	if (custom_handle->platform == SNMP_BC_PLATFORM_RSA) {
+		strncpy(ent.sname, "RSA", sizeof("RSA"));
+	}
+	else {
+		findit = strstr(logstr, "Name:");
+		if (findit != NULL) {
+			if(!sscanf(findit,"Name:%19s",ent.sname)) {
+				dbg("Cannot parse name from log entry.");
+				return(SA_ERR_HPI_INTERNAL_ERROR);
+			}
+		} else {
+			dbg("Premature data termination.");
 			return(SA_ERR_HPI_INTERNAL_ERROR);
-        	}
+		}
+	}
+
+	findit = strstr(logstr, "Date:");
+	if (findit != NULL) {
+		if(sscanf(findit,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
+			  &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
+			  &ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
+			snmp_bc_set_dst(handle, &ent.time);
+			ent.time.tm_mon--;
+			ent.time.tm_year += 100;
+		} else {
+			dbg("Cannot parse date/time from log entry.");
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
 	} else {
 		dbg("Premature data termination.");
 		return(SA_ERR_HPI_INTERNAL_ERROR);
 	}
-        
-	findit = strstr(logstr, "Date:");
-	if (findit != NULL) {
-        	if(sscanf(findit,"Date:%2d/%2d/%2d  Time:%2d:%2d:%2d",
-                	  &ent.time.tm_mon, &ent.time.tm_mday, &ent.time.tm_year, 
-                  	&ent.time.tm_hour, &ent.time.tm_min, &ent.time.tm_sec)) {
-			snmp_bc_set_dst(handle, &ent.time);
-                	ent.time.tm_mon--;
-                	ent.time.tm_year += 100;
-        	} else {
-                	dbg("Cannot parse date/time from log entry.");
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-        	}
-	} else {
-		dbg("Premature data termination.");
-		return(SA_ERR_HPI_INTERNAL_ERROR);
-        }
         
 	findit = strstr(logstr, "Text:");
 	if (findit != NULL) {
@@ -739,7 +748,6 @@ SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id)
 	return(SA_OK);
 }
 
-
 /**
  * snmp_bc_sel_overflowreset:
  * @hnd: Pointer to handler's data.
@@ -757,7 +765,3 @@ SaErrorT snmp_bc_sel_overflowreset(void *hnd,
 {
         return(SA_ERR_HPI_INVALID_CMD);
 }
-
-			       
-			    
-

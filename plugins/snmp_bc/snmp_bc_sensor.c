@@ -390,7 +390,8 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
          *   TotalNegThdHysteresis are defined and this routine needs to make 
          *   the required calculations to return to the user a delta value. Total
          *   values can only be used if:
-         *   1) there is one upper/lower threshold defined. 
+         *   1) if there is more thanone upper/lower threshold defined, the least
+         *      critical threshold is used as the base for calculating delta values.
          *   2) Total values cannot be of type SAHPI_SENSOR_READING_TYPE_UINT64 or 
          *      SAHPI_SENSOR_READING_TYPE_BUFFER.
          *
@@ -414,11 +415,6 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			    rdr->IdString.Data);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
-		if (lower_thresholds > 1) {
-			dbg("Multiple lower thresholds defined for total negative hysteresis. Sensor=%s",
-			    rdr->IdString.Data);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
 		if (lower_thresholds == 0) {
 			dbg("No lower thresholds are defined for total negative hysteresis. Sensor=%s",
 			    rdr->IdString.Data);
@@ -435,15 +431,15 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		case SAHPI_SENSOR_READING_TYPE_INT64:
 		{
 			SaHpiInt64T delta;
-			if (found_thresholds & SAHPI_STM_LOW_CRIT) {
-				delta = reading.Value.SensorInt64 - working.LowCritical.Value.SensorInt64;
+			if (found_thresholds & SAHPI_STM_LOW_MINOR) {
+				delta = reading.Value.SensorInt64 - working.LowMinor.Value.SensorInt64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_LOW_MAJOR) {
 					delta = reading.Value.SensorInt64 - working.LowMajor.Value.SensorInt64;
 				}
 				else {
-					delta = reading.Value.SensorInt64 - working.LowMinor.Value.SensorInt64;
+					delta = reading.Value.SensorInt64 - working.LowCritical.Value.SensorInt64;
 				}
 			}
 
@@ -461,15 +457,15 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 		{
 			SaHpiFloat64T delta;
-			if (found_thresholds & SAHPI_STM_LOW_CRIT) {
-				delta = reading.Value.SensorFloat64 - working.LowCritical.Value.SensorFloat64;
+			if (found_thresholds & SAHPI_STM_LOW_MINOR) {
+				delta = reading.Value.SensorFloat64 - working.LowMinor.Value.SensorFloat64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_LOW_MAJOR) {
 					delta = reading.Value.SensorFloat64 - working.LowMajor.Value.SensorFloat64;
 				}
 				else {
-					delta = reading.Value.SensorFloat64 - working.LowMinor.Value.SensorFloat64;
+					delta = reading.Value.SensorFloat64 - working.LowCritical.Value.SensorFloat64;
 				}
 			}
 
@@ -501,11 +497,6 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 			    rdr->IdString.Data);
 			return(SA_ERR_HPI_INTERNAL_ERROR);
 		}
-		if (upper_thresholds > 1) {
-			dbg("Multiple upper thresholds defined for total positive hysteresis. Sensor=%s",
-			    rdr->IdString.Data);
-			return(SA_ERR_HPI_INTERNAL_ERROR);
-		}
 		if (upper_thresholds == 0) {
 			dbg("No upper thresholds are defined for total positive hysteresis. Sensor=%s",
 			    rdr->IdString.Data);
@@ -522,15 +513,15 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		case SAHPI_SENSOR_READING_TYPE_INT64:
 		{
 			SaHpiInt64T delta;
-			if (found_thresholds & SAHPI_STM_UP_CRIT) {
-				delta = working.UpCritical.Value.SensorInt64 - reading.Value.SensorInt64;
+			if (found_thresholds & SAHPI_STM_UP_MINOR) {
+				delta = working.UpMinor.Value.SensorInt64 - reading.Value.SensorInt64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_UP_MAJOR) {
 					delta = working.UpMajor.Value.SensorInt64 - reading.Value.SensorInt64;
 				}
 				else {
-					delta = working.UpMinor.Value.SensorInt64 - reading.Value.SensorInt64;
+					delta = working.UpCritical.Value.SensorInt64 - reading.Value.SensorInt64;
 				}
 			}
 
@@ -548,15 +539,15 @@ SaErrorT snmp_bc_get_sensor_thresholds(void *hnd,
 		case SAHPI_SENSOR_READING_TYPE_FLOAT64:
 		{
 			SaHpiFloat64T delta;
-			if (found_thresholds & SAHPI_STM_UP_CRIT) {
-				delta = working.UpCritical.Value.SensorFloat64 - reading.Value.SensorFloat64;
+			if (found_thresholds & SAHPI_STM_UP_MINOR) {
+				delta = working.UpMinor.Value.SensorFloat64 - reading.Value.SensorFloat64;
 			}
 			else {
 				if (found_thresholds & SAHPI_STM_UP_MAJOR) {
 					delta = working.UpMajor.Value.SensorFloat64 - reading.Value.SensorFloat64;
 				}
 				else {
-					delta = working.UpMinor.Value.SensorFloat64 - reading.Value.SensorFloat64;
+					delta = working.UpCritical.Value.SensorFloat64 - reading.Value.SensorFloat64;
 				}
 			}
 
