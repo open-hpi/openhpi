@@ -20,13 +20,13 @@
 #include "ipmi_log.h"
 
 
-cIpmiControlFan::cIpmiControlFan( cIpmiMc *mc, cIpmiEntity *ent,
-                                  unsigned int num, const char *id,
+cIpmiControlFan::cIpmiControlFan( cIpmiMc *mc,
+                                  unsigned int num,
                                   unsigned int minium_speed_level,
                                   unsigned int maximum_speed_level,
                                   unsigned int default_speed_level,
                                   bool local_control_mode )
-  : cIpmiControl( mc, ent, num, id, SAHPI_CTRL_FAN_SPEED,
+  : cIpmiControl( mc, num, SAHPI_CTRL_FAN_SPEED,
                   SAHPI_CTRL_TYPE_ANALOG ),
     m_minimum_speed_level( minium_speed_level ),
     m_maximum_speed_level( maximum_speed_level ),
@@ -58,6 +58,7 @@ cIpmiControlFan::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 }
 
 
+/*
 void
 cIpmiControlFan::Log()
 {
@@ -66,6 +67,7 @@ cIpmiControlFan::Log()
          << m_maximum_speed_level << ", auto speed "
          << m_local_control_mode << "\n";
 }
+*/
 
 
 SaErrorT

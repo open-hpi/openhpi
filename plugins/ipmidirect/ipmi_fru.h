@@ -18,8 +18,12 @@
 #define dIpmiFru_h
 
 
-#ifndef dIpmiTypeCode_h
-#include "ipmi_type_code.h"
+#ifndef dIpmiRdr_h
+#include "ipmi_rdr.h"
+#endif
+
+#ifndef dIpmiTextBuffer_h
+#include "ipmi_text_buffer.h"
 #endif
 
 
@@ -106,12 +110,12 @@ public:
       unsigned int   m_size;
     } m_data;
 
-    unsigned int      m_int;
-    cIpmiTextBuffer   m_text_buffer;
-    cIpmiFruRecord   *m_record;
+    unsigned int     m_int;
+    SaHpiTextBufferT m_text_buffer;
+    cIpmiFruRecord  *m_record;
   } m_u;
 
-  void Log();
+  // void Log();
 };
 
 
@@ -140,7 +144,15 @@ public:
 
   cIpmiFruItem *Find( const char *name );
 
-  void Log();
+  // creating of HPI inventory data
+  SaHpiTextBufferT *SetItem( unsigned char *&p, int &s, const char *name );
+  int GeneralDataRecord( SaHpiInventGeneralDataT *r );
+  int InternalUseRecord( SaHpiInventInternalUseDataT *r );
+  int ChassisInfoAreaRecord( SaHpiInventChassisDataT *r );
+  int BoradInfoAreaRecord( SaHpiInventGeneralDataT *r );
+  int ProductInfoAreaRecord( SaHpiInventGeneralDataT *r );
+
+  // void Log();
 };
 
 
@@ -154,9 +166,9 @@ enum tFruAccessMode
 #define dMaxFruFetchBytes 20
 
 
-class cIpmiFru
+class cIpmiFru : public cIpmiRdr
 {
-  cIpmiEntity   *m_entity;
+protected:
   unsigned char  m_fru_device_id; // fru device id
   unsigned int   m_size;
   tFruAccessMode m_access;
@@ -166,28 +178,30 @@ class cIpmiFru
   int ReadFruData( unsigned short offset, unsigned int num, unsigned int &n, unsigned char *data );
 
   int CreateRecord( const char *name, tIpmiFruItemDesc *desc, 
-                    unsigned char *data, unsigned int len );
+                    const unsigned char *data, unsigned int len );
 
-  int CreateInventory( unsigned char *data );
-  int CreateInternalUse( unsigned char *data, unsigned int len );
-  int CreateChassis( unsigned char *data, unsigned int len );
-  int CreateBoard( unsigned char *data, unsigned int len );
-  int CreateProduct( unsigned char *data, unsigned int len );
-  int CreateMultiRecord( unsigned char *data, unsigned int len );
+  int CreateInventory( const unsigned char *data );
+  int CreateInternalUse( const unsigned char *data, unsigned int len );
+  int CreateChassis( const unsigned char *data, unsigned int len );
+  int CreateBoard( const unsigned char *data, unsigned int len );
+  int CreateProduct( const unsigned char *data, unsigned int len );
+  int CreateMultiRecord( const unsigned char *data, unsigned int len );
 
   cIpmiFruRecord **m_array;
   int              m_num;
+
+  unsigned int     m_oem;
 
   void Add( cIpmiFruRecord *record );
   void Clear();
 
 public:
-  cIpmiFru( cIpmiEntity *ent, unsigned int fru_device_id );
+  cIpmiFru( cIpmiMc *mc, unsigned int fru_device_id );
   ~cIpmiFru();
 
   int Fetch();
 
-  unsigned int FruId() { return m_fru_device_id; }
+  virtual unsigned int Num() const { return m_fru_device_id; }
 
   cIpmiFruRecord *Find( const char *name );
 
@@ -195,13 +209,21 @@ public:
   cIpmiFruRecord *GetRecord( int idx )
   {
     assert( idx >= 0 && idx < m_num );
-    return m_array[idx]; 
+    return m_array[idx];
   }
 
-  // HPI record id to find the rdr
-  SaHpiEntryIdT m_record_id;
+  // create an RDR inventory record
+  virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
+protected:
   unsigned int  m_inventory_size;
+
+public:
+  // calulate the size of inventory data
+  unsigned int CalcSize();
+  unsigned int GetSize() { return m_inventory_size; }
+
+  unsigned int GetInventoryInfo( SaHpiInventoryDataT &data );
 };
 
 

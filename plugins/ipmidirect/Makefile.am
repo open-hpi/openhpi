@@ -82,6 +82,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_mc_vendor_force.cpp \
 		ipmi_msg.h \
 		ipmi_msg.cpp \
+		ipmi_rdr.h \
+		ipmi_rdr.cpp \
 		ipmi_sdr.h \
 		ipmi_sdr.cpp \
 		ipmi_sel.h \
@@ -96,8 +98,8 @@ libipmidirect_la_SOURCES= \
 		ipmi_sensor_hotswap.cpp \
 		ipmi_sensor_threshold.h \
 		ipmi_sensor_threshold.cpp \
-		ipmi_type_code.h \
-		ipmi_type_code.cpp \
+		ipmi_text_buffer.h \
+		ipmi_text_buffer.cpp \
 		ipmi_utils.h \
 		ipmi_utils.cpp \
 		sel.cpp \

@@ -141,7 +141,7 @@ cIpmiConLan::OpenLanFd()
      {
        curr_port++;
        addr.sin_family = AF_INET;
-       addr.sin_port = htons(curr_port);
+       addr.sin_port = htons( curr_port );
        addr.sin_addr.s_addr = INADDR_ANY;
 
        rv = bind( fd, (struct sockaddr *)&addr, sizeof( addr ) );

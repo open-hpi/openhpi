@@ -33,8 +33,8 @@ class cIpmiControlFan : public cIpmiControl
   bool m_local_control_mode;
 
 public:
-  cIpmiControlFan( cIpmiMc *mc, cIpmiEntity *ent,
-                   unsigned int num, const char *id,
+  cIpmiControlFan( cIpmiMc *mc,
+                   unsigned int num,
                    unsigned int minium_speed_level,
                    unsigned int maximum_speed_level,
                    unsigned int default_speed_level,
@@ -44,7 +44,7 @@ public:
   // create an RDR sensor record
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
-  virtual void Log();
+  // virtual void Log();
 
   virtual SaErrorT SetState( const SaHpiCtrlStateT &state );
   virtual SaErrorT GetState( SaHpiCtrlStateT &state );  

@@ -76,7 +76,13 @@ protected:
                                    unsigned int mc_type );
   virtual bool CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
                                      cIpmiEntity *ent );
-  
+
+public:
+  // create frus
+  virtual bool CreateFrus( cIpmiMc *mc, cIpmiSdrs *sdrs );
+
+protected:
+  virtual bool CreateFru( cIpmiMc *mc, cIpmiSdr *sdr );  
 };
 
 

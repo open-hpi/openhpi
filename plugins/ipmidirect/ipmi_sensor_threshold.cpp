@@ -865,7 +865,7 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
   cIpmiEntity *ent = GetEntity();
 
   stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor "
-         << m_num << " (" << m_id << ") get thresholds.\n";
+         << m_num << " (" << IdString() << ") get thresholds.\n";
 
   if ( m_threshold_access == eIpmiThresholdAccessSupportFixed )
        // Thresholds are fixed, pull them from the SDR.
@@ -921,7 +921,7 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
   cIpmiEntity *ent = GetEntity();
 
   stdlog << ent->EntityId() << "." << ent->EntityInstance() << " sensor " << m_num 
-         << " (" << m_id << ") get hysteresis.\n";
+         << " (" << IdString() << ") get hysteresis.\n";
 
   if (    m_hysteresis_support != eIpmiHysteresisSupportReadable
        && m_hysteresis_support != eIpmiHysteresisSupportSettable)

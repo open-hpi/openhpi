@@ -30,7 +30,7 @@
 #include "ipmi_cmd.h"
 #include "ipmi_log.h"
 #include "ipmi_utils.h"
-#include "ipmi_type_code.h"
+#include "ipmi_text_buffer.h"
 #include "ipmi_sensor_threshold.h"
 
 
@@ -89,39 +89,8 @@ IpmiSdrTypeToName( tIpmiSdrType type )
 }
 
 
-bool
-cIpmiSdr::Name( char *name, int size )
-{
-  switch( m_type )
-     {
-       case eSdrTypeFullSensorRecord:
-            IpmiGetDeviceString( m_data + 47, 16, name, size );
-            break;
-
-       case eSdrTypeCompactSensorRecord:
-            IpmiGetDeviceString( m_data + 31, 16, name, size );
-            break;
-
-       case eSdrTypeFruDeviceLocatorRecord:
-            IpmiGetDeviceString( m_data + 15, 16, name, size );
-            break;
-
-       case eSdrTypeMcDeviceLocatorRecord:
-            IpmiGetDeviceString( m_data + 15, 16, name, size );
-            break;
-
-       default:
-            assert( 0 );
-            *name = 0;
-            return false;
-     }
-
-  return true;
-}
-
-
 static bool
-Bitt( unsigned char v, int bit )
+Bit( unsigned char v, int bit )
 {
   return v & (1<<bit);
 }
@@ -132,12 +101,11 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
 {
   char str[80];
 
-  sprintf( str, "0x%02x", m_data[5] );
-  dump << "\tSlaveAddress               = " << str << ";\n";    
-  dump << "\tChannel                    = " << (m_data[6] >> 4)  << ";\n";
-  dump << "\tLun                        = " << (m_data[6] & 0x3) << ";\n";
-  dump << "\tSensorNum                  = " << m_data[7] << ";\n";
- 
+  dump.Entry( "SlaveAddress" ) << m_data[5] << ";\n";    
+  dump.Entry( "Channel" ) << (int)(m_data[6] >> 4) << ";\n";
+  dump.Entry( "Lun" ) << (int)(m_data[6] & 0x3) << ";\n";
+  dump.Entry( "SensorNum" ) << m_data[7] << ";\n";
+
   tIpmiEntityId id = (tIpmiEntityId)m_data[8];
 
   if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
@@ -145,29 +113,29 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
   else
        sprintf( str, "dIpmiEntityId%s", IpmiEntityIdToString( id ) );
 
-  dump << "\tEntityId                   = " << str << ";\n";
-  dump << "\tEntityInstance             = " << m_data[9] << ";\n";
+  dump.Entry( "EntityId" ) << str << ";\n";
+  dump.Entry( "EntityInstance" ) << (int)m_data[9] << ";\n";
 
-  dump << "\tInitScanning               = " << Bitt( m_data[10], 6 ) << ";\n";
-  dump << "\tInitEvents                 = " << Bitt( m_data[10], 5 ) << ";\n";
-  dump << "\tInitThresholds             = " << Bitt( m_data[10], 4 ) << ";\n";
-  dump << "\tInitHysteresis             = " << Bitt( m_data[10], 3 ) << ";\n";
-  dump << "\tInitSensorType             = " << Bitt( m_data[10], 2 ) << ";\n";
-  dump << "\tSensorInitPuEvents         = " << Bitt( m_data[10], 1 ) << ";\n";
-  dump << "\tSensorInitPuScanning       = " << Bitt( m_data[10], 0 ) << ";\n";
-  dump << "\tIgnoreIfNoEntity           = " << Bitt( m_data[11], 7 ) << ";\n";
-  dump << "\tSupportsAutoRearm          = " << Bitt( m_data[11], 6 ) << ";\n";
+  dump.Entry( "InitScanning" ) << Bit( m_data[10], 6 ) << ";\n";
+  dump.Entry( "InitEvents" ) << Bit( m_data[10], 5 ) << ";\n";
+  dump.Entry( "InitThresholds" ) << Bit( m_data[10], 4 ) << ";\n";
+  dump.Entry( "InitHysteresis" ) << Bit( m_data[10], 3 ) << ";\n";
+  dump.Entry( "InitSensorType" ) << Bit( m_data[10], 2 ) << ";\n";
+  dump.Entry( "SensorInitPuEvents" ) << Bit( m_data[10], 1 ) << ";\n";
+  dump.Entry( "SensorInitPuScanning" ) << Bit( m_data[10], 0 ) << ";\n";
+  dump.Entry( "IgnoreIfNoEntity" ) << Bit( m_data[11], 7 ) << ";\n";
+  dump.Entry( "SupportsAutoRearm" ) << Bit( m_data[11], 6 ) << ";\n";
   
   tIpmiHysteresisSupport hs = (tIpmiHysteresisSupport)((m_data[11] >> 4) & 3);
-  dump << "\tHysteresisSupport          = dIpmiHysteresisSupport" 
+  dump.Entry( "HysteresisSupport" ) << "dIpmiHysteresisSupport" 
        << IpmiHysteresisSupportToString( hs ) << ";\n";
 
   tIpmiThresholdAccessSuport ts = (tIpmiThresholdAccessSuport)((m_data[11] >> 2) & 3);
-  dump << "\tThresholdAccess            = dIpmiThresholdAccessSupport" 
+  dump.Entry( "ThresholdAccess" ) << "dIpmiThresholdAccessSupport" 
        << IpmiThresholdAccessSupportToString( ts ) << ";\n";
 
   tIpmiEventSupport es = (tIpmiEventSupport)(m_data[11] & 3);
-  dump << "\tEventSupport               = dIpmiEventSupport"
+  dump.Entry( "EventSupport" ) << "dIpmiEventSupport"
        << IpmiEventSupportToString( es ) <<  ";\n";
 
   tIpmiSensorType sensor_type = (tIpmiSensorType)m_data[12];
@@ -177,7 +145,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
   else
        sprintf( str, "dIpmiSensorType%s", IpmiSensorTypeToString( sensor_type ) );
 
-  dump << "\tSensorType                 = " << str << ";\n";
+  dump.Entry( "SensorType" ) << str << ";\n";
 
   tIpmiEventReadingType reading_type = (tIpmiEventReadingType)m_data[13];
 
@@ -186,7 +154,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
   else
        sprintf( str, "dIpmiEventReadingType%s", IpmiEventReadingTypeToString( reading_type ) );
 
-  dump << "\tEventReadingType           = " << str << ";\n";
+  dump.Entry( "EventReadingType" ) << str << ";\n";
 
   if ( reading_type == eIpmiEventReadingTypeThreshold )
      {
@@ -197,10 +165,10 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
        if ( str[0] == 0 )
             strcat( str, "0" );
 
-       dump << "\tAssertionEventMask         = " << str << ";\n";
+       dump.Entry( "AssertionEventMask" ) << str << ";\n";
        
        sprintf( str, "0x%02", em >> 12 );
-       dump << "\tLowerThresholdReadingMask  = " << str << ";\n";
+       dump.Entry( "LowerThresholdReadingMask" ) << str << ";\n";
 
        // deassertion
        em = IpmiGetUint16( m_data + 16 );
@@ -209,10 +177,10 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
        if ( str[0] == 0 )
             strcat( str, "0" );
        
-       dump << "\tDeassertionEventMask       = " << str << ";\n";
+       dump.Entry( "DeassertionEventMask" ) << str << ";\n";
        
        sprintf( str, "0x%02", em >> 12 );
-       dump << "\tUpperThresholdReadingMask  = " << str << ";\n";
+       dump.Entry( "UpperThresholdReadingMask" ) << str << ";\n";
 
        // settable threshold
        em = IpmiGetUint16( m_data + 18 );
@@ -222,130 +190,203 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump )
        if ( str[0] == 0 )
             strcat( str, "0" );
 
-       dump << "\tSettableThresholdsMask     = " << str <<  ";\n";
+       dump.Entry( "SettableThresholdsMask" ) << str <<  ";\n";
 
        IpmiThresholdMaskToString( em & 0xff, str );
 
        if ( str[0] == 0 )
             strcat( str, "0" );
 
-       dump << "\tReadableThresholdsMask     = " << str << ";\n";
+       dump.Entry( "ReadableThresholdsMask" ) << str << ";\n";
 
        tIpmiRateUnit ru = (tIpmiRateUnit)((m_data[20] >> 3) & 7);
-       dump << "\tRateUnit                   = dIpmRateUnit" << IpmiRateUnitToString( ru ) << ";\n";
+       dump.Entry( "RateUnit" ) << "dIpmRateUnit" << IpmiRateUnitToString( ru ) << ";\n";
 
        tIpmiModifierUnit mu = (tIpmiModifierUnit)( (m_data[20] >> 1) & 3);
-       dump << "\tModifierUnit               = dIpmiModifierUnit"
+       dump.Entry( "ModifierUnit" ) << "dIpmiModifierUnit"
             << IpmiModifierUnitToString( mu ) << ";\n";
-       dump << "\tPercentage                 = " << ((m_data[20] & 1) == 1) << ";\n";
+       dump.Entry( "Percentage" ) << ((m_data[20] & 1) == 1) << ";\n";
 
-       dump << "\tBaseUnit                   = dIpmiSensorUnit"
+       dump.Entry( "BaseUnit" ) << "dIpmiSensorUnit"
             << IpmiUnitTypeToString( (tIpmiUnitType)m_data[21] ) << ";\n";
-       dump << "\tModifierUnit2              = dIpmiSensorUnit"
+       dump.Entry( "ModifierUnit2" ) << "dIpmiSensorUnit"
             << IpmiUnitTypeToString( (tIpmiUnitType)m_data[22] ) << ";\n";
 
        cIpmiSensorFactors sf;
        sf.GetDataFromSdr( this );
 
-       dump << "\tAnalogDataFormat           = dIpmiAnalogDataFormat"
+       dump.Entry( "AnalogDataFormat" ) << "dIpmiAnalogDataFormat"
             << IpmiAnalogeDataFormatToString( sf.AnalogDataFormat() ) << ";\n";
 
-       dump << "\tLinearization              = dIpmiLinearization"
+       dump.Entry( "Linearization" ) << "dIpmiLinearization"
             << IpmiLinearizationToString( sf.Linearization() ) << ";\n";
 
-       dump << "\tM                          = " << sf.M() << ";\n";
-       dump << "\tTolerance                  = " << sf.Tolerance() << ";\n";
-       dump << "\tB                          = " << sf.B() << ";\n";
-       dump << "\tAccuracy                   = " << sf.Accuracy() << ";\n";
-       dump << "\tAccuracyExp                = " << sf.AccuracyExp() << ";\n";
-       dump << "\tRExp                       = " << sf.RExp() << ";\n";
-       dump << "\tBExp                       = " << sf.BExp() << ";\n";
+       dump.Entry( "M" ) << sf.M() << ";\n";
+       dump.Entry( "Tolerance" ) << sf.Tolerance() << ";\n";
+       dump.Entry( "B" ) << sf.B() << ";\n";
+       dump.Entry( "Accuracy" ) << sf.Accuracy() << ";\n";
+       dump.Entry( "AccuracyExp" ) << sf.AccuracyExp() << ";\n";
+       dump.Entry( "RExp" ) << sf.RExp() << ";\n";
+       dump.Entry( "BExp" ) << sf.BExp() << ";\n";
 
        bool v = m_data[30] & 1;
-       dump << "\tNominalReadingSpecified    = " << v << ";\n";
+       dump.Entry( "NominalReadingSpecified" ) << v << ";\n";
 
        if ( v )
-            dump << "\tNominalReading             = " << m_data[31] << ";\n";
+            dump.Entry( "NominalReading" ) << m_data[31] << ";\n";
 
        v = m_data[30] & 2;
-       dump << "\tNormalMaxSpecified         = " << v << ";\n";
+       dump.Entry( "NormalMaxSpecified" ) << v << ";\n";
 
        if ( v )
-            dump << "\tNormalMax                  = " << m_data[32] << ";\n";
+            dump.Entry( "NormalMax" ) << m_data[32] << ";\n";
 
        v = m_data[30] & 4;
-       dump << "\tNormalMinSpecified         = " << v << ";\n";
+       dump.Entry( "NormalMinSpecified" ) << v << ";\n";
 
        if ( v )
-            dump << "\tNormalMin                  = " << m_data[33] << ";\n";
+            dump.Entry( "NormalMin" ) << m_data[33] << ";\n";
 
-       dump << "\tSensorMax                  = " << m_data[34] << ";\n";
-       dump << "\tSensorMin                  = " << m_data[35] << ";\n";
+       dump.Entry( "SensorMax" ) << m_data[34] << ";\n";
+       dump.Entry( "SensorMin" ) << m_data[35] << ";\n";
        
-       dump << "\tUpperNonRecoverableThreshold = " << m_data[36] << ";\n";
-       dump << "\tUpperCriticalThreshold     = " << m_data[37] << ";\n";
-       dump << "\tUpperNonCriticalThreshold  = " << m_data[38] << ";\n";
+       dump.Entry( "UpperNonRecoverableThreshold" ) << m_data[36] << ";\n";
+       dump.Entry( "UpperCriticalThreshold" ) << m_data[37] << ";\n";
+       dump.Entry( "UpperNonCriticalThreshold" ) << m_data[38] << ";\n";
 
-       dump << "\tLowerNonRecoverableThreshold = " << m_data[39] << ";\n";
-       dump << "\tLowerCriticalThreshold     = " << m_data[40] << ";\n";
-       dump << "\tLowerNonCriticalThreshold  = " << m_data[41] << ";\n";
+       dump.Entry( "LowerNonRecoverableThreshold" ) << m_data[39] << ";\n";
+       dump.Entry( "LowerCriticalThreshold" ) << m_data[40] << ";\n";
+       dump.Entry( "LowerNonCriticalThreshold" ) << m_data[41] << ";\n";
        
-       dump << "\tPositiveGoingThresholdHysteresis = " << m_data[42] << ";\n";
-       dump << "\tNegativeGoingThresholdHysteresis = " << m_data[43] << ";\n";
+       dump.Entry( "PositiveGoingThresholdHysteresis" ) << m_data[42] << ";\n";
+       dump.Entry( "NegativeGoingThresholdHysteresis" ) << m_data[43] << ";\n";
      }
   else
      {
        // assertion
        unsigned short em = IpmiGetUint16( m_data + 14 );
        dump.Hex( true );
-       dump << "\tAssertionEventMask         = " << em << ";\n";
+       dump.Entry( "AssertionEventMask" ) << em << ";\n";
 
        // deassertion
        em = IpmiGetUint16( m_data + 16 );
-       dump << "\tDeassertionEventMask       = " << em << ";\n";
+       dump.Entry( "DeassertionEventMask" ) << em << ";\n";
 
        // event mask
        em = IpmiGetUint16( m_data + 18 );
-       dump << "\tDiscreteReadingMask        = " << em << ";\n";
+       dump.Entry( "DiscreteReadingMask" ) << em << ";\n";
 
        dump.Hex( false );
      }
 
-  dump << "\tOem                        = " << m_data[46] << ";\n";
+  dump.Entry( "Oem" ) << m_data[46] << ";\n";
 
   cIpmiTextBuffer tb;
-  tb.Set( m_data + 47 );
+  tb.SetIpmi( m_data + 47 );
   tb.GetAscii( str, 80 );
-  dump << "\tId                         = \"" << str << "\";\n";
+  dump.Entry( "Id" ) << "\"" << str << "\";\n";
 }
 
 
 void
 cIpmiSdr::DumpFruDeviceLocator( cIpmiLog &dump )
 {
+  dump.Entry( "DeviceAccessAddress" ) << m_data[5] << ";\n";
+
+  if ( m_data[7] & 0x80 )
+     {
+       // logical FRU device
+       dump.Entry( "FruDeviceId" ) << (int)m_data[6] << ";\n";
+     }
+  else
+     {
+       // device is directly on IPMB
+       dump.Entry( "SlaveAddress" ) << m_data[6] << ";\n";
+       dump.Entry( "Lun" ) << (int)((m_data[7] >> 3) & 3) << ";\n";
+     }
+
+  dump.Entry( "LogicalDevice" ) << Bit(m_data[7], 7 ) << ";\n";
+  dump.Entry( "Channel" ) << (int)(m_data[8] >> 4) << ";\n";
+  dump.Entry( "DeviceType" ) << m_data[10] << ";\n";
+  dump.Entry( "DeviceTypeModifier" ) << m_data[11] << ";\n";
+
+  tIpmiEntityId id = (tIpmiEntityId)m_data[12];
+  char str[80];
+
+  if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
+       sprintf( str, "0x%02x", id );
+  else
+       sprintf( str, "dIpmiEntityId%s", IpmiEntityIdToString( id ) );
+
+  dump.Entry( "EntityId" ) << str << ";\n";
+  dump.Entry( "EntityInstance" ) << (int)m_data[13] << ";\n";
+
+  dump.Entry( "Oem" ) << m_data[14] << ";\n";
+
+  cIpmiTextBuffer tb;
+  tb.SetIpmi( m_data + 15 );
+  tb.GetAscii( str, 80 );
+  dump.Entry( "Id" ) << "\"" << str << "\";\n";
 }
 
 
 void 
 cIpmiSdr::DumpMcDeviceLocator( cIpmiLog &dump )
 {
+  dump.Entry( "SlaveAddress" ) << m_data[5] << ";\n";
+  dump.Entry( "Channel" ) << (int)(m_data[6] & 0x0f) << ";\n";
+
+  dump.Entry( "AcpiSystemPower" ) << Bit( m_data[7], 7 ) << ";\n";
+  dump.Entry( "AcpiDevicePower" ) << Bit( m_data[7], 6 ) << ";\n";
+
+  dump.Entry( "ControllerLogInitAgentErrors" ) << Bit( m_data[7], 3 ) << ";\n";
+  dump.Entry( "LogInitializationAgentError" ) << Bit( m_data[7], 2 ) << ";\n";
+  dump.Entry( "EventMessageGeneration" ) << ( m_data[7] & 3 ) << ";\n";
+  dump.Entry( "ChassisSupport" ) << Bit( m_data[8], 7 ) << ";\n";
+  dump.Entry( "BridgeSupport" ) << Bit( m_data[8], 6 ) << ";\n";
+  dump.Entry( "IpmbEventGeneratorSupport" ) << Bit( m_data[8], 5 ) << ";\n";
+  dump.Entry( "IpmbEventReceiverSupport" ) << Bit( m_data[8], 4 ) << ";\n";
+  dump.Entry( "FruInventorySupport" ) << Bit( m_data[8], 3 ) << ";\n";
+  dump.Entry( "SelDeviceSupport" ) << Bit( m_data[8], 2 ) << ";\n";
+  dump.Entry( "SdrRepositorySupport" ) << Bit( m_data[8], 1 ) << ";\n";
+  dump.Entry( "SensorDeviceSupport" ) << Bit( m_data[8], 0 ) << ";\n";
+
+  tIpmiEntityId id = (tIpmiEntityId)m_data[12];
+  char str[80];
+
+  if ( !strcmp( IpmiEntityIdToString( id ), "Invalid" ) )
+       sprintf( str, "0x%02x", id );
+  else
+       sprintf( str, "dIpmiEntityId%s", IpmiEntityIdToString( id ) );
+
+  dump.Entry( "EntityId" ) << str << ";\n";
+  dump.Entry( "EntityInstance" ) << (int)m_data[13] << ";\n";
+
+  dump.Entry( "Oem" ) << m_data[14] << ";\n";
+
+  cIpmiTextBuffer tb;
+  tb.SetIpmi( m_data + 15 );
+  tb.GetAscii( str, 80 );
+  dump.Entry( "Id" ) << "\"" << str << "\";\n";
 }
 
 
 void
 cIpmiSdr::Dump( cIpmiLog &dump, const char *name )
 {
-  dump << IpmiSdrTypeToName( m_type ) << "Record " << name << "\n";
-  dump << "{\n";
-  dump << "\tRecordId                   = " << m_record_id << ";\n";
-  dump << "\tVersion                    = " << m_major_version << ", "
-                                            << m_minor_version << ";\n";
+  char str[80];
+  sprintf( str, "%sRecord", IpmiSdrTypeToName( m_type ) );
+  dump.Begin( str, name );
+  dump.Entry( "RecordId" ) << m_record_id << ";\n";
+  dump.Entry( "Version" ) << (int)m_major_version << ", "
+			  << (int)m_minor_version << ";\n";
+
   switch( m_type )
      {
        case eSdrTypeFullSensorRecord:
             DumpFullSensor( dump );
             break;
-            
+
        case eSdrTypeFruDeviceLocatorRecord:
             DumpFruDeviceLocator( dump );
             break;
@@ -356,8 +397,8 @@ cIpmiSdr::Dump( cIpmiLog &dump, const char *name )
        default:
             break;
      }
-  
-  dump << "}\n\n\n";
+
+  dump.End();
 }
 
 /*
@@ -368,10 +409,10 @@ Bit( unsigned char byte, int bit )
 }
 */
 
+/*
 void
 cIpmiSdr::Log()
 {
-/*
   IpmiLog( "SDR: recordid %d, version %d.%d, type 0x%02x (%s)\n",
            m_record_id, m_major_version, m_minor_version,
            m_type, IpmiSdrTypeToName( m_type ) );
@@ -384,7 +425,7 @@ cIpmiSdr::Log()
               Name( name, 80 );
 
               IpmiLog( "\tname '%s', owner id 0x%02x, num %d,\n",
-                       name, m_data[5] & 0x7f, m_data[7] );
+                       name, m_data[5] & 0xf7, m_data[7] );
               IpmiLog( "\tentity id 0x%02x, entity instance %d, type 0x%02x, event reading type %s\n",
                        m_data[8], m_data[9], m_data[12], IpmiEventReadingTypeToString( (tIpmiEventReadingType)m_data[13] ) );
               IpmiLog( "\tinit scanning %s, init events %s, init thresholds %s, init hysteresis %s, init sensor type %s,\n",
@@ -417,7 +458,7 @@ cIpmiSdr::Log()
               Name( name, 80 );
 
               IpmiLog( "\tname '%s', owner id 0x%02x, num %d,\n",
-                       name, m_data[5] & 0x7f, m_data[7] );
+                       name, m_data[5] & 0xf7, m_data[7] );
               IpmiLog( "\tentity id 0x%02x, entity instance %d, type 0x%02x\n",
                        m_data[8], m_data[9], m_data[12] );
             }
@@ -470,9 +511,8 @@ cIpmiSdr::Log()
             assert( 0 );
             break;
      }
-*/
 }
-
+*/
 
 static void
 IpmiSdrDestroyRecords( cIpmiSdr **&sdr, unsigned int &n )
@@ -647,6 +687,17 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
   sdr->m_major_version = data[2] & 0xf;
   sdr->m_minor_version = (data[2] >> 4) & 0xf;
   sdr->m_type          = (tIpmiSdrType)data[3];  
+
+  // Hack to support 1.0 MCs
+  if ((sdr->m_major_version == 1)
+      && (sdr->m_minor_version == 0)
+      && (sdr->m_type == eSdrTypeMcDeviceLocatorRecord))
+  {
+      data[8] = data[7];
+      data[7] = data[6];
+      data[6] = 0;
+  }
+
   sdr->m_length        = record_size;
   memcpy( sdr->m_data, data, record_size );
 
@@ -967,7 +1018,7 @@ cIpmiSdrs::Fetch()
                  break;
                }
 
-            sdr->Log();
+            sdr->Dump( stdlog, "sdr" );
 
             if ( num >= working_num_sdrs )
                {
@@ -1025,19 +1076,21 @@ cIpmiSdrs::Dump( cIpmiLog &dump, const char *name )
   unsigned int i;
   char str[80];
 
-  for( i = 0; i < m_num_sdrs; i++ )
+  if ( dump.IsRecursive() )
      {
-       sprintf( str, "Sdr%02x_%d", m_mc->GetAddress(), i );
-       m_sdrs[i]->Dump( dump, str );
+       for( i = 0; i < m_num_sdrs; i++ )
+	  {
+	    sprintf( str, "Sdr%02x_%d", m_mc->GetAddress(), i );
+	    m_sdrs[i]->Dump( dump, str );
+	  }
      }
 
-  dump << "Sdr \"" << name << "\"\n";
-  dump << "{\n";
+  dump.Begin( "Sdr", name );
 
   if ( m_device_sdr )
      {
-       dump << "\tDynamicPopulation          = " << m_dynamic_population << ";\n";
-       dump << "\tLunHasSensors              = "
+       dump.Entry( "DynamicPopulation" ) << m_dynamic_population << ";\n";
+       dump.Entry( "LunHasSensors" )
             << m_lun_has_sensors[0] << ", "
             << m_lun_has_sensors[1] << ", "
             << m_lun_has_sensors[2] << ", "
@@ -1045,21 +1098,21 @@ cIpmiSdrs::Dump( cIpmiLog &dump, const char *name )
      }
   else
      {
-       dump << "\tVersion                    = " << m_major_version << ", "
+       dump.Entry( "Version" ) << m_major_version << ", "
                                                  << m_minor_version << ";\n";
-       dump << "\tOverflow                   = " << m_overflow << ";\n";
-       dump << "\tUpdateMode                 = " << "dMainSdrUpdate"
+       dump.Entry( "Overflow" ) << m_overflow << ";\n";
+       dump.Entry( "UpdateMode" ) << "dMainSdrUpdate"
             << IpmiRepositorySdrUpdateToString( m_update_mode ) << ";\n";
-       dump << "\tSupportsDeleteSdr          = " << m_supports_delete_sdr << ";\n";
-       dump << "\tSupportsPartialAddSdr      = " << m_supports_partial_add_sdr << ";\n";
-       dump << "\tSupportsReserveSdr         = " << m_supports_reserve_sdr << ";\n";
-       dump << "\tSupportsGetSdrRepositoryAllocation = " << m_supports_get_sdr_repository_allocation << ";\n";
+       dump.Entry( "SupportsDeleteSdr" ) << m_supports_delete_sdr << ";\n";
+       dump.Entry( "SupportsPartialAddSdr" ) << m_supports_partial_add_sdr << ";\n";
+       dump.Entry( "SupportsReserveSdr" ) << m_supports_reserve_sdr << ";\n";
+       dump.Entry( "SupportsGetSdrRepositoryAllocation" ) << m_supports_get_sdr_repository_allocation << ";\n";
      }
 
-  if ( m_num_sdrs )
+  if ( dump.IsRecursive() && m_num_sdrs )
      {
-       dump << "\tSdr                        = ";
-       
+       dump.Entry( "Sdr" );
+
        for( i = 0; i < m_num_sdrs; i++ )
           {
             if ( i != 0 )
@@ -1072,5 +1125,5 @@ cIpmiSdrs::Dump( cIpmiLog &dump, const char *name )
        dump << ";\n";
      }
 
-  dump << "}\n\n\n";
+  dump.End();;
 }

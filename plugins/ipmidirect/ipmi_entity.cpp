@@ -81,7 +81,7 @@ cIpmiEntityInfo::VerifyControl( cIpmiControl *c )
      {
        cIpmiEntity *ent = (cIpmiEntity *)list->data;
 
-       if ( ent->VerifyControl( c ) )
+       if ( ent->Find( c ) )
             return c;
      }
 
@@ -95,8 +95,8 @@ cIpmiEntityInfo::VerifyFru( cIpmiFru *f )
   for( GList *list = m_entities; list; list = g_list_next( list ) )
      {
        cIpmiEntity *ent = (cIpmiEntity *)list->data;
-       
-       if ( ent->VerifyFru( f ) )
+
+       if ( ent->Find( f ) )
             return f;
      }
 
@@ -258,8 +258,7 @@ cIpmiEntity::cIpmiEntity( cIpmiEntityInfo *ents, tIpmiDeviceNum device_num,
     m_ents( ents ),
     m_sensors( 0 ), m_hotswap_sensor( 0 ),
     m_current_control_id( 0 ),
-    m_controls( 0 ),
-    m_frus( 0 ), m_sel( 0 )
+    m_sel( 0 )
 {
   m_id[0] = 0;
 
@@ -271,18 +270,6 @@ cIpmiEntity::~cIpmiEntity()
 {
   while( m_sensors )
        m_sensors = g_list_remove( m_sensors, m_sensors->data );
-
-  while( m_controls )
-     {
-       delete (cIpmiControl *)m_controls->data;
-       m_controls = g_list_remove( m_controls, m_controls->data );
-     }
-
-  while( m_frus )
-     {
-       delete (cIpmiFru *)m_frus->data;
-       m_frus = g_list_remove( m_sensors, m_frus->data );
-     }
 
   if ( m_sel )
      {
@@ -302,36 +289,6 @@ cIpmiEntity::VerifySensor( cIpmiSensor *s )
 
        if ( s == sensor )
             return s;
-     }
-
-  return 0;
-}
-
-
-cIpmiControl *
-cIpmiEntity::VerifyControl( cIpmiControl *c )
-{
-  for( GList *list = m_controls; list; list = g_list_next( list ) )
-     {
-       cIpmiControl *control = (cIpmiControl *)list->data;
-
-       if ( c == control )
-            return c;
-     }
-
-  return 0;
-}
-
-
-cIpmiFru *
-cIpmiEntity::VerifyFru( cIpmiFru *f )
-{
-  for( GList *list = m_frus; list; list = g_list_next( list ) )
-     {
-       cIpmiFru *fru = (cIpmiFru *)list->data;
-
-       if ( f == fru )
-            return f;
      }
 
   return 0;
@@ -489,18 +446,40 @@ cIpmiEntity::RemoveSensor( cIpmiSensor *sensor )
 }
 
 
-void 
-cIpmiEntity::AddControl( cIpmiControl *control )
+bool
+cIpmiEntity::Add( cIpmiRdr *rdr )
 {
-  m_controls = g_list_append( m_controls, control );
-
-  stdlog << "adding control ";
-  control->Log();
+  stdlog << "adding rdr ";
+  //control->Log();
   stdlog << "\n";
 
-  dbg( "adding control %d.%d (%s) %02x: %s",
+  char id[80] = "";
+  rdr->IdString().GetAscii( id, 80 );
+
+  dbg( "adding rdr %d.%d (%s) %02x: %s",
        EntityId(), EntityInstance(),
-       EntityIdString(), control->Num(), control->Id() );
+       EntityIdString(), rdr->Num(), id );
+
+  // set entity
+  rdr->Entity() = this;
+
+  // add rdr to entity
+  if ( cIpmiRdrContainer::Add( rdr ) == false )
+     {
+       assert( 0 );
+       return false;
+     }
+
+  // this is for testing, because at the moment
+  // rdrs cannot exits without an mc
+  assert( rdr->Mc() );
+
+  if ( rdr->Mc() )
+     {
+       // add rdr to mc
+       if ( rdr->Mc()->Add( rdr ) == false )
+            return false;
+     }
 
   // find resource
   SaHpiRptEntryT *resource = m_domain->FindResource( m_resource_id );
@@ -508,7 +487,7 @@ cIpmiEntity::AddControl( cIpmiControl *control )
   if ( !resource )
      {
        assert( 0 );
-       return;
+       return false;
      }
 
   // create event
@@ -518,8 +497,8 @@ cIpmiEntity::AddControl( cIpmiControl *control )
 
   if ( !e )
      {
-       stdlog << "Out of space !\n";   
-       return;
+       stdlog << "Out of space !\n";
+       return false;
      }
 
   memset( e, 0, sizeof( struct oh_event ) );
@@ -527,64 +506,46 @@ cIpmiEntity::AddControl( cIpmiControl *control )
   e->type = oh_event::OH_ET_RDR;
 
   // create rdr
-  control->CreateRdr( *resource, e->u.rdr_event.rdr );
+  rdr->CreateRdr( *resource, e->u.rdr_event.rdr );
 
   int rv = oh_add_rdr( m_domain->GetHandler()->rptcache,
                        resource->ResourceId,
-                       &e->u.rdr_event.rdr, control, 1 );
+                       &e->u.rdr_event.rdr, rdr, 1 );
 
   assert( rv == 0 );
 
   // assign the hpi record id to sensor, so we can find
   // the rdr for a given sensor.
   // the id comes from oh_add_rdr.
-  control->m_record_id = e->u.rdr_event.rdr.RecordId;
+  rdr->RecordId() = e->u.rdr_event.rdr.RecordId;
 
   m_domain->AddHpiEvent( e );
+
+  return true;
 }
 
 
-void
-cIpmiEntity::RemoveControl( cIpmiControl *control )
+bool
+cIpmiEntity::Rem( cIpmiRdr *rdr )
 {
-  GList *item = g_list_find( m_controls, control );
-
-  if ( item == 0 )
+  if ( Find( rdr ) == false )
      {
        stdlog << "User requested removal of a control"
                 " from an entity, but the control was not there";
-       return;
+       return false;
      }
 
-  m_controls = g_list_remove( m_controls, control );
+  // this is for testing, because at the moment
+  // rdrs cannot exits without an mc
+  assert( rdr->Mc() );
 
-  if (    (!m_came_from_sdr )
-       && m_sensors == 0 )
+  if ( rdr->Mc() )
+       rdr->Mc()->Rem( rdr );
+
+  cIpmiRdrContainer::Rem( rdr );
+
+  if ( m_rdrs == 0 )
        Destroy();
-}
 
-
-cIpmiFru *
-cIpmiEntity::FindFru( unsigned int fru_id )
-{
-  GList *item = g_list_first( m_frus );
-
-  while( item )
-     {
-       cIpmiFru *fru = (cIpmiFru *)item->data;
-
-       if ( fru->FruId() == fru_id )
-            return fru;
-
-       item = g_list_next( item );
-     }
-
-  return 0;
-}
-
-
-void
-cIpmiEntity::AddFru( cIpmiFru *fru )
-{
-  m_frus = g_list_append( m_frus, fru );
+  return true;
 }

@@ -81,7 +81,6 @@ public:
   cIpmiEvent();
 
   int Cmp( const cIpmiEvent &event ) const;
-  void Log() const;
 
   void Dump( cIpmiLog &dump, const char *name );
 };

@@ -18,17 +18,15 @@
 #include "ipmi_domain.h"
 
 
-cIpmiControl::cIpmiControl( cIpmiMc *mc, cIpmiEntity *ent,
-			    unsigned int num, const char *id,
+cIpmiControl::cIpmiControl( cIpmiMc *mc,
+			    unsigned int num,
                             SaHpiCtrlOutputTypeT output_type,
                             SaHpiCtrlTypeT type )
-  : m_mc( mc ), m_entity( ent ),
+  : cIpmiRdr( mc, SAHPI_CTRL_RDR ),
     m_num( num ), m_ignore( false ),
     m_output_type( output_type ),
     m_type( type )
 {
-  memset( m_id, 0, dControlIdLen + 1 );
-  strncpy( m_id, id, dControlIdLen );
 }
 
 
@@ -36,7 +34,7 @@ cIpmiControl::~cIpmiControl()
 {
 }
 
-
+/*
 void
 cIpmiControl::Log()
 {
@@ -45,11 +43,15 @@ cIpmiControl::Log()
          << m_entity->EntityInstance() << " ("
          << m_entity->EntityIdString() << "), " << m_id << "\n";
 }
+*/
 
 
 bool
 cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 {
+  if ( cIpmiRdr::CreateRdr( resource, rdr ) == false )
+       return false;
+
   if (    !(resource.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
        || !(resource.ResourceCapabilities & SAHPI_CAPABILITY_CONTROL ) )
      {
@@ -60,7 +62,7 @@ cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 
        if ( !e )
           {
-            stdlog << "Out of space !\n";
+            stdlog << "out of space !\n";
             return false;
           }
 
@@ -71,9 +73,6 @@ cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
        m_mc->Domain()->AddHpiEvent( e );       
      }
 
-  rdr.RdrType  = SAHPI_CTRL_RDR;
-  rdr.Entity   = resource.ResourceEntity;
-
   // control record
   SaHpiCtrlRecT &rec = rdr.RdrTypeUnion.CtrlRec;
 
@@ -82,16 +81,6 @@ cIpmiControl::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
   rec.OutputType = m_output_type;
   rec.Type       = m_type;
   rec.Oem        = m_oem;
-
-  // id string
-  char	name[32];
-  memset( name,'\0', 32 );
-  strncpy( name, m_id, 31 );
-  rdr.IdString.DataType = SAHPI_TL_TYPE_ASCII6;
-  rdr.IdString.Language = SAHPI_LANG_ENGLISH;
-  rdr.IdString.DataLength = strlen( name );
-
-  memcpy( rdr.IdString.Data, name, 32 );
 
   return true;
 }

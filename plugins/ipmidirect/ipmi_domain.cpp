@@ -726,109 +726,108 @@ cIpmiDomain::VerifyFru( cIpmiFru *f )
 void 
 cIpmiDomain::Dump( cIpmiLog &dump )
 {
-  dump << "#include \"Mc.sim\"\n";
-  dump << "#include \"Entity.sim\"\n";
-  dump << "#include \"Sensor.sim\"\n";
-  dump << "#include \"Sdr.sim\"\n";
-  dump << "#include \"Sel.sim\"\n";
-  dump << "#include \"Fru.sim\"\n\n\n";
-
-  // main sdr
-  if ( m_main_sdrs )
+  if ( dump.IsRecursive() )
      {
-       dump << "// repository SDR\n";
-       m_main_sdrs->Dump( dump, "MainSdr1" );
-     }
+       dump << "#include \"Mc.sim\"\n";
+       dump << "#include \"Entity.sim\"\n";
+       dump << "#include \"Sensor.sim\"\n";
+       dump << "#include \"Sdr.sim\"\n";
+       dump << "#include \"Sel.sim\"\n";
+       dump << "#include \"Fru.sim\"\n\n\n";
 
-  // dump all MCs
-  for( int i = 0; i < 256; i++ )
-     {
-       if ( m_mc_thread[i] == 0 || m_mc_thread[i]->Mc() == 0 )
-	    continue;
+       // main sdr
+       if ( m_main_sdrs )
+	  {
+	    dump << "// repository SDR\n";
+	    m_main_sdrs->Dump( dump, "MainSdr1" );
+	  }
 
-       cIpmiMc *mc = m_mc_thread[i]->Mc();
-       char str[80];
-       sprintf( str, "Mc%02x", i );
-       mc->Dump( dump, str );
+       // dump all MCs
+       for( int i = 0; i < 256; i++ )
+	  {
+	    if ( m_mc_thread[i] == 0 || m_mc_thread[i]->Mc() == 0 )
+		 continue;
+
+	    cIpmiMc *mc = m_mc_thread[i]->Mc();
+	    char str[80];
+	    sprintf( str, "Mc%02x", i );
+	    mc->Dump( dump, str );
+	  }
      }
 
   // sim
-  dump << "Sim \"Dump\"\n";
-  dump << "{\n";
+  dump.Begin( "Sim", "Dump" );
 
   // address info
-  dump << "\t// address info\n";
-
   for( int i = 0; i < 256; i++ )
      {
        if ( m_mc_thread[i] == 0 )
 	    continue;
 
        if ( i == 0x20 )
-	    dump << "\tShMc\t\t= 0, 0x20;\n";
+	    dump.Entry( "ShMc" ) << "0, 0x20;\n";
        else
 	  {
             if ( m_mc_thread[i]->Type() == 0 )
                  continue;
 
 	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
-		 dump << "\tAtcaBoard\t\t= ";
+		 dump.Entry( "AtcaBoard" );
 	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
-		 dump << "\tPowerUnit\t\t= ";
+		 dump.Entry( "PowerUnit" );
 	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
-		 dump << "\tFanTry\t\t= ";
+		 dump.Entry( "FanTray" );
 	    else
                {
 		 assert( 0 );
                  continue;
                }
 
-	    dump << m_mc_thread[i]->Slot() << ", ";
-
-            char str[80];
-            sprintf( str, "0x%02x;\n", i );
-            dump << str;
+	    dump << m_mc_thread[i]->Slot() << ", "
+		 << (unsigned char)i << ";\n";
 	  }
      }
 
-  dump << "\n";
-
-  if ( m_main_sdrs )
-       dump << "\tMainSdr\t\t= MainSdr1\n";
-
-  for( int i = 0; i < 256; i++ )
+  if ( dump.IsRecursive() )
      {
-       if (    m_mc_thread[i] == 0 
-            || m_mc_thread[i]->Mc() == 0 )
-	    continue;
+       dump << "\n";
 
-       char str[80];
-       sprintf( str, "Mc%02x", i );
+       if ( m_main_sdrs )
+	    dump.Entry( "MainSdr" ) << "MainSdr1\n";
 
-       if ( i == 0x20 )
-          {
-            dump << "\tMc\t\t= " << str << ", ";
-	    dump << "ShMc";
-          }
-       else
+       for( int i = 0; i < 256; i++ )
 	  {
-            if ( m_mc_thread[i]->Type() == 0 )
-                 continue;
+	    if (    m_mc_thread[i] == 0 
+		    || m_mc_thread[i]->Mc() == 0 )
+		 continue;
 
-            dump << "\tMc\t\t= " << str << ", ";
+	    char str[30];
+	    sprintf( str, "Mc%02x", i );
 
-	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
-		 dump << "AtcaBoard";
-	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
-		 dump << "PowerUnit";
-	    if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
-		 dump << "FanTry";
+	    if ( i == 0x20 )
+	       {
+		 dump.Entry( "Mc" ) << str << ", " << "ShMc";
+	       }
 	    else
-		 assert( 0 );
-          }
+	       {
+		 if ( m_mc_thread[i]->Type() == 0 )
+		      continue;
 
-       dump << ", " << m_mc_thread[i]->Slot() << ";\n";
+		 dump.Entry( "Mc" ) << str << ", ";
+
+		 if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitBoard )
+		      dump << "AtcaBoard";
+		 if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitPower )
+		      dump << "PowerUnit";
+		 if ( m_mc_thread[i]->Type() & dIpmiMcTypeBitFan )
+		      dump << "FanTray";
+		 else
+		      assert( 0 );
+	       }
+
+	    dump << ", " << m_mc_thread[i]->Slot() << ";\n";
+	  }
      }
 
-  dump << "}\n";
+  dump.End();
 }

@@ -131,6 +131,13 @@ cIpmiMc::Cleanup()
        m_sensors_in_my_sdr_count = 0;
      }
 
+  // remove rdrs found in MC
+  while( m_rdrs )
+     {
+       cIpmiRdr *rdr = (cIpmiRdr *)m_rdrs->data;
+       rdr->Entity()->Rem( rdr );
+     }
+
   m_active = false;
 
   if ( m_sensors == 0 || m_sensors->m_sensor_count == 0 )
@@ -199,10 +206,8 @@ cIpmiMc::HandleNew()
        if ( m_sel_device_support )
             IpmiSelHandleSdr( m_domain, this, m_sdrs );
 
-       rv = IpmiFruHandleSdr( m_domain, this, m_sdrs );
-
-       if ( rv )
-            return rv;
+       if ( m_vendor->CreateFrus( this, m_sdrs ) == false )
+            return EINVAL;
      }
 
   // read the sel first
@@ -597,43 +602,50 @@ cIpmiMc::Dump( cIpmiLog &dump, const char *name )
   char sdr_name[80];
   sprintf( sdr_name, "Sdr%02x", GetAddress() );
 
-  if ( m_sdrs && m_provides_device_sdrs )
-       m_sdrs->Dump( dump, sdr_name );
-
   char sel_name[80];
   sprintf( sel_name, "Sel%02x", GetAddress() );
 
-  if ( m_sel && m_sel_device_support )
-       m_sel->Dump( dump, sel_name );
+  if ( dump.IsRecursive() )
+     {
+       if ( m_sdrs && m_provides_device_sdrs )
+	    m_sdrs->Dump( dump, sdr_name );
 
-  dump << "Mc \"" << name << "\"\n";
-  dump << "{\n";
+       if ( m_sel && m_sel_device_support )
+	    m_sel->Dump( dump, sel_name );
+     }
 
-  if ( m_sdrs && m_provides_device_sdrs )
-       dump << "\tSdr                       = " << sdr_name << ";\n";
+  dump.Begin( "Mc", name );
 
-  if ( m_sel && m_sel_device_support )
-       dump << "\tSel                       = " << sel_name << ";\n";
+  if ( dump.IsRecursive() )
+     {
+       if ( m_sdrs && m_provides_device_sdrs )
+	    dump.Entry( "Sdr" ) << sdr_name << ";\n";
 
-  dump << "\tDeviceId                  = " << m_device_id << ";\n";
-  dump << "\tDeviceRevision            = " << m_device_revision << ";\n";
-  dump << "\tProvidesDeviceSdr         = " << m_provides_device_sdrs << ";\n";
-  dump << "\tDeviceAvailable           = " << (m_device_available ? "dIpmiDeviceStateUpdateInProgress" 
-                                               : "dIpmiDeviceStateNormalOperation" ) << ";\n";
-  dump << "\tChassisSupport            = " << m_chassis_support << ";\n";
-  dump << "\tBridgeSupport             = " << m_bridge_support << ";\n";
-  dump << "\tIpmbEventGeneratorSupport = " << m_ipmb_event_generator_support << ";\n";
-  dump << "\tIpmbEventReceiverSupport  = " << m_ipmb_event_receiver_support << ";\n";
-  dump << "\tFruInventorySupport       = " << m_fru_inventory_support << ";\n";
-  dump << "\tSelDeviceSupport          = " << m_sel_device_support << ";\n";
-  dump << "\tSdrRepositorySupport      = " << m_sdr_repository_support << ";\n";
-  dump << "\tSensorDeviceSupport       = " << m_sensor_device_support << ";\n";
-  dump << "\tFwVersion                 = " << m_major_fw_revision
-       << ", " << m_minor_fw_revision << ";\n";
-  dump << "\tVersion                   = " << m_major_version << ", " << m_minor_version << ";\n";
+       if ( m_sel && m_sel_device_support )
+	    dump.Entry( "Sel" ) << sel_name << ";\n";
+     }
+
+  dump.Entry( "DeviceId" ) << (int)m_device_id << ";\n";
+  dump.Entry( "DeviceRevision" ) << (int)m_device_revision << ";\n";
+  dump.Entry( "ProvidesDeviceSdr" ) << m_provides_device_sdrs << ";\n";
+  dump.Entry( "DeviceAvailable" ) << (m_device_available ? "dIpmiDeviceStateUpdateInProgress" 
+                                         : "dIpmiDeviceStateNormalOperation" ) << ";\n";
+  dump.Entry( "ChassisSupport" ) << m_chassis_support << ";\n";
+  dump.Entry( "BridgeSupport" ) << m_bridge_support << ";\n";
+  dump.Entry( "IpmbEventGeneratorSupport" ) << m_ipmb_event_generator_support << ";\n";
+  dump.Entry( "IpmbEventReceiverSupport" ) << m_ipmb_event_receiver_support << ";\n";
+  dump.Entry( "FruInventorySupport" ) << m_fru_inventory_support << ";\n";
+  dump.Entry( "SelDeviceSupport" ) << m_sel_device_support << ";\n";
+  dump.Entry( "SdrRepositorySupport" ) << m_sdr_repository_support << ";\n";
+  dump.Entry( "SensorDeviceSupport" ) << m_sensor_device_support << ";\n";
+  dump.Entry( "FwVersion" ) << (int)m_major_fw_revision
+			    << ", " << (int)m_minor_fw_revision << ";\n";
+  dump.Entry( "Version" ) << (int)m_major_version << ", "
+			  << (int)m_minor_version << ";\n";
   dump.Hex( true );
-  dump << "\tManufacturerId            = " << m_manufacturer_id << ";\n";
+  dump.Entry( "ManufacturerId" ) << m_manufacturer_id << ";\n";
+  dump.Entry( "ProductId" ) << m_product_id << ";\n";
   dump.Hex( false );
-  dump << "\tProductId                 = " << m_product_id << ";\n";
-  dump << "}\n\n\n";
+
+  dump.End();
 }

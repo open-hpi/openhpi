@@ -299,6 +299,7 @@ main( int argc, char *argv[] )
 
   if ( dump.Open( dIpmiLogFile, "Config.sim", 0 ) )
      {
+       dump.Recursive( true );
        ipmi->Dump( dump );
        dump.Close();
      }

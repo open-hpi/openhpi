@@ -114,6 +114,7 @@ cIpmiFruItem::~cIpmiFruItem()
 }
 
 
+/*
 void
 cIpmiFruItem::Log()
 {
@@ -141,6 +142,7 @@ cIpmiFruItem::Log()
             break;
      }
 }
+*/
 
 
 //////////////////////////////////////////////////
@@ -202,24 +204,172 @@ cIpmiFruRecord::Find( const char *name )
 }
 
 
+SaHpiTextBufferT *
+cIpmiFruRecord::SetItem( unsigned char *&p, int &s, const char *name )
+{
+  SaHpiTextBufferT *t = (SaHpiTextBufferT *)p;
+  memset( t->Data, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH );
+
+  cIpmiFruItem *i = Find( name );
+
+  if ( i )
+     {
+       assert( i->m_type == eIpmiFruItemTypeTextBuffer );
+       *t = i->m_u.m_text_buffer;
+     }
+  else
+     {
+       t->DataType = SAHPI_TL_TYPE_BINARY;
+       t->Language = SAHPI_LANG_UNDEF;
+       t->DataLength = 0;
+     }
+
+  s += sizeof( SaHpiTextBufferT );
+  p += sizeof( SaHpiTextBufferT );
+
+  return t;
+}
+
+
+int
+cIpmiFruRecord::GeneralDataRecord( SaHpiInventGeneralDataT *r )
+{
+  int size = 0;
+  unsigned char *p = (unsigned char *)r + sizeof( SaHpiInventGeneralDataT );
+
+  // calculate number of custom fields
+  unsigned int idx = 0;
+
+  while( true )
+     {
+       char str[dIpmiFruItemNameLen];
+       sprintf( str, "%s%d", dIpmiFruItemCustom, idx + 1 );
+
+       if ( Find( str ) == 0 )
+            break;
+
+       idx++;
+     }
+
+  size = idx * sizeof( SaHpiTextBufferT * );
+  p += size;
+
+  // mfg date
+  r->MfgDateTime = SAHPI_TIME_UNSPECIFIED;
+
+  cIpmiFruItem *i = Find( dIpmiFruItemMfgDate );
+
+  if ( i )
+     {
+       r->MfgDateTime = (SaHpiTimeT)i->m_u.m_int;
+       r->MfgDateTime *= 1000000000;
+     }
+
+  r->Manufacturer   = SetItem( p, size, dIpmiFruItemManufacturer );
+  r->ProductName    = SetItem( p, size, dIpmiFruItemProductName );
+  r->ProductVersion = SetItem( p, size, dIpmiFruItemProductVersion );
+  r->ModelNumber    = SetItem( p, size, "ModelNumber" ); // just to create an empty text buffer
+  r->SerialNumber   = SetItem( p, size, dIpmiFruItemSerialNumber );
+  r->PartNumber	    = SetItem( p, size, dIpmiFruItemPartNumber );
+  r->FileId 	    = SetItem( p, size, dIpmiFruItemFruFileId );
+  r->AssetTag       = SetItem( p, size,  dIpmiFruItemAssetTag);
+
+  // custom fields
+  idx = 0;
+
+  while( true )
+     {
+       char str[dIpmiFruItemNameLen];
+       sprintf( str, "%s%d", dIpmiFruItemCustom, idx + 1 );
+
+       if ( !Find( str ) )
+            break;
+
+       r->CustomField[idx] = SetItem( p, size, str ); 
+       idx++;
+     }
+
+  r->CustomField[idx] = 0;
+
+  return size;
+}
+
+
+int
+cIpmiFruRecord::InternalUseRecord( SaHpiInventInternalUseDataT *r )
+{
+  int s = 0;
+
+  cIpmiFruItem *i = Find( dIpmiFruItemData );
+
+  if ( i )
+     {
+       memcpy( r->Data, i->m_u.m_data.m_data, i->m_u.m_data.m_size );
+       s += i->m_u.m_data.m_size;
+     }
+
+  return s;
+}
+
+
+int
+cIpmiFruRecord::ChassisInfoAreaRecord( SaHpiInventChassisDataT *r )
+{
+  int s = sizeof( SaHpiInventChassisDataT );
+
+  r->Type = SAHPI_INVENT_CTYP_UNKNOWN;
+
+  cIpmiFruItem *i = Find( dIpmiFruItemChassisType );
+
+  if ( i )
+       r->Type = (SaHpiInventChassisTypeT)i->m_u.m_int;
+
+  return s + GeneralDataRecord( &r->GeneralData );
+}
+
+
+int
+cIpmiFruRecord::BoradInfoAreaRecord( SaHpiInventGeneralDataT *r )
+{
+  int s = sizeof( SaHpiInventGeneralDataT );
+
+  return s + GeneralDataRecord( r );
+}
+
+
+int
+cIpmiFruRecord::ProductInfoAreaRecord( SaHpiInventGeneralDataT *r )
+{
+  int s = sizeof( SaHpiInventGeneralDataT );
+
+  return s + GeneralDataRecord( r );
+}
+
+
+/*
 void
 cIpmiFruRecord::Log()
 {
   for( int i = 0; i < m_num; i++ )
        m_array[i]->Log();
 }
+*/
 
 
 //////////////////////////////////////////////////
 //                  cIpmiFru
 //////////////////////////////////////////////////
 
-cIpmiFru::cIpmiFru( cIpmiEntity *ent, unsigned int fru_device_id )
-  : m_entity( ent ), m_fru_device_id( fru_device_id ),
+cIpmiFru::cIpmiFru( cIpmiMc *mc, unsigned int fru_device_id )
+  : cIpmiRdr( mc, SAHPI_INVENTORY_RDR ), m_fru_device_id( fru_device_id ),
     m_size( 0 ), m_access( eFruAccessModeByte ),
     m_array( 0 ), m_num( 0 ),
-    m_inventory_size( 0 )
+    m_oem( 0 ), m_inventory_size( 0 )
 {
+  char str[80];
+  sprintf( str, "FRU%d", fru_device_id );
+
+  m_id_string.SetAscii( str, SAHPI_TL_TYPE_LANGUAGE, SAHPI_LANG_ENGLISH );
 }
 
 
@@ -398,7 +548,7 @@ cIpmiFru::Fetch()
 
 
 static unsigned char
-checksum( unsigned char *data, int size )
+checksum( const unsigned char *data, int size )
 {
   unsigned char c = 0;
 
@@ -410,7 +560,7 @@ checksum( unsigned char *data, int size )
 
 
 int
-cIpmiFru::CreateInventory( unsigned char *data )
+cIpmiFru::CreateInventory( const unsigned char *data )
 {
   stdlog << "MC " << m_entity->AccessAddress() << " FRU Inventory " << m_fru_device_id << "\n";
 
@@ -495,7 +645,7 @@ cIpmiFru::CreateInventory( unsigned char *data )
 
 int
 cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc, 
-                        unsigned char *data, unsigned int /*len*/ )
+                        const unsigned char *data, unsigned int /*len*/ )
 {
   cIpmiFruRecord *r = new cIpmiFruRecord( name );
   cIpmiFruItem *item;
@@ -508,9 +658,14 @@ cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc,
        switch( desc->m_type )
           {
             case eIpmiFruItemTypeTextBuffer:
-                 item = new cIpmiFruItem( desc->m_name, eIpmiFruItemTypeTextBuffer );
-                 data = item->m_u.m_text_buffer.Set( data );
-                 assert( data );
+		 {
+		   cIpmiTextBuffer tb;
+		   data = tb.SetIpmi( data );
+		   assert( data );
+
+		   item = new cIpmiFruItem( desc->m_name, eIpmiFruItemTypeTextBuffer );
+		   item->m_u.m_text_buffer = tb;
+		 }
 
                  break;
 
@@ -554,17 +709,19 @@ cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc,
                       char str[dIpmiFruItemNameLen];
                       sprintf( str, "%s%d", desc->m_name, i + 1 );
 
-                      item = new cIpmiFruItem( str, eIpmiFruItemTypeTextBuffer );
-                      data = item->m_u.m_text_buffer.Set( data );
+		      cIpmiTextBuffer tb;
+		      data = tb.SetIpmi( data );
 
                       if ( data )
+			 {
+			   item = new cIpmiFruItem( str, eIpmiFruItemTypeTextBuffer );
+			   item->m_u.m_text_buffer = tb;
                            r->Add( item );
+			 }
                       else
                          {
-                           delete item;
-
                            Add( r );
-                           r->Log();
+                           // r->Log();
 
                            return 0;
                          }
@@ -590,14 +747,14 @@ cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc,
      }
 
   Add( r );
-  r->Log();
+  // r->Log();
 
   return 0;
 }
 
 
 int
-cIpmiFru::CreateInternalUse( unsigned char *data, unsigned int len )
+cIpmiFru::CreateInternalUse( const unsigned char *data, unsigned int len )
 {
   cIpmiFruRecord *r = new cIpmiFruRecord( dIpmiFruRecordInternalUseArea );
   
@@ -618,14 +775,14 @@ cIpmiFru::CreateInternalUse( unsigned char *data, unsigned int len )
 
   Add( r );
 
-  r->Log();
+  //  r->Log();
 
   return 0;
 }
 
 
 int
-cIpmiFru::CreateChassis( unsigned char *data, unsigned int len )
+cIpmiFru::CreateChassis( const unsigned char *data, unsigned int len )
 {
   return CreateRecord( dIpmiFruRecordChassisInfoArea, 
                        chassis_desc, data, len );
@@ -633,7 +790,7 @@ cIpmiFru::CreateChassis( unsigned char *data, unsigned int len )
 
 
 int
-cIpmiFru::CreateBoard( unsigned char *data, unsigned int len )
+cIpmiFru::CreateBoard( const unsigned char *data, unsigned int len )
 {
   return CreateRecord( dIpmiFruRecordBoardInfoArea,
                        board_desc, data, len );
@@ -641,7 +798,7 @@ cIpmiFru::CreateBoard( unsigned char *data, unsigned int len )
 
 
 int
-cIpmiFru::CreateProduct( unsigned char *data, unsigned int len )
+cIpmiFru::CreateProduct( const unsigned char *data, unsigned int len )
 {
   return CreateRecord( dIpmiFruRecordProductInfoArea, 
                        product_desc, data, len );
@@ -649,81 +806,144 @@ cIpmiFru::CreateProduct( unsigned char *data, unsigned int len )
 
 
 int
-cIpmiFru::CreateMultiRecord( unsigned char * /*data*/, unsigned int /*len*/ )
+cIpmiFru::CreateMultiRecord( const unsigned char * /*data*/, unsigned int /*len*/ )
 {
   return 0;
 }
 
 
-int
-IpmiFruHandleSdr( cIpmiDomain *domain, cIpmiMc * /*mc*/, cIpmiSdrs *sdrs )
+bool
+cIpmiFru::CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr )
 {
-  for( unsigned int i = 0; i < sdrs->NumSdrs(); i++ )
+  if ( cIpmiRdr::CreateRdr( resource, rdr ) == false )
+       return false;
+
+  if ( !(resource.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA ) )
      {
-       cIpmiSdr *sdr = sdrs->Sdr( i );
+       // update resource
+       resource.ResourceCapabilities |= SAHPI_CAPABILITY_RDR|SAHPI_CAPABILITY_INVENTORY_DATA;
 
-       tIpmiEntityId id;
-       unsigned int instance;
-       unsigned int fru_id;
-       unsigned int addr;
-       unsigned int channel;
-       unsigned int lun;
+       struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
 
-       if ( sdr->m_type == eSdrTypeMcDeviceLocatorRecord )
+       if ( !e )
           {
-            // fru inventory device ?
-            if ( sdr->m_data[2] == 0x01 )
-               {
-                 // old IPMI 1.0 mcdlr
-                 if ( (sdr->m_data[7] & 8) == 0 )
-                      continue;
-
-                 stdlog << "found old IPMI 1.0 MC device locator record.\n";
-               }
-            else
-               {
-                 if ( (sdr->m_data[8] & 8) == 0 )
-                      continue;
-               }
-
-            id       = (tIpmiEntityId)sdr->m_data[12];
-            instance = sdr->m_data[13];
-            fru_id   = 0;
-            addr     = sdr->m_data[5];
-            channel  = sdr->m_data[6] & 0xf;
-            lun      = 0;
-          }
-       else if ( sdr->m_type == eSdrTypeFruDeviceLocatorRecord )
-          {
-            id       = (tIpmiEntityId)sdr->m_data[12];
-            instance = sdr->m_data[13];
-            fru_id   = sdr->m_data[6];
-            addr     = sdr->m_data[5];
-            channel  = (sdr->m_data[8] >> 4) & 0xf;
-            lun      = (sdr->m_data[7] >> 3) & 3;
-          }
-       else
-            continue;
-
-       // create mc
-       cIpmiMc *m = domain->FindOrCreateMcBySlaveAddr( addr );
-       cIpmiEntity *ent = domain->Entities().Add( m, lun, id, instance, "" );
-       assert( ent );
-
-       cIpmiFru *fru = ent->FindFru( fru_id );
-
-       if ( fru == 0 )
-          {
-            fru = new cIpmiFru( ent, fru_id );
-            ent->AddFru( fru );
+            stdlog << "out of space !\n";
+            return false;
           }
 
-       // read fru
-       int rv = fru->Fetch();
+       memset( e, 0, sizeof( struct oh_event ) );
+       e->type               = oh_event::OH_ET_RESOURCE;
+       e->u.res_event.entry = resource;
 
-       if ( !rv )
-            domain->IfFruAdd( ent, fru );
+       m_mc->Domain()->AddHpiEvent( e );
      }
 
-  return 0;
+  // control record
+  SaHpiInventoryRecT &rec = rdr.RdrTypeUnion.InventoryRec;
+  rec.EirId = Num();
+  rec.Oem = m_oem;
+
+  return true;
+}
+
+
+unsigned int
+cIpmiFru::GetInventoryInfo( SaHpiInventoryDataT &data )
+{
+  int size = sizeof( SaHpiInventoryDataT )
+    + NumRecords() * sizeof( SaHpiInventDataRecordT * );
+
+  data.Validity = SAHPI_INVENT_DATA_VALID;
+
+  // position of the first record
+  unsigned char *p = (unsigned char *)&data + size;
+
+  int idx = 0;
+
+  for( int i = NumRecords() - 1; i >= 0; i-- )
+     {
+       cIpmiFruRecord *fr = GetRecord( i );
+       SaHpiInventDataRecordT *r = (SaHpiInventDataRecordT *)p;
+       int s;
+
+       if ( !strcmp( fr->m_name, dIpmiFruRecordInternalUseArea ) )
+	  {
+	    s = fr->InternalUseRecord( &r->RecordData.InternalUse );
+	    r->RecordType = SAHPI_INVENT_RECTYPE_INTERNAL_USE;
+	  }
+       else if ( !strcmp( fr->m_name, dIpmiFruRecordChassisInfoArea ) )
+	  {
+	    s = fr->ChassisInfoAreaRecord( &r->RecordData.ChassisInfo );
+	    r->RecordType = SAHPI_INVENT_RECTYPE_CHASSIS_INFO;
+	  }
+       else if ( !strcmp( fr->m_name, dIpmiFruRecordBoardInfoArea ) )
+	  {
+            s = fr->BoradInfoAreaRecord( &r->RecordData.BoardInfo );
+	    r->RecordType = SAHPI_INVENT_RECTYPE_BOARD_INFO;
+	  }
+       else if ( !strcmp( fr->m_name, dIpmiFruRecordProductInfoArea ) )
+	  {
+	    s = fr->ProductInfoAreaRecord( &r->RecordData.ProductInfo );
+	    r->RecordType = SAHPI_INVENT_RECTYPE_PRODUCT_INFO;
+	  }
+       else if ( !strcmp( fr->m_name, dIpmiFruRecordMultiRecord ) )
+	    continue;
+       else
+	  {
+	    assert( 0 );
+	    continue;
+          }
+
+       data.DataRecords[idx++] = (SaHpiInventDataRecordT *)p;
+       r->DataLength = s;
+       s += sizeof( SaHpiInventDataRecordT ) - sizeof( SaHpiInventDataUnionT );
+       p += s;
+       size += s;
+     }
+
+  // end mark
+  data.DataRecords[NumRecords()] = 0;
+
+  return size;
+}
+
+
+unsigned int
+cIpmiFru::CalcSize()
+{
+  // calulate fru inventory size
+  unsigned char *buffer = new unsigned char[1024*128];
+  SaHpiInventoryDataT *d = (SaHpiInventoryDataT *)buffer;
+  m_inventory_size = GetInventoryInfo( *d );
+  delete [] buffer;
+
+#if 1
+  // check for overflow
+  unsigned int n = 256;
+
+  buffer = new unsigned char[m_inventory_size+n];
+
+  unsigned char *b = buffer + m_inventory_size;
+  unsigned int i;
+
+  for( i = 0; i < n; i++ )
+       *b++ = (unsigned char)i;
+
+  d = (SaHpiInventoryDataT *)buffer;
+  unsigned int s = GetInventoryInfo( *d );
+
+  assert( s == m_inventory_size );
+  
+  b = buffer + m_inventory_size;
+
+  for( i = 0; i < n; i++, b++ )
+     {
+       //printf( "%d = 0x%02x\n", i, *b );
+       assert( *b == i );
+     }
+
+  delete [] buffer;
+#endif
+
+  return m_inventory_size;
 }

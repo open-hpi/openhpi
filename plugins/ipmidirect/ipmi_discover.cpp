@@ -381,7 +381,7 @@ cIpmiMcThread::HandleEvent( cIpmiSensor *sensor,
                             cIpmiEvent *event )
 {
   stdlog << "event: ";
-  event->Log();
+  event->Dump( stdlog, "event" );
 
   if ( event->m_type != 0x02 )
      {

@@ -275,9 +275,6 @@ public:
   virtual void IfSensorAdd( cIpmiEntity *ent, cIpmiSensor *sensor ) = 0;
   virtual void IfSensorRem( cIpmiEntity *ent, cIpmiSensor *sensor ) = 0;
 
-  // called from IPMI framework to create FRU inventory
-  virtual void IfFruAdd( cIpmiEntity *ent, cIpmiFru *fru ) = 0;
-
   // called from IPMI framwork to create SEL
   virtual void IfSelAdd( cIpmiEntity *ent, cIpmiSel *sel ) = 0;
 
