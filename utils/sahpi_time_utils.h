@@ -10,25 +10,25 @@
  * full licensing terms.
  *
  * Author(s):
- *      Renier Morales <renierm@users.sf.net>
  *      Steve Sherman <stevees@us.ibm.com>
  */
 
+#ifndef __SAHPI_TIME_UTILS_H
+#define __SAHPI_TIME_UTILS_H
+
 #ifndef OH_UTILS_H
-#define OH_UTILS_H
+#warning *** Include oh_utils.h instead of individual utility header files ***
+#endif
 
-#include <oh_error.h>
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
-#include <el_utils.h>
-#include <epath_utils.h>
-#include <event_utils.h>
-#include <rpt_utils.h>
-#include <printevent_utils.h>
-#include <sahpi_enum_utils.h>
-#include <sahpi_event_encode.h>
-#include <sahpi_event_utils.h>
-#include <sahpi_struct_utils.h>
-#include <sahpi_time_utils.h>
-#include <uid_utils.h>
+SaErrorT oh_decode_time(SaHpiTimeT time, 
+			SaHpiTextBufferT *buffer);
 
+#ifdef __cplusplus
+}
+#endif
+ 
 #endif
