@@ -1286,7 +1286,22 @@ SaErrorT SAHPI_API saHpiParmControl (
 		SAHPI_IN SaHpiResourceIdT ResourceId,
 		SAHPI_IN SaHpiParmActionT Action)
 {
-	return SA_ERR_HPI_UNSUPPORTED_API;
+	struct oh_resource *res;
+	int (*control_parm)(void *, struct oh_resource_id, SaHpiParmActionT);
+	
+	OH_GET_RESOURCE;
+	
+	if (!(res->entry.ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION))
+		return SA_ERR_HPI_INVALID;
+	
+	control_parm = res->handler->abi->control_parm;
+	if (!control_parm) 
+		return SA_ERR_HPI_UNSUPPORTED_API;
+
+	if (control_parm(res->handler->hnd, res->oid, Action)<0) 
+		return SA_ERR_HPI_UNKNOWN;
+	
+	return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiResourceResetStateGet (
