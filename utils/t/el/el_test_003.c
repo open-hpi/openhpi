@@ -42,7 +42,7 @@ int main(int argc, char **argv)
         SaErrorT retc;
         SaHpiEventLogInfoT info;
         SaHpiEventLogEntryIdT id, prev, next;
-        SaHpiEventLogEntryT *entry;
+        oh_el_entry *entry;
 
         /* create the EL */
         el = oh_el_create(OH_ELTEST_MAX_ENTRIES);
