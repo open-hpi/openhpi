@@ -687,155 +687,222 @@ static struct dummy_sensor {
             .deassert = SAHPI_ES_UPPER_MINOR,
 	},
 	{
-	/*This is temp sensor on system board*/
-		.reading = {
-			.ValuesPresent = SAHPI_SRF_RAW | SAHPI_SRF_INTERPRETED,
-			.Raw = 0xaa,
-			.Interpreted = {
-				.Type = SAHPI_SENSOR_INTERPRETED_TYPE_BUFFER,
-				.Value = { 
-					.SensorBuffer = "8-e1.23 tics",
-				},
-			},
-		},
-		.thresholds = {
-			.LowCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x201,
-			},
-			.LowMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x202,
-			},
-			.LowMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x203,
-			},
-			.UpCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x204,
-			},
-			.UpMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x205,
-			},
-			.UpMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x206,
-			},
-			.PosThdHysteresis = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x207,
-			},
-			.NegThdHysteresis = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x208,
-			},
-
-		},
-		.enables = {
-			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-			.AssertEvents = SAHPI_ES_LOWER_MAJOR,
-			.DeassertEvents = SAHPI_ES_UPPER_MAJOR,
-		},
+            /*This is temp sensor on system board*/
+            .reading = {
+                    .IsSupported = SAHPI_TRUE,
+                    .Type = SAHPI_SENSOR_READING_TYPE_BUFFER, 
+                    .Value = { 
+                             .SensorBuffer = "8-e1.23 tics",
+                     },
+            },
+            .thresholds = {
+                    .LowCritical = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 201
+                             }
+                     },
+                    .LowMajor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 202,
+                             }
+                     },
+                    .LowMinor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 203,
+                             }
+                     },
+                    .UpCritical = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 204
+                             }
+                     },
+                    .UpMajor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 205
+                             }
+                     },
+                    .UpMinor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 206
+                             }
+                     },
+                    .PosThdHysteresis = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 207,
+                             }                                     
+                     },
+                    .NegThdHysteresis = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 208,
+                             },
+                             
+                     },
+            },
+            .enabled = SAHPI_TRUE,
+            .assert = SAHPI_ES_LOWER_MAJOR,
+            .deassert = SAHPI_ES_UPPER_MAJOR,
 	},
 	{
 	/*This is temp sensor on system board*/
-		.reading = {
-			.ValuesPresent = SAHPI_SRF_RAW,
-			.Raw = 0xff,
-		},
-		.thresholds = {
-			.LowCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x301,
-			},
-			.LowMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x302,
-			},
-			.LowMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x303,
-			},
-			.UpCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x304,
-			},
-			.UpMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x305,
-			},
-			.UpMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x306,
-			},
-			.PosThdHysteresis = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x307,
-			},
-			.NegThdHysteresis = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x308,
-			},
-
-
-		},
-		.enables = {
-			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-			.AssertEvents = SAHPI_ES_LOWER_CRIT,
-			.DeassertEvents = SAHPI_ES_UPPER_CRIT,
-		},
+            .reading = {
+                    .IsSupported = SAHPI_TRUE,
+                    .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                    .Value = {
+                             .SensorInt64 = 0xff
+                     }
+            },
+            .thresholds = {
+                    .LowCritical = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 301,
+                             }
+                     },
+                    .LowMajor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 302,
+                             }
+                     },
+                    .LowMinor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 303,
+                             }
+                     },
+                    .UpCritical = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 304,
+                             }
+                     },
+                    .UpMajor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 305,
+                             }
+                     },
+                    .UpMinor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 306,
+                             }
+                     },
+                    .PosThdHysteresis = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 307,
+                             }
+                     },
+                    .NegThdHysteresis = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 308,
+                             }
+                     },
+            },
+            .enabled = SAHPI_TRUE,
+            .assert = SAHPI_ES_LOWER_CRIT,
+            .deassert = SAHPI_ES_UPPER_CRIT,
 	},
 	{
-	/*This is temp sensor on system board*/
-		.reading = {
-			.ValuesPresent = SAHPI_SRF_RAW,
-			.Raw = 0xcc,
-		},
-		.thresholds = {
-			.LowCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x401,
-			},
-			.LowMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x402,
-			},
-			.LowMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x403,
-			},
-			.UpCritical = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x404,
-			},
-			.UpMajor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x405,
-			},
-			.UpMinor = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x406,
-			},
-			.PosThdHysteresis = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x407,
-			},
-			.NegThdHysteresis = {
-				.ValuesPresent = SAHPI_SRF_RAW,
-				.Raw = 0x408,
-			},
-
-		},
-		.enables = {
-			.SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-			.AssertEvents = SAHPI_ES_UPPER_CRIT,
-			.DeassertEvents = SAHPI_ES_LOWER_CRIT,
-		},
-	},     
+            /*This is temp sensor on system board*/
+            .reading = {
+                    .IsSupported = SAHPI_TRUE,
+                    .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                    .Value = {
+                             .SensorInt64 = 0xcc,
+                     }
+            },
+            .thresholds = {
+                    .LowCritical = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x401,
+                             }
+                     },
+                    .LowMajor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x402,
+                             }
+                     },
+                    .LowMinor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x403,
+                             }
+                     },
+                    .UpCritical = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x404,
+                             }
+                     },
+                    .UpMajor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x405,
+                             }
+                     },
+                    .UpMinor = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x406,
+                             }
+                     },
+                    .PosThdHysteresis = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x407,
+                             }
+                     },
+                    .NegThdHysteresis = {
+                             .IsSupported = SAHPI_TRUE,
+                             .Type = SAHPI_SENSOR_READING_TYPE_INT64,
+                             .Value = {
+                                     .SensorInt64 = 0x408,
+                             }
+                     },
+            },
+            .enabled = SAHPI_TRUE,
+            .assert = SAHPI_ES_UPPER_CRIT,
+            .deassert = SAHPI_ES_LOWER_CRIT,
+    },     
 };
 
+#if 0
 /* resource one inventory data */
 static struct dummy_inventories {
 	SaHpiInventDataValidityT Validity;
@@ -849,6 +916,7 @@ static struct dummy_inventories {
 		},
  };
 
+#endif 
 
 static struct dummy_rsel {
 	SaHpiEventLogEntryT entry;
@@ -1222,8 +1290,7 @@ static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT
 	gettimeofday1(&info->CurrentTime);
 	info->Enabled			= sel_enabled;
 	info->OverflowFlag		= 0;
-	info->OverflowAction		= SAHPI_SEL_OVERFLOW_DROP;
-	info->DeleteEntrySupported 	= 1;
+	info->OverflowAction		= SAHPI_EL_OVERFLOW_DROP;
 
 	return 0;
 }
@@ -1331,17 +1398,16 @@ static int dummy_get_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 
 static int reading_has_values(const SaHpiSensorReadingT *reading)
 {
-	if ((reading->ValuesPresent & SAHPI_SRF_RAW)
-	    || (reading->ValuesPresent & SAHPI_SRF_INTERPRETED))
-		return 1;
+        if (reading->IsSupported)
+                return 1;
 	return 0;
 }
 
 static void reading_cpy(SaHpiSensorReadingT *r1, 
-			       const SaHpiSensorReadingT *r2)
+                        const SaHpiSensorReadingT *r2)
 {
-	if (reading_has_values(r2))
-		memcpy(r1, r2, sizeof(*r1));
+        if (reading_has_values(r2))
+                memcpy(r1, r2, sizeof(*r1));
 }
 
 static int dummy_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
@@ -1375,25 +1441,25 @@ static int dummy_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
 	return 0;
 }
 
-static int dummy_get_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
+static int dummy_get_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  SaHpiSensorEvtEnablesT *enables)
+					  SaHpiBoolT *enabled)
 {
 
-dbg(" ********* dummy_get_sensor_event_enables *******");
-	memcpy(enables, &dummy_sensors[num - 1].enables, sizeof(*enables));
+        dbg(" ********* dummy_get_sensor_event_enables *******");
+        memcpy(enabled, &dummy_sensors[num - 1].enabled, sizeof(*enabled));
 
 	return 0;
 }
 
-static int dummy_set_sensor_event_enables(void *hnd, SaHpiResourceIdT id,
+static int dummy_set_sensor_event_enabled(void *hnd, SaHpiResourceIdT id,
 					  SaHpiSensorNumT num,
-					  const SaHpiSensorEvtEnablesT *enables)
+					  const SaHpiBoolT enabled)
 {	  
-
-dbg(" ********* dummy_set_sensor_event_enables *******");
-	
-memcpy(&dummy_sensors[num - 1].enables, enables, sizeof(*enables));
+        
+        dbg(" ********* dummy_set_sensor_event_enables *******");
+        
+        memcpy(&dummy_sensors[num - 1].enabled, &enabled, sizeof(enabled));
 
 	return 0;
 }
@@ -1857,7 +1923,7 @@ static int dummy_set_reset_state(void *hnd, SaHpiResourceIdT id,
 		}
 
 	} while ( (i < NUM_RESOURCES) && !done  );
-		
+    
 	if ( i < NUM_RESOURCES ) {
 		rval = 0;
 		switch (act) {
@@ -1890,8 +1956,8 @@ static struct oh_abi_v2 oh_dummy_plugin = {
 	.get_sensor_data		= dummy_get_sensor_data,
 	.get_sensor_thresholds		= dummy_get_sensor_thresholds,
 	.set_sensor_thresholds		= dummy_set_sensor_thresholds,
-	.get_sensor_event_enables	= dummy_get_sensor_event_enables,
-	.set_sensor_event_enables	= dummy_set_sensor_event_enables,
+	.get_sensor_event_enables	= dummy_get_sensor_event_enabled,
+	.set_sensor_event_enables	= dummy_set_sensor_event_enabled,
 	.get_control_state		= dummy_get_control_state,
 	.set_control_state		= dummy_set_control_state,
 //	.get_inventory_size	= dummy_get_inventory_size,
@@ -1913,13 +1979,14 @@ static struct oh_abi_v2 oh_dummy_plugin = {
 };
 
 int dummy_get_interface(void **pp, const uuid_t uuid);
+
 int dummy_get_interface(void **pp, const uuid_t uuid)
 {
-	if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
+        if (uuid_compare(uuid, UUID_OH_ABI_V2)==0) {
 		*(struct oh_abi_v2 **)pp = &oh_dummy_plugin;
 		return 0;
 	}
-
+    
 	*pp = NULL;
 	return -1;
 }
