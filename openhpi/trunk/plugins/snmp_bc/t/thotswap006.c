@@ -30,8 +30,8 @@ int main(int argc, char **argv)
 					
 	SaHpiResourceIdT  id = 0;
         SaHpiSessionIdT sessionid;
-	SaHpiResetActionT act = 0;
-        /* *************************************                 
+	SaHpiPowerStateT state = 0;
+	/* *************************************                 
 	 * Find a resource 
 	 * * ************************************* */
 	struct oh_handler l_handler;
@@ -56,22 +56,21 @@ int main(int argc, char **argv)
 	 * Test :
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;      
-	err = snmp_bc_set_reset_state(NULL, id, act);   
+	err = snmp_bc_get_power_state(NULL, id, &state);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;      
 	 **************************/
-	act = 0xFF;
-	err = snmp_bc_set_reset_state((void *)h->hnd, id, act);   
+	err = snmp_bc_get_power_state((void *)h->hnd, id, NULL);   
 	checkstatus(&err, &expected_err, &testfail);
 
 	/************************** 
 	 * Test :
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_RESOURCE;      
-	err = snmp_bc_set_reset_state((void *)h->hnd, 5000, act);   
+	err = snmp_bc_get_power_state((void *)h->hnd, 5000, &state);
 	checkstatus(&err, &expected_err, &testfail);
 	
 	/************************** 
@@ -81,10 +80,10 @@ int main(int argc, char **argv)
 	struct ResourceInfo *s =
 		(struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
 	if (s != NULL)
-		s->mib.OidReset = NULL;
+		s->mib.OidPowerState = NULL;
 
 	expected_err = SA_ERR_HPI_INVALID_CMD;      
-	err = snmp_bc_set_reset_state((void *)h->hnd, id, act);   
+	err = snmp_bc_get_power_state((void *)h->hnd, id, &state);
 	checkstatus(&err, &expected_err, &testfail);
 
 	/**************************&*
