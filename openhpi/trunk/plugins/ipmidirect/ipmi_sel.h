@@ -36,9 +36,9 @@
 #include <assert.h>
 #include <glib.h>
 
-__BEGIN_DECLS
+extern "C" {
 #include "SaHpi.h"
-__END_DECLS
+}
 
 
 class cIpmiDomain;
@@ -87,11 +87,11 @@ private:
   unsigned int  m_async_events_num;
 
 public:
-  int GetInfo();
+  SaErrorT GetInfo();
 
 private:
-  int Reserve();
-  int ReadSelRecord( cIpmiEvent &event, unsigned int &next_rec_id );
+  SaErrorT Reserve();
+  int      ReadSelRecord( cIpmiEvent &event, unsigned int &next_rec_id );
   GList *ReadSel( unsigned int &num, bool &uptodate );
   cIpmiEvent *FindEvent( GList *list, unsigned int record_id );
   bool CheckEvent( GList *&list, cIpmiEvent *event );

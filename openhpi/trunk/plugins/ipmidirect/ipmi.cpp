@@ -870,7 +870,7 @@ static struct oh_abi_v2 oh_ipmi_plugin;
 static bool oh_ipmi_plugin_init = false;
 
 
-__BEGIN_DECLS
+extern "C" {
 int
 get_interface( void **pp, const uuid_t uuid )
 {
@@ -924,7 +924,7 @@ get_interface( void **pp, const uuid_t uuid )
 
 int ipmidirect_get_interface(void **pp, const uuid_t uuid) __attribute__ ((alias("get_interface")));
 
-__END_DECLS
+}
 
 
 static unsigned int

@@ -337,19 +337,18 @@ SaErrorT
 cIpmiSensor::GetSensorReading( cIpmiMsg &rsp )
 {
   cIpmiMsg msg( eIpmiNetfnSensorEvent, eIpmiCmdGetSensorReading );
-  int      rv;
+  SaErrorT rv;
 
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
   rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
-       stdlog << "IPMI error getting states: " << rv << ", " 
-              << strerror( rv ) << " \n";
+       stdlog << "IPMI error getting states: " << rv << " \n";
 
-       return SA_ERR_HPI_ERROR;
+       return rv;
      }
 
   if ( rsp.m_data[0] != 0 )
@@ -378,12 +377,12 @@ cIpmiSensor::GetEventEnables( SaHpiSensorEvtEnablesT &enables, cIpmiMsg &rsp )
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  int rv = m_mc->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "Error sending get event enables command: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if ( rsp.m_data[0] )
@@ -425,12 +424,12 @@ cIpmiSensor::SetEventEnables( const SaHpiSensorEvtEnablesT &enables,
 
   cIpmiMsg rsp;
 
-  int r = m_mc->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( r )
+  if ( rv != SA_OK )
      {
-       stdlog << "Disable sensor events fail: " << r << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       stdlog << "Disable sensor events fail: " << rv << " !\n";
+       return rv;
      }
 
   if ( rsp.m_data[0] )

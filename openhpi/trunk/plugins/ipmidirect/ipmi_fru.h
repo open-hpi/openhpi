@@ -172,18 +172,18 @@ protected:
   unsigned int   m_size;
   bool           m_fetched;
 
-  int GetFruInventoryAreaInfo( unsigned int &size, tFruAccessMode &byte_access );
-  int ReadFruData( unsigned short offset, unsigned int num, unsigned int &n, unsigned char *data );
+  SaErrorT GetFruInventoryAreaInfo( unsigned int &size, tFruAccessMode &byte_access );
+  SaErrorT ReadFruData( unsigned short offset, unsigned int num, unsigned int &n, unsigned char *data );
 
-  int CreateRecord( const char *name, tIpmiFruItemDesc *desc, 
-                    const unsigned char *data, unsigned int len );
+  SaErrorT CreateRecord( const char *name, tIpmiFruItemDesc *desc, 
+                         const unsigned char *data, unsigned int len );
 
-  int CreateInventory( const unsigned char *data );
-  int CreateInternalUse( const unsigned char *data, unsigned int len );
-  int CreateChassis( const unsigned char *data, unsigned int len );
-  int CreateBoard( const unsigned char *data, unsigned int len );
-  int CreateProduct( const unsigned char *data, unsigned int len );
-  int CreateMultiRecord( const unsigned char *data, unsigned int len );
+  SaErrorT CreateInventory( const unsigned char *data );
+  SaErrorT CreateInternalUse( const unsigned char *data, unsigned int len );
+  SaErrorT CreateChassis( const unsigned char *data, unsigned int len );
+  SaErrorT CreateBoard( const unsigned char *data, unsigned int len );
+  SaErrorT CreateProduct( const unsigned char *data, unsigned int len );
+  SaErrorT CreateMultiRecord( const unsigned char *data, unsigned int len );
 
   cIpmiFruRecord **m_array;
   int              m_num;
@@ -197,7 +197,7 @@ public:
   cIpmiFru( cIpmiMc *mc, unsigned int fru_device_id );
   ~cIpmiFru();
 
-  int Fetch();
+  SaErrorT Fetch();
 
   virtual unsigned int Num() const { return m_fru_device_id; }
   unsigned int &Oem() { return m_oem; }

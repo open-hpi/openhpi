@@ -27,12 +27,13 @@
 #include <string.h>
 
 
-__BEGIN_DECLS
+extern "C" {
 #include "SaHpi.h"
+}
+
 #include <openhpi.h>
 #include <epath_utils.h>
 #include <uid_utils.h>
-__END_DECLS
 
 
 #ifndef dIpmiCon_h
@@ -169,7 +170,7 @@ public:
   // time between sel rescan in ms
   unsigned int m_sel_rescan_interval;
 
-  int CheckAtca();
+  SaErrorT CheckAtca();
   int GetChannels();
 
 public:
@@ -185,7 +186,7 @@ public:
 
   cIpmiMc *FindMcByAddr( const cIpmiAddr &addr );
   cIpmiMc *FindOrCreateMcBySlaveAddr( unsigned int slave_addr );
-  int      SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
+  SaErrorT SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg, cIpmiMsg &rsp_msg,
                         int retries = dIpmiDefaultRetries );
   GList *GetSdrSensors( cIpmiMc *mc );
   void   SetSdrSensors( cIpmiMc *mc, GList *sensors );

@@ -127,12 +127,12 @@ cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
 
   cIpmiMsg rsp;
 
-  int r = res->SendCommand( msg, rsp );
+  SaErrorT r = res->SendCommand( msg, rsp );
 
-  if ( r )
+  if ( r != SA_OK )
      {
        stdlog << "IfSetHotSwapState: could not send set FRU activation: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len < 2
@@ -207,13 +207,13 @@ cIpmi::IfRequestHotswapAction( cIpmiResource *res,
 
   cIpmiMsg  rsp;
 
-  int r = res->SendCommand( msg, rsp );
+  SaErrorT r = res->SendCommand( msg, rsp );
 
-  if ( r )
+  if ( r != SA_OK )
      {
        stdlog << "IfRequestHotswapAction: could not send set FRU activation policy: "
 	      << r << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len != 2 
@@ -240,12 +240,12 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiHsPowerStateT &state )
   msg.m_data[2] = 0x01; // desired steady power
   msg.m_data_len = 3;
 
-  int rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot send get power level: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len < 3
@@ -263,10 +263,10 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiHsPowerStateT &state )
 
   rv = res->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "SetHotSwapState: could not send get power level: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len < 6
@@ -292,7 +292,7 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiHsPowerStateT &state )
 SaErrorT
 cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
 {
-  int rv;
+  SaErrorT rv;
   unsigned int power_level = 0;
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
@@ -311,10 +311,10 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
 
        rv = res->SendCommand( msg, rsp );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "cannot send set power level: " << rv << " !\n";
-            return SA_ERR_HPI_INVALID_CMD;
+            return rv;
           }
 
        if (    rsp.m_data_len < 2
@@ -339,7 +339,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
 
        rv = res->SendCommand( msg, rsp );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "cannot send get power level: " << rv << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
@@ -367,10 +367,10 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
 
   rv = res->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot send set power level: " << rv << "! \n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len < 2
@@ -398,12 +398,12 @@ cIpmi::IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state )
   msg.m_data[1]  = res->FruId();
   msg.m_data[2]  = 0; // blue led;
 
-  int rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "IfGetIndicatorState: could not send get FRU LED state: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len < 6
@@ -473,14 +473,14 @@ cIpmi::IfSetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT state )
   msg.m_data[4]  = 0;
   msg.m_data[5]  = 1; // blue
 
-  cIpmiMsg  rsp;
-  int rv = res->SendCommand( msg, rsp );
+  cIpmiMsg rsp;
+  SaErrorT rv = res->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "IfGetIndicatorState: could not send get FRU LED state: "
 	      << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len < 2
@@ -533,12 +533,12 @@ cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
   msg.m_data_len = 3;
 
   cIpmiMsg rsp;
-  int rv = res->SendCommand( msg, rsp );
+  SaErrorT rv = res->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "SetHotSwapState: could not send FRU control: " << rv << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if (    rsp.m_data_len < 2

@@ -49,7 +49,7 @@ cIpmiMcThread::cIpmiMcThread( cIpmiDomain *domain,
                               /* unsigned int mc_type,
                                  int slot */ )
   : m_domain( domain ), m_addr( addr ),
-    /* m_type( mc_type ), m_slot( slot ), m_mc( 0 ) */
+    m_mc( 0 ),
     m_properties( properties ),
     m_exit( false ), m_tasks( 0 ),
     m_sel( 0 ), m_events( 0 )
@@ -220,9 +220,9 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
        cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdGetDeviceId );
 
        // try sending the command only one time
-       int rv = m_domain->SendCommand( addr, msg, gdi_rsp, 1 );
+       SaErrorT rv = m_domain->SendCommand( addr, msg, gdi_rsp, 1 );
 
-       if ( rv || gdi_rsp.m_data[0] != 0 )
+       if ( rv != SA_OK || gdi_rsp.m_data[0] != 0 )
             return;
 
        get_device_id_rsp = &gdi_rsp;
@@ -288,9 +288,9 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             m_mc = m_domain->NewMc( addr );
           }
 
-       int rv = m_mc->GetDeviceIdDataFromRsp( *get_device_id_rsp );
+       int rrv = m_mc->GetDeviceIdDataFromRsp( *get_device_id_rsp );
 
-       if ( rv )
+       if ( rrv )
           {
             // If we couldn't handle the device data, just clean
             // it up
@@ -321,9 +321,9 @@ cIpmiMcThread::Discover( cIpmiMsg *get_device_id_rsp )
             return;
           }
 
-       rv = m_mc->HandleNew();
+       SaErrorT rv = m_mc->HandleNew();
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "error while discover MC " << m_addr << " !\n";
 
@@ -544,9 +544,9 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
      {
        assert( m_mc );
 
-       int rv = m_mc->AtcaPowerFru( 0 );
+       SaErrorT rv = m_mc->AtcaPowerFru( 0 );
 
-       if ( rv )
+       if ( rv != SA_OK )
           { 
             // deactivate fru, because M3 has no representation in 
             // HPI we try to restart the FRU
@@ -561,7 +561,7 @@ cIpmiMcThread::HandleHotswapEvent( cIpmiSensorHotswap *sensor,
 
             rv = m_mc->SendCommand( msg, rsp );
 
-            if ( rv )
+            if ( rv != SA_OK )
                  stdlog << "cannot send set fru activation: " << rv << " !\n";
             else if (    rsp.m_data_len != 2
                       || rsp.m_data[0] != eIpmiCcOk 
@@ -629,9 +629,9 @@ cIpmiMcThread::PollAddr( void *userdata )
 
   // because this command is send periodical 
   // retries is set to 1.
-  int rv = m_domain->SendCommand( addr, msg, rsp, 1 );
+  SaErrorT rv = m_domain->SendCommand( addr, msg, rsp, 1 );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        if ( m_mc )
           {

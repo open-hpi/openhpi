@@ -42,7 +42,7 @@ protected:
   virtual int  IfGetMaxSeq();
   virtual int  IfOpen();
   virtual void IfClose();
-  virtual int  IfSendCmd( cIpmiRequest *r );
+  virtual SaErrorT IfSendCmd( cIpmiRequest *r );
   virtual void IfReadResponse();
 };
 

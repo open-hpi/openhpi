@@ -53,9 +53,9 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
 
        cIpmiMsg rsp;
 
-       int rv = mc->SendCommand( msg, rsp );
+       SaErrorT rv = mc->SendCommand( msg, rsp );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "cannot send set BMC mode: " << rv << " !\n";
             return false;
@@ -80,9 +80,9 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
        msg.m_data_len = 0;
        cIpmiMsg rsp;
        
-       int rv = mc->SendCommand( msg, rsp );
+       SaErrorT rv = mc->SendCommand( msg, rsp );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "cannot send reserve reposotory SDR: " << rv << " !\n";
             return false;
@@ -115,7 +115,7 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
 
             rv = mc->SendCommand( msg, rsp );
 
-            if ( rv )
+            if ( rv != SA_OK )
                {
                  stdlog << "cannot send clear SDR reposotory: " << rv << " !\n";
                  return false;
@@ -142,9 +142,9 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
        msg.m_data_len = 0;
        cIpmiMsg rsp;
 
-       int rv = mc->SendCommand( msg, rsp );
+       SaErrorT rv = mc->SendCommand( msg, rsp );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "cannot send reserve SEL: " << rv << " !\n";
             return false;
@@ -177,7 +177,7 @@ cIpmiMcVendorForceShMc::InitMc( cIpmiMc *mc, const cIpmiMsg &devid )
 
             rv = mc->SendCommand( msg, rsp );
 
-            if ( rv )
+            if ( rv != SA_OK )
                {
                  stdlog << "cannot send clear SDR reposotory: " << rv << " !\n";
                  return false;

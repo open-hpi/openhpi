@@ -22,9 +22,9 @@
 #include <string.h>
 
 
-__BEGIN_DECLS
+extern "C" {
 #include "SaHpi.h"
-__END_DECLS
+}
 
 
 #ifndef dIpmiEvent_h

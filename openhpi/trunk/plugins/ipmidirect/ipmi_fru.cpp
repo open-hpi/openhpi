@@ -424,7 +424,7 @@ cIpmiFru::Find( const char *name )
 }
 
 
-int
+SaErrorT
 cIpmiFru::GetFruInventoryAreaInfo( unsigned int &size,
                                    tFruAccessMode &byte_access )
 {
@@ -434,9 +434,9 @@ cIpmiFru::GetFruInventoryAreaInfo( unsigned int &size,
 
   cIpmiMsg rsp;
 
-  int rv = SendCommand( msg, rsp );
+  SaErrorT rv = SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot GetFruInventoryAreaInfo: " << rv << " !\n";
        return rv;
@@ -447,17 +447,17 @@ cIpmiFru::GetFruInventoryAreaInfo( unsigned int &size,
        stdlog << "cannot GetFruInventoryAreaInfo: "
               << IpmiCompletionCodeToString( (tIpmiCompletionCode)rsp.m_data[0] ) << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   byte_access = (rsp.m_data[3] & 1) ? eFruAccessModeWord : eFruAccessModeByte;
   size = IpmiGetUint16( rsp.m_data + 1 ) >> byte_access;
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiFru::ReadFruData( unsigned short offset, unsigned int num, unsigned int &n, unsigned char *data )
 {
   cIpmiMsg msg( eIpmiNetfnStorage, eIpmiCmdReadFruData );
@@ -468,9 +468,9 @@ cIpmiFru::ReadFruData( unsigned short offset, unsigned int num, unsigned int &n,
 
   cIpmiMsg rsp;
 
-  int rv = SendCommand( msg, rsp );
+  SaErrorT rv = SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot ReadFruData: " << rv << " !\n";
        return rv;
@@ -481,7 +481,7 @@ cIpmiFru::ReadFruData( unsigned short offset, unsigned int num, unsigned int &n,
        stdlog << "cannot ReadFruData: "
               << IpmiCompletionCodeToString( (tIpmiCompletionCode)rsp.m_data[0] ) << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   n = rsp.m_data[1] << m_access;
@@ -490,26 +490,26 @@ cIpmiFru::ReadFruData( unsigned short offset, unsigned int num, unsigned int &n,
      {
        stdlog << "ReadFruData: read 0 bytes !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   memcpy( data, rsp.m_data + 2, n );
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiFru::Fetch()
 {
   m_fetched = false;
   Clear();
 
-  int rv = GetFruInventoryAreaInfo( m_size,
-                                    m_access );
+  SaErrorT rv = GetFruInventoryAreaInfo( m_size,
+                                         m_access );
 
-  if ( rv || m_size == 0 )
-       return rv;
+  if ( rv != SA_OK || m_size == 0 )
+       return  rv != SA_OK ? rv : SA_ERR_HPI_DATA_LEN_INVALID;
 
   unsigned short offset = 0;
   unsigned char *data = new unsigned char[m_size];
@@ -525,7 +525,7 @@ cIpmiFru::Fetch()
 
        rv = ReadFruData( offset, num, n, data + offset );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             delete [] data;
             return rv;
@@ -538,7 +538,7 @@ cIpmiFru::Fetch()
 
   delete [] data;
 
-  m_fetched = rv ? false : true;
+  m_fetched = ((rv != SA_OK) ? false : true);
 
   return rv;
 }
@@ -556,7 +556,7 @@ checksum( const unsigned char *data, int size )
 }
 
 
-int
+SaErrorT
 cIpmiFru::CreateInventory( const unsigned char *data )
 {
   stdlog << "MC " << (unsigned char)m_mc->GetAddress() << " FRU Inventory " << m_fru_device_id << "\n";
@@ -564,7 +564,7 @@ cIpmiFru::CreateInventory( const unsigned char *data )
   if ( m_size < 8 )
      {
        stdlog << "FRU data too short (" << m_size << " < 8) !\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   if ( checksum( data, 8 ) )
@@ -573,7 +573,7 @@ cIpmiFru::CreateInventory( const unsigned char *data )
        stdlog.Hex( data, 8 );
        stdlog << "\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   unsigned int pos = m_size;
@@ -636,11 +636,11 @@ cIpmiFru::CreateInventory( const unsigned char *data )
        pos -= len;
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc, 
                         const unsigned char *data, unsigned int /*len*/ )
 {
@@ -720,13 +720,13 @@ cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc,
                            Add( r );
                            // r->Log();
 
-                           return 0;
+                           return SA_OK;
                          }
                     }
 
                  // something goes wrong
                  assert( 0 );
-                 return EINVAL;
+                 return SA_ERR_HPI_DATA_TRUNCATED;
 
             case eIpmiFruItemTypePad:
                  data++;
@@ -746,11 +746,11 @@ cIpmiFru::CreateRecord( const char *name, tIpmiFruItemDesc *desc,
   Add( r );
   r->Dump( stdlog, "" );
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiFru::CreateInternalUse( const unsigned char *data, unsigned int len )
 {
   cIpmiFruRecord *r = new cIpmiFruRecord( dIpmiFruRecordInternalUseArea );
@@ -774,11 +774,11 @@ cIpmiFru::CreateInternalUse( const unsigned char *data, unsigned int len )
 
   //  r->Log();
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiFru::CreateChassis( const unsigned char *data, unsigned int len )
 {
   return CreateRecord( dIpmiFruRecordChassisInfoArea, 
@@ -786,7 +786,7 @@ cIpmiFru::CreateChassis( const unsigned char *data, unsigned int len )
 }
 
 
-int
+SaErrorT
 cIpmiFru::CreateBoard( const unsigned char *data, unsigned int len )
 {
   return CreateRecord( dIpmiFruRecordBoardInfoArea,
@@ -794,7 +794,7 @@ cIpmiFru::CreateBoard( const unsigned char *data, unsigned int len )
 }
 
 
-int
+SaErrorT
 cIpmiFru::CreateProduct( const unsigned char *data, unsigned int len )
 {
   return CreateRecord( dIpmiFruRecordProductInfoArea, 
@@ -802,10 +802,10 @@ cIpmiFru::CreateProduct( const unsigned char *data, unsigned int len )
 }
 
 
-int
+SaErrorT
 cIpmiFru::CreateMultiRecord( const unsigned char * /*data*/, unsigned int /*len*/ )
 {
-  return 0;
+  return SA_OK;
 }
 
 

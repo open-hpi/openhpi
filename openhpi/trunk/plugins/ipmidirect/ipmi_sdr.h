@@ -26,6 +26,9 @@
 
 #include <assert.h>
 
+extern "C" {
+#include "SaHpi.h"
+}
 
 #ifndef dIpmiLog_h
 #include "ipmi_log.h"
@@ -98,8 +101,6 @@ class cIpmiSdrs
 {
 protected:
   cIpmiMc       *m_mc;
-
-  unsigned int   m_lun;
   bool           m_device_sdr;
 
   // Have the SDRs previously been fetched?
@@ -118,8 +119,7 @@ protected:
   bool           m_supports_reserve_sdr;
   bool           m_supports_get_sdr_repository_allocation;
 
-  // Information from the GET DEVICE SDR INFO command, sensor mode
-  // only.
+  // device SDR
   bool           m_dynamic_population;
   bool           m_lun_has_sensors[4];
 
@@ -139,14 +139,16 @@ private:
     eReadError
   };
 
+  SaErrorT ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
+			unsigned int &num, unsigned int lun );
   cIpmiSdr *ReadRecord( unsigned short record_id,
                         unsigned short &next_record_id,
-                        tReadRecord &err );
-  int Reserve();
+                        tReadRecord &err, unsigned int lun );
+  SaErrorT Reserve();
   int GetInfo( unsigned short &working_num_sdrs );
 
 public:
-  cIpmiSdrs( cIpmiMc *mc, unsigned int lun, bool device_sdr );
+  cIpmiSdrs( cIpmiMc *mc, bool device_sdr );
   ~cIpmiSdrs();
 
   unsigned int NumSdrs() const { return m_num_sdrs; }
@@ -156,7 +158,7 @@ public:
     return m_sdrs[i];
   }
 
-  int Fetch();
+  SaErrorT Fetch();
 
   void Dump( cIpmiLog &dump, const char *name ) const;
 

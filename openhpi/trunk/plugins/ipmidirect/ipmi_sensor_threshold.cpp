@@ -877,13 +877,13 @@ cIpmiSensorThreshold::GetThresholds( SaHpiSensorThresholdsT &thres )
   msg.m_data_len = 1;
   msg.m_data[0]  = m_num;
 
-  int rv = res->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = res->SendCommand( msg, rsp, m_lun );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "error getting thresholds: " << rv << " !\n";
 
-       return SA_ERR_HPI_INVALID_DATA;
+       return rv;
      }
 
   if ( rsp.m_data[0] )
@@ -934,13 +934,13 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
   msg.m_data[0]  = m_num;
   msg.m_data[1]  = 0xff;
 
-  int rv = res->SendCommand( msg, rsp, m_lun );
+  SaErrorT rv = res->SendCommand( msg, rsp, m_lun );
 
   if ( rv )
      {
        stdlog << "Error sending hysteresis get command: " << rv << " !\n";
 
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if ( rsp.m_data[0] || rsp.m_data_len < 3 )
@@ -953,7 +953,7 @@ cIpmiSensorThreshold::GetHysteresis( SaHpiSensorThresholdsT &thres )
   ConvertToInterpreted( rsp.m_data[1], thres.PosThdHysteresis );
   ConvertToInterpreted( rsp.m_data[2], thres.NegThdHysteresis );
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -1090,12 +1090,12 @@ cIpmiSensorThreshold::SetThresholds( const SaHpiSensorThresholdsT &thres )
   // set thresholds
   cIpmiMsg rsp;
 
-  int r = m_mc->SendCommand( msg, rsp, m_lun );
+  rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( r )
+  if ( rv != SA_OK )
      {
-       stdlog << "Error sending thresholds set command: " << r << " !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       stdlog << "Error sending thresholds set command: " << rv << " !\n";
+       return rv;
      }
 
   if ( rsp.m_data[0] )
@@ -1141,13 +1141,13 @@ cIpmiSensorThreshold::SetHysteresis( const SaHpiSensorThresholdsT &thres )
   if ( rv != SA_OK )
        return rv;
 
-  int r = m_mc->SendCommand( msg, rsp, m_lun );
+  rv = m_mc->SendCommand( msg, rsp, m_lun );
 
-  if ( r )
+  if ( rv != SA_OK )
      {
-       stdlog << "Error sending hysteresis set command: " << r << " !\n";
+       stdlog << "Error sending hysteresis set command: " << rv << " !\n";
 
-       return SA_ERR_HPI_INVALID_CMD;
+       return rv;
      }
 
   if ( rsp.m_data[0] )

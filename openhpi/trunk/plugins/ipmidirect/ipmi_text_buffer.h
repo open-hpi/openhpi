@@ -31,9 +31,9 @@
 
 #include <assert.h>
 
-__BEGIN_DECLS
+extern "C" {
 #include "SaHpi.h"
-__END_DECLS
+}
 
 
 // wrapper class for SaHpiTextBufferT

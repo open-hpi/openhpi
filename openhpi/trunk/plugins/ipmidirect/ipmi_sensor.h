@@ -28,9 +28,9 @@
 #include <assert.h>
 
 
-__BEGIN_DECLS
+extern "C" {
 #include "SaHpi.h"
-__END_DECLS
+}
 
 #ifndef dIpmiMsg_h
 #include "ipmi_msg.h"

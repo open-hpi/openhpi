@@ -421,22 +421,18 @@ IpmiSdrDestroyRecords( cIpmiSdr **&sdr, unsigned int &n )
 }
 
 
-
-cIpmiSdrs::cIpmiSdrs( cIpmiMc *mc, unsigned int lun, bool device_sdr )
-  : m_mc( mc ), m_lun( lun ), m_device_sdr( device_sdr ),
+cIpmiSdrs::cIpmiSdrs( cIpmiMc *mc, bool device_sdr )
+  : m_mc( mc ), m_device_sdr( device_sdr ),
     m_fetched( false ), m_major_version( 0 ), m_minor_version( 0 ),
     m_last_addition_timestamp( 0 ), m_last_erase_timestamp( 0 ),
     m_overflow( 0 ), m_update_mode( eIpmiRepositorySdrUpdateUnspecified ),
     m_supports_delete_sdr( false ), m_supports_partial_add_sdr( false ),
     m_supports_reserve_sdr( false ), m_supports_get_sdr_repository_allocation( false ),
-    m_dynamic_population( false ),
     m_reservation( 0 ), m_sdr_changed( false ),
     m_num_sdrs( 0 ), m_sdrs( 0 )
 {
-  m_lun_has_sensors[0] = false;
-  m_lun_has_sensors[1] = false;
-  m_lun_has_sensors[2] = false;
-  m_lun_has_sensors[3] = false;
+  for( int i = 0; i < 4; i++ )
+       m_lun_has_sensors[i] = false;
 }
 
 
@@ -450,11 +446,11 @@ cIpmiSdrs::~cIpmiSdrs()
 cIpmiSdr *
 cIpmiSdrs::ReadRecord( unsigned short record_id,
                        unsigned short &next_record_id,
-                       tReadRecord &err )
+                       tReadRecord &err, unsigned int lun )
 {
   cIpmiMsg       msg;
   cIpmiMsg       rsp;
-  int            rv;
+  SaErrorT       rv;
   int            offset = 0;
   unsigned char  data[dMaxSdrData];
   int            record_size = 0;
@@ -494,9 +490,9 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
 
        msg.m_data[5] = read_len;
 
-       rv = m_mc->SendCommand( msg, rsp, m_lun );
+       rv = m_mc->SendCommand( msg, rsp, lun );
 
-       if ( rv )
+       if ( rv != SA_OK )
           {
             stdlog << "initial_sdr_fetch: Couldn't send GetSdr or GetDeviveSdr fetch: " << rv << " !\n";
             err = eReadError;
@@ -577,7 +573,7 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
   sdr->m_type          = (tIpmiSdrType)data[3];  
 
   // Hack to support 1.0 MCs
-  if ((sdr->m_major_version == 1)
+  if (   (sdr->m_major_version == 1)
       && (sdr->m_minor_version == 0)
       && (sdr->m_type == eSdrTypeMcDeviceLocatorRecord))
   {
@@ -595,12 +591,12 @@ cIpmiSdrs::ReadRecord( unsigned short record_id,
 }
 
 
-int
+SaErrorT
 cIpmiSdrs::Reserve()
 {
   cIpmiMsg msg;
   cIpmiMsg rsp;
-  int rv;
+  SaErrorT rv;
 
   assert( m_supports_reserve_sdr );
 
@@ -617,12 +613,12 @@ cIpmiSdrs::Reserve()
      }
 
   msg.m_data_len = 0;
-  rv = m_mc->SendCommand( msg, rsp, m_lun );
+  rv = m_mc->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "Couldn't send SDR reservation: " << rv << " !\n";
-       return EINVAL;
+       return rv;
      }
 
   if ( rsp.m_data[0] != 0) 
@@ -637,30 +633,30 @@ cIpmiSdrs::Reserve()
 	    m_supports_reserve_sdr = false;
 	    m_reservation = 0;
 
-            return 0;
+            return SA_OK;
 	}
 
        stdlog << "Error getting SDR fetch reservation: " << rsp.m_data[0] << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   if ( rsp.m_data_len < 3 )
      {
        stdlog << "SDR Reservation data not long enough: " << rsp.m_data_len << " bytes!\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   m_reservation = IpmiGetUint16( rsp.m_data + 1 );
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
 {
-  int      rv;
+  SaErrorT rv;
   cIpmiMsg msg;
   cIpmiMsg rsp;
   unsigned int add_timestamp;
@@ -680,9 +676,9 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
 
   msg.m_data_len = 0;
 
-  rv = m_mc->SendCommand( msg, rsp, m_lun );
+  rv = m_mc->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "IpmiSdrsFetch: GetDeviceSdrInfoCmd or GetSdrRepositoryInfoCmd "
               << rv << ", " << strerror( rv ) << " !\n";
@@ -721,7 +717,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
              m_sdr_changed = true;
              IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
 
-             return EINVAL;
+             return SA_ERR_HPI_INVALID_PARAMS;
            }
      }
   else if ( m_device_sdr )
@@ -735,7 +731,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
             m_sdr_changed = true;
             IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
 
-	    return EINVAL;
+	    return SA_ERR_HPI_DATA_LEN_INVALID;
 	}
 
        working_num_sdrs = rsp.m_data[1];
@@ -746,9 +742,9 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
        m_supports_reserve_sdr = true;
 
        m_lun_has_sensors[0] = (rsp.m_data[2] & 0x01) == 0x01;
-       m_lun_has_sensors[1] = (rsp.m_data[2] & 0x01) == 0x02;
-       m_lun_has_sensors[2] = (rsp.m_data[2] & 0x01) == 0x04;
-       m_lun_has_sensors[3] = (rsp.m_data[2] & 0x01) == 0x08;
+       m_lun_has_sensors[1] = (rsp.m_data[2] & 0x02) == 0x02;
+       m_lun_has_sensors[2] = (rsp.m_data[2] & 0x04) == 0x04;
+       m_lun_has_sensors[3] = (rsp.m_data[2] & 0x08) == 0x08;
 
        if ( m_dynamic_population )
           {
@@ -759,7 +755,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
                  m_sdr_changed = 1;
                  IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
 
-                 return EINVAL;
+                 return SA_ERR_HPI_DATA_LEN_INVALID;
                }
 
 	    add_timestamp = IpmiGetUint32( rsp.m_data + 3 );
@@ -780,7 +776,7 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
             m_sdr_changed = true;
             IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
 
-	    return EINVAL;
+	    return SA_ERR_HPI_DATA_LEN_INVALID;
           }
 
        /* Pull pertinant info from the response. */
@@ -809,76 +805,32 @@ cIpmiSdrs::GetInfo( unsigned short &working_num_sdrs )
   m_last_addition_timestamp = add_timestamp;
   m_last_erase_timestamp    = erase_timestamp;
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
-cIpmiSdrs::Fetch()
+SaErrorT
+cIpmiSdrs::ReadRecords( cIpmiSdr **&records, unsigned short &working_num_sdrs,
+			unsigned int &num, unsigned int lun )
 {
-  int      rv;
-  int      retry_count;
-  cIpmiSdr **records;
-  unsigned int num;
-  int      finish;
-  unsigned short working_num_sdrs;
+  int retry_count = 0;
+  bool loop = true;
 
-  m_sdr_changed = false;
-
-  assert( m_mc );
-
-  if ( m_device_sdr )
-     {
-       if ( !m_mc->ProvidesDeviceSdrs() )
-            return ENOSYS;
-     }
-  else if ( !m_mc->SdrRepositorySupport() )
-       return ENOSYS;
-
-  // working num sdrs is just an estimation
-  rv = GetInfo( working_num_sdrs );
-
-  // sdr records are up to date
-  if ( rv < 0 )
-       return 0;
-
-  if ( rv )
-       return rv;
-
-  m_sdr_changed = true;
-  IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
-
-  // because working_num_sdrs is an estimation
-  // read the sdr to get the real number
-  if ( working_num_sdrs == 0 )
-       working_num_sdrs = 1;
-
-  // read sdr
-  records = new cIpmiSdr *[working_num_sdrs];
-  retry_count = 0;
-  finish      = 0;
-
-  while( !finish )
+  while( loop )
      {
        unsigned short next_record_id = 0;
 
        if ( retry_count++ == dMaxSdrFetchRetries )
           {
             stdlog << "To many retries trying to fetch SDRs\n";
-            IpmiSdrDestroyRecords( records, num );
 
-            return EBUSY;
+            return SA_ERR_HPI_BUSY;
           }
 
-       num = 0;
-
-       rv = Reserve();
+       SaErrorT rv = Reserve();
 
        if ( rv )
-          {
-            IpmiSdrDestroyRecords( records, num );
-            return rv;
-          }
+           return rv;
 
        // read sdr records
        while( 1 )
@@ -887,7 +839,7 @@ cIpmiSdrs::Fetch()
             cIpmiSdr *sdr;
             unsigned short record_id = next_record_id;
 
-            sdr = ReadRecord( record_id, next_record_id, err );
+            sdr = ReadRecord( record_id, next_record_id, err, lun );
 
             if ( sdr == 0 )
                {
@@ -895,13 +847,10 @@ cIpmiSdrs::Fetch()
                       break;
 
                  if ( err != eReadEndOfSdr )
-                    {
-                      IpmiSdrDestroyRecords( records, num );
-                      return EINVAL;
-                    }
+                      return SA_ERR_HPI_BUSY;
 
                  // SDR is empty
-                 finish = 1;
+                 loop = false;
 
                  break;
                }
@@ -924,11 +873,74 @@ cIpmiSdrs::Fetch()
             if ( next_record_id == 0xffff )
                {
                  // finish
-                 finish = 1;
+                 loop = false;
 
                  break;
                }
           }
+     }
+
+  return SA_OK;
+}
+
+
+SaErrorT
+cIpmiSdrs::Fetch()
+{
+  SaErrorT rv;
+  cIpmiSdr **records;
+  unsigned short working_num_sdrs;
+
+  m_sdr_changed = false;
+
+  assert( m_mc );
+
+  if ( m_device_sdr )
+     {
+       if ( !m_mc->ProvidesDeviceSdrs() )
+            return SA_ERR_HPI_NOT_PRESENT;
+     }
+  else if ( !m_mc->SdrRepositorySupport() )
+       return SA_ERR_HPI_NOT_PRESENT;
+
+  // working num sdrs is just an estimation
+  rv = GetInfo( working_num_sdrs );
+
+  // sdr records are up to date
+  if ( rv == -1 )
+       return SA_OK;
+
+  if ( rv )
+       return rv;
+
+  m_sdr_changed = true;
+  IpmiSdrDestroyRecords( m_sdrs, m_num_sdrs );
+
+  // because working_num_sdrs is an estimation
+  // read the sdr to get the real number
+  if ( working_num_sdrs == 0 )
+       working_num_sdrs = 1;
+
+  // read sdr
+  unsigned int num = 0;
+
+  records = new cIpmiSdr *[working_num_sdrs];
+
+  rv = SA_OK;
+
+  if ( m_device_sdr )
+     {
+       for( unsigned int i = 0; rv == SA_OK && i < 4; i++ )
+	    if ( m_lun_has_sensors[i] )
+		 rv = ReadRecords( records, working_num_sdrs, num, i );
+     }
+  else
+       rv = ReadRecords( records, working_num_sdrs, num, 0 );
+
+  if ( rv != SA_OK )
+     {
+       IpmiSdrDestroyRecords( records, num );
+       return rv;
      }
 
   if ( num == 0 )
@@ -936,8 +948,8 @@ cIpmiSdrs::Fetch()
        delete [] records;
        m_sdrs = 0;
        m_num_sdrs = 0;
-  
-       return 0;
+
+       return SA_OK;
      }
 
   if ( num == working_num_sdrs )
@@ -945,7 +957,7 @@ cIpmiSdrs::Fetch()
        m_sdrs = records;
        m_num_sdrs = working_num_sdrs;
 
-       return 0;
+       return SA_OK;
      }
 
   m_sdrs = new cIpmiSdr *[num];
@@ -954,7 +966,7 @@ cIpmiSdrs::Fetch()
 
   delete [] records;
 
-  return 0;
+  return SA_OK;
 }
 
 

@@ -44,6 +44,11 @@
 #include "thread.h"
 #endif
 
+extern "C" {
+#include "SaHpi.h"
+}
+
+
 #include <glib.h>
 
 
@@ -61,14 +66,14 @@ public:
   int            m_seq;  // seq of msg
   cIpmiAddr     *m_rsp_addr;
   cIpmiMsg      *m_rsp;
-  int            m_error;  // if != 0 => error
+  SaErrorT       m_error;  // if != 0 => error
   cThreadCond   *m_signal; // the calling thread is waiting for this
   cTime          m_timeout;
   int            m_retries_left;
 
   cIpmiRequest( const cIpmiAddr &addr, const cIpmiMsg &msg )
     : m_addr( addr ), m_send_addr( addr ), m_msg( msg ), m_rsp_addr( 0 ), m_rsp( 0 ),
-    m_error( 0 ), m_signal( 0 ), m_retries_left( -1 )  {}
+    m_error( SA_OK ), m_signal( 0 ), m_retries_left( -1 )  {}
 
   virtual ~cIpmiRequest() {}
 };
@@ -110,7 +115,7 @@ protected:
   void HandleMsgError( cIpmiRequest *r, int err );
 
   // send a command
-  int SendCmd( cIpmiRequest *request );
+  SaErrorT SendCmd( cIpmiRequest *request );
 
   // send the first command of the given queue
   void SendCmds();
@@ -143,15 +148,17 @@ protected:
   // close connection
   virtual void IfClose();
 
+/*
   // alloc/free requests
   virtual cIpmiRequest *IfAllocRequest( const cIpmiAddr &addr, const cIpmiMsg &msg );
   virtual void          IfDestroyRequest( cIpmiRequest *r );
+*/
 
   // convertion from addr to send addr
   virtual void IfAddrToSendAddr( const cIpmiAddr &addr, cIpmiAddr &send_addr );
 
   // send an ipmi command
-  virtual int  IfSendCmd( cIpmiRequest *r ) = 0;
+  virtual SaErrorT IfSendCmd( cIpmiRequest *r ) = 0;
 
   // read ipmi response
   virtual void IfReadResponse() = 0;
@@ -184,13 +191,13 @@ protected:
 public:
   bool  Open();
   void  Close();
-  int   Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
-             cIpmiAddr &rsp_addr, cIpmiMsg &rsp_msg,
-             int retries = dIpmiDefaultRetries );
+  SaErrorT Cmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
+                cIpmiAddr &rsp_addr, cIpmiMsg &rsp_msg,
+                int retries = dIpmiDefaultRetries );
 
-  int   ExecuteCmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
-                    cIpmiMsg &rsp_msg,
-                    int retries = dIpmiDefaultRetries );
+  SaErrorT ExecuteCmd( const cIpmiAddr &addr, const cIpmiMsg &msg,
+                       cIpmiMsg &rsp_msg,
+                       int retries = dIpmiDefaultRetries );
 
   int GetMaxOutstanding() { return m_max_outstanding; }
   bool SetMaxOutstanding( int max )

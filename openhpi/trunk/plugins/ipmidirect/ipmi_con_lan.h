@@ -100,16 +100,16 @@ protected:
   tResponseType HandleData( int fd, cIpmiAddr &addr, cIpmiMsg &msg );
   tResponseType WaitForResponse( unsigned int timeout_ms, int &seq,
                                  cIpmiAddr &addr, cIpmiMsg &msg );
-  int SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &msg,
-                                 cIpmiAddr &rsp_addr, cIpmiMsg &rsp_msg );
+  SaErrorT SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &msg,
+                                      cIpmiAddr &rsp_addr, cIpmiMsg &rsp_msg );
 
-  int  AuthCap();
-  int  SetSessionPriv();
-  int  ActiveSession();
-  int  Challange();
-  void Reconnect();
-  void SendCloseSession();
-  int  CreateSession();
+  SaErrorT AuthCap();
+  SaErrorT SetSessionPriv();
+  SaErrorT ActiveSession();
+  SaErrorT Challange();
+  void     Reconnect();
+  void     SendCloseSession();
+  SaErrorT CreateSession();
 
 public:
   cIpmiConLan( unsigned int timeout,
@@ -122,7 +122,7 @@ protected:
   virtual int  IfGetMaxSeq();
   virtual int  IfOpen();
   virtual void IfClose();
-  virtual int  IfSendCmd( cIpmiRequest *r );
+  virtual SaErrorT IfSendCmd( cIpmiRequest *r );
   virtual void IfReadResponse();
 
   virtual bool IfCheckConnection( cTime &timeout );

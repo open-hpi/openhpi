@@ -272,7 +272,7 @@ cIpmiConSmi::IfClose()
 }
 
 
-int
+SaErrorT
 cIpmiConSmi::IfSendCmd( cIpmiRequest *r )
 {
   cIpmiAddr send_addr = r->m_send_addr;
@@ -307,7 +307,7 @@ cIpmiConSmi::IfSendCmd( cIpmiRequest *r )
 
        default:
             assert( 0 );
-            return EINVAL;
+            return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   struct ipmi_req req;
@@ -323,7 +323,10 @@ cIpmiConSmi::IfSendCmd( cIpmiRequest *r )
 
   int rv = ioctl( m_fd, IPMICTL_SEND_COMMAND, &req );
 
-  return rv;
+  if ( rv )
+       return SA_ERR_HPI_INVALID_REQUEST;
+
+  return SA_OK;
 }
 
 
@@ -341,7 +344,7 @@ cIpmiConSmi::IfReadResponse()
 
   int rv = ioctl( m_fd, IPMICTL_RECEIVE_MSG_TRUNC, &recv );
 
-  if ( rv == -1 ) 
+  if ( rv == -1 )
      {
        if ( errno == EMSGSIZE )
             // The message was truncated, handle it as such.

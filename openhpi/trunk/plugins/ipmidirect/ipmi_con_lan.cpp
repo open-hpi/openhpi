@@ -310,7 +310,7 @@ cIpmiConLan::WaitForResponse( unsigned int timeout_ms, int &seq,
 }
 
 
-int
+SaErrorT
 cIpmiConLan::SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &msg,
                                         cIpmiAddr &rsp_addr, cIpmiMsg &rsp_msg )
 {
@@ -321,9 +321,9 @@ cIpmiConLan::SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &m
 
   while( r->m_retries_left > 0 )
      {
-       int rv = SendCmd( r );
+       SaErrorT rv = SendCmd( r );
 
-       if ( rv )
+       if ( rv != SA_OK )
             continue;
 
        tResponseType rt;
@@ -331,7 +331,7 @@ cIpmiConLan::SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &m
        do
           {
             rt = WaitForResponse( m_timeout, seq, rsp_addr,
-                                   rsp_msg );
+                                  rsp_msg );
           }
        while( rt == eResponseTypeEvent || rt == eResponseTypePong );
 
@@ -343,7 +343,7 @@ cIpmiConLan::SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &m
             if ( seq == r->m_seq )
                {
                  delete r;
-                 return 0;
+                 return SA_OK;
                }
           }
 
@@ -351,14 +351,14 @@ cIpmiConLan::SendMsgAndWaitForResponse( const cIpmiAddr &addr, const cIpmiMsg &m
        stdlog << "resending RMCP msg.\n";
      }
 
-  return ETIMEDOUT;
+  return SA_ERR_HPI_TIMEOUT;
 }
 
 
-int
+SaErrorT
 cIpmiConLan::AuthCap()
 {
-  int       rv;
+  SaErrorT rv;
   cIpmiAddr addr( eIpmiAddrTypeSystemInterface );
   cIpmiMsg  msg( eIpmiNetfnApp, eIpmiCmdGetChannelAuthCapabilities );
   cIpmiAddr rsp_addr;
@@ -373,14 +373,14 @@ cIpmiConLan::AuthCap()
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
-  if ( rv )
+  if ( rv != SA_OK )
        return rv;
 
   if (    (rsp_msg.m_data[0] != 0 )
        || (rsp_msg.m_data_len < 9 ) )
      {
        stdlog << "auth response = " << rsp_msg.m_data[0] << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( !( rsp_msg.m_data[2] & (1 << m_auth ) ) )
@@ -406,17 +406,17 @@ cIpmiConLan::AuthCap()
 
        stdlog << "supported authentication types: " << str << ".\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiConLan::SetSessionPriv()
 {
-  int       rv;
+  SaErrorT  rv;
   cIpmiAddr addr( eIpmiAddrTypeSystemInterface );
   cIpmiMsg  msg( eIpmiNetfnApp, eIpmiCmdSetSessionPrivilege );
   cIpmiAddr rsp_addr;
@@ -430,19 +430,19 @@ cIpmiConLan::SetSessionPriv()
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
-  if ( rv )
+  if ( rv != SA_OK )
        return rv;
 
   if ( rsp_msg.m_data[0] != 0 )
      {
        stdlog << "set session priv: " << rsp_msg.m_data[0] << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( rsp_msg.m_data_len < 2 )
      {
        stdlog << "set session priv: msg to small: " << rsp_msg.m_data_len << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   if ( (unsigned char)m_priv != (rsp_msg.m_data[1] & 0xf))
@@ -451,17 +451,17 @@ cIpmiConLan::SetSessionPriv()
        stdlog << "set session priv: Requested privilege level did not match: "
               << m_priv << ", " << (rsp_msg.m_data[1] & 0xf ) << " !\n";
 
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiConLan::ActiveSession()
 {
-  int       rv;
+  SaErrorT  rv;
   cIpmiAddr addr( eIpmiAddrTypeSystemInterface );
   cIpmiMsg  msg( eIpmiNetfnApp, eIpmiCmdActivateSession );
   cIpmiAddr rsp_addr;
@@ -478,19 +478,19 @@ cIpmiConLan::ActiveSession()
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
-  if ( rv )
+  if ( rv != SA_OK )
        return rv;
 
   if ( rsp_msg.m_data[0] != 0 )
      {
        stdlog << "active session: " << rsp_msg.m_data[0] << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( rsp_msg.m_data_len < 11 )
      {
        stdlog << "active session: msg to small: " << rsp_msg.m_data_len << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   m_working_auth = (tIpmiAuthType)(rsp_msg.m_data[1] & 0xf);
@@ -500,7 +500,7 @@ cIpmiConLan::ActiveSession()
      {
        // Eh?  It didn't return a valid authtype.
        stdlog << "active session: wrong auth: " << m_working_auth << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   m_session_id = IpmiGetUint32( rsp_msg.m_data + 2 );
@@ -509,14 +509,14 @@ cIpmiConLan::ActiveSession()
   //        dbg( "reading: sid = 0x%x, seq = 0x%x", 
   //             m_session_id, m_outbound_seq_num );
 
-  return 0;
+  return SA_OK;
 }
 
 
-int
+SaErrorT
 cIpmiConLan::Challange()
 {
-  int       rv;
+  SaErrorT  rv;
   cIpmiAddr addr( eIpmiAddrTypeSystemInterface );
   cIpmiMsg  msg( eIpmiNetfnApp, eIpmiCmdGetSessionChallenge );
   cIpmiAddr rsp_addr;
@@ -532,19 +532,19 @@ cIpmiConLan::Challange()
   rv = SendMsgAndWaitForResponse( addr, msg,
                                   rsp_addr, rsp_msg );
 
-  if ( rv )
+  if ( rv != SA_OK )
        return rv;
 
   if ( rsp_msg.m_data[0] != 0 )
      {
        stdlog << "Challange returns: " << rsp_msg.m_data[0] << " !\n";
-       return EINVAL;
+       return SA_ERR_HPI_INVALID_DATA;
      }
 
   if ( rsp_msg.m_data_len < 21 )
      {
        stdlog << "Challange response to small !\n";
-       return EINVAL;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   // Get the temporary session id.
@@ -559,7 +559,7 @@ cIpmiConLan::Challange()
   while( m_inbound_seq_num == 0 )
        m_inbound_seq_num = random();
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -588,9 +588,9 @@ cIpmiConLan::IfOpen()
   if ( m_fd < 0 )
        return -1;
 
-  int rv = CreateSession();
+  SaErrorT rv = CreateSession();
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        close( m_fd );
        m_fd = -1;
@@ -600,7 +600,7 @@ cIpmiConLan::IfOpen()
 }
 
 
-int
+SaErrorT
 cIpmiConLan::CreateSession()
 {
   m_ping_count       = 0;
@@ -613,24 +613,24 @@ cIpmiConLan::CreateSession()
   // start seq with 0
   m_current_seq = 0;
 
-  int rv = AuthCap();
+  SaErrorT rv = AuthCap();
 
-  if ( rv )
+  if ( rv != SA_OK )
        return -1;
 
   rv = Challange();
         
-  if ( rv )
+  if ( rv != SA_OK )
        return -1;
 
   rv = ActiveSession();
 
-  if ( rv )
+  if ( rv != SA_OK )
        return -1;
 
   rv = SetSessionPriv();
 
-  if ( rv )
+  if ( rv != SA_OK )
        return rv;
 
   assert( m_num_outstanding == 0 );
@@ -640,7 +640,7 @@ cIpmiConLan::CreateSession()
 
   stdlog << "RMCP session is up.\n";
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -700,7 +700,7 @@ cIpmiConLan::Reconnect()
 
        stdlog << "create new RMCP session.\n";
 
-       if ( CreateSession() == 0 )
+       if ( CreateSession() == SA_OK )
             break;
      }
 
@@ -710,7 +710,7 @@ cIpmiConLan::Reconnect()
 }
 
 
-int
+SaErrorT
 cIpmiConLan::IfSendCmd( cIpmiRequest *r )
 {
   IfAddrToSendAddr( r->m_addr, r->m_send_addr );
@@ -719,7 +719,6 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
   unsigned char *tmsg;
   int            pos;
   int            msgstart;
-  int            rv;
 
   switch( r->m_send_addr.m_type )
      {
@@ -730,7 +729,7 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
 
        default:
             assert( 0 );
-	    return EINVAL;
+	    return SA_ERR_HPI_INVALID_PARAMS;
      }
 
   data[0] = 6; // RMCP version 1.0.
@@ -799,15 +798,15 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
        // No authentication, so no authcode.
        data[13] = pos;
        pos += 14; // Convert to pos in data
-     } 
+     }
   else
      {
        data[29] = pos;
 
-       rv = AuthGen( data+13, data+9, data+5, tmsg, pos );
+       int rv = AuthGen( data+13, data+9, data+5, tmsg, pos );
 
        if ( rv )
-	    return rv;
+	    return SA_ERR_HPI_INVALID_PARAMS;
 
        pos += 30; // Convert to pos in data
      }
@@ -822,16 +821,14 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
 	    m_outbound_seq_num++;
      }
 
-  rv = sendto( m_fd, data, pos, 0,
-	       (struct sockaddr *)&m_ip_addr,
-	       sizeof(struct sockaddr_in) );
+  int rv = sendto( m_fd, data, pos, 0,
+                   (struct sockaddr *)&m_ip_addr,
+                   sizeof(struct sockaddr_in) );
 
   if ( rv == -1 )
-       rv = errno;
-  else
-       rv = 0;
+       return SA_ERR_HPI_NOT_PRESENT;
 
-  return rv;
+  return SA_OK;
 }
 
 

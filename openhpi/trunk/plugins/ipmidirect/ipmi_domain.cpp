@@ -49,7 +49,7 @@ cIpmiDomain::cIpmiDomain()
      }
 
   // scan at least at 0x20 (ShMc entity is 0xf0)
-  NewFruInfo( 0x20, 0, (SaHpiEntityTypeT)0xf0, 0,
+  NewFruInfo( 0x20, 0, (SaHpiEntityTypeT)0xf0, 256,
               eIpmiAtcaSiteTypeDedicatedShMc, dIpmiMcThreadInitialDiscover|dIpmiMcThreadPollAliveMc );
 
   // default site type properties
@@ -110,16 +110,16 @@ cIpmiDomain::Init( cIpmiCon *con )
      }
 
   // create main sdr
-  m_main_sdrs = new cIpmiSdrs( m_si_mc, 0, false );
+  m_main_sdrs = new cIpmiSdrs( m_si_mc, false );
   assert( m_main_sdrs );
 
   // send get device id to system interface
   cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdGetDeviceId );
   cIpmiMsg rsp;
 
-  int rv = m_si_mc->SendCommand( msg, rsp );
+  SaErrorT rv = m_si_mc->SendCommand( msg, rsp );
 
-  if ( rv )
+  if ( rv != SA_OK )
      {
        stdlog << "cannot send IPMI get device id to system interface: " << rv << ", " << strerror( rv ) << " !\n";
        return false;
@@ -183,7 +183,7 @@ cIpmiDomain::Init( cIpmiCon *con )
        rv = m_si_mc->SendCommand( msg, rsp, 0, 1 );
 
        // ignore on error
-       if ( !rv && rsp.m_data[0] == 0 && rsp.m_data_len >= 6 )
+       if ( rv == SA_OK && rsp.m_data[0] == 0 && rsp.m_data_len >= 6 )
           {
             num = rsp.m_data[1];
 
@@ -409,7 +409,7 @@ cIpmiDomain::GetChannels()
 }
 
 
-int
+SaErrorT
 cIpmiDomain::CheckAtca()
 {
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPicMgProperties );
@@ -417,7 +417,7 @@ cIpmiDomain::CheckAtca()
   msg.m_data[0]  = dIpmiPigMgId;
 
   cIpmiMsg rsp;
-  int      rv;
+  SaErrorT rv;
   int i;
 
   m_is_atca = false;
@@ -428,11 +428,11 @@ cIpmiDomain::CheckAtca()
 
   rv = m_si_mc->SendCommand( msg, rsp );
 
-  if ( rv || rsp.m_data[0] || rsp.m_data[1] != dIpmiPigMgId )
+  if ( rv != SA_OK || rsp.m_data[0] || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "not an ATCA system.\n";
 
-       return rv;
+       return (rv != SA_OK) ? rv : SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   unsigned char minor = (rsp.m_data[2] >> 4) & 0x0f;
@@ -441,7 +441,7 @@ cIpmiDomain::CheckAtca()
   stdlog << "found a PigMg system version " << major << "." << minor << ".\n";
 
   if ( major != 2 || minor != 0 )
-       return 0;
+       return SA_OK;
 
   stdlog << "found an ATCA system.\n";
 
@@ -494,7 +494,7 @@ cIpmiDomain::CheckAtca()
 
             rv = m_si_mc->SendCommand( msg, rsp );
 
-            if ( rv )
+            if ( rv != SA_OK )
                {
                  stdlog << "cannot send get address info: " << rv << " !\n";
                  break;
@@ -514,7 +514,7 @@ cIpmiDomain::CheckAtca()
           }
      }
 
-  return 0;
+  return SA_OK;
 }
 
 
@@ -541,12 +541,15 @@ cIpmiDomain::FindMcByAddr( const cIpmiAddr &addr )
 }
 
 
-int
+SaErrorT
 cIpmiDomain::SendCommand( const cIpmiAddr &addr, const cIpmiMsg &msg,
                           cIpmiMsg &rsp_msg, int retries )
 {
   if ( m_con == 0 )
-       return ENOSYS;
+     {
+       assert( 0 );
+       return SA_ERR_HPI_NOT_PRESENT;
+     }
 
   return m_con->ExecuteCmd( addr, msg, rsp_msg, retries );
 }

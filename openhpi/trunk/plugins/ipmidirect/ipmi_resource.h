@@ -90,8 +90,8 @@ public:
   virtual bool Create( SaHpiRptEntryT &entry );
   virtual bool Destroy();
 
-  int SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
-		   unsigned int lun = 0, int retries = dIpmiDefaultRetries )
+  SaErrorT SendCommand( const cIpmiMsg &msg, cIpmiMsg &rsp,
+                        unsigned int lun = 0, int retries = dIpmiDefaultRetries )
   {
     return m_mc->SendCommand( msg, rsp, lun, retries );
   }
