@@ -436,6 +436,41 @@ static ret_code_t set_tag(void)
 	return (HPI_SHELL_OK);
 }
 
+static ret_code_t parmctrl(void)
+{
+	SaHpiResourceIdT	resid;
+	int			i;
+	char			buf[10];
+	SaErrorT		rv;
+	SaHpiParmActionT	act;
+	ret_code_t		ret;
+
+	ret = ask_rpt(&resid);
+	if (ret != HPI_SHELL_OK) return(ret);
+	i = get_string_param("Action (default,save,restore): ", buf, 9);
+	if (i != 0) {
+		printf("Invalid action: %s\n", buf);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+	if (strcmp(buf, "default") == 0)
+		act = SAHPI_DEFAULT_PARM;
+	else if (strcmp(buf, "save") == 0)
+		act = SAHPI_SAVE_PARM;
+	else if (strcmp(buf, "restore") == 0)
+		act = SAHPI_RESTORE_PARM;
+	else {
+		printf("Invalid action: %s\n", buf);
+		return(HPI_SHELL_PARM_ERROR);
+	};
+
+	rv = saHpiParmControl(Domain->sessionId, resid, act);
+	if (rv != SA_OK) {
+		printf("saHpiParmControl error = %s\n", oh_lookup_error(rv));
+		return HPI_SHELL_CMD_ERROR;
+	};
+	return (HPI_SHELL_OK);
+}
+
 static ret_code_t set_sever(void)
 {
 	SaHpiResourceIdT	resid;
@@ -829,8 +864,8 @@ static ret_code_t domain_info(void)
 		info.DomainId, info.DomainCapabilities,
 		info.IsPeer, info.Guid);
 	buf = &(info.DomainTag);
-	if (buf->DataLength > 0)
-		printf("    Tag: %s\n", buf->Data);
+	print_text_buffer("    Tag: ", buf, 0, 0, 0, ui_print);
+	printf("\n");
 	time2str(info.DrtUpdateTimestamp, date, 30);
 	printf("    DRT update count: %d   DRT Timestamp : %s\n",
 		info.DrtUpdateCount, date);
@@ -974,6 +1009,9 @@ const char lreshelp[] = "lsres: list resources\n"
 			"Usage: lsres";
 const char lsorhelp[] = "lsensor: list sensors\n"
 			"Usage: lsensor";
+const char parmctrlhelp[] = "parmctrl: save and restore parameters for a resource\n"
+			"Usage: parmctrl <resource id> <action>\n"
+			"    action - default | save | restore";
 const char powerhelp[] = "power: power the resource on, off or cycle\n"
 			"Usage: power <resource id> [on|off|cycle]";
 const char quithelp[] = "quit: close session and quit console\n"
@@ -1061,6 +1099,7 @@ command_def_t commands[] = {
     { "inv",		inv_block,	invhelp,	MAIN_COM },
     { "lsres",		listres,	lreshelp,	MAIN_COM },
     { "lsensor",	list_sensor,	lsorhelp,	MAIN_COM },
+    { "parmctrl",	parmctrl,	parmctrlhelp,	MAIN_COM },
     { "power",		power,		powerhelp,	MAIN_COM },
     { "quit",		quit,		quithelp,	UNDEF_COM },
     { "rdr",		show_rdr,	showrdrhelp,	MAIN_COM },
