@@ -3,6 +3,7 @@ dnl autoconf and automake for openhpi
 dnl 	initial file by Andrea Brugger <andrea.l.brugger@intel.com> 1/03
 dnl   various hacks by Sean Dague <http://dague.net/sean> 4/23/03
 
+
 AC_PREREQ(2.57)
 AC_INIT(openhpi.spec.in)
 AM_INIT_AUTOMAKE(openhpi, 1.9.0)
@@ -36,6 +37,10 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+
+AC_MSG_ERROR([
+*** You don't want this CVS Tree, this is for OpenHPI 2.0 ***
+])
 
 # die on int != 32bits.  This is too instrumental to our code right now.
 # AC_MSG_CHECKING(int is 4 bytes)
