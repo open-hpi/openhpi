@@ -437,8 +437,7 @@ cIpmiMcVendor::CreateSensors( cIpmiMc *mc, cIpmiSdrs *sdrs )
        // create entity
        cIpmiEntity *ent = mc->Domain()->Entities().Add( sensor->Mc(), sensor->Lun(),
                                                         sensor->EntityId(),
-                                                        (unsigned int)sensor->EntityInstance(),
-                                                        "" );
+                                                        (unsigned int)sensor->EntityInstance() );
 
        assert( ent );
        new_sensors = g_list_append( new_sensors, sensor );
@@ -508,8 +507,7 @@ cIpmiMcVendor::CreateControlsAtca( cIpmiMc *mc, cIpmiSdrs *sdrs,
   unsigned int  ent_instance =  mcdlr->m_data[13];
 
   cIpmiEntity *ent = mc->Domain()->Entities().Add( mc, 0,
-                                             ent_id, ent_instance,
-                                             "" );
+                                             ent_id, ent_instance );
 
   // cannot find or create ent
   if ( ent == 0 )
@@ -630,7 +628,7 @@ cIpmiMcVendor::CreateFru( cIpmiMc *mc, cIpmiSdr *sdr )
 
   // create mc/ domain if nessesary
   cIpmiMc     *m   = domain->FindOrCreateMcBySlaveAddr( addr );
-  cIpmiEntity *ent = domain->Entities().Add( m, lun, id, instance, "" );
+  cIpmiEntity *ent = domain->Entities().Add( m, lun, id, instance );
   assert( ent );
 
   cIpmiFru *fru = (cIpmiFru *)ent->Find( m, SAHPI_INVENTORY_RDR, fru_id );

@@ -106,7 +106,8 @@ cIpmiEntityInfo::VerifyFru( cIpmiFru *f )
 
 cIpmiEntity *
 cIpmiEntityInfo::Find( tIpmiDeviceNum device_num,
-                       tIpmiEntityId entity_id, int entity_instance )
+                       tIpmiEntityId entity_id, 
+		       int entity_instance )
 {
   GList *list = m_entities;
 
@@ -129,7 +130,8 @@ cIpmiEntityInfo::Find( tIpmiDeviceNum device_num,
 
 cIpmiEntity *
 cIpmiEntityInfo::Find( cIpmiMc *mc,
-                       tIpmiEntityId entity_id, int entity_instance )
+                       tIpmiEntityId entity_id,
+		       int entity_instance )
 {
   tIpmiDeviceNum device_num;
 
@@ -151,8 +153,8 @@ cIpmiEntityInfo::Find( cIpmiMc *mc,
 
 cIpmiEntity *
 cIpmiEntityInfo::Add( tIpmiDeviceNum device_num,
-                      tIpmiEntityId  entity_id, int entity_instance,
-                      bool came_from_sdr, const char *id,
+                      tIpmiEntityId entity_id, int entity_instance,
+                      bool came_from_sdr,
                       cIpmiMc *mc, int lun )
 {
   cIpmiEntity *ent = Find( device_num, entity_id, entity_instance );
@@ -163,7 +165,6 @@ cIpmiEntityInfo::Add( tIpmiDeviceNum device_num,
        if ( !ent->CameFromSdr() )
 	    ent->CameFromSdr() = came_from_sdr;
 
-       ent->SetId( id );
        ent->AccessAddress() = mc->GetAddress();
        ent->Channel()       = mc->GetChannel();
        ent->Lun()           = lun;
@@ -176,13 +177,41 @@ cIpmiEntityInfo::Add( tIpmiDeviceNum device_num,
 
   m_entities = g_list_append( m_entities, ent );
 
-  ent->SetId( id );
   ent->AccessAddress() = mc->GetAddress();
   ent->Channel()       = mc->GetChannel();
   ent->Lun()           = lun;
 
-  // XXXX add entity
-  m_domain->IfEntityAdd( ent );
+  // create rpt entry
+  stdlog << "adding entity: " << ent->EntityId() << "." << ent->EntityInstance()
+	 << " (" << IpmiEntityIdToString( entity_id ) << ").\n";
+
+  struct oh_event *e = (struct oh_event *)g_malloc0( sizeof( struct oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "out of space !\n";
+       return 0;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ) );
+  e->type = oh_event::OH_ET_RESOURCE;
+
+  if ( ent->CreateResource( e->u.res_event.entry ) == false )
+     {
+       g_free( e );
+       return 0;
+     }
+
+  // assign the hpi resource id to ent, so we can find
+  // the resource for a given entity
+  ent->m_resource_id = e->u.res_event.entry.ResourceId;
+
+  // add the entity to the resource cache
+  int rv = oh_add_resource( ent->Domain()->GetHandler()->rptcache,
+			    &(e->u.res_event.entry), ent, 1 );
+  assert( rv == 0 );
+
+  Domain()->AddHpiEvent( e );
 
   return ent;
 }
@@ -190,8 +219,7 @@ cIpmiEntityInfo::Add( tIpmiDeviceNum device_num,
 
 cIpmiEntity *
 cIpmiEntityInfo::Add( cIpmiMc *mc, int lun, 
-                      tIpmiEntityId entity_id, int entity_instance,
-                      const char *id )
+                      tIpmiEntityId entity_id, int entity_instance )
 {
   tIpmiDeviceNum device_num;
   cIpmiEntity *ent;
@@ -208,7 +236,7 @@ cIpmiEntityInfo::Add( cIpmiMc *mc, int lun,
        device_num.address = 0;
      }
 
-  ent = Add( device_num, entity_id, entity_instance, false, id, mc, lun );
+  ent = Add( device_num, entity_id, entity_instance, false, mc, lun );
 
   if ( !ent )
        return 0;
@@ -253,16 +281,12 @@ cIpmiEntity::cIpmiEntity( cIpmiEntityInfo *ents, tIpmiDeviceNum device_num,
     m_entity_instance( entity_instance ),
     m_device_type( 0 ), m_device_modifier( 0 ),
     m_oem( 0 ), m_presence_sensor_always_there( false ),
-    m_entity_id_string( 0 ),
     m_presence_possibly_changed( true ),
     m_ents( ents ),
     m_hotswap_sensor( 0 ),
     m_current_control_id( 0 ),
     m_sel( 0 )
 {
-  m_id[0] = 0;
-
-  m_entity_id_string = IpmiEntityIdToString( entity_id );
 }
 
 
@@ -280,8 +304,26 @@ cIpmiEntity::~cIpmiEntity()
 bool
 cIpmiEntity::Destroy()
 {
-  // XXXX remove ent
-  m_domain->IfEntityRem( this );
+  stdlog << "removing entity: " << EntityId() << "." << EntityInstance() 
+	 << " (" << IpmiEntityIdToString( EntityId() ) << ").\n";
+
+  // remove resource from local cache
+  int rv = oh_remove_resource( Domain()->GetHandler()->rptcache, m_resource_id );
+  assert( rv == 0 );
+
+  // create remove event
+  oh_event *e = (oh_event *)g_malloc0( sizeof( oh_event ) );
+
+  if ( !e )
+     {
+       stdlog << "Out of space !\n";
+       return false;
+     }
+
+  memset( e, 0, sizeof( struct oh_event ));
+  e->type = oh_event::OH_ET_RESOURCE_DEL;
+  e->u.res_event.entry.ResourceId = m_resource_id;
+  Domain()->AddHpiEvent( e );
 
   // Remove it from the entities list.
   m_ents->Rem( this );
@@ -387,7 +429,7 @@ cIpmiEntity::Add( cIpmiRdr *rdr )
 
   dbg( "adding rdr %d.%d (%s) %02x: %s",
        EntityId(), EntityInstance(),
-       EntityIdString(), rdr->Num(), id );
+       IpmiEntityIdToString( EntityId() ), rdr->Num(), id );
 
   // set entity
   rdr->Entity() = this;
@@ -489,6 +531,62 @@ cIpmiEntity::Rem( cIpmiRdr *rdr )
 
   if ( m_rdrs == 0 )
        Destroy();
+
+  return true;
+}
+
+
+bool
+cIpmiEntity::CreateResource( SaHpiRptEntryT &entry )
+{
+  cIpmiAddr addr( eIpmiAddrTypeIpmb, Channel(), 
+                  Lun(), AccessAddress() );
+
+  cIpmiMc *mc = Domain()->FindMcByAddr( addr );
+
+  if ( !mc )
+     {
+       addr.Si();
+       mc = Domain()->FindMcByAddr( addr );
+     }
+
+  assert( mc );
+
+  entry.EntryId = 0;
+
+  // resource info
+  SaHpiResourceInfoT &info = entry.ResourceInfo;
+
+  info.ResourceRev      = 0;
+  info.SpecificVer      = 0;
+  info.DeviceSupport    = 0;
+  info.ManufacturerId   = (SaHpiManufacturerIdT)mc->ManufacturerId();
+  info.ProductId        = (SaHpiUint16T)mc->ProductId();
+  info.FirmwareMajorRev = (SaHpiUint8T)mc->MajorFwRevision();
+  info.FirmwareMinorRev = (SaHpiUint8T)mc->MinorFwRevision();
+  info.AuxFirmwareRev   = (SaHpiUint8T)mc->AuxFwRevision( 0 );
+
+  entry.ResourceEntity.Entry[0].EntityType     = (SaHpiEntityTypeT)EntityId();
+  entry.ResourceEntity.Entry[0].EntityInstance = (SaHpiEntityInstanceT)EntityInstance();
+  entry.ResourceEntity.Entry[1].EntityType     = SAHPI_ENT_UNSPECIFIED;
+  entry.ResourceEntity.Entry[1].EntityInstance = 0;
+
+  // let's append entity_root from config
+  const char *entity_root = Domain()->EntityRoot();
+  dbg( "entity_root: %s", entity_root );
+  SaHpiEntityPathT entity_ep;
+  string2entitypath( entity_root, &entity_ep );
+  append_root( &entity_ep );
+
+  ep_concat( &entry.ResourceEntity, &entity_ep );
+
+  entry.ResourceId = oh_uid_from_entity_path( &entry.ResourceEntity );
+
+  // TODO: set SAHPI_CAPABILITY_FRU only if FRU
+  entry.ResourceCapabilities = SAHPI_CAPABILITY_RESOURCE|SAHPI_CAPABILITY_FRU;
+  entry.ResourceSeverity = SAHPI_OK;
+  entry.DomainId = 0;
+  entry.ResourceTag = IdString();
 
   return true;
 }

@@ -221,17 +221,10 @@ protected:
 public:
   // calulate the size of inventory data
   unsigned int CalcSize();
-  unsigned int GetSize() { return m_inventory_size; }
+  unsigned int GetInventorySize() { return m_inventory_size; }
 
   unsigned int GetInventoryInfo( SaHpiInventoryDataT &data );
 };
-
-
-class cIpmiDomain;
-class cIpmiSdrs;
-class cIpmiMc;
-
-int IpmiFruHandleSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
 
 
 #endif

@@ -514,14 +514,13 @@ IpmiGetInventorySize( void *hnd, SaHpiResourceIdT id,
   cIpmiFru *fru = VerifyFruAndEnter( hnd, id, num, ipmi );
 
   if ( !fru )
-
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetInventorySize( fru, *size );
+  *size = (SaHpiUint32T)fru->GetInventorySize();
 
   ipmi->IfLeave();
 
-  return rv;
+  return SA_OK;
 }
 
 
@@ -536,7 +535,7 @@ IpmiGetInventoryInfo( void *hnd, SaHpiResourceIdT id,
   if ( !fru )
        return SA_ERR_HPI_NOT_PRESENT;
 
-  SaErrorT rv = ipmi->IfGetInventoryInfo( fru, *data );
+  SaErrorT rv = fru->GetInventoryInfo( *data );
 
   ipmi->IfLeave();
 

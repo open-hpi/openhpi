@@ -770,7 +770,7 @@ IpmiSelHandleSdr( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs )
   unsigned int instance = sdr->m_data[13];
 
   cIpmiMc     *m   = domain->FindOrCreateMcBySlaveAddr( slave_addr );
-  cIpmiEntity *ent = domain->Entities().Add( m, 0, id, instance, "" );
+  cIpmiEntity *ent = domain->Entities().Add( m, 0, id, instance );
 
   // check this
   if ( ent->Sel() == 0 )

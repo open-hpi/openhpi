@@ -81,10 +81,6 @@ public:
                                   SaHpiSelEntryT &entry );
   virtual SaErrorT IfClearSel( cIpmiSel *sel );
 
-  // inventory
-  virtual SaErrorT IfGetInventorySize( cIpmiFru *fru, SaHpiUint32T &size );
-  virtual SaErrorT IfGetInventoryInfo( cIpmiFru *fru, SaHpiInventoryDataT &data );
-
   // hot swap
   virtual SaErrorT IfGetHotswapState( cIpmiEntity *ent, SaHpiHsStateT &state );
   virtual SaErrorT IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state );
@@ -98,9 +94,6 @@ public:
   virtual SaErrorT IfSetResetState    ( cIpmiEntity *ent, SaHpiResetActionT state );
 
   virtual SaErrorT IfControlParm( cIpmiEntity *ent, SaHpiParmActionT act );
-
-  virtual void IfEntityAdd( cIpmiEntity *ent );
-  virtual void IfEntityRem( cIpmiEntity *ent );
 
   virtual void IfSelAdd( cIpmiEntity *ent, cIpmiSel *sel );
 
