@@ -489,7 +489,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                         },
                         .ThresholdDefn = {
-				.IsAccessible = SAHPI_FALSE, /* events only */
+				.IsAccessible = SAHPI_FALSE,
                                 .ReadThold = 0,
 				.WriteThold = 0,
                         },
@@ -586,7 +586,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
                                 },
                         },
                         .ThresholdDefn = {
-				.IsAccessible = SAHPI_FALSE, /* Event only */
+				.IsAccessible = SAHPI_FALSE,
                                 .ReadThold = 0,
 				.WriteThold = 0,
                         },
