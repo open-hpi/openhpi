@@ -30,6 +30,11 @@ Summary: HPI command line applications
 Group: Utilities
 AutoReq: yes
 
+%package openhpid
+Summary: HPI remote daemon
+Group: Utilities
+Autoreq: no
+
 %description 
 This package contains an implementation of Service Availability Forum's 
 HPI specification.  It includes support for multiple different types of
@@ -43,6 +48,10 @@ HPI specification
 
 %description clients
 This package contains hpi command line utilities 
+
+%description openhpid
+This package contains hpi daemon implementing a simple text remote protocol
+for exchanging HPI data between applications.  This is an EXPERIMENTAL package
 
 ###################################################
 %prep
@@ -105,6 +114,12 @@ install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@H
 ###################################################
 %defattr(-,root,root)
 %{prefix}/bin/hpi*
+
+###################################################
+%files openhpid
+###################################################
+%defattr(-,root,root)
+%{prefix}/bin/openhpid
 
 ###################################################
 %clean
