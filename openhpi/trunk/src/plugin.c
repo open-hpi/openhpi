@@ -26,12 +26,13 @@
 #include <oh_config.h>
 #include <oh_error.h>
 #include <oh_lock.h>
+#include <config.h>
 
 extern GCond *oh_thread_wait;
 
-void oh_cond_signal(void) 
+void oh_cond_signal(void)
 {
-	g_cond_signal(oh_thread_wait);
+        g_cond_signal(oh_thread_wait);
 }
 
 /**
@@ -53,7 +54,7 @@ int oh_init_ltdl()
                 return -1;
         }
 
-        path = getenv("OPENHPI_PATH");
+        path = getenv("OPENHPI_PLUGINS");
         if(path == NULL) {
                 path = OH_PLUGIN_PATH;
         }
@@ -191,7 +192,7 @@ static struct oh_handler *new_handler(GHashTable *handler_config)
         if (!handler) {
                 dbg("Out of Memory!");
                 return NULL;
-        }        
+        }
 
         if(plugin_refcount((char *)g_hash_table_lookup(handler_config, "plugin")) < 1) {
                 dbg("Attempt to create handler for unknown plugin %s",
@@ -240,7 +241,7 @@ int load_handler (GHashTable *handler_config)
                 data_access_unlock();
                 return -1;
         }
-                
+
         g_hash_table_insert(global_handler_table,
                             &(handler->id),
                             handler);
@@ -260,7 +261,7 @@ void unload_handler(struct oh_handler *handler)
         if (handler->abi && handler->abi->close)
                 handler->abi->close(handler->hnd);
 
-        g_hash_table_remove(global_handler_table, &(handler->id));        
+        g_hash_table_remove(global_handler_table, &(handler->id));
 
         free(handler);
 }

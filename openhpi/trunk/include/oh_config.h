@@ -18,18 +18,6 @@
 
 #include <oh_plugin.h>
 
-/*
- * Eventually this will contain the definitions for parsing the config file
- *
- * For right now, this will just be static config stanzas
- *
- */
-
-/*
- * search path for plugins
- */
-#define OH_PLUGIN_PATH "/usr/lib/openhpi:/usr/local/lib/openhpi:/usr/local/lib"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,7 +45,7 @@ extern GHashTable *global_handler_table;
  *  Representation of a plugin instance
  */
 struct oh_handler {
-        unsigned int id; /* handler id */        
+        unsigned int id; /* handler id */
         /*
          * pointer to configuration
          */
@@ -94,19 +82,19 @@ int oh_init_ltdl(void);
 void oh_exit_ltdl(void);
 
 /* Plugin configuration information prototypes */
-int oh_load_config(char *);
+int oh_load_config(char *filename);
 void oh_unload_config(void);
 
-int plugin_refcount (char *);
+int plugin_refcount(char *name);
 
-struct oh_plugin_config * plugin_config (char *);
+struct oh_plugin_config *plugin_config(char *name);
 
 /* Plugin and instances prototypes. Implemented in plugin.c */
 int load_plugin(struct oh_plugin_config *);
 void unload_plugin(struct oh_plugin_config *config);
 
 int load_handler(GHashTable *handler_config);
-void unload_handler( struct oh_handler *handler );
+void unload_handler(struct oh_handler *handler);
 
 #ifdef __cplusplus
 }

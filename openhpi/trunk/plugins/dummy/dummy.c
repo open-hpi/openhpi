@@ -14,7 +14,6 @@
  *      David Judkovics
  *      Sean Dague
  *
- *      Others (please add yourself here)
  */
 
 #include <stdio.h>
@@ -25,11 +24,10 @@
 #include <unistd.h>
 
 #include <SaHpi.h>
-#include <openhpi.h>
-#include <epath_utils.h>
-#include <uid_utils.h>
-#include <oh_error.h>
+#include <oh_plugin.h>
 #include <oh_domain.h>
+#include <oh_utils.h>
+#include <oh_error.h>
 
 #define DUMMY_THREADED
 #undef  DUMMY_THREADED

@@ -9,9 +9,9 @@ AC_INIT(openhpi.spec.in)
 AM_INIT_AUTOMAKE(openhpi, 1.9.0)
 
 AM_CONFIG_HEADER(config.h)
-AH_TOP([#ifndef OPENHPI_CONFIG_H
-#define OPENHPI_CONFIG_H])
-AH_BOTTOM([#endif /* OPENHPI_CONFIG_H */])
+AH_TOP([#ifndef __OPENHPI_CONFIG_H
+#define __OPENHPI_CONFIG_H])
+AH_BOTTOM([#endif /* __OPENHPI_CONFIG_H */])
 
 dnl AM_CONFIG_HEADER(./config.h)
 
@@ -459,6 +459,15 @@ libdir=`var "$libdir" "$exec_prefix/lib"`
 includedir=`var "$includedir" "$exec_prefix/include"`
 base_includedir="${includedir}"
 AC_SUBST(base_includedir)
+
+dnl OH_PLUGIN_PATH - Directory where plugin libraries live.
+dnl default is "$libdir/openhpi:$libdir"
+PLUGINPATH=${PLUGINPATH:=${libdir}/openhpi:${libdir}}
+AC_ARG_WITH(pluginpath,
+	        [[  --with-pluginpath=PATH     use directory PATH to locate plugin libraries [default=$libdir/openhpi:$libdir]]],
+		    [PLUGINPATH=$withval])
+dnl create #define OH_PLUGIN_PATH in config.h
+AC_DEFINE_UNQUOTED(OH_PLUGIN_PATH,"$PLUGINPATH",[openhpi plugin path])
 
 TEST_CLEAN='$(shell ls *.bb* *.da *.gcov *.summary)'
 AC_SUBST(TEST_CLEAN)
