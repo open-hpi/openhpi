@@ -1766,7 +1766,12 @@ SaErrorT SAHPI_API saHpiSensorEnableSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
-
+	if (!rdr_cur->RdrTypeUnion.SensorRec.EnableCtrl) {
+                dbg("Domain[%d]->Resource[%d]->Sensor[%d] - not  EnableCtr",
+                    did, ResourceId,  SensorNum);	
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_READ_ONLY;
+        }
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
 
@@ -1855,7 +1860,8 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
-
+	SaHpiSensorEventCtrlT sec;
+	
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
@@ -1879,6 +1885,11 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+	sec = rdr_cur->RdrTypeUnion.SensorRec.EventCtrl;
+	if ((sec  == SAHPI_SEC_READ_ONLY)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_READ_ONLY;
+        }	
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
@@ -1976,6 +1987,7 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
         struct oh_handler *h;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+	SaHpiSensorEventCtrlT sec;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -2000,6 +2012,11 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;
         }
+	sec = rdr_cur->RdrTypeUnion.SensorRec.EventCtrl;
+	if ((sec == SAHPI_SEC_READ_ONLY_MASKS) || (sec == SAHPI_SEC_READ_ONLY)) {
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_READ_ONLY;
+        }	
 
         OH_HANDLER_GET(d, ResourceId, h);
         oh_release_domain(d); /* Unlock domain */
