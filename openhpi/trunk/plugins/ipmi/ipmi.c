@@ -1462,7 +1462,8 @@ static SaErrorT ipmi_set_res_tag (void 			*hnd,
 	/* change it in our memory as well */
 	memcpy(&rpt_entry->ResourceTag.Data, tag->Data, sizeof(tag->Data));
 	oh_add_resource(handler->rptcache, rpt_entry, res_info, 1);
-	return 0;
+	entity_rpt_set_updated(res_info, handler->data);
+	return SA_OK;
 }
 
 static SaErrorT ipmi_set_res_sev(void 			*hnd,
@@ -1470,11 +1471,16 @@ static SaErrorT ipmi_set_res_sev(void 			*hnd,
 				 SaHpiSeverityT		severity)
 {
       	struct oh_handler_state	*handler = (struct oh_handler_state *)hnd;
-	struct ohoi_resource_inf *res_info;
+	struct ohoi_handler *ipmi_handler = handler->data;
+	struct ohoi_resource_info *res_info;
 
 	SaHpiRptEntryT	*rpt_entry;
 
 	res_info = oh_get_resource_data(handler->rptcache, res_id);
+	if (res_info == NULL) {
+	      	dbg("Failed to retrieve RPT private data");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
 
 	rpt_entry = oh_get_resource_by_id(handler->rptcache, res_id);
 
@@ -1486,10 +1492,11 @@ static SaErrorT ipmi_set_res_sev(void 			*hnd,
 	dbg("Current Severity: %d\n", rpt_entry->ResourceSeverity);
 	dbg("To be set New Severity: %d\n", severity);
 
-	rpt_entry->ResourceSeverity = severity;
+	memcpy(&rpt_entry->ResourceSeverity, &severity, sizeof(severity));
 
-	ipmi_discover_resources(handler);
+	oh_add_resource(handler->rptcache, rpt_entry, res_info, 1);
 	dbg("New Severity: %d\n", rpt_entry->ResourceSeverity);
+	entity_rpt_set_updated(res_info, ipmi_handler);
 	return SA_OK;
 }
 
