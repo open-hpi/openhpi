@@ -56,6 +56,12 @@ have_openipmi=no
 have_fam=no
 have_sysfs=no
 
+enable_daemon=no
+enable_ipmidirect=no
+enable_simulator=no
+enable_remote_client=no
+enable_examples=no
+
 dnl Check for GLIB
 
 AC_CHECK_PROG([found_pkg_config],[pkg-config],[yes])
@@ -164,7 +170,7 @@ AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
 
 AC_ARG_ENABLE([examples],
     [  --enable-examples       build HPI examples [default=yes]],
-    [if test "x$enableval" = "xyes"; then
+    [if test "x$enableval" = "xyess"; then
 	ENABLED_DIRS="$ENABLED_DIRS examples"
     fi],
     [ENABLED_DIRS="$ENABLED_DIRS examples"])
@@ -315,7 +321,7 @@ AC_ARG_ENABLE([snmp_rsa],
     )
 
 AC_ARG_ENABLE([ipmidirect],
-    [  --enable-ipmidirect     build direct ipmi plugin [default=yes]],
+    [  --enable-ipmidirect     build direct ipmi plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
             AC_SUBST(IPMIDIRECT,ipmidirect)
      elif test "x$enableval" = "xstatic"; then
@@ -334,7 +340,7 @@ fi
 
 AC_ARG_ENABLE([remote_client],
     [  --enable-remote_client     build remote client plugin [default=yes]],
-    [if test "x$enableval" = "xyes"; then
+    [if test "x$enableval" = "xyess"; then
             AC_SUBST(REMOTE_CLIENT,remote_client)
 	    NEED_MARSHAL="yes"
      elif test "x$enableval" = "xstatic"; then
@@ -349,7 +355,7 @@ AC_ARG_ENABLE([remote_client],
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
     [  --enable-simulator       build simulator plugin [default=yes if fam is installed]],
-    [if test "x$enableval" = "xyes"; then
+    [if test "x$enableval" = "xyess"; then
 		if test "x$have_fam" = "xyes"; then
                         AC_SUBST(SIMULATOR,simulator)
                 else
