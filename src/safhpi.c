@@ -424,20 +424,20 @@ SaErrorT SAHPI_API saHpiEventLogEntryGet (
 			dbg("Internal error?!");
 		}
 
-		if (d->sel==NULL) {
+		if (d->sel_list==NULL) {
 			return SA_ERR_HPI_INVALID;
 		} else if (EntryId==SAHPI_OLDEST_ENTRY) {
 			pi = NULL;
-			i  = g_slist_nth(d->sel, 0);
-			ni = g_slist_nth(d->sel, 1);
+			i  = g_slist_nth(d->sel_list, 0);
+			ni = g_slist_nth(d->sel_list, 1);
 		} else if (EntryId==SAHPI_NEWEST_ENTRY) {
 			int num;
-			num = g_slist_length(d->sel);
-			pi  = g_slist_nth(d->sel, num-2);
-			i   = g_slist_nth(d->sel, num-1);
+			num = g_slist_length(d->sel_list);
+			pi  = g_slist_nth(d->sel_list, num-2);
+			i   = g_slist_nth(d->sel_list, num-1);
 			ni  = NULL;
 		} else {
-			g_slist_for_each(pi, d->sel) {
+			g_slist_for_each(pi, d->sel_list) {
 				i = g_slist_next(pi);
 				ni= g_slist_next(i);
 				if (i && ((struct oh_sel*)(i->data))->entry.EntryId == EntryId)
