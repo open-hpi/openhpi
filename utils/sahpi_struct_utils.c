@@ -621,6 +621,42 @@ static inline SaErrorT oh_append_bigtext(oh_big_textbuffer *big_buffer, const ch
         return(SA_OK);
 }
 
+static inline SaErrorT oh_append_data(oh_big_textbuffer *big_buffer, const SaHpiUint8T *from,
+				      SaHpiUint8T len)
+{
+	SaHpiUint8T i;
+
+	if (!big_buffer || !from || len == 0) {
+		dbg("Invalid parameters");
+		return(SA_ERR_HPI_INVALID_PARAMS);
+	}
+
+	for (i = 0; i < len; i++) {
+        	SaHpiUint8T *p;
+		char buff[10];
+		int slen;
+		
+		memset(buff, 0 ,sizeof(buff));	
+		snprintf(buff, 10, "%d ", *(from + i));
+
+		slen = strlen(buff);
+
+        	if ((slen + big_buffer->DataLength) >= OH_MAX_TEXT_BUFFER_LENGTH) {
+			dbg("Cannot append to buffer. Bufsize=%d, len=%d",
+					big_buffer->DataLength, len);
+			return(SA_ERR_HPI_INTERNAL_ERROR);
+		}
+
+        	p = big_buffer->Data;
+        	p += big_buffer->DataLength;
+        	strncpy(p, buff, slen);
+        	big_buffer->DataLength += slen;
+	}
+
+        return(SA_OK);
+}
+
+
 /* Append an arbitrary number of fixed offset strings to a big text buffer */
 static SaErrorT oh_append_offset(oh_big_textbuffer *buffer, int offsets)
 {
@@ -1211,7 +1247,10 @@ static SaErrorT oh_build_textbuffer(oh_big_textbuffer *buffer, const SaHpiTextBu
 		oh_append_offset(buffer, offsets);
 		memset(str, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
 		oh_append_bigtext(buffer, "Data: ");
-		oh_append_bigtext(buffer, textbuffer->Data);
+		if (textbuffer->DataType == SAHPI_TL_TYPE_BINARY)
+			oh_append_data(buffer, textbuffer->Data, textbuffer->DataLength);
+		else
+			oh_append_bigtext(buffer, textbuffer->Data);
 		oh_append_bigtext(buffer, "\n");
 	}
 
@@ -1857,7 +1896,6 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 	oh_append_offset(&mybuf, offsets);
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "EntryId: %d\n", thiseventlog->EntryId);
 	oh_append_bigtext(&mybuf, str);
-
 	oh_append_offset(&mybuf, offsets);
 	err = oh_decode_time(thiseventlog->Timestamp, &minibuf);
 	if (err != SA_OK)
@@ -1866,6 +1904,7 @@ SaErrorT oh_fprint_eventlogentry(FILE *stream, const SaHpiEventLogEntryT *thisev
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Timestamp: %s\n", minibuf.Data);
 	oh_append_bigtext(&mybuf, str);	
 	
+	oh_init_bigtext(&mybufX);
 	err = oh_build_event(&mybufX, &thiseventlog->Event, offsets);
 	oh_append_bigtext(&mybuf, mybufX.Data);	
 	
@@ -1950,7 +1989,7 @@ static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *eve
 	snprintf(str, SAHPI_MAX_TEXT_BUFFER_LENGTH, "Event Severity: %s\n",
 		 oh_lookup_severity(event->Severity));
 	oh_append_bigtext(buffer, str);
-
+	
 	switch (event->EventType) {
 	case SAHPI_ET_RESOURCE:
 		err = oh_build_event_resource(buffer, event, offsets);
@@ -1985,7 +2024,6 @@ static SaErrorT oh_build_event(oh_big_textbuffer *buffer, const SaHpiEventT *eve
 	}
 			
 	if (err) { return(err); }
-
 	return(SA_OK);
 }
 
@@ -2471,7 +2509,6 @@ static SaErrorT oh_build_event_user(oh_big_textbuffer *buffer, const SaHpiEventT
 	oh_append_bigtext(buffer, str);
 
 	oh_build_textbuffer(buffer, &event->EventDataUnion.UserEvent.UserEventData, 8+offsets);
-
 	return(SA_OK);
 }
 
