@@ -14,21 +14,36 @@
  *     Louis Zhuang <louis.zhuang@linux.intel.com>
  */
 #include <config.h>
+#include <errno.h>
+#include <unistd.h>
 
+		 
 #ifdef HAVE_THREAD_SAFE
 #include <openhpi.h>
+
 
 /* multi-threading support, use Posix mutex for data access */
 /* initialize mutex used for data locking */
 static pthread_mutex_t data_access_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
+static int will_block = 0;
+
 void data_access_lock(void) 
 {
-        pthread_mutex_lock(&data_access_mutex);
+	if (pthread_mutex_trylock(&data_access_mutex) == EBUSY) {
+		pthread_mutex_lock(&data_access_mutex);	
+	        will_block++;
+	}
 }
 
 void data_access_unlock(void)
 {
-        pthread_mutex_unlock(&data_access_mutex);
+        pthread_mutex_unlock(&data_access_mutex);    
 }
+
+int data_access_block_times(void) 
+{
+        return will_block;
+}
+
 #endif/*HAVE_THREAD_SAFE*/
