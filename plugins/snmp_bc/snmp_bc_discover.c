@@ -74,8 +74,11 @@ static inline int rdr_exists(struct snmp_session *ss, const char *oid, unsigned 
 struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char *blade_vector, SaHpiEntityPathT *ep) 
 {
 	int len;
-        struct oh_event working;
+        gchar  *instance_str;
+	gchar  typename[32];
+	struct oh_event working;
         struct oh_event *e = NULL;
+	struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
 
         memset(&working, 0, sizeof(struct oh_event));
          
@@ -85,14 +88,42 @@ struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char
 
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment);
-		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+
+		/* Find instance for entity root - defined in config */
+		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+		if (instance_str == NULL) {
+			dbg("Cannot allocate memory for instance string");
+			return e;
+		}
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", ep->Entry[0].EntityInstance);
+
+		/* Find BladeCenter type */
+		if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BC)) {
+			strcpy(typename, " Integrated Chassis ");
+		}
+		else {
+			if (!strcmp(custom_handle->bc_type, SNMP_BC_PLATFORM_BCT)) {
+				strcpy(typename, " Telco Chassis ");
+			}
+			else {
+				strcpy(typename, " Chassis ");	
+			}
+		}
+		
+		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment) + 
+			strlen(typename) + strlen(instance_str);
+		if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 			working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 			strcpy(working.u.res_event.entry.ResourceTag.Data,
 			       snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment);
+			strcat(working.u.res_event.entry.ResourceTag.Data, typename);
+			strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 		} else {
+			g_free(instance_str);	
 			dbg("Comment string too long - %s\n",snmp_rpt_array[BC_RPT_ENTRY_CHASSIS].comment);
+			return e;
 		}
+		g_free(instance_str);
 
                 working.u.res_event.entry.ResourceId = oh_uid_from_entity_path(ep);
                 working.u.res_event.entry.ResourceEntity = *ep;
@@ -107,6 +138,7 @@ struct oh_event * snmp_bc_discover_chassis(struct oh_handler_state *handle, char
 struct oh_event * snmp_bc_discover_mgmnt(struct oh_handler_state *handle, char *mm_vector, SaHpiEntityPathT *ep, int mmnum)
 {
 	int len;
+	gchar  *instance_str;
         struct oh_event working;
         struct oh_event *e = NULL;
 
@@ -118,18 +150,30 @@ struct oh_event * snmp_bc_discover_mgmnt(struct oh_handler_state *handle, char *
 
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment);
-		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+		
+		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+		if (instance_str == NULL) {
+			dbg("Cannot allocate memory for instance string");
+			return e;
+		}
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", mmnum+BC_HPI_INSTANCE_BASE);
+
+		/* Add one for the added blank */
+		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment) + strlen(instance_str) + 1;		
+		if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 			working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 			strcpy(working.u.res_event.entry.ResourceTag.Data,
 			       snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment);
+			strcat(working.u.res_event.entry.ResourceTag.Data, " ");
+			strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 		} else {
+			g_free(instance_str);
 			dbg("Comment string too long - %s\n",snmp_rpt_array[BC_RPT_ENTRY_MGMNT_MODULE].comment);
+			return e;
 		}
+		g_free(instance_str);
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
-
-		/* ???? Should we also set to index of active MM ???? */
                 set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_SYS_MGMNT_MODULE, mmnum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
@@ -146,6 +190,7 @@ struct oh_event * snmp_bc_discover_mgmnt(struct oh_handler_state *handle, char *
 struct oh_event * snmp_bc_discover_mediatray(struct oh_handler_state *handle, long exists, SaHpiEntityPathT *ep, int mtnum) 
 {
 	int len;
+	gchar  *instance_str;
         struct oh_event working;
         struct oh_event *e = NULL;
 
@@ -157,17 +202,30 @@ struct oh_event * snmp_bc_discover_mediatray(struct oh_handler_state *handle, lo
 
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment);
-		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+
+		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+		if (instance_str == NULL) {
+			dbg("Cannot allocate memory for instance string");
+			return e;
+		}
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", mtnum+BC_HPI_INSTANCE_BASE);
+
+		/* Add one for the added blank */
+		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment) + strlen(instance_str) + 1;		
+		if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 			working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 			strcpy(working.u.res_event.entry.ResourceTag.Data,
 			       snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment);
+			strcat(working.u.res_event.entry.ResourceTag.Data, " ");
+			strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 		} else {
+			g_free(instance_str);
 			dbg("Comment string too long - %s\n",snmp_rpt_array[BC_RPT_ENTRY_MEDIA_TRAY].comment);
+			return e;
 		}
+		g_free(instance_str);
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
-
                 set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_PERIPHERAL_BAY, mtnum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
@@ -184,7 +242,8 @@ struct oh_event * snmp_bc_discover_mediatray(struct oh_handler_state *handle, lo
 struct oh_event * snmp_bc_discover_blade(struct oh_handler_state *handle, char *blade_vector, SaHpiEntityPathT *ep, int bladenum) 
 {
 	int len;
-        struct oh_event working;
+        gchar  *instance_str;
+	struct oh_event working;
         struct oh_event *e = NULL;
 
         memset(&working, 0, sizeof(struct oh_event));
@@ -196,17 +255,30 @@ struct oh_event * snmp_bc_discover_blade(struct oh_handler_state *handle, char *
 
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_BLADE].comment);
-		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+
+		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+		if (instance_str == NULL) {
+			dbg("Cannot allocate memory for instance string");
+			return e;
+		}
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", bladenum+BC_HPI_INSTANCE_BASE);
+
+		/* Add one for the added blank */
+		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_BLADE].comment) + strlen(instance_str) + 1;		
+		if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 			working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 			strcpy(working.u.res_event.entry.ResourceTag.Data,
 			       snmp_rpt_array[BC_RPT_ENTRY_BLADE].comment);
+			strcat(working.u.res_event.entry.ResourceTag.Data, " ");
+			strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 		} else {
+			g_free(instance_str);
 			dbg("Comment string too long - %s\n",snmp_rpt_array[BC_RPT_ENTRY_BLADE].comment);
+			return e;
 		}
+		g_free(instance_str);
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
-
                 set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_SBC_BLADE,bladenum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
@@ -225,6 +297,7 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
                                                	SaHpiEntityPathT *ep, int bladenum)
 {
 	gchar bladenum_str[2]; /* Implies max number of blades is 99 */
+	gchar  *instance_str;
 	gchar *oid = NULL; 
 	gchar *oidtmp = NULL;
 	gchar **oidparts = NULL;
@@ -268,18 +341,31 @@ struct oh_event * snmp_bc_discover_blade_addin(struct oh_handler_state *handle,
 
 			working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 			working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-			len = strlen(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment);
-			if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+
+			instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+			if (instance_str == NULL) {
+				dbg("Cannot allocate memory for instance string");
+				return e;
+			}
+			snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", bladenum+BC_HPI_INSTANCE_BASE);
+			
+			/* Add one for the added blank */
+			len = strlen(snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment) + strlen(instance_str) + 1;		
+			if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 				working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 				strcpy(working.u.res_event.entry.ResourceTag.Data,
 				       snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment);
+				strcat(working.u.res_event.entry.ResourceTag.Data, " ");
+				strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 			} else {
+				g_free(instance_str);
 				dbg("Comment string too long - %s\n",
 				    snmp_rpt_array[BC_RPT_ENTRY_BLADE_ADDIN_CARD].comment);
+				return e;
 			}
+			g_free(instance_str);
 
                         ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
-
 			set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                            SAHPI_ENT_SBC_BLADE,bladenum+BC_HPI_INSTANCE_BASE);
                         /* Add-in cards have same number as parent blade
@@ -309,7 +395,8 @@ CLEANUP:
 struct oh_event * snmp_bc_discover_fan(struct oh_handler_state *handle,char *fan_vector, SaHpiEntityPathT *ep, int fannum)
 {
 	int len;
-        struct oh_event working;
+        gchar  *instance_str;
+	struct oh_event working;
         struct oh_event *e = NULL;
 
         memset(&working, 0, sizeof(struct oh_event));
@@ -320,17 +407,30 @@ struct oh_event * snmp_bc_discover_fan(struct oh_handler_state *handle,char *fan
 
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment);
-		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+
+		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+		if (instance_str == NULL) {
+			dbg("Cannot allocate memory for instance string");
+			return e;
+		}
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", fannum+BC_HPI_INSTANCE_BASE);
+
+		/* Add one for the added blank */
+		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment) + strlen(instance_str) + 1;		
+		if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 			working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 			strcpy(working.u.res_event.entry.ResourceTag.Data,
 			       snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment);
+			strcat(working.u.res_event.entry.ResourceTag.Data, " ");
+			strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 		} else {
+			g_free(instance_str);
 			dbg("Comment string too long - %s\n",snmp_rpt_array[BC_RPT_ENTRY_BLOWER_MODULE].comment);
+			return e;
 		}
-
+		g_free(instance_str);
+		
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
-
                 set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_FAN,fannum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
@@ -347,7 +447,8 @@ struct oh_event * snmp_bc_discover_fan(struct oh_handler_state *handle,char *fan
 struct oh_event * snmp_bc_discover_power(struct oh_handler_state *handle,char *power_vector, SaHpiEntityPathT *ep, int powernum)
 {
 	int len;
-        struct oh_event working;
+        gchar  *instance_str;
+	struct oh_event working;
         struct oh_event *e = NULL;
 
         memset(&working, 0, sizeof(struct oh_event));
@@ -358,17 +459,30 @@ struct oh_event * snmp_bc_discover_power(struct oh_handler_state *handle,char *p
 
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment);
-		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+
+		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+		if (instance_str == NULL) {
+			dbg("Cannot allocate memory for instance string");
+			return e;
+		}
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", powernum+BC_HPI_INSTANCE_BASE);
+
+		/* Add one for the added blank */
+		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment) + strlen(instance_str) + 1;		
+		if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 			working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 			strcpy(working.u.res_event.entry.ResourceTag.Data,
 			       snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment);
+			strcat(working.u.res_event.entry.ResourceTag.Data, " ");
+			strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 		} else {
+			g_free(instance_str);
 			dbg("Comment string too long - %s\n",snmp_rpt_array[BC_RPT_ENTRY_POWER_MODULE].comment);
+			return e;
 		}
+		g_free(instance_str);
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
-
                 set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_POWER_SUPPLY,powernum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
@@ -385,7 +499,8 @@ struct oh_event * snmp_bc_discover_power(struct oh_handler_state *handle,char *p
 struct oh_event * snmp_bc_discover_switch(struct oh_handler_state *handle,char *switch_vector, SaHpiEntityPathT *ep, int switchnum)
 {
 	int len;
-        struct oh_event working;
+        gchar  *instance_str;
+	struct oh_event working;
         struct oh_event *e = NULL;
 
         memset(&working, 0, sizeof(struct oh_event));
@@ -396,17 +511,30 @@ struct oh_event * snmp_bc_discover_switch(struct oh_handler_state *handle,char *
 
 		working.u.res_event.entry.ResourceTag.DataType = SAHPI_TL_TYPE_LANGUAGE;
 		working.u.res_event.entry.ResourceTag.Language = SAHPI_LANG_ENGLISH;
-		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment);
-		if (len <= SAHPI_MAX_TEXT_BUFFER_LENGTH) {
+
+		instance_str = (gchar *)g_malloc0(MAX_INSTANCE_DIGITS + 1);
+		if (instance_str == NULL) {
+			dbg("Cannot allocate memory for instance string");
+			return e;
+		}
+                snprintf(instance_str, MAX_INSTANCE_DIGITS + 1, "%d", switchnum+BC_HPI_INSTANCE_BASE);
+
+		/* Add one for the added blank */
+		len = strlen(snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment) + strlen(instance_str) + 1;		
+		if (len < SAHPI_MAX_TEXT_BUFFER_LENGTH) {
 			working.u.res_event.entry.ResourceTag.DataLength = (SaHpiUint8T)len;
 			strcpy(working.u.res_event.entry.ResourceTag.Data,
 			       snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment);
+			strcat(working.u.res_event.entry.ResourceTag.Data, " ");
+			strcat(working.u.res_event.entry.ResourceTag.Data, instance_str);
 		} else {
+			g_free(instance_str); 
 			dbg("Comment string too long - %s\n",snmp_rpt_array[BC_RPT_ENTRY_SWITCH_MODULE].comment);
+			return e;
 		}
+		g_free(instance_str);
 
                 ep_concat(&working.u.res_event.entry.ResourceEntity, ep);
-
                 set_ep_instance(&(working.u.res_event.entry.ResourceEntity),
                                    SAHPI_ENT_INTERCONNECT,switchnum+BC_HPI_INSTANCE_BASE);
                 working.u.res_event.entry.ResourceId =
