@@ -216,7 +216,7 @@ int get_sahpi_rdr_table( RPTable *temp_rptable,
                                 memcpy(ep, vars->val.string, vars->val_len);
                                 if(string2entitypath(ep, &rdr_cache[i].Entity))
                                         dbg("something terrible happened with SA_HPI_RDR_ENTITY_PATH");
-                                free(ep);
+                                g_free(ep);
                         }
                         else
                                 dbg("SA_HPI_RDR_ENTITY_PATH:something terrible has happened");

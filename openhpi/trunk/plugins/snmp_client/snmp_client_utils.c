@@ -420,7 +420,7 @@ int build_state_value (char *str,
 
   delim = (char *) g_malloc0 ( STATESTRING_VALUE_DELIMITER_LENGTH );
   if (delim == NULL) {
-    free (s);
+    g_free (s);
     return SA_ERR_HPI_ERROR;
   }
 
@@ -466,7 +466,7 @@ int build_flag_value (char *str,
 
   delim = (char *)g_malloc0(FLAGSTRING_VALUE_DELIMITER_LENGTH);
   if (delim == NULL) {
-    free (s);
+    g_free (s);
     return SA_ERR_HPI_ERROR;
   }
   
