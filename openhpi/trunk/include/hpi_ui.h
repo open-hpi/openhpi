@@ -107,6 +107,8 @@ extern int	print_thres_value(SaHpiSensorReadingT *item, char *mes,
 			SaHpiSensorThdDefnT *def, int num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_control(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc);
+extern SaErrorT	show_control_state(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
+			SaHpiCtrlNumT num, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_dat(Domain_t *domain, hpi_ui_print_cb_t proc);
 extern SaErrorT	show_event_log(SaHpiSessionIdT sessionid, SaHpiResourceIdT resourceid,
 			int show_short, hpi_ui_print_cb_t proc);
