@@ -173,8 +173,7 @@ static void watchdog_close(void *hnd)
  *
  * Return value: 0 if times out, > 0 is event is returned.
  **/
-static int watchdog_get_event(void *hnd, struct oh_event *event, 
-			      struct timeval *timeout)
+static int watchdog_get_event(void *hnd, struct oh_event *event)
 {
 	struct oh_handler_state *tmp = (struct oh_handler_state *) hnd;
 	GSList *i;
