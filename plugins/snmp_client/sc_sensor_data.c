@@ -1254,11 +1254,11 @@ printf("**** # entrys for populate_thld_low_crit, thd_num %d *****\n" ,thd_num);
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -1411,11 +1411,11 @@ printf("**** # entrys for populate_thld_low_major, thd_num %d *****\n" ,thd_num)
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -1482,7 +1482,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                         if ( vars->type == ASN_INTEGER ) {
                                 
 				sen_defn[i].ReadThold = 
-					(*vars->val.integer == 1) ? SAHPI_STM_UP_CRIT : SAHPI_FALSE;
+					(*vars->val.integer == 1) ? SAHPI_STM_LOW_MINOR : SAHPI_FALSE;
 				
 				/* INDEX: { saHpiDomainID, saHpiResourceID, saHpiSensorIndex } */
                                 indices[0] = vars->name[vars->name_length - 3];
@@ -1516,7 +1516,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                 for (i = 0; i < thd_num; i++) {
                         if ( vars->type == ASN_INTEGER )
 				sen_defn[i].WriteThold = 
-					(*vars->val.integer == 1) ? SAHPI_STM_UP_CRIT : SAHPI_FALSE;
+					(*vars->val.integer == 1) ? SAHPI_STM_LOW_MINOR : SAHPI_FALSE;
                         else
                                 printf("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_WRITEABLE:something terrible has happened\n");
                         vars = vars->next_variable;  
@@ -1545,7 +1545,7 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                 for (i = 0; i < thd_num; i++) {
                         if ( vars->type == ASN_INTEGER )
 				sen_defn[i].FixedThold = 
-					(*vars->val.integer == 1) ? SAHPI_STM_UP_CRIT : SAHPI_FALSE;
+					(*vars->val.integer == 1) ? SAHPI_STM_LOW_MINOR : SAHPI_FALSE;
                         else
                                 printf("SA_HPI_SENSOR_READING_THD_LOW_MINOR_CALLS_FIXED:something terrible has happened\n");
                         vars = vars->next_variable;  
@@ -1568,11 +1568,11 @@ printf("**** # entrys for populate_thld_low_minor, thd_num %d *****\n" ,thd_num)
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -1726,11 +1726,11 @@ printf("**** # entrys for populate_thld_up_critical, thd_num %d *****\n" ,thd_nu
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -1883,11 +1883,11 @@ printf("**** # entrys for populate_thld_up_major, thd_num %d *****\n" ,thd_num);
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -2041,11 +2041,11 @@ printf("**** # entrys for populate_thld_up_minor, thd_num %d *****\n" ,thd_num);
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -2198,11 +2198,11 @@ printf("**** # entrys for populate_thld_pos_hysteresis, thd_num %d *****\n" ,thd
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -2270,7 +2270,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                         if ( vars->type == ASN_INTEGER ) {
                                 
 				sen_defn[i].ReadThold = 
-					(*vars->val.integer == 1) ? SAHPI_STM_UP_HYSTERESIS : SAHPI_FALSE;
+					(*vars->val.integer == 1) ? SAHPI_STM_LOW_HYSTERESIS : SAHPI_FALSE;
 				
 				/* INDEX: { saHpiDomainID, saHpiResourceID, saHpiSensorIndex } */
                                 indices[0] = vars->name[vars->name_length - 3];
@@ -2304,7 +2304,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                 for (i = 0; i < thd_num; i++) {
                         if ( vars->type == ASN_INTEGER )
 				sen_defn[i].WriteThold = 
-					(*vars->val.integer == 1) ? SAHPI_STM_UP_HYSTERESIS : SAHPI_FALSE;
+					(*vars->val.integer == 1) ? SAHPI_STM_LOW_HYSTERESIS : SAHPI_FALSE;
                         else
                                 printf("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_WRITEABLE:something terrible has happened\n");
                         vars = vars->next_variable;  
@@ -2333,7 +2333,7 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                 for (i = 0; i < thd_num; i++) {
                         if ( vars->type == ASN_INTEGER )
 				sen_defn[i].FixedThold = 
-					(*vars->val.integer == 1) ? SAHPI_STM_UP_HYSTERESIS : SAHPI_FALSE;
+					(*vars->val.integer == 1) ? SAHPI_STM_LOW_HYSTERESIS : SAHPI_FALSE;
                         else
                                 printf("SA_HPI_SENSOR_READING_THD_NEG_HYSTERESIS_CALLS_FIXED:something terrible has happened\n");
                         vars = vars->next_variable;  
@@ -2356,11 +2356,11 @@ printf("**** # entrys for populate_thld_neg_hysteresis, thd_num %d *****\n" ,thd
                                         status = SA_ERR_HPI_ERROR;
                                         break;
                                 }
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold &=  
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.ReadThold |=  
 					sen_defn[ii].ReadThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.WriteThold |= 
 					sen_defn[ii].WriteThold;
-                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold &= 
+                                sahpi_sensor_cap[i].SensorRec.ThresholdDefn.FixedThold |= 
 					sen_defn[ii].FixedThold;
 				ii++;
                         }
@@ -2638,7 +2638,7 @@ SaErrorT set_sensor_threshold_data(struct snmp_client_hnd *custom_handle,
 
 		memset(&set_value, 0, sizeof(set_value));
 		memcpy(&set_value.string, 
-		       &writing->Interpreted.Value, 
+		       &writing->Interpreted.Value.SensorBuffer, 
 		       SAHPI_SENSOR_BUFFER_LENGTH);
 		set_value.str_len = SAHPI_SENSOR_BUFFER_LENGTH;
 		set_value.type = ASN_OCTET_STR;
