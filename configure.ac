@@ -541,6 +541,7 @@ AC_CONFIG_FILES([openhpi.spec
 	utils/t/epath/Makefile
 	utils/t/rpt/Makefile
 	utils/t/sel/Makefile
+	utils/t/uid/Makefile
 	marshal/Makefile
 	marshal/t/Makefile
         plugins/Makefile

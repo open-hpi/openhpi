@@ -129,8 +129,8 @@ SaErrorT oh_uid_initialize(void)
  *
  * This function returns an unique value to be used as
  * an uid/resourceID base upon a unique entity path specified
- * by @ep.  If the entity path already exists, a return code 
- * of -1 is returned.  Before returning, this call updates the
+ * by @ep.  If the entity path already exists, the already assigned 
+ * resource id is returned.  Before returning, this call updates the
  * uid map file saved on disk.  
  * 
  * Returns: positive unsigned int, failure is 0.
@@ -146,6 +146,8 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         int file;
 	
 	SaHpiEntityPathT entitypath;
+
+        if (!ep) return 0;
 	
 	ep_init(&entitypath);
 	ep_concat(&entitypath,ep);
@@ -156,7 +158,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         ep_xref = (EP_XREF *)g_hash_table_lookup (ep_hash_table, key);
         if (ep_xref) {
                 /*dbg("Entity Path already assigned uid. Use oh_uid_lookup().");*/
-                return(ep_xref->resource_id);
+                return ep_xref->resource_id;
         }
 
         /* allocate storage for EP cross reference data structure*/
@@ -258,7 +260,9 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
         EP_XREF *ep_xref;
 	SaHpiEntityPathT entitypath;
         gpointer key;
-	
+
+        if (!ep) return 0;
+        
 	ep_init(&entitypath);
 	ep_concat(&entitypath, ep);
 	key = &entitypath;
@@ -288,7 +292,9 @@ gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
         EP_XREF *ep_xref;
         gpointer key = id;
         
-       /* check hash table for entry in ep_hash_table */ 
+        if (!id || !ep) return -1;
+
+        /* check hash table for entry in ep_hash_table */ 
         ep_xref = (EP_XREF *)g_hash_table_lookup (resource_id_hash_table, key);
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");

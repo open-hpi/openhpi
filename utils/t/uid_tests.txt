@@ -1,0 +1,42 @@
+Unit Test plan for the Unique ID utilities
+------------------------------------------
+Abbreviations:
+ep = entity path
+
+Notes:
+Tests described here are numbered so that they correspond to the program where
+they are implemented (e.g. uid_utils_<three-digit test number>.c).
+
+**Positive Tests**
+
+guint oh_uid_from_entity_path(SaHpiEntityPathT *ep):
+- Get new id from ep, lookup by id and compare ep with original (000)
+- Get new id, get another with same ep, compare ids (should be same) (001)
+- Get new ids for 10 ep, look up each ep by id and compare (002)
+- Get 10 new ids, Get 10 additional with same ep, should not be new ids. (003)
+
+gint oh_uid_remove(guint uid):
+- Get 10 new ids, remove two, Look up each by ep for removed id. Should not find it (004)
+- Get 10 new ids, remove two, Look up each by removed id. Should not find it. (005)
+
+guint oh_uid_lookup(SaHpiEntityPathT *ep):
+- Get 10 new ids. Look up each by ep, should get expected ids (006)
+- Get 10 new ids. Look up each by ep, but modify elements after ther root
+  before looking them up. Should get good ids. (007)
+
+**Negative Tests**
+
+guint oh_uid_from_entity_path(SaHpiEntityPathT *ep):
+- call with null ep. Should get a zero (008)
+
+gint oh_uid_remove(guint uid):
+- Get a new id. call with a 0. Should get a -1. (009)
+
+guint oh_uid_lookup(SaHpiEntityPathT *ep):
+- call with a null ep. Should get a zero (010)
+
+gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep):
+- call with a null id. Should get a -1. (011)
+- call with a null ep. Should get a -1. (012)
+- call with an id of 0. Should get a -1. (013)
+

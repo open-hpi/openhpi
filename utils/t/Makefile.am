@@ -34,6 +34,6 @@
 MAINTAINERCLEANFILES 	= Makefile.in 
 #EXTRA_DIST              = 
 
-SUBDIRS			= epath rpt sel
+SUBDIRS			= epath rpt sel uid
 
-DIST_SUBDIRS		= epath rpt sel
+DIST_SUBDIRS		= epath rpt sel uid
