@@ -35,7 +35,7 @@ struct oh_domain_table {
 
 struct oh_dat { /* Domain Alarm Table */
         SaHpiAlarmIdT next_id;
-        GList *list;        
+        GSList *list;        
 };
 
 extern struct oh_domain_table oh_domains;
