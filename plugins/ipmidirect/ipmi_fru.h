@@ -202,6 +202,7 @@ public:
   int Fetch();
 
   virtual unsigned int Num() const { return m_fru_device_id; }
+  unsigned int &Oem() { return m_oem; }
 
   cIpmiFruRecord *Find( const char *name );
 
@@ -216,7 +217,7 @@ public:
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
 
 protected:
-  unsigned int  m_inventory_size;
+  unsigned int m_inventory_size;
 
 public:
   // calulate the size of inventory data

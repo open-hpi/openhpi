@@ -214,11 +214,20 @@ public:
   unsigned int m_sel_rescan_interval;
 
 protected:
-  cIpmiEntityInfo *m_entities;
+  GList *m_entities;
+
+public:
+  cIpmiEntity *FindEntity( tIpmiDeviceNum device_num,
+                           tIpmiEntityId entity_id, 
+                           unsigned int entity_instance );
+  void AddEntity( cIpmiEntity *ent );
+  void RemEntity( cIpmiEntity *ent );
+
 
   int CheckAtca();
   int GetChannels();
 
+/*
   enum tScanState
   {
     eScanOk,
@@ -228,6 +237,7 @@ protected:
 
   cIpmiMc *Scan( const cIpmiAddr &addr, int &missed_responses, tScanState &state );
   void SelTimerAddToList( cIpmiMc *mc );
+*/
 
 public:
   cIpmiMc *NewMc( const cIpmiAddr &addr );
@@ -239,8 +249,6 @@ public:
 
   bool Init( cIpmiCon *c );
   void Cleanup();
-
-  cIpmiEntityInfo &Entities() { return *m_entities; }
 
   cIpmiMc *FindMcByAddr( const cIpmiAddr &addr );
   cIpmiMc *FindOrCreateMcBySlaveAddr( unsigned int slave_addr );

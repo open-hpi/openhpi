@@ -99,14 +99,7 @@ cIpmiDomain::Init( cIpmiCon *con )
   assert( m_con == 0 );
   m_con = con;
 
-  m_entities = new cIpmiEntityInfo( this );
-
-  if ( m_entities == 0 )
-     {
-       stdlog << "cannot create entity into !\n";
-       return false;
-     }
-
+  // create system interface
   cIpmiAddr si( eIpmiAddrTypeSystemInterface);
 
   m_si_mc = new cIpmiMc( this, si );
@@ -117,10 +110,11 @@ cIpmiDomain::Init( cIpmiCon *con )
        return false;
      }
 
+  // create main sdr
   m_main_sdrs = new cIpmiSdrs( m_si_mc, 0, false );
   assert( m_main_sdrs );
 
-  // send get device id
+  // send get device id to system interface
   cIpmiMsg msg( eIpmiNetfnApp, eIpmiCmdGetDeviceId );
   cIpmiMsg rsp;
 
@@ -128,7 +122,7 @@ cIpmiDomain::Init( cIpmiCon *con )
 
   if ( rv )
      {
-       stdlog << "cannot send IPMI get device id " << rv << ", " << strerror( rv ) << " !\n";
+       stdlog << "cannot send IPMI get device id to system interface: " << rv << ", " << strerror( rv ) << " !\n";
        return false;
      }
 
@@ -166,7 +160,8 @@ cIpmiDomain::Init( cIpmiCon *con )
   cIpmiMcVendor *mv = cIpmiMcVendorFactory::GetFactory()->Get( mid, pid );
   m_si_mc->SetVendor( mv );
 
-  if ( mv->Init( m_si_mc, rsp ) == false )
+  // initialize system interface MC
+  if ( mv->InitMc( m_si_mc, rsp ) == false )
      {
        stdlog << "cannot initialize system interface !\n";
 
@@ -217,7 +212,7 @@ cIpmiDomain::Init( cIpmiCon *con )
        if ( rv )
             // Just report an error, it shouldn't be a big deal if this
             // fails.
-            stdlog << "Could not get main SDRs, error " << rv << " !\n";
+            stdlog << "could not get main SDRs, error " << rv << " !\n";
        else if ( !m_is_atca )
           {
             // for each mc device locator record in main repository
@@ -370,11 +365,13 @@ cIpmiDomain::Cleanup()
        delete m_main_sdrs;
        m_main_sdrs = 0;
      }
-  
-  if ( m_entities )
+
+  while( m_entities )
      {
-       delete m_entities;
-       m_entities = 0;
+       cIpmiEntity *ent = (cIpmiEntity *)m_entities->data;
+
+       m_entities = g_list_remove( m_entities, ent );
+       delete ent;
      }
 }
 
@@ -676,9 +673,50 @@ cIpmiDomain::HandleEvent( cIpmiEvent *event )
 
 
 cIpmiEntity *
+cIpmiDomain::FindEntity( tIpmiDeviceNum device_num,
+                         tIpmiEntityId entity_id, 
+                         unsigned int entity_instance )
+{
+  GList *list = m_entities;
+
+  while( list )
+     {
+       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+
+       if (    ( ent->DeviceNum().channel == device_num.channel )
+	    && ( ent->DeviceNum().address == device_num.address )
+	    && ( ent->EntityId()          == entity_id )
+            && ( ent->EntityInstance()    == entity_instance ) )
+            return ent;
+
+       list  = g_list_next( list );
+     }
+
+  return 0;
+}
+
+
+void
+cIpmiDomain::AddEntity( cIpmiEntity *ent )
+{
+  m_entities = g_list_append( m_entities, ent );
+}
+
+
+void
+cIpmiDomain::RemEntity( cIpmiEntity *ent )
+{
+  m_entities = g_list_remove( m_entities, ent );
+}
+
+
+cIpmiEntity *
 cIpmiDomain::VerifyEntity( cIpmiEntity *ent )
 {
-  return m_entities->VerifyEntify( ent );
+  if ( g_list_find( m_entities, ent ) )
+       return ent;
+
+  return 0;
 }
 
 
@@ -698,21 +736,45 @@ cIpmiDomain::VerifyMc( cIpmiMc *mc )
 cIpmiSensor *
 cIpmiDomain::VerifySensor( cIpmiSensor *s )
 {
-  return m_entities->VerifySensor( s );
+  for( GList *list = m_entities; list; list = g_list_next( list ) )
+     {
+       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+
+       if ( ent->Find( s ) )
+            return s;
+     }
+
+  return 0;
 }
 
 
 cIpmiControl *
 cIpmiDomain::VerifyControl( cIpmiControl *c )
 {
-  return m_entities->VerifyControl( c );
+  for( GList *list = m_entities; list; list = g_list_next( list ) )
+     {
+       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+
+       if ( ent->Find( c ) )
+            return c;
+     }
+
+  return 0;
 }
 
 
 cIpmiFru *
 cIpmiDomain::VerifyFru( cIpmiFru *f )
 {
-  return m_entities->VerifyFru( f );
+  for( GList *list = m_entities; list; list = g_list_next( list ) )
+     {
+       cIpmiEntity *ent = (cIpmiEntity *)list->data;
+
+       if ( ent->Find( f ) )
+            return f;
+     }
+
+  return 0;
 }
 
 

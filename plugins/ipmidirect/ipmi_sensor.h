@@ -164,7 +164,7 @@ protected:
   unsigned char m_num;
 
   tIpmiEntityId m_entity_id;
-  unsigned char m_entity_instance;
+  unsigned int  m_entity_instance;
 
   bool          m_entity_instance_logical;
   bool          m_sensor_init_scanning;
@@ -180,7 +180,7 @@ protected:
   tIpmiSensorType       m_sensor_type;
   tIpmiEventReadingType m_event_reading_type;
 
-  unsigned char m_oem;
+  unsigned int m_oem;
 
   const char *m_sensor_type_string;
   const char *m_event_reading_type_string;
@@ -191,6 +191,8 @@ protected:
 public:
   cIpmiSensor( cIpmiMc *mc );
   virtual ~cIpmiSensor();
+
+  cIpmiMc *&SourceMc() { return m_source_mc; }
 
   virtual unsigned int Num() const { return m_num; }
 
@@ -210,7 +212,7 @@ public:
 
   virtual bool Cmp( const cIpmiSensor &s2 ) const;
 
-  unsigned char GetOem() { return m_oem; }
+  unsigned int GetOem() { return m_oem; }
 
   // create an HPI event from ipmi event
   virtual SaErrorT CreateEvent( cIpmiEvent *event, SaHpiEventT &h );

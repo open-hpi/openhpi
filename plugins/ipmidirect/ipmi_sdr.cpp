@@ -125,7 +125,7 @@ cIpmiSdr::DumpFullSensor( cIpmiLog &dump ) const
   dump.Entry( "SensorInitPuScanning" ) << Bit( m_data[10], 0 ) << ";\n";
   dump.Entry( "IgnoreIfNoEntity" ) << Bit( m_data[11], 7 ) << ";\n";
   dump.Entry( "SupportsAutoRearm" ) << Bit( m_data[11], 6 ) << ";\n";
-  
+
   tIpmiHysteresisSupport hs = (tIpmiHysteresisSupport)((m_data[11] >> 4) & 3);
   dump.Entry( "HysteresisSupport" ) << "dIpmiHysteresisSupport" 
        << IpmiHysteresisSupportToString( hs ) << ";\n";
@@ -1013,5 +1013,24 @@ cIpmiSdrs::Dump( cIpmiLog &dump, const char *name ) const
        dump << ";\n";
      }
 
-  dump.End();;
+  dump.End();
+}
+
+
+cIpmiSdr *
+cIpmiSdrs::FindSdr( cIpmiMc *mc )
+{
+  for( unsigned int i = 0; i < NumSdrs(); i++ )
+     {
+       cIpmiSdr *sdr = Sdr( i );
+
+       if ( sdr->m_type != eSdrTypeMcDeviceLocatorRecord )
+            continue;
+
+       if (    mc->GetAddress() == (unsigned int)sdr->m_data[5] 
+            && mc->GetChannel() == (unsigned int)(sdr->m_data[6] & 0x0f) )
+            return sdr;
+     }
+
+  return 0;
 }

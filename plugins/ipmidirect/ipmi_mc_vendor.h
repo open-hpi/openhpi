@@ -47,44 +47,71 @@ public:
   virtual ~cIpmiMcVendor();
 
   // a new MC is found
-  virtual bool Init( cIpmiMc *mc, const cIpmiMsg &devid );
+  virtual bool InitMc( cIpmiMc *mc, const cIpmiMsg &devid );
 
   // cleanup code for an MC
-  virtual void Cleanup( cIpmiMc *mc );
+  virtual void CleanupMc( cIpmiMc *mc );
 
-  // create sensors
-  virtual bool CreateSensors( cIpmiMc *mc, cIpmiSdrs *sdrs );
+  // called after reading an SDR to create sensors, controls, frus, sel
+  virtual bool CreateRdrs( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
+
+  // find or create entity
+  virtual cIpmiEntity *FindOrCreateEntity( cIpmiDomain *domain, cIpmiMc *mc, int lun,
+                                        tIpmiEntityId entity_id, unsigned int entity_instance,
+                                        bool came_from_sdr, cIpmiSdr *sdr );
 
 protected:
-  virtual GList *CreateSensorFromFullSensorRecord( cIpmiMc *source_mc, cIpmiSdr *sdr );
-  virtual GList *ConvertToFullSensorRecords( cIpmiMc *source_mc, cIpmiSdr *sdr );
-  virtual GList *GetSensorsFromSdrs( cIpmiMc *source_mc,
-                                     cIpmiSdrs    *sdrs );
+  // create a new entity
+  virtual cIpmiEntity *CreateEntity( cIpmiDomain *domain, cIpmiMc *mc, tIpmiDeviceNum devive_num, int lun,
+                                     tIpmiEntityId entity_id, unsigned int entity_instance,
+                                     bool came_from_sdr, cIpmiSdr *sdr );
 
-  virtual GList *CreateSensorHotswap( cIpmiMc *mc, cIpmiSdr *sdr );
-  virtual GList *CreateSensorThreshold( cIpmiMc *mc, cIpmiSdr *sdr );
-  virtual GList *CreateSensorDiscrete( cIpmiMc *mc, cIpmiSdr *sdr );
-  virtual GList *CreateSensorDefault( cIpmiMc *mc, cIpmiSdr *sdr );
+public:
+  // create sensors
+  virtual bool CreateSensors( cIpmiDomain *domain, cIpmiMc *source_mc, 
+                              cIpmiSdrs *sdrs );
+
+protected:
+  virtual GList *GetSensorsFromSdrs( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                     cIpmiSdrs *sdrs );
+  virtual GList *ConvertToFullSensorRecords( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                             cIpmiSdr *sdr );
+  virtual GList *CreateSensorFromFullSensorRecord( cIpmiDomain *domain, cIpmiMc *source_mc,
+                                                   cIpmiSdr *sdr, cIpmiSdrs *sdrs );
+
+  virtual GList *CreateSensorHotswap( cIpmiDomain *domain, cIpmiMc *mc,
+                                      cIpmiSdr *sdr, cIpmiSdrs *sdrs );
+  virtual GList *CreateSensorThreshold( cIpmiDomain *domain, cIpmiMc *mc,
+                                        cIpmiSdr *sdr, cIpmiSdrs *sdrs );
+  virtual GList *CreateSensorDiscrete( cIpmiDomain *domain, cIpmiMc *mc,
+                                       cIpmiSdr *sdr , cIpmiSdrs *sdrs);
+  virtual GList *CreateSensorDefault( cIpmiDomain *domain, cIpmiMc *mc,
+                                      cIpmiSdr *sdr, cIpmiSdrs *sdrs );
+
+  virtual cIpmiMc *FindMcBySdr( cIpmiDomain *domain, cIpmiSdr *sdr );
 
 public:
   // create controls
-  virtual bool CreateControls( cIpmiMc *mc, cIpmiSdrs *sdrs );
+  virtual bool CreateControls( cIpmiDomain *domain, cIpmiMc *mc,
+                               cIpmiSdrs *sdrs );
 
 protected:
-  virtual bool CreateControlsAtca( cIpmiMc *mc, cIpmiSdrs *sdrs,
+  virtual bool CreateControlsAtca( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
                                    unsigned int mc_type );
-  virtual bool CreateControlAtcaFan( cIpmiMc *mc, cIpmiSdrs *sdrs,
+  virtual bool CreateControlAtcaFan( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs,
                                      cIpmiEntity *ent );
 
 public:
-  // create frus
-  virtual bool CreateFrus( cIpmiMc *mc, cIpmiSdrs *sdrs );
+  // create FRUs
+  virtual bool CreateFrus( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdrs *sdrs );
 
 protected:
-  virtual bool CreateFru( cIpmiMc *mc, cIpmiSdr *sdr );
+  virtual bool CreateFru( cIpmiDomain *domain, cIpmiMc *mc, cIpmiSdr *sdr,
+                          cIpmiSdrs *sdrs );
 
 public:
-  virtual bool CreateSel( cIpmiMc *mc, cIpmiSdrs *sdrs );  
+  // create SEL
+  virtual bool CreateSels( cIpmiDomain *domain, cIpmiMc *source_mc, cIpmiSdrs *sdrs );
 };
 
 
