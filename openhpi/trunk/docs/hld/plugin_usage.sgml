@@ -104,52 +104,50 @@ handler libsnmp_bc {
     </sect2>
   </sect1>
   <sect1>
-    <title>SNMP Blade Center Plugin</title>
+    <title>SNMP BladeCenter Plugin</title>
     <para>
-      The SNMP Blade Center plugin is an SNMP based interface to IBM's
-      Blade Center hardware.  Technical information about Blade Center
-      is best found at <ulink
+      The SNMP BladeCenter plugin is an SNMP based interface to IBM's
+      BladeCenter hardware.  Technical information about BladeCenter
+      can be found at <ulink
         url="http://www-1.ibm.com/servers/eserver/bladecenter/"
-        >the Blade Center Home 
-        Page</ulink>.
+        >the BladeCenter Home Page</ulink>.
       
     </para>
     <para>
-      This plugin is called <literal>snmp_bc</literal> in the OpenHPI tree, and will be
+      This plugin is called <literal>snmp_bc</literal> in the OpenHPI tree, and is
       referenced by the name <literal>libsnmp_bc</literal> in all
       OpenHPI configuration files.
     </para>
     <sect2>
       <title>Prerequisites</title>
       <para>
-        The snmp_bc plugin is not currently built by default in the
-        OpenHPI build process.  In order to enable the building of the
-        snmp_bc module one must add the configure flag
-        <literal>--enable-snmp_bc</literal> during the configure
+        The snmp_bc plugin is built by default in the
+        OpenHPI build process.  To disable the building of this plugin,
+        add the configure flag
+        <literal>--disable-snmp_bc</literal> during the configure
         process.
       </para>
       <para>
-        snmp_bc relies on Net-SNMP >= 5.0.  most testing has
-        been done with >= 5.0.7 so the latest version available for
+        snmp_bc relies on Net-SNMP >= 5.0.  Most testing has
+        been done with >= 5.0.7, so the latest version available for
         your distribution is recommended.
       </para>
       <para>
-        The Blade Center hardware must also be SNMP enabled to
-        interface with this plugin properly.  This requires that the
-        Management Module firmware be >= 1.0.4.  As of the time of
-        this writing 1.0.6 is available and can be found at
+        The BladeCenter's Management Module firmware is required 
+        to be at Version 1.08 or later. The latest version of the Management
+        Module's firmware can be found at IBM's
         <ulink
-          url="http://www-3.ibm.com/pc/support/site.wss/document.do?lndocid=MIGR-45487"
-          >the IBM Support Site</ulink>.
+          url="http://www-1.ibm.com/servers/eserver/support/xseries/index.html"
+          >XSeries Support Page</ulink> under the Downloads link.
         Instructions are included there for upgrading the firmware.
       </para>
       <para>
-        Once the firmware is updated, one must use the Management
-        Module web interface to enable SNMP access.  This is found
+        Once the firmware is updated, SNMP access must be enabled 
+        using the Management Module web interface.  This is found
         under the Networking options in the web interface.  There is a
         field to both set the community string (i.e. password) and up
         to 3 allowed hosts to connect to the Management Module.
-        Ensure that what host will be running OpenHPI is in that list
+        Ensure that the host running OpenHPI is included in the list
         of allowed hosts.
       </para>
     </sect2>
@@ -195,14 +193,14 @@ handler libsnmp_bc {
     <sect2>
       <title>Prerequisites</title>
       <para>
-        The snmp_rsa plugin is not currently built by default in the
-        OpenHPI build process.  In order to enable the building of the
-        snmp_rsa module one must add the configure flag
-        <literal>--enable-snmp_rsa</literal> during the configure
+        The snmp_rsa plugin is built by default in the
+        OpenHPI build process.  To disable the building of the
+        snmp_rsa module, add the configure flag
+        <literal>--disable-snmp_rsa</literal> during the configure
         process.
       </para>
       <para>
-        snmp_rsa relies on Net-SNMP >= 5.0.  most testing has
+        snmp_rsa relies on Net-SNMP >= 5.0.  Most testing has
         been done with >= 5.0.7 so the latest version available for
         your distribution is recommended.
       </para>
