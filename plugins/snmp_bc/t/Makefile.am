@@ -40,6 +40,7 @@ SNMPUTILSDIR            = $(top_srcdir)/$(SNMPDIR)
 
 INCLUDES                = -I$(top_srcdir)/include \
 			  -I$(top_srcdir)/utils \
+			  -I$(top_srcdir)/snmp \
 			  -I$(SNMPUTILSDIR) \
                           -I$(top_srcdir)/plugins/snmp_bc
 
