@@ -8,6 +8,7 @@ AM_CFLAGS 		= @CFLAGS@
 
 bin_PROGRAMS		= hpialarmpanel \
                           hpievent \
+                          hpifan \
 	                  hpifru \
                           hpireset \
                           hpisensor \
@@ -25,6 +26,10 @@ hpialarmpanel_LDFLAGS	=
 hpievent_SOURCES	= hpievent.c
 hpievent_LDADD		= $(COMMONLIBS)
 hpievent_LDFLAGS	= 
+
+hpifan_SOURCES		= hpifan.c
+hpifan_LDADD		= $(COMMONLIBS)
+hpifan_LDFLAGS		= 
 
 hpifru_SOURCES		= hpifru.c
 hpifru_LDADD		= $(COMMONLIBS)
