@@ -26,38 +26,17 @@ static const int entry_id_offset = 1000;
 
 SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 {
-	struct oh_abi_v1 *abi = NULL;;
-	void *hnd = NULL;
-	
-	struct oh_domain *domain;
-	
 	if (OH_STAT_UNINIT!=oh_hpi_state) {
 		dbg("Cannot initialize twice");
 		return SA_ERR_HPI_DUPLICATE;
 	}
 	
-	abi = oh_plugins[0];
-	if (!abi) {
-		dbg("No plugin!");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-	if (!abi->open) {
-		dbg("No open method?!");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	hnd = abi->open("smi", "0");
-	if (!hnd) {
-		dbg("Can not open SMI interface 0");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-	
 	init_session();
 	init_domain();
-
-	domain_add(&domain); //The first domain is SAHPI_DEFAULT_DOMAIN_ID
-	domain->abi = abi;
-	domain->hnd = hnd;
+	if (init_plugin()<0) {
+		dbg("Can not load/init plugin");
+		return SA_ERR_HPI_NOT_PRESENT;
+	}
 	
 	oh_hpi_state= OH_STAT_READY;
 	return SA_OK;

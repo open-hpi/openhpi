@@ -1,8 +1,11 @@
 #ifndef __OH_PLUGIN_H
 #define __OH_PLUGIN_H
 
+#include <uuid/uuid.h>
+
 #include <sys/time.h>
 #include <SaHpi.h>
+
 enum oh_event_type {
 	OH_ET_SENSOR,
 	OH_ET_HOTSWAP,
@@ -53,6 +56,12 @@ struct oh_event {
 	struct timeval			timestamp;
 	SaHpiSeverityT			severity;
 	struct oh_id			oid;
+};
+
+/* UUID is ee778a5f-32cf-453b-a650-518814dc956c */
+static const uuid_t UUID_OH_ABI_V1 = {
+	0xee, 0x77, 0x8a, 0x5f, 0x32, 0xcf, 0x45, 0x3b,
+	0xa6, 0x50, 0x51, 0x88, 0x14, 0xdc, 0x95, 0x6c
 };
 
 struct oh_abi_v1 {

@@ -35,16 +35,14 @@ MAINTAINERCLEANFILES 	= Makefile.in
 
 INCLUDES		= -I$(top_srcdir)/include
 
-COMMONLIBS		= ./plugins/libhpiplugins.la
-
 SUBDIRS			= plugins
 
 AM_CFLAGS		= @CFLAGS@
 
 lib_LTLIBRARIES		= libopenhpi.la
 
-libopenhpi_la_LIBADD    = $(COMMONLIBS)
-libopenhpi_la_SOURCES	= safhpi.c resource.c domain.c session.c
+libopenhpi_la_SOURCES	= safhpi.c resource.c domain.c session.c plugin.c
+libopenhpi_la_LIBADD    = -lltdl
 libopenhpi_la_LDFLAGS	= -version-info 0:0:0
 
 
