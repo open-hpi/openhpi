@@ -20,9 +20,15 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 {
 	gchar *oid;
         struct snmp_value get_value;
+	SaErrorT status;
+
+	if (!hnd){
+		dbg("Missing handle\n");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-	SaErrorT status;
 
         SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
 	if(res == NULL) {
@@ -64,18 +70,24 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 SaErrorT snmp_bc_set_hotswap_state(void *hnd, SaHpiResourceIdT id,
 				   SaHpiHsStateT state)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 SaErrorT snmp_bc_request_hotswap_action(void *hnd, SaHpiResourceIdT id,
 					SaHpiHsActionT act)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        return SA_ERR_HPI_INVALID_CMD;
 }
 
 SaErrorT snmp_bc_get_reset_state(void *hnd, SaHpiResourceIdT id,
 				 SaHpiResetActionT *act)
 {
+
+	if (!hnd){
+		dbg("Missing handle\n");
+		return SA_ERR_HPI_INVALID_PARAMS;
+	}
+
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         struct ResourceInfo *s =
                 (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
