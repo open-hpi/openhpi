@@ -85,7 +85,7 @@ extern GAsyncQueue *oh_process_q;
 /* function definitions */
 int oh_event_init(void);
 int oh_event_final(void);
-unsigned int get_log_severity(char *severity);
+SaHpiSeverityT get_log_severity(unsigned char *severity_str);
 SaErrorT get_events(void);
 SaErrorT harvest_events(void);
 SaErrorT process_events(void);
