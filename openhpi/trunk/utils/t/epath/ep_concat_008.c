@@ -35,11 +35,11 @@ int main(int argc, char **argv)
 
         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 ep1.Entry[i].EntityType = SAHPI_ENT_IO_BLADE;
-                ep1.Entry[i].EntityInstance = 896;
+                ep1.Entry[i].EntityLocation = 896;
                 ep3.Entry[i].EntityType = SAHPI_ENT_IO_BLADE;
-                ep3.Entry[i].EntityInstance = 896;
+                ep3.Entry[i].EntityLocation = 896;
                 ep2.Entry[i].EntityType = SAHPI_ENT_SBC_BLADE,14;
-                ep2.Entry[i].EntityInstance = 123;
+                ep2.Entry[i].EntityLocation = 123;
         }
         if (ep_concat(&ep1, &ep2)) {
                 if (mydebug) printf("ep_concat test8 checkpoint 1 failed\n");

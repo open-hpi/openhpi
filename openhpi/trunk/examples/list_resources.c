@@ -48,7 +48,7 @@ int main(int arc, const char *argv[])
         SaHpiVersionT		version;
         SaHpiSessionIdT 	session_id;
         SaHpiRptEntryT		entry;
-        //SaHpiSelInfoT		Info;
+        //SaHpiEventLogInfoT		Info;
         
 	
 	/* First step in HPI and openhpi */
@@ -605,7 +605,7 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 
         printf("SEL Info:\n");
 
-        SaHpiSelInfoT info;        
+        SaHpiEventLogInfoT info;        
         SaErrorT rv = saHpiEventLogInfoGet(session_id, resource_id, &info);
 
         if (rv != SA_OK) {
@@ -630,8 +630,8 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
                 printf("SAHPI_SEL_OVERFLOW_DROP\n");
                 break;
 
-        case SAHPI_SEL_OVERFLOW_WRAP:
-                printf("SAHPI_SEL_OVERFLOW_WRAP\n");
+        case SAHPI_EL_OVERFLOW_OVERWRITE:
+                printf("SAHPI_EL_OVERFLOW_OVERWRITE\n");
                 break;
 
         case SAHPI_SEL_OVERFLOW_WRITELAST:
@@ -649,12 +649,12 @@ void list_sel(SaHpiSessionIdT session_id, SaHpiResourceIdT resource_id)
 				return;
 		//else 
         // read sel records
-        SaHpiSelEntryIdT current = SAHPI_OLDEST_ENTRY;
+        SaHpiEventLogEntryIdT current = SAHPI_OLDEST_ENTRY;
 
         do {
-                SaHpiSelEntryIdT prev;
-                SaHpiSelEntryIdT next;
-                SaHpiSelEntryT   entry;
+                SaHpiEventLogEntryIdT prev;
+                SaHpiEventLogEntryIdT next;
+                SaHpiEventLogEntryT   entry;
                 SaHpiRdrT        rdr;
                 SaHpiRptEntryT   res;
 

@@ -73,11 +73,11 @@ int main(int argc, char **argv)
         SaHpiEntryIdT rptentryid;
         SaHpiEntryIdT nextrptentryid;
         SaHpiResourceIdT resourceid;
-        SaHpiSelEntryIdT entryid;
-        SaHpiSelEntryIdT nextentryid;
-        SaHpiSelEntryIdT preventryid;
-        SaHpiSelInfoT info;
-        SaHpiSelEntryT  sel;
+        SaHpiEventLogEntryIdT entryid;
+        SaHpiEventLogEntryIdT nextentryid;
+        SaHpiEventLogEntryIdT preventryid;
+        SaHpiEventLogInfoT info;
+        SaHpiEventLogEntryT  sel;
         SaHpiRdrT rdr;
 	int free = 50;
         

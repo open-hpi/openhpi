@@ -29,7 +29,7 @@
 int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep = {{{SAHPI_ENT_OTHER, 1},{0}}};
-        SaHpiEntityInstanceT x = 5;
+        SaHpiEntityLocationT x = 5;
         int mydebug = 0;
          
         if (mydebug) printf(" test2\n");
@@ -37,9 +37,9 @@ int main(int argc, char **argv)
                 if (mydebug) printf("set_ep_inst test2 checkpoint 1 failed\n");
                 return 1;
         }
-        if (ep.Entry[0].EntityInstance != x) {
+        if (ep.Entry[0].EntityLocation != x) {
                 if (mydebug) printf("set_ep_inst test2 failed, entInst %d != %d\n",
-                                   ep.Entry[0].EntityInstance, x);
+                                   ep.Entry[0].EntityLocation, x);
                 return 1;
         }
         if (ep.Entry[0].EntityType != SAHPI_ENT_OTHER) {

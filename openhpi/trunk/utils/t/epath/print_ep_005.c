@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
         for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++) {
                 ep.Entry[i].EntityType = SAHPI_ENT_SBC_BLADE;
-                ep.Entry[i].EntityInstance = i+10;
+                ep.Entry[i].EntityLocation = i+10;
         }
         if (print_ep(&ep) == 0) {
                 if (mydebug) printf ("print_ep test5 printed\n"); 

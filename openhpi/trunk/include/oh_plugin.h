@@ -231,7 +231,7 @@ struct oh_abi_v2 {
 	/**
 	 * get info from RSEL
 	 */
-	SaErrorT (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
+	SaErrorT (*get_sel_info)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
 
 	/**
 	 * set time to RSEL
@@ -241,22 +241,22 @@ struct oh_abi_v2 {
 	/**
 	 * add entry to RSEL
 	 */
-	SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
+	SaErrorT (*add_sel_entry)(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event);
 
 	/**
 	 * del entry in RSEL
 	 */
-        SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
+        SaErrorT (*del_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
 
 	/**
 	 * get entry in RSEL
          * 
          * although it looks like we need Resource and RDR passed back up, we don't
-         * because SelEntryT has that info stored in it.  We'll just unwind 
+         * because EventLogEntryT has that info stored in it.  We'll just unwind 
          * that in infrastructure.
 	 */
-        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
-                             SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next, SaHpiSelEntryT *entry);
+        SaErrorT (*get_sel_entry)(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
+                             SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT *entry);
         
         /**
          * clear SEL 

@@ -58,7 +58,7 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         log_severity = get_log_severity(getenv("OPENHPI_LOG_SEV"));        
         if (e->event.Severity <= log_severity) {
                 struct oh_domain *d;
-                SaHpiSelEntryT selentry;
+                SaHpiEventLogEntryT selentry;
                 /* yes, we need to add real domain support later here */
                 d = get_domain_by_id(OH_DEFAULT_DOMAIN_ID);
                 selentry.Event = e->event;

@@ -926,7 +926,7 @@ static struct dummy_inventories {
 
 
 static struct dummy_rsel {
-	SaHpiSelEntryT entry;
+	SaHpiEventLogEntryT entry;
 } rsel_entries = {
 	.entry = {
 		.EntryId = 0,
@@ -1289,7 +1289,7 @@ static int dummy_get_self_id(void *hnd, SaHpiResourceIdT id)
 
 static int sel_enabled;
 
-static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info)
+static int dummy_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info)
 {
 	info->Entries			= 0;
 	info->Size			= 0xFFFFFFFF;
@@ -1308,7 +1308,7 @@ static int dummy_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time)
 	return 0;
 }
 
-static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event)
+static int dummy_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event)
 {
 dbg("TODO: dummy_add_sel_entry(), need to set res based on id");
 
@@ -1342,7 +1342,7 @@ dbg("TODO: need to set res based on id");
 	return 0;
 }
 
-static int dummy_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid)
+static int dummy_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid)
 {
 dbg("TODO: dummy_del_sel_entry() need to set rsel based on id");
 //	struct dummy_rsel *rsel = id.ptr;
@@ -1352,15 +1352,15 @@ dbg("TODO: dummy_del_sel_entry() need to set rsel based on id");
 
 static int dummy_get_sel_entry(void *hnd, 
 			       SaHpiResourceIdT id, 
-			       SaHpiSelEntryIdT current,
-			       SaHpiSelEntryIdT *prev, 
-			       SaHpiSelEntryIdT *next, 
-			       SaHpiSelEntryT *entry)
+			       SaHpiEventLogEntryIdT current,
+			       SaHpiEventLogEntryIdT *prev, 
+			       SaHpiEventLogEntryIdT *next, 
+			       SaHpiEventLogEntryT *entry)
 {       
 dbg("dummy_get_sel_entry(): This is a very bad implementation");
 	*prev = SAHPI_NO_MORE_ENTRIES;
 	*next = SAHPI_NO_MORE_ENTRIES;
-	memcpy(entry, &rsel_entries.entry, sizeof(SaHpiSelEntryT));
+	memcpy(entry, &rsel_entries.entry, sizeof(SaHpiEventLogEntryT));
 
 	return 0;
 }

@@ -885,7 +885,7 @@ static int node2entitypath(GSList *node, SaHpiEntityPathT *path)
 
         str = (char*)g_slist_nth_data(node, 2*i+1);
         NODE_CHECK_NULL(str, "Instance");
-        retval = str2uint32(str, &path->Entry[i].EntityInstance);
+        retval = str2uint32(str, &path->Entry[i].EntityLocation);
         NODE_CHECK_RETVAL("Instance");
     }
     if (len < SAHPI_MAX_ENTITY_PATH)
@@ -1883,7 +1883,7 @@ static void entitypath_print(SaHpiEntityPathT *path)
          if (path->Entry[i].EntityType == SAHPI_ENT_ROOT)
               break;
          entity_type2str(str, 100, path->Entry[i].EntityType);
-         printf("(%s,%x)", str, path->Entry[i].EntityInstance);
+         printf("(%s,%x)", str, path->Entry[i].EntityLocation);
      }
      printf("}");
 }

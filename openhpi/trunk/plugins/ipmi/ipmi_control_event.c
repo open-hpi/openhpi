@@ -78,9 +78,9 @@ static void add_control_event_rdr(ipmi_control_t		*control,
 	rdr->RecordId = 0;
 	rdr->RdrType = SAHPI_CTRL_RDR;
 	//rdr->Entity.Entry[0].EntityType = (SaHpiEntityTypeT)id;
-	//rdr->Entity.Entry[0].EntityInstance = (SaHpiEntityInstanceT)instance;
+	//rdr->Entity.Entry[0].EntityLocation = (SaHpiEntityLocationT)instance;
 	//rdr->Entity.Entry[1].EntityType = 0;
-	//rdr->Entity.Entry[1].EntityInstance = 0;
+	//rdr->Entity.Entry[1].EntityLocation = 0;
 	rdr->Entity = parent_ep;
 
 	/* append ep */

@@ -287,9 +287,9 @@ static int sysfs2hpi_setup_rdr(SaHpiSensorTypeT type,
 	e->u.rdr_event.rdr.RecordId = num_sensors;
 	e->u.rdr_event.rdr.RdrType = SAHPI_SENSOR_RDR;
 	e->u.rdr_event.rdr.Entity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_SOFTWARE;
-	e->u.rdr_event.rdr.Entity.Entry[0].EntityInstance = g_num_resources;
+	e->u.rdr_event.rdr.Entity.Entry[0].EntityLocation = g_num_resources;
 	e->u.rdr_event.rdr.Entity.Entry[1].EntityType = SAHPI_ENT_OTHER_SYSTEM_BOARD;
-	e->u.rdr_event.rdr.Entity.Entry[1].EntityInstance = 0; /* 0 b/c only 1 board */
+	e->u.rdr_event.rdr.Entity.Entry[1].EntityLocation = 0; /* 0 b/c only 1 board */
         ep_concat( &e->u.rdr_event.rdr.Entity, &g_epbase);
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Num = num_sensors;
 	e->u.rdr_event.rdr.RdrTypeUnion.SensorRec.Type = type;
@@ -455,9 +455,9 @@ static int sysfs2hpi_assign_resource(struct sysfs_device* d,
 	}
 	memset(r,'\0',sizeof(*r));
 	r->path.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_SOFTWARE;
-	r->path.Entry[0].EntityInstance = g_num_resources;
+	r->path.Entry[0].EntityLocation = g_num_resources;
 	r->path.Entry[1].EntityType = SAHPI_ENT_OTHER_SYSTEM_BOARD;
-	r->path.Entry[1].EntityInstance = 0; /* 0 b/c only 1 board */
+	r->path.Entry[1].EntityLocation = 0; /* 0 b/c only 1 board */
 	//sprintf(r->name, "%s_%s", d->name, d->bus_id);
 	strncpy(r->name,d->name,SYSFS_NAME_LEN);	
 	sys = inst->data;

@@ -40,13 +40,13 @@ int main(int argc, char **argv)
         if(tmp_ep.Entry[0].EntityType != SAHPI_ENT_OTHER)
                 return 1;
                 
-        if(tmp_ep.Entry[0].EntityInstance != 61)
+        if(tmp_ep.Entry[0].EntityLocation != 61)
                 return 1;
         
         if(tmp_ep.Entry[1].EntityType != SAHPI_ENT_POWER_SUPPLY)
                 return 1;
         
-        if(tmp_ep.Entry[1].EntityInstance != 71)
+        if(tmp_ep.Entry[1].EntityLocation != 71)
                 return 1;
 
         if(entitypath2string(&tmp_ep, new, 255) < 0) 

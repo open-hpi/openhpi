@@ -36,7 +36,6 @@ oh_sel *oh_sel_create(SaHpiUint32T size)
         if (sel != NULL) {
                 sel->enabled = TRUE;
                 sel->overflow = FALSE;
-                sel->deletesupported = FALSE;
                 sel->gentimestamp = TRUE;
                 sel->lastUpdate = SAHPI_TIME_UNSPECIFIED;
                 sel->offset = 0;
@@ -67,16 +66,16 @@ SaErrorT oh_sel_close(oh_sel *sel)
  * This API will be removed in a later version.
  * You should use oh_sel_append instead.
  */
-SaErrorT oh_sel_add(oh_sel *sel, SaHpiSelEntryT *entry)
+SaErrorT oh_sel_add(oh_sel *sel, SaHpiEventLogEntryT *entry)
 {
         return oh_sel_append(sel, entry);
 }
 
 
 /* append a new entry to the SEL */
-SaErrorT oh_sel_append(oh_sel *sel, SaHpiSelEntryT *entry)
+SaErrorT oh_sel_append(oh_sel *sel, SaHpiEventLogEntryT *entry)
 {
-        SaHpiSelEntryT * myentry;
+        SaHpiEventLogEntryT * myentry;
         time_t tt1;
         GList *temp;
 
@@ -89,7 +88,7 @@ SaErrorT oh_sel_append(oh_sel *sel, SaHpiSelEntryT *entry)
         }
 
         /* alloc the new entry */
-        myentry = (SaHpiSelEntryT *) g_malloc0(sizeof(SaHpiSelEntryT));
+        myentry = (SaHpiEventLogEntryT *) g_malloc0(sizeof(SaHpiEventLogEntryT));
         if (myentry == NULL) {
                 sel->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -114,16 +113,16 @@ SaErrorT oh_sel_append(oh_sel *sel, SaHpiSelEntryT *entry)
                 sel->lastUpdate = entry->Timestamp;
         }
         entry->Timestamp = sel->lastUpdate;
-        memcpy(myentry, entry, sizeof(SaHpiSelEntryT));
+        memcpy(myentry, entry, sizeof(SaHpiEventLogEntryT));
         sel->selentries = g_list_append(sel->selentries, myentry);
         return SA_OK;
 }
 
 
 /* prepend a new entry to the SEL */
-SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry)
+SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiEventLogEntryT *entry)
 {
-        SaHpiSelEntryT * myentry, * tmpentry;
+        SaHpiEventLogEntryT * myentry, * tmpentry;
         time_t tt1;
         GList *sellist;
 
@@ -141,7 +140,7 @@ SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry)
         }
 
         /* alloc the new entry */
-        myentry = (SaHpiSelEntryT *) g_malloc0(sizeof(SaHpiSelEntryT));
+        myentry = (SaHpiEventLogEntryT *) g_malloc0(sizeof(SaHpiEventLogEntryT));
         if (myentry == NULL) {
                 sel->overflow = TRUE;
                 return SA_ERR_HPI_OUT_OF_SPACE;
@@ -152,7 +151,7 @@ SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry)
          */
         sellist = g_list_first(sel->selentries);
         while (sellist != NULL) {
-                tmpentry = (SaHpiSelEntryT *) sellist->data;
+                tmpentry = (SaHpiEventLogEntryT *) sellist->data;
                 tmpentry->EntryId++;
                 sellist = g_list_next(sellist);
         }
@@ -167,7 +166,7 @@ SaErrorT oh_sel_prepend(oh_sel *sel, SaHpiSelEntryT *entry)
                 sel->lastUpdate = entry->Timestamp;
         }
         entry->Timestamp = sel->lastUpdate;
-        memcpy(myentry, entry, sizeof(SaHpiSelEntryT));
+        memcpy(myentry, entry, sizeof(SaHpiEventLogEntryT));
         sel->selentries = g_list_prepend(sel->selentries, myentry);
         return SA_OK;
 }
@@ -210,12 +209,12 @@ SaErrorT oh_sel_clear(oh_sel *sel)
 
 
 /* get an SEL entry */
-SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *prev,
-                    SaHpiSelEntryIdT *next, SaHpiSelEntryT **entry)
+SaErrorT oh_sel_get(oh_sel *sel, SaHpiEventLogEntryIdT entryid, SaHpiEventLogEntryIdT *prev,
+                    SaHpiEventLogEntryIdT *next, SaHpiEventLogEntryT **entry)
 {
-        SaHpiSelEntryT *myentry;
+        SaHpiEventLogEntryT *myentry;
         GList *sellist;
-        SaHpiSelEntryIdT srchentryid, firstid, lastid;
+        SaHpiEventLogEntryIdT srchentryid, firstid, lastid;
 
         if (sel == NULL || prev == NULL || next == NULL || entry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -226,10 +225,10 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
 
         /* get the first and last entry ids for possible translation */
         sellist = g_list_last(sel->selentries);
-        myentry = (SaHpiSelEntryT *)sellist->data;
+        myentry = (SaHpiEventLogEntryT *)sellist->data;
         lastid = myentry->EntryId;
         sellist = g_list_first(sel->selentries);
-        myentry = (SaHpiSelEntryT *)sellist->data;
+        myentry = (SaHpiEventLogEntryT *)sellist->data;
         firstid = myentry->EntryId;
         if (entryid == SAHPI_NEWEST_ENTRY) {
                 srchentryid = lastid;
@@ -243,7 +242,7 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
 
         sellist = g_list_first(sel->selentries);
         while (sellist != NULL) {
-                myentry = (SaHpiSelEntryT *) sellist->data;
+                myentry = (SaHpiEventLogEntryT *) sellist->data;
                 if (srchentryid == myentry->EntryId) {
                         *entry = myentry;
                         /* is this the first entry? */
@@ -272,7 +271,7 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
 
 
 /* get SEL info */
-SaErrorT oh_sel_info(oh_sel *sel, SaHpiSelInfoT *info)
+SaErrorT oh_sel_info(oh_sel *sel, SaHpiEventLogInfoT *info)
 {
         time_t tt1;
 
@@ -287,8 +286,7 @@ SaErrorT oh_sel_info(oh_sel *sel, SaHpiSelInfoT *info)
         info->CurrentTime = (SaHpiTimeT) (tt1 * 1000000000) + sel->offset;
         info->Enabled = sel->enabled;
         info->OverflowFlag = sel->overflow;
-        info->OverflowAction = SAHPI_SEL_OVERFLOW_WRAP;
-        info->DeleteEntrySupported = sel->deletesupported;
+        info->OverflowAction = SAHPI_EL_OVERFLOW_OVERWRITE;
         return SA_OK;
 }
 
@@ -311,7 +309,7 @@ SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
 
         sellist = g_list_first(sel->selentries);
         while (sellist != NULL) {
-                write(file, (void *)sellist->data, sizeof(SaHpiSelEntryT));
+                write(file, (void *)sellist->data, sizeof(SaHpiEventLogEntryT));
                 sellist = g_list_next(sellist);
         }
 
@@ -328,7 +326,7 @@ SaErrorT oh_sel_map_to_file(oh_sel *sel, char *filename)
 SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
 {
         int file;
-        SaHpiSelEntryT entry;
+        SaHpiEventLogEntryT entry;
         SaErrorT retc;
 
         /* check sel params and state */
@@ -346,7 +344,7 @@ SaErrorT oh_sel_map_from_file(oh_sel *sel, char *filename)
         }
 
         oh_sel_clear(sel); // ensure list is empty
-        while (read(file, &entry, sizeof(SaHpiSelEntryT)) == sizeof(SaHpiSelEntryT)) {
+        while (read(file, &entry, sizeof(SaHpiEventLogEntryT)) == sizeof(SaHpiEventLogEntryT)) {
                 retc = oh_sel_add(sel, &entry);
                 if (retc) {
                         close(file);

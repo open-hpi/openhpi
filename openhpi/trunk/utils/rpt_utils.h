@@ -28,6 +28,11 @@ extern "C" {
 #endif 
 
 typedef struct {
+        SaHpiUint32T UpdateCount;     
+        SaHpiTimeT   UpdateTimestamp; 
+} SaHpiRptInfoT;
+
+typedef struct {
         SaHpiRptInfoT rpt_info;
         /* The structure to hold this is subject to change. */
         /* No one should touch this. */

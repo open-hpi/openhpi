@@ -114,15 +114,15 @@ struct rdr_stub {
 			.Entry[0] = 
 			{
 				.EntityType = SAHPI_ENT_SBC_BLADE,
-				.EntityInstance = 1,
+				.EntityLocation = 1,
 			},
 			{
 				.EntityType = SAHPI_ENT_SUB_CHASSIS,
-				.EntityInstance = 1,
+				.EntityLocation = 1,
 			},
 			{
 				.EntityType = SAHPI_ENT_SYSTEM_CHASSIS,
-				.EntityInstance = 1,
+				.EntityLocation = 1,
 			},
 		},
 		.IdString = {

@@ -234,9 +234,9 @@ int main (int argc, char **argv) {
 
                 ep_init(&test_ep);
                 test_ep.Entry[0].EntityType = SAHPI_ENT_SUB_CHASSIS;
-                test_ep.Entry[0].EntityInstance = 109;
+                test_ep.Entry[0].EntityLocation = 109;
                 test_ep.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
-                test_ep.Entry[1].EntityInstance = 112;
+                test_ep.Entry[1].EntityLocation = 112;
 
 		if (NULL == (returned_string = (g_malloc0(MAX_STRING_SIZE)))) { 
 			printf("ERROR! Test Case program cannot allocate memory\n");
@@ -266,7 +266,7 @@ int main (int argc, char **argv) {
 		/******************************************** 
 		 * entitypath2string  - Bad instance TestCase
 		 ********************************************/
-		test_ep.Entry[0].EntityInstance = 1234567;
+		test_ep.Entry[0].EntityLocation = 1234567;
 		
 		err = entitypath2string(&test_ep, returned_string, MAX_STRING_SIZE);
 		if (err >= 0) {
@@ -275,7 +275,7 @@ int main (int argc, char **argv) {
 			return -1;
 		}
 		
-		test_ep.Entry[0].EntityInstance = 109;
+		test_ep.Entry[0].EntityLocation = 109;
 		
 		/*************************************** 
 		 * entitypath2string  - NULL EP TestCase

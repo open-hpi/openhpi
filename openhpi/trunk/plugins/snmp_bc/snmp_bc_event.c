@@ -747,7 +747,7 @@ static int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo, unsign
         string2entitypath(root_tuple, &ep_root);
         
         /* Chassis instance/type in root; other resources override these below */
-	instance = ep_root.Entry[0].EntityInstance;
+	instance = ep_root.Entry[0].EntityLocation;
 	entity_type = ep_root.Entry[0].EntityType;
 
 	/* Break down Source text string to find source's rpt index and instance */

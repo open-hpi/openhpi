@@ -492,7 +492,6 @@ CC_WARNINGS="\
         -Wformat=2 \
         -Wformat-security \
         -Wformat-nonliteral \
-	-Werror \
 	-Wcast-qual \
 	-Wcast-align"
 
@@ -501,7 +500,6 @@ CXX_WARNINGS="\
         -Wmissing-prototypes \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
-	-Werror \
 	-Wcast-qual \
 	-Wcast-align \
         -Wshadow \

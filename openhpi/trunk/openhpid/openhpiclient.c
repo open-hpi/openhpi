@@ -826,7 +826,7 @@ EntitySchemaGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 				     SAHPI_IN  SaHpiResourceIdT ResourceId,
-				     SAHPI_OUT SaHpiSelInfoT    *Info )
+				     SAHPI_OUT SaHpiEventLogInfoT    *Info )
 {
   if ( Info == 0 )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -850,10 +850,10 @@ EventLogInfoGet)dOpenHpiClientParam( SAHPI_IN  SaHpiSessionIdT  SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT   SessionId,
 				      SAHPI_IN    SaHpiResourceIdT  ResourceId,
-				      SAHPI_IN    SaHpiSelEntryIdT  EntryId,
-				      SAHPI_OUT   SaHpiSelEntryIdT *PrevEntryId,
-				      SAHPI_OUT   SaHpiSelEntryIdT *NextEntryId,
-				      SAHPI_OUT   SaHpiSelEntryT   *EventLogEntry,
+				      SAHPI_IN    SaHpiEventLogEntryIdT  EntryId,
+				      SAHPI_OUT   SaHpiEventLogEntryIdT *PrevEntryId,
+				      SAHPI_OUT   SaHpiEventLogEntryIdT *NextEntryId,
+				      SAHPI_OUT   SaHpiEventLogEntryT   *EventLogEntry,
 				      SAHPI_INOUT SaHpiRdrT        *Rdr,
 				      SAHPI_INOUT SaHpiRptEntryT   *RptEntry )
 {
@@ -894,7 +894,7 @@ EventLogEntryGet)dOpenHpiClientParam( SAHPI_IN    SaHpiSessionIdT   SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 				      SAHPI_IN SaHpiResourceIdT ResourceId,
-				      SAHPI_IN SaHpiSelEntryT  *EvtEntry )
+				      SAHPI_IN SaHpiEventLogEntryT  *EvtEntry )
 {
   if ( EvtEntry == 0 )
        return SA_ERR_HPI_INVALID_PARAMS;
@@ -918,7 +918,7 @@ EventLogEntryAdd)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 SaErrorT SAHPI_API dOpenHpiClientFunction(
 EventLogEntryDelete)dOpenHpiClientParam( SAHPI_IN SaHpiSessionIdT  SessionId,
 					 SAHPI_IN SaHpiResourceIdT ResourceId,
-					 SAHPI_IN SaHpiSelEntryIdT EntryId )
+					 SAHPI_IN SaHpiEventLogEntryIdT EntryId )
 {
   CheckSession();
 

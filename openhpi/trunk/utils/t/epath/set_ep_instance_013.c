@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 {
         SaHpiEntityPathT ep;
         SaHpiEntityTypeT     w = SAHPI_ENT_IO_BLADE;
-        SaHpiEntityInstanceT x = 56873;
+        SaHpiEntityLocationT x = 56873;
         unsigned int    y = 45321;
         unsigned int    i = 0;
         int mydebug = 0;
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
         if (mydebug) printf(" test13\n");
         for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
                 ep.Entry[i].EntityType = w;
-                ep.Entry[i].EntityInstance = y+i;
+                ep.Entry[i].EntityLocation = y+i;
         }
 
         if(set_ep_instance(&ep, SAHPI_ENT_IO_SUBBOARD, x) == 0) {
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
         }
         for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
                 if((ep.Entry[i].EntityType != w) ||
-                   (ep.Entry[i].EntityInstance != y+i)) {
+                   (ep.Entry[i].EntityLocation != y+i)) {
                         if (mydebug) printf("set_ep_inst test13 failed at element %d\n", i);
                 return 1;
                 }

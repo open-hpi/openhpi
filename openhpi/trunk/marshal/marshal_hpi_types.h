@@ -66,7 +66,7 @@ extern cMarshalType SaHpiTextBufferType;
 
 // entity
 #define SaHpiEntityTypeType SaHpiUint32Type
-#define SaHpiEntityInstanceType SaHpiUint32Type
+#define SaHpiEntityLocationType SaHpiUint32Type
 extern cMarshalType SaHpiEntityType;
 extern cMarshalType SaHpiEntityPathType;
 
@@ -200,9 +200,9 @@ extern cMarshalType SaHpiRptEntryType;
 
 // system event log
 #define SaHpiSelOverflowActionType SaHpiUint32Type
-extern cMarshalType SaHpiSelInfoType;
-#define SaHpiSelEntryIdType SaHpiUint32Type
-extern cMarshalType SaHpiSelEntryType;
+extern cMarshalType SaHpiEventLogInfoType;
+#define SaHpiEventLogEntryIdType SaHpiUint32Type
+extern cMarshalType SaHpiEventLogEntryType;
 
 
 #ifdef __cplusplus

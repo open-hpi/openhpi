@@ -38,17 +38,17 @@ typedef struct {
  * Function Prototyping
  */
 int snmp_rsa_parse_sel_entry(struct oh_handler_state *,char * text, rsa_sel_entry * sel);
-int snmp_rsa_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
-int snmp_rsa_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
-                          SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
-                          SaHpiSelEntryT *entry);
+int snmp_rsa_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
+int snmp_rsa_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
+                          SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
+                          SaHpiEventLogEntryT *entry);
 int snmp_rsa_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
-int snmp_rsa_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
-int snmp_rsa_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
-int snmp_rsa_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId);
+int snmp_rsa_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event);
+int snmp_rsa_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
+int snmp_rsa_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId);
 int snmp_rsa_build_selcache(void *hnd, SaHpiResourceIdT id);
-int snmp_rsa_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
-int snmp_rsa_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId);
+int snmp_rsa_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
+int snmp_rsa_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId);
 SaErrorT snmp_rsa_clear_sel(void *hnd, SaHpiResourceIdT id);
 
 #endif

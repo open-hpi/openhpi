@@ -34,17 +34,17 @@ typedef struct {
  * Function Prototyping
  */
 int snmp_bc_parse_sel_entry(struct oh_handler_state *,char * text, bc_sel_entry * sel);
-int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiSelInfoT *info);
-int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT current,
-                          SaHpiSelEntryIdT *prev, SaHpiSelEntryIdT *next,
-                          SaHpiSelEntryT *entry);
+int snmp_bc_get_sel_info(void *hnd, SaHpiResourceIdT id, SaHpiEventLogInfoT *info);
+int snmp_bc_get_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT current,
+                          SaHpiEventLogEntryIdT *prev, SaHpiEventLogEntryIdT *next,
+                          SaHpiEventLogEntryT *entry);
 int snmp_bc_set_sel_time(void *hnd, SaHpiResourceIdT id, SaHpiTimeT time);
-int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiSelEntryT *Event);
-int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
-int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId);
+int snmp_bc_add_sel_entry(void *hnd, SaHpiResourceIdT id, const SaHpiEventLogEntryT *Event);
+int snmp_bc_del_sel_entry(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
+int snmp_bc_check_selcache(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId);
 int snmp_bc_build_selcache(void *hnd, SaHpiResourceIdT id);
-int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT sid);
-int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiSelEntryIdT entryId);
+int snmp_bc_sel_read_add (void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT sid);
+int snmp_bc_selcache_sync(void *hnd, SaHpiResourceIdT id, SaHpiEventLogEntryIdT entryId);
 SaErrorT snmp_bc_clear_sel(void *hnd, SaHpiResourceIdT id);
 
 #endif

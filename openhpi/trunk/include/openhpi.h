@@ -278,7 +278,7 @@ struct oh_rdr {
 };
 
 struct oh_dsel {
-        SaHpiSelEntryT entry;
+        SaHpiEventLogEntryT entry;
 };
 
 /*
@@ -353,18 +353,18 @@ int free_handler(struct oh_handler*);
 
 /* system event log */
 #define OH_DEFAULT_DOMAIN_ID 0
-int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiSelInfoT *info);
+int dsel_get_info(SaHpiDomainIdT domain_id, SaHpiEventLogInfoT *info);
 int dsel_get_state(SaHpiDomainIdT domain_id);
 int dsel_set_state(SaHpiDomainIdT domain_id, int enable);
 SaHpiTimeT dsel_get_time(SaHpiDomainIdT domain_id);
 void dsel_set_time(SaHpiDomainIdT domain_id, SaHpiTimeT time);
-int dsel_add(SaHpiDomainIdT domain_id, SaHpiSelEntryT *entry);
+int dsel_add(SaHpiDomainIdT domain_id, SaHpiEventLogEntryT *entry);
 int dsel_add2(struct oh_domain *d, struct oh_hpi_event *e);
-int dsel_del(SaHpiDomainIdT domain_id, SaHpiSelEntryIdT id);
+int dsel_del(SaHpiDomainIdT domain_id, SaHpiEventLogEntryIdT id);
 int dsel_clr(SaHpiDomainIdT domain_id);
-int rsel_add(SaHpiResourceIdT res_id, SaHpiSelEntryT *entry);
+int rsel_add(SaHpiResourceIdT res_id, SaHpiEventLogEntryT *entry);
 /*int rsel_add2(struct oh_resource *d, struct oh_rsel_event *e);*/
-int rsel_del(SaHpiResourceIdT res_id, SaHpiSelEntryIdT id);
+int rsel_del(SaHpiResourceIdT res_id, SaHpiEventLogEntryIdT id);
 int rsel_clr(SaHpiResourceIdT res_id); 
 
 

@@ -54,12 +54,12 @@ static void get_mc_entity_event(ipmi_mc_t	*mc,
 	entry->ResourceInfo.AuxFirmwareRev = (SaHpiUint8T)vals[0];
 	entry->ResourceEntity.Entry[0].EntityType = SAHPI_ENT_SYS_MGMNT_MODULE ;
 	/*we get MC number on IPMB for unique identifier */
-	entry->ResourceEntity.Entry[0].EntityInstance = ipmi_mc_get_address(mc);
+	entry->ResourceEntity.Entry[0].EntityLocation = ipmi_mc_get_address(mc);
         
         entry->ResourceEntity.Entry[1].EntityType = SAHPI_ENT_ROOT;
-        entry->ResourceEntity.Entry[1].EntityInstance = 0;
+        entry->ResourceEntity.Entry[1].EntityLocation = 0;
         
-	dbg ("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityInstance);
+	dbg ("MC Instance: %d", entry->ResourceEntity.Entry[0].EntityLocation);
 	sel_support = ipmi_mc_sel_device_support(mc);
 	if (sel_support == 1) {
 		dbg("MC supports SEL");

@@ -40,7 +40,7 @@ class cIpmiMc;
 
 class cIpmiMcVendor
 {
-  static SaHpiEntityInstanceT m_unique_instance;
+  static SaHpiEntityLocationT m_unique_instance;
 
 public:
   unsigned int m_manufacturer_id;
@@ -53,7 +53,7 @@ public:
 
   virtual ~cIpmiMcVendor();
 
-  SaHpiEntityInstanceT GetUniqueInstance()
+  SaHpiEntityLocationT GetUniqueInstance()
   {
     return m_unique_instance++;
   }
@@ -83,7 +83,7 @@ protected:
 					 cIpmiSdr *sdr, cIpmiSdrs *sdrs );
   cIpmiEntityPath CreateEntityPath( cIpmiDomain *domain, unsigned int mc_addr,
                                     unsigned int fru_id, SaHpiEntityTypeT type,
-                                    SaHpiEntityInstanceT instance, cIpmiSdrs *sdrs );
+                                    SaHpiEntityLocationT instance, cIpmiSdrs *sdrs );
 
 public:
   // create sensors

@@ -32,7 +32,7 @@ int main(int argc, char **argv)
                                 {SAHPI_ENT_REMOTE, 12},
                                 {SAHPI_ENT_FAN, 13},
                                 {0}}};
-        SaHpiEntityInstanceT x = 99999;
+        SaHpiEntityLocationT x = 99999;
         int mydebug = 0;
          
         if (mydebug) printf(" test4\n");
@@ -40,9 +40,9 @@ int main(int argc, char **argv)
                 if (mydebug) printf("set_ep_inst test4 checkpoint 1 failed\n");
                 return 1;
         }
-        if (ep.Entry[2].EntityInstance != x) {
+        if (ep.Entry[2].EntityLocation != x) {
                 if (mydebug) printf("set_ep_inst test failed, entInst %d != %d\n",
-                                   ep.Entry[2].EntityInstance, x);
+                                   ep.Entry[2].EntityLocation, x);
                 return 1;
         }
         if (ep.Entry[2].EntityType != SAHPI_ENT_FAN) {
@@ -50,9 +50,9 @@ int main(int argc, char **argv)
                                    ep.Entry[2].EntityType);
                 return 1;
         }
-        if (ep.Entry[0].EntityInstance != 11) {
+        if (ep.Entry[0].EntityLocation != 11) {
                 if (mydebug) printf("set_ep_inst test4 failed, entInst %d != 11\n",
-                                   ep.Entry[0].EntityInstance);
+                                   ep.Entry[0].EntityLocation);
                 return 1;
         }
         if (ep.Entry[0].EntityType != SAHPI_ENT_GROUP) {
@@ -60,9 +60,9 @@ int main(int argc, char **argv)
                                    ep.Entry[0].EntityType);
                 return 1;
         }
-        if (ep.Entry[1].EntityInstance != 12) {
+        if (ep.Entry[1].EntityLocation != 12) {
                 if (mydebug) printf("set_ep_inst test4 failed, entInst %d != 12\n",
-                                   ep.Entry[1].EntityInstance);
+                                   ep.Entry[1].EntityLocation);
                 return 1;
         }
         if (ep.Entry[1].EntityType != SAHPI_ENT_REMOTE) {
