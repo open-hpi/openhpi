@@ -92,11 +92,10 @@ AC_ARG_ENABLE([utilities],
     [ENABLED_DIRS="$ENABLED_DIRS util"])
 
 AC_ARG_ENABLE([openhpid],
-[  --enable-openhpid       build HPI openhpid [default=yes]],
+[  --enable-openhpid       build HPI openhpid [default=no]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
-    fi],
-    [ENABLED_DIRS="$ENABLED_DIRS openhpid"])
+    fi],[])
 
 AC_SUBST(ENABLED_DIRS)
 
@@ -123,19 +122,20 @@ AC_ARG_ENABLE([dummy],
     [AC_SUBST(DUMMY,dummy)])
     
 AC_ARG_ENABLE([text_remote],
-    [  --enable-text_remote          build text_remote plugin [default=yes]],
+    [  --enable-text_remote          build text_remote plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(LIBTEXT_REMOTE,text_remote)
-    fi],
-    [AC_SUBST(TEXT_REMOTE,text_remote)])
+    fi],[])
+# add this back in to turn it on
+#    [AC_SUBST(TEXT_REMOTE,text_remote)])
 
 
 AC_ARG_ENABLE([watchdog],
-    [  --enable-watchdog       build watchdog plugin [default=yes]],
+    [  --enable-watchdog       build watchdog plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(WATCHDOG,watchdog)
-    fi],
-    [AC_SUBST(WATCHDOG,watchdog)])
+    fi],[])
+#    [AC_SUBST(WATCHDOG,watchdog)])
 
 dnl
 dnl We really need to make ipmi enablement be contigent on OpenIPMI
