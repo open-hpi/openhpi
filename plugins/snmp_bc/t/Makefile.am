@@ -59,8 +59,7 @@ libsnmp_bc_la_SOURCES	= $(GENERATED_CODE) \
 			  sim_init.c \
 			  sim_resources.c \
 			  snmp_utils.c \
-			  tsetup.c     \
-			  $(top_srcdir)/snmp/snmp_derive_oid.c 
+			  tsetup.c
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@
 libsnmp_bc_la_LDFLAGS	= -module -avoid-version

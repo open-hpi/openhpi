@@ -231,7 +231,7 @@ SaErrorT snmp_bc_discover_sensors(struct oh_handler_state *handle,
 			if (sensor_array[i].sensor_info.mib.oid != NULL) {
 				gchar *oid;
 
-				oid = snmp_derive_objid(&(res_oh_event->u.res_event.entry.ResourceEntity),
+				oid = oh_derive_string(&(res_oh_event->u.res_event.entry.ResourceEntity),
 							sensor_array[i].sensor_info.mib.oid);
 				if (oid == NULL) {
 					dbg("Cannot derive %s.", sensor_array[i].sensor_info.mib.oid);
@@ -322,7 +322,7 @@ SaErrorT snmp_bc_discover_controls(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
-		oid = snmp_derive_objid(&(res_oh_event->u.res_event.entry.ResourceEntity),
+		oid = oh_derive_string(&(res_oh_event->u.res_event.entry.ResourceEntity),
 					control_array[i].control_info.mib.oid);
 		if (oid == NULL) {
 			dbg("Cannot derive %s.", control_array[i].control_info.mib.oid);
@@ -402,7 +402,7 @@ SaErrorT snmp_bc_discover_inventories(struct oh_handler_state *handle,
 			return(SA_ERR_HPI_OUT_OF_SPACE);
 		}
 
-		oid = snmp_derive_objid(&(res_oh_event->u.res_event.entry.ResourceEntity),
+		oid = oh_derive_string(&(res_oh_event->u.res_event.entry.ResourceEntity),
 					inventory_array[i].inventory_info.mib.oid.OidManufacturer);
 		if (oid == NULL) {
 			dbg("Cannot derive %s.", 

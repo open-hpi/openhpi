@@ -410,7 +410,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_CHASSIS_TYPE;
 
 		if(s->mib.oid.OidChassisType != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidChassisType);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidChassisType);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for Chassis Type\n");
                 	} else {
@@ -428,7 +428,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MFG_DATETIME;
 		thisField.Field.DataLength = 0; /* SaHpiUint8T  */
 		if (s->mib.oid.OidMfgDateTime != NULL) 	
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidMfgDateTime);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidMfgDateTime);
 		else 
 			oid = NULL;
 		
@@ -464,7 +464,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_MANUFACTURER;
 
 		if(s->mib.oid.OidManufacturer != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidManufacturer);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidManufacturer);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for Manufacturer\n");
 
@@ -483,7 +483,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_NAME;
 
 		if(s->mib.oid.OidProductName != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidProductName);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidProductName);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for ProductName\n");
                 	} else {
@@ -501,7 +501,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION;
 
 		if(s->mib.oid.OidProductVersion != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidProductVersion);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidProductVersion);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for ProductVersion\n");
 
@@ -520,7 +520,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER;
 
 		if(s->mib.oid.OidSerialNumber != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidSerialNumber);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidSerialNumber);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for SerialNumber\n");
 
@@ -539,7 +539,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_PART_NUMBER;
 
 		if(s->mib.oid.OidPartNumber != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidPartNumber);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidPartNumber);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for PartNumber\n");
 
@@ -558,7 +558,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_FILE_ID;
 
 		if(s->mib.oid.OidFileId != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidFileId);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidFileId);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for FileId\n");
 
@@ -577,7 +577,7 @@ SaErrorT snmp_bc_build_idr( void *hnd,
 		thisField.Type = SAHPI_IDR_FIELDTYPE_ASSET_TAG;
 
 		if(s->mib.oid.OidAssetTag != NULL) {
-			oid = snmp_derive_objid(&(rdr->Entity),s->mib.oid.OidAssetTag);
+			oid = oh_derive_string(&(rdr->Entity),s->mib.oid.OidAssetTag);
 			if(oid == NULL) {
                         	dbg("NULL SNMP OID returned for AssetTag\n");
 
