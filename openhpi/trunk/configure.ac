@@ -468,17 +468,17 @@ AC_CONFIG_FILES([openhpi.spec
 	src/t/rpt/Makefile
 	src/t/sel/Makefile
         src/plugin_static.c
-        src/plugins/Makefile
-	src/plugins/snmp_client/Makefile
-        src/plugins/dummy/Makefile
-        src/plugins/watchdog/Makefile
-        src/plugins/ipmi/Makefile
-        src/plugins/snmp_bc/Makefile
-        src/plugins/snmp_bc/t/Makefile
-        src/plugins/sysfs/Makefile
-        src/plugins/ipmidirect/Makefile
-        src/plugins/ipmidirect/t/Makefile
-        src/plugins/simulator/Makefile
+        plugins/Makefile
+	plugins/snmp_client/Makefile
+        plugins/dummy/Makefile
+        plugins/watchdog/Makefile
+        plugins/ipmi/Makefile
+        plugins/snmp_bc/Makefile
+        plugins/snmp_bc/t/Makefile
+        plugins/sysfs/Makefile
+        plugins/ipmidirect/Makefile
+        plugins/ipmidirect/t/Makefile
+        plugins/simulator/Makefile
         test/Makefile
         docs/Makefile
         docs/hld/Makefile
