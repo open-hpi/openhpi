@@ -51,7 +51,7 @@ MAINTAINERCLEANFILES 	= Makefile.in aclocal.m4 configure config.guess config.sub
 MOSTLYCLEANFILES	= tags
 
 SUBDIRS			= utils @SNMPDIR@ plugins src docs @ENABLED_DIRS@ test
-DIST_SUBDIRS 		= utils snmp plugins src docs examples util test
+DIST_SUBDIRS 		= utils snmp plugins src docs examples clients test
 
 DISTCHECK_CONFIGURE_FLAGS = --with-initdir=prefix
 
