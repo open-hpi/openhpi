@@ -976,12 +976,20 @@ SaErrorT snmp_bc_add_to_eventq(struct oh_handler_state *handle, SaHpiEventT *thi
 	SaHpiEntryIdT rdrid=0;
         struct oh_event working;
         struct oh_event *e = NULL;
- 
+	SaHpiRptEntryT *thisRpt;
+	
         memset(&working, 0, sizeof(struct oh_event));
 
 	working.did = oh_get_default_domain_id();
 	working.type = OH_ET_HPI;
-        working.u.hpi_event.res = *(oh_get_resource_by_id(handle->rptcache, thisEvent->Source));
+
+	/*working.u.hpi_event.res = *(oh_get_resource_by_id(handle->rptcache, thisEvent->Source));*/
+	thisRpt = oh_get_resource_by_id(handle->rptcache, thisEvent->Source);
+        if (thisRpt) 
+		working.u.hpi_event.res = *thisRpt;
+	else 
+		dbg("NULL Rpt pointer for rid %d\n", thisEvent->Source);
+	/* memcpy(&working.u.hpi_event.res, thisRpt, sizeof(SaHpiRptEntryT)); */
         memcpy(&working.u.hpi_event.event, thisEvent, sizeof(SaHpiEventT));
 
 	/* FIXME:: Merged with same type of code in snmp_bc_sel.c 
