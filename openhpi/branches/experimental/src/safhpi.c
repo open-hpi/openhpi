@@ -23,6 +23,7 @@
 #include <openhpi.h>
 #include <oh_plugin.h>
 #include <SaHpi.h>
+#include <uid_utils.h>
 
 #include <pthread.h>
 
@@ -104,8 +105,13 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
         /* initialize mutex used for data locking */
         /* in the future may want to add seperate */
         /* mutexes, one for each hash list        */
-         
         data_access_lock();
+
+	/* initialize uid_utils, and load uid map file if present */
+	if( oh_uid_initialize() ) {
+		dbg("uid_intialization failed");
+		return(SA_ERR_HPI_ERROR);
+	}
 
         if (OH_STAT_UNINIT != oh_hpi_state) {
                 dbg("Cannot initialize twice");
@@ -151,7 +157,7 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
                         dbg("load handler for unknown plugin %s",
                                 (char *)g_hash_table_lookup(tmph, "plugin"));
                 }
-        }
+        } 
         
         oh_hpi_state = OH_STAT_READY;
 
@@ -162,14 +168,22 @@ SaErrorT SAHPI_API saHpiInitialize(SAHPI_OUT SaHpiVersionT *HpiImplVersion)
 
 SaErrorT SAHPI_API saHpiFinalize(void)
 {
-        OH_STATE_READY_CHECK;   
-        
+        OH_STATE_READY_CHECK;
+
+        /* free mutex */
+	/* TODO: this wasn't here in bracnk, need to resolve history */
+        data_access_lock();
+
+	/* TODO: realy should have a oh_uid_finalize() that */
+	/* frees memory,				    */
+	if(oh_uid_map_to_file())
+		dbg("error writing uid entity path mapping to file");    
         /*
           we should be doing handler shutdown here.
         */
         oh_hpi_state = OH_STAT_UNINIT;
 
-        /* free glib static mutex */
+        /* free mutex */
         data_access_unlock();
 
         return SA_OK;
