@@ -31,6 +31,7 @@
 #include <snmp_client.h>
 #include <snmp_client_res.h>
 #include <snmp_client_utils.h>
+#include <sc_sensor_data.h>
 
 /**
  * snmp_client_open: open snmp blade center plugin
@@ -209,7 +210,7 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 	struct rdr_data *remote_rdr_data = NULL;
         
 	oid anOID[MAX_OID_LEN];
-	oid indices[NUM_CTRL_INDICES];
+	oid indices[NUM_SEN_INDICES];
 
         struct oh_handler_state *handle = 
 		(struct oh_handler_state *)hnd;
@@ -371,134 +372,123 @@ static int snmp_client_get_sensor_data(void *hnd, SaHpiResourceIdT id,
 
 	return(status);
 }
+ 	   
 
-#define get_raw_thresholds(thdmask, thdoid, thdname) \
-do { \
-        if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold & thdmask) { \
-	        if(s->mib.threshold_oids.RawThresholds.thdoid != NULL && s->mib.threshold_oids.RawThresholds.thdoid[0] != '\0') { \
-	                oid = snmp_derive_objid(rdr->Entity,s->mib.threshold_oids.RawThresholds.thdoid); \
-                        if(oid == NULL) { \
-                                 dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.RawThresholds.thdoid); \
-                                 return -1; \
-                        } \
-	                if((net_snmp_get(custom_handle->ss, oid, &get_value) != 0) | \
-	                   (get_value.type != ASN_INTEGER)) { \
-		                dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type); \
-		                g_free(oid); \
-		                return SA_ERR_HPI_NO_RESPONSE; \
-	                } \
-	                g_free(oid); \
-	                found_raw++; \
-	                working.thdname.Raw = get_value.integer; \
-	                working.thdname.ValuesPresent = working.thdname.ValuesPresent | SAHPI_SRF_RAW; \
-	        } else { \
-		        dbg("Raw threshold defined as readable but no OID defined\n"); \
-	        } \
-        } \
-} while(0)
-
-#define get_interpreted_thresholds(thdmask, thdoid, thdname) \
-do { \
-        if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.ReadThold & thdmask) { \
-	        if(s->mib.threshold_oids.InterpretedThresholds.thdoid != NULL && s->mib.threshold_oids.InterpretedThresholds.thdoid[0] != '\0') { \
-		        oid = snmp_derive_objid(rdr->Entity,s->mib.threshold_oids.InterpretedThresholds.thdoid); \
-                        if(oid == NULL) { \
-                                dbg("NULL SNMP OID returned for %s\n",s->mib.threshold_oids.InterpretedThresholds.thdoid); \
-                                return -1; \
-                        } \
-	         	if((net_snmp_get(custom_handle->ss, oid, &get_value) != 0) | \
-	                   !((get_value.type == ASN_INTEGER) | (get_value.type == ASN_OCTET_STR))) { \
-			        dbg("SNMP could not read %s; Type=%d.\n",oid,get_value.type); \
-			        g_free(oid); \
-			        return SA_ERR_HPI_NO_RESPONSE; \
-		        } \
-		        found_interpreted++; \
-		        /* Means we always need to define this field in bc_resources.h */ \
-		        working.thdname.Interpreted.Type = rdr->RdrTypeUnion.SensorRec.DataFormat.Range.Max.Interpreted.Type; \
-		        working.thdname.ValuesPresent = working.thdname.ValuesPresent | SAHPI_SRF_INTERPRETED; \
-		        if(get_value.type == ASN_INTEGER) { \
-			         working.thdname.Interpreted.Value.SensorInt32 = get_value.integer; \
-		        } else if(get_value.type == ASN_OCTET_STR && s->mib.convert_snmpstr >= 0) { \
-			        if(get_interpreted_value(get_value.string,s->mib.convert_snmpstr,&value)) { \
-				        dbg("Error: bad return from get_interpreted_value for %s\n",oid); \
-                                        g_free(oid); \
-				        return -1; \
-			        } \
-			        working.thdname.Interpreted.Value = value; \
-		        } else { \
-			        dbg("%s threshold is string but no conversion defined\n",oid); \
-                                g_free(oid); \
-			        return -1; \
-		        } \
-                        g_free(oid); \
-	        } else { \
-		        dbg("Interpreted threshold defined as readable but no OID defined\n"); \
-	        } \
-        } \
-} while(0)
-
-static int snmp_client_get_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
-                                         SaHpiSensorNumT num,
-                                         SaHpiSensorThresholdsT *thres)
+static int snmp_client_get_sensor_thresholds(void *hnd, 
+					     SaHpiResourceIdT id,
+					     SaHpiSensorNumT num,
+					     SaHpiSensorThresholdsT *thres)
 {
+	/* pointer to MIB OID's for given Sensor table */
+	oid **oid_ptr;
 
-dbg("TODO: snmp_client_get_sensor_thresholds()");
-#if 0
-        gchar *oid = NULL;
-	int  found_raw, found_interpreted;
-	SaHpiSensorThresholdsT working;
-	SaHpiSensorInterpretedUnionT value;
-        struct snmp_value get_value;
-        struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-        struct snmp_client_hnd *custom_handle = (struct snmp_client_hnd *)handle->data;
-        SaHpiRdrT *rdr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num);
-        struct BC_SensorInfo *s =
-                (struct BC_SensorInfo *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId);
+	SaErrorT status = SA_OK;
 
-        memset(&working, 0, sizeof(SaHpiSensorThresholdsT));
+	SaHpiRdrT *rdr = NULL;
 
-	if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold == SAHPI_TRUE) {
-		found_raw = found_interpreted = 0;
-		if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_STC_RAW) {
+	struct rdr_data *remote_rdr_data = NULL;
+        
+	oid indices[NUM_SEN_INDICES];
 
-			get_raw_thresholds(SAHPI_STM_LOW_MINOR, OidLowMinor, LowMinor);
-			get_raw_thresholds(SAHPI_STM_LOW_MAJOR, OidLowMajor, LowMajor);
-			get_raw_thresholds(SAHPI_STM_LOW_CRIT, OidLowCrit, LowCritical);
-			get_raw_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
-			get_raw_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
-			get_raw_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
+        struct oh_handler_state *handle = 
+		(struct oh_handler_state *)hnd;
 
-			/* FIXME:: Add PosThdHysteresis and NegThdHysteresis */			 	
-		}
+        struct snmp_client_hnd *custom_handle = 
+		(struct snmp_client_hnd *)handle->data;
 
-		if(rdr->RdrTypeUnion.SensorRec.ThresholdDefn.TholdCapabilities & SAHPI_STC_INTERPRETED) {
+	/* clear thres for fresh information */
+	memset(thres, 0, sizeof(*thres));
 
-			get_interpreted_thresholds(SAHPI_STM_LOW_MINOR, OidLowMinor, LowMinor);
-			get_interpreted_thresholds(SAHPI_STM_LOW_MAJOR, OidLowMajor, LowMajor);
-			get_interpreted_thresholds(SAHPI_STM_LOW_CRIT, OidLowCrit, LowCritical);
-			get_interpreted_thresholds(SAHPI_STM_UP_MINOR, OidUpMinor, UpMinor);
-			get_interpreted_thresholds(SAHPI_STM_UP_MAJOR, OidUpMajor, UpMajor);
-			get_interpreted_thresholds(SAHPI_STM_UP_CRIT, OidUpCrit, UpCritical);
+        if(!(rdr = 
+		oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, num)) ) {
+		printf("ERROR finding rdr in snmp_client_get_sensor_data()\n");
+		return(SA_ERR_HPI_ERROR);
+	}
 
-			/* FIXME:: Add PosThdHysteresis and NegThdHysteresis */			 	
-		}
+        if (!(remote_rdr_data =
+                (struct rdr_data *)oh_get_rdr_data(handle->rptcache, id, rdr->RecordId))) {
+		printf(" ERROR finding rdr_data in snmp_client_get_sensor_data()\n");
+		return(SA_ERR_HPI_ERROR);
+	}
 
-		/* FIXME:: Do we need to add events as well? */
+	/* INDEX   { saHpiDomainID, saHpiResourceID, saHpiSensorIndex }	*/
+	indices[0] = (oid)remote_rdr_data->index.remote_domain;
+	indices[1] = (oid)remote_rdr_data->index.remote_resource_id;
+	indices[2] = (oid)num;
 
-		if (found_raw || found_interpreted) {
-			memcpy(thres,&working,sizeof(SaHpiSensorThresholdsT));
-			return SA_OK;
-		} else {
-			dbg("No threshold values found\n");
-			return -1;
-		}
-        } else {
-                dbg("Thresholds requested, but sensor does not support them.\n");
-                return SA_ERR_HPI_INVALID_CMD;
-        } 
-#endif 
-return(-1);
+	/* Check Thresholds Supprorted */
+	if (rdr->RdrTypeUnion.SensorRec.ThresholdDefn.IsThreshold
+	    == SAHPI_TRUE) {
+							 
+		/* SAHPI_SENSOR_READING_THD_LOW_CRITICAL_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_LOW_CRITICAL_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+        					  &thres->LowCritical);
+#if 1
+		/* SAHPI_SENSOR_READING_THD_LOW_MAJORL_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_LOW_MAJORL_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->LowMajor);
+
+		/* SAHPI_SENSOR_READING_THD_LOW_MINORL_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_LOW_MINORL_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->LowMinor);
+
+		/* SAHPI_SENSOR_READING_THD_UP_CRITICAL_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_UP_CRITICAL_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->UpCritical);
+
+		/* SAHPI_SENSOR_READING_THD_UP_MAJOR_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_UP_MAJOR_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->UpMajor);
+
+		/* SAHPI_SENSOR_READING_THD_UP_MINOR_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_UP_MINOR_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->UpMinor);
+
+		/* SAHPI_SENSOR_READING_THD_POS_HYSTERESIS_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_POS_HYSTERESIS_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->PosThdHysteresis);
+
+		/* SAHPI_SENSOR_READING_THD_NEG_HYSTERESIS_TABLE readings */ 
+		oid_ptr = get_thold_table_oids(
+			SAHPI_SENSOR_READING_THD_NEG_HYSTERESIS_TABLE);
+		status = get_sensor_threshold_data(custom_handle, 
+						  oid_ptr, 
+						  indices, 
+						  &thres->NegThdHysteresis);
+#endif
+	}
+
+	return(status);
 }
+
 
 static int snmp_client_set_sensor_thresholds(void *hnd, SaHpiResourceIdT id,
                                          SaHpiSensorNumT num,
