@@ -11,6 +11,7 @@
  *
  * Authors:
  *	David Judkovics <djudkovi@us.ibm.com>
+ *	Renier Morales <renierm@us.ibm.com>
  *
  */
  
@@ -118,6 +119,9 @@ build_state_string (SaHpiEventCategoryT category,
   int i;
 
   int rc = SA_OK;
+
+  if (!str || !len) return SA_ERR_HPI_ERROR;
+  
   *len = 0;
   idx = 0;
   temp = (char *) g_malloc0 (STATESTRING_MAX_LENGTH);
@@ -188,6 +192,8 @@ build_state_value (unsigned char *str, size_t len, SaHpiEventStateT * state)
   char *tok = NULL;
   int i = 0;
 
+  if (!str || !state) return SA_ERR_HPI_ERROR;
+  
   if (len == 0) {
 	  dbg("Nothing to do, len 0, returning");
 	  return(SA_OK);
@@ -255,6 +261,11 @@ build_reading_strings (SaHpiSensorReadingT * reading,
 //  char format[SENSOR_READING_MAX_LEN];
   size_t len;
 
+  if (!reading || !values_present || !raw_reading || !interpreted_reading ||
+      !interpreted_reading_len || !sensor_status || !event_status ||
+      !event_status_len)
+	  return SA_ERR_HPI_ERROR;
+  
   if (values_present) {
     *values_present = reading->ValuesPresent + 1;
     if (*values_present == 1) 
