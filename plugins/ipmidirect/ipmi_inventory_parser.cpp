@@ -1,8 +1,7 @@
 /*
- * ipmi_inventory_parser.cpp
+ * ipmi_inventory_parser.h
  *
  * Copyright (c) 2004 by FORCE Computers
- * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,13 +12,12 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include "ipmi_inventory_parser.h"
 #include "ipmi_utils.h"
 #include <string.h>
-#include <oh_utils.h>
+
 
 unsigned char
 IpmiChecksum( const unsigned char *data, int size )
@@ -32,18 +30,6 @@ IpmiChecksum( const unsigned char *data, int size )
   return c;
 }
 
-unsigned char
-IpmiChecksumMulti( const unsigned char *data, int size, unsigned char csum )
-{
-  unsigned char c = 0;
-
-  while( size-- )
-      c += *data++;
-
-  c += csum;
-
-  return c;
-}
 
 static const char *inventory_record_type_map[] =
 {
@@ -65,307 +51,440 @@ IpmiInventoryRecordTypeToString( tIpmiInventoryRecordType type )
 }
 
 
-////////////////////////////////////////////////////////////
-//                  cIpmiInventoryField
-////////////////////////////////////////////////////////////
-
-cIpmiInventoryField::cIpmiInventoryField(SaHpiEntryIdT area_id,
-                                         SaHpiEntryIdT field_id,
-                                         SaHpiIdrFieldTypeT field_type)
-{
-    m_idr_field.AreaId   = area_id;
-    m_idr_field.FieldId  = field_id;
-    m_idr_field.Type     = field_type;
-    m_idr_field.ReadOnly = SAHPI_TRUE;
-}
-
-
-cIpmiInventoryField::~cIpmiInventoryField()
-{
-}
-
-SaErrorT
-cIpmiInventoryField::ReadTextBuffer( const unsigned char *&data, unsigned int &size )
+static SaErrorT
+ReadTextBuffer( const unsigned char *&data, unsigned &size, 
+		cIpmiTextBuffer &tb )
 {
   if ( size < 1 )
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
 
-  const unsigned char *d = m_ipmi_text_buffer.SetIpmi( data, true );
+  const unsigned char *d = tb.SetIpmi( data );
 
   if ( d == 0 )
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
 
-  m_idr_field.Field = m_ipmi_text_buffer;
-
-  size -= d - data;
+  size = d - data;
   data = d;
 
   return SA_OK;
 }
 
-void
-cIpmiInventoryField::SetAscii( char *str, int size )
-{
-  m_idr_field.Field.DataType = SAHPI_TL_TYPE_TEXT;
-  m_idr_field.Field.Language = SAHPI_LANG_ENGLISH;
-  m_idr_field.Field.DataLength = size;
-
-  memcpy( m_idr_field.Field.Data, str, size );
-}
-
-void
-cIpmiInventoryField::SetBinary( const unsigned char *data, unsigned int size )
-{
-  m_idr_field.Field.DataType = SAHPI_TL_TYPE_BINARY;
-  m_idr_field.Field.Language = SAHPI_LANG_UNDEF;
-  m_idr_field.Field.DataLength = size;
-
-  memcpy( m_idr_field.Field.Data, data, size );
-}
 
 ////////////////////////////////////////////////////////////
-//                  cIpmiInventoryAreaInternal
+//                  cIpmiInventoryRecordInternal
 ////////////////////////////////////////////////////////////
 
-cIpmiInventoryAreaInternal::cIpmiInventoryAreaInternal(SaHpiEntryIdT area_id)
-  : cIpmiInventoryArea(area_id)
+cIpmiInventoryRecordInternal::cIpmiInventoryRecordInternal()
+  : cIpmiInventoryRecordCommon( eIpmiInventoryRecordTypeInternal ),
+    m_data( 0 ), m_size( 0 )
 {
-    m_area_header.Type = SAHPI_IDR_AREATYPE_INTERNAL_USE;
 }
 
 
-cIpmiInventoryAreaInternal::~cIpmiInventoryAreaInternal()
+cIpmiInventoryRecordInternal::~cIpmiInventoryRecordInternal()
 {
+  if ( m_data )
+       delete [] m_data;
+}
+
+
+void
+cIpmiInventoryRecordInternal::SetData( const unsigned char *data, unsigned int size )
+{
+  if ( m_data )
+       delete [] m_data;
+
+  if ( size == 0 )
+     {
+       m_data = 0;
+       m_size = 0;
+
+       return;
+     }
+
+  m_data = new unsigned char[size];
+  memcpy( m_data, data, size );
+  m_size = size;
+}
+
+
+const unsigned char *
+cIpmiInventoryRecordInternal::GetData( unsigned int &size ) const
+{
+  size = m_size;
+  
+  return m_data;
 }
 
 
 SaErrorT
-cIpmiInventoryAreaInternal::ParseFruArea( const unsigned char *data, unsigned int size )
+cIpmiInventoryRecordInternal::IpmiRead( const unsigned char *data, unsigned int size )
 {
-  return SA_ERR_HPI_INVALID_DATA;
-}
+  SaErrorT rv = cIpmiInventoryRecordCommon::IpmiRead( data, size );
 
-////////////////////////////////////////////////////////////
-//                  cIpmiInventoryAreaMultiRecord
-////////////////////////////////////////////////////////////
+  if ( rv != SA_OK )
+       return rv;
 
-cIpmiInventoryAreaMultiRecord::cIpmiInventoryAreaMultiRecord(SaHpiEntryIdT area_id)
-  : cIpmiInventoryArea(area_id)
-{
-    m_area_header.Type = SAHPI_IDR_AREATYPE_OEM;
-}
-
-
-cIpmiInventoryAreaMultiRecord::~cIpmiInventoryAreaMultiRecord()
-{
-}
-
-
-SaErrorT
-cIpmiInventoryAreaMultiRecord::ParseFruArea( const unsigned char *data, unsigned int size )
-{
-  cIpmiInventoryField *iif;
-  unsigned int record_size;
-  bool end_of_list = false;
-  unsigned char record_type;
-  unsigned char record_csum;
-
-  do {
-       if ( size < 5 )
-	     return SA_ERR_HPI_INVALID_DATA;
-
-       if ( IpmiChecksum(data, 5 ))
-       {
-            stdlog << "wrong Multirecord header area checksum !\n";
-            return SA_ERR_HPI_INVALID_DATA;
-       }
-
-       record_size = *(data+2);
-       end_of_list = *(data+1) & 0x80;
-       record_type = *data;
-       record_csum = *(data+3);
-
-       stdlog << "Multirecord type " << record_type << " size " << record_size << " EOL " << end_of_list << "\n";
-
-       data += 5;
-       size -= 5;
-
-       if ( record_size > size )
-       {
-            stdlog << "wrong Multirecord area checksum !\n";
-            return SA_ERR_HPI_INVALID_DATA;
-       }
-
-       if ( IpmiChecksumMulti( data, record_size, record_csum ) )
-       {
-            stdlog << "wrong Multirecord area checksum !\n";
-            return SA_ERR_HPI_INVALID_DATA;
-       }
-
-       if ( record_type == eIpmiInventoryMultiRecordTypeOem )
-       {
-            iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, SAHPI_IDR_FIELDTYPE_CUSTOM);
-
-            m_field_array.Add( iif );
-
-            iif->SetBinary( data, record_size );
-       }
-
-       data += record_size;
-       size -= record_size;
-
-     } while (end_of_list == false);
-
-  m_area_header.NumFields = m_field_array.Num();
+  SetData( data+1, size - 1 );
 
   return SA_OK;
 }
 
-////////////////////////////////////////////////////////////
-//                  cIpmiInventoryAreaChassis
-////////////////////////////////////////////////////////////
 
-cIpmiInventoryAreaChassis::cIpmiInventoryAreaChassis(SaHpiEntryIdT area_id)
-  : cIpmiInventoryArea(area_id)
+unsigned int
+cIpmiInventoryRecordInternal::IpmiSize() const
 {
-    m_area_header.Type = SAHPI_IDR_AREATYPE_CHASSIS_INFO;
+  assert( 0 );
+
+  return 0;
 }
 
 
-cIpmiInventoryAreaChassis::~cIpmiInventoryAreaChassis()
+unsigned int
+cIpmiInventoryRecordInternal::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryRecordInternal::HpiSize( int record_id ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return 0;
+     }
+
+  unsigned int size =   sizeof( SaHpiInventDataRecordT )
+                      - sizeof( SaHpiInventDataUnionT );
+
+  size += m_size;
+
+  return size;
+}
+
+
+void
+cIpmiInventoryRecordInternal::HpiRead( int record_id, SaHpiInventDataRecordT *r ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  r->RecordType = SAHPI_INVENT_RECTYPE_INTERNAL_USE;
+  r->DataLength = m_size;
+
+  if ( m_size )
+       memcpy( r->RecordData.InternalUse.Data, m_data, m_size );
+}
+
+
+void
+cIpmiInventoryRecordInternal::HpiWrite( int record_id, SaHpiInventDataRecordT * /*r*/ )
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryRecordInternal::Dump( cIpmiLog &dump,
+                                    int record_id, 
+                                    const char *name ) const
+{
+  if ( record_id )
+     {
+       assert( 0 );
+       return;
+     }
+  
+  dump.Begin( "FruInternalUse", name );
+
+  dump.Entry( "Version" ) << m_version << ";\n";
+  dump.Entry( "Data" );
+
+  for( unsigned int i = 0; i < m_size; i++ )
+     {
+       if ( i != 0 )
+            dump << ", ";
+  
+       dump << m_data[i];
+     }
+
+  dump << ";\n";
+
+  dump.End();
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryRecordChassis
+////////////////////////////////////////////////////////////
+
+
+cIpmiInventoryRecordChassis::cIpmiInventoryRecordChassis()
+  : cIpmiInventoryRecordCommon( eIpmiInventoryRecordTypeChassis ),
+    m_chassis_type( SAHPI_INVENT_CTYP_UNKNOWN )
 {
 }
 
 
-static SaHpiIdrFieldTypeT ChassisInfoAreaFields[] =
+cIpmiInventoryRecordChassis::~cIpmiInventoryRecordChassis()
 {
-    SAHPI_IDR_FIELDTYPE_PART_NUMBER,
-    SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
-};
+}
+
 
 SaErrorT
-cIpmiInventoryAreaChassis::ParseFruArea( const unsigned char *data, unsigned int size )
+cIpmiInventoryRecordChassis::IpmiRead( const unsigned char *data, unsigned int size )
 {
-  cIpmiInventoryField *iif;
-  SaErrorT rv;
-  unsigned int area_size = *(data+1)*8;
+  SaErrorT rv = cIpmiInventoryRecordCommon::IpmiRead( data, size );
 
-  if ( area_size > size )
-  {
-       stdlog << "wrong chassis area length !\n";
-       return SA_ERR_HPI_INVALID_DATA;
-  }
-
-  if ( IpmiChecksum( data, *(data+1)*8 ) )
-     {
-       stdlog << "wrong chassis area checksum !\n";
-       return SA_ERR_HPI_INVALID_DATA;
-     }
+  if ( rv != SA_OK )
+       return rv;
 
   data += 2;
   size -= 2;
 
   if ( size < 1 )
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
 
-  // Skip Chassis type
+  m_chassis_type = (SaHpiInventChassisTypeT)data[0];
   data++;
   size--;
 
-  for ( unsigned int i = 0; i < sizeof(ChassisInfoAreaFields)/sizeof(ChassisInfoAreaFields[0]); i++ )
-  {
-      iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, ChassisInfoAreaFields[i]);
+  rv = ReadTextBuffer( data, size, m_chassis_part_number );
 
-      m_field_array.Add( iif );
+  if ( rv != SA_OK )
+       return rv;
 
-      rv = iif->ReadTextBuffer( data, size );
+  rv = ReadTextBuffer( data, size, m_chassis_serial_number );
 
-      if ( rv != SA_OK )
-          return rv;
-  }
+  if ( rv != SA_OK )
+       return rv;
 
   while( true )
      {
        if ( size < 1 )
-	    return SA_ERR_HPI_INVALID_DATA;
+	    return SA_ERR_HPI_DATA_LEN_INVALID;
 
        if ( *data == 0xc1 )
 	    break;
 
-       iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, SAHPI_IDR_FIELDTYPE_CUSTOM);
-
-       m_field_array.Add( iif );
-
-       rv = iif->ReadTextBuffer( data, size );
+       cIpmiTextBuffer *tb = new cIpmiTextBuffer;
+       rv = ReadTextBuffer( data, size, *tb );
 
        if ( rv != SA_OK )
-        return rv;
-     }
+	  {
+	    delete tb;
+	    return rv;
+	  }
 
-  m_area_header.NumFields = m_field_array.Num();
+       Add( tb );
+     }
 
   return SA_OK;
 }
 
-////////////////////////////////////////////////////////////
-//                  cIpmiInventoryAreaBoard
-////////////////////////////////////////////////////////////
 
-cIpmiInventoryAreaBoard::cIpmiInventoryAreaBoard(SaHpiEntryIdT area_id)
-  : cIpmiInventoryArea(area_id)
+unsigned int
+cIpmiInventoryRecordChassis::IpmiSize() const
 {
-    m_area_header.Type = SAHPI_IDR_AREATYPE_BOARD_INFO;
+  assert( 0 );
+
+  return 0;
 }
 
 
-cIpmiInventoryAreaBoard::~cIpmiInventoryAreaBoard()
+unsigned int
+cIpmiInventoryRecordChassis::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryRecordChassis::HpiSize( int record_id ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return 0;
+     }
+
+  unsigned int size =   sizeof( SaHpiInventDataRecordT )
+                      - sizeof( SaHpiInventDataUnionT );
+
+  size += sizeof( SaHpiInventChassisDataT );
+
+  if ( m_chassis_part_number.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_chassis_serial_number.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  size += Num() * ( sizeof( SaHpiTextBufferT * ) + sizeof( SaHpiTextBufferT ) );
+
+  return size;
+}
+
+
+void
+cIpmiInventoryRecordChassis::HpiRead( int record_id, SaHpiInventDataRecordT *r ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  unsigned char *data = (unsigned char *)r;
+  data +=   sizeof( SaHpiInventDataRecordT )
+          - sizeof( SaHpiInventDataUnionT );
+  data += sizeof( SaHpiInventChassisDataT );
+  data += Num() * sizeof( SaHpiTextBufferT * );
+
+  r->RecordType = SAHPI_INVENT_RECTYPE_CHASSIS_INFO;
+
+  r->DataLength =   sizeof( SaHpiInventChassisDataT )
+                  + Num() * ( sizeof( SaHpiTextBufferT * ) + sizeof( SaHpiTextBufferT ) );
+
+  SaHpiInventChassisDataT &cd = r->RecordData.ChassisInfo;
+  cd.Type        = m_chassis_type;
+  cd.GeneralData.MfgDateTime = SAHPI_TIME_UNSPECIFIED;
+
+  if ( m_chassis_part_number.DataLength() )
+     {
+       cd.GeneralData.PartNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_chassis_part_number;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_chassis_serial_number.DataLength() )
+     {
+       cd.GeneralData.SerialNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_chassis_serial_number;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  for( int i = 0; i < Num(); i++ )
+     {
+       cd.GeneralData.CustomField[i] = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)*operator[]( i );
+
+       data += sizeof( SaHpiTextBufferT );
+     }
+
+  cd.GeneralData.CustomField[Num()] = 0;
+}
+
+
+void
+cIpmiInventoryRecordChassis::HpiWrite( int record_id, SaHpiInventDataRecordT * /*r*/ )
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryRecordChassis::Dump( cIpmiLog &dump,
+                                   int record_id, 
+                                   const char *name ) const
+{
+  if ( record_id )
+     {
+       assert( 0 );
+       return;
+     }
+
+  dump.Begin( "FruChassisInfo", name );
+
+  dump.Entry( "Version" ) << m_version << ";\n";
+  dump.Entry( "ChassisType" ) << (unsigned char)m_chassis_type << ";\n";
+  dump.Entry( "PartNumber" ) << "\"" << m_chassis_part_number << "\";\n";
+  dump.Entry( "SerialNumber" ) << "\"" << m_chassis_serial_number << "\";\n";
+
+  if ( Num() )
+     {
+       dump.Entry( "CustomField" );
+
+       for( int i = 0; i < Num(); i++ )
+          {
+            if ( i != 0 )
+                 dump << ", ";
+
+            dump << "\"" << *operator[]( i ) << "\"";
+          }
+
+       dump << ";\n";
+     }
+
+  dump.End();
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryRecordBoard
+////////////////////////////////////////////////////////////
+
+
+cIpmiInventoryRecordBoard::cIpmiInventoryRecordBoard()
+  : cIpmiInventoryRecordCommon( eIpmiInventoryRecordTypeBoard ),
+    m_language( SAHPI_LANG_UNDEF ), m_mfg_time( 0 )
 {
 }
 
-static SaHpiIdrFieldTypeT BoardInfoAreaFields[] =
+
+cIpmiInventoryRecordBoard::~cIpmiInventoryRecordBoard()
 {
-    SAHPI_IDR_FIELDTYPE_MANUFACTURER,
-    SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
-    SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
-    SAHPI_IDR_FIELDTYPE_PART_NUMBER,
-    SAHPI_IDR_FIELDTYPE_FILE_ID,
-};
+}
+
 
 SaErrorT
-cIpmiInventoryAreaBoard::ParseFruArea( const unsigned char *data, unsigned int size )
+cIpmiInventoryRecordBoard::IpmiRead( const unsigned char *data, unsigned int size )
 {
-  cIpmiInventoryField *iif;
-  SaErrorT rv;
-  unsigned int area_size = *(data+1)*8;
+  SaErrorT rv = cIpmiInventoryRecordCommon::IpmiRead( data, size );
 
-  if ( area_size > size )
-  {
-       stdlog << "wrong board area length !\n";
-       return SA_ERR_HPI_INVALID_DATA;
-  }
-
-  if ( IpmiChecksum( data, *(data+1)*8 ) )
-     {
-       stdlog << "wrong board area checksum !\n";
-       return SA_ERR_HPI_INVALID_DATA;
-     }
+  if ( rv != SA_OK )
+       return rv;
 
   data += 2;
   size -= 2;
 
   if ( size < 4 )
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
 
-  // Skip Language
+  m_language = (SaHpiLanguageT)data[0];
   data++;
   size--;
 
-  time_t mfg_time = (SaHpiTimeT)data[0] + (SaHpiTimeT)data[1] * 256 + (SaHpiTimeT)data[2] * 65536;
+  m_mfg_time = (SaHpiTimeT)data[0] + (SaHpiTimeT)data[1] * 256 + (SaHpiTimeT)data[1] * 65536;
 
   size -= 3;
   data += 3;
 
-  mfg_time *= 60;
+  m_mfg_time *= 60;
 
   // create date offset
   struct tm tmt;
@@ -378,241 +497,1035 @@ cIpmiInventoryAreaBoard::ParseFruArea( const unsigned char *data, unsigned int s
   tmt.tm_year = 96;
   tmt.tm_isdst = 0;
 
-  mfg_time += mktime( &tmt );
+  m_mfg_time += mktime( &tmt );
 
-  char str[80];
-  IpmiDateTimeToString( mfg_time, str );
+  m_mfg_time *= 1000000000;
 
-  iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, SAHPI_IDR_FIELDTYPE_MFG_DATETIME);
+  rv = ReadTextBuffer( data, size, m_board_manufacturer );
 
-  m_field_array.Add( iif );
+  if ( rv != SA_OK )
+       return rv;
 
-  iif->SetAscii ( str, strlen( str ) + 1 );
+  rv = ReadTextBuffer( data, size, m_board_product_name );
 
-  for ( unsigned int i = 0; i < sizeof(BoardInfoAreaFields)/sizeof(BoardInfoAreaFields[0]); i++ )
-  {
-      iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, BoardInfoAreaFields[i]);
+  if ( rv != SA_OK )
+       return rv;
 
-      m_field_array.Add( iif );
+  rv = ReadTextBuffer( data, size, m_board_serial_number );
 
-      rv = iif->ReadTextBuffer( data, size );
+  if ( rv != SA_OK )
+       return rv;
 
-      if ( rv != SA_OK )
-          return rv;
-  }
+  rv = ReadTextBuffer( data, size, m_board_part_number );
+
+  if ( rv != SA_OK )
+       return rv;
+
+  rv = ReadTextBuffer( data, size, m_fru_file_id );
+
+  if ( rv != SA_OK )
+       return rv;
 
   while( true )
      {
        if ( size < 1 )
-	    return SA_ERR_HPI_INVALID_DATA;
+	    return SA_ERR_HPI_DATA_LEN_INVALID;
 
        if ( *data == 0xc1 )
 	    break;
 
-       iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, SAHPI_IDR_FIELDTYPE_CUSTOM);
-
-       m_field_array.Add( iif );
-
-       rv = iif->ReadTextBuffer( data, size );
+       cIpmiTextBuffer *tb = new cIpmiTextBuffer;
+       rv = ReadTextBuffer( data, size, *tb );
 
        if ( rv != SA_OK )
-        return rv;
-     }
+	  {
+	    delete tb;
+	    return rv;
+	  }
 
-  m_area_header.NumFields = m_field_array.Num();
+       Add( tb );
+     }
 
   return SA_OK;
 }
 
 
-////////////////////////////////////////////////////////////
-//                  cIpmiInventoryAreaProduct
-////////////////////////////////////////////////////////////
-
-cIpmiInventoryAreaProduct::cIpmiInventoryAreaProduct(SaHpiEntryIdT area_id)
-  : cIpmiInventoryArea(area_id)
+unsigned int
+cIpmiInventoryRecordBoard::IpmiSize() const
 {
-    m_area_header.Type = SAHPI_IDR_AREATYPE_PRODUCT_INFO;
+  assert( 0 );
+
+  return 0;
 }
 
 
-cIpmiInventoryAreaProduct::~cIpmiInventoryAreaProduct()
+unsigned int
+cIpmiInventoryRecordBoard::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryRecordBoard::HpiSize( int record_id ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return 0;
+     }
+
+  unsigned int size =   sizeof( SaHpiInventDataRecordT )
+                      - sizeof( SaHpiInventDataUnionT );
+
+  size += sizeof( SaHpiInventGeneralDataT );
+
+  if ( m_board_manufacturer.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_board_product_name.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_board_serial_number.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_board_part_number.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_fru_file_id.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  size += Num() * ( sizeof( SaHpiTextBufferT * ) + sizeof( SaHpiTextBufferT ) );
+
+  return size;
+}
+
+
+void
+cIpmiInventoryRecordBoard::HpiRead( int record_id, SaHpiInventDataRecordT *r ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  unsigned char *data = (unsigned char *)r;
+  data +=   sizeof( SaHpiInventDataRecordT )
+          - sizeof( SaHpiInventDataUnionT );
+  data += sizeof( SaHpiInventGeneralDataT );
+  data += Num() * sizeof( SaHpiTextBufferT * );
+
+  r->RecordType = SAHPI_INVENT_RECTYPE_BOARD_INFO;
+  r->DataLength =   sizeof( SaHpiInventGeneralDataT )
+                  + Num() * ( sizeof( SaHpiTextBufferT * ) + sizeof( SaHpiTextBufferT ) );
+
+  SaHpiInventGeneralDataT &gd = r->RecordData.BoardInfo;
+  gd.MfgDateTime = m_mfg_time;
+
+  if ( m_board_manufacturer.DataLength() )
+     {
+       gd.Manufacturer = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_manufacturer;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_board_product_name.DataLength() )
+     {
+       gd.ProductName = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_product_name;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_board_serial_number.DataLength() )
+     {
+       gd.SerialNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_serial_number;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_board_part_number.DataLength() )
+     {
+       gd.PartNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_board_part_number;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_fru_file_id.DataLength() )
+     {
+       gd.FileId = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_fru_file_id;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  for( int i = 0; i < Num(); i++ )
+     {
+       gd.CustomField[i] = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)*operator[]( i );
+
+       data += sizeof( SaHpiTextBufferT );
+     }
+
+  gd.CustomField[Num()] = 0;
+}
+
+
+void
+cIpmiInventoryRecordBoard::HpiWrite( int record_id, SaHpiInventDataRecordT * /*r*/ )
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryRecordBoard::Dump( cIpmiLog &dump,
+                                 int record_id, 
+                                 const char *name ) const
+{
+  if ( record_id )
+     {
+       assert( 0 );
+       return;
+     }
+
+  dump.Begin( "FruBoardInfo", name );
+
+  dump.Entry( "Version" ) << m_version << ";\n";
+  dump.Entry( "Language" ) << (unsigned char)m_language << ";\n";
+
+  SaHpiTimeT mt = m_mfg_time / 1000000000;
+  struct tm tmt;
+  time_t dummy = mt;
+  localtime_r( &dummy, &tmt );
+
+  // 2003,10,30,11,11,11
+  char str[80];
+  strftime( str, 80, "%Y,%m,%d,%H,%M,%S", &tmt );
+
+  dump.Entry( "ManufacturerDate" ) << str << ";\n";
+  dump.Entry( "Manufacturer" ) << "\"" << m_board_manufacturer << "\";\n";
+  dump.Entry( "Name" ) << "\"" << m_board_product_name << "\";\n";
+  dump.Entry( "SerialNumber" ) << "\"" << m_board_serial_number << "\";\n";
+  dump.Entry( "PartNumber" ) << "\"" << m_board_part_number << "\";\n";
+  dump.Entry( "FruFileId" ) << "\"" << m_fru_file_id << "\";\n";
+
+  if ( Num() )
+     {
+       dump.Entry( "CustomField" );
+
+       for( int i = 0; i < Num(); i++ )
+          {
+            if ( i != 0 )
+                 dump << ", ";
+
+            dump << "\"" << *operator[]( i ) << "\"";
+          }
+
+       dump << ";\n";
+     }
+
+  dump.End();
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryRecordProduct
+////////////////////////////////////////////////////////////
+
+
+cIpmiInventoryRecordProduct::cIpmiInventoryRecordProduct()
+  : cIpmiInventoryRecordCommon( eIpmiInventoryRecordTypeProduct ),
+    m_language( SAHPI_LANG_UNDEF )
 {
 }
 
 
-static SaHpiIdrFieldTypeT ProductInfoAreaFields[] =
+cIpmiInventoryRecordProduct::~cIpmiInventoryRecordProduct()
 {
-    SAHPI_IDR_FIELDTYPE_MANUFACTURER,
-    SAHPI_IDR_FIELDTYPE_PRODUCT_NAME,
-    SAHPI_IDR_FIELDTYPE_PART_NUMBER,
-    SAHPI_IDR_FIELDTYPE_PRODUCT_VERSION,
-    SAHPI_IDR_FIELDTYPE_SERIAL_NUMBER,
-    SAHPI_IDR_FIELDTYPE_ASSET_TAG,
-    SAHPI_IDR_FIELDTYPE_FILE_ID,
-};
+}
+
 
 SaErrorT
-cIpmiInventoryAreaProduct::ParseFruArea( const unsigned char *data, unsigned int size )
+cIpmiInventoryRecordProduct::IpmiRead( const unsigned char *data, unsigned int size )
 {
-  cIpmiInventoryField *iif;
-  SaErrorT rv;
-  unsigned int area_size = *(data+1)*8;
+  SaErrorT rv = cIpmiInventoryRecordCommon::IpmiRead( data, size );
 
-  if ( area_size > size )
-  {
-       stdlog << "wrong product area length !\n";
-       return SA_ERR_HPI_INVALID_DATA;
-  }
-
-  if ( IpmiChecksum( data, *(data+1)*8 ) )
-     {
-       stdlog << "wrong product area checksum !\n";
-       return SA_ERR_HPI_INVALID_DATA;
-     }
+  if ( rv != SA_OK )
+       return rv;
 
   data += 2;
   size -= 2;
 
   if ( size < 1 )
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
 
-  // Skip Language
+  m_language = (SaHpiLanguageT)data[0];
   data++;
   size--;
 
-  for ( unsigned int i = 0; i < sizeof(ProductInfoAreaFields)/sizeof(ProductInfoAreaFields[0]); i++ )
-  {
-      iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, ProductInfoAreaFields[i]);
+  rv = ReadTextBuffer( data, size, m_manufacturer_name );
 
-      m_field_array.Add( iif );
+  if ( rv != SA_OK )
+       return rv;
 
-      rv = iif->ReadTextBuffer( data, size );
+  rv = ReadTextBuffer( data, size, m_product_name );
 
-      if ( rv != SA_OK )
-          return rv;
-  }
+  if ( rv != SA_OK )
+       return rv;
+
+  rv = ReadTextBuffer( data, size, m_product_part );
+
+  if ( rv != SA_OK )
+       return rv;
+
+  rv = ReadTextBuffer( data, size, m_product_version );
+
+  if ( rv != SA_OK )
+       return rv;
+
+  rv = ReadTextBuffer( data, size, m_product_serial_number );
+
+  if ( rv != SA_OK )
+       return rv;
+
+  rv = ReadTextBuffer( data, size, m_asset_tag );
+
+  if ( rv != SA_OK )
+       return rv;
+
+  rv = ReadTextBuffer( data, size, m_fru_file_id );
+
+  if ( rv != SA_OK )
+       return rv;
 
   while( true )
      {
        if ( size < 1 )
-	    return SA_ERR_HPI_INVALID_DATA;
+	    return SA_ERR_HPI_DATA_LEN_INVALID;
 
        if ( *data == 0xc1 )
 	    break;
 
-       iif = new cIpmiInventoryField( m_area_header.AreaId, m_field_id++, SAHPI_IDR_FIELDTYPE_CUSTOM);
-
-       m_field_array.Add( iif );
-
-       rv = iif->ReadTextBuffer( data, size );
+       cIpmiTextBuffer *tb = new cIpmiTextBuffer;
+       rv = ReadTextBuffer( data, size, *tb );
 
        if ( rv != SA_OK )
-        return rv;
-     }
+	  {
+	    delete tb;
+	    return rv;
+	  }
 
-  m_area_header.NumFields = m_field_array.Num();
+       Add( tb );
+     }
 
   return SA_OK;
 }
 
+
+unsigned int
+cIpmiInventoryRecordProduct::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryRecordProduct::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryRecordProduct::HpiSize( int record_id ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return 0;
+     }
+
+  unsigned int size =   sizeof( SaHpiInventDataRecordT )
+                      - sizeof( SaHpiInventDataUnionT );
+
+  size += sizeof( SaHpiInventGeneralDataT );
+
+  if ( m_manufacturer_name.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_product_name.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_product_part.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_product_version.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_product_serial_number.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_asset_tag.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  if ( m_fru_file_id.DataLength() )
+       size += sizeof( SaHpiTextBufferT );
+
+  size += Num() * (   sizeof( SaHpiTextBufferT * )
+                    + sizeof( SaHpiTextBufferT ) );
+
+  return size;
+}
+
+
+void
+cIpmiInventoryRecordProduct::HpiRead( int record_id, SaHpiInventDataRecordT *r ) const
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  unsigned char *data = (unsigned char *)r;
+  data +=   sizeof( SaHpiInventDataRecordT )
+          - sizeof( SaHpiInventDataUnionT );
+  data += sizeof( SaHpiInventGeneralDataT );
+  data += Num() * sizeof( SaHpiTextBufferT * );
+
+  r->RecordType = SAHPI_INVENT_RECTYPE_PRODUCT_INFO;
+
+  r->DataLength =   sizeof( SaHpiInventGeneralDataT )
+                  + Num() * (   sizeof( SaHpiTextBufferT * )
+                              + sizeof( SaHpiTextBufferT ) );
+
+  SaHpiInventGeneralDataT &gd = r->RecordData.BoardInfo;
+  gd.MfgDateTime = SAHPI_TIME_UNSPECIFIED;
+
+  if ( m_manufacturer_name.DataLength() )
+     {
+       gd.Manufacturer = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_manufacturer_name;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_product_name.DataLength() )
+     {
+       gd.ProductName = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_name;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_product_part.DataLength() )
+     {
+       gd.PartNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_part;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_product_version.DataLength() )
+     {
+       gd.ProductVersion = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_version;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_product_serial_number.DataLength() )
+     {
+       gd.SerialNumber = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_product_serial_number;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_asset_tag.DataLength() )
+     {
+       gd.AssetTag = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_asset_tag;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  if ( m_fru_file_id.DataLength() )
+     {
+       gd.FileId = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)m_fru_file_id;
+       data += sizeof( SaHpiTextBufferT );
+
+       r->DataLength += sizeof( SaHpiTextBufferT );
+     }
+
+  for( int i = 0; i < Num(); i++ )
+     {
+       gd.CustomField[i] = (SaHpiTextBufferT *)(void *)data;
+       *(SaHpiTextBufferT *)(void *)data = (SaHpiTextBufferT)*operator[]( i );
+
+       data += sizeof( SaHpiTextBufferT );
+     }
+
+  gd.CustomField[Num()] = 0;
+}
+
+
+void
+cIpmiInventoryRecordProduct::HpiWrite( int record_id, SaHpiInventDataRecordT *r )
+{
+  if ( record_id != 0 )
+     {
+       assert( 0 );
+       return;
+     }
+
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryRecordProduct::Dump( cIpmiLog &dump,
+                                   int record_id, 
+                                   const char *name ) const
+{
+  if ( record_id )
+     {
+       assert( 0 );
+       return;
+     }
+
+  dump.Begin( "FruProductInfo", name );
+
+  dump.Entry( "Version" ) << m_version << ";\n";
+  dump.Entry( "Language" ) << (unsigned char)m_language << ";\n";
+  dump.Entry( "Manufacturer" ) << "\"" << m_manufacturer_name << "\";\n";
+  dump.Entry( "Name" ) << "\"" << m_product_name << "\";\n";
+  dump.Entry( "PartNumber" ) << "\"" << m_product_part << "\";\n";
+  dump.Entry( "ProductVersion" ) << "\"" << m_product_version << "\";\n";
+  dump.Entry( "SerialNumber" ) << "\"" << m_product_serial_number << "\";\n";
+  dump.Entry( "AssetTag" ) << "\"" << m_asset_tag << "\";\n";
+  dump.Entry( "FruFileId" ) << "\"" << m_fru_file_id << "\";\n";
+
+  if ( Num() )
+     {
+       dump.Entry( "CustomField" );
+
+       for( int i = 0; i < Num(); i++ )
+          {
+            if ( i != 0 )
+                 dump << ", ";
+
+            dump << "\"" << *operator[]( i ) << "\"";
+          }
+
+       dump << ";\n";
+     }
+
+  dump.End();
+}
+
+
 ////////////////////////////////////////////////////////////
-//                  cIpmiInventoryArea
+//                  cIpmiInventoryBackplanePointToPointConnectivity
 ////////////////////////////////////////////////////////////
 
-cIpmiInventoryArea::cIpmiInventoryArea(SaHpiEntryIdT area_id)
-{
-    m_area_header.AreaId    = area_id;
-    m_area_header.Type      = SAHPI_IDR_AREATYPE_UNSPECIFIED;
-    m_area_header.ReadOnly  = SAHPI_TRUE;
-    m_area_header.NumFields = 0;
-    m_field_id              = 1;
-}
-
-cIpmiInventoryArea::~cIpmiInventoryArea()
+cIpmiInventoryBackplanePointToPointConnectivity::cIpmiInventoryBackplanePointToPointConnectivity()
+  : cIpmiInventoryMultiRecord( tIpmiMultiRecordTypeBackplanePointToPointConnectivity )
 {
 }
 
 
-cIpmiInventoryField *
-cIpmiInventoryArea::FindIdrField( SaHpiIdrFieldTypeT fieldtype,
-                                  SaHpiEntryIdT fieldid
-                                )
+cIpmiInventoryBackplanePointToPointConnectivity::~cIpmiInventoryBackplanePointToPointConnectivity()
 {
-    bool found = false;
-    int idx = 0;
-
-    cIpmiInventoryField *iif;
-
-    if ( fieldid == SAHPI_FIRST_ENTRY )
-    {
-        if ( m_field_array.Num() == 0 )
-            return NULL;
-
-        iif = m_field_array[0];
-
-        if (( fieldtype == SAHPI_IDR_FIELDTYPE_UNSPECIFIED )
-            || ( iif->FieldType() == fieldtype ))
-        {
-            idx = 0;
-            found = true;
-        }
-        else
-            return NULL;
-    }
-    else
-    {
-        for( int i = 0; i < m_field_array.Num(); i++ )
-        {
-            iif = m_field_array[i];
-
-            if ( iif->FieldId() == fieldid )
-            {
-                if (( fieldtype == SAHPI_IDR_FIELDTYPE_UNSPECIFIED )
-                    || ( iif->FieldType() == fieldtype ))
-                {
-                    idx = i;
-                    found = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if ( !found )
-        return NULL;
-
-    iif = m_field_array[idx];
-
-    return iif;
 }
+
 
 SaErrorT
-cIpmiInventoryArea::GetIdrField( SaHpiIdrFieldTypeT &fieldtype,
-                                 SaHpiEntryIdT &fieldid,
-			                     SaHpiEntryIdT &nextfieldid,
-                                 SaHpiIdrFieldT &field )
+cIpmiInventoryBackplanePointToPointConnectivity::IpmiRead( const unsigned char *data, unsigned int size )
 {
-    cIpmiInventoryField *iif = FindIdrField( fieldtype, fieldid );
+  assert( 0 );
 
-    if ( iif == NULL )
-        return SA_ERR_HPI_NOT_PRESENT;
+  return SA_OK;
+}
 
-    field = iif->Field();
 
-    int idx = m_field_array.Find( iif );
+unsigned int
+cIpmiInventoryBackplanePointToPointConnectivity::IpmiSize() const
+{
+  assert( 0 );
 
-    idx++;
+  return 0;
+}
 
-    if ( idx == m_field_array.Num() )
-        nextfieldid = SAHPI_LAST_ENTRY;
-    else
-    {
-        iif = m_field_array[idx];
-        nextfieldid = iif->FieldId();
-    }
 
-    return SA_OK;
+unsigned int
+cIpmiInventoryBackplanePointToPointConnectivity::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryBackplanePointToPointConnectivity::HpiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryBackplanePointToPointConnectivity::HpiRead( SaHpiInventDataRecordT *r ) const
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryBackplanePointToPointConnectivity::HpiWrite( SaHpiInventDataRecordT *r )
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryBackplanePointToPointConnectivity::Dump( cIpmiLog &dump, const char *name ) const
+{
+  assert( 0 );
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryShelfPowerDistribution
+////////////////////////////////////////////////////////////
+
+cIpmiInventoryShelfPowerDistribution::cIpmiInventoryShelfPowerDistribution()
+  : cIpmiInventoryMultiRecord( tIpmiMultiRecordTypeShelfPowerDistribution )
+{
+}
+
+
+cIpmiInventoryShelfPowerDistribution::~cIpmiInventoryShelfPowerDistribution()
+{
+}
+
+
+SaErrorT
+cIpmiInventoryShelfPowerDistribution::IpmiRead( const unsigned char *data, unsigned int size )
+{
+  unsigned char n = data[10];
+  data += 11;
+  size -= 11;
+
+  for( unsigned char i = 0; i < n; i++ )
+     {
+       cIpmiInventoryPowerMap *p = new cIpmiInventoryPowerMap;
+       Add( p );
+
+       p->m_maximum_external_current = IpmiGetUint16( data );
+       p->m_maximum_internal_current = IpmiGetUint16( data+2 );
+       p->m_minimum_expected_voltage = data[4];
+
+       unsigned char m = data[5];
+
+       data += 6;
+       size -= 6;
+
+       for( unsigned char j = 0; j < m; j++ )
+	  {
+	    cIpmiInventoryFeedToFru *f = new cIpmiInventoryFeedToFru;
+	    p->Add( f );
+
+	    f->m_hardware_address = data[0];
+	    f->m_fru_device_id = data[1];
+
+	    data += 2;
+	    size -= 2;
+	  }
+     }
+
+  return SA_OK;
+}
+
+
+unsigned int
+cIpmiInventoryShelfPowerDistribution::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryShelfPowerDistribution::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int 
+cIpmiInventoryShelfPowerDistribution::HpiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryShelfPowerDistribution::HpiRead( SaHpiInventDataRecordT *r ) const
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfPowerDistribution::HpiWrite( SaHpiInventDataRecordT *r )
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfPowerDistribution::Dump( cIpmiLog &dump, const char *name ) const
+{
+  assert( 0 );
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryShelfActivationAndPower
+////////////////////////////////////////////////////////////
+
+cIpmiInventoryShelfActivationAndPower::cIpmiInventoryShelfActivationAndPower()
+  : cIpmiInventoryMultiRecord( tIpmiMultiRecordTypeShelfActivationAndPowerManagement )
+{
+}
+
+
+cIpmiInventoryShelfActivationAndPower::~cIpmiInventoryShelfActivationAndPower()
+{
+}
+
+
+SaErrorT
+cIpmiInventoryShelfActivationAndPower::IpmiRead( const unsigned char *data, unsigned int size )
+{
+  m_allowance = data[10];
+
+  unsigned char n = data[11];
+
+  data += 12;
+  size -= 12;
+
+  for( int i = 0; i < n; i++ )
+     {
+       cIpmiInventoryActivationAndPower *a = new cIpmiInventoryActivationAndPower;
+       Add( a );
+
+       a->m_hardware_address = data[0];
+       a->m_fru_device_id = data[1];
+       a->m_maximum_fru_power = IpmiGetUint16( data + 2 );
+       a->m_activation = data[4] & 0x40; 
+       a->m_delay = data[4] & 0x3f;
+       data += 5;
+       size -= 5;
+     }
+
+  return SA_OK;
+}
+
+
+unsigned int
+cIpmiInventoryShelfActivationAndPower::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryShelfActivationAndPower::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int 
+cIpmiInventoryShelfActivationAndPower::HpiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryShelfActivationAndPower::HpiRead( SaHpiInventDataRecordT *r ) const
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfActivationAndPower::HpiWrite( SaHpiInventDataRecordT *r )
+{
+  assert( 0 );
+}
+
+
+void
+cIpmiInventoryShelfActivationAndPower::Dump( cIpmiLog &dump, const char *name ) const
+{
+  assert( 0 );
+}
+
+
+////////////////////////////////////////////////////////////
+//                  cIpmiInventoryRecordMultiRecord
+////////////////////////////////////////////////////////////
+
+cIpmiInventoryRecordMultiRecord::cIpmiInventoryRecordMultiRecord()
+  : cIpmiInventoryRecord( eIpmiInventoryRecordTypeMultiRecord )
+{
+}
+
+
+cIpmiInventoryRecordMultiRecord::~cIpmiInventoryRecordMultiRecord()
+{
+}
+
+
+cIpmiInventoryMultiRecord *
+cIpmiInventoryRecordMultiRecord::GetRecord( tIpmiMultiRecordType type ) const  
+{
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiInventoryMultiRecord *mr = operator[]( i );
+
+       if ( mr->Type() == type )
+	    return mr;
+     }
+
+  return 0;
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::SetRecord( tIpmiMultiRecordType type, cIpmiInventoryMultiRecord *record )
+{
+  for( int i = 0; i < Num(); i++ )
+     {
+       cIpmiInventoryMultiRecord *mr = operator[]( i );
+
+       if ( mr->Type() == type )
+	  {
+	    delete mr;
+
+	    if ( record )
+		 operator[]( i ) = record;
+	    else
+		 Rem( i );
+
+	    return;
+	  }
+     }
+
+  if ( record )
+       Add( record );
+}
+
+
+cIpmiInventoryMultiRecord *
+cIpmiInventoryRecordMultiRecord::AllocRecord( tIpmiMultiRecordType type )
+{
+  switch( type )
+     {
+       case tIpmiMultiRecordTypeBackplanePointToPointConnectivity:
+	    return new cIpmiInventoryBackplanePointToPointConnectivity;
+
+       case tIpmiMultiRecordTypeShelfPowerDistribution:
+	    return new cIpmiInventoryShelfPowerDistribution;
+
+       case tIpmiMultiRecordTypeShelfActivationAndPowerManagement:
+	    return new cIpmiInventoryShelfActivationAndPower;
+     }
+
+  assert( 0 );
+
+  return 0;
+}
+
+
+SaErrorT
+cIpmiInventoryRecordMultiRecord::IpmiRead( const unsigned char *data, unsigned int size )  
+{
+  return SA_OK;
+
+  while( size >= 5 )
+     {
+       // check header checksum
+       unsigned char cs = IpmiChecksum( data, 5 );
+
+       if ( cs != 0 )
+	  {
+	    stdlog << "wrong header checksum multi record !\n";
+	    return SA_ERR_HPI_INVALID_DATA_FIELD;
+	  }
+
+       // data checksum
+       cs = IpmiChecksum( data + 5, data[2] );
+
+       if ( cs != data[4] )
+	  {
+	    stdlog << "wrong data checksum in multirecord !\n";
+	    return SA_ERR_HPI_INVALID_DATA_FIELD;
+	  }
+
+       if ( data[0] == 0xc0 )
+	  {
+	    cIpmiInventoryMultiRecord *mr = AllocRecord( (tIpmiMultiRecordType)data[8] );
+
+	    if ( mr )
+	       {
+		 mr->Version() = data[1] & 0x0f;
+		 SaErrorT rv = mr->IpmiRead( data, data[2] );
+
+		 if ( rv != SA_OK )
+		    {
+		      delete mr;
+		      return rv;
+		    }
+
+		 SetRecord( mr->Type(), mr );
+	       }
+	    else
+		 stdlog << "unknown PICMG multirecord " << data[8] << ".\n";
+	  }
+       else
+	    stdlog << "unknown multirecord type " << data[0] << ".\n";
+
+       size -= data[2] + 5;
+
+       if ( data[1] & 0x80 )
+	    break;
+
+       // next record
+       data += data[2] + 5;
+     }
+
+  return SA_OK;
+}
+
+
+unsigned int
+cIpmiInventoryRecordMultiRecord::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryRecordMultiRecord::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryRecordMultiRecord::HpiSize( int record_id ) const
+{
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return 0;
+     }
+
+  return operator[]( record_id )->HpiSize();
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::HpiRead( int record_id,
+					  SaHpiInventDataRecordT *r ) const
+{
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return;
+     }
+
+  operator[]( record_id )->HpiRead( r );
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::HpiWrite( int record_id,
+					   SaHpiInventDataRecordT *r )
+{
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return;
+     }
+
+  operator[]( record_id )->HpiWrite( r );
+}
+
+
+void
+cIpmiInventoryRecordMultiRecord::Dump( cIpmiLog &dump,
+                                       int record_id, 
+                                       const char *name ) const
+{
+  if ( record_id < 0 || record_id >= Num() )
+     {
+       assert( 0 );
+       return;
+     }
+
+  operator[]( record_id )->Dump( dump, name );
 }
 
 
@@ -622,55 +1535,85 @@ cIpmiInventoryArea::GetIdrField( SaHpiIdrFieldTypeT &fieldtype,
 
 cIpmiInventoryParser::cIpmiInventoryParser()
 {
-  m_idr_info.IdrId = 0;
-  m_idr_info.UpdateCount = 0;
-  m_idr_info.ReadOnly = SAHPI_TRUE;
-  m_idr_info.NumAreas = 0;
-  m_area_id = 1;
+  for( int i = 0; i < eIpmiInventoryRecordTypeLast; i++ )
+       m_records[i] = 0;
 }
 
 
 cIpmiInventoryParser::~cIpmiInventoryParser()
 {
+  Clear();
 }
 
-cIpmiInventoryArea *
-cIpmiInventoryParser::AllocArea( SaHpiEntryIdT area_id, tIpmiInventoryRecordType type )
+
+cIpmiInventoryRecord *
+cIpmiInventoryParser::GetRecord( tIpmiInventoryRecordType type ) const
+{
+  return m_records[type];
+}
+
+
+void
+cIpmiInventoryParser::SetRecord( tIpmiInventoryRecordType type, cIpmiInventoryRecord *record )
+{
+  if ( m_records[type] )
+     {
+       delete m_records[type];
+       m_records[type] = 0;
+     }
+
+  m_records[type] = record;
+}
+
+
+void
+cIpmiInventoryParser::Clear()
+{
+  for( int i = 0; i < eIpmiInventoryRecordTypeLast; i++ )
+       if ( m_records[i] )
+	  {
+	    delete m_records[i];
+	    m_records[i] = 0;
+	  }
+}
+
+
+cIpmiInventoryRecord *
+cIpmiInventoryParser::AllocRecord( tIpmiInventoryRecordType type )
 {
   switch( type )
      {
        case eIpmiInventoryRecordTypeInternal:
-	    return new cIpmiInventoryAreaInternal( area_id );
+	    return new cIpmiInventoryRecordInternal;
 
        case eIpmiInventoryRecordTypeChassis:
-	    return new cIpmiInventoryAreaChassis( area_id );
+	    return new cIpmiInventoryRecordChassis;
 
        case eIpmiInventoryRecordTypeBoard:
-	    return new cIpmiInventoryAreaBoard( area_id );
+	    return new cIpmiInventoryRecordBoard;
 
        case eIpmiInventoryRecordTypeProduct:
-	    return new cIpmiInventoryAreaProduct( area_id );
+	    return new cIpmiInventoryRecordProduct;
 
        case eIpmiInventoryRecordTypeMultiRecord:
-	    return new cIpmiInventoryAreaMultiRecord( area_id );
+	    return new cIpmiInventoryRecordMultiRecord;
 
        default:
-        break;
+	    assert( 0 );
+	    break;
      }
 
-  return NULL;
+  return 0;
 }
 
 
 SaErrorT
-cIpmiInventoryParser::ParseFruInfo( const unsigned char *data, unsigned int size, unsigned int idr_id )
+cIpmiInventoryParser::IpmiRead( const unsigned char *data, unsigned int size )
 {
-  cIpmiInventoryArea *ia;
-  
   if ( size < 8 )
      {
        stdlog << "Inventory data too short (" << size << " < 8) !\n";
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   // checksum of common header
@@ -680,16 +1623,17 @@ cIpmiInventoryParser::ParseFruInfo( const unsigned char *data, unsigned int size
        stdlog.Hex( data, 8 );
        stdlog << "\n";
 
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_INVALID_PARAMS;
      }
 
+  m_version = data[0] & 0x0f;
+
   // clear old
-  m_area_array.Clear();
+  Clear();
 
   unsigned int pos = size;
 
-  // No Internal support for now
-  for( int i = 5; i >= 2; i-- )
+  for( int i = 5; i >= 1; i-- )
      {
        if ( data[i] == 0 )
 	    continue;
@@ -697,222 +1641,132 @@ cIpmiInventoryParser::ParseFruInfo( const unsigned char *data, unsigned int size
        tIpmiInventoryRecordType type = (tIpmiInventoryRecordType)(i - 1);
        unsigned int offset = data[i] * 8;
        unsigned int len = pos - offset;
+
        stdlog << IpmiInventoryRecordTypeToString( type ) << ": offset " << offset << ", len " << len << "\n";
-       
-       ia = AllocArea( m_area_id, type );
+       m_records[type] = AllocRecord( type );
+       SaErrorT rv = m_records[type]->IpmiRead( data + offset, len );
 
-       if ( ia )
-       {
-           SaErrorT rv = ia->ParseFruArea( data + offset, len );
-
-           // If a FRU area is wrong just ignore it
-           if ( rv )
-               delete ia;
-           else
-           {
-               m_area_id++;
-               m_area_array.Add( ia );
-           }
-       }
+       if ( rv )
+	  {
+	    Clear();
+	    return rv;
+	  }
 
        pos -= len;
      }
 
-  m_idr_info.IdrId = idr_id;
-  m_idr_info.UpdateCount++;
-  m_idr_info.ReadOnly = SAHPI_TRUE;
-  m_idr_info.NumAreas = m_area_array.Num();
+  return SA_OK;
+}
+
+
+unsigned int
+cIpmiInventoryParser::IpmiSize() const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryParser::IpmiWrite( unsigned char *data, unsigned int size ) const
+{
+  assert( 0 );
+
+  return 0;
+}
+
+
+unsigned int
+cIpmiInventoryParser::HpiSize() const
+{
+  unsigned int size = sizeof( SaHpiInventoryDataT );
+
+  for( int i = 0; i < eIpmiInventoryRecordTypeLast; i++ )
+     {
+       if ( m_records[i] == 0 )
+	    continue;
+
+       int nr = m_records[i]->HpiNumRecords();
+
+       for( int j = 0; j < nr; j++ )
+	  {
+	    size += m_records[i]->HpiSize( j );
+	    size += sizeof( SaHpiInventDataRecordT * );
+	  }
+     }
+
+#ifndef NDEBUG
+  // overwrite check
+  size += 256;
+#endif
+
+  return size;
+}
+
+
+SaErrorT
+cIpmiInventoryParser::HpiRead( SaHpiInventoryDataT &data ) const
+{
+  unsigned char *d = (unsigned char *)&data;
+  unsigned s = HpiSize();
+
+#if 0
+  int l;
+
+  memset( d, 0, s+256 );
+  for( l = 0; l < 256; l++ )
+       d[s+l] = l;
+#else
+  memset( d, 0, s );
+#endif
+
+  d += sizeof( SaHpiInventoryDataT );
+
+  // how many records
+  for( int i = 0; i < eIpmiInventoryRecordTypeLast; i++ )
+     {
+       if ( m_records[i] == 0 )
+	    continue;
+
+       int nr = m_records[i]->HpiNumRecords();
+
+       d += nr * sizeof( SaHpiInventDataRecordT * );
+     }
+
+  int pos = 0;
+
+  for( int i = 0; i < eIpmiInventoryRecordTypeLast; i++ )
+     {
+       if ( m_records[i] == 0 )
+	    continue;
+
+       int nr = m_records[i]->HpiNumRecords();
+
+       for( int j = 0; j < nr; j++ )
+	  {
+	    data.DataRecords[pos++] = (SaHpiInventDataRecordT *)(void *)d;
+	    m_records[i]->HpiRead( j, (SaHpiInventDataRecordT *)(void *)d );
+	    d += m_records[i]->HpiSize( j );
+	  }
+     }
+
+#if 0
+  // check for overwrite
+  d = (unsigned char *)&data;
+
+  for( l = 0; l < 256; l++ )
+       assert( d[s+l] == l );
+#endif
 
   return SA_OK;
 }
 
-cIpmiInventoryArea *
-cIpmiInventoryParser::FindIdrArea( SaHpiIdrAreaTypeT areatype,
-			                       SaHpiEntryIdT areaid
-                                 )
-{
-    bool found = false;
-    int idx = 0;
-
-    cIpmiInventoryArea *ia;
-
-    if ( areaid == SAHPI_FIRST_ENTRY )
-    {
-        if ( m_area_array.Num() == 0 )
-            return NULL;
-
-        ia = m_area_array[0];
-
-        if (( areatype == SAHPI_IDR_AREATYPE_UNSPECIFIED )
-            || ( ia->AreaType() == areatype ))
-        {
-            idx = 0;
-            found = true;
-        }
-        else
-            return NULL;
-    }
-    else
-    {
-        for( int i = 0; i < m_area_array.Num(); i++ )
-        {
-            ia = m_area_array[i];
-
-            if ( ia->AreaId() == areaid )
-            {
-                if (( areatype == SAHPI_IDR_AREATYPE_UNSPECIFIED )
-                    || ( ia->AreaType() == areatype ))
-                {
-                    idx = i;
-                    found = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if ( !found )
-        return NULL;
-
-    ia = m_area_array[idx];
-
-    return ia;
-}
-
 
 SaErrorT
-cIpmiInventoryParser::GetIdrInfo( SaHpiIdrIdT &idrid, SaHpiIdrInfoT &idrinfo )
+cIpmiInventoryParser::HpiWrite( const SaHpiInventoryDataT &data )
 {
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
+  assert( 0 );
 
-    idrinfo = m_idr_info;
-
-    return SA_OK;
-}
-
-SaErrorT
-cIpmiInventoryParser::GetIdrAreaHeader( SaHpiIdrIdT &idrid,
-                                        SaHpiIdrAreaTypeT &areatype,
-			                            SaHpiEntryIdT &areaid,
-                                        SaHpiEntryIdT &nextareaid,
-                                        SaHpiIdrAreaHeaderT &header )
-{
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-
-    cIpmiInventoryArea *ia = FindIdrArea( areatype, areaid );
-
-    if ( ia == NULL )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    header = ia->AreaHeader();
-
-    int idx = m_area_array.Find( ia );
-
-    idx++;
-
-    if ( idx == m_area_array.Num() )
-        nextareaid = SAHPI_LAST_ENTRY;
-    else
-    {
-        ia = m_area_array[idx];
-        nextareaid = ia->AreaId();
-    }
-
-    return SA_OK;
-}
-
-SaErrorT
-cIpmiInventoryParser::AddIdrArea( SaHpiIdrIdT &idrid,
-                                  SaHpiIdrAreaTypeT &areatype,
-			                      SaHpiEntryIdT &areaid )
-{
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    // Read only support for the moment
-    return SA_ERR_HPI_READ_ONLY;
-}
-
-SaErrorT
-cIpmiInventoryParser::DelIdrArea( SaHpiIdrIdT &idrid, SaHpiEntryIdT &areaid )
-{
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    cIpmiInventoryArea *ia = FindIdrArea( SAHPI_IDR_AREATYPE_UNSPECIFIED, areaid );
-
-    if ( ia == NULL )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    // Read only support for the moment
-    return SA_ERR_HPI_READ_ONLY;
-}
-
-SaErrorT
-cIpmiInventoryParser::GetIdrField( SaHpiIdrIdT &idrid,
-                                   SaHpiEntryIdT &areaid,
-                                   SaHpiIdrFieldTypeT &fieldtype,
-                                   SaHpiEntryIdT &fieldid,
-			                       SaHpiEntryIdT &nextfieldid,
-                                   SaHpiIdrFieldT &field )
-{
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    cIpmiInventoryArea *ia = FindIdrArea( SAHPI_IDR_AREATYPE_UNSPECIFIED, areaid );
-
-    if ( ia == NULL )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    return ia->GetIdrField( fieldtype, fieldid, nextfieldid, field );
-}
-
-SaErrorT
-cIpmiInventoryParser::AddIdrField( SaHpiIdrIdT &idrid, SaHpiIdrFieldT &field )
-{
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    cIpmiInventoryArea *ia = FindIdrArea( SAHPI_IDR_AREATYPE_UNSPECIFIED, field.AreaId );
-
-    if ( ia == NULL )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    // Read only support for the moment
-    return SA_ERR_HPI_READ_ONLY;
-}
-
-SaErrorT
-cIpmiInventoryParser::SetIdrField( SaHpiIdrIdT &idrid, SaHpiIdrFieldT &field )
-{
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    cIpmiInventoryArea *ia = FindIdrArea( SAHPI_IDR_AREATYPE_UNSPECIFIED, field.AreaId );
-
-    if ( ia == NULL )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    // Read only support for the moment
-    return SA_ERR_HPI_READ_ONLY;
-}
-
-SaErrorT
-cIpmiInventoryParser::DelIdrField( SaHpiIdrIdT &idrid,
-                                   SaHpiEntryIdT &areaid,
-                                   SaHpiEntryIdT &fieldid )
-{
-    if ( m_idr_info.IdrId != idrid )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    cIpmiInventoryArea *ia = FindIdrArea( SAHPI_IDR_AREATYPE_UNSPECIFIED, areaid );
-
-    if ( ia == NULL )
-        return SA_ERR_HPI_NOT_PRESENT;
-
-    // Read only support for the moment
-    return SA_ERR_HPI_READ_ONLY;
+  return SA_OK;
 }

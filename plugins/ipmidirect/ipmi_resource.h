@@ -2,7 +2,6 @@
  * ipmi_resource.h
  *
  * Copyright (c) 2004 by FORCE Computers.
- * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,7 +12,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiResource_h
@@ -41,7 +39,7 @@ class cIpmiResource : cArray<cIpmiRdr>
 {
 public:
   bool m_sel; // true if this is a resource,
-              // which provides access to SEL
+              // which provedes access to SEL
 
   // find a specific rdr
   cIpmiRdr *FindRdr( cIpmiMc *mc, SaHpiRdrTypeT type, unsigned int num, unsigned int lun = 0 );
@@ -57,7 +55,6 @@ protected:
   cIpmiMc            *m_mc;
   unsigned int        m_fru_id;
   cIpmiEntityPath     m_entity_path;
-  bool                m_is_fru;
 
   cIpmiSensorHotswap *m_hotswap_sensor;
 
@@ -80,7 +77,6 @@ public:
   cIpmiDomain *Domain() const;
   unsigned int &Oem() { return m_oem; }
   cIpmiEntityPath &EntityPath() { return m_entity_path; }
-  bool &IsFru() { return m_is_fru; }
 
 protected:
   cIpmiTextBuffer m_resource_tag;

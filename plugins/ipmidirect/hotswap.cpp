@@ -1,7 +1,6 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers.
- * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,7 +11,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #include <assert.h>
@@ -28,7 +26,8 @@ static const char *hotswap_states[] =
 {
   "inactive",
   "insertion_pending",
-  "active",
+  "active_healthy",
+  "active_unhealthy",
   "extraction_pending",
   "not_present"
 };
@@ -60,12 +59,11 @@ cIpmi::IfGetHotswapState( cIpmiResource *res, SaHpiHsStateT &state )
 }
 
 
-// state == SAHPI_HS_STATE_ACTIVE
+// state == SAHPI_HS_STATE_ACTIVE_HEALTHY
 //    => M2 -> M3
 //    => M5 -> M4
 // state == SAHPI_HS_STATE_INACTIVE
 //    => M5 -> M6
-//    => M2 -> M1
 
 SaErrorT
 cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
@@ -73,32 +71,63 @@ cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
   if ( !m_is_atca )
      {
        stdlog << "ATCA not supported by SI !\n";
-       return SA_ERR_HPI_INVALID_CMD;
+       return SA_ERR_HPI_INVALID;
+     }
+
+  // get hotswap sensor
+  cIpmiSensorHotswap *hs = res->GetHotswapSensor();
+
+  if ( !hs )
+       return SA_ERR_HPI_INVALID_PARAMS;
+
+  // read current state
+  SaHpiHsStateT current;
+  SaErrorT rv = hs->GetState( current );
+
+  if ( rv != SA_OK )
+     {
+       // use the old stored state
+       stdlog << "cIpmi::IfSetHotswapState: cannot read hotswap state !\n";
+       current = cIpmiSensorHotswap::ConvertIpmiToHpiHotswapState( hs->Resource()->FruState() );
      }
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivation );
   msg.m_data_len = 3;
-  msg.m_data[0]  = dIpmiPicMgId;
+  msg.m_data[0]  = dIpmiPigMgId;
   msg.m_data[1]  = res->FruId();
 
-  if ( state == SAHPI_HS_STATE_ACTIVE )
-  {
-      msg.m_data[2] = dIpmiActivateFru;
+  switch( state )
+     {
+       case SAHPI_HS_STATE_ACTIVE_HEALTHY:
+            if (    current == SAHPI_HS_STATE_INSERTION_PENDING
+                 || current == SAHPI_HS_STATE_EXTRACTION_PENDING )
+                 msg.m_data[2] = dIpmiActivateFru;
+            else
+               {
+                 stdlog << "FRU state is not SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_EXTRACTION_PENDING: "
+                        << HotswapStateToString( current ) << " !\n";
+                 return SA_ERR_HPI_INVALID;
+               }
 
-#ifdef FAKE_ECN_BEHAVIOR
-      // get hotswap sensor
-      cIpmiSensorHotswap *hs = res->GetHotswapSensor();
-      if ( hs &&
-          ( hs->FakeDeactLocked() == true ))
-      {
-            hs->SetDeactLocked(1);
-      }
-#endif
-  }
-  else
-  {
-      msg.m_data[2] = dIpmiDeactivateFru;
-  }
+            break;
+
+       case SAHPI_HS_STATE_INACTIVE:
+            if (    current == SAHPI_HS_STATE_ACTIVE_HEALTHY
+                 || current == SAHPI_HS_STATE_EXTRACTION_PENDING )
+                 msg.m_data[2] = dIpmiDeactivateFru;
+            else
+              {
+                 stdlog << "FRU state is not SAHPI_HS_STATE_INSERTION_PENDING or SAHPI_HS_STATE_EXTRACTION_PENDING: "
+                        << HotswapStateToString( current ) << " !\n";
+                 return SA_ERR_HPI_INVALID;
+               }
+
+            break;
+
+       default:
+            stdlog << "IfSetHotSwapState: illegal state " << HotswapStateToString( state ) << " !\n";
+            return SA_ERR_HPI_INVALID;
+     }
 
   cIpmiMsg rsp;
 
@@ -106,26 +135,26 @@ cIpmi::IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state )
 
   if ( r != SA_OK )
      {
-       stdlog << "IfSetHotSwapState: could not send set FRU activation: " << r << " !\n";
-       return r;
+       stdlog << "IfSetHotSwapState: could not send set FRU activation: " << rv << " !\n";
+       return rv;
      }
 
   if (    rsp.m_data_len < 2
        || rsp.m_data[0] != eIpmiCcOk
-       || rsp.m_data[1] != dIpmiPicMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "IfSetHotSwapState: IPMI error set FRU activation: "
 	      << rsp.m_data[0] << " !\n";
 
-       return SA_ERR_HPI_INTERNAL_ERROR;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   return SA_OK;
 }
 
 
-// act == SAHPI_HS_ACTION_INSERTION  => M1->M2
-// act == SAHPI_HS_ACTION_EXTRACTION => M4->M5
+// act == SAHPI_HS_ACTION_INSERTION     => M1->M2
+// act == SAHPI_HS_STATE_ACTIVE_HEALTHY => M4->M5
 
 SaErrorT
 cIpmi::IfRequestHotswapAction( cIpmiResource *res,
@@ -134,35 +163,50 @@ cIpmi::IfRequestHotswapAction( cIpmiResource *res,
   if ( !m_is_atca )
      {
        stdlog << "ATCA not supported by SI !\n";
-       return SA_ERR_HPI_INVALID_REQUEST;
+       return SA_ERR_HPI_INVALID;
      }
+
+  // get hotswap sensor
+  cIpmiSensorHotswap *hs = res->GetHotswapSensor();
+
+  if ( !hs )
+       return SA_ERR_HPI_INVALID_PARAMS;
+
+  SaHpiHsStateT current;
+  SaErrorT rv = hs->GetState( current );
+
+  if ( rv != SA_OK )
+       return rv;
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdSetFruActivationPolicy );
   msg.m_data_len = 4;
-  msg.m_data[0]  = dIpmiPicMgId;
+  msg.m_data[0]  = dIpmiPigMgId;
   msg.m_data[1]  = res->FruId();
 
   if ( act == SAHPI_HS_ACTION_INSERTION )
      {
+       if ( current != SAHPI_HS_STATE_INACTIVE )
+          {
+            stdlog << "FRU not SAHPI_HS_STATE_INACTIVE: "
+		   << HotswapStateToString( current ) << " !\n";
+            return SA_ERR_HPI_INVALID;
+          }
+
        // m1 -> m2
        msg.m_data[2] = 1; // M1->M2 lock bit
        msg.m_data[3] = 0; // clear locked bit M1->M2
      }
   else
      {
+       if ( current != SAHPI_HS_STATE_ACTIVE_HEALTHY )
+          {
+            stdlog << "FRU not SAHPI_HS_STATE_ACTIVE_HEALTHY: "
+		   << current << " !\n";
+            return SA_ERR_HPI_INVALID;
+          }
+
        msg.m_data[2]  = 2; // M4->M5 lock bit
        msg.m_data[3]  = 0; // clear lock bit M4->M5
-
-#ifdef FAKE_ECN_BEHAVIOR
-       // get hotswap sensor
-       cIpmiSensorHotswap *hs = res->GetHotswapSensor();
-       if ( hs &&
-           ( hs->FakeDeactLocked() == true ))
-       {
-            hs->SetDeactLocked(0);
-            return SA_OK;
-       }
-#endif
      }
 
   cIpmiMsg  rsp;
@@ -173,12 +217,12 @@ cIpmi::IfRequestHotswapAction( cIpmiResource *res,
      {
        stdlog << "IfRequestHotswapAction: could not send set FRU activation policy: "
 	      << r << " !\n";
-       return r;
+       return rv;
      }
 
   if (    rsp.m_data_len != 2 
        || rsp.m_data[0] != eIpmiCcOk
-       || rsp.m_data[1] != dIpmiPicMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "IfRequestHotswapAction: set FRU activation: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
@@ -189,13 +233,13 @@ cIpmi::IfRequestHotswapAction( cIpmiResource *res,
 
 
 SaErrorT
-cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiPowerStateT &state )
+cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiHsPowerStateT &state )
 {
   // get power level
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
   cIpmiMsg rsp;
 
-  msg.m_data[0] = dIpmiPicMgId;
+  msg.m_data[0] = dIpmiPigMgId;
   msg.m_data[1] = res->FruId();
   msg.m_data[2] = 0x01; // desired steady power
   msg.m_data_len = 3;
@@ -210,7 +254,7 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiPowerStateT &state )
 
   if (    rsp.m_data_len < 3
        || rsp.m_data[0] != eIpmiCcOk 
-       || rsp.m_data[0] != dIpmiPicMgId )
+       || rsp.m_data[0] != dIpmiPigMgId )
      {
        stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
@@ -225,15 +269,15 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiPowerStateT &state )
 
   if ( rv != SA_OK )
      {
-       stdlog << "IfGetPowerState: could not send get power level: " << rv << " !\n";
+       stdlog << "SetHotSwapState: could not send get power level: " << rv << " !\n";
        return rv;
      }
 
   if (    rsp.m_data_len < 6
        || rsp.m_data[0] != eIpmiCcOk
-       || rsp.m_data[1] != dIpmiPicMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
-       stdlog << "IfGetPowerState: IPMI error get power level: " << rsp.m_data[0] << " !\n";
+       stdlog << "SetHotSwapState: IPMI error get power level: " << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_CMD;
      }
@@ -241,26 +285,26 @@ cIpmi::IfGetPowerState( cIpmiResource *res, SaHpiPowerStateT &state )
   unsigned char current_power_level = rsp.m_data[2] & 0x1f;
   
   if ( current_power_level >= power_level )
-       state = SAHPI_POWER_ON;
+       state = SAHPI_HS_POWER_ON;
   else
-       state = SAHPI_POWER_OFF;
+       state = SAHPI_HS_POWER_OFF;
 
   return SA_OK;
 }
 
 
 SaErrorT
-cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
+cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiHsPowerStateT state )
 {
   SaErrorT rv;
   unsigned int power_level = 0;
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdGetPowerLevel );
-  msg.m_data[0] = dIpmiPicMgId;
+  msg.m_data[0] = dIpmiPigMgId;
   msg.m_data[1] = res->FruId();
   cIpmiMsg rsp;
 
-  if ( state == SAHPI_POWER_CYCLE )
+  if ( state == SAHPI_HS_POWER_CYCLE )
      {
        // power off
        msg.m_cmd = eIpmiCmdSetPowerLevel;
@@ -279,17 +323,17 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
 
        if (    rsp.m_data_len < 2
                || rsp.m_data[0] != eIpmiCcOk 
-               || rsp.m_data[1] != dIpmiPicMgId )
+               || rsp.m_data[1] != dIpmiPigMgId )
           {
             stdlog << "cannot set power level: " <<  rsp.m_data[0] << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
           }
 
        // power on
-       state = SAHPI_POWER_ON;
+       state = SAHPI_HS_POWER_ON;
      }
 
-  if ( state == SAHPI_POWER_ON )
+  if ( state == SAHPI_HS_POWER_ON )
      {
        // get power level
        msg.m_cmd = eIpmiCmdGetPowerLevel;
@@ -307,7 +351,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
 
        if (    rsp.m_data_len < 3
             || rsp.m_data[0] != eIpmiCcOk 
-            || rsp.m_data[1] != dIpmiPicMgId )
+            || rsp.m_data[1] != dIpmiPigMgId )
           {
             stdlog << "cannot get power level: " << rsp.m_data[0] << " !\n";
             return SA_ERR_HPI_INVALID_CMD;
@@ -316,7 +360,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
        power_level = rsp.m_data[2] & 0x1f;
      }
   else
-       assert( state == SAHPI_POWER_OFF );
+       assert( state == SAHPI_HS_POWER_OFF );
 
   // set power level
   msg.m_cmd = eIpmiCmdSetPowerLevel;
@@ -335,7 +379,7 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
 
   if (    rsp.m_data_len < 2
        || rsp.m_data[0] != eIpmiCcOk 
-       || rsp.m_data[1] != dIpmiPicMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "cannot set power level: " << rsp.m_data[0] << " !\n";
        return SA_ERR_HPI_INVALID_CMD;
@@ -348,11 +392,13 @@ cIpmi::IfSetPowerState( cIpmiResource *res, SaHpiPowerStateT state )
 SaErrorT
 cIpmi::IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state )
 {
-  cIpmiMsg  msg( eIpmiNetfnPicmg, eIpmiCmdGetFruLedState );
+  cIpmiMsg  msg;
   cIpmiMsg  rsp;
 
+  msg.m_netfn    = eIpmiNetfnPicmg;
+  msg.m_cmd      = eIpmiCmdGetFruLedState;
   msg.m_data_len = 3;
-  msg.m_data[0]  = dIpmiPicMgId;
+  msg.m_data[0]  = dIpmiPigMgId;
   msg.m_data[1]  = res->FruId();
   msg.m_data[2]  = 0; // blue led;
 
@@ -366,12 +412,12 @@ cIpmi::IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state )
 
   if (    rsp.m_data_len < 6
        || rsp.m_data[0] != 0
-       || rsp.m_data[1] != dIpmiPicMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "IfGetIndicatorState: IPMI error set FRU LED state: "
 	      <<  rsp.m_data[0] << " !\n";
 
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   // lamp test
@@ -382,7 +428,7 @@ cIpmi::IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state )
             stdlog << "IfGetIndicatorState: IPMI error (lamp test) message to short: "
 		   << rsp.m_data_len << " !\n";
 
-            return SA_ERR_HPI_INVALID_DATA;
+            return SA_ERR_HPI_DATA_LEN_INVALID;
           }
 
        state = SAHPI_HS_INDICATOR_ON;
@@ -397,7 +443,7 @@ cIpmi::IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state )
             stdlog << "IfGetIndicatorState: IPMI error (overwrite) message to short: " 
 		   << rsp.m_data_len << " !\n";
 
-            return SA_ERR_HPI_INVALID_DATA;
+            return SA_ERR_HPI_DATA_LEN_INVALID;
           }
 
        if ( rsp.m_data[6] == 0 )
@@ -423,7 +469,7 @@ cIpmi::IfSetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT state )
 {
   cIpmiMsg  msg( eIpmiNetfnPicmg, eIpmiCmdSetFruLedState );
   msg.m_data_len = 6;
-  msg.m_data[0]  = dIpmiPicMgId;
+  msg.m_data[0]  = dIpmiPigMgId;
   msg.m_data[1]  = res->FruId();
   msg.m_data[2]  = 0; // blue led;
 
@@ -443,12 +489,12 @@ cIpmi::IfSetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT state )
 
   if (    rsp.m_data_len < 2
        || rsp.m_data[0] != 0
-       || rsp.m_data[1] != dIpmiPicMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
        stdlog << "IfGetIndicatorState: IPMI error set FRU LED state: " 
 	      << rsp.m_data[0] << " !\n";
 
-       return SA_ERR_HPI_INVALID_DATA;
+       return SA_ERR_HPI_DATA_LEN_INVALID;
      }
 
   return SA_OK;
@@ -476,14 +522,8 @@ cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
             break;
 
        case SAHPI_WARM_RESET:
-            // There is no way to know whether an ATCA FRU supports
-            // warm reset -> Let's use cold reset all the time for now
-            reset_state = 0x00;
+            reset_state = 0x01;
             break;
-
-       case SAHPI_RESET_DEASSERT:
-            // Reset is *always* deasserted on ATCA
-            return SA_OK;
 
        default:
             stdlog << "IfSetResetState: unsupported state " << state << " !\n";
@@ -491,9 +531,9 @@ cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
      }
 
   cIpmiMsg msg( eIpmiNetfnPicmg, eIpmiCmdFruControl );
-  msg.m_data[0]  = dIpmiPicMgId;
+  msg.m_data[0]  = dIpmiPigMgId;
   msg.m_data[1]  = res->FruId();
-  msg.m_data[2]  = reset_state;
+  msg.m_data[2]  = state;
   msg.m_data_len = 3;
 
   cIpmiMsg rsp;
@@ -501,15 +541,15 @@ cIpmi::IfSetResetState( cIpmiResource *res, SaHpiResetActionT state )
 
   if ( rv != SA_OK )
      {
-       stdlog << "IfSetResetState: could not send FRU control: " << rv << " !\n";
+       stdlog << "SetHotSwapState: could not send FRU control: " << rv << " !\n";
        return rv;
      }
 
   if (    rsp.m_data_len < 2
        || rsp.m_data[0] != 0
-       || rsp.m_data[1] != dIpmiPicMgId )
+       || rsp.m_data[1] != dIpmiPigMgId )
      {
-       stdlog << "IfSetResetState: IPMI error FRU control: "
+       stdlog << "SetHotSwapState: IPMI error set FRU activation: "
 	      << rsp.m_data[0] << " !\n";
 
        return SA_ERR_HPI_INVALID_CMD;

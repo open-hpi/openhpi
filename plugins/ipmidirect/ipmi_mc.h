@@ -1,7 +1,6 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers
- * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -18,7 +17,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiMc_h
@@ -88,11 +86,6 @@ protected:
   // The system event log, for querying and storing events.
   cIpmiSel      *m_sel;
 
-  // PICMG version for ATCA boards
-  unsigned char m_picmg_major;
-  unsigned char m_picmg_minor;
-  bool m_is_not_ecn;
-
   // The rest is the actual data from the get device id and SDRs.
   unsigned char  m_device_id;
 
@@ -101,7 +94,6 @@ protected:
   bool           m_provides_device_sdrs;
   bool           m_device_available;
 
-  unsigned char  m_device_support;
   bool           m_chassis_support;
   bool           m_bridge_support;
   bool           m_ipmb_event_generator_support;
@@ -129,16 +121,12 @@ public:
   void RemResource( cIpmiResource *res );
   cIpmiResource *FindResource( const cIpmiEntityPath &ep );
   cIpmiResource *FindResource( cIpmiResource *res );
-  cIpmiResource *GetResource( int i );
-  int           NumResources() const { return Num(); }
+
 public:
   cIpmiMc( cIpmiDomain *domain, const cIpmiAddr &addr );
   virtual ~cIpmiMc();
 
   cIpmiDomain *Domain() const { return m_domain; }
-
-  unsigned char DeviceRevision() const { return m_device_revision; }
-  unsigned char DeviceSupport() const { return m_device_support; }
 
   unsigned char MajorFwRevision() const { return m_major_fw_revision; }
   unsigned char MinorFwRevision() const { return m_minor_fw_revision; }
@@ -159,12 +147,6 @@ public:
 
   bool IsActive() const { return m_active; }
   void SetActive( bool active ) { m_active = active; }
-
-  bool IsAtcaBoard();
-
-  bool IsNotEcn() const { return m_is_not_ecn; }
-
-  void SetSel( bool sel ) { m_sel_device_support = sel; }
 
   cIpmiSensorHotswap *FindHotswapSensor();
 

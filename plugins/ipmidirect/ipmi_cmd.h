@@ -4,7 +4,6 @@
  * Interface for IPMI file connection
  *
  * Copyright (c) 2003 by FORCE Computers.
- * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +14,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiCmd_h
@@ -169,13 +167,13 @@ enum tIpmiCmd
   eIpmiCmdExitSdrRepositoryUpdate    = 0x2b,
   eIpmiCmdRunInitializationAgent     = 0x2c,
 
-  eIpmiCmdGetSelInfo                 = 0x40,
+  eIpmiCmdGetEventLogInfo                 = 0x40,
   eIpmiCmdGetSelAllocationInfo       = 0x41,
   eIpmiCmdReserveSel                 = 0x42,
-  eIpmiCmdGetSelEntry                = 0x43,
-  eIpmiCmdAddSelEntry                = 0x44,
-  eIpmiCmdPartialAddSelEntry         = 0x45,
-  eIpmiCmdDeleteSelEntry             = 0x46,
+  eIpmiCmdGetEventLogEntry                = 0x43,
+  eIpmiCmdAddEventLogEntry                = 0x44,
+  eIpmiCmdPartialAddEventLogEntry         = 0x45,
+  eIpmiCmdDeleteEventLogEntry             = 0x46,
   eIpmiCmdClearSel                   = 0x47,
   eIpmiCmdGetSelTime                 = 0x48,
   eIpmiCmdSetSelTime                 = 0x49,
@@ -201,7 +199,7 @@ enum tIpmiCmd
   eIpmiCmdSetUserCallbackOptions     = 0x1a,
   eIpmiCmdGetUserCallbackOptions     = 0x1b,
 
-  // PICMG netfn (0x2c)
+  // PIGMG netfn (0x2c)
   eIpmiCmdGetPicMgProperties         = 0x00,
   eIpmiCmdGetAddressInfo             = 0x01,
   eIpmiCmdGetShelfAddressInfo        = 0x02,
@@ -226,13 +224,12 @@ enum tIpmiCmd
   eIpmiCmdSetFanLevel                = 0x15,
   eIpmiCmdGetFanLevel                = 0x16,
   eIpmiCmdBusedResource              = 0x17,
-  eIpmiCmdGetIpmbLinkInfo            = 0x18,
 };
 
 
-// PICMG Identifier. Indicates that this is a PICMG-defined
+// PIGMG Identifier. Indicates that this is a PIGMG-defined
 // group extension command.
-#define dIpmiPicMgId 0
+#define dIpmiPigMgId 0
 
 
 #define dIpmiDeactivateFru 0

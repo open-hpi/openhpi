@@ -1,7 +1,6 @@
 /*
  *
  * Copyright (c) 2003,2004 by FORCE Computers.
- * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,7 +11,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmi_h
@@ -68,10 +66,9 @@ public:
   // openhpi abi interface functions
   virtual bool IfOpen( GHashTable *handler_config );
   virtual void IfClose();
-  virtual SaErrorT IfGetEvent( oh_event *event );
+  virtual SaErrorT IfGetEvent( oh_event *event, const timeval &timeout );
   virtual SaErrorT IfDiscoverResources();
 
-  virtual SaErrorT IfSetResourceTag( cIpmiResource *ent, SaHpiTextBufferT *tag );
   virtual SaErrorT IfSetResourceSeverity( cIpmiResource *res, SaHpiSeverityT sev );
 
   // hot swap
@@ -79,8 +76,8 @@ public:
   virtual SaErrorT IfSetHotswapState( cIpmiResource *res, SaHpiHsStateT state );
   virtual SaErrorT IfRequestHotswapAction( cIpmiResource *res, SaHpiHsActionT act );
 
-  virtual SaErrorT IfGetPowerState    ( cIpmiResource *res, SaHpiPowerStateT &state );
-  virtual SaErrorT IfSetPowerState    ( cIpmiResource *res, SaHpiPowerStateT state );
+  virtual SaErrorT IfGetPowerState    ( cIpmiResource *res, SaHpiHsPowerStateT &state );
+  virtual SaErrorT IfSetPowerState    ( cIpmiResource *res, SaHpiHsPowerStateT state );
   virtual SaErrorT IfGetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT &state );
   virtual SaErrorT IfSetIndicatorState( cIpmiResource *res, SaHpiHsIndicatorStateT state );
   virtual SaErrorT IfGetResetState    ( cIpmiResource *res, SaHpiResetActionT &state );

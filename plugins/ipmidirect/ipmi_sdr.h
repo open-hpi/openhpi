@@ -2,7 +2,6 @@
  * ipmi_sdr.h
  *
  * Copyright (c) 2003,2004 by FORCE Computers
- * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -19,7 +18,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiSdr_h
@@ -169,12 +167,6 @@ public:
   void Dump( cIpmiLog &dump, const char *name ) const;
 
   cIpmiSdr *FindSdr( cIpmiMc *mc );
-
-  unsigned int FindParentFru( SaHpiEntityTypeT type,
-                              SaHpiEntityLocationT instance,
-                              SaHpiEntityTypeT & parent_type,
-                              SaHpiEntityLocationT & parent_instance
-                            );
 };
 
 

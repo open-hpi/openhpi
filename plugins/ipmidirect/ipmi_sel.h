@@ -2,7 +2,6 @@
  * ipmi_sel.h
  *
  * Copyright (c) 2003 by FORCE Computers
- * Copyright (c) 2005 by ESO Technologies.
  *
  * Note that this file is based on parts of OpenIPMI
  * written by Corey Minyard <minyard@mvista.com>
@@ -19,7 +18,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 
@@ -111,22 +109,20 @@ public:
   // add an event to the list of async events
   int AddAsyncEvent( cIpmiEvent *event );
 
-  SaErrorT GetSelInfo( SaHpiEventLogInfoT &info );
+  SaErrorT GetEventLogInfo( SaHpiEventLogInfoT &info );
 
   // get an event
-  int GetSelEntry( unsigned short rid, unsigned short &prev, 
+  int GetEventLogEntry( unsigned short rid, unsigned short &prev, 
                    unsigned short &next, cIpmiEvent &event );
 
-  SaErrorT GetSelEntry( SaHpiEventLogEntryIdT current,
+  SaErrorT GetEventLogEntry( SaHpiEventLogEntryIdT current,
                         SaHpiEventLogEntryIdT &prev, SaHpiEventLogEntryIdT &next,
-                        SaHpiEventLogEntryT &entry,
-                        SaHpiRdrT &rdr,
-                        SaHpiRptEntryT &rptentry );
+                        SaHpiEventLogEntryT &entry );
 
-  SaErrorT AddSelEntry( const SaHpiEventT & /*Event*/ );
+  SaErrorT AddEventLogEntry( const SaHpiEventLogEntryT & /*Event*/ );
 
   // delete SEL entry
-  SaErrorT DeleteSelEntry( SaHpiEventLogEntryIdT sid );
+  SaErrorT DeleteEventLogEntry( SaHpiEventLogEntryIdT sid );
 
   // clear the SEL
   SaErrorT ClearSel();

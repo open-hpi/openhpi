@@ -1,7 +1,6 @@
 /*
  *
  * Copyright (c) 2004 by FORCE Computers.
- * Copyright (c) 2005 by ESO Technologies.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -12,7 +11,6 @@
  *
  * Authors:
  *     Thomas Kanngieser <thomas.kanngieser@fci.com>
- *     Pierre Sangouard  <psangouard@eso-tech.com>
  */
 
 #ifndef dIpmiInventory_h
@@ -27,6 +25,7 @@
 #ifndef dIpmiInventoryParser_h
 #include "ipmi_inventory_parser.h"
 #endif
+
 
 enum tInventoryAccessMode
 {
@@ -62,6 +61,9 @@ public:
 
   // create an RDR inventory record
   virtual bool CreateRdr( SaHpiRptEntryT &resource, SaHpiRdrT &rdr );
+
+public:
+  virtual void Dump( cIpmiLog &dump, const char *name ) const;
 };
 
 
