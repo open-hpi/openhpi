@@ -90,7 +90,7 @@ void process_hotswap_policy(struct oh_handler *handler)
 						
                         if (cur>=est) {
 								handler->abi->set_hotswap_state( handler->hnd, e.parent,
-												SAHPI_HS_STATE_ACTIVE_HEALTHY);
+												SAHPI_HS_STATE_ACTIVE);
                         }
                 } else if (e.event.EventDataUnion.HotSwapEvent.HotSwapState
                                 == SAHPI_HS_STATE_EXTRACTION_PENDING) {

@@ -85,7 +85,7 @@ static int process_session_event(struct oh_handler *h, RPTable *rpt, struct oh_h
         g_slist_for_each(i, global_session_list) {
                 struct oh_session *s = i->data;
                 /* yes, we need to add real domain support later here */
-                if (s->domain_id == SAHPI_DEFAULT_DOMAIN_ID &&
+                if (s->domain_id == SAHPI_UNSPECIFIED_DOMAIN_ID &&
 		    (s->event_state == OH_EVENT_SUBSCRIBE ||
 		     (s->event_state == OH_EVENT_UNSUBSCRIBE &&
 		      (e->event.Severity == SAHPI_MINOR ||

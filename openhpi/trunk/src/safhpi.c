@@ -1597,14 +1597,16 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
         return SA_OK;
 }
 
-SaErrorT SAHPI_API saHpiControlStateGet (
+SaErrorT SAHPI_API saHpiControlGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
+                SAHPI_OUT SaHpiCtrlModeT *CtrlMode,
                 SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
 {
         SaErrorT rv;
-        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
+        SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, 
+                             SaHpiCtrlModeT *, SaHpiCtrlStateT *);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -1630,20 +1632,21 @@ SaErrorT SAHPI_API saHpiControlStateGet (
                 return SA_ERR_HPI_UNSUPPORTED_API;
         }
 
-        rv = get_func(h->hnd, ResourceId, CtrlNum, CtrlState);
+        rv = get_func(h->hnd, ResourceId, CtrlNum, CtrlMode, CtrlState);
         data_access_unlock();
 
         return rv;
 }
 
-SaErrorT SAHPI_API saHpiControlStateSet (
+SaErrorT SAHPI_API saHpiControlSet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
                 SAHPI_IN SaHpiCtrlNumT CtrlNum,
+                SAHPI_IN SaHpiCtrlModeT CtrlMode,
                 SAHPI_IN SaHpiCtrlStateT *CtrlState)
 {
         SaErrorT rv;
-        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlStateT *);
+        SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlModeT, SaHpiCtrlStateT *);
 
         struct oh_session *s;
         RPTable *rpt;
@@ -1670,7 +1673,7 @@ SaErrorT SAHPI_API saHpiControlStateSet (
                 return SA_ERR_HPI_UNSUPPORTED_API;
         }
 
-        rv = set_func(h->hnd, ResourceId, CtrlNum, CtrlState);
+        rv = set_func(h->hnd, ResourceId, CtrlNum, CtrlMode, CtrlState);
         data_access_unlock();
 
         return rv;
@@ -1911,6 +1914,7 @@ SaErrorT SAHPI_API saHpiWatchdogTimerReset (
         return rv;
 }
 
+#if 0 // this is not in HPI B, will come out later
 SaErrorT SAHPI_API saHpiHotSwapControlRequest (
         SAHPI_IN SaHpiSessionIdT SessionId,
         SAHPI_IN SaHpiResourceIdT ResourceId)
@@ -1943,6 +1947,8 @@ SaErrorT SAHPI_API saHpiHotSwapControlRequest (
 
         return SA_OK;
 }
+
+#endif
 
 SaErrorT SAHPI_API saHpiResourceActiveSet (
         SAHPI_IN SaHpiSessionIdT SessionId,
@@ -1992,7 +1998,7 @@ SaErrorT SAHPI_API saHpiResourceActiveSet (
         /* this was done in the old code, so we do it here */
         rd->controlled = 0;
 
-        rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE_HEALTHY);
+        rv = set_hotswap_state(h->hnd, ResourceId, SAHPI_HS_STATE_ACTIVE);
 
         data_access_unlock();
 
@@ -2234,11 +2240,11 @@ SaErrorT SAHPI_API saHpiHotSwapActionRequest (
 SaErrorT SAHPI_API saHpiResourcePowerStateGet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_OUT SaHpiHsPowerStateT *State)
+                SAHPI_OUT SaHpiPowerStateT *State)
 {
         SaErrorT rv;
         SaErrorT (*get_power_state)(void *hnd, SaHpiResourceIdT id,
-                               SaHpiHsPowerStateT *state);
+                               SaHpiPowerStateT *state);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -2250,12 +2256,10 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
-#if 0
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) {
                 data_access_unlock();
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_CAPABILITY;
         }
-#endif
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
@@ -2274,11 +2278,11 @@ SaErrorT SAHPI_API saHpiResourcePowerStateGet (
 SaErrorT SAHPI_API saHpiResourcePowerStateSet (
                 SAHPI_IN SaHpiSessionIdT SessionId,
                 SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiHsPowerStateT State)
+                SAHPI_IN SaHpiPowerStateT State)
 {
         SaErrorT rv;
         SaErrorT (*set_power_state)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiHsPowerStateT state);
+                                    SaHpiPowerStateT state);
         struct oh_session *s;
         RPTable *rpt;
         SaHpiRptEntryT *res;
@@ -2290,12 +2294,10 @@ SaErrorT SAHPI_API saHpiResourcePowerStateSet (
         OH_RPT_GET(SessionId, rpt);
         OH_RESOURCE_GET(rpt, ResourceId, res);
 
-#if 0
-        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_FRU)) {
+        if (!(res->ResourceCapabilities & SAHPI_CAPABILITY_POWER)) {
                 data_access_unlock();
-                return SA_ERR_HPI_INVALID_CMD;
+                return SA_ERR_HPI_CAPABILITY;
         }
-#endif
 
         OH_HANDLER_GET(rpt, ResourceId, h);
 
