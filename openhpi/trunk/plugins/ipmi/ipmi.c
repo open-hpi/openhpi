@@ -75,10 +75,15 @@ static void *ipmi_open(GHashTable *handler_config)
 	handler->config = handler_config;
 
 	/* Discovery routine depends on these flags */
-	ipmi_handler->SDRs_read_done = 0;			/* Domain (main) SDR flag, 1 when done */
-    ipmi_handler->SELs_read_done = 0;			/* SEL flag, 1 when done */
-	ipmi_handler->mc_count = 0;					/* MC level SDRs, 0 when done */
-	//ipmi_handler->FRU_done = 0;					/* MC level SDRs, 0 when done */
+	ipmi_handler->SDRs_read_done = 0;
+	/* Domain (main) SDR flag, 1 when done */
+	ipmi_handler->SELs_read_done = 0;
+	/* SEL flag, 1 when done */
+	ipmi_handler->mc_count = 0;
+	/* MC level SDRs, 0 when done */
+
+	//ipmi_handler->FRU_done = 0;
+	/* MC level SDRs, 0 when done */
 
 	ipmi_handler->entity_root = g_hash_table_lookup(handler_config, "entity_root");
 	
@@ -89,122 +94,124 @@ static void *ipmi_open(GHashTable *handler_config)
 	} else
 		dbg("name: %s, addr: %s, entity_root: %s", name, addr, ipmi_handler->entity_root);
 
-    /* OS handler allocated first. */
-    ipmi_handler->os_hnd = ipmi_posix_get_os_handler();
+	/* OS handler allocated first. */
+	ipmi_handler->os_hnd = ipmi_posix_get_os_handler();
 	sel_alloc_selector(ipmi_handler->os_hnd, &ipmi_handler->ohoi_sel);
-    ipmi_posix_os_handler_set_sel(ipmi_handler->os_hnd, ipmi_handler->ohoi_sel);
+	ipmi_posix_os_handler_set_sel(ipmi_handler->os_hnd, ipmi_handler->ohoi_sel);
 	ipmi_init(ipmi_handler->os_hnd);
 	
 	if (strcmp(name, "smi") == 0) {
-			int tmp = strtol(addr, (char **)NULL, 10);
+		int tmp = strtol(addr, (char **)NULL, 10);
 
-			rv = ipmi_smi_setup_con(tmp,ipmi_handler->os_hnd,ipmi_handler->ohoi_sel,&ipmi_handler->con);
-			if (rv) {
-					dbg("Cannot setup connection");
-					return NULL;
-			}
-	} else if (strcmp(name, "lan") == 0) {
-			static struct in_addr lan_addr;
-			static int lan_port;
-			static int auth;
-			static int priv;
-			
-			char *tok;
-			char user[32], passwd[32];
-
-			/* Address */
-			tok = g_hash_table_lookup(handler_config, "addr");
-			dbg("IPMI LAN Address: %s", tok);
-			struct hostent *ent = gethostbyname(tok);
-			if (!ent) {
-					dbg("Unable to resolve IPMI LAN address");
-					return NULL;
-			}
-			
-			memcpy(&lan_addr, ent->h_addr_list[0], ent->h_length);
-			
-			/* Port */
-			tok = g_hash_table_lookup(handler_config, "port");
-			lan_port = atoi(tok);
-			dbg("IPMI LAN Port: %i", lan_port);
-
-			/* Authentication type */
-			tok = g_hash_table_lookup(handler_config, "auth_type");
-			if (strcmp(tok, "none") == 0) {
-					auth = IPMI_AUTHTYPE_NONE;
-			} else if (strcmp(tok, "straight") == 0) {
-					auth = IPMI_AUTHTYPE_STRAIGHT;
-			} else if (strcmp(tok, "md2") == 0) {
-					auth = IPMI_AUTHTYPE_MD2;
-			} else if (strcmp(tok, "md5") == 0) {
-					auth = IPMI_AUTHTYPE_MD5;
-			} else {
-					dbg("Invalid IPMI LAN authenication method: %s", tok);
-					return NULL;
-			}
-
-			dbg("IPMI LAN Authority: %s(%i)", tok, auth);
-
-			/* Priviledge */
-			tok = g_hash_table_lookup(handler_config, "auth_level");
-			if (strcmp(tok, "callback") == 0) {
-					priv = IPMI_PRIVILEGE_CALLBACK;
-			} else if (strcmp(tok, "user") == 0) {
-					priv = IPMI_PRIVILEGE_USER;
-			} else if (strcmp(tok, "operator") == 0) {
-					priv = IPMI_PRIVILEGE_OPERATOR;
-			} else if (strcmp(tok, "admin") == 0) {
-					priv = IPMI_PRIVILEGE_ADMIN;
-			} else if (strcmp(tok, "oem") == 0) {
-					priv = IPMI_PRIVILEGE_OEM;
-			} else {
-					dbg("Invalid IPMI LAN authenication method: %s", tok);
-					return NULL;
-			}
-			
-			dbg("IPMI LAN Priviledge: %s(%i)", tok, priv);
-
-			/* User Name */
-			tok = g_hash_table_lookup(handler_config, "username"); 
-			strncpy(user, tok, 32);
-			dbg("IPMI LAN User: %s", user);
-
-			/* Password */
-			tok = g_hash_table_lookup(handler_config, "password");  
-			strncpy(passwd, tok, 32);
-			dbg("IPMI LAN Password: %s", passwd);
-
-			free(tok);
-
-			rv = ipmi_lan_setup_con(&lan_addr, &lan_port, 1,
-							auth, priv,
-							user, strlen(user),
-							passwd, strlen(passwd),
-							ipmi_handler->os_hnd, ipmi_handler->ohoi_sel,
-							&ipmi_handler->con);
-	} else {
-			dbg("Unsupported IPMI connection method: %s",name);
+		rv = ipmi_smi_setup_con(tmp,ipmi_handler->os_hnd,
+					ipmi_handler->ohoi_sel,&ipmi_handler->con);
+		if (rv) {
+			dbg("Cannot setup connection");
 			return NULL;
+		}
+	} else if (strcmp(name, "lan") == 0) {
+		static struct in_addr lan_addr;
+		static int lan_port;
+		static int auth;
+		static int priv;
+			
+		char *tok;
+		char user[32], passwd[32];
+
+		/* Address */
+		tok = g_hash_table_lookup(handler_config, "addr");
+		dbg("IPMI LAN Address: %s", tok);
+		struct hostent *ent = gethostbyname(tok);
+		if (!ent) {
+			dbg("Unable to resolve IPMI LAN address");
+			return NULL;
+		}
+			
+		memcpy(&lan_addr, ent->h_addr_list[0], ent->h_length);
+			
+		/* Port */
+		tok = g_hash_table_lookup(handler_config, "port");
+		lan_port = atoi(tok);
+		dbg("IPMI LAN Port: %i", lan_port);
+
+		/* Authentication type */
+		tok = g_hash_table_lookup(handler_config, "auth_type");
+		if (strcmp(tok, "none") == 0) {
+			auth = IPMI_AUTHTYPE_NONE;
+		} else if (strcmp(tok, "straight") == 0) {
+			auth = IPMI_AUTHTYPE_STRAIGHT;
+		} else if (strcmp(tok, "md2") == 0) {
+			auth = IPMI_AUTHTYPE_MD2;
+		} else if (strcmp(tok, "md5") == 0) {
+			auth = IPMI_AUTHTYPE_MD5;
+		} else {
+			dbg("Invalid IPMI LAN authenication method: %s", tok);
+			return NULL;
+		}
+
+		dbg("IPMI LAN Authority: %s(%i)", tok, auth);
+
+		/* Priviledge */
+		tok = g_hash_table_lookup(handler_config, "auth_level");
+		if (strcmp(tok, "callback") == 0) {
+			priv = IPMI_PRIVILEGE_CALLBACK;
+		} else if (strcmp(tok, "user") == 0) {
+			priv = IPMI_PRIVILEGE_USER;
+		} else if (strcmp(tok, "operator") == 0) {
+			priv = IPMI_PRIVILEGE_OPERATOR;
+		} else if (strcmp(tok, "admin") == 0) {
+			priv = IPMI_PRIVILEGE_ADMIN;
+		} else if (strcmp(tok, "oem") == 0) {
+			priv = IPMI_PRIVILEGE_OEM;
+		} else {
+			dbg("Invalid IPMI LAN authenication method: %s", tok);
+			return NULL;
+		}
+			
+		dbg("IPMI LAN Priviledge: %s(%i)", tok, priv);
+
+		/* User Name */
+		tok = g_hash_table_lookup(handler_config, "username"); 
+		strncpy(user, tok, 32);
+		dbg("IPMI LAN User: %s", user);
+
+		/* Password */
+		tok = g_hash_table_lookup(handler_config, "password");  
+		strncpy(passwd, tok, 32);
+		dbg("IPMI LAN Password: %s", passwd);
+
+		free(tok);
+
+		rv = ipmi_lan_setup_con(&lan_addr, &lan_port, 1,
+					auth, priv,
+					user, strlen(user),
+					passwd, strlen(passwd),
+					ipmi_handler->os_hnd, ipmi_handler->ohoi_sel,
+					&ipmi_handler->con);
+	} else {
+		dbg("Unsupported IPMI connection method: %s",name);
+		return NULL;
 	}
 
 	ipmi_handler->connected = 0;
 
-	rv = ipmi_init_domain(&ipmi_handler->con, 1, NULL, NULL, NULL, &ipmi_handler->domain_id);
+	rv = ipmi_init_domain(&ipmi_handler->con, 1, NULL, NULL, 
+			      NULL, &ipmi_handler->domain_id);
 	if (rv) {
-			fprintf(stderr, "ipmi_init_domain: %s\n", strerror(rv));
-			return NULL;
+		fprintf(stderr, "ipmi_init_domain: %s\n", strerror(rv));
+		return NULL;
 	}
 
         rv = ipmi_domain_pointer_cb(ipmi_handler->domain_id, ohoi_setup_done, handler);
         if (rv) {
-                        fprintf(stderr, "ipmi_domain_pointer_cb: %s\n", strerror(rv));
-                        return NULL;
+		fprintf(stderr, "ipmi_domain_pointer_cb: %s\n", strerror(rv));
+		return NULL;
         }
 
-		/* increment global count of plug-in instances */
-		ipmi_refcount++;
+	/* increment global count of plug-in instances */
+	ipmi_refcount++;
 
-		return handler;
+	return handler;
 }
 
 
@@ -260,21 +267,22 @@ static void ipmi_close(void *hnd)
  **/
 static int ipmi_get_event(void *hnd, struct oh_event *event)
 {
-		struct oh_handler_state *handler = hnd;
-		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
+	struct oh_handler_state *handler = hnd;
+	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
 
-		struct timeval to = {0, 0};
+	struct timeval to = {0, 0};
 
-		sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &to);
+	sel_select(ipmi_handler->ohoi_sel, NULL, 0, NULL, &to);
 
-		if(g_slist_length(handler->eventq)>0) {
-				memcpy(event, handler->eventq->data, sizeof(*event));
-				event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
-				free(handler->eventq->data);
-				handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
-				return 1;
-		} else
-				return 0;
+	if(g_slist_length(handler->eventq)>0) {
+		memcpy(event, handler->eventq->data, sizeof(*event));
+		event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+		free(handler->eventq->data);
+		handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
+		return 1;
+	} else
+	
+	return 0;
 }
 
 /**
@@ -657,6 +665,31 @@ SaErrorT ohoi_get_rdr_data(const struct oh_handler_state *handler,
         return SA_OK;
 }
 
+#define SENSOR_CHECK(handler, sensor_info, id, num)                           \
+do {                                                                          \
+	SaErrorT         rv;                                                  \
+	SaHpiRdrT *rdr;                                                       \
+	                                                                      \
+	rdr = oh_get_rdr_by_type(handler->rptcache, id,                       \
+				 SAHPI_SENSOR_RDR, num);                      \
+	if (!rdr) {                                                           \
+		dbg("no rdr");                                                \
+		return SA_ERR_HPI_NOT_PRESENT;                                \
+	}                                                                     \
+	                                                                      \
+	rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num,            \
+						(void *)&sensor_info);        \
+	if (rv != SA_OK)                                                      \
+		return rv;                                                    \
+                                                                              \
+	if (!sensor_info)                                                     \
+		return SA_ERR_HPI_NOT_PRESENT;	                              \
+                                                                              \
+	if (sensor_info->enable == SAHPI_FALSE)                               \
+		return SA_ERR_HPI_INVALID_REQUEST;                            \
+} while (0)
+
+
 /**
  * ipmi_get_sensor_reading: get sensor reading, type, category and other info.
  * @hnd: pointer to handler instance
@@ -674,35 +707,27 @@ static int ipmi_get_sensor_reading(void   *hnd,
 				   SaHpiSensorReadingT *reading,
 				   SaHpiEventStateT  *ev_state)
 {
+	SaErrorT         rv;
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
 
-	SaHpiRdrT *rdr;
+	SaHpiSensorReadingT tmp_reading;
+	SaHpiEventStateT  tmp_state;
 
+	SENSOR_CHECK(handler, sensor_info, id, num);
 	
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-	
-	rv = ohoi_get_rdr_data(handler, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
-	if (rv!=SA_OK)
+	rv = ohoi_get_sensor_reading(sensor_info->sensor_id, &tmp_reading,
+				     &tmp_state, ipmi_handler);
+	if (rv)
 		return rv;
 
-	if (!sensor_info)
-		return SA_ERR_HPI_NOT_PRESENT;	
+	if (reading)
+		*reading = tmp_reading;
+	if (ev_state)
+		*ev_state = tmp_state;
 
-	if (sensor_info->enable == SAHPI_FALSE)
-		return SA_ERR_HPI_INVALID_REQUEST;
-	
-	if (!reading && !ev_state)
-		return SA_OK;
-	
-	return ohoi_get_sensor_reading(sensor_info->sensor_id, reading, ev_state, ipmi_handler);
+	return SA_OK;
 }
 
 /**
@@ -723,36 +748,13 @@ static int ipmi_get_sensor_thresholds(void			*hnd,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
-	
-	SaHpiRdrT *rdr;
 
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#if 0
-	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
-		dbg("sensor is not present");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#endif
-
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
-	if (rv!=SA_OK)
-		return rv;
-	if (!sensor_info)
-		return SA_ERR_HPI_NOT_PRESENT;	
-
-	if (sensor_info->enable == SAHPI_FALSE)
-		return SA_ERR_HPI_INVALID_REQUEST;
-	
+	SENSOR_CHECK(handler, sensor_info, id, num);
 	if (!thres)
 		return SA_ERR_HPI_INVALID_PARAMS;
-	memset(thres, 0, sizeof(*thres));	
+
+	memset(thres, 0, sizeof(*thres));
 	return ohoi_get_sensor_thresholds(sensor_info->sensor_id, thres, ipmi_handler);
 }
 
@@ -763,33 +765,9 @@ static int ipmi_set_sensor_thresholds(void				*hnd,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
 
-	SaHpiRdrT *rdr;
-
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#if 0
-	if ( rdr->RdrTypeUnion.SensorRec.Ignore == SAHPI_TRUE){
-		dbg("sensor is not present");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-#endif
-
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
-		
-	if (rv!=SA_OK)
-		return rv;
-	if (!sensor_info)
-		return SA_ERR_HPI_NOT_PRESENT;
-	
-	if (sensor_info->enable == SAHPI_FALSE)
-		return SA_ERR_HPI_INVALID_REQUEST;
+	SENSOR_CHECK(handler, sensor_info, id, num);
 	
 	if (!thres)
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -802,26 +780,15 @@ static int ipmi_get_sensor_enable(void *hnd, SaHpiResourceIdT id,
 				  SaHpiBoolT *enable)
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-
-	SaErrorT	 rv;
 	struct ohoi_sensor_info *sensor_info;
 
-	SaHpiRdrT *rdr;
+	SENSOR_CHECK(handler, sensor_info, id, num);
+	
+	if (!enable)
+		return SA_ERR_HPI_INVALID_PARAMS;
 
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
-	if (rv!=SA_OK)
-		return rv;
-	if (enable && sensor_info) {
-		*enable = sensor_info->enable;
-		return SA_OK;
-	}
-	return SA_ERR_HPI_NOT_PRESENT;
+	*enable = sensor_info->enable;
+	return SA_OK;
 }
 
 
@@ -829,26 +796,13 @@ static int ipmi_set_sensor_enable(void *hnd, SaHpiResourceIdT id,
 				  SaHpiSensorNumT num,
 				  SaHpiBoolT enable)
 {
+	
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
-	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
 
-	SaHpiRdrT *rdr;
-
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);	
-	if (rv!=SA_OK)
-		return rv;
-	
+	SENSOR_CHECK(handler, sensor_info, id, num);
 	sensor_info->enable = enable;
-        return ohoi_set_sensor_enable(sensor_info->sensor_id, enable, ipmi_handler);
+	return SA_OK;	
 }
 
 static int ipmi_get_sensor_event_enable(void *hnd, SaHpiResourceIdT id,
@@ -858,21 +812,12 @@ static int ipmi_get_sensor_event_enable(void *hnd, SaHpiResourceIdT id,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
 	
-	SaHpiRdrT *rdr;
-
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
-
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num, (void *)&sensor_info);
-	if (rv!=SA_OK)
-		return rv;
+	SENSOR_CHECK(handler, sensor_info, id, num);
+	
+	if (!enable)
+		return SA_ERR_HPI_INVALID_PARAMS;
 	return ohoi_get_sensor_event_enable(sensor_info, enable, ipmi_handler);
 }
 
@@ -883,22 +828,9 @@ static int ipmi_set_sensor_event_enable(void *hnd,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
-
-	SaHpiRdrT *rdr;
-
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
 	
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
-		(void *)&sensor_info);
-	if (rv!=SA_OK)
-		return rv;
+	SENSOR_CHECK(handler, sensor_info, id, num);
 	return ohoi_set_sensor_event_enable(sensor_info, enable, ipmi_handler);
 }
 static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
@@ -906,28 +838,16 @@ static int ipmi_get_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 				       SaHpiEventStateT *assert,
 				       SaHpiEventStateT *deassert)
 {
-	
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
-
-	SaHpiRdrT *rdr;
-
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
 	
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
-		(void *)&sensor_info);
-	if (rv!=SA_OK)
-		return rv;
+	SENSOR_CHECK(handler, sensor_info, id, num);
+
+	if (!assert || !deassert)
+		return SA_ERR_HPI_INVALID_PARAMS;
 
 	return ohoi_get_sensor_event_masks(sensor_info, assert, deassert, ipmi_handler);
-
 }
 
 static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
@@ -937,23 +857,9 @@ static int ipmi_set_sensor_event_masks(void *hnd, SaHpiResourceIdT id,
 {
 	struct oh_handler_state *handler = (struct oh_handler_state *)hnd;
 	struct ohoi_handler *ipmi_handler = (struct ohoi_handler *)handler->data;
-	
-	SaErrorT         rv;
 	struct ohoi_sensor_info *sensor_info;
-
-	SaHpiRdrT *rdr;
-
-	rdr = oh_get_rdr_by_type(handler->rptcache, id, SAHPI_SENSOR_RDR, num);
-	if (!rdr) {
-		dbg("no rdr");
-		return SA_ERR_HPI_NOT_PRESENT;
-	}
 	
-	rv = ohoi_get_rdr_data(hnd, id, SAHPI_SENSOR_RDR, num,
-		(void *)&sensor_info);
-	if (rv!=SA_OK)
-		return rv;
-
+	SENSOR_CHECK(handler, sensor_info, id, num);
 	return ohoi_set_sensor_event_masks(sensor_info, assert, deassert, ipmi_handler);
 }
 

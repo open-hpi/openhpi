@@ -245,10 +245,10 @@ static void sensor_threshold_event(ipmi_sensor_t		*sensor,
         sensor_id = ipmi_sensor_convert_to_id(sensor);
         rpt_entry  = ohoi_get_resource_by_entityid(handler->rptcache, &entity_id);
 	
-        if (!rpt_entry) {
-                dump_entity_id("Discrete Sensor without RPT?!", entity_id);
-                return;
-        }
+	if (!rpt_entry) {
+                dump_entity_id("Sensor without RPT Entry?!", entity_id);
+		return;
+	}  
         
         rdr  = ohoi_get_rdr_by_data(handler->rptcache,
                                     rpt_entry->ResourceId,
