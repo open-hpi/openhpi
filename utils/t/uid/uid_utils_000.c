@@ -11,13 +11,12 @@
  *
  * Authors:
  *     Renier Morales <renierm@users.sf.net>
- *
  */
 
-#include <SaHpi.h>
 #include <glib.h>
-#include <uid_utils.h>
-#include <epath_utils.h>
+
+#include <SaHpi.h>
+#include <oh_utils.h>
 
 /**
  * main: Get a new unique id. Use id to lookup original entity path. 
