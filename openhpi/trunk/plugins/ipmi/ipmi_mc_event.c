@@ -112,6 +112,19 @@ static void mc_add(ipmi_mc_t                    *mc,
 
 }
 
+static
+void mc_active(ipmi_mc_t *mc, int active, void *cb_data)
+{
+		struct oh_handler_state *handler = cb_data;
+
+		if (active) {
+				dbg("MC added and active...(%d %x)\n",
+								ipmi_mc_get_address(mc),
+								ipmi_mc_get_channel(mc));
+				mc_add(mc, handler);
+		}
+}
+
 void
 ohoi_mc_event(enum ipmi_update_e op,
               ipmi_domain_t      *domain,
@@ -119,17 +132,19 @@ ohoi_mc_event(enum ipmi_update_e op,
               void               *cb_data)
 {
         struct oh_handler_state *handler = cb_data;
-
+		int rv;
+		
         switch (op) {
                 case IPMI_ADDED:
+						rv = ipmi_mc_add_active_handler(mc, mc_active, handler);
 						if(!ipmi_mc_is_active(mc)) {
-								dbg("MC added but inactive...we ignore (%d %x)\n",
+								dbg("MC updated but inactive...we ignore (%d %x)\n",
 												ipmi_mc_get_address(mc),
 												ipmi_mc_get_channel(mc));
 								break;
 						} else {
 								mc_add(mc, handler);
-								dbg("MC added and is active: (%d %x)\n", 
+								dbg("MC updated and is active: (%d %x)\n", 
 												ipmi_mc_get_address(mc), 
 												ipmi_mc_get_channel(mc));
 								break;

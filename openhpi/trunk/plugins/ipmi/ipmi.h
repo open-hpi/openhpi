@@ -41,7 +41,8 @@ extern selector_t       *ohoi_sel;
 
 struct ohoi_handler {
 	int SDRs_read_done;
-        int SELs_read_done;
+	int bus_scan_done;
+    int SELs_read_done;
 	ipmi_domain_id_t domain_id;
 };
 

@@ -40,9 +40,19 @@ static void SELs_read_done(ipmi_domain_t *domain, int err, void *cb_data)
 
 static void bus_scan_done(ipmi_domain_t *domain, int err, void *cb_data)
 {
-	ipmi_domain_reread_sels(domain, SELs_read_done, cb_data);
-	dbg("bus scan done");
-	return;
+		struct ohoi_handler *ipmi_handler = (struct ohoi_handler *) cb_data;
+		int rv;
+		int *flag = &ipmi_handler->bus_scan_done;
+		*flag = 1;
+		dbg("bus scan done");
+		
+		/* we have MCs now, get SEL */
+		rv = ipmi_domain_reread_sels(domain, SELs_read_done, &ipmi_handler->SELs_read_done);
+
+		if (rv)
+				dbg("ipmi_domain_reread_sels returned error: %d\n", rv);
+	
+		return;
 }
 
 void ohoi_setup_done(ipmi_domain_t	*domain,
@@ -74,15 +84,14 @@ void ohoi_setup_done(ipmi_domain_t	*domain,
 	if (rv)
 		dbg("ipmi_domain_set_main_SDRs_read_handler return error: %d\n", rv);
 	
-        rv = ipmi_domain_set_bus_scan_handler(domain, bus_scan_done,
-					      &ipmi_handler->SELs_read_done);
+    rv = ipmi_domain_set_bus_scan_handler(domain, bus_scan_done,
+										      ipmi_handler);
 	if (rv) 
 		dbg("ipmi_domain_set_bus_scan_handler return error: %d\n", rv);
 
-        rv = ipmi_domain_register_mc_update_handler(domain, ohoi_mc_event, handler,
+    rv = ipmi_domain_register_mc_update_handler(domain, ohoi_mc_event, handler,
                                                     &mc_update_handler_id);
-
-        if (rv)
-                dbg("ipmi_domain_register_mc_update_handler return error: %d\n", rv);
-            
+    if (rv)
+			dbg("ipmi_domain_register_mc_update_handler return error: %d\n", rv);
+	
 }
