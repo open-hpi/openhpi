@@ -59,8 +59,8 @@ typedef struct {
 /* General RPT calls */
 void oh_flush_rpt(RPTable *table);
 void rpt_diff(RPTable *cur_rpt, RPTable *new_rpt,
-              GSList *res_new, GSList *rdr_new,
-              GSList *res_gone, GSList *rdr_gone);
+              GSList **res_new, GSList **rdr_new,
+              GSList **res_gone, GSList **rdr_gone);
 
 /* Resource calls */
 int oh_add_resource(RPTable *table, SaHpiRptEntryT *entry, void *data);
