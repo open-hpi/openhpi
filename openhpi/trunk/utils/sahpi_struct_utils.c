@@ -1357,7 +1357,6 @@ SaErrorT oh_fprint_rptentry(FILE *stream, const SaHpiRptEntryT *rptentry, int of
 	if (!stream || !rptentry) return(SA_ERR_HPI_INVALID_PARAMS);
 	
 	oh_init_bigtext(&mybuf);
-	oh_append_bigtext(&mybuf, "RPT Entry:\n");
 	offsets++;
 	
 	oh_append_offset(&mybuf, offsets);
