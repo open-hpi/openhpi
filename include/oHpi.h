@@ -32,6 +32,33 @@ typedef struct {
         /* More to come later... */
 } oHpiHandlerInfoT;
 
+typedef enum {
+        OHPI_ON_EP = 1,
+        OHPI_LOG_ON_SEV,
+        OHPI_DEBUG,
+        OHPI_DEBUG_TRACE,
+        OHPI_DEBUG_LOCK,
+        OHPI_THREADED,
+        OHPI_PATH,
+        OHPI_CONF
+} oHpiGlobalParamTypeT;
+
+typedef union {
+        SaHpiEntityPathT OnEP;
+        SaHpiSeverityT LogOnSev;
+        unsigned char Debug; /* 1 = YES, 0 = NO */
+        unsigned char DebugTrace; /* !0 = YES, 0 = NO */
+        unsigned char DebugLock; /* !0 = YES, 0 = NO */
+        unsigned char Threaded; /* !0 = YES, 0 = NO */
+        char Path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        char Conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+} oHpiGlobalParamUnionT;
+
+typedef struct {
+        oHpiGlobalParamTypeT Type;
+        oHpiGlobalParamUnionT u;
+} oHpiGlobalParamT;
+
 /* Exported OpenHPI plugin prototypes */
 SaErrorT oHpiPluginLoad(char *name);
 SaErrorT oHpiPluginUnload(char *name);
@@ -46,7 +73,7 @@ SaErrorT oHpiHandlerInfo(oHpiHandlerIdT id, oHpiHandlerInfoT *info);
 SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id);
 
 /* Global parameters */
-SaErrorT oHpiGlobalParamGet(char *name, char *value, int size);
-SaErrorT oHpiGlobalParamSet(const char *name, char *value);
+SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param);
+SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param);
 
 #endif /*__OHPI_H*/

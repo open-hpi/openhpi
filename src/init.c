@@ -27,7 +27,7 @@ static enum {
 SaErrorT oh_initialized()
 {
         data_access_lock();
-        if(oh_init_state == UNINIT) {
+        if(oh_init_state == UNINIT) {                
                 data_access_unlock();
                 return SA_ERR_HPI_ERROR;
         } else {
@@ -45,13 +45,12 @@ SaErrorT oh_initialize()
 {
         GSList *node = NULL;
         struct oh_parsed_config config = {NULL, NULL};
-        char *openhpi_conf;
+        struct oh_global_param config_param = { .type = OPENHPI_CONF };
         int rval;
         unsigned int u;
 
         SaHpiDomainCapabilitiesT capabilities = 0x00000000;
         SaHpiTextBufferT tag;
-
 
         data_access_lock();
 
@@ -61,18 +60,14 @@ SaErrorT oh_initialize()
                 data_access_unlock();
                 return SA_ERR_HPI_DUPLICATE;
         }
-
+        
         /* Initialize event process queue */
         oh_event_init();
 
-        /* Set openhpi configuration file location */
-        openhpi_conf = getenv("OPENHPI_CONF");
+        /* Set openhpi configuration file location */        
+        oh_get_global_param(&config_param);
 
-        if (openhpi_conf == NULL) {
-                openhpi_conf = OH_DEFAULT_CONF;
-        }
-
-        rval = oh_load_config(openhpi_conf, &config);
+        rval = oh_load_config(config_param.u.conf, &config);
 	/* Don't error out if there is no conf file */
 	if (rval < 0 && rval != -4) {
                 dbg("Can not load config");
@@ -124,7 +119,7 @@ SaErrorT oh_initialize()
         if (!u) {
                 /* there is no handler => this can not work */
                 dbg("No handlers loaded after initialization.");
-                dbg("Check configuration file %s", openhpi_conf);
+                dbg("Check configuration file %s", config_param.u.conf);
                 /*data_access_unlock();*/
                 /*return SA_ERR_HPI_NOT_PRESENT;*/
         }

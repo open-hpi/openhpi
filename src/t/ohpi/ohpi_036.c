@@ -27,20 +27,22 @@
  
 int main(int argc, char **argv)
 {
-        char *config_file = NULL;
-        char buffer[128];
+        oHpiGlobalParamT path_param = {
+                .Type = OHPI_PATH,
+                .u.Path = "/mylibdir"
+        };
         
-        /* Save config file env variable and unset it */
-        config_file = getenv("OPENHPI_CONF");
+        /* Unset config file env variable */
         setenv("OPENHPI_CONF","./noconfig", 1);
                 
-        if (oHpiGlobalParamSet("OPENHPI_ON_EP", "{SYSTEM_CHASSIS,102}"))
+        if (oHpiGlobalParamSet(&path_param))
                 return -1;
                 
-        if (oHpiGlobalParamGet("OPENHPI_ON_EP", buffer, 128))
+        memset(path_param.u.Path, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+        if (oHpiGlobalParamGet(&path_param))
                 return -1;
                 
-        if (strcmp("{SYSTEM_CHASSIS,102}", buffer))
+        if (strcmp("/mylibdir", path_param.u.Path))
                 return -1;
                 
         

@@ -25,16 +25,14 @@
 int main(int argc, char **argv)
 {
         SaHpiSessionIdT sid = 0;
-        char *config_file = NULL;
         
-        /* Save config file env variable and unset it */
-        config_file = getenv("OPENHPI_CONF");
+        /* Unset config file env variable */
         setenv("OPENHPI_CONF","./noconfig", 1);
         
         if (saHpiSessionOpen(1, &sid, NULL))
                 return -1;
                 
-        if (!oHpiGlobalParamSet(NULL, NULL))
+        if (!oHpiGlobalParamSet(NULL))
                 return -1;
                 
         

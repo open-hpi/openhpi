@@ -56,13 +56,13 @@ SaErrorT SAHPI_API saHpiSessionOpen(
                 dbg("SecurityParams must be NULL");
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
-        
+
         if (oh_initialized() != SA_OK && oh_initialize() != SA_OK) {
                 dbg("ERROR. Could not initialize the library");
                 return SA_ERR_HPI_INTERNAL_ERROR;
         }
 
-        if (DomainId == SAHPI_UNSPECIFIED_RESOURCE_ID)
+        if (DomainId == SAHPI_UNSPECIFIED_DOMAIN_ID)
                 did = oh_get_default_domain_id();
         else
                 did = DomainId;
@@ -407,24 +407,16 @@ SaErrorT SAHPI_API saHpiResourceIdGet(
 {
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
-        SaHpiEntityPathT ep;
         SaHpiRptEntryT *rptentry;
-        char on_entitypath[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+        struct oh_global_param ep_param = { .type = OPENHPI_ON_EP };
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
 
-
-        if (oh_lookup_global_param("OPENHPI_ON_EP",
-                                   on_entitypath,
-                                   SAHPI_MAX_TEXT_BUFFER_LENGTH)) {
-                return SA_ERR_HPI_UNKNOWN;
-        }
-
-        string2entitypath(on_entitypath, &ep);
-
+        oh_get_global_param(&ep_param);
+                
         OH_GET_DOMAIN(did, d); /* Lock domain */
-        rptentry = oh_get_resource_by_ep(&(d->rpt), &ep);
+        rptentry = oh_get_resource_by_ep(&(d->rpt), &ep_param.u.on_ep);
         if (!rptentry) {
                 oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_NOT_PRESENT;

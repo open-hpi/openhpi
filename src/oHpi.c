@@ -242,45 +242,53 @@ SaErrorT oHpiHandlerGetNext(oHpiHandlerIdT id, oHpiHandlerIdT *next_id)
 
 /**
  * oHpiGlobalParamGet
- * @name: IN. Name of global parameter to get.
- * @value: IN/OUT. Place to put the value for parameter @name.
- * @size: IN. Size of @value buffer.
+ * @param: param->type needs to be set to know what parameter to fetch.
  *
  * Gets the value of the specified global parameter.
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
-SaErrorT oHpiGlobalParamGet(char *name, char *value, int size)
+SaErrorT oHpiGlobalParamGet(oHpiGlobalParamT *param)
 {
-        if (!name || !value) {
+        struct oh_global_param p;
+        
+        if (!param || !param->Type) {
                 dbg("Invalid parameters.");
                 return SA_ERR_HPI_INVALID_PARAMS;                
-        }        
+        }
         
-        if (oh_lookup_global_param(name, value, size))
-                return SA_ERR_HPI_NOT_PRESENT;
+        p.type = param->Type;
+        
+        if (oh_get_global_param(&p))
+                return SA_ERR_HPI_UNKNOWN;
+                
+        memcpy(&param->u, &p.u, sizeof(oh_global_param_union));
         
         return SA_OK;
 }
 
 /**
  * oHpiGlobalParamSet
- * @name: IN. Name of global parameter to set.
- * @value: IN. Value to set.
+ * @param: param->type needs to be set to know what parameter to set.
+ * Also, the appropiate value in param->u needs to be filled in.
  *
- * Sets a global parameter. This will return an error if
- * an attempt to set is made after any plugins have been loaded.
+ * Sets a global parameter.
  *
  * Returns: SA_OK on success. Minus SA_OK on error.
  **/
-SaErrorT oHpiGlobalParamSet(const char *name, char *value)
+SaErrorT oHpiGlobalParamSet(oHpiGlobalParamT *param)
 {
-        if (!name || !value) {
+        struct oh_global_param p;
+        
+        if (!param || !param->Type) {
                 dbg("Invalid parameters.");
-                return SA_ERR_HPI_INVALID_PARAMS;
+                return SA_ERR_HPI_INVALID_PARAMS;                
         }
+        
+        p.type = param->Type;
+        memcpy(&p.u, &param->u, sizeof(oh_global_param_union));
                 
-        if (oh_set_global_param(name, value))
+        if (oh_set_global_param(&p))
                 return SA_ERR_HPI_ERROR;
                 
         return SA_OK;
