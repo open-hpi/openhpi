@@ -755,6 +755,11 @@ static int discovery(int argc, char *argv[])
 	return sa_discover();
 }
 
+static int dat_list(int argc, char *argv[])
+{
+	return show_dat(Domain, ui_print);
+}
+
 static int listres(int argc, char *argv[])
 {
 	return show_rpt_list(Domain, ui_print);
@@ -793,34 +798,50 @@ static int show_inv(int argc, char *argv[])
 
 static int show_rpt(int argc, char *argv[])
 {
-	Rpt_t			*Rpt;
+	Rpt_t			*rpt_entry;
 	int			i, res;
-	SaHpiResourceIdT	Id;
+	SaHpiResourceIdT	resid;
 
 	if (argc < 2) {
+		show_rpt_list(Domain, ui_print);
 		i = get_int_param("RPT ID ==> ", &res);
-		if (i == 1) Id = (SaHpiResourceIdT)res;
+		if (i == 1) resid = (SaHpiResourceIdT)res;
 		else return HPI_SHELL_PARM_ERROR;
 	} else {
-		Id = (SaHpiResourceIdT)atoi(argv[1]);
+		resid = (SaHpiResourceIdT)atoi(argv[1]);
 	};
-	Rpt = get_rpt(Domain, Id);
-	if (Rpt != (Rpt_t *)NULL)
-		show_Rpt(Rpt, ui_print);
+	rpt_entry = get_rpt(Domain, resid);
+	if (rpt_entry != (Rpt_t *)NULL)
+		show_Rpt(rpt_entry, ui_print);
 	return (SA_OK);
 }
 
 static int show_rdr(int argc, char *argv[])
 {
-	Rdr_t	*Rdr;
+	Rdr_t			*rdr_entry;
+	SaHpiResourceIdT	rptid;
+	SaHpiInstrumentIdT	rdrnum;
+	int			res, i;
 
-	if (argc < 3)
-		return HPI_SHELL_PARM_ERROR;
-
-	Rdr = get_rdr(Domain, (SaHpiResourceIdT)atoi(argv[1]),
-		(SaHpiSensorNumT)atoi(argv[2]));
-	if (Rdr != (Rdr_t *)NULL)
-		show_Rdr(Rdr, ui_print);
+	if (argc < 2) {
+		show_rpt_list(Domain, ui_print);
+		i = get_int_param("RPT ID ==> ", &res);
+		if (i != 1) return HPI_SHELL_PARM_ERROR;
+		rptid = (SaHpiResourceIdT)res;
+	} else {
+		rptid = (SaHpiResourceIdT)atoi(argv[1]);
+	};
+	if (argc < 3) {
+		show_rdr_list(Domain, rptid, ui_print);
+		i = get_int_param("RDR num ==> ", &res);
+		if (i != 1) return HPI_SHELL_PARM_ERROR;
+		rdrnum = (SaHpiInstrumentIdT)res;
+	} else {
+		rdrnum = (SaHpiInstrumentIdT)atoi(argv[2]);
+	};
+	rdr_entry = get_rdr(Domain, rptid, rdrnum);
+	if (rdr_entry != (Rdr_t *)NULL)
+		show_Rdr(rdr_entry, ui_print);
 	return SA_OK;
 }
 
@@ -834,6 +855,8 @@ static int quit(int argc, char *argv[])
 /* command table */
 const char clearevtloghelp[] = "clearevtlog: clear system event logs\n"    \
 			"Usage: clearevtlog <resource id>";
+const char dathelp[] = "dat: domain alarm table list\n"                      \
+			"Usage: dat ";
 const char dscvhelp[] = "dscv: discovery resources\n"                      \
 			"Usage: dscv ";
 const char eventhelp[] = "event: enable or disable event display on screen\n" \
@@ -866,7 +889,7 @@ const char setthreshelp[] = "setthreshold: set sensor threshold values\n"  \
 const char settaghelp[] = "settag: set tag for a particular resource \n"   \
 			"Usage: settag <resource id> <tag string>";
 const char showrdrhelp[] = "showrdr: show resource data record\n"          \
-			"Usage: showrdr <resource id>";
+			"Usage: showrdr [<resource id> [<rdr num>]]";
 const char showevtloghelp[] = "showevtlog: show system event logs\n"       \
 			"Usage: showevtlog <resource id>";
 const char showinvhelp[] = "showinv: show inventory data of a resource\n"  \
@@ -878,6 +901,7 @@ const char showsorhelp[] = "showsensor: show sensor information\n"         \
 
 struct command commands[] = {
     { "clearevtlog",	clear_evtlog,		clearevtloghelp },
+    { "dat",		dat_list,		dathelp },
     { "dscv",		discovery,		dscvhelp },
     { "event",		event,			eventhelp },
     { "gethreshold",	get_thres,		getthreshelp },
