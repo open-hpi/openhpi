@@ -15,25 +15,27 @@ BuildRequires: pkgconfig glib-devel
 BuildRequires: docbook-utils docbook-utils-pdf docbook-dtd41-sgml
 Summary: Library that provides SAForum's HPI
 Group: Utilities
-AutoReq: no
+AutoReq: yes
 Requires: libc.so.6 libglib-1.2.so.0 libpthread.so.0
 
 %package devel
 Summary: Development files for HPI
 Group: Utilities
 AutoReq: yes
-Requires: openhpi 
+Requires: openhpi = @VERSION@
 Requires: pkgconfig
 
 %package clients
 Summary: HPI command line applications
 Group: Utilities
 AutoReq: yes
+Requires: openhpi = @VERSION@
 
-%package openhpid
+%package daemon
 Summary: HPI remote daemon
 Group: Utilities
-Autoreq: no
+Autoreq: yes
+Requires: openhpi = @VERSION@
 
 %description 
 This package contains an implementation of Service Availability Forum's 
@@ -49,7 +51,7 @@ HPI specification
 %description clients
 This package contains hpi command line utilities 
 
-%description openhpid
+%description daemon
 This package contains hpi daemon implementing a simple text remote protocol
 for exchanging HPI data between applications.  This is an EXPERIMENTAL package
 
@@ -118,7 +120,7 @@ install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@H
 %{prefix}/bin/hpi*
 
 ###################################################
-%files openhpid
+%files daemon
 ###################################################
 %defattr(-,root,root)
 %{prefix}/bin/openhpid
