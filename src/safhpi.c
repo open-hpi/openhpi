@@ -56,45 +56,7 @@ static struct oh_config config;
 			return SA_ERR_HPI_INVALID_RESOURCE;	\
 		}						\
 	}while(0)
-#if 0
-#define OH_GET_ZONE						\
-	do {							\
-		struct oh_session *s;				\
-		struct oh_domain  *d;				\
-								\
-		OH_STATE_READY_CHECK;				\
-								\
-		s = session_get(SessionId);			\
-		if (!s) {					\
-			dbg("Invalid session");			\
-			return SA_ERR_HPI_INVALID_SESSION;	\
-		}						\
-								\
-		d   = s->domain;				\
-								\
-		zone = get_zone(d, ResourceId);		        \
-		if (!zone) {					\
-			dbg("Invalid resource");		\
-			return SA_ERR_HPI_INVALID_RESOURCE;	\
-		}						\
-	}while(0)
 
-static struct oh_zone *get_zone(struct oh_domain *d, SaHpiResourceIdT rid)
-{
-	struct list_head *i;
-	list_for_each(i, &d->zone_list) {
-		struct oh_zone *z = list_container(i, struct oh_zone, node);
-		struct list_head *j;
-		list_for_each(j, &z->res_list) {
-			struct oh_resource *res;
-			res = list_container(j, struct oh_resource, node);
-			if (res->entry.ResourceId == rid) return z;
-		}
-	}
-
-	return NULL;
-}
-#endif
 static inline struct oh_rdr * get_rdr(
 	struct oh_resource *res, 
 	SaHpiRdrTypeT type, 
@@ -168,25 +130,7 @@ SaErrorT SAHPI_API saHpiSessionOpen(
         int rv;
         
         OH_STATE_READY_CHECK;
-#if 0
-        if(DomainId == SAHPI_DEFAULT_DOMAIN_ID) {
-                rv = load_handlers();
-                if(rv != 0) {
-                        dbg("Couldn't load handlers");
-                        return SA_ERR_HPI_NOT_PRESENT;
-                }
-        } else {
-                if(!domain_exists(SAHPI_DEFAULT_DOMAIN_ID)) {
-                        dbg("Default domain not open!");
-                        dbg("No other domains may be openned before it");
-                        return SA_ERR_HPI_INVALID_DOMAIN;
-                }
-        }
-#endif
-/*        
-        dconf = (struct oh_config *) calloc(1, sizeof(struct oh_config));
-        load_domain_config(&dconf, DomainId);
-*/
+	
 	if(!domain_exists(DomainId)) {
 		dbg("domain does not exist!");
 		return SA_ERR_HPI_INVALID_DOMAIN;
@@ -198,18 +142,6 @@ SaErrorT SAHPI_API saHpiSessionOpen(
 		return SA_ERR_HPI_OUT_OF_SPACE;
         }
         
-/*
-        for(i = 0; i < g_slist_length(dconf->plugins); i++) {
-                temp = (struct oh_handler_config *) g_slist_nth_data(dconf->plugins, i);
-                dbg("Trying to load plugin %s", temp->plugin);
-                if(load_plugin(d, temp->plugin, temp->name, temp->address) < 0) {
-                        dbg("Can not init %s", temp->plugin);
-                }
-        }
-
-        free_domain_config(dconf);
-*/
-
         *SessionId = s->session_id;
 	
 	return SA_OK;
@@ -276,16 +208,6 @@ SaErrorT SAHPI_API saHpiRptInfoGet(
 	RptInfo->UpdateTimestamp= (SaHpiTimeT)global_rpt_timestamp.tv_sec*1000000000 + global_rpt_timestamp.tv_usec*1000;
 	return SA_OK;
 }
-
-#if 0
-static inline int is_last_resource_in_domain(struct oh_domain *d, 
-		struct oh_resource *res) 
-{
-	struct oh_zone *lz
-		= list_container(list_last(&d->zone_list), struct oh_zone, node);
-	return (&res->node == list_last(&lz->res_list));
-}
-#endif
 
 SaErrorT SAHPI_API saHpiRptEntryGet(
 		SAHPI_IN SaHpiSessionIdT SessionId,
