@@ -797,7 +797,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 			},
 			.event_array = {
 				{
-                                        .event = "08031480", /* EN_PFA_HI_FAULT_2_5V */
+                                        .event = "FF031480", /* EN_PFA_HI_FAULT_2_5V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
 				},
 				{
@@ -805,7 +805,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.event_state = SAHPI_ES_UPPER_CRIT,
 				},
 				{
-					.event = "08031880", /* EN_PFA_LO_FAULT_2_5V */
+					.event = "FF031880", /* EN_PFA_LO_FAULT_2_5V */
 					.event_state = SAHPI_ES_LOWER_MAJOR,
 				},
 				{
@@ -880,14 +880,14 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 				.oid = ".1.3.6.1.4.1.2.3.51.2.2.2.1.2.0",
 				.threshold_oids = {
 					.InterpretedThresholds = {
-						.OidLowMajor     = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
-						.OidUpMajor      = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
+						.OidLowMajor = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.10.2",
+						.OidUpMajor  = ".1.3.6.1.4.1.2.3.51.2.2.20.2.1.1.6.2",
 					},
 				},
 			},
 			.event_array = {
 				{
-                                        .event = "08033480", /* EN_PFA_HI_FAULT_3_35V */
+                                        .event = "FF033480", /* EN_PFA_HI_FAULT_3_35V */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
 				},
 				{
@@ -899,7 +899,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.event_state = SAHPI_ES_LOWER_MAJOR,
 				},
 				{
-					.event = "08032880", /* EN_CUTOFF_LO_FAULT_3_35V */
+					.event = "FF032880", /* EN_CUTOFF_LO_FAULT_3_35V */
 					.event_state = SAHPI_ES_LOWER_CRIT,
 				},
 				{},
@@ -1157,7 +1157,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 			},
 			.event_array = {
 				{
-                                        .event = "06037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
+                                        .event = "FF037500", /* EN_PFA_HI_FAULT_12V_PLANAR */
 					.event_state = SAHPI_ES_UPPER_MAJOR,
 				},
 				{
@@ -1169,7 +1169,7 @@ struct snmp_bc_sensor snmp_bc_chassis_sensors[] = {
 					.event_state = SAHPI_ES_LOWER_MAJOR,
 				},
 				{
-					.event = "06036800", /* EN_CUTOFF_LO_FAULT_12V_PLANAR */
+					.event = "FF036800", /* EN_CUTOFF_LO_FAULT_12V_PLANAR */
 					.event_state = SAHPI_ES_LOWER_CRIT,
 				},
 				{},
