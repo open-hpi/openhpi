@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 	{
 		SaHpiSensorDataFormatT format_default, format_test;
 		SaHpiSensorReadingT reading_default, reading_test, encode_reading;
-		
+		memset(&reading_default, 0, sizeof(SaHpiSensorReadingT));
+
 		reading_default.IsSupported = SAHPI_TRUE;
 		reading_default.Type = SAHPI_SENSOR_READING_TYPE_INT64;
 		reading_default.Value.SensorInt64 = 20;
@@ -189,6 +190,7 @@ int main(int argc, char **argv)
                         return -1;             
                 }
 
+		memset(&encode_reading, 0, sizeof(SaHpiSensorReadingT));
 		err = oh_encode_sensorreading(&buffer, format_test.ReadingType, &encode_reading);
 		if (err != SA_OK) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
@@ -197,7 +199,7 @@ int main(int argc, char **argv)
 		}
 		
 		if (memcmp((void *)&encode_reading, (void *)&reading_test, 
-			   sizeof(SaHpiSensorReadingTypeT))) {
+			   sizeof(SaHpiSensorReadingT))) {
 			printf("  Error! Testcase failed. Line=%d\n", __LINE__);
 			printf("  Received error=%d\n", err);
 			return -1;
