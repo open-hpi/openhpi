@@ -65,7 +65,8 @@ fi
 make DESTDIR=$RPM_BUILD_ROOT install
 mkdir -p $RPM_BUILD_ROOT/etc/@HPI_PKG@
 mkdir -p $RPM_BUILD_ROOT/var/lib/@HPI_PKG@
-install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
+install -C -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_PKG@.conf
+install -C -D -m 644 @HPI_PKG@.pc $RPM_BUILD_ROOT%{prefix}/lib/pkgconfig/@HPI_PKG@.pc
 
 %post
 
@@ -78,7 +79,12 @@ install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_
 %doc docs/hld/openhpi-manual
 %config /etc/@HPI_PKG@/*
 %dir /var/lib/@HPI_PKG@
-@libdir@/
+%{prefix}/lib/libopen*
+%{prefix}/lib/@HPI_PKG@/libdummy*
+%{prefix}/lib/@HPI_PKG@/libsysfs*
+%{prefix}/lib/@HPI_PKG@/libsnmp_bc*
+%{prefix}/lib/@HPI_PKG@/libwatchdog*
+%{prefix}/lib/@HPI_PKG@/libipmi*
 
 ###################################################
 %files devel
@@ -86,6 +92,7 @@ install -m 644 examples/openhpi.conf.example $RPM_BUILD_ROOT/etc/@HPI_PKG@/@HPI_
 %defattr(-,root,root)
 %dir %{prefix}/include/@HPI_PKG@
 %{prefix}/include/@HPI_PKG@/*h
+%{prefix}/lib/pkgconfig/openhpi.pc
 
 ###################################################
 %files clients
