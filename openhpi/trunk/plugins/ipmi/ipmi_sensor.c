@@ -361,9 +361,11 @@ int ohoi_get_sensor_thresholds(ipmi_sensor_id_t sensor_id,
 
         rv = ohoi_loop_until(is_get_sensor_thresholds_done, 
                                &thres_data, 5, ipmi_handler);
-
-	if (rv || thres_data.rvalue)
-		return SA_ERR_HPI_ERROR;
+	if (rv)
+		return rv;
+	
+	if (thres_data.rvalue)
+		return thres_data.rvalue;
 
 	if (thres)
 		*thres = thres_data.sensor_thres;
