@@ -111,3 +111,56 @@ int uninit_plugin(void)
 	}
 	return 0;
 }
+
+/*
+ * Load plugin by name and make a instance.
+ * FIXME: the plugins with multi-instances should reuse 'lt_dlhandler'
+ */
+
+struct oh_handler *new_handler(const char *plugin_name, const char *name, const char *addr)
+{
+        lt_dlhandle h;
+        int (*get_interface) (struct oh_abi_v1 ** pp, const uuid_t uuid);
+	struct oh_handler *handler;
+        int err;
+        
+        handler = malloc(sizeof(*handler));
+	if (!handler) {
+		dbg("Out of Memory!");
+		goto err;
+	}
+	
+        h = lt_dlopenext(plugin_name);
+        if (!h) {
+                dbg("Can not find %s plugin", plugin_name);
+                goto err1;
+        }
+
+        get_interface = lt_dlsym(h, "get_interface");
+        if (!get_interface) {
+                dbg("Can not get 'get_interface' symbol, is it a plugin?!");
+                goto err1;
+        }
+        
+        err = get_interface(&handler->abi, UUID_OH_ABI_V1);
+        if (err < 0 || !handler->abi || !handler->abi->open) {
+                dbg("Can not get ABI V1");
+                goto err1;
+        }
+
+        /* this should be done elsewhere.  if 0 it for now to make it
+           easier to migrate */
+        handler->hnd = handler->abi->open(name, addr);
+        if (!handler->hnd) {
+                dbg("Bootstrap plugin can not work");
+                goto err1;
+        }
+        
+        return handler;
+err1:
+        lt_dlclose(h);
+err:
+ 	free(handler);
+        return NULL;
+}
+

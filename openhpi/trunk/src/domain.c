@@ -50,12 +50,12 @@ GSList *global_domain_list = NULL;
 
 int domain_exists(SaHpiDomainIdT did) 
 {
-        SaHpiDomainIdT *temp;
         int i;
         
         for (i = 0; i < g_slist_length(global_domain_list); i++) {
-                temp = (SaHpiDomainIdT*) g_slist_nth_data(global_domain_list, i);
-                if(*temp == did) {
+		SaHpiDomainIdT temp;
+                temp = GPOINTER_TO_UINT(g_slist_nth_data(global_domain_list, i));
+                if(temp == did) {
                         return 1;
                 }
         }
@@ -64,26 +64,24 @@ int domain_exists(SaHpiDomainIdT did)
 
 int domain_add(SaHpiDomainIdT did)
 {
-        SaHpiDomainIdT *temp;
-        temp = calloc(1,sizeof(*temp));
-        memcpy(temp, &did, sizeof(did));
-        
         if(domain_exists(did) > 0) {
                 dbg("Domain %d exists already, something is fishy", did);
                 return -1;
         }
-        global_domain_list = g_slist_append(global_domain_list, (gpointer *) temp);
+        global_domain_list 
+		= g_slist_append(global_domain_list, 
+				GUINT_TO_POINTER(did));
         
         return 0;
 }
 
+#if 0
 int domain_del(SaHpiDomainIdT did)
 {
 	/* FIXME cleaup resources in domain */
         return 0;
 }
 
-#if 0
 void domain_process_event(struct oh_zone *z, struct oh_event *e)
 {
 	struct oh_resource *res;
