@@ -1,0 +1,112 @@
+LowCritical = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
+LowMajor = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
+LowMinor = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
+UpCritical = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
+UpMajor = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
+UpMinor = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
+PosThdHysteresis = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
+NegThdHysteresis = {
+    ValuesPresent = "7"
+    Raw = "11"
+    Interpreted = {
+        Type = "SAHPI_SENSOR_INTERPRETED_TYPE_UINT8"
+        Value = {
+            SensorUint8 = "12"
+        }
+    }
+    EventStatus = {
+        SensorStatus = "13"
+        EventStatus = "14"
+    }
+}
