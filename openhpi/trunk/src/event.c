@@ -29,14 +29,20 @@
 
 #define OH_THREAD_SLEEP_TIME 2 * G_USEC_PER_SEC
 
+static gboolean oh_is_threaded = FALSE;
 GAsyncQueue *oh_process_q = NULL;
 GCond *oh_thread_wait = NULL;
 GThread *oh_event_thread = NULL;
 GError *oh_event_thread_error = NULL;
 GMutex *oh_thread_mutex = NULL;
 
+gboolean oh_run_threaded() 
+{
+        return oh_is_threaded;
+}
 
-static gpointer oh_event_thread_loop(gpointer data) {
+static gpointer oh_event_thread_loop(gpointer data) 
+{
         GTimeVal time;
 
         while(oh_run_threaded()) {
@@ -73,7 +79,9 @@ int oh_event_init()
         }
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
-        if(oh_run_threaded()) {
+        if(getenv("OPENHPI_THREADED") && 
+           (strcmp(getenv("OPENHPI_THREADED"), "YES") ==0 )) {
+                oh_is_threaded = TRUE;
                 oh_thread_wait = g_cond_new();
                 oh_thread_mutex = g_mutex_new();
                 oh_event_thread = g_thread_create(oh_event_thread_loop,

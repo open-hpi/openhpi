@@ -36,19 +36,6 @@
 extern "C" {
 #endif
 
-/* This is a short term hack to get this running properly.  Will 
-  be changed to more robust mechanisms later */
-
-#define OPENHPI_RUN_THREADED
-#undef OPENHPI_RUN_THREADED
-
-#ifdef OPENHPI_RUN_THREADED
-#define oh_run_threaded() 1
-#else
-#define oh_run_threaded() 0
-#endif
-
-
 /*
  * Representation of additional resource data
  * stored in the data field rpt_utils for each
