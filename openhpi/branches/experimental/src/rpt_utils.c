@@ -124,7 +124,12 @@ static inline void update_rptable(RPTable *table, guint modifier) {
 
 /**
  * General RPT calls
- */
+ **/
+/**
+ * oh_flush_rpt: Cleans RPT from all entries and RDRs and frees the memory
+ * associated with them.
+ * @table: Pointer to the RPT to flush.
+ **/
 void oh_flush_rpt(RPTable *table)
 {
         SaHpiRptEntryT *tmp_entry;

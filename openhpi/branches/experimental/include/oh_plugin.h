@@ -250,56 +250,56 @@ struct oh_abi_v1 {
 	 * get sensor data
 	 */
 	int (*get_sensor_data)(void *hnd, SaHpiResourceIdT id, 
-                           SaHpiSensorNumT num,
-                           SaHpiSensorReadingT *data);
+                               SaHpiSensorNumT num,
+                               SaHpiSensorReadingT *data);
 
 	/**
 	 * get sensor thresholds
 	 */
 	int (*get_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiSensorNumT num,
-                                 SaHpiSensorThresholdsT *thres);
+                                     SaHpiSensorNumT num,
+                                     SaHpiSensorThresholdsT *thres);
 	
 	/**
 	 * set sensor thresholds
 	 */
 	int (*set_sensor_thresholds)(void *hnd, SaHpiResourceIdT id,
-                                 SaHpiSensorNumT num,
-                                 const SaHpiSensorThresholdsT *thres);
+                                     SaHpiSensorNumT num,
+                                     const SaHpiSensorThresholdsT *thres);
 
 	/**
 	 * get sensor event enables
 	 */
 	int (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiSensorNumT num,
-                                    SaHpiSensorEvtEnablesT *enables);
+                                        SaHpiSensorNumT num,
+                                        SaHpiSensorEvtEnablesT *enables);
 
 	/**
 	 * set sensor event enables
 	 */
 	int (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT id,
-                                    SaHpiSensorNumT num,
-                                    const SaHpiSensorEvtEnablesT *enables);
+                                        SaHpiSensorNumT num,
+                                        const SaHpiSensorEvtEnablesT *enables);
 	/**
 	 * get control info
 	 */
 	int (*get_control_info)(void *hnd, SaHpiResourceIdT id,
-                            SaHpiCtrlNumT num,
-                            SaHpiCtrlTypeT *type);
+                                SaHpiCtrlNumT num,
+                                SaHpiCtrlTypeT *type);
 
 	/**
 	 * get control state
 	 */
 	int (*get_control_state)(void *hnd, SaHpiResourceIdT id,
-                             SaHpiCtrlNumT num,
-                             SaHpiCtrlStateT *state);
+                                 SaHpiCtrlNumT num,
+                                 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set control state
 	 */
 	int (*set_control_state)(void *hnd, SaHpiResourceIdT id,
-                             SaHpiCtrlNumT num,
-                             SaHpiCtrlStateT *state);
+                                 SaHpiCtrlNumT num,
+                                 SaHpiCtrlStateT *state);
 	
 	/**
 	 * set inventory state
@@ -328,15 +328,15 @@ struct oh_abi_v1 {
 	 * get watchdog timer info
 	 */
 	int (*get_watchdog_info)(void *hnd, SaHpiResourceIdT id,
-                             SaHpiWatchdogNumT num,
-                             SaHpiWatchdogT *wdt);
+                                 SaHpiWatchdogNumT num,
+                                 SaHpiWatchdogT *wdt);
 
 	/** 
 	 * set watchdog timer info
 	 */
 	int (*set_watchdog_info)(void *hnd, SaHpiResourceIdT id,
-                             SaHpiWatchdogNumT num,
-                             SaHpiWatchdogT *wdt);
+                                 SaHpiWatchdogNumT num,
+                                 SaHpiWatchdogT *wdt);
 
 	/**
 	 * reset watchdog timer info
