@@ -122,7 +122,7 @@ static int snmp_bc_discover_resources(void *hnd)
                 
         string2entitypath(root_tuple, &entity_root);
         
-	/* Blade vector gives us info for chassis, blades, and blade daughter (add in) cards */
+	/* Blade vector gives us info for chassis, blades, and blade expansion (add in) cards */
         if((snmp_get(custom_handle->ss,SNMP_BC_BLADE_VECTOR,&get_value)) == 0 &&
 	   (get_value.type == ASN_OCTET_STR)) {
                 e = snmp_bc_discover_chassis(handle,get_value.string,&entity_root);

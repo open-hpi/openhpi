@@ -20,9 +20,10 @@
 
 #define HPIDUP_STRING  "_HPIDUP"
 
-#define NO_OVR  0x0000
-#define OVR_SEV 0x0001
-#define OVR_RID 0x0010
+#define NO_OVR  0x0000  /* No overrides */
+#define OVR_SEV 0x0001  /* Override Error Log's severity */
+#define OVR_RID 0x0010  /* Override Error Log's source */
+#define OVR_EXP 0x0100  /* Override Error Log's source for expansion cards */
 
 typedef struct {
         gchar *event;

@@ -51,6 +51,9 @@ static int parse_threshold_str(gchar *str,
 			       gchar *read_value_str, 
 			       gchar *trigger_value_str);
 
+
+static int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo, unsigned short ovr_flags);
+
 static int set_previous_event_state(void *hnd, 
 				    SaHpiEventT *event,
 				    int recovery_event,
@@ -287,7 +290,7 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 	}
 
 	/* Find default RID and BladeCenter resource info from error log's source */
-	if (bcsrc2rid(hnd, log_entry.source, &resinfo)) {
+	if (bcsrc2rid(hnd, log_entry.source, &resinfo, 0)) {
 		dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
 		return -1;
 	}
@@ -380,16 +383,28 @@ int log2event(void *hnd, gchar *logstr, SaHpiEventT *event, int isdst, int *even
 
                         /* Set static event data defined during resource discovery */
 			working = *event_ptr; 
-
-			/* If OVR_RID, use rid from bc_resources.c
-			   (unless dup strings have OVR_RID set incorrectly) */
-			if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
-				event_rid = event_ptr->Source;
+			
+			/* Find RID */
+			if (strhash_data->event_ovr & OVR_EXP) {
+				/* If OVR_EXP, find RID of expansion card */
+				if (bcsrc2rid(hnd, log_entry.source, &resinfo, strhash_data->event_ovr)) {
+					dbg("Cannot translate BladeCenter Source string=%s to RID\n", log_entry.source);
+					return -1;
+				}
+				event_rid = resinfo.rid;
 			}
 			else {
-				working.Source = event_rid; /* Restore error log's RID */
+				/* if OVR_RID, use rid from bc_resources.c */
+				/* (unless dup strings have OVR_RID set incorrectly) */
+ 				if ((strhash_data->event_ovr & OVR_RID) && !dupovrovr) {
+					event_rid = event_ptr->Source;
+				}
+				else {
+					/* Restore original RID calculated from error log */
+					working.Source = event_rid; 
+				}
 			}
-	
+
 			/* Handle sensor events */
 			if (working.EventType == SAHPI_ET_SENSOR) {
 
@@ -715,9 +730,9 @@ static int map2oem(SaHpiEventT *event, bc_sel_entry *sel_entry, OEMReasonCodeT r
  *
  * All other Source text strings map to the Chassis's resource ID
  *****************************************************************/
-int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
+static int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo, unsigned short ovr_flags)
 {
-	int rpt_index, isblade, ischassis, isswitch;
+	int rpt_index, isblade, isexpansioncard, ischassis, isswitch;
 	guint instance;
 	gchar **src_parts = NULL, *endptr = NULL;
 	SaHpiEntityPathT ep, ep_root;
@@ -743,21 +758,31 @@ int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 		return -1;
 	}
 
-	isblade = isswitch = ischassis = 0;
-	if (!strcmp(src_parts[0], "BLADE")) { isblade = 1; }
+	isblade = isexpansioncard = isswitch = ischassis = 0;
+	if (!strcmp(src_parts[0], "BLADE")) { 
+		/* All expansion card events reported as blade events in Error Log */
+		if (ovr_flags & OVR_EXP) { isexpansioncard = 1; }
+		else { isblade = 1; }
+	}
 	else {
 		if (!strcmp(src_parts[0], "SWITCH")) { isswitch = 1; }
 	}
 
-	if (isblade || isswitch) {
+	if (isexpansioncard || isblade || isswitch) {
 		instance = strtoul(src_parts[1], &endptr, 10);
-		if (isblade) { 
-			rpt_index = BC_RPT_ENTRY_BLADE; 
-			array_ptr = &snmp_bc_blade_sensors[0];
+		if (isexpansioncard) {
+			rpt_index = BC_RPT_ENTRY_BLADE_ADDIN_CARD;
+			array_ptr = &snmp_bc_blade_addin_sensors[0];	
 		}
-		else { 
-			rpt_index = BC_RPT_ENTRY_SWITCH_MODULE;
-			array_ptr = &snmp_bc_switch_sensors[0];
+		else {
+			if (isblade) { 
+				rpt_index = BC_RPT_ENTRY_BLADE; 
+				array_ptr = &snmp_bc_blade_sensors[0];
+			}
+			else { 
+				rpt_index = BC_RPT_ENTRY_SWITCH_MODULE;
+				array_ptr = &snmp_bc_switch_sensors[0];
+			}
 		}
 		entity_type = snmp_rpt_array[rpt_index].rpt.ResourceEntity.Entry[0].EntityType;
 	}
@@ -782,6 +807,14 @@ int bcsrc2rid(void *hnd, gchar *src, LogSource2ResourceT *resinfo)
 	if (set_ep_instance(&ep, entity_type, instance)) {
 		dbg("set_ep_instance failed. type=%d; instance=%d\n", entity_type, instance);
 		return -1;
+	}
+	
+	/* Special case - if Expansion Card set instance of parent blade as well */
+	if (isexpansioncard) {
+		if (set_ep_instance(&ep, SAHPI_ENT_SBC_BLADE, instance)) {
+			dbg("set_ep_instance failed. type=%d; instance=%d\n", entity_type, instance);
+			return -1;
+		}
 	}
 
 	/* Fill in RID and RPT table info about Error Log's Source */

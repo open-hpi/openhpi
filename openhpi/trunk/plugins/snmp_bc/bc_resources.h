@@ -30,8 +30,8 @@
  *      |
  *      +-- {SBC_BLADE,[1-14]}       (Blade)
  *      |   |
- *      |   +-- {ADD_IN_CARD,[1-14]} (Blade daughter card (BSE card))
- *      |                            (Daughter card number match's)
+ *      |   +-- {ADD_IN_CARD,[1-14]} (Blade expansion card (BSE card))
+ *      |                            (Expansion card number match's)
  *      |                            (it's parent blade's number)
  *      |
  *      +-- {PERIPHERAL_BAY,1}       (Control Panel/Media Tray)
@@ -66,7 +66,7 @@
 #define SNMP_BC_PLATFORM_BCT "BCT"
 #define SNMP_BC_PLATFORM_BC  "BC"
 
-/* Resource indexes to snmp_rpt array below */
+/* Resource indexes to snmp_rpt array in bc_resources.c */
 typedef enum {
         BC_RPT_ENTRY_CHASSIS = 0,
         BC_RPT_ENTRY_MGMNT_MODULE,
@@ -87,9 +87,7 @@ typedef enum {
 
 /* OID definitions for discovering resources.*/
 #define SNMP_BC_BLADE_VECTOR        ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0"
-/* Uses temp DASD1 MIB reading */
-/*#define SNMP_BC_BLADE_ADDIN_VECTOR ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.x" */
-#define SNMP_BC_BLADE_ADDIN_VECTOR ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.x"
+#define SNMP_BC_BLADE_ADDIN_VECTOR  ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.x"
 #define SNMP_BC_FAN_VECTOR          ".1.3.6.1.4.1.2.3.51.2.2.5.2.73.0"
 #define SNMP_BC_MGMNT_VECTOR        ".1.3.6.1.4.1.2.3.51.2.22.4.30.0"
 #define SNMP_BC_MGMNT_ACTIVE        ".1.3.6.1.4.1.2.3.51.2.22.4.34.0"
@@ -182,7 +180,7 @@ struct BC_SensorMibInfo {
         struct SnmpSensorThresholdOids threshold_oids;
 };
 
-#define MAX_EVENTS_PER_SENSOR 30
+#define MAX_EVENTS_PER_SENSOR 15
 #define MAX_SENSOR_EVENT_ARRAY_SIZE  (MAX_EVENTS_PER_SENSOR + 1)
                                      /* Includes an ending NULL entry */
 

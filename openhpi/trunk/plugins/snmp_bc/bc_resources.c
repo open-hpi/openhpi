@@ -252,7 +252,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                 },
                 .comment = "Blade"
         },
-        /* Blade daughter (add-in) card */
+        /* Blade expansion (add-in) card */
         {
                 .rpt = {
                         .ResourceInfo = {
@@ -291,7 +291,7 @@ struct snmp_rpt snmp_rpt_array[] = {
                                 {},
                         },
                 },
-                .comment = "Blade daughter card"
+                .comment = "Blade expansion card"
         },
         /* Media Tray */
         {
@@ -2904,10 +2904,111 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                 },
                 .comment = "Blade VRM 1 volt sensor"
         },
-        /* Blade's daughter card (DASD 1) thermal sensor */
+        /* Blade's global operational sensor */
         {
                 .sensor = {
-                        .Num = 15,
+                        .Num = 16,
+                        .Type = SAHPI_OPERATIONAL,
+                        .Category = SAHPI_EC_AVAILABILITY,
+                        .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
+                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE |
+                                  SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
+                        .Ignore = SAHPI_FALSE,
+                        .DataFormat = {
+                                .ReadingFormats = SAHPI_SRF_EVENT_STATE,
+                                .IsNumeric = SAHPI_FALSE,
+                        },
+                        .ThresholdDefn = {
+                                .IsThreshold = SAHPI_FALSE,
+                        },
+                        .Oem = 0
+                },
+                .bc_sensor_info = {
+                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .sensor_evt_enablement = {
+                                .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
+                                .AssertEvents   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
+                                .DeassertEvents = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
+                        },
+                        .event_array = {
+                                {
+                                        .event = "0E00800x", /* EN_BLADE_x_COMM_FAIL */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0E00600x", /* EN_BLADE_x_CFG_FAIL */
+                                        .event_state = SAHPI_ES_INSTALL_ERROR,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06018000", /* EN_IO_BD_VOLTAGE_FAULT */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0601A000", /* EN_IO_BD_POWER_FAULT */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04018000", /* EN_CPU_BD_VOLTAGE_FAULT */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0000006F", /* EN_NC_VOLT */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00000077", /* EN_BOOT_FAIL */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00028001", /* EN_FAULT_SYS_POWER_GOOD */
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "04428000", /* EN_FAULT_VRM_POWER_GOOD */
+                                        .event_state = SAHPI_ES_OFF_LINE,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "0401A000", /* EN_CPU_BD_POWER_FAULT */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "00028000", /* EN_FAULT_POWER_GOOD */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {
+                                        .event = "06800000", /* EN_FAULT_DASD */
+                                        .event_state = SAHPI_ES_DEGRADED,
+                                        .recovery_state = SAHPI_ES_RUNNING,
+                                },
+                                {},
+                        },
+                },
+                .comment = "Blade global operational sensor"
+        },
+
+        {} /* Terminate array with a null element */
+};
+
+/******************************
+ * Blade Expansion Card Sensors
+ ******************************/
+
+struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
+        /* Blade's expansion card (DASD1) thermal sensor */
+        {
+                .sensor = {
+                        .Num = 1,
                         .Type = SAHPI_TEMPERATURE,
                         .Category = SAHPI_EC_THRESHOLD,
                         .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
@@ -2990,17 +3091,15 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                                 {},
                         },
                 },
-                .comment = "Blade daughter card (DASD 1) thermal sensor"
+                .comment = "Blade expansion card (DASD1) thermal sensor"
         },
-        /* Blade's global operational sensor */
         {
                 .sensor = {
-                        .Num = 16,
-                        .Type = SAHPI_OPERATIONAL,
-                        .Category = SAHPI_EC_AVAILABILITY,
+                        .Num = 2,
+                        .Type = SAHPI_VOLTAGE,
+                        .Category = SAHPI_EC_SEVERITY,
                         .EventCtrl = SAHPI_SEC_GLOBAL_DISABLE,
-                        .Events = SAHPI_ES_UNSPECIFIED | SAHPI_ES_RUNNING | SAHPI_ES_OFF_LINE |
-                                  SAHPI_ES_DEGRADED | SAHPI_ES_INSTALL_ERROR,
+                        .Events = SAHPI_ES_OK | SAHPI_ES_MAJOR_FROM_LESS,
                         .Ignore = SAHPI_FALSE,
                         .DataFormat = {
                                 .ReadingFormats = SAHPI_SRF_EVENT_STATE,
@@ -3012,152 +3111,78 @@ struct snmp_bc_sensor snmp_bc_blade_sensors[] = {
                         .Oem = 0
                 },
                 .bc_sensor_info = {
-                        .cur_state = SAHPI_ES_UNSPECIFIED,
+                        .cur_state = SAHPI_ES_OK,
                         .sensor_evt_enablement = {
                                 .SensorStatus = SAHPI_SENSTAT_EVENTS_ENABLED,
-                                .AssertEvents   = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
-                                .DeassertEvents = SAHPI_ES_DEGRADED | SAHPI_ES_OFF_LINE | SAHPI_ES_INSTALL_ERROR,
+                                .AssertEvents   = SAHPI_ES_MAJOR_FROM_LESS,
+                                .DeassertEvents = SAHPI_ES_MAJOR_FROM_LESS,
                         },
                         .event_array = {
                                 {
-                                        .event = "0E00800x", /* EN_BLADE_x_COMM_FAIL */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0E00600x", /* EN_BLADE_x_CFG_FAIL */
-                                        .event_state = SAHPI_ES_INSTALL_ERROR,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "06018000", /* EN_IO_BD_VOLTAGE_FAULT */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0601A000", /* EN_IO_BD_POWER_FAULT */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "04018000", /* EN_CPU_BD_VOLTAGE_FAULT */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0000006F", /* EN_NC_VOLT */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "00000077", /* EN_BOOT_FAIL */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "00028001", /* EN_FAULT_SYS_POWER_GOOD */
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "04428000", /* EN_FAULT_VRM_POWER_GOOD */
-                                        .event_state = SAHPI_ES_OFF_LINE,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "0401A000", /* EN_CPU_BD_POWER_FAULT */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "00000069", /* EN_DASD */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "00028000", /* EN_FAULT_POWER_GOOD */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
-                                        .event = "06800000", /* EN_FAULT_DASD */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
-                                },
-                                {
                                         .event = "0E87A402", /* EN_BUST_1_8V_WARNING_HI */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
                                         .event = "0E87A802", /* EN_BUST_1_8V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
                                 {
                                         .event = "0E830402", /* EN_BUST_2_5V_WARNING_HI */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
+				{
                                         .event = "0E830802", /* EN_BUST_2_5V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E832402", /* EN_BUST_3_3V_WARNING_HI */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E832402", /* EN_BUST_3_3V_WARNING_HI */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E832802", /* EN_BUST_3_3V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E832802", /* EN_BUST_3_3V_WARNING_LOW */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E834402", /* EN_BUST_5V_WARNING_HI */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E834402", /* EN_BUST_5V_WARNING_HI */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E834802", /* EN_BUST_5V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E834802", /* EN_BUST_5V_WARNING_LOW */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E836402", /* EN_BUST_12V_WARNING_HI */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E836402", /* EN_BUST_12V_WARNING_HI */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E836802", /* EN_BUST_12V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E836802", /* EN_BUST_12V_WARNING_LOW */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E83C402", /* EN_BUST_18V_WARNING_HI */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E83C402", /* EN_BUST_18V_WARNING_HI */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
-                                {
-                                        .event = "0E83C802", /* EN_BUST_18V_WARNING_LOW */
-                                        .event_state = SAHPI_ES_DEGRADED,
-                                        .recovery_state = SAHPI_ES_RUNNING,
+				{
+					.event = "0E83C802", /* EN_BUST_18V_WARNING_LOW */
+                                        .event_state = SAHPI_ES_MAJOR_FROM_LESS,
+                                        .recovery_state = SAHPI_ES_OK,
                                 },
                                 {},
                         },
                 },
-                .comment = "Blade global operational sensor"
+                .comment = "Add-in card voltage sensor"
         },
-
-        {} /* Terminate array with a null element */
-};
-
-/*****************************
- * Blade Daughter Card Sensors
- *****************************/
-
-struct snmp_bc_sensor snmp_bc_blade_addin_sensors[] = {
 
         {} /* Terminate array with a null element */
 };
@@ -3912,9 +3937,9 @@ struct snmp_bc_inventory snmp_bc_blade_inventories[] = {
         {} /* Terminate array with a null element */
 };
 
-/**********************************
- * Blade Add In (Daughter Card) VPD
- **********************************/
+/**************************
+ * Blade Expansion Card VPD
+ **************************/
 
 struct snmp_bc_inventory snmp_bc_blade_addin_inventories[] = {
         {
@@ -3943,7 +3968,7 @@ struct snmp_bc_inventory snmp_bc_blade_addin_inventories[] = {
                                 }
                         },
                 },
-                .comment = "Blade Daughter Card VPD",
+                .comment = "Blade Expansion Card VPD",
         },
 
         {} /* Terminate array with a null element */

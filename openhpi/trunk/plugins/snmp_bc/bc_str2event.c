@@ -203,8 +203,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E836402"; /* EN_BUST_12V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -333,8 +333,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E836802"; /* EN_BUST_12V_WARNING_LOW */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -359,8 +359,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E87A802"; /* EN_BUST_1_8V_WARNING_LOW */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -607,7 +607,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0681D481"; /* EN_PFA_HI_OVER_TEMP_DASD1 */
 	strinfo->event_sev = SAHPI_MAJOR;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1178,8 +1178,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E83C402"; /* EN_BUST_18V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1477,8 +1477,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E83C802"; /* EN_BUST_18V_WARNING_LOW */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1491,7 +1491,7 @@ int str2event_hash_init() {
 	}
 	strinfo->event = "0681C481"; /* EN_CUTOFF_HI_OVER_TEMP_DASD1 */
 	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1503,8 +1503,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E832402"; /* EN_BUST_3_3V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1581,8 +1581,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E87A402"; /* EN_BUST_1_8V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1698,8 +1698,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E832802"; /* EN_BUST_3_3V_WARNING_LOW */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -1724,8 +1724,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E830402"; /* EN_BUST_2_5V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -2036,8 +2036,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E830802"; /* EN_BUST_2_5V_WARNING_LOW */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -2231,8 +2231,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E834402"; /* EN_BUST_5V_WARNING_HI */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
@@ -3367,19 +3367,6 @@ int str2event_hash_init() {
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 
-	key = "BSE Option failure";
-	strinfo = g_malloc0(sizeof(Str2EventInfoT));
-	if (!strinfo) {
-		dbg("Cannot allocate memory for hash value - %s", key);
-		str2event_hash_free();
-		return -1;
-	}
-	strinfo->event = "06800000"; /* EN_FAULT_DASD */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
-	strinfo->event_dup = 0;
-	g_hash_table_insert(str2event_hash, key, strinfo);
-
 	key = "Blade Server 3 was removed.";
 	strinfo = g_malloc0(sizeof(Str2EventInfoT));
 	if (!strinfo) {
@@ -3557,8 +3544,8 @@ int str2event_hash_init() {
 		return -1;
 	}
 	strinfo->event = "0E834802"; /* EN_BUST_5V_WARNING_LOW */
-	strinfo->event_sev = SAHPI_CRITICAL;
-	strinfo->event_ovr = OVR_SEV;
+	strinfo->event_sev = SAHPI_MAJOR;
+	strinfo->event_ovr = OVR_SEV | OVR_EXP;
 	strinfo->event_dup = 0;
 	g_hash_table_insert(str2event_hash, key, strinfo);
 

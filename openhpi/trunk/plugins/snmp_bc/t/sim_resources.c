@@ -123,7 +123,6 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
-
         {
                 /* SNMP_BC_BLADE_VECTOR */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.5.2.49.0",
@@ -131,147 +130,6 @@ struct snmp_bc_data sim_resource_array[] = {
                         .type = ASN_OCTET_STR,
                         .value = {
                                 .string = "11111111111111",
-                        },
-                },
-        },
-        /* If there ever is a Add-in vector added to SNMP, have to add these below to DASD 1 temperature */
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 1 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.1",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = " 199.99 Centigrade",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 2 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.2",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "   9.99 Centigrade",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 3 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.3",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "-199.99 Centigrade",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 4 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.4",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "-  9.99 Centigrade",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 5 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.5",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "   0.00 Centigrade",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 6 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.6",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "-  0.00 Centigrade",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 7 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.7",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 8 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.8",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 9 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.9",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 10 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.10",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 11 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.11",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 12 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.12",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 13 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.13",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
-                        },
-                },
-        },
-        {
-                /* SNMP_BC_BLADE_ADDIN_VECTOR Blade 14 */
-                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.14",
-                .mib = {
-                        .type = ASN_OCTET_STR,
-                        .value = {
-                                .string = "Not Readable!",
                         },
                 },
         },
@@ -3660,9 +3518,148 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
-        /* Daughter Card  DASD 1 temperature - already defined above for Add-in card vector */
+	{
+                /* Blade DASD1 Temperature - Blade 1 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.1",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = " 199.99 Centigrade",
+                        },
+                },
+        },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 1 */
+                /* Blade DASD1 Temperature - Blade 2 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.2",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   9.99 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 3 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.3",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "-199.99 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 4 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.4",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "-  9.99 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 5 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.5",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 6 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.6",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "-  0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 7 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.7",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 8 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.8",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 9 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.9",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 10 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.10",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 11 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.11",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 12 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.12",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 13 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.13",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+        {
+                /* Blade DASD1 Temperature - Blade 14 */
+                .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.3.1.10.14",
+                .mib = {
+                        .type = ASN_OCTET_STR,
+                        .value = {
+                                .string = "   0.00 Centigrade",
+                        },
+                },
+        },
+	{
+                /* Blade DASD1 Up Critical temperature - Blade 1 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.1",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3672,7 +3669,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 2 */
+                /* Blade DASD1 Up Critical temperature - Blade 2 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.2",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3682,7 +3679,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 3 */
+                /* Blade DASD1 Up Critical temperature - Blade 3 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.3",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3692,7 +3689,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 4 */
+                /* Blade DASD1 Up Critical temperature - Blade 4 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.4",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3702,7 +3699,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 5 */
+                /* Blade DASD1 Up Critical temperature - Blade 5 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.5",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3712,7 +3709,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 6 */
+                /* Blade DASD1 Up Critical temperature - Blade 6 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.6",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3722,7 +3719,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 7 */
+                /* Blade DASD1 Up Critical temperature - Blade 7 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.7",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3732,7 +3729,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 8 */
+                /* Blade DASD1 Up Critical temperature - Blade 8 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.8",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3742,7 +3739,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 9 */
+                /* Blade DASD1 Up Critical temperature - Blade 9 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.9",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3752,7 +3749,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 10 */
+                /* Blade DASD1 Up Critical temperature - Blade 10 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.10",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3762,7 +3759,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 11 */
+                /* Blade DASD1 Up Critical temperature - Blade 11 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.11",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3772,7 +3769,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 12 */
+                /* Blade DASD1 Up Critical temperature - Blade 12 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.12",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3782,7 +3779,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 13 */
+                /* Blade DASD1 Up Critical temperature - Blade 13 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.13",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3792,7 +3789,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Critical temperature - Blade 14 */
+                /* Blade DASD1 Up Critical temperature - Blade 14 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.18.14",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3802,7 +3799,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 1 */
+                /* Blade DASD1 Up Major temperature - Blade 1 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.1",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3812,7 +3809,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 2 */
+                /* Blade DASD1 Up Major temperature - Blade 2 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.2",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3822,7 +3819,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 3 */
+                /* Blade DASD1 Up Major temperature - Blade 3 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.3",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3832,7 +3829,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 4 */
+                /* Blade DASD1 Up Major temperature - Blade 4 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.4",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3842,7 +3839,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 5 */
+                /* Blade DASD1 Up Major temperature - Blade 5 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.5",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3852,7 +3849,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 6 */
+                /* Blade DASD1 Up Major temperature - Blade 6 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.6",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3862,7 +3859,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 7 */
+                /* Blade DASD1 Up Major temperature - Blade 7 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.7",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3872,7 +3869,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 8 */
+                /* Blade DASD1 Up Major temperature - Blade 8 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.8",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3882,7 +3879,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 9 */
+                /* Blade DASD1 Up Major temperature - Blade 9 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.9",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3892,7 +3889,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 10 */
+                /* Blade DASD1 Up Major temperature - Blade 10 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.10",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3902,7 +3899,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 11 */
+                /* Blade DASD1 Up Major temperature - Blade 11 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.11",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3912,7 +3909,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 12 */
+                /* Blade DASD1 Up Major temperature - Blade 12 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.12",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3922,7 +3919,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 13 */
+                /* Blade DASD1 Up Major temperature - Blade 13 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.13",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -3932,7 +3929,7 @@ struct snmp_bc_data sim_resource_array[] = {
                 },
         },
         {
-                /* Blade DASD 1 Up Major temperature - Blade 14 */
+                /* Blade DASD1 Up Major temperature - Blade 14 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.22.1.5.4.1.19.14",
                 .mib = {
                         .type = ASN_OCTET_STR,
@@ -7884,6 +7881,7 @@ struct snmp_bc_data sim_resource_array[] = {
                         },
                 },
         },
+	/* Used to determine if expansion card attached to blade */
         {
                 /* Blade Add-on Manufacturer VPD - Blade Add-on 1 */
                 .oid = ".1.3.6.1.4.1.2.3.51.2.2.21.4.1.1.21.1",
