@@ -380,7 +380,7 @@ SaHpiInventInternalUseDataMarshaller( SaHpiUint32T len,
 }
 
 
-static int 
+static int
 SaHpiInventGeneralDataMarshaller( const SaHpiInventGeneralDataT *gd,
 				  unsigned char *b )
 {
