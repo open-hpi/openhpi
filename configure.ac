@@ -536,7 +536,8 @@ CXX_WARNINGS="\
 	-Wcast-align \
         -Wshadow \
         -Wwrite-strings \
-        -Wredundant-decls"
+        -Wredundant-decls \
+	-Werror "
 
 dnl remerge the warnings into the FLAGS
 CXXFLAGS="$CFLAGS $CXX_WARNINGS"
