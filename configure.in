@@ -39,20 +39,12 @@ AC_CHECK_LIB([glib], [g_slist_alloc],
      GLIBLIBS=`pkg-config --libs glib`
     ],
     [
-    AC_MSG_ERROR(
-        ************************************************************
-        * glib not found!
-        * this is require for openhpi internals
-        * please ensure glib-devel package is installed
-        ************************************************************)
+    OH_CHECK_FAIL(glib,glib-devel)
     ])
 
 AC_CHECK_LIB([ltdl], [lt_dlopen], [], [
-    echo "************************************************************"
-    echo "* libltdl not found!"
-    echo "* this is require for plugin loading"
-    echo "************************************************************"
-    exit 1
+    OH_CHECK_FAIL(libltdl,libltdl-devel,,
+        this is required for plugin loading)
     ])
 
 AC_CHECK_LIB([OpenIPMI], [ipmi_smi_setup_con], [have_openipmi=yes])
@@ -74,11 +66,7 @@ AC_TRY_LINK(
     [AC_MSG_RESULT("No Net-SNMP found.  No SNMP based plugins can be built")])
 
 AC_CHECK_LIB([uuid], [uuid_generate], [have_uuid=yes], [
-    echo "************************************************************"
-    echo "* libuuid not found!"
-    echo "* Please install e2fsprogs-devel to get the required files" 
-    echo "************************************************************"
-    exit 1
+    OH_CHECK_FAIL(libuuid,e2fsprogs-devel)
     ])
 
 dnl Extra goodies enablement stanzas
@@ -154,14 +142,6 @@ AC_ARG_ENABLE([ipmi],
             OH_CHECK_FAIL(OpenIPMI,libOpenIPMI-devel,http://openipmi.sf.net,
                          Can not build IPMI support without OpenIPMI)
         fi
-#            echo "************************************************************"
-#            echo "* OpenIPMI not found!"
-#            echo "* Can't build IPMI support without OpenIPMI!"
-#            echo "* please download and install the latest version of the software"
-#            echo "* from http://openipmi.sf.net"
-#            echo "************************************************************"
-#            exit 1
-#        fi
     fi])
 
 AC_ARG_ENABLE([sysfs],
@@ -170,13 +150,8 @@ AC_ARG_ENABLE([sysfs],
         if test "x$have_sysfs" = "xyes"; then
             PLUGINS="$PLUGINS sysfs"
         else
-            echo "************************************************************"
-            echo "* libsysfs not found!"
-            echo "* Can't build sysfs support without libsysfs!"
-            echo "* please download and install the latest version of the software"
-            echo "* from http://linux-diag.sf.net"
-            echo "************************************************************"
-            exit 1
+            OH_CHECK_FAIL(libsysfs,,http://linux-diag.sf.net,
+                Can not build sysfs support without libsysfs)
         fi
     fi])
 
@@ -187,13 +162,8 @@ AC_ARG_ENABLE([snmp_bc],
             PLUGINS="$PLUGINS snmp_bc"
             CFLAGS="$CFLAGS $SNMPFLAGS"
         else
-            AC_MSG_ERROR(
-************************************************************
-* Net-SNMP client libraries not found!
-* Can't build IBM Blade Center support without Net-SNMP
-* please download and install the latest version of the software
-* from http://net-snmp.sourceforge.net/
-************************************************************)
+            OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
+                Can not build IBM Blade Center support without net-snmp)
         fi
     fi])
 
