@@ -132,17 +132,29 @@ SaErrorT oh_sel_clear(oh_sel *sel)
 SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *prev,
                     SaHpiSelEntryIdT *next, SaHpiSelEntryT **entry)
 {
-        SaHpiSelEntryT * myentry;
+        SaHpiSelEntryT *myentry;
         GList *sellist;
+        SaHpiSelEntryIdT srchentryid, firstid, lastid;
 
         if (sel == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
         }
 
-        /* translate SAHPI_NEWEST_ENTRY to the last entry in the list */
-        /* Note: there is no need to translate SAHPI_OLDEST_ENTRY     */
+        /* get the first and last entry ids for possible translation */
+        sellist = g_list_last(sel->selentries);
+        myentry = (SaHpiSelEntryT *)sellist->data;
+        lastid = myentry->EntryId;
+        sellist = g_list_first(sel->selentries);
+        myentry = (SaHpiSelEntryT *)sellist->data;
+        firstid = myentry->EntryId;
         if (entryid == SAHPI_NEWEST_ENTRY) {
-                entryid = sel->nextId - 1;
+                srchentryid = lastid;
+        }
+        else if (entryid == SAHPI_OLDEST_ENTRY) {
+                srchentryid = firstid;
+        }
+        else {
+                srchentryid = entryid;
         }
 
         sellist = g_list_first(sel->selentries);
@@ -151,14 +163,14 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
                 if (entryid == myentry->EntryId) {
                         *entry = myentry;
                         /* is this the first entry? */
-                        if (myentry->EntryId == SAHPI_OLDEST_ENTRY) {
+                        if (myentry->EntryId == firstid) {
                                 *prev = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
                                 *prev = myentry->EntryId - 1;
                         }
                         /* is this the last entry? */
-                        if (myentry->EntryId == sel->nextId - 1) {
+                        if (myentry->EntryId == lastid) {
                                 *next = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
