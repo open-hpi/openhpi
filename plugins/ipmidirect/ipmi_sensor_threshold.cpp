@@ -1222,13 +1222,20 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
   unsigned int amask = 0;
   unsigned int dmask = 0;
 
+  if ( enables.AssertEvents == 0xffff )
+       amask = m_assertion_event_mask;
+  
+  if ( enables.DeassertEvents == 0xffff )
+       dmask = m_deassertion_event_mask;
+
   for( int i = 0; i < 6; i++ )
      {
        unsigned int b1 = 1 << (2*i);
        unsigned int b2 = 1 << (2*i + 1);
        unsigned int b  = b1 | b2; // this is 3 << (2*i)
 
-       if ( enables.AssertEvents & ( 1 << i ) )
+       if (    enables.AssertEvents != 0xffff
+            && (enables.AssertEvents & ( 1 << i )) )
           {
             if ( (m_assertion_event_mask & b) == 0 )
                {
@@ -1237,13 +1244,14 @@ cIpmiSensorThreshold::SetEventEnables( const SaHpiSensorEvtEnablesT &enables )
                         << IpmiThresToString( (tIpmiThresh)i )
                         << " not allowed !\n";
 
-                 return SA_ERR_HPI_INVALID_CMD; 
+                 return SA_ERR_HPI_INVALID_CMD;
                }
 
             amask |= (m_assertion_event_mask & b);
           }
 
-       if ( enables.DeassertEvents & ( 1 << i ) )
+       if (    enables.DeassertEvents != 0xffff
+            && (enables.DeassertEvents & ( 1 << i )) )
           {
             if ( (m_deassertion_event_mask & b) == 0 )
                {

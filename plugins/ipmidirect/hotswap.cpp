@@ -113,7 +113,8 @@ cIpmi::IfSetHotswapState( cIpmiEntity *ent, SaHpiHsStateT state )
             break;
 
        case SAHPI_HS_STATE_INACTIVE:
-            if ( current == SAHPI_HS_STATE_ACTIVE_HEALTHY )
+            if (    current == SAHPI_HS_STATE_ACTIVE_HEALTHY
+                 || current == SAHPI_HS_STATE_EXTRACTION_PENDING )
                  msg.m_data[2] = dIpmiDeactivateFru;
             else
               {
