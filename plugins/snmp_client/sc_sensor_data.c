@@ -82,7 +82,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                         if ( vars->type == ASN_INTEGER ) {
                                 
 				sen_max_reading[i].ValuesPresent =
-                                        (SaHpiSensorReadingFormatsT)*vars->val.integer;
+                                        (SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(*vars->val.integer);
 				
 				/* INDEX: { saHpiDomainID, saHpiResourceID, saHpiSensorIndex } */
                                 indices[0] = vars->name[vars->name_length - 3];
@@ -179,7 +179,7 @@ printf("**** # of range readings of type max, rr_num %d *****\n" ,rr_num);
                 for (i = 0; i < rr_num; i++) {
                         if ( vars->type == ASN_INTEGER ) 
 				sen_max_reading[i].EventStatus.SensorStatus =
-					(SaHpiSensorStatusT)*vars->val.integer;
+					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
                                 printf("SA_HPI_SENSOR_READING_MAX_STATUS:something terrible has happened\n");
                         vars = vars->next_variable;
@@ -303,7 +303,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                         if ( vars->type == ASN_INTEGER ) {
                                 
 				sen_min_reading[i].ValuesPresent =
-                                        (SaHpiSensorReadingFormatsT)*vars->val.integer;
+                                        (SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(*vars->val.integer);
 				
 				/* INDEX: { saHpiDomainID, saHpiResourceID, saHpiSensorIndex } */
                                 indices[0] = vars->name[vars->name_length - 3];
@@ -400,7 +400,7 @@ printf("**** # of range readings of type min, rr_num %d *****\n" ,rr_num);
                 for (i = 0; i < rr_num; i++) {
                         if ( vars->type == ASN_INTEGER ) 
 				sen_min_reading[i].EventStatus.SensorStatus =
-					(SaHpiSensorStatusT)*vars->val.integer;
+					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
                                 printf("SA_HPI_SENSOR_READING_MIN_STATUS:something terrible has happened\n");
                         vars = vars->next_variable;
@@ -523,7 +523,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                         if ( vars->type == ASN_INTEGER ) {
                                 
 				sen_nominal_reading[i].ValuesPresent =
-                                        (SaHpiSensorReadingFormatsT)*vars->val.integer;
+                                        (SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(*vars->val.integer);
 				
 				/* INDEX: { saHpiDomainID, saHpiResourceID, saHpiSensorIndex } */
                                 indices[0] = vars->name[vars->name_length - 3];
@@ -620,7 +620,7 @@ printf("**** # of range readings of type nominal, rr_num %d *****\n" ,rr_num);
                 for (i = 0; i < rr_num; i++) {
                         if ( vars->type == ASN_INTEGER ) 
 				sen_nominal_reading[i].EventStatus.SensorStatus =
-					(SaHpiSensorStatusT)*vars->val.integer;
+					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
                                 printf("SA_HPI_SENSOR_READING_NOMINAL_STATUS:something terrible has happened\n");
                         vars = vars->next_variable;
@@ -743,7 +743,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                         if ( vars->type == ASN_INTEGER ) {
                                 
 				sen_normal_max_reading[i].ValuesPresent =
-                                        (SaHpiSensorReadingFormatsT)*vars->val.integer;
+                                        (SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(*vars->val.integer);
 				
 				/* INDEX: { saHpiDomainID, saHpiResourceID, saHpiSensorIndex } */
                                 indices[0] = vars->name[vars->name_length - 3];
@@ -840,7 +840,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 for (i = 0; i < rr_num; i++) {
                         if ( vars->type == ASN_INTEGER ) 
 				sen_normal_max_reading[i].EventStatus.SensorStatus =
-					(SaHpiSensorStatusT)*vars->val.integer;
+					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
                                 printf("SA_HPI_SENSOR_READING_NORMAL_MAX_STATUS:something terrible has happened\n");
                         vars = vars->next_variable;
@@ -963,7 +963,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                         if ( vars->type == ASN_INTEGER ) {
                                 
 				sen_normal_min_reading[i].ValuesPresent =
-                                        (SaHpiSensorReadingFormatsT)*vars->val.integer;
+                                        (SaHpiSensorReadingFormatsT)SNMP_ENUM_ADJUST(*vars->val.integer);
 				
 				/* INDEX: { saHpiDomainID, saHpiResourceID, saHpiSensorIndex } */
                                 indices[0] = vars->name[vars->name_length - 3];
@@ -1060,7 +1060,7 @@ printf("**** # of range readings of type normal max, rr_num %d *****\n" ,rr_num)
                 for (i = 0; i < rr_num; i++) {
                         if ( vars->type == ASN_INTEGER ) 
 				sen_normal_min_reading[i].EventStatus.SensorStatus =
-					(SaHpiSensorStatusT)*vars->val.integer;
+					(SaHpiSensorStatusT)SNMP_ENUM_ADJUST(*vars->val.integer);
                         else
                                 printf("SA_HPI_SENSOR_READING_NORMAL_MIN_STATUS:something terrible has happened\n");
                         vars = vars->next_variable;
