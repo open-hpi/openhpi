@@ -49,6 +49,7 @@ static int snmp_bc_get_event(void *hnd, struct oh_event *event, struct timeval *
 {
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
         
+	snmp_bc_check_selcache(hnd, 1, SAHPI_NEWEST_ENTRY);
         if(g_slist_length(handle->eventq)>0) {
                 memcpy(event, handle->eventq->data, sizeof(*event));
                 free(handle->eventq->data);
@@ -119,11 +120,13 @@ static int snmp_bc_discover_resources(void *hnd)
         RPTable *tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
         GSList *tmpqueue = NULL;
         char *root_tuple = (char *)g_hash_table_lookup(handle->config,"entity_root");        
-                
+	SaErrorT status;        
+        
         string2entitypath(root_tuple, &entity_root);
         
 	/* Blade vector gives us info for chassis, blades, and blade expansion (add in) cards */
-        if((snmp_get(custom_handle->ss,SNMP_BC_BLADE_VECTOR,&get_value)) == 0 &&
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,SNMP_BC_BLADE_VECTOR,&get_value);
+        if((status == SA_OK) &&
 	   (get_value.type == ASN_OCTET_STR)) {
                 e = snmp_bc_discover_chassis(handle,get_value.string,&entity_root);
                 if(e != NULL) {
@@ -179,10 +182,11 @@ static int snmp_bc_discover_resources(void *hnd)
                 dbg("Couldn't fetch SNMP %s vector; Type=%d\n",SNMP_BC_BLADE_VECTOR,get_value.type);
                 dbg("There is either no chassis or the management modules are down.");
                 g_free(tmpcache);
-                return -1;
+                return status;
         }
-        
-        if((snmp_get(custom_handle->ss,SNMP_BC_FAN_VECTOR,&get_value)) == 0 &&
+	
+        status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,SNMP_BC_FAN_VECTOR,&get_value);
+        if(( status == SA_OK )&&
 	   (get_value.type == ASN_OCTET_STR)) {
                 for(i=0; i < strlen(get_value.string); i++) {
                         e = snmp_bc_discover_fan(handle,get_value.string, &entity_root, i);
@@ -204,10 +208,11 @@ static int snmp_bc_discover_resources(void *hnd)
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",SNMP_BC_FAN_VECTOR,get_value.type);
                 dbg("There is either no chassis or the management modules are down.");
                 g_free(tmpcache);
-                return -1;
+                return status;
         }
 
-        if((snmp_get(custom_handle->ss,SNMP_BC_POWER_VECTOR,&get_value)) == 0 &&
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,SNMP_BC_POWER_VECTOR,&get_value);
+        if((status == SA_OK) &&
 	   (get_value.type == ASN_OCTET_STR)) {
                 for(i=0; i < strlen(get_value.string); i++) {
                         e = snmp_bc_discover_power(handle, get_value.string, &entity_root, i);
@@ -229,10 +234,11 @@ static int snmp_bc_discover_resources(void *hnd)
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",SNMP_BC_POWER_VECTOR,get_value.type);
                 dbg("There is either no chassis or the management modules are down.");
                 g_free(tmpcache);
-                return -1;
+                return status;
         }
 
-        if((snmp_get(custom_handle->ss,SNMP_BC_SWITCH_VECTOR,&get_value)) == 0 &&
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,SNMP_BC_SWITCH_VECTOR,&get_value);
+        if((status == SA_OK) &&
 	   (get_value.type == ASN_OCTET_STR)) {
                 for(i=0; i < strlen(get_value.string); i++) {
                         e = snmp_bc_discover_switch(handle, get_value.string, &entity_root, i);
@@ -254,10 +260,11 @@ static int snmp_bc_discover_resources(void *hnd)
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",SNMP_BC_SWITCH_VECTOR,get_value.type);
                 dbg("There is either no chassis or the management modules are down.");
                 g_free(tmpcache);
-                return -1;
+                return status;
         }
 
-        if((snmp_get(custom_handle->ss,SNMP_BC_MEDIATRAY_EXISTS,&get_value)) == 0 &&
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,SNMP_BC_MEDIATRAY_EXISTS,&get_value);
+        if((status == SA_OK) &&
 	   (get_value.type == ASN_INTEGER)) {
 		e = snmp_bc_discover_mediatray(handle, get_value.integer, &entity_root, 0);
 		if(e != NULL) {
@@ -277,13 +284,15 @@ static int snmp_bc_discover_resources(void *hnd)
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",SNMP_BC_MEDIATRAY_EXISTS,get_value.type);
                 dbg("There is either no chassis or the management modules are down.");
                 g_free(tmpcache);
-                return -1;
+                return status;
         }
-
-        if((snmp_get(custom_handle->ss,SNMP_BC_MGMNT_VECTOR,&get_value)) == 0 && 
+	
+	status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,SNMP_BC_MGMNT_VECTOR,&get_value);
+        if((status == SA_OK) && 
 	   (get_value.type == ASN_OCTET_STR)) {
                 for(i=0; i < strlen(get_value.string); i++) {
-			if((snmp_get(custom_handle->ss,SNMP_BC_MGMNT_ACTIVE,&get_active)) == 0 &&
+			status = snmp_bc_snmp_get(custom_handle, custom_handle->ss,SNMP_BC_MGMNT_ACTIVE,&get_active);
+			if((status == SA_OK) &&
 			    (get_active.type == ASN_INTEGER) && (get_active.integer == i+1)) { 	
 				e = snmp_bc_discover_mgmnt(handle,get_value.string, &entity_root, i);
 				if(e != NULL) {
@@ -299,13 +308,18 @@ static int snmp_bc_discover_resources(void *hnd)
 					find_controls(snmp_bc_mgmnt_controls);
 					find_inventories(snmp_bc_mgmnt_inventories); 
 				}
+			} else if (status != SA_OK) {
+				dbg("Couldn't fetch SNMP %s vector; Type=%d\n",SNMP_BC_MGMNT_ACTIVE,get_value.type);
+                		dbg("The management modules are down.");
+                		g_free(tmpcache);
+                		return status;
 			}
 		}
 	} else {
 		dbg("Couldn't fetch SNMP %s vector; Type=%d\n",SNMP_BC_MGMNT_VECTOR,get_value.type);
                 dbg("There is either no chassis or the management modules are down.");
                 g_free(tmpcache);
-                return -1;
+                return status;
         }
 
 	/* 
@@ -554,3 +568,32 @@ int get_interface(void **pp, const uuid_t uuid)
         *pp = NULL;
         return -1;
 }
+
+
+SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
+                          struct snmp_session *ss,
+                          const char *objid,
+                          struct snmp_value *value)
+{
+
+        SaErrorT status;
+
+        status = snmp_get(ss, objid, value);
+        if (status == SA_ERR_SNMP_TIMEOUT) {
+
+                if (custom_handle->handler_retries == MAX_RETRY_ATTEMPTED) {
+                        custom_handle->handler_retries = 0;
+                        status = SA_ERR_HPI_NO_RESPONSE;
+                } else {
+                        custom_handle->handler_retries++;
+                        status = SA_ERR_HPI_BUSY;
+                }
+
+        } else {
+                custom_handle->handler_retries = 0;
+        }
+
+        return status;
+
+}
+
