@@ -72,10 +72,6 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 		goto CLEANUP;
 	}
 
-	/* FIXME:: RSA doesn't have??? */
-	/* Build cache copy of SEL */
-	snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
-
 	/**********************************************************************
 	 * Rediscovery:
 	 * Get difference between current rptcache and custom_handle->tmpcache.
@@ -182,6 +178,10 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
                 }
         }        
         g_slist_free(rdr_new);
+
+	/* FIXME:: RSA doesn't have??? */
+	/* Build cache copy of SEL */
+	snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 
  CLEANUP:        
         g_slist_free(custom_handle->tmpqueue);
