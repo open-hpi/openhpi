@@ -124,8 +124,13 @@ SaErrorT build_rptcache(RPTable *rptcache)
 	int i;
 	SaHpiRptEntryT res;
 	SaHpiEntityPathT root_ep;
+//	char *entity_root;
+
+//	entity_root=(char *)g_hash_table_lookup(oh_hnd->config,"entity_root");
+//	oh_encode_entitypath(entity_root,&root_ep);
 	
 	for(i=0; i<sizeof(dummy_rpt_array)/sizeof(SaHpiRptEntryT); i++){
+		memcpy(&res, &dummy_rpt_array[i], sizeof(SaHpiRptEntryT));
 		oh_concat_ep(&res.ResourceEntity, &root_ep);
 		res.ResourceId = oh_uid_from_entity_path(&res.ResourceEntity);
 		
