@@ -41,6 +41,10 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
                           const char *objid,
                           struct snmp_value *value);
 
+SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
+                          struct snmp_session *ss,
+                          char *objid,
+                          struct snmp_value value);
 
 
 #endif

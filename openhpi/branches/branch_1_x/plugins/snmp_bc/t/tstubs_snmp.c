@@ -29,6 +29,17 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 	return SA_OK;
 }
 
+SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
+                          struct snmp_session *ss,
+                          char *objid,
+                          struct snmp_value value) {
+	int err;
+	err = snmp_set(ss, objid, value);
+	
+	if (err) { return SA_ERR_HPI_ERROR; }
+	
+	return SA_OK;
+}
  
 int snmp_get(struct snmp_session *ss, const char *objid, struct snmp_value *value)
 {
