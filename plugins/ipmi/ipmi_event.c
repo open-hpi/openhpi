@@ -50,7 +50,7 @@ static void bus_scan_done(ipmi_domain_t *domain, int err, void *cb_data)
 		rv = ipmi_domain_reread_sels(domain, SELs_read_done, &ipmi_handler->SELs_read_done);
 
 		if (rv)
-				dbg("ipmi_domain_reread_sels returned error: %d\n", rv);
+			dbg("ipmi_domain_reread_sels returned error: %d\n", rv);
 	
 		return;
 }

@@ -110,6 +110,7 @@ static void add_entity_event(ipmi_entity_t	        *entity,
          struct oh_event	*e;
          int 		rv;
         
+		 dbg("adding ipmi entity: %s", ipmi_entity_get_entity_id_string(entity));
         ohoi_res_info = g_malloc0(sizeof(*ohoi_res_info));
         if (!ohoi_res_info) {
                 dbg("Out of memory");
@@ -141,8 +142,8 @@ static void add_entity_event(ipmi_entity_t	        *entity,
 	}
 	
 	/* controls */
-	rv = ipmi_entity_set_control_update_handler(entity, ohoi_control_event,
-							handler);
+//	rv = ipmi_entity_set_control_update_handler(entity, ohoi_control_event,
+//							handler);
 	if (rv) {
 		dbg("ipmi_entity_set_control_update_handler: %#x", rv);
 		return;
@@ -173,16 +174,32 @@ void ohoi_entity_event(enum ipmi_update_e       op,
 	struct oh_handler_state *handler = cb_data;
 
 	if (op == IPMI_ADDED) {
-		add_entity_event(entity, handler);
+					
+			add_entity_event(entity, handler);
+
+				dbg("Entity added: %d.%d", 
+								ipmi_entity_get_entity_id(entity), 
+								ipmi_entity_get_entity_instance(entity));
+			
+			
         } else if (op == IPMI_DELETED) {
-		dbg("Entity deleted: %d.%d", 
-                    ipmi_entity_get_entity_id(entity), 
-                    ipmi_entity_get_entity_instance(entity));
+
+				/* we need to remove_entity */
+
+				dbg("Entity deleted: %d.%d", 
+								ipmi_entity_get_entity_id(entity), 
+								ipmi_entity_get_entity_instance(entity));
+				
         } else if (op == IPMI_CHANGED) {
-		dbg("Entity changed: %d.%d",
-                    ipmi_entity_get_entity_id(entity), 
-                    ipmi_entity_get_entity_instance(entity));
-        } else {
+				
+				add_entity_event(entity, handler);
+
+				dbg("Entity changed: %d.%d",
+								ipmi_entity_get_entity_id(entity), 
+								ipmi_entity_get_entity_instance(entity));
+		
+		} else {
+				
                 dbg("Entity: Unknow change?!");
         }
 

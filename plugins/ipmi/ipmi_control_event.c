@@ -145,14 +145,15 @@ void ohoi_control_event(enum ipmi_update_e op,
 	rpt_entry = ohoi_get_resource_by_entityid(
 			handler->rptcache,
 			&entity_id);   
-        ohoi_res_info = oh_get_resource_data(handler->rptcache, 
-                                           rpt_entry->ResourceId);
 	
-        if (!rpt_entry) {
-		dump_entity_id("Control with RPT Entry?!", entity_id);
-		return;
+	if (!rpt_entry) {
+			dump_entity_id("Control with RPT Entry?!", entity_id);
+			return;
 	}
 
+	ohoi_res_info = oh_get_resource_data(handler->rptcache, 
+											rpt_entry->ResourceId);
+	
 	if (op == IPMI_ADDED) {
                 int ctrl_type;
                 
