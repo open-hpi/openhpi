@@ -395,7 +395,7 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
-  inv = (SaHpiInventoryDataT *)&inbuff[0];
+  inv = (SaHpiInventoryDataT *)(void *)&inbuff[0];
 
   rv = saHpiInitialize(&hpiVer);
 

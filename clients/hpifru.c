@@ -299,7 +299,7 @@ main(int argc, char **argv)
           printf("   -z  Display extra debug messages\n");
           exit(1);
   }
-  inv = (SaHpiInventoryDataT *)&inbuff[0];
+  inv = (SaHpiInventoryDataT *)(void *)&inbuff[0];
   rv = saHpiInitialize(&hpiVer);
   if (rv != SA_OK) {
     printf("saHpiInitialize error %d\n",rv);
@@ -346,7 +346,7 @@ main(int argc, char **argv)
 	    if (fdebug) printf( "RDR[%d]: type=%d num=%d %s\n", rdr.RecordId,
 		    rdr.RdrType, eirid, rdr.IdString.Data);
 	    buffersize = sizeof(inbuff);
-	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%d\n",
+	    if (fdebug) printf("BufferSize=%d InvenDataRecSize=%zd\n",
 		    buffersize, sizeof(inbuff));
 	    if ( IsTagBmc(rdr.IdString.Data, rdr.IdString.DataLength) )
 	    {
