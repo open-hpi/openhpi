@@ -1,3 +1,22 @@
+2003-12-04  TariqX   <tariq.shureih@intel.com>
+	* src/plugins/ipmi/ipmi.c:
+	Enabled retrieval of IPMI SEL UpdateTimestamp.
+	
+	* src/plugins/ipmi/ipmi_sel.c:
+	Added functions to get IPMI SEL UpdateTimestamp.
+
+2003-12-03  yzhuang  <yzhuang@hawk.sh.intel.com>
+	* src/plugins/ipmi/ipmi.c:
+	Added missing abi function clear_sel.
+
+	* src/plugins/ipmi/ipmi_sel.c:
+	Added functions to enable IPMI SEL clear.
+
+2003-12-02  TariqX   <tariq.shureih@intel.com>
+	* Changlog:
+	Beging update of Changelog with CVS check-ins to be
+	ready when providing a new release.
+
 2003-07-18  yzhuang  <yzhuang@hawk.sh.intel.com>
 
 	* include/openhpi.h, src/safhpi.c, src/session.c:
