@@ -30,8 +30,6 @@
 #
 
 
-pkglibdir = $(libdir)/openhpi/standard
-
 MAINTAINERCLEANFILES    = Makefile.in plugin_static.c
 MOSTLYCLEANFILES        = @TEST_CLEAN@
 
@@ -44,7 +42,7 @@ DIST_SUBDIRS            = t
 
 AM_CFLAGS               = @CFLAGS@
 
-pkglib_LTLIBRARIES         = libopenhpi.la
+lib_LTLIBRARIES         = libopenhpi.la
 
 libopenhpi_la_SOURCES   = \
                            config.c \
@@ -67,3 +65,6 @@ libopenhpi_la_DEPENDENCIES = @STATIC_PLUGIN_LIBS@ $(top_srcdir)/src/hpi.sym
 $(top_builddir)/utils/libopenhpiutils.la:
 	make -C $(top_builddir)/utils libopenhpiutils.la
 
+install-data-local:
+	mkdir -p $(DESTDIR)$(pkglibdir)/standard/
+	mv $(DESTDIR)$(libdir)/libopenhpi.* $(DESTDIR)$(pkglibdir)/standard/
