@@ -22,6 +22,8 @@
 #include <SaHpi.h>
 #include <openhpi.h>
 
+static SaHpiSessionIdT scounter = 0;
+
 struct oh_session *session_get(SaHpiSessionIdT sid)
 {
         struct oh_session *temp = NULL;
@@ -51,7 +53,7 @@ int session_add(SaHpiDomainIdT did,
         
         // (sd: session id should be set more intellegently, no?
         s->session_id = scounter++;
-        s->domain_id = domain;
+        s->domain_id = did;
         s->eventq = NULL;
         
         global_session_list = g_slist_append(global_session_list, (gpointer *) s);
@@ -67,20 +69,24 @@ int session_del(struct oh_session *session)
 	return 0;
 }
 
+/*
+ * session_push_event pushs and event into a session.  I don't think
+ * that we need to do any memory allocation here, as we should
+ * already have a valid session and event
+*/
+
 int session_push_event(struct oh_session *s, struct oh_event *e)
 {
-        struct session_event *se;
-        
-        se = malloc(sizeof(*se));
-        if (se) {
-                dbg("Cannot alloc memory");
-                return -1;
-        };
-	
-        memcpy(&se->event, e, sizeof(*e));
-        list_add_tail(&se->node, &s->event_list);
+        s->eventq = g_slist_append(s->eventq, (gpointer *) e);
         return 0;
 }
+
+/*
+ * session_pop_event - pops events off the session.  
+ *
+ * return codes are left as was, but it seems that return 1 for success
+ * here doesn't jive with the rest of the exit codes
+ */
 
 int session_pop_event(struct oh_session *s, struct oh_event *e) 
 {
@@ -106,9 +112,14 @@ int session_pop_event(struct oh_session *s, struct oh_event *e)
 	return 1;
 }
 
+/*
+ * Leaving session_get_events for Louis or Rusty to convert
+ */
+
+#if 0
 int session_get_events(struct oh_session *s)
 {
-	struct oh_domain 	*d 	= s->domain;
+	struct oh_domain 	*d 	= s->domain_id;
 	struct oh_event	 	event;
 	int 		 	rv;
 	int			has_event;
@@ -136,3 +147,4 @@ int session_get_events(struct oh_session *s)
 
 	return 0;
 }
+#endif
