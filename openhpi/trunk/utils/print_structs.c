@@ -104,6 +104,8 @@ SaErrorT oh_sensor_reading2str (SaHpiSensorReadingT reading,
         char buff[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         int buffsize = 0;
 
+        deprecated("Please check out the other util functions");
+
         setup_text_buffer(&temp);        
         if(!reading.IsSupported || !format.IsSupported) {
                 dbg("Can't stringify unsupported numeric reading");
@@ -147,7 +149,7 @@ SaErrorT oh_sensor_reading2str (SaHpiSensorReadingT reading,
         if(format.BaseUnits != SAHPI_SU_UNSPECIFIED) {
                 oh_text_buffer_append(&temp, " ", 1);
                 reset_buff(buff);
-                buffsize = sprintf(buff,"%s",SaHpiSensorUnitsT2str(format.BaseUnits));
+                buffsize = sprintf(buff,"%s",oh_lookup_sensorunits(format.BaseUnits));
                 oh_text_buffer_append(&temp, buff, buffsize);
         }
 
@@ -160,7 +162,7 @@ SaErrorT oh_sensor_reading2str (SaHpiSensorReadingT reading,
                 }
 
                 reset_buff(buff);
-                buffsize = sprintf(buff,"%s",SaHpiSensorUnitsT2str(format.ModifierUnits));
+                buffsize = sprintf(buff,"%s",oh_lookup_sensorunits(format.ModifierUnits));
                 oh_text_buffer_append(&temp, buff, buffsize);
         }
         

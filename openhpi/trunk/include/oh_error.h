@@ -35,6 +35,13 @@ extern "C" {
                 }                                                       \
         } while(0)
 
+#define deprecated(format, ...)                                         \
+        do {                                                            \
+                fprintf(stderr, "The function %s in %s is deprecated\n", __func__, __FILE__); \
+                fprintf(stderr, "\tand will be removed in a future release\n"); \
+                fprintf(stderr, "\t" format "\n", ## __VA_ARGS__); \
+        } while(0)
+
 #define info(f, ...) printf(__FILE__": " f "\n", ## __VA_ARGS__)
 #define error(f, ...) fprintf(stderr, "ERROR: " f "\n", ## __VA_ARGS__)
 #define trace(f, ...) printf(__FILE__":%s(" f ")\n", __FUNCTION__, ## __VA_ARGS__)
