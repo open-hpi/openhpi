@@ -41,4 +41,6 @@ char *sim_util_get_rdr_dir(struct oh_handler_state *inst,
                            SaHpiResourceIdT res_id, 
                            SaHpiEntryIdT rd_id);
 
+int sim_util_insert_event(GSList *eventq, struct oh_event *event);
+int sim_util_remove_event(GSList *eventq, struct oh_event *event);
 #endif

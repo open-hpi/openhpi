@@ -223,3 +223,13 @@ char* sim_util_get_rdr_dir(struct oh_handler_state *inst,
         sprintf(str, "%s/%s/%x", str1, str2, rd_id);
         return str;
 }
+
+int sim_util_insert_event(GSList *eventq, struct oh_event *event)
+{
+        return -1;
+}
+int sim_util_remove_event(GSList *eventq, struct oh_event *event)
+{
+        return -1;
+}
+
