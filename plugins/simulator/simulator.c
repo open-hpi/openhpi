@@ -82,7 +82,8 @@ static void sim_close(void *hnd)
 	struct oh_handler_state *inst = hnd;
 	
 	g_free(inst->rptcache);
-        fhs_event_finish((struct fe_handler *)inst->data);          
+        if (inst->data != NULL)
+                fhs_event_finish((struct fe_handler *)inst->data);          
 	g_free(inst);
 	return;
 }
