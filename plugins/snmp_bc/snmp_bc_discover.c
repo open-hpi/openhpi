@@ -43,28 +43,34 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;		
         struct snmp_bc_hnd *custom_handle = (struct snmp_bc_hnd *)handle->data;
-	if (!custom_handle) {
-		dbg("Invalid parameter.");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
+        if (!custom_handle) {
+                dbg("Invalid parameter.");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
 
+        g_static_rec_mutex_lock(&handle->handler_lock);
+
+    
 	/* Find root Entity Path */
 	root_tuple = (char *)g_hash_table_lookup(handle->config, "entity_root");
         if (root_tuple == NULL) {
                 dbg("Cannot find configuration parameter.");
+                g_static_rec_mutex_unlock(&handle->handler_lock);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
         err = oh_encode_entitypath(root_tuple, &ep_root);
         if (err) {
                 dbg("Cannot convert entity path to string. Error=%s.", oh_lookup_error(err));
+                g_static_rec_mutex_unlock(&handle->handler_lock);
                 return(SA_ERR_HPI_INTERNAL_ERROR);
         }
 
 	/* Allocate space for temporary RPT cache */
-	custom_handle->tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
-	if (custom_handle->tmpcache == NULL) {
-		dbg("Out of memory.");
-		return(SA_ERR_HPI_OUT_OF_SPACE);
+        custom_handle->tmpcache = (RPTable *)g_malloc0(sizeof(RPTable));
+        if (custom_handle->tmpcache == NULL) {
+                dbg("Out of memory.");
+                g_static_rec_mutex_unlock(&handle->handler_lock);
+                return(SA_ERR_HPI_OUT_OF_SPACE);
 	}
 
 	/* Initialize tmpqueue */
@@ -208,7 +214,8 @@ SaErrorT snmp_bc_discover_resources(void *hnd)
  CLEANUP:        
         g_slist_free(custom_handle->tmpqueue);
         oh_flush_rpt(custom_handle->tmpcache);  
-	g_free(custom_handle->tmpcache);
+        g_free(custom_handle->tmpcache);
+        g_static_rec_mutex_unlock(&handle->handler_lock);
 
         return(err);
 }

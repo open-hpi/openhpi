@@ -108,13 +108,14 @@ SaErrorT get_interface(void **pp, const uuid_t uuid)
  **/
 SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
 {
-	SaErrorT err;
+        SaErrorT err;
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
-
-	if (!event) {
-		dbg("Invalid parameter");
-		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
+        
+        if (!event) {
+                dbg("Invalid parameter");
+                return(SA_ERR_HPI_INVALID_PARAMS);
+        }
+        g_static_rec_mutex_lock(&handle->handler_lock);
 
 	err = snmp_bc_check_selcache(handle, 1, SAHPI_NEWEST_ENTRY);
 	
@@ -130,10 +131,12 @@ SaErrorT snmp_bc_get_event(void *hnd, struct oh_event *event)
                 memcpy(event, handle->eventq->data, sizeof(*event));
                 free(handle->eventq->data);
                 handle->eventq = g_slist_remove_link(handle->eventq, handle->eventq);
+                g_static_rec_mutex_unlock(&handle->handler_lock);
                 return(1);
         } 
 
 	/* No events for infra-structure to process */
+        g_static_rec_mutex_unlock(&handle->handler_lock);
 	return(SA_OK);
 }
 
