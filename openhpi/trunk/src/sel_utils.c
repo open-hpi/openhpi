@@ -133,13 +133,15 @@ SaErrorT oh_sel_get(oh_sel *sel, SaHpiSelEntryIdT entryid, SaHpiSelEntryIdT *pre
                 myentry = (SaHpiSelEntryT *) sellist->data;
                 if (myentry->EntryId == entryid) {
                         *entry = myentry;
+                        /* is this the first entry? */
                         if (myentry->EntryId == SAHPI_OLDEST_ENTRY) {
                                 *prev = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
                                 *prev = myentry->EntryId - 1;
                         }
-                        if (myentry->EntryId == SAHPI_NEWEST_ENTRY) {
+                        /* is this the last entry? (SAHPI_NEWEST_ENTRY) */
+                        if (myentry->EntryId == sel->nextId - 1) {
                                 *next = SAHPI_NO_MORE_ENTRIES;
                         }
                         else {
