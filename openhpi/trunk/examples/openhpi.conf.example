@@ -23,9 +23,9 @@ handler	libdummy {
 }
 
 # Dummy allows you open second virtual by addr 1
-handler	libdummy {
-	addr =	1
-}
+#handler	libdummy {
+#	addr =	1
+#}
 
 #section for ipmi plugin using SMI -- local interface
 
@@ -48,7 +48,7 @@ handler	libdummy {
 
 #Section for snmp_bc plugin:
 #handler libsnmp_bc {
-        host = "bc.ibm.com"
-        community = "community"
-        entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
-}
+#        host = "bc.ibm.com"
+#        community = "community"
+#        entity_root = "{ROOT,0}{SYSTEM_CHASSIS,0}"
+#}
