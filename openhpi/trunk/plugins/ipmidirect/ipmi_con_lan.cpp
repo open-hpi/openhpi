@@ -308,6 +308,17 @@ cIpmiConLan::WaitForResponse( unsigned int timeout_ms, int &seq,
      }
   while( ret != eResponseTypeMessage );
 
+  if ( m_log_level & dIpmiConLogCmd )
+   {
+       m_log_lock.Lock();
+
+       stdlog << "<rsp " << (unsigned char)seq << "  ";
+       IpmiLogDataMsg( addr, msg );
+       stdlog << "\n";
+
+       m_log_lock.Unlock();
+   }
+
   return eResponseTypeMessage;
 }
 
@@ -491,7 +502,7 @@ cIpmiConLan::ActiveSession()
 
   m_working_auth = (tIpmiAuthType)(rsp_msg.m_data[1] & 0xf);
 
-  if (    m_working_auth != 0
+  if (    m_working_auth != eIpmiAuthTypeNone
        && m_working_auth != m_auth )
      {
        // Eh?  It didn't return a valid authtype.
@@ -732,7 +743,7 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
   IpmiSetUint32( data+5, m_outbound_seq_num );
   IpmiSetUint32( data+9, m_session_id );
 
-  if ( m_working_auth == 0 )
+  if ( m_working_auth == eIpmiAuthTypeNone )
        tmsg = data + 14;
   else
        tmsg = data + 30;
@@ -784,7 +795,7 @@ cIpmiConLan::IfSendCmd( cIpmiRequest *r )
        pos++;
      }
 
-  if ( m_working_auth == 0 )
+  if ( m_working_auth == eIpmiAuthTypeNone )
      {
        // No authentication, so no authcode.
        data[13] = pos;
