@@ -43,25 +43,32 @@ gboolean oh_run_threaded()
 static gpointer oh_event_thread_loop(gpointer data)
 {
         GTimeVal time;
+        SaErrorT rv;
 
         while(oh_run_threaded()) {
-                if (oh_initialized() != SA_OK) {
-                        trace("In event loop, but library not initialized yet. Doing nothing.");
-                } else {                
-                        dbg("About to run through the event loop");
+                dbg("About to run through the event loop");
 
-                        oh_get_events();
-
-                        g_get_current_time(&time);
-                        g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
-
-                        dbg("Going to sleep");
-
-                        if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
-                                dbg("SIGNALED: Got signal from plugin");
-                        else
-                                dbg("TIMEDOUT: Woke up, am looping again");
+                rv = oh_harvest_events();
+                if(rv != SA_OK) {
+                        dbg("Error on harvest of events.");
                 }
+                
+                rv = oh_process_events();
+                if(rv != SA_OK) {
+                        dbg("Error on processing of events, aborting");
+                }
+                
+                process_hotswap_policy();
+
+                g_get_current_time(&time);
+                g_time_val_add(&time, OH_THREAD_SLEEP_TIME);
+
+                dbg("Going to sleep");
+
+                if (g_cond_timed_wait(oh_thread_wait, oh_thread_mutex, &time))
+                        dbg("SIGNALED: Got signal from plugin");
+                else
+                        dbg("TIMEDOUT: Woke up, am looping again");
         }
         g_thread_exit(0);
         return 0;
@@ -74,8 +81,6 @@ static gpointer oh_event_thread_loop(gpointer data)
  */
 int oh_event_init()
 {
-        struct oh_global_param threaded_param = { .type = OPENHPI_THREADED };
-
         trace("Attempting to init event");
         if (!g_thread_supported()) {
                 trace("Initializing thread support");
@@ -85,9 +90,20 @@ int oh_event_init()
         }
         trace("Setting up event processing queue");
         oh_process_q = g_async_queue_new();
+        if(oh_process_q) {
+                return 1;
+        } else {
+                return 0;
+        }
+}
+
+int oh_start_event_thread()
+{
+        struct oh_global_param threaded_param = { .type = OPENHPI_THREADED };
 
         oh_get_global_param(&threaded_param);
         if (threaded_param.u.threaded) {
+                trace("Starting event thread");
                 oh_is_threaded = TRUE;
                 oh_thread_wait = g_cond_new();
                 oh_thread_mutex = g_mutex_new();
@@ -416,18 +432,26 @@ SaErrorT oh_get_events()
 {
         SaErrorT rv = SA_OK;
 
-        dbg("About to harvest events in the loop");
-        rv = oh_harvest_events();
-        if(rv != SA_OK) {
-                dbg("Error on harvest of events.");
+        if(oh_run_threaded()) {
+                dbg("Running threaded, time to wake up the event thread");
+                oh_wake_event_thread();
+                /* this is just enough time to give up the processor 
+                   and let the thread do something */
+                return rv;
+        } else {
+                dbg("Running non threaded, Harvesting events");
+                rv = oh_harvest_events();
+                if(rv != SA_OK) {
+                        dbg("Error on harvest of events.");
+                }
+
+                rv = oh_process_events();
+                if(rv != SA_OK) {
+                        dbg("Error on processing of events, aborting");
+                }
+                
+                process_hotswap_policy();
+
+                return rv;
         }
-
-        rv = oh_process_events();
-        if(rv != SA_OK) {
-                dbg("Error on processing of events, aborting");
-        }
-
-        process_hotswap_policy();
-
-        return rv;
 }
