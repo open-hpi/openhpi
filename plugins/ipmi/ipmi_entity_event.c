@@ -14,8 +14,10 @@
  */
 
 #include "ipmi.h"
+#include<oh_domain.h>
 #include <oh_utils.h>
 #include <string.h>
+
 /* need to update some information here */
 void entity_update_rpt(RPTable *table, SaHpiResourceIdT rid, int present)
 {
@@ -247,6 +249,7 @@ void ohoi_remove_entity(struct oh_handler_state *handler,
 	e = g_malloc0(sizeof(*e));
 	memset(e, 0, sizeof(*e));
 
+	e->did = oh_get_default_domain_id();
 	e->type = OH_ET_RESOURCE_DEL;
 	e->u.res_event.entry.ResourceId = res_id;
 

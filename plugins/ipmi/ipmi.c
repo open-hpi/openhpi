@@ -19,6 +19,7 @@
  */
 
 #include "ipmi.h"
+#include <oh_domain.h>
 #include <netdb.h>
 
 /* Watchdog definitions */
@@ -298,7 +299,8 @@ static int ipmi_get_event(void *hnd, struct oh_event *event)
 	for (;;) {
 		if(g_slist_length(handler->eventq)>0) {
 			memcpy(event, handler->eventq->data, sizeof(*event));
-			event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
+			event->did = oh_get_default_domain_id();
+			//event->did = SAHPI_UNSPECIFIED_DOMAIN_ID;
 			free(handler->eventq->data);
 			handler->eventq = g_slist_remove_link(handler->eventq, handler->eventq);
 			return 1;
@@ -361,7 +363,7 @@ int ipmi_discover_resources(void *hnd)
 		} else {
 			time(&tm1);
 			/* OpenIPMI takes about 10 seconds to timeout */
-			if ((tm1 - tm) > 20) {
+			if ((tm1 - tm) > 30) {
 				dbg("timeout on waiting for discovery");
 				return SA_ERR_HPI_NO_RESPONSE;
 			}
@@ -378,7 +380,7 @@ int ipmi_discover_resources(void *hnd)
         while (rpt_entry) {
 	  	res_info = oh_get_resource_data(handler->rptcache, rpt_entry->ResourceId);
 		dbg("res: %d presence: %d", rpt_entry->ResourceId, res_info->presence);
-		if (res_info->presence) {
+		if (res_info->presence == 1) {
 			event = g_malloc0(sizeof(*event));
 			memset(event, 0, sizeof(*event));
 			event->type = OH_ET_RESOURCE;
