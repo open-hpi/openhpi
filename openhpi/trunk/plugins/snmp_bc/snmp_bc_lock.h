@@ -51,7 +51,7 @@
                 } else {                                                \
                         dbg_snmp_lock("Got the lock because no one had it"); \
                         bclock.count++;                                 \
-                        dbg_snmp_lock("Lockcount: %d", bclock.count++);      \
+                        dbg_snmp_lock("Lockcount: %d", bclock.count);      \
                 }                                                    \
         } while(0)
 
