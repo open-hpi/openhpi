@@ -363,7 +363,7 @@ dnl     NEED_MARSHAL="yes"])
 
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator       build simulator plugin [default=no]],
+    [  --enable-simulator      build simulator plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         AC_SUBST(SIMULATOR,simulator)
     fi])
@@ -499,7 +499,7 @@ dnl next we have to do transformations to either turn on
 dnl test coverage or debug.
 
 AC_ARG_ENABLE([testcover],
-    [  --enable-testcover     build with test coverage support [default=no]],
+    [  --enable-testcover      build with test coverage support [default=no]],
     [if test "x$enableval" = "xyes"; then
             CFLAGS=`echo $CFLAGS | perl -p -e 's/-O\S*//g'`
             CFLAGS="$CFLAGS -ftest-coverage -fprofile-arcs"
