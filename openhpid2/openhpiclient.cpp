@@ -501,7 +501,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SessionClose)
 	SaErrorT err;
 	char cmd[] = "saHpiSessionClose";
 
-	if (SessionId < 0 || pinst == NULL )
+	if (SessionId == 0 || pinst == NULL )
 		return SA_ERR_HPI_INVALID_PARAMS;
 
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiSessionClose);
@@ -537,7 +537,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Discover)
 	SaErrorT err;
 	char cmd[] = "saHpiDiscover";
 
-	if (SessionId < 0 || pinst == NULL)
+	if (SessionId == 0 || pinst == NULL)
 		return SA_ERR_HPI_INVALID_PARAMS;
 
 	cHpiMarshal *hm = hm = HpiMarshalFind(eFsaHpiDiscover);
@@ -576,7 +576,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainInfoGet)
         SaErrorT err;
 	char cmd[] = "saHpiDomainInfoGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!DomainInfo)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -620,7 +620,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DrtEntryGet)
         SaErrorT err;
 	char cmd[] = "saHpiDrtEntryGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if((DrtEntry == NULL) ||
            (NextEntryId == NULL) ||
@@ -665,7 +665,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(DomainTagSet)
         SaErrorT err;
 	char cmd[] = "saHpiDomainTagSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!DomainTag)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -711,7 +711,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGet)
         SaErrorT err;
 	char cmd[] = "saHpiRptEntryGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if ((NextEntryId == NULL) || (RptEntry == NULL)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -758,7 +758,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RptEntryGetByResourceId)
         SaErrorT err;
 	char cmd[] = "saHpiRptEntryGetByResourceId";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID ||
             RptEntry == NULL) {
@@ -803,7 +803,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceSeveritySet)
         SaErrorT err;
 	char cmd[] = "saHpiResourceSeveritySet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (ResourceId == SAHPI_UNSPECIFIED_RESOURCE_ID)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -848,7 +848,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceTagSet)
         SaErrorT err;
 	char cmd[] = "saHpiResourceTagSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (ResourceTag == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -890,7 +890,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceIdGet)
         SaErrorT err;
 	char cmd[] = "saHpiResourceIdGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (ResourceId == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -933,7 +933,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogInfoGet)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogInfoGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Info == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -983,7 +983,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryGet)
         SaHpiRdrT tmp_rdr;
         SaHpiRptEntryT tmp_rpt;
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!PrevEntryId || !EventLogEntry || !NextEntryId ||
             EntryId == SAHPI_NO_MORE_ENTRIES) {
@@ -1035,7 +1035,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogEntryAdd)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogEntryAdd";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (EvtEntry == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1084,7 +1084,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogClear)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogClear";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -1125,7 +1125,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeGet)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogTimeGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Time == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1168,7 +1168,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogTimeSet)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogTimeSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -1209,7 +1209,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateGet)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogStateGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (EnableState == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1252,7 +1252,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogStateSet)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogStateSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -1292,7 +1292,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventLogOverflowReset)
         SaErrorT err;
 	char cmd[] = "saHpiEventLogOverflowReset";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -1331,7 +1331,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Subscribe)
         SaErrorT err;
 	char cmd[] = "saHpiSubscribe";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -1370,7 +1370,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(Unsubscribe)
         SaErrorT err;
 	char cmd[] = "saHpiUnsubscribe";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -1417,7 +1417,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventGet)
         SaHpiRptEntryT tmp_rpt;
         SaHpiEvtQueueStatusT tmp_status;
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Timeout < SAHPI_TIMEOUT_BLOCK || !Event)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1469,7 +1469,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(EventAdd)
         SaErrorT err;
 	char cmd[] = "saHpiEventAdd";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Event)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1513,7 +1513,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGetNext)
         SaErrorT err;
 	char cmd[] = "saHpiAlarmGetNext";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Alarm)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1560,7 +1560,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmGet)
         SaErrorT err;
 	char cmd[] = "saHpiAlarmGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Alarm)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1603,7 +1603,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAcknowledge)
         SaErrorT err;
 	char cmd[] = "saHpiAlarmAcknowledge";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
@@ -1646,7 +1646,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmAdd)
         SaErrorT err;
 	char cmd[] = "saHpiAlarmAdd";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Alarm ||
             !oh_lookup_severity(Alarm->Severity) ||
@@ -1691,7 +1691,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AlarmDelete)
         SaErrorT err;
 	char cmd[] = "saHpiAlarmDelete";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (AlarmId == SAHPI_ENTRY_UNSPECIFIED &&
             !oh_lookup_severity(Severity))
@@ -1737,7 +1737,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGet)
         SaErrorT err;
 	char cmd[] = "saHpiRdrGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (EntryId == SAHPI_LAST_ENTRY || !Rdr || !NextEntryId)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1782,7 +1782,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(RdrGetByInstrumentId)
         SaErrorT err;
 	char cmd[] = "saHpiRdrGetByInstrumentId";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_rdrtype(RdrType) ||
             RdrType == SAHPI_NO_RECORD || !Rdr)
@@ -1832,7 +1832,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorReadingGet)
         SaHpiSensorReadingT tmp_reading;
         SaHpiEventStateT tmp_state;
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -1881,7 +1881,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsGet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorThresholdsGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Thresholds)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -1925,7 +1925,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorThresholdsSet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorThresholdsSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Thresholds)
                 return SA_ERR_HPI_INVALID_DATA;
@@ -1970,7 +1970,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorTypeGet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorTypeGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Type || !Category)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2014,7 +2014,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableGet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorEnableGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Enabled)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2058,7 +2058,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEnableSet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorEnableSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -2100,7 +2100,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableGet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorEventEnableGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Enabled)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2144,7 +2144,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventEnableSet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorEventEnableSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -2187,7 +2187,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksGet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorEventMasksGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Assert)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2235,7 +2235,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(SensorEventMasksSet)
         SaErrorT err;
 	char cmd[] = "saHpiSensorEventMasksSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -2277,7 +2277,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlTypeGet)
         SaErrorT err;
 	char cmd[] = "saHpiControlTypeGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Type)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2324,7 +2324,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlGet)
         SaHpiCtrlModeT tmp_mode;
         SaHpiCtrlStateT tmp_state;
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -2384,7 +2384,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ControlSet)
         SaErrorT err;
 	char cmd[] = "saHpiControlSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_ctrlmode(Mode) ||
             (Mode != SAHPI_CTRL_MODE_AUTO && !State) ||
@@ -2436,7 +2436,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrInfoGet)
         SaErrorT err;
 	char cmd[] = "saHpiIdrInfoGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Info == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2483,7 +2483,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaHeaderGet)
         SaErrorT err;
 	char cmd[] = "saHpiIdrAreaHeaderGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
              ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
@@ -2534,7 +2534,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaAdd)
         SaErrorT err;
 	char cmd[] = "saHpiIdrAreaAdd";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if ( ((AreaType < SAHPI_IDR_AREATYPE_INTERNAL_USE) ||
              ((AreaType > SAHPI_IDR_AREATYPE_PRODUCT_INFO) &&
@@ -2582,7 +2582,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrAreaDelete)
         SaErrorT err;
 	char cmd[] = "saHpiIdrAreaDelete";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (AreaId == SAHPI_LAST_ENTRY)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2630,7 +2630,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldGet)
         SaErrorT err;
 	char cmd[] = "saHpiIdrFieldGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if ((((FieldType > SAHPI_IDR_FIELDTYPE_CUSTOM) &&
              (FieldType != SAHPI_IDR_FIELDTYPE_UNSPECIFIED)) ||
@@ -2679,7 +2679,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldAdd)
         SaErrorT err;
 	char cmd[] = "saHpiIdrFieldAdd";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Field)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2725,7 +2725,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldSet)
         SaErrorT err;
 	char cmd[] = "saHpiIdrFieldSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Field)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2772,7 +2772,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(IdrFieldDelete)
         SaErrorT err;
 	char cmd[] = "saHpiIdrFieldDelete";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (FieldId == SAHPI_LAST_ENTRY || AreaId == SAHPI_LAST_ENTRY)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2816,7 +2816,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerGet)
         SaErrorT err;
 	char cmd[] = "saHpiWatchdogTimerGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Watchdog)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2860,7 +2860,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerSet)
         SaErrorT err;
 	char cmd[] = "saHpiWatchdogTimerSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Watchdog ||
             (Watchdog && (!oh_lookup_watchdogtimeruse(Watchdog->TimerUse) ||
@@ -2907,7 +2907,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(WatchdogTimerReset)
         SaErrorT err;
 	char cmd[] = "saHpiWatchdogTimerReset";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
              return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -2951,7 +2951,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGetNext)
         SaErrorT err;
 	char cmd[] = "saHpiAnnunciatorGetNext";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -2998,7 +2998,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorGet)
         SaErrorT err;
 	char cmd[] = "saHpiAnnunciatorGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3043,7 +3043,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAcknowledge)
         SaErrorT err;
 	char cmd[] = "saHpiAnnunciatorAcknowledge";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (EntryId == SAHPI_ENTRY_UNSPECIFIED)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3089,7 +3089,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorAdd)
         SaErrorT err;
 	char cmd[] = "saHpiAnnunciatorAdd";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if(Announcement == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3134,7 +3134,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorDelete)
         SaErrorT err;
 	char cmd[] = "saHpiAnnunciatorDelete";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (EntryId == SAHPI_ENTRY_UNSPECIFIED)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3180,7 +3180,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeGet)
         SaErrorT err;
 	char cmd[] = "saHpiAnnunciatorModeGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Mode == NULL)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3224,7 +3224,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AnnunciatorModeSet)
         SaErrorT err;
 	char cmd[] = "saHpiAnnunciatorModeSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_annunciatormode(Mode))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3266,7 +3266,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapPolicyCancel)
         SaErrorT err;
 	char cmd[] = "saHpiHotSwapPolicyCancel";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -3306,7 +3306,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceActiveSet)
         SaErrorT err;
 	char cmd[] = "saHpiResourceActiveSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
              return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -3346,7 +3346,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceInactiveSet)
         SaErrorT err;
 	char cmd[] = "saHpiResourceInactiveSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
 	if (pinst == NULL) {
 		return SA_ERR_HPI_INVALID_PARAMS;
@@ -3386,7 +3386,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutGet)
         SaErrorT err;
 	char cmd[] = "saHpiAutoInsertTimeoutGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Timeout == NULL) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3429,7 +3429,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoInsertTimeoutSet)
         SaErrorT err;
 	char cmd[] = "saHpiAutoInsertTimeoutSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
@@ -3474,7 +3474,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutGet)
         SaErrorT err;
 	char cmd[] = "saHpiAutoExtractTimeoutGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Timeout) {
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3518,7 +3518,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(AutoExtractTimeoutSet)
         SaErrorT err;
 	char cmd[] = "saHpiAutoExtractTimeoutSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (Timeout != SAHPI_TIMEOUT_IMMEDIATE &&
             Timeout != SAHPI_TIMEOUT_BLOCK &&
@@ -3563,7 +3563,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapStateGet)
         SaErrorT err;
 	char cmd[] = "saHpiHotSwapStateGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3606,7 +3606,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapActionRequest)
         SaErrorT err;
 	char cmd[] = "saHpiHotSwapActionRequest";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_hsaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3649,7 +3649,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateGet)
         SaErrorT err;
 	char cmd[] = "saHpiHotSwapIndicatorStateGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3692,7 +3692,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(HotSwapIndicatorStateSet)
         SaErrorT err;
 	char cmd[] = "saHpiHotSwapIndicatorStateSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_hsindicatorstate(State))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3735,7 +3735,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ParmControl)
         SaErrorT err;
 	char cmd[] = "saHpiParmControl";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_parmaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3778,7 +3778,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateGet)
         SaErrorT err;
 	char cmd[] = "saHpiResourceResetStateGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!Action)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3821,7 +3821,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourceResetStateSet)
         SaErrorT err;
 	char cmd[] = "saHpiResourceResetStateSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_resetaction(Action))
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3864,7 +3864,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateGet)
         SaErrorT err;
 	char cmd[] = "saHpiResourcePowerStateGet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!State)
                 return SA_ERR_HPI_INVALID_PARAMS;
@@ -3907,7 +3907,7 @@ SaErrorT SAHPI_API dOpenHpiClientFunction(ResourcePowerStateSet)
         SaErrorT err;
 	char cmd[] = "saHpiResourcePowerStateSet";
 
-        if (SessionId < 0 )
+        if (SessionId == 0 )
                 return SA_ERR_HPI_INVALID_PARAMS;
         if (!oh_lookup_powerstate(State)) {
                 return SA_ERR_HPI_INVALID_PARAMS;
