@@ -1,6 +1,6 @@
 Unit tests we should have for el_utils
 
-The possitive tests:
+The positive tests:
    - Create a new EL via oh_el_create (001)
       - examine EL struct
    - Create a new EL, add 1 entry (002)
@@ -27,42 +27,41 @@ The possitive tests:
 
 
 The negative tests:
-   oh_el_close
+   oh_el_close (009)
       -  el == NULL
-   oh_el_append
+   oh_el_append (010)
       - el == NULL
       - event == NULL
       - el->enabled == SAHPI_FALSE &&
         event->EventType == SAHPI_ET_USER
-   oh_el_prepend
+   oh_el_prepend (011)
       - el == NULL
       - event == NULL
       - el->enabled == SAHPI_FALSE
-   oh_el_clear
+   oh_el_clear (012)
       -  el == NULL
-      - oh_el->elentries != NULL
-   oh_el_get
+   oh_el_get (013)
       - el == NULL
-      - entry == NULL
+      - entryId == bogus entryId
       - prev == NULL
       - next == NULL
       - empty EL
-   oh_el_info
+   oh_el_info (014)
       - el == NULL
       - info == NULL
-   oh_el_overflowreset
+   oh_el_overflowreset (015)
       - el == NULL
-   oh_el_map_to_file
+   oh_el_map_to_file (016)
       - el == NULL
       - filename == NULL
-   oh_el_map_from_file
+   oh_el_map_from_file (017)
       - el == NULL
       - el->enabled == SAHPI_FALSE
       - filename == NULL
       - filename does not exist
-   oh_el_timeset
+   oh_el_timeset (018)
       - el == NULL
       - timestamp == SAHPI_TIME_UNSPECIFIED
-   oh_el_setgentimestampflag
+   oh_el_setgentimestampflag (019)
       - el == NULL
 
