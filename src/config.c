@@ -33,6 +33,9 @@
 static const char *known_globals[] = {
         "OPENHPI_ON_EP",
         "OPENHPI_LOG_ON_SEV",
+        "OPENHPI_DEL_MAX_SIZE",
+        "OPENHPI_DAT_MAX_SIZE",
+        "OPENHPI_DAT_USER_LIMIT",
         //"OPENHPI_DEBUG",
         //"OPENHPI_DEBUG_TRACE",
         //"OPENHPI_DEBUG_LOCK",
@@ -45,6 +48,9 @@ static const char *known_globals[] = {
 static struct {
         SaHpiEntityPathT on_ep;
         SaHpiSeverityT log_on_sev;
+        SaHpiUint32T del_max_size;
+        SaHpiUint32T dat_max_size;
+        SaHpiUint32T dat_user_limit;
         //unsigned char dbg;
         //unsigned char dbg_trace;
         //unsigned char dbg_lock;
@@ -53,13 +59,16 @@ static struct {
         char conf[SAHPI_MAX_TEXT_BUFFER_LENGTH];
         unsigned char read_env;
         GStaticRecMutex lock;
-} global_params = {
+} global_params = { /* Defaults for global params are set here */
         .on_ep = { .Entry[0] = { .EntityType = SAHPI_ENT_ROOT, .EntityLocation = 0 } },
         .log_on_sev = SAHPI_MINOR,
+        .del_max_size = 0, /* Unlimited size */
+        .dat_max_size = 0, /* Unlimited size */
+        .dat_user_limit = 0, /* Unlimited size */
         //.dbg = 0,
         //.dbg_trace = 0,
         //.dbg_lock = 0,
-        .threaded = 0,        
+        .threaded = 0, /* Threaded mode off */
         .path = OH_PLUGIN_PATH,
         .conf = OH_DEFAULT_CONF,
         .read_env = 0,
@@ -228,6 +237,12 @@ static void process_global_param(const char *name, char *value)
                 g_static_rec_mutex_lock(&global_params.lock);
                 oh_encode_severity(&buffer, &global_params.log_on_sev);
                 g_static_rec_mutex_unlock(&global_params.lock);
+        } else if (!strcmp("OPENHPI_DEL_MAX_SIZE", name)) {
+                global_params.del_max_size = atoi(value);
+        } else if (!strcmp("OPENHPI_DAT_MAX_SIZE", name)) {
+                global_params.dat_max_size = atoi(value);
+        } else if (!strcmp("OPENHPI_DAT_USER_LIMIT", name)) {
+                global_params.dat_user_limit = atoi(value);
         //} else if (!strcmp("OPENHPI_DEBUG", name)) {
         //        if (!strcmp("YES", value)) {
         //                global_params.dbg = 1;
@@ -622,10 +637,17 @@ int oh_get_global_param(struct oh_global_param *param)
                         param->u.on_ep = global_params.on_ep;
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
-                case OPENHPI_LOG_ON_SEV:
-                        g_static_rec_mutex_lock(&global_params.lock);
+                case OPENHPI_LOG_ON_SEV:                        
                         param->u.log_on_sev = global_params.log_on_sev;
-                        g_static_rec_mutex_unlock(&global_params.lock);
+                        break;
+                case OPENHPI_DEL_MAX_SIZE:
+                        param->u.del_max_size = global_params.del_max_size;
+                        break;
+                case OPENHPI_DAT_MAX_SIZE:
+                        param->u.dat_max_size = global_params.dat_max_size;
+                        break;
+                case OPENHPI_DAT_USER_LIMIT:
+                        param->u.dat_user_limit = global_params.dat_user_limit;
                         break;
                 //case OPENHPI_DEBUG:                        
                 //        param->u.dbg = global_params.dbg;
@@ -682,10 +704,17 @@ int oh_set_global_param(struct oh_global_param *param)
                         global_params.on_ep = param->u.on_ep;
                         g_static_rec_mutex_unlock(&global_params.lock);
                         break;
-                case OPENHPI_LOG_ON_SEV:
-                        g_static_rec_mutex_lock(&global_params.lock);
+                case OPENHPI_LOG_ON_SEV:                        
                         global_params.log_on_sev = param->u.log_on_sev;
-                        g_static_rec_mutex_unlock(&global_params.lock);
+                        break;
+                case OPENHPI_DEL_MAX_SIZE:
+                        global_params.del_max_size = param->u.del_max_size;
+                        break;
+                case OPENHPI_DAT_MAX_SIZE:
+                        global_params.dat_max_size = param->u.dat_max_size;
+                        break;
+                case OPENHPI_DAT_USER_LIMIT:
+                        global_params.dat_user_limit = param->u.dat_user_limit;
                         break;
                 //case OPENHPI_DEBUG:                        
                 //        global_params.dbg = param->u.dbg;

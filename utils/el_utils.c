@@ -96,6 +96,7 @@ SaErrorT oh_el_append(oh_el *el, SaHpiEventT *event, SaHpiRdrT *rdr,
                 tempdata = temp->data;
                 el->elentries = g_list_remove(el->elentries, temp->data);
                 g_free(tempdata);
+                el->overflow = SAHPI_TRUE;
         }
 
         /* append the new entry */

@@ -17,6 +17,7 @@
 #include <oh_domain.h>
 #include <oh_session.h>
 #include <oh_alarm.h>
+#include <oh_config.h>
 #include <oh_error.h>
 #include <oh_utils.h>
 #include <string.h>
@@ -44,6 +45,7 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
 {
         struct oh_domain *domain = NULL;
         static SaHpiDomainIdT id = OH_FIRST_DOMAIN; /* domain ids will start at 1 */
+        struct oh_global_param param = { .type = OPENHPI_DEL_MAX_SIZE };
 
         domain = g_new0(struct oh_domain,1);
         if (!domain) return 0;
@@ -55,7 +57,10 @@ SaHpiDomainIdT oh_create_domain(SaHpiDomainCapabilitiesT capabilities,
         if (tag)
                 memcpy(&(domain->tag), tag, sizeof(SaHpiTextBufferT));
         
-        domain->del = oh_el_create(OH_EL_MAX_SIZE);
+        if (oh_get_global_param(&param))
+                param.u.del_max_size = 0;
+                
+        domain->del = oh_el_create(param.u.del_max_size);
         domain->sessions = g_array_sized_new(FALSE, TRUE,
                                              sizeof(SaHpiSessionIdT),
                                              OH_SESSION_PREALLOC);

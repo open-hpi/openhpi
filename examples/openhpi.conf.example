@@ -4,6 +4,9 @@
 
 #OPENHPI_LOG_ON_SEV = "MINOR"
 #OPENHPI_ON_EP = "{SYSTEM_CHASSIS,1}"
+#OPENHPI_DEL_MAX_SIZE = "0"
+#OPENHPI_DAT_MAX_SIZE = "0"
+#OPENHPI_DAT_USER_LIMIT = "0"
 #OPENHPI_THREADED = "NO"
 #OPENHPI_PATH = "/usr/local/lib/openhpi:/usr/lib/openhpi"
 
@@ -19,6 +22,12 @@
 ## "CRITICAL", "MAJOR", "MINOR", "INFORMATIONAL", "OK", and "DEBUG".
 ## OPENHPI_ON_EP sets the entity path on wich the application is running. This
 ## entity path will be returned when SaHpiResourceIdGet() is called.
+## OPENHPI_DEL_MAX_SIZE sets the maximum size (in number of event log entries)
+## for the domain event log. "0" means unlimited.
+## OPENHPI_DAT_MAX_SIZE sets the maximum size (in number of alarm entries) for
+## the alarm table. "0" means unlimited.
+## OPENHPI_DAT_USER_LIMIT sets the maximum number of user type alarm entries
+## allowed in the alarm table.
 ## OPENHPI_PATH is a colon (:) delimited list of directories specifying
 ## the location of openhpi plugin libraries. The default is defined when the
 ## library is configured.
