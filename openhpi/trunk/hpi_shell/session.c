@@ -29,9 +29,66 @@
 #include "hpi_cmd.h"
 #include "resource.h"
 
-SaHpiSessionIdT sessionid;
-static pthread_t ge_thread;
-int prt_flag = 0;
+SaHpiSessionIdT		sessionid;
+static pthread_t	ge_thread;
+static pthread_t	prog_thread;
+int			prt_flag = 0;
+static int		in_progress = 0;
+static GCond		*thread_wait = NULL;
+static GMutex		*thread_mutex = NULL;
+static char		*progress_mes;
+
+
+#define PROGRESS_BUF_SIZE	80
+
+/* Progress bar implementation */
+static void* progress_bar(void *unused)
+{
+	GTimeVal	time;
+	char		buf[PROGRESS_BUF_SIZE], A[20];
+	int		i = 0, t = 0, len, mes_len;
+
+	memset(buf, 0, PROGRESS_BUF_SIZE);
+	mes_len = strlen(progress_mes);
+	while (in_progress) {
+		snprintf(A, 10, " %d.%d s ", t / 10, t % 10);
+		len = strlen(A);
+		memset(buf + mes_len, '.', i);
+		strncpy(buf, progress_mes, mes_len);
+		if (i > 8)
+			strncpy(buf + mes_len + (i - len) / 2, A, len);
+		printf("%s\r", buf);
+		fflush(stdout);
+		g_get_current_time(&time);
+		g_time_val_add(&time, G_USEC_PER_SEC / 10);
+		g_cond_timed_wait(thread_wait, thread_mutex, &time);
+		if (i < (PROGRESS_BUF_SIZE - mes_len - 1)) i++;
+		t++;
+	};
+        g_thread_exit(0);
+	return (void *)1;
+}
+
+/* This function creates thread for progress bar.
+ *	mes - progress bar title.
+ */
+void do_progress(char *mes)
+{
+	progress_mes = mes;
+	in_progress = 1;
+	pthread_create(&prog_thread, NULL, progress_bar, NULL);
+}
+
+/* This function deletes thread for progress bar. */
+void delete_progress()
+{
+	char	buf[PROGRESS_BUF_SIZE];
+	
+	in_progress = 0;
+	memset(buf, ' ', PROGRESS_BUF_SIZE);
+	buf[PROGRESS_BUF_SIZE - 1] = 0;
+	printf("%s\n", buf);
+}
 
 static void* get_event(void *unused)
 {
@@ -62,6 +119,12 @@ int open_session()
 {
 	SaErrorT rv;
 
+        if (!g_thread_supported()) {
+                g_thread_init(NULL);
+	};
+	thread_wait = g_cond_new();
+	thread_mutex = g_mutex_new();
+	do_progress("Discover");
 	rv = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &sessionid, NULL);
 	if (rv != SA_OK) {
      		printf("saHpiSessionOpen error %d\n", rv);
@@ -70,6 +133,8 @@ int open_session()
 	rv = saHpiDiscover(sessionid);
 	if (rv != SA_OK) 
 		printf("saHpiDiscover rv = %d\n", rv);
+	sleep(10);
+	delete_progress();
 
 	printf("Initial discovery done\n");	
 	printf("\tEnter a command or \"help\" for list of commands\n");
