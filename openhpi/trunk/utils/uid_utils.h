@@ -22,6 +22,28 @@
 #warning *** Include oh_utils.h instead of individual utility header files ***
 #endif
 
+#define dbg_uid_lock(format, ...) \
+	do { \
+		if (getenv("OPENHPI_DBG_UID_LOCK") && !strcmp("YES",getenv("OPENHPI_DBG_UID_LOCK"))){ \
+			fprintf(stderr, "        UID_LOCK: %s:%d:%s: ", __FILE__, __LINE__, __func__); \
+			fprintf(stderr, format "\n", ## __VA_ARGS__); \
+		} \
+	} while(0)
+
+#define uid_lock(uidmutex) \
+	do { \
+		dbg_uid_lock("Locking UID mutex..."); \
+		g_static_mutex_lock(uidmutex); \
+		dbg_uid_lock("OK. UID mutex locked."); \
+	} while (0)
+
+#define uid_unlock(uidmutex) \
+	do { \
+		dbg_uid_lock("Unlocking UID mutex..."); \
+		g_static_mutex_unlock(uidmutex); \
+		dbg_uid_lock("OK. UID mutex unlocked."); \
+	} while (0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif 

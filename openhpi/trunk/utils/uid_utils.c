@@ -102,7 +102,7 @@ SaErrorT oh_uid_initialize(void)
 
         int rval;
         
-        g_static_mutex_lock(&oh_uid_lock);
+        uid_lock(&oh_uid_lock);
         if(!initialized) {
 
                 /* initialize hash tables */
@@ -118,7 +118,7 @@ SaErrorT oh_uid_initialize(void)
                 
         } else { rval = SA_ERR_HPI_ERROR; }
 
-        g_static_mutex_unlock(&oh_uid_lock);
+        uid_unlock(&oh_uid_lock);
 
         return(rval);
 
@@ -155,13 +155,13 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
 	oh_concat_ep(&entitypath,ep);
 	key = &entitypath;
 
-        g_static_mutex_lock(&oh_uid_lock);
+        uid_lock(&oh_uid_lock);
         /* check for presence of EP and */
         /* previously assigned uid      */        
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);        
         if (ep_xref) {
                 /*dbg("Entity Path already assigned uid. Use oh_uid_lookup().");*/
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return ep_xref->resource_id;
         }
 
@@ -169,7 +169,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         ep_xref = (EP_XREF *)g_malloc0(sizeof(EP_XREF));
         if(!ep_xref) { 
                 dbg("malloc failed");
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return 0;                
         }
 
@@ -205,7 +205,7 @@ guint oh_uid_from_entity_path(SaHpiEntityPathT *ep)
         }
         close(file);
 
-        g_static_mutex_unlock(&oh_uid_lock);
+        uid_unlock(&oh_uid_lock);
 
         return ruid;
 }               
@@ -231,11 +231,11 @@ gint oh_uid_remove(guint uid)
 
         /* check netry exist in oh_resource_id_table */ 
         key = (gpointer)&uid;
-        g_static_mutex_lock(&oh_uid_lock);
+        uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
                 dbg("error freeing oh_resource_id_table");
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return -1;
         }
 
@@ -244,7 +244,7 @@ gint oh_uid_remove(guint uid)
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
                 dbg("error freeing oh_resource_id_table");
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return -1;
         }
 
@@ -253,7 +253,7 @@ gint oh_uid_remove(guint uid)
         
         free(ep_xref);
 
-        g_static_mutex_unlock(&oh_uid_lock);
+        uid_unlock(&oh_uid_lock);
 
         rval = oh_uid_map_to_file();
 
@@ -282,16 +282,16 @@ guint oh_uid_lookup(SaHpiEntityPathT *ep)
 	key = &entitypath;
         
         /* check hash table for entry in oh_ep_table */
-        g_static_mutex_lock(&oh_uid_lock);
+        uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_ep_table, key);
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return 0;
         }
 
         ruid = ep_xref->resource_id;
-        g_static_mutex_unlock(&oh_uid_lock);
+        uid_unlock(&oh_uid_lock);
 
         return ruid;
 }
@@ -313,17 +313,17 @@ gint oh_entity_path_lookup(guint *id, SaHpiEntityPathT *ep)
         if (!id || !ep) return -1;
 
         /* check hash table for entry in oh_ep_table */
-        g_static_mutex_lock(&oh_uid_lock);
+        uid_lock(&oh_uid_lock);
         ep_xref = (EP_XREF *)g_hash_table_lookup (oh_resource_id_table, key);
         if(!ep_xref) {
                 dbg("error looking up EP to get uid");
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return -1 ;
         }
 
         memcpy(ep, &ep_xref->entity_path, sizeof(SaHpiEntityPathT));
 
-        g_static_mutex_unlock(&oh_uid_lock);
+        uid_unlock(&oh_uid_lock);
 
         return 0;
 } 
@@ -346,12 +346,12 @@ gint oh_uid_map_to_file(void)
                 uid_map_file = OH_DEFAULT_UID_MAP;
         }
 
-        g_static_mutex_lock(&oh_uid_lock);
+        uid_lock(&oh_uid_lock);
         
         file = open(uid_map_file, O_WRONLY|O_CREAT|O_TRUNC);
         if(file < 0) {
                 dbg("Configuration file '%s' could not be opened", uid_map_file);
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return -1;
         }
 
@@ -363,11 +363,11 @@ gint oh_uid_map_to_file(void)
 
         if(close(file) != 0) {
                 dbg("Couldn't close file '%s'.", uid_map_file);
-                g_static_mutex_unlock(&oh_uid_lock);
+                uid_unlock(&oh_uid_lock);
                 return -1;
         }
 
-        g_static_mutex_unlock(&oh_uid_lock);
+        uid_unlock(&oh_uid_lock);
         
         return 0;
 }
