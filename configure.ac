@@ -492,6 +492,7 @@ CC_WARNINGS="\
         -Wformat=2 \
         -Wformat-security \
         -Wformat-nonliteral \
+	-Wno-format-y2k \
 	-Wcast-qual \
 	-Wcast-align"
 
@@ -539,6 +540,7 @@ AC_CONFIG_FILES([openhpi.spec
         utils/t/Makefile
 	utils/t/epath/Makefile
 	utils/t/rpt/Makefile
+	utils/t/sahpi/Makefile
 	utils/t/sel/Makefile
 	utils/t/uid/Makefile
 	marshal/Makefile
@@ -570,5 +572,3 @@ AC_CONFIG_FILES([openhpi.spec
 	clients/Makefile])
 
 AC_OUTPUT
-
-

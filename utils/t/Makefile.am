@@ -28,12 +28,10 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  
- 
-
 
 MAINTAINERCLEANFILES 	= Makefile.in 
 #EXTRA_DIST              = 
 
-SUBDIRS			= epath rpt sel uid
+SUBDIRS			= epath rpt sahpi sel uid
 
-DIST_SUBDIRS		= epath rpt sel uid
+DIST_SUBDIRS		= epath rpt sahpi sel uid
