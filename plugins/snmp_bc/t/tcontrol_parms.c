@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	 * Test 2: Invalid ResourceId
 	 **************************/
 	testcase++;
-	expected_err = SA_ERR_HPI_NOT_PRESENT;
+	expected_err = SA_ERR_HPI_INVALID_RESOURCE;
 	act = SAHPI_RESTORE_PARM;
 	id = 5000; /* set it way out */
 

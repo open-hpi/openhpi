@@ -153,7 +153,7 @@ SaErrorT snmp_bc_set_resource_tag(void *hnd, SaHpiResourceIdT rid, SaHpiTextBuff
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
                 dbg("No RID.");
-                return(SA_ERR_HPI_NOT_PRESENT);
+                return(SA_ERR_HPI_INVALID_RESOURCE);
         }
 
 	err = oh_copy_textbuffer(&(rpt->ResourceTag), tag);
@@ -203,7 +203,7 @@ SaErrorT snmp_bc_set_resource_severity(void *hnd, SaHpiResourceIdT rid, SaHpiSev
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
         if (!rpt) {
                 dbg("No RID.");
-                return(SA_ERR_HPI_NOT_PRESENT);
+                return(SA_ERR_HPI_INVALID_RESOURCE);
         }
 
         rpt->ResourceSeverity = sev;
@@ -248,7 +248,7 @@ SaErrorT snmp_bc_control_parm(void *hnd, SaHpiResourceIdT rid, SaHpiParmActionT 
 	rpt = oh_get_resource_by_id(handle->rptcache, rid);
 	if (!rpt) {
                 dbg("No RID.");
-                return(SA_ERR_HPI_NOT_PRESENT);
+                return(SA_ERR_HPI_INVALID_RESOURCE);
 	}
 
 	if (rpt->ResourceCapabilities & SAHPI_CAPABILITY_CONFIGURATION) {

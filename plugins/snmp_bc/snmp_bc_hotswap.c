@@ -26,7 +26,7 @@ SaErrorT snmp_bc_get_hotswap_state(void *hnd, SaHpiResourceIdT id,
 
         SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
 	if(res == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
         struct ResourceInfo *s =
                 (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
@@ -102,7 +102,7 @@ SaErrorT snmp_bc_set_reset_state(void *hnd, SaHpiResourceIdT id,
 
         SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
 	if(res == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
         struct ResourceInfo *s =
                 (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
@@ -158,7 +158,7 @@ SaErrorT snmp_bc_get_power_state(void *hnd, SaHpiResourceIdT id,
 
         SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
 	if(res == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
          struct ResourceInfo *s =
                 (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
@@ -211,7 +211,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd, SaHpiResourceIdT id,
 
         SaHpiRptEntryT *res = oh_get_resource_by_id(handle->rptcache, id);
 	if(res == NULL) {
-		return SA_ERR_HPI_NOT_PRESENT;
+		return SA_ERR_HPI_INVALID_RESOURCE;
 	}
         struct ResourceInfo *s =
                 (struct ResourceInfo *)oh_get_resource_data(handle->rptcache, id);
