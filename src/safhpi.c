@@ -928,7 +928,22 @@ SaErrorT SAHPI_API saHpiEventAdd (
         SAHPI_IN SaHpiSessionIdT SessionId,
         SAHPI_IN SaHpiEventT     *EvtEntry)
 {
-        return SA_ERR_HPI_UNSUPPORTED_API;
+        SaHpiDomainIdT did;
+        struct oh_event e;
+        SaErrorT error;
+
+        if (!EvtEntry) return SA_ERR_HPI_INVALID_PARAMS;
+
+        OH_CHECK_INIT_STATE(SessionId);
+        OH_GET_DID(SessionId, did);
+
+        e.did = did;
+        e.from = NULL;
+        e.type = OH_ET_HPI;
+        e.u.hpi_event.event = *EvtEntry;
+        error = oh_queue_session_event(SessionId, &e);
+
+        return error;
 }
 
 /*********************************************************************
