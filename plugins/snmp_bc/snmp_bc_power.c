@@ -118,14 +118,9 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 	struct ResourceInfo *resinfo;
         struct snmp_value set_value;
 
-	if (!hnd) {
+	if (!hnd || NULL == oh_lookup_powerstate(state)) {
 		dbg("Invalid parameter.");
 		return(SA_ERR_HPI_INVALID_PARAMS);
-	}
-
-	if (NULL == oh_lookup_powerstate(state)) {
-		dbg("Invalid power state.");
-		return(SA_ERR_HPI_INVALID_REQUEST);
 	}
 
         struct oh_handler_state *handle = (struct oh_handler_state *)hnd;
@@ -187,7 +182,7 @@ SaErrorT snmp_bc_set_power_state(void *hnd,
 	        }
 		break;
 	default:
-		dbg("Invalid Power Action Type - %d\n", state);
+		dbg("Invalid Power Action Type=%d.", state);
 		err = SA_ERR_HPI_INTERNAL_ERROR;
 	}
 
