@@ -1412,7 +1412,7 @@ cIpmi::AllocConnection( GHashTable *handler_config )
        if ( value )
             strncpy( passwd, value, 32 );
 
-       stdlog << "IpmiAllocConnection: password = " << user << ".\n";
+       stdlog << "IpmiAllocConnection: password = " << passwd << ".\n";
 
        return new cIpmiConLanDomain( this, m_con_ipmi_timeout, dIpmiConLogAll,
 				     lan_addr, lan_port, auth, priv,
