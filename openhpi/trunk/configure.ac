@@ -56,11 +56,13 @@ have_openipmi=no
 have_fam=no
 have_sysfs=no
 
-enable_daemon=no
-enable_ipmidirect=no
-enable_simulator=no
-enable_remote_client=no
-enable_examples=no
+#  Doing the following doesn't change the defaults, it makes it so you can
+#  *never* enable them.  This isn't what we are looking to do.
+#enable_daemon=no
+#enable_ipmidirect=no
+#enable_simulator=no
+#enable_remote_client=no
+#enable_examples=no
 
 dnl Check for GLIB
 
@@ -153,7 +155,7 @@ NEED_MARSHAL=
 openhpid_static="no"
 
 AC_ARG_ENABLE([daemon],
-    [  --enable-daemon         build HPI daemon and client library [default=yes]],
+    [  --enable-daemon         build HPI daemon and client library [default=no]],
     [if test "x$enableval" = "xyes"; then
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
 	NEED_MARSHAL="yes"
@@ -161,19 +163,21 @@ AC_ARG_ENABLE([daemon],
         ENABLED_DIRS="$ENABLED_DIRS openhpid"
 	NEED_MARSHAL="yes"
         openhpid_static="yes"
-    fi],
-    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
-     NEED_MARSHAL="yes"])
+    fi])
+#
+#    [ENABLED_DIRS="$ENABLED_DIRS openhpid"
+#     NEED_MARSHAL="yes"])
 
 AM_CONDITIONAL(OPENHPID_STATIC, test x$openhpid_static = xyes)
 
 
 AC_ARG_ENABLE([examples],
-    [  --enable-examples       build HPI examples [default=yes]],
+    [  --enable-examples       build HPI examples [default=no]],
     [if test "x$enableval" = "xyess"; then
 	ENABLED_DIRS="$ENABLED_DIRS examples"
-    fi],
-    [ENABLED_DIRS="$ENABLED_DIRS examples"])
+    fi])
+#
+#    [ENABLED_DIRS="$ENABLED_DIRS examples"])
 
 AC_ARG_ENABLE([clients],
     [  --enable-clients        build HPI client programs [default=yes]],
@@ -204,7 +208,7 @@ STATIC_PLUGIN_LIST=
 STATIC_PLUGIN_EXTRA_LIBS=
 
 AC_ARG_ENABLE([snmp_client],
-    [  --enable-snmp_client          build snmp_client plugin [default=yes]],
+    [  --enable-snmp_client          build snmp_client plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_CLIENT,snmp_client)
@@ -221,10 +225,11 @@ AC_ARG_ENABLE([snmp_client],
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build SNMP client support without net-snmp)
         fi
-    fi],
-    [if test "x$have_netsnmp" = "xyes"; then
-        AC_SUBST(SNMP_CLIENT,snmp_client)
-     fi])
+    fi])
+#
+#    [if test "x$have_netsnmp" = "xyes"; then
+#        AC_SUBST(SNMP_CLIENT,snmp_client)
+#     fi])
 
 AC_ARG_ENABLE([dummy],
     [  --enable-dummy          build dummy plugin [default=yes]],
@@ -306,7 +311,7 @@ AC_ARG_ENABLE([snmp_bc],
     )
 
 AC_ARG_ENABLE([snmp_rsa],
-    [  --enable-snmp_rsa       build IBM RSA plugin [default=yes if net-snmp is installed]],
+    [  --enable-snmp_rsa       build IBM RSA plugin [default=no]],
     [if test "x$enableval" = "xyes"; then
         if test "x$have_netsnmp" = "xyes"; then
             AC_SUBST(SNMP_RSA,snmp_rsa)
@@ -314,11 +319,12 @@ AC_ARG_ENABLE([snmp_rsa],
             OH_CHECK_FAIL(net-snmp,net-snmp-devel,http://net-snmp.sourceforge.net/,
                 Can not build IBM RSA support without net-snmp)
         fi
-    fi],
-    [if test "x$have_netsnmp" = "xyes"; then
-            AC_SUBST(SNMP_RSA,snmp_rsa)
-    fi]
-    )
+    fi])
+#
+#    [if test "x$have_netsnmp" = "xyes"; then
+#            AC_SUBST(SNMP_RSA,snmp_rsa)
+#    fi]
+#    )
 
 AC_ARG_ENABLE([ipmidirect],
     [  --enable-ipmidirect     build direct ipmi plugin [default=no]],
@@ -328,8 +334,9 @@ AC_ARG_ENABLE([ipmidirect],
             AC_SUBST(IPMIDIRECT,ipmidirect)
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST ipmidirect"
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS $SSL_LIB -luuid -lm -lstdc++"
-     fi],
-    [AC_SUBST(IPMIDIRECT,ipmidirect)])
+     fi])
+
+#    [AC_SUBST(IPMIDIRECT,ipmidirect)])
 
 dnl ipmidirect needs posix threads
 if test "x$IPMIDIRECT" = "xipmidirect"; then
@@ -348,23 +355,25 @@ AC_ARG_ENABLE([remote_client],
             STATIC_PLUGIN_LIST="$STATIC_PLUGIN_LIST remote_client"
             STATIC_PLUGIN_EXTRA_LIBS="$STATIC_PLUGIN_EXTRA_LIBS \$(top_builddir)/marshal/libopenhpimarshal.la -luuid"
             NEED_MARSHAL="yes"
-     fi],
-    [AC_SUBST(REMOTE_CLIENT,remote_client)
-     NEED_MARSHAL="yes"])
+     fi])
+#
+#    [AC_SUBST(REMOTE_CLIENT,remote_client)
+#     NEED_MARSHAL="yes"])
 
 OH_CHECK_FAM
 AC_ARG_ENABLE([simulator],
-    [  --enable-simulator       build simulator plugin [default=yes if fam is installed]],
+    [  --enable-simulator       build simulator plugin [default=no]],
     [if test "x$enableval" = "xyess"; then
 		if test "x$have_fam" = "xyes"; then
                         AC_SUBST(SIMULATOR,simulator)
                 else
 			OH_CHECK_FAIL(FAM packages are missing, install fam and fam-devel to build simulator plug-in)
 		fi
-    fi],
-	[if test "x$have_fam" = "xyes"; then
-    	AC_SUBST(SIMULATOR,simulator)
-     fi])
+    fi])
+#
+#	[if test "x$have_fam" = "xyes"; then
+#    	AC_SUBST(SIMULATOR,simulator)
+#     fi])
 
 dnl enable marshal library when needed
 if test "x$NEED_MARSHAL" = "xyes"; then
