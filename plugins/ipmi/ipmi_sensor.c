@@ -143,11 +143,13 @@ static void get_sensor_data(ipmi_sensor_t *sensor, void *cb_data)
 			IPMI_EVENT_READING_TYPE_THRESHOLD) {
 		rv = ipmi_reading_get(sensor, sensor_read, reading_data);
 		if (rv) {
+			reading_data->done = 1;
 			dbg("Unable to get sensor reading: %s\n",
                             strerror( rv ) );
 			return;
 		}
         } else {
+		reading_data->done = 1 ;
 #if 0
                 rv = ipmi_states_get(sensor, sensor_read_states, reading_data);
 		if (rv) {
