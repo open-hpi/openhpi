@@ -21,29 +21,12 @@
 #include <SaHpi.h>
 #include <ecode_utils.h>
 #include <epath_utils.h>
+#include <print_structs.h>
 
 char progver[] = "1.0";
 int fdebug = 0;
 int fshowthr = 0;
 char *rtypes[5] = {"None    ", "Control ", "Sensor  ", "Invent  ", "Watchdog"};
-
-#define NSU  77
-char *units[NSU] = {
-        "units", "degrees C", "degrees F", "degrees K", "volts", "amps", 
-        "watts", "joules",    "coulombs",  "va",        "nits",  "lumen",
-        "lux",   "candela",   "kpa",       "psi",     "newton",  "cfm",
-        "rpm",   "Hz",        "us",        "ms",      "sec",     "min",
-        "hours", "days",      "weeks",     "mil",     "in",     "ft",
-        /*30*/ "cu in", "cu ft", "mm", "cm", "m", "cu cm", "cu m", 
-        "liters", "fl oz", "radians", "sterad", "rev", 
-        "cycles", "grav", "oz", "lbs", "ft lb", "oz in", "gauss", 
-        "gilberts", "henry", "mhenry", "farad", "ufarad", "ohms",
-        /*55*/  "", "", "", "", "", "", "", "", "", "", 
-        "", "", "", "", "Gb", 
-        /*70*/ "bytes", "KB", "MB",  "GB", 
-        /*74*/ "", "", "line"
-};
-
 
 static void ShowSensor(
         SaHpiSessionIdT sessionid,
@@ -53,7 +36,8 @@ static void ShowSensor(
         SaHpiSensorNumT sensornum;
         SaHpiSensorReadingT reading;
         SaHpiEventStateT events;
-        SaHpiSensorThresholdsT senstbuff; 
+        SaHpiSensorThresholdsT senstbuff;
+        SaHpiTextBufferT text;
         SaErrorT rv;
         char *unit;
         int i;
@@ -66,84 +50,29 @@ static void ShowSensor(
         }
         
         if (reading.IsSupported) {
-                /* Also show units of interpreted reading */
-                i = sensorrec->DataFormat.BaseUnits;
-                if (i >= NSU) i = 0;
-                unit = units[i];
+                oh_sensor_reading2str(reading, sensorrec->DataFormat, &text);
+                printf(" = %s\n", text.Data);
                 
-                switch(reading.Type)
-                {
-                case SAHPI_SENSOR_READING_TYPE_FLOAT64:
-                        printf(" = %8.2f %s\n", 
-                               reading.Value.SensorFloat64,unit);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_INT64:
-                        printf(" = %lld %s\n", 
-                               reading.Value.SensorInt64, unit);
-                        break;
-                case SAHPI_SENSOR_READING_TYPE_BUFFER:
-                        printf(" = %s\n",
-                               reading.Value.SensorBuffer);
-                        break;
-                default: 
-                        printf(" = %lld (itype=%d)\n", 
-                               reading.Value.SensorUint64, 
-                               reading.Type);
-                }
-     
-                /* all the code below is completely invalid.  It assumes uint32 in all 
-                   kinds of cases that are invalid entirely.  This can be fixed later */
-#if 0
                 if (fshowthr) {
                         /* ok, this code needs major rework, why was this ever hardcoded
                            to certain types? */
-                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MAX )
-                                printf( "    Max of Range: %5.2f\n",
-                                        sensorrec->DataFormat.Range.Max.Value.SensorFloat64);
-                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MIN )
-                                printf( "    Min of Range: %5.2f\n",
-                                        sensorrec->DataFormat.Range.Min.Value.SensorFloat64);
-                        /* Show thresholds, if any */
-                        if ((!sensorrec->Ignore) && (sensorrec->ThresholdDefn.IsThreshold)) {
-                                rv = saHpiSensorThresholdsGet(sessionid, resourceid, 
-                                                              sensornum, &senstbuff);
-                                printf( "\t\t\t");
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_MINOR ) {
-                                        printf( "LoMin %5.2f ",
-                                                senstbuff.LowMinor.Interpreted.Value.SensorFloat32);
-                                } 
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_MAJOR ) {
-                                        printf( "LoMaj %5.2f ",
-                                                senstbuff.LowMajor.Interpreted.Value.SensorFloat32);
-                                } 
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_CRIT ) {
-                                        printf( "LoCri %5.2f ",
-                                                senstbuff.LowCritical.Interpreted.Value.SensorFloat32);
-                                } 
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_MINOR ) {
-                                        printf( "HiMin %5.2f ",
-                                                senstbuff.UpMinor.Interpreted.Value.SensorFloat32);
-                                } 
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_MAJOR ) {
-                                        printf( "HiMaj %5.2f ",
-                                                senstbuff.UpMajor.Interpreted.Value.SensorFloat32);
-                                } 
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_CRIT ) {
-                                        printf( "HiCri %5.2f ",
-                                                senstbuff.UpCritical.Interpreted.Value.SensorFloat32);
-                                } 
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_UP_HYSTERESIS ) {
-                                        printf( "Hi Hys %5.2f ",
-                                                senstbuff.PosThdHysteresis.Interpreted.Value.SensorFloat32);
-                                } 
-                                if ( sensorrec->ThresholdDefn.ReadThold & SAHPI_STM_LOW_HYSTERESIS ) {
-                                        printf( "Lo Hys %5.2f ",
-                                                senstbuff.NegThdHysteresis.Interpreted.Value.SensorFloat32);
-                                } 
-                                printf( "\n");
+                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MAX ) {
+                                if(oh_sensor_reading2str(sensorrec->DataFormat.Range.Max, 
+                                                         sensorrec->DataFormat, &text) == SA_OK) {
+                                        printf( "    Max of Range: %s\n", text.Data);
+                                } else {
+                                        printf( "    Max of Range: FAILED\n");
+                                }
+                        }
+                        if ( sensorrec->DataFormat.Range.Flags & SAHPI_SRF_MIN ) {
+                                if(oh_sensor_reading2str(sensorrec->DataFormat.Range.Min, 
+                                                         sensorrec->DataFormat, &text) == SA_OK) {
+                                        printf( "    Min of Range: %s\n", text.Data);
+                                } else {
+                                        printf( "    Min of Range: FAILED\n");
+                                }
                         }
                 } /* endif valid threshold */
-#endif
         } /* endif showthr */
         return;
 }  /*end ShowSensor*/
@@ -234,16 +163,21 @@ int main(int argc, char **argv)
                                 if (rv == SA_OK) {
                                         char *eol;
                                         rdr.IdString.Data[rdr.IdString.DataLength] = 0;
-                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) eol = "";
-                                        else eol = "\n";
+                                        if (rdr.RdrType == SAHPI_SENSOR_RDR) {
+                                                eol = "";
+                                        } else {
+                                                eol = "\n";
+                                        }
                                         printf("    RDR[%6d]: %s %s %s",rdr.RecordId,
                                                rtypes[rdr.RdrType],rdr.IdString.Data,eol);
                                         if (rdr.RdrType == SAHPI_SENSOR_RDR) {
-                                                ShowSensor(sessionid,resourceid,
-                                                           &rdr.RdrTypeUnion.SensorRec);
-                                        } else {
-						printf("Sensor ignored probably due to Resource not present\n");
-					}
+                                                if(rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported) {
+                                                        ShowSensor(sessionid,resourceid,
+                                                                   &rdr.RdrTypeUnion.SensorRec);
+                                                } else {
+                                                        printf("Sensor ignored probably due to Resource not present\n");
+                                                }
+                                        }
 
                                         entryid = nextentryid;
                                 } else {

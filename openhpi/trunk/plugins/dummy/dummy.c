@@ -212,6 +212,7 @@ static SaHpiRdrT dummy_rdrs[] = {
                                          .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                          .ModifierUse = SAHPI_SMUU_NONE,
                                          .Percentage = SAHPI_FALSE,
+                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
                                          .Range = {
                                                   .Flags = SAHPI_SRF_MIN | 
                                                   SAHPI_SRF_MAX | 
@@ -301,13 +302,14 @@ static SaHpiRdrT dummy_rdrs[] = {
                                      .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                      .ModifierUse = SAHPI_SMUU_NONE,
                                      .Percentage = SAHPI_FALSE,
+                                     .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
                                      .Range = {
                                               .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                               .Max = {
                                                       .IsSupported = SAHPI_TRUE,
                                                       .Type = SAHPI_SENSOR_READING_TYPE_INT64,
                                                       .Value = {
-                                                               .SensorInt64 = 200
+                                                               .SensorInt64 = 100
                                                        },
                                               },
                                               .Min = {
@@ -423,24 +425,26 @@ static SaHpiRdrT dummy_rdrs[] = {
                              .EventCtrl = SAHPI_SEC_PER_EVENT,
                              .Events	= SAHPI_ES_UPPER_MINOR | SAHPI_ES_UPPER_MAJOR | SAHPI_ES_UPPER_CRIT,
                              .DataFormat = {
-                                     .BaseUnits = SAHPI_SU_DEGREES_C,
+                                     .BaseUnits = SAHPI_SU_DEGREES_K,
+                                     .IsSupported = SAHPI_TRUE,
                                      .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                      .ModifierUse = SAHPI_SMUU_NONE,
                                      .Percentage = SAHPI_FALSE,
+                                     .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
                                      .Range = {
                                               .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                               .Max = {
                                                       .IsSupported = SAHPI_TRUE,
                                                       .Type = SAHPI_SENSOR_READING_TYPE_INT64,
                                                       .Value = {
-                                                               .SensorInt64 = 200
+                                                               .SensorInt64 = 373
                                                        },
                                               },
                                               .Min = {
                                                       .IsSupported = SAHPI_TRUE,
                                                       .Type = SAHPI_SENSOR_READING_TYPE_INT64,
                                                       .Value = {
-                                                               .SensorInt64 = 0
+                                                               .SensorInt64 = 272
                                                        },
                                               }
                                       },
@@ -490,24 +494,25 @@ static SaHpiRdrT dummy_rdrs[] = {
                                  | SAHPI_ES_UPPER_MAJOR
                                  | SAHPI_ES_UPPER_CRIT,
                                  .DataFormat = {
-                                         .BaseUnits = SAHPI_SU_DEGREES_C,
+                                         .BaseUnits = SAHPI_SU_DEGREES_F,
                                          .ModifierUnits = SAHPI_SU_UNSPECIFIED,
                                          .ModifierUse = SAHPI_SMUU_NONE,
                                          .Percentage = SAHPI_FALSE,
+                                         .ReadingType = SAHPI_SENSOR_READING_TYPE_INT64,
                                          .Range = {
                                                   .Flags = SAHPI_SRF_MIN | SAHPI_SRF_MAX,
                                                   .Max = {
                                                           .IsSupported = SAHPI_TRUE,
                                                           .Type = SAHPI_SENSOR_READING_TYPE_INT64,
                                                           .Value = {
-                                                                   .SensorInt64 = 200
+                                                                   .SensorInt64 = 212
                                                            },
                                                   },
                                                   .Min = {
                                                           .IsSupported = SAHPI_TRUE,
                                                           .Type = SAHPI_SENSOR_READING_TYPE_INT64,
                                                           .Value = {
-                                                                   .SensorInt64 = 0
+                                                                   .SensorInt64 = 32
                                                            },
                                                   }
                                           },
@@ -690,9 +695,10 @@ static struct dummy_sensor {
             /*This is temp sensor on system board*/
             .reading = {
                     .IsSupported = SAHPI_TRUE,
-                    .Type = SAHPI_SENSOR_READING_TYPE_BUFFER, 
-                    .Value = { 
-                             .SensorBuffer = "8-e1.23 tics",
+                    .Type = SAHPI_SENSOR_READING_TYPE_INT64, 
+                    .Value = {
+                             .SensorInt64 = 180,
+//                             .SensorBuffer = "8-e1.23 tics",
                      },
             },
             .thresholds = {
@@ -764,7 +770,7 @@ static struct dummy_sensor {
                     .IsSupported = SAHPI_TRUE,
                     .Type = SAHPI_SENSOR_READING_TYPE_INT64,
                     .Value = {
-                             .SensorInt64 = 0xff
+                             .SensorInt64 = 0xff,
                      }
             },
             .thresholds = {
@@ -1206,8 +1212,8 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
                 dbg("We fell through");
         }
 
-	toggle++;
-	if( (toggle%3) == 0 ) {
+        toggle++;
+        if( (toggle%3) == 0 ) {
 		/* once initial reporting of events toggle between 	*/
 		/* removing and adding resource, removes resource 3	*/
 		/* since it has no rdr's to add back later		*/
@@ -1229,7 +1235,6 @@ static int dummy_get_event(void *hnd, struct oh_event *event, struct timeval *ti
 	}
 
 	return(-1);
-
 
 }
 
