@@ -2,7 +2,7 @@
 #
 #OPENHPI_LOCK_DEBUG=YES
 OPENHPI_DEBUG=YES
-OPENHPI_DEBUG_TRACE=YES
+#OPENHPI_DEBUG_TRACE=YES
 OPENHPI_UID_MAP=@abs_top_srcdir@/uid_map
 OPENHPI_CONF=@abs_top_srcdir@/examples/openhpi.conf
 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:@abs_top_builddir@/src/.libs:@abs_top_builddir@/utils/.libs
