@@ -28,62 +28,47 @@ int main(int argc, char **argv)
 	SaErrorT          err;
 	SaErrorT expected_err;
 
-	SaHpiResourceIdT  id;
+	SaHpiResourceIdT  id = 1;
         SaHpiSessionIdT sessionid;
 
-	SaHpiSensorNumT sid = 0;
+	SaHpiSensorNumT sid = 1;
 	SaHpiEventStateT state;
 	SaHpiSensorReadingT reading;
 			
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
 	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	
-	err = tsetup(&sessionid);
-	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
-		return -1;
+	struct oh_handler_state handle;
+	memset(&handle, 0, sizeof(struct oh_handler_state));
 
-	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
-	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
-		err = tcleanup(&sessionid);
-		return -1;
-
-	}
-
-	id = rptentry.ResourceId;			
 	/************************** 
-	 * Test 16 : Start of snmp_bc_get_sensor_eventstate()
+	 * Test: snmp_bc_get_sensor_eventstate()
+	 * NULL handle pointer
 	 **************************/
 	expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	err = snmp_bc_get_sensor_eventstate(NULL, id, sid, &reading, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 17 :
+	 * Test: NULL Reading pointer
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_get_sensor_eventstate((void *)h->hnd, id, sid, NULL, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	err = snmp_bc_get_sensor_eventstate(&handle, id, sid, NULL, &state);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 18 : 
+	 * Test: NULL State pointer 
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
-	err = snmp_bc_get_sensor_eventstate((void *)h->hnd, id, sid, &reading, NULL);
-	checkstatus(&err, &expected_err,  &testfail);
+	err = snmp_bc_get_sensor_eventstate(&handle, id, sid, &reading, NULL);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 19: 
+	 * Test: Multiple NULL pointers 
 	 * expected_err = SA_ERR_HPI_INVALID_PARAMS;                   
 	 **************************/
 	err = snmp_bc_get_sensor_eventstate(NULL , id, sid, NULL, NULL);
-	checkstatus(&err, &expected_err,  &testfail);
+	checkstatus(err, expected_err, testfail);
 	
 	/***************************
 	 * Cleanup after all tests

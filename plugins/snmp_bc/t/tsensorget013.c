@@ -30,72 +30,77 @@ int main(int argc, char **argv)
 
 	SaHpiResourceIdT  id;
         SaHpiSessionIdT sessionid;
-	 
-	SaHpiSensorNumT sid = 0;
+        SaHpiRptEntryT    rptentry;
+	SaHpiRdrT         rdr;
+	SaHpiSensorNumT   dd_sid = 0;
 	SaHpiEventStateT state;
 	SaHpiSensorReadingT reading;
 													    
 	/* *************************************	 	 
 	 * Find a resource with Sensor type rdr
 	 * ************************************* */
-        struct oh_handler l_handler;
-	struct oh_handler *h= &l_handler;
-        SaHpiRptEntryT rptentry;
-	
 	err = tsetup(&sessionid);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not open session for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		return -1;
 
 	}
-	err = tfind_resource(&sessionid, (SaHpiCapabilitiesT) SAHPI_CAPABILITY_SENSOR, h, &rptentry);
+	err = tfind_resource(&sessionid,SAHPI_CAPABILITY_SENSOR,SAHPI_FIRST_ENTRY, &rptentry, SAHPI_TRUE);
 	if (err != SA_OK) {
-		printf("Error! bc_sensor, can not setup test environment\n");
+		printf("Error! Can not find resources for test environment\n");
+		printf("      File=%s, Line=%d\n", __FILE__, __LINE__);
 		err = tcleanup(&sessionid);
 		return -1;
-
 	}
 
 	id = rptentry.ResourceId;
-	struct oh_handler_state *handle = (struct oh_handler_state *)h->hnd;
 	/************************** 
-	 * Test : 
+	 * Test: find a sensor with desired property
 	 **************************/
-	SaHpiRdrT *rdrptr;
-	sid = 0;
+	SaHpiEntryIdT entryid = SAHPI_FIRST_ENTRY;
+	SaHpiEntryIdT nextentryid;
+	SaHpiBoolT foundSensor = SAHPI_FALSE;			
 	do {
-		sid++,
-		rdrptr = oh_get_rdr_by_type(handle->rptcache, id, SAHPI_SENSOR_RDR, sid);
-		if (rdrptr != NULL) {
-			if (rdrptr->RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_TRUE) {
+		err = saHpiRdrGet(sessionid,id,entryid,&nextentryid, &rdr);
+		if (err == SA_OK)
+		{
+			if ((rdr.RdrType == SAHPI_SENSOR_RDR) &&
+				(rdr.RdrTypeUnion.SensorRec.DataFormat.IsSupported == SAHPI_TRUE))
+			{
+				foundSensor = SAHPI_TRUE;
 				break;
-			} else 
-				rdrptr = NULL;
+														
+			}
+			entryid = nextentryid;
 		}
-	} while ((rdrptr == NULL) && (sid < 128 ));
+	} while ((err == SA_OK) && (entryid != SAHPI_LAST_ENTRY)) ;
 
-	if (rdrptr == NULL) testfail = -1;
-
-	/************************** 
-	 * Test 13 
-	 **************************/
-	expected_err = SA_OK;                   
-	err = snmp_bc_get_sensor_reading((void *)h->hnd, id, sid, NULL, &state);
-	checkstatus(&err, &expected_err, &testfail);
+	if (!foundSensor) {
+		dbg("Did not find desired resource for test\n");
+		return(SA_OK);
+	} else {
+		dd_sid = rdr.RdrTypeUnion.SensorRec.Num; 
+	}	
 
 	/************************** 
-	 * Test 14 
+	 * Test : Read sensor with NULL Reading area. State only 
 	 **************************/
 	expected_err = SA_OK;                   
-	err = snmp_bc_get_sensor_reading((void *)h->hnd, id, sid, &reading, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorReadingGet(sessionid, id, dd_sid, NULL, &state);
+	checkstatus(err, expected_err, testfail);
 
 	/************************** 
-	 * Test 15:
+	 * Test:Read with NULL State area, Read Value only 
 	 **************************/
-	expected_err = SA_OK;                   
-	err = snmp_bc_get_sensor_reading((void *)h->hnd, id, sid, NULL, NULL);
-	checkstatus(&err, &expected_err, &testfail);
+	err = saHpiSensorReadingGet(sessionid, id, dd_sid, &reading, NULL);
+	checkstatus(err, expected_err, testfail);
+
+	/************************** 
+	 * Test: Both Reading and State are NULL. ie checking for sensor existance
+	 **************************/
+	err = saHpiSensorReadingGet(sessionid, id, dd_sid, NULL, NULL);
+	checkstatus(err, expected_err, testfail);
 	
 	/***************************
 	 * Cleanup after all tests
