@@ -930,7 +930,9 @@ SaErrorT SAHPI_API saHpiEventAdd (
 {
         SaHpiDomainIdT did;
         struct oh_event e;
-        SaErrorT error;
+        GArray *session_list = NULL;
+        SaErrorT error = SA_OK;
+        unsigned int i;
 
         if (!EvtEntry) return SA_ERR_HPI_INVALID_PARAMS;
 
@@ -941,7 +943,13 @@ SaErrorT SAHPI_API saHpiEventAdd (
         e.from = NULL;
         e.type = OH_ET_HPI;
         e.u.hpi_event.event = *EvtEntry;
-        error = oh_queue_session_event(SessionId, &e);
+
+        session_list = oh_list_sessions(did);
+        for (i = 0; i < session_list->len; i++) {
+                error = oh_queue_session_event(SessionId, &e);
+                if (error) break;
+        }
+        g_array_free(session_list, TRUE);
 
         return error;
 }
@@ -1261,21 +1269,19 @@ SaErrorT SAHPI_API saHpiSensorThresholdsSet (
         return rv;
 }
 
-/* Function: SaHpiSensorTypeGet */
-/* Core SAF_HPI function */
-/* Not mapped to plugin */
-/* Data in RDR */
 SaErrorT SAHPI_API saHpiSensorTypeGet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiSensorNumT SensorNum,
-                SAHPI_OUT SaHpiSensorTypeT *Type,
-                SAHPI_OUT SaHpiEventCategoryT *Category)
+        SAHPI_IN  SaHpiSessionIdT     SessionId,
+        SAHPI_IN  SaHpiResourceIdT    ResourceId,
+        SAHPI_IN  SaHpiSensorNumT     SensorNum,
+        SAHPI_OUT SaHpiSensorTypeT    *Type,
+        SAHPI_OUT SaHpiEventCategoryT *Category)
 {
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!Type || !Category) return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1283,36 +1289,57 @@ SaErrorT SAHPI_API saHpiSensorTypeGet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                dbg("Resource %d doesn't have sensors",ResourceId);
+                dbg("Resource %d doesn't have sensors in Domain %d",
+                    ResourceId, d->id);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_SENSOR_RDR, SensorNum);
 
         if (!rdr) {
-                dbg("No Sensor num %d found for Resource %d", SensorNum, ResourceId);
-                return SA_ERR_HPI_INVALID_REQUEST;
+                dbg("No Sensor num %d found for Resource %d in Domain %d",
+                    SensorNum, ResourceId, d->id);
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        if (!memcpy(Type, &(rdr->RdrTypeUnion.SensorRec.Type),
-                    sizeof(SaHpiSensorTypeT))) {
-                return SA_ERR_HPI_ERROR;
-        }
+        memcpy(Type,
+               &(rdr->RdrTypeUnion.SensorRec.Type),
+               sizeof(SaHpiSensorTypeT));
 
-        if (!memcpy(Category, &(rdr->RdrTypeUnion.SensorRec.Category),
-                    sizeof(SaHpiEventCategoryT))) {
-                return SA_ERR_HPI_ERROR;
-        }
+        memcpy(Category,
+               &(rdr->RdrTypeUnion.SensorRec.Category),
+               sizeof(SaHpiEventCategoryT));
 
+        oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
 }
 
+SaErrorT SAHPI_API saHpiSensorEnableGet (
+        SAHPI_IN  SaHpiSessionIdT  SessionId,
+        SAHPI_IN  SaHpiResourceIdT ResourceId,
+        SAHPI_IN  SaHpiSensorNumT  SensorNum,
+        SAHPI_OUT SaHpiBoolT       *SensorEnabled)
+{
+        return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
+SaErrorT SAHPI_API saHpiSensorEnableSet (
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN SaHpiSensorNumT  SensorNum,
+        SAHPI_IN SaHpiBoolT       SensorEnabled)
+{
+        return SA_ERR_HPI_UNSUPPORTED_API;
+}
+
 SaErrorT SAHPI_API saHpiSensorEventEnableGet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiSensorNumT SensorNum,
-                SAHPI_OUT SaHpiBoolT *SensorEventsEnabled)
+        SAHPI_IN  SaHpiSessionIdT  SessionId,
+        SAHPI_IN  SaHpiResourceIdT ResourceId,
+        SAHPI_IN  SaHpiSensorNumT  SensorNum,
+        SAHPI_OUT SaHpiBoolT       *SensorEventsEnabled)
 {
         SaErrorT rv;
         SaErrorT (*get_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
@@ -1324,13 +1351,17 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
+        if (!SensorEventsEnabled) return SA_ERR_HPI_INVALID_PARAMS;
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                dbg("Resource %d doesn't have sensors",ResourceId);
+                dbg("Resource %d doesn't have sensors in Domain %d",
+                    ResourceId, d->id);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -1339,19 +1370,21 @@ SaErrorT SAHPI_API saHpiSensorEventEnableGet (
         get_sensor_event_enables = h->abi->get_sensor_event_enables;
 
         if (!get_sensor_event_enables) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_sensor_event_enables(h->hnd, ResourceId, SensorNum, SensorEventsEnabled);
+        oh_release_domain(d); /* Unlock domain */
 
         return rv;
 }
 
 SaErrorT SAHPI_API saHpiSensorEventEnableSet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiSensorNumT SensorNum,
-                SAHPI_IN SaHpiBoolT SensorEventsEnabled)
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN SaHpiSensorNumT  SensorNum,
+        SAHPI_IN SaHpiBoolT       SensorEventsEnabled)
 {
         SaErrorT rv;
         SaErrorT (*set_sensor_event_enables)(void *hnd, SaHpiResourceIdT,
@@ -1368,7 +1401,9 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_SENSOR)) {
-                dbg("Resource %d doesn't have sensors",ResourceId);
+                dbg("Resource %d doesn't have sensors in Domain %d",
+                    ResourceId, d->id);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -1377,10 +1412,12 @@ SaErrorT SAHPI_API saHpiSensorEventEnableSet (
         set_sensor_event_enables = h->abi->set_sensor_event_enables;
 
         if (!set_sensor_event_enables) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_sensor_event_enables(h->hnd, ResourceId, SensorNum, SensorEventsEnabled);
+        oh_release_domain(d); /* Unlock domain */
 
         return rv;
 }
@@ -1415,15 +1452,17 @@ SaErrorT SAHPI_API saHpiSensorEventMasksSet (
  ********************************************************************/
 
 SaErrorT SAHPI_API saHpiControlTypeGet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiCtrlNumT CtrlNum,
-                SAHPI_OUT SaHpiCtrlTypeT *Type)
+        SAHPI_IN  SaHpiSessionIdT  SessionId,
+        SAHPI_IN  SaHpiResourceIdT ResourceId,
+        SAHPI_IN  SaHpiCtrlNumT    CtrlNum,
+        SAHPI_OUT SaHpiCtrlTypeT   *Type)
 {
         SaHpiRptEntryT *res;
         SaHpiRdrT *rdr;
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
+
+        if (!Type) return SA_ERR_HPI_INVALID_PARAMS;
 
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
@@ -1432,30 +1471,33 @@ SaErrorT SAHPI_API saHpiControlTypeGet (
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
                 dbg("Resource %d doesn't have .ResourceCapabilities flag:"
-                    " SAHPI_CAPABILITY_CONTROL set ",ResourceId);
+                    " SAHPI_CAPABILITY_CONTROL set in Domain %d",
+                    ResourceId,d->id);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
         rdr = oh_get_rdr_by_type(&(d->rpt), ResourceId, SAHPI_CTRL_RDR, CtrlNum);
         if (!rdr) {
-                return SA_ERR_HPI_INVALID_REQUEST;
+                oh_release_domain(d); /* Unlock domain */
+                return SA_ERR_HPI_NOT_PRESENT;
         }
 
-        if (!memcpy(Type, &(rdr->RdrTypeUnion.CtrlRec.Type),
-                    sizeof(SaHpiCtrlTypeT))) {
-                return SA_ERR_HPI_ERROR;
-        }
+        memcpy(Type,
+               &(rdr->RdrTypeUnion.CtrlRec.Type),
+               sizeof(SaHpiCtrlTypeT));
 
+        oh_release_domain(d); /* Unlock domain */
 
         return SA_OK;
 }
 
 SaErrorT SAHPI_API saHpiControlGet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiCtrlNumT CtrlNum,
-                SAHPI_OUT SaHpiCtrlModeT *CtrlMode,
-                SAHPI_INOUT SaHpiCtrlStateT *CtrlState)
+        SAHPI_IN    SaHpiSessionIdT  SessionId,
+        SAHPI_IN    SaHpiResourceIdT ResourceId,
+        SAHPI_IN    SaHpiCtrlNumT    CtrlNum,
+        SAHPI_OUT   SaHpiCtrlModeT   *CtrlMode,
+        SAHPI_INOUT SaHpiCtrlStateT  *CtrlState)
 {
         SaErrorT rv;
         SaErrorT (*get_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT,
@@ -1471,7 +1513,9 @@ SaErrorT SAHPI_API saHpiControlGet (
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-                dbg("Resource %d doesn't have controls",ResourceId);
+                dbg("Resource %d doesn't have controls in Domain %d",
+                    ResourceId, d->id);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -1479,20 +1523,22 @@ SaErrorT SAHPI_API saHpiControlGet (
 
         get_func = h->abi->get_control_state;
         if (!get_func) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = get_func(h->hnd, ResourceId, CtrlNum, CtrlMode, CtrlState);
+        oh_release_domain(d); /* Unlock domain */
 
         return rv;
 }
 
 SaErrorT SAHPI_API saHpiControlSet (
-                SAHPI_IN SaHpiSessionIdT SessionId,
-                SAHPI_IN SaHpiResourceIdT ResourceId,
-                SAHPI_IN SaHpiCtrlNumT CtrlNum,
-                SAHPI_IN SaHpiCtrlModeT CtrlMode,
-                SAHPI_IN SaHpiCtrlStateT *CtrlState)
+        SAHPI_IN SaHpiSessionIdT  SessionId,
+        SAHPI_IN SaHpiResourceIdT ResourceId,
+        SAHPI_IN SaHpiCtrlNumT    CtrlNum,
+        SAHPI_IN SaHpiCtrlModeT   CtrlMode,
+        SAHPI_IN SaHpiCtrlStateT  *CtrlState)
 {
         SaErrorT rv;
         SaErrorT (*set_func)(void *, SaHpiResourceIdT, SaHpiCtrlNumT, SaHpiCtrlModeT, SaHpiCtrlStateT *);
@@ -1502,13 +1548,25 @@ SaErrorT SAHPI_API saHpiControlSet (
         SaHpiDomainIdT did;
         struct oh_domain *d = NULL;
 
+        if (!oh_lookup_ctrlmode(CtrlMode) ||
+            (CtrlMode != SAHPI_CTRL_MODE_AUTO && !CtrlState) ||
+            (CtrlState && CtrlState->Type == SAHPI_CTRL_TYPE_DIGITAL &&
+             !oh_lookup_ctrlstatedigital(CtrlState->StateUnion.Digital)) ||
+            (CtrlState && CtrlState->Type == SAHPI_CTRL_TYPE_STREAM &&
+             CtrlState->StateUnion.Stream.StreamLength > SAHPI_CTRL_MAX_STREAM_LENGTH))
+        {
+                return SA_ERR_HPI_INVALID_PARAMS;
+        }
+
         OH_CHECK_INIT_STATE(SessionId);
         OH_GET_DID(SessionId, did);
         OH_GET_DOMAIN(did, d); /* Lock domain */
         OH_RESOURCE_GET(d, ResourceId, res);
 
         if(!(res->ResourceCapabilities & SAHPI_CAPABILITY_CONTROL)) {
-                dbg("Resource %d doesn't have controls",ResourceId);
+                dbg("Resource %d doesn't have controls in Domain %d",
+                    ResourceId, d->id);
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_CAPABILITY;
         }
 
@@ -1516,10 +1574,12 @@ SaErrorT SAHPI_API saHpiControlSet (
 
         set_func = h->abi->set_control_state;
         if (!set_func) {
+                oh_release_domain(d); /* Unlock domain */
                 return SA_ERR_HPI_INVALID_CMD;
         }
 
         rv = set_func(h->hnd, ResourceId, CtrlNum, CtrlMode, CtrlState);
+        oh_release_domain(d); /* Unlock domain */
 
         return rv;
 }
