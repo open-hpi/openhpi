@@ -79,7 +79,7 @@ static void sensor_reading(ipmi_sensor_t		*sensor,
 
 	if (err) {
 		dbg("sensor reading error");
-		p->rvalue = SA_ERR_HPI_ERROR;
+		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 		return;
 	}
 
@@ -115,7 +115,7 @@ static void get_sensor_reading(ipmi_sensor_t *sensor, void *cb_data)
 	rv = ipmi_reading_get(sensor, sensor_reading, reading_data);
 	if (rv) {
 		reading_data->done = 1;
-		reading_data->rvalue = SA_ERR_HPI_ERROR;
+		reading_data->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 		dbg("Unable to get sensor reading: %s\n", strerror( rv ) );
 		return;
 	}
@@ -142,8 +142,10 @@ int ohoi_get_sensor_reading(ipmi_sensor_id_t sensor_id,
 
 	rv = ohoi_loop(&reading_data.done, ipmi_handler);
 
-	if (rv || reading_data.rvalue)
-		return SA_ERR_HPI_ERROR;
+	if (rv)
+		return rv;
+	if (reading_data.rvalue)
+		return reading_data.rvalue;
 
 	*reading = reading_data.reading;
 	*ev_state = reading_data.ev_state;
@@ -178,7 +180,7 @@ static void thresholds_read(ipmi_sensor_t	*sensor,
 	p->thres_done = 1;
 
 	if (err) {
-		p->rvalue = SA_ERR_HPI_ERROR;
+		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 		dbg("sensor thresholds reading error");
 		return;
 	}
@@ -220,8 +222,8 @@ static void hysteresis_read(ipmi_sensor_t	*sensor,
 	p->hyster_done = 1;
 
 	if (err) {
+		p->rvalue = SA_ERR_HPI_INTERNAL_ERROR;
 		dbg("sensor hysteresis reading error");
-		p->rvalue = SA_ERR_HPI_ERROR;
 		return;		
 	}
 	
@@ -566,38 +568,13 @@ int ohoi_set_sensor_thresholds(ipmi_sensor_id_t		        sensor_id,
                                &thres_data, 5, ipmi_handler);
 }
 
-#if 0
-static void get_sensor_enable(ipmi_sensor_t *sensor,
-			      void          *cb_data)
-{
-	SaHpiBoolT   *enable  = cb_data;
-	*enable = ipmi_sensor_get_ignore_if_no_entity(sensor);
-}
-
-int ohoi_get_sensor_enable(ipmi_sensor_id_t sensor_id,
-			   SaHpiBoolT   *enable,
-			   void *cb_data)
-{	
-	SaErrorT rv;
-
-        rv = ipmi_sensor_pointer_cb(sensor_id,
-				    get_sensor_enable,
-		  		    enable);
-	if (rv) {
-		dbg("Unable to convert sensor_id to pointer");
-                return SA_ERR_HPI_INVALID_CMD;
-        }
-	return SA_OK;
-}
-#endif
-
 static void set_sensor_enable(ipmi_sensor_t *sensor,
 			      void          *cb_data)
 {
 	SaHpiBoolT *enable = cb_data;
 	ipmi_sensor_set_ignore_if_no_entity(sensor, *enable);
 }
-					
+
 int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   SaHpiBoolT   enable,
 			   void *cb_data)
@@ -721,20 +698,22 @@ static void set_sensor_event_enable_masks(ipmi_sensor_t      *sensor,
 	}
 }
 
-int ohoi_get_sensor_event_enable(struct ohoi_sensor_info  *sensor_info,
-				  SaHpiBoolT   *enable,
-				  void *cb_data)
+
+int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
+				       SaHpiBoolT   *enable,
+				       SaHpiEventStateT  *assert,
+				       SaHpiEventStateT  *deassert,
+				       void *cb_data)
 {
+        int rv;
 	struct ohoi_handler *ipmi_handler = cb_data;
 	struct ohoi_sensor_event_enable_masks enable_data;
-        int rv;
         
 	memset(&enable_data, 0, sizeof(enable_data));
         
-        rv = ipmi_sensor_pointer_cb(sensor_info->sensor_id,
+        rv = ipmi_sensor_pointer_cb(sensor_id,
 				    get_sensor_event_enable_masks,
 				    &enable_data);
-
         if (rv) {
 		dbg("Unable to convert sensor_id to pointer");
                 return SA_ERR_HPI_INVALID_CMD;
@@ -744,36 +723,33 @@ int ohoi_get_sensor_event_enable(struct ohoi_sensor_info  *sensor_info,
 
 	if (rv || enable_data.rvalue)
 		return SA_ERR_HPI_INVALID_CMD;
-	
 
-
-	sensor_info->enable = enable_data.enable;
-	sensor_info->assert = enable_data.assert;
-	sensor_info->deassert = enable_data.deassert;
-	
-	if(enable)
-		*enable = enable_data.enable;
+	*enable = enable_data.enable;
+	*assert = enable_data.assert;
+	*deassert = enable_data.deassert;
 
 	return SA_OK;
+
 }
 
-
-int ohoi_set_sensor_event_enable(struct ohoi_sensor_info *sensor_info,
-                                 SaHpiBoolT  enable,
-				 void *cb_data)
-
+int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
+			               SaHpiBoolT enable,
+			 	       SaHpiEventStateT  assert,
+				       SaHpiEventStateT  deassert,
+				       void *cb_data)
 {
+
+        int rv;
 	struct ohoi_handler *ipmi_handler = cb_data;
 	struct ohoi_sensor_event_enable_masks enable_data;
-        int rv;
 
 
 	memset(&enable_data, 0, sizeof(enable_data));
 	enable_data.enable = enable;
-	enable_data.assert = sensor_info->assert;
-	enable_data.deassert = sensor_info->deassert;
+	enable_data.assert = assert;
+	enable_data.deassert = deassert;
 
-        rv = ipmi_sensor_pointer_cb(sensor_info->sensor_id,
+        rv = ipmi_sensor_pointer_cb(sensor_id,
 				    set_sensor_event_enable_masks,
 		  		    &enable_data);
 	if (rv) {
@@ -785,80 +761,6 @@ int ohoi_set_sensor_event_enable(struct ohoi_sensor_info *sensor_info,
 
 	if (rv || enable_data.rvalue)
 		return SA_ERR_HPI_INTERNAL_ERROR;
-
-	sensor_info->enable = enable;
-
-	return SA_OK;
-}
-
-int ohoi_get_sensor_event_masks(struct ohoi_sensor_info *sensor_info,
-			 	SaHpiEventStateT  *assert,
-				SaHpiEventStateT  *deassert,
-				void *cb_data)
-{
-        int rv;
-	struct ohoi_handler *ipmi_handler = cb_data;
-	struct ohoi_sensor_event_enable_masks  masks_data;
-
-	memset(&masks_data, 0, sizeof(masks_data));
-
-        rv = ipmi_sensor_pointer_cb(sensor_info->sensor_id,
-				    get_sensor_event_enable_masks,
-		  		    &masks_data);
-	if (rv) {
-		dbg("Unable to convert sensor_id to pointer");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-       
-        rv = ohoi_loop(&masks_data.done, ipmi_handler);
-
-	if (rv)
-		return SA_ERR_HPI_INTERNAL_ERROR;
-	if (masks_data.rvalue)
-		return SA_ERR_HPI_INTERNAL_ERROR;
-
-	sensor_info->enable = masks_data.enable;
-	sensor_info->assert = masks_data.assert;
-	sensor_info->deassert = masks_data.deassert;
-	
-	*assert = masks_data.assert;
-	*deassert = masks_data.deassert;
-
-	return SA_OK;
-}
-
-int ohoi_set_sensor_event_masks(struct ohoi_sensor_info *sensor_info,
-			 	SaHpiEventStateT  assert,
-				SaHpiEventStateT  deassert,
-				void *cb_data)
-{
-        int rv;
-	struct ohoi_handler *ipmi_handler = cb_data;
-	struct ohoi_sensor_event_enable_masks  masks_data;
-
-	memset(&masks_data, 0, sizeof(masks_data));
-	masks_data.enable = sensor_info->enable;
-	masks_data.assert = assert;
-	masks_data.deassert = deassert;
-
-        rv = ipmi_sensor_pointer_cb(sensor_info->sensor_id,
-				    set_sensor_event_enable_masks,
-		  		    &masks_data);
-	if (rv) {
-		dbg("Unable to convert sensor_id to pointer");
-                return SA_ERR_HPI_INTERNAL_ERROR;
-        }
-
-        rv = ohoi_loop(&masks_data.done, ipmi_handler);
-
-	if (rv)
-		return SA_ERR_HPI_NO_RESPONSE;
-
-	if (masks_data.rvalue)
-		return SA_ERR_HPI_INTERNAL_ERROR;
-
-	sensor_info->assert = assert;
-	sensor_info->deassert = deassert;
 
 	return SA_OK;
 }

@@ -119,23 +119,17 @@ int ohoi_set_sensor_enable(ipmi_sensor_id_t sensor_id,
 			   SaHpiBoolT   enable,
 			   void *cb_data);
 
-int ohoi_get_sensor_event_enable(struct ohoi_sensor_info *sensor_info,
-				 SaHpiBoolT   *enable,
-				 void *cb_data);
+int ohoi_get_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
+				       SaHpiBoolT   *enable,
+				       SaHpiEventStateT  *assert,
+				       SaHpiEventStateT  *deassert,
+				       void *cb_data);
 
-int ohoi_set_sensor_event_enable(struct ohoi_sensor_info *sensor_info,
-			         SaHpiBoolT enable,
-				 void *cb_data);
-
-int ohoi_get_sensor_event_masks(struct ohoi_sensor_info *sensor_info,
-			 	SaHpiEventStateT  *assert,
-				SaHpiEventStateT  *deassert,
-				void *cb_data);
-
-int ohoi_set_sensor_event_masks(struct ohoi_sensor_info *sensor_info,
-			 	SaHpiEventStateT  assert,
-				SaHpiEventStateT  deassert,
-				void *cb_data);
+int ohoi_set_sensor_event_enable_masks(ipmi_sensor_id_t sensor_id,
+			               SaHpiBoolT enable,
+			 	       SaHpiEventStateT  assert,
+				       SaHpiEventStateT  deassert,
+				       void *cb_data);
 
 void ohoi_get_sel_time(ipmi_mcid_t mc_id, SaHpiTimeT *time, void *cb_data);
 void ohoi_set_sel_time(ipmi_mcid_t mc_id, const struct timeval *time, void *cb_data);
