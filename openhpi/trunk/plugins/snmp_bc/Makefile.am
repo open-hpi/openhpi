@@ -19,15 +19,18 @@ MOSTLYCLEANFILES = @TEST_CLEAN@ $(GENERATED_CODE)
 SNMPUTILSDIR    = $(top_srcdir)/$(SNMPDIR)
 SNMPUTILBDIR    = $(top_builddir)/$(SNMPDIR)
 
-SUBDIRS 		= t
+SUBDIRS		= t
 
-INCLUDES		= -I$(top_srcdir)/include -I$(top_srcdir)/snmp  -I$(top_srcdir)/utils -I$(SNMPUTILSDIR)
+INCLUDES	= -I$(top_srcdir)/include -I$(top_srcdir)/snmp  -I$(top_srcdir)/utils -I$(SNMPUTILSDIR)
 
-AM_CFLAGS		= @CFLAGS@ @SNMPFLAGS@
+AM_CFLAGS	= @CFLAGS@ @SNMPFLAGS@
 
 pkglib_LTLIBRARIES	= libsnmp_bc.la
 
-EXTRA_DIST		=	snmp_bc.h \
+EXTRA_DIST		= \
+				event.xml \
+				event_rsa.xml \
+				snmp_bc.h \
 				snmp_bc_control.h \
 	     			snmp_bc_discover.h \
 				snmp_bc_errorlog.h \
@@ -42,8 +45,6 @@ EXTRA_DIST		=	snmp_bc.h \
 				snmp_bc_time.h \
 				snmp_bc_watchdog.h \
 				snmp_bc_xml2event.h \
-				event.xml \
-				event_rsa.xml \
 				sim_init.h
 
 # Generated files must be listed first
@@ -51,21 +52,20 @@ libsnmp_bc_la_SOURCES	= \
 				$(GENERATED_CODE) \
 				sim_init.c \
 				snmp_bc.c \
+				snmp_bc_control.c \
 	     			snmp_bc_discover.c \
 				snmp_bc_discover_bc.c \
 				snmp_bc_discover_rsa.c \
 				snmp_bc_event.c \
+				snmp_bc_hotswap.c \
 				snmp_bc_inventory.c \
                                 snmp_bc_resources.c \
 	     			snmp_bc_sel.c \
+				snmp_bc_sensor.c \
 				snmp_bc_session.c \
 	     			snmp_bc_time.c \
-				snmp_bc_control.c \
-                                snmp_bc_xml2event.c \
-				snmp_bc_sensor.c \
 				snmp_bc_watchdog.c \
-				snmp_bc_hotswap.c  \
-				stubs.c
+                                snmp_bc_xml2event.c
 
 libsnmp_bc_la_LIBADD	= -luuid @SNMPLIBS@ $(SNMPUTILBDIR)/libopenhpi_snmp.la
 libsnmp_bc_la_LDFLAGS	= -avoid-version

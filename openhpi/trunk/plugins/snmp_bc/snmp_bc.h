@@ -17,12 +17,10 @@
 #ifndef __SNMP_BC_H
 #define __SNMP_BC_H
 
-#define MAX_RETRY_ATTEMPTED  5
+#define SNMP_BC_MAX_SNMP_RETRY_ATTEMPTED  5
 
-/**
- * This handle is unique per instance of this plugin. 
- * SNMP session data is stored in the handle along with config file data.
- **/
+/* This handle is unique per instance of this plugin. 
+ * SNMP session data is stored in the handle along with config file data. */
 struct snmp_bc_hnd {
         struct snmp_session session;
         struct snmp_session *ss; 	/* SNMP Session pointer */
@@ -41,6 +39,4 @@ SaErrorT snmp_bc_snmp_get(struct snmp_bc_hnd *custom_handle,
 SaErrorT snmp_bc_snmp_set(struct snmp_bc_hnd *custom_handle,
                           char *objid,
                           struct snmp_value value);
-
-
 #endif
